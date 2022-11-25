@@ -76,7 +76,8 @@ public class ThirdFilePrepareService {
     private final HostService hostService;
     private final LogService logService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    private final Map<Long, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
+    // 记录第三方文件准备任务信息，用于在需要时查找并终止任务
+    private final Map<String, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
     public ThirdFilePrepareService(ResultHandleManager resultHandleManager,
@@ -117,8 +118,8 @@ public class ThirdFilePrepareService {
     /**
      * 将任务信息设置到步骤的文件源信息及统计数据中去
      *
-     * @param batchTaskInfoDTO
-     * @param thirdFileSourceList
+     * @param batchTaskInfoDTO    文件源批量任务信息
+     * @param thirdFileSourceList 第三方文件源列表
      */
     private void setBatchTaskInfoIntoThirdFileSource(BatchTaskInfoDTO batchTaskInfoDTO,
                                                      List<FileSourceDTO> thirdFileSourceList) {
@@ -222,14 +223,14 @@ public class ThirdFilePrepareService {
                     stepInstance.getBatch(), null, null));
             return null;
         }
-        log.debug("Start FileSourceBatchTask: {}", fileSourceTaskList);
+        log.debug("[{}]: Start FileSourceBatchTask: {}", stepInstance.getUniqueKey(), fileSourceTaskList);
         BatchTaskInfoDTO batchTaskInfoDTO = startFileSourceDownloadTask(stepInstance.getOperator(),
             stepInstance.getAppId(), stepInstance.getId(), stepInstance.getExecuteCount(), fileSourceTaskList);
         setBatchTaskInfoIntoThirdFileSource(batchTaskInfoDTO, thirdFileSourceList);
-        log.debug("fileSourceList={}", fileSourceList);
+        log.debug("[{}]: fileSourceList={}", stepInstance.getUniqueKey(), fileSourceList);
         log.info(
-            "stepInstanceId={},batchTaskId:{},taskInfoList={}",
-            stepInstance.getId(),
+            "[{}]: fileSourceDownloadTask started, batchTaskId:{},taskInfoList={}",
+            stepInstance.getUniqueKey(),
             batchTaskInfoDTO.getBatchTaskId(),
             batchTaskInfoDTO.getTaskInfoList()
         );
@@ -251,12 +252,12 @@ public class ThirdFilePrepareService {
             false,
             resultHandler
         );
-        taskMap.put(stepInstance.getId(), task);
+        taskMap.put(stepInstance.getUniqueKey(), task);
         return task;
     }
 
-    public void stopPrepareThirdFileAsync(long stepInstanceId) {
-        ThirdFilePrepareTask task = taskMap.get(stepInstanceId);
+    public void stopPrepareThirdFileAsync(StepInstanceDTO stepInstance) {
+        ThirdFilePrepareTask task = taskMap.get(stepInstance.getUniqueKey());
         if (task != null) {
             task.stopThirdFilePulling();
         }
@@ -306,7 +307,7 @@ public class ThirdFilePrepareService {
                 fileSourceList,
                 batchTaskId,
                 isForRetry,
-                new RecordableThirdFilePrepareTaskResultHandler(stepInstance.getId(), resultHandler)
+                new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler)
             );
         batchResultHandleTask.initDependentService(fileSourceTaskResource, taskInstanceService, accountService,
             hostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogDAO);
@@ -314,7 +315,9 @@ public class ThirdFilePrepareService {
         return batchResultHandleTask;
     }
 
-    private BatchTaskInfoDTO startFileSourceDownloadTask(String username, Long appId, Long stepInstanceId,
+    private BatchTaskInfoDTO startFileSourceDownloadTask(String username,
+                                                         Long appId,
+                                                         Long stepInstanceId,
                                                          Integer executeCount,
                                                          List<FileSourceTaskContent> fileSourceTaskList) {
         FileSourceBatchDownloadTaskReq req = new FileSourceBatchDownloadTaskReq();
@@ -324,42 +327,43 @@ public class ThirdFilePrepareService {
         req.setFileSourceTaskList(fileSourceTaskList);
         InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username,
             req);
-        log.debug("resp={}", resp);
         if (resp.isSuccess()) {
+            log.debug("startFileSourceBatchDownloadTask, req={}, resp={}", req, resp);
             return resp.getData();
         } else {
+            log.warn("Fail to startFileSourceBatchDownloadTask, req={}, resp={}", req, resp);
             throw new InternalException(resp.getErrorMsg(), resp.getCode());
         }
     }
 
     class RecordableThirdFilePrepareTaskResultHandler implements ThirdFilePrepareTaskResultHandler {
 
-        long stepInstanceId;
+        StepInstanceDTO stepInstance;
         ThirdFilePrepareTaskResultHandler resultHandler;
 
         public RecordableThirdFilePrepareTaskResultHandler(
-            long stepInstanceId,
+            StepInstanceDTO stepInstance,
             ThirdFilePrepareTaskResultHandler resultHandler
         ) {
-            this.stepInstanceId = stepInstanceId;
+            this.stepInstance = stepInstance;
             this.resultHandler = resultHandler;
         }
 
         @Override
         public void onSuccess(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onSuccess(taskContext);
         }
 
         @Override
         public void onStopped(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onStopped(taskContext);
         }
 
         @Override
         public void onFailed(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onFailed(taskContext);
         }
     }

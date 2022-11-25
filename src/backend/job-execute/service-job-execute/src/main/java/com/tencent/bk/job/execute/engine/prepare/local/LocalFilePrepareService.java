@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -54,7 +55,7 @@ public class LocalFilePrepareService {
     private final AgentService agentService;
     private final TaskInstanceService taskInstanceService;
     private final ArtifactoryClient artifactoryClient;
-    private final Map<Long, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
+    private final Map<String, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
     private final ThreadPoolExecutor localFilePrepareExecutor;
 
     @Autowired
@@ -75,16 +76,16 @@ public class LocalFilePrepareService {
     }
 
     public void stopPrepareLocalFilesAsync(
-        long stepInstanceId
+        StepInstanceDTO stepInstance
     ) {
-        ArtifactoryLocalFilePrepareTask task = taskMap.get(stepInstanceId);
+        ArtifactoryLocalFilePrepareTask task = taskMap.get(stepInstance.getUniqueKey());
         if (task != null) {
             task.stop();
         }
     }
 
     public void prepareLocalFilesAsync(
-        long stepInstanceId,
+        StepInstanceDTO stepInstance,
         List<FileSourceDTO> fileSourceList,
         LocalFilePrepareTaskResultHandler resultHandler
     ) {
@@ -101,19 +102,19 @@ public class LocalFilePrepareService {
             }
         });
         // 更新本地文件任务内容
-        taskInstanceService.updateResolvedSourceFile(stepInstanceId, fileSourceList);
+        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         ArtifactoryLocalFilePrepareTask task = new ArtifactoryLocalFilePrepareTask(
-            stepInstanceId,
+            stepInstance,
             false,
             fileSourceList,
-            new RecordableLocalFilePrepareTaskResultHandler(stepInstanceId, resultHandler),
+            new RecordableLocalFilePrepareTaskResultHandler(stepInstance, resultHandler),
             artifactoryClient,
             artifactoryConfig.getArtifactoryJobProject(),
             localFileConfigForExecute.getLocalUploadRepo(),
             storageSystemConfig.getJobStorageRootPath(),
             localFilePrepareExecutor
         );
-        taskMap.put(stepInstanceId, task);
+        taskMap.put(stepInstance.getUniqueKey(), task);
         task.execute();
     }
 
@@ -123,32 +124,32 @@ public class LocalFilePrepareService {
 
     class RecordableLocalFilePrepareTaskResultHandler implements LocalFilePrepareTaskResultHandler {
 
-        long stepInstanceId;
+        StepInstanceDTO stepInstance;
         LocalFilePrepareTaskResultHandler resultHandler;
 
         RecordableLocalFilePrepareTaskResultHandler(
-            long stepInstanceId,
+            StepInstanceDTO stepInstance,
             LocalFilePrepareTaskResultHandler resultHandler
         ) {
-            this.stepInstanceId = stepInstanceId;
+            this.stepInstance = stepInstance;
             this.resultHandler = resultHandler;
         }
 
         @Override
         public void onSuccess(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onSuccess(taskContext);
         }
 
         @Override
         public void onStopped(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onStopped(taskContext);
         }
 
         @Override
         public void onFailed(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onFailed(taskContext);
         }
     }
