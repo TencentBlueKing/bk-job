@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.inner;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -102,5 +103,18 @@ public class ServiceHostDTO {
             .ipv6(host.getIpv6())
             .agentId(host.getAgentId())
             .build();
+    }
+
+    public static HostDTO toHostDTO(ServiceHostDTO serviceHostDTO) {
+        if (serviceHostDTO == null) {
+            return null;
+        }
+        HostDTO hostDTO = new HostDTO();
+        hostDTO.setHostId(serviceHostDTO.getHostId());
+        hostDTO.setAgentId(serviceHostDTO.getAgentId());
+        hostDTO.setIp(serviceHostDTO.getIp());
+        hostDTO.setIpv6(serviceHostDTO.getIpv6());
+        hostDTO.setBkCloudId(serviceHostDTO.getCloudAreaId());
+        return hostDTO;
     }
 }

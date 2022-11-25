@@ -22,29 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.manage.model.inner.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
- * cmdb 查询规则
+ * 根据云区域ID与Ipv6地址获取主机请求
  */
 @Getter
 @Setter
 @ToString
-public class BaseRuleDTO implements IRule {
-    /**
-     * 字段名
-     */
-    private String field;
-    /**
-     * 操作符,可选值 equal,not_equal,in,not_in,less,less_or_equal,greater,greater_or_equal,between,not_between,contains
-     */
-    private String operator;
-    /**
-     * 操作值，不同的operator对应不同的value格式
-     */
-    private Object value;
+@NoArgsConstructor
+@AllArgsConstructor
+public class ServiceGetHostsByCloudIpv6Req {
+    Long cloudAreaId;
+    String ipv6;
 }

@@ -44,6 +44,7 @@ public class FileSourceTaskStatusDTO {
     Byte status;
     String message;
     Long cloudId;
+    String ipProtocol;
     String ip;
     Boolean fileCleared;
     /**

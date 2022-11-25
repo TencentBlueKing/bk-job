@@ -29,8 +29,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
-import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
@@ -50,6 +50,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -131,6 +132,26 @@ public class HostServiceImpl implements HostService {
             new ServiceBatchGetHostsReq(Collections.singletonList(host))).getData();
         if (CollectionUtils.isEmpty(hosts)) {
             return null;
+        }
+        return hosts.get(0);
+    }
+
+    @Override
+    public ServiceHostDTO getHostByCloudIpv6(long cloudAreaId, String ipv6) {
+        List<ServiceHostDTO> hosts = hostResourceClient.getHostsByCloudIpv6(
+            new ServiceGetHostsByCloudIpv6Req(cloudAreaId, ipv6)
+        ).getData();
+        if (CollectionUtils.isEmpty(hosts)) {
+            log.warn("Cannot find host by (cloudAreaId={}, ipv6={})", cloudAreaId, ipv6);
+            return null;
+        } else if (hosts.size() > 1) {
+            log.warn(
+                "Found {} host by (cloudAreaId={}, ipv6={}), use first one, hosts={}",
+                hosts.size(),
+                cloudAreaId,
+                ipv6,
+                hosts
+            );
         }
         return hosts.get(0);
     }

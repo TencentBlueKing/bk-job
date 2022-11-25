@@ -198,6 +198,16 @@ public interface HostService {
     List<ApplicationHostDTO> listHosts(Collection<HostDTO> hosts);
 
     /**
+     * 根据云区域ID与IPv6地址查询主机。如果在同步的主机中不存在，那么从cmdb查询
+     * ipv6字段精确匹配目标主机多个Ipv6地址中的其中一个
+     *
+     * @param cloudAreaId 云区域ID
+     * @param ipv6        IPv6地址
+     * @return 主机
+     */
+    List<ApplicationHostDTO> listHostsByCloudIpv6(Long cloudAreaId, String ipv6);
+
+    /**
      * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
      *
      * @param hostIds 主机ID列表

@@ -26,9 +26,10 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupDTO;
-import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
@@ -52,6 +53,7 @@ import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
@@ -76,7 +78,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -98,7 +99,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class HostServiceImpl implements HostService {
-    private final DSLContext dslContext;
+
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
     private final HostTopoDAO hostTopoDAO;
@@ -107,11 +108,11 @@ public class HostServiceImpl implements HostService {
     private final AgentStatusService agentStatusService;
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
+    private final BizCmdbClient bizCmdbClient;
     private final MessageI18nService i18nService;
 
     @Autowired
-    public HostServiceImpl(DSLContext dslContext,
-                           ApplicationHostDAO applicationHostDAO,
+    public HostServiceImpl(ApplicationHostDAO applicationHostDAO,
                            ApplicationService applicationService,
                            HostTopoDAO hostTopoDAO,
                            TopologyHelper topologyHelper,
@@ -119,8 +120,8 @@ public class HostServiceImpl implements HostService {
                            AgentStatusService agentStatusService,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
+                           BizCmdbClient bizCmdbClient,
                            MessageI18nService i18nService) {
-        this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
         this.hostTopoDAO = hostTopoDAO;
@@ -129,6 +130,7 @@ public class HostServiceImpl implements HostService {
         this.agentStatusService = agentStatusService;
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
+        this.bizCmdbClient = bizCmdbClient;
         this.i18nService = i18nService;
     }
 
@@ -1290,6 +1292,38 @@ public class HostServiceImpl implements HostService {
             return Collections.emptyList();
         }
         return hostResult.getRight();
+    }
+
+    public List<ApplicationHostDTO> listHostsByCloudIpv6(Long cloudAreaId, String ipv6) {
+        List<ApplicationHostDTO> hosts = applicationHostDAO.listHostInfoByCloudIpv6(cloudAreaId, ipv6);
+        // 多个Ipv6中的具体一个与查询条件Ipv6相等才有效
+        hosts = filterHostsByCloudIpv6(hosts, cloudAreaId, ipv6);
+        if (CollectionUtils.isEmpty(hosts)) {
+            hosts = bizCmdbClient.listHostsByCloudIpv6s(Collections.singletonList(cloudAreaId + IpUtils.COLON + ipv6));
+            hosts = filterHostsByCloudIpv6(hosts, cloudAreaId, ipv6);
+        }
+        return hosts;
+    }
+
+    /**
+     * 筛选出与指定云区域ID、Ipv6地址匹配的主机
+     * 指定的Ipv6地址必须与主机多个Ipv6地址的其中一个精确匹配
+     *
+     * @param hosts       筛选前的主机列表
+     * @param cloudAreaId 云区域ID
+     * @param ipv6        Ipv6地址
+     * @return 筛选后的主机列表
+     */
+    private List<ApplicationHostDTO> filterHostsByCloudIpv6(List<ApplicationHostDTO> hosts,
+                                                            Long cloudAreaId,
+                                                            String ipv6) {
+        return hosts.stream().filter(host -> {
+            String multiIpv6 = host.getIpv6();
+            Set<String> ipv6s = Arrays.stream(multiIpv6.split("[,;]"))
+                .map(String::trim)
+                .collect(Collectors.toSet());
+            return host.getCloudAreaId().equals(cloudAreaId) && ipv6s.contains(ipv6);
+        }).collect(Collectors.toList());
     }
 
     @Override

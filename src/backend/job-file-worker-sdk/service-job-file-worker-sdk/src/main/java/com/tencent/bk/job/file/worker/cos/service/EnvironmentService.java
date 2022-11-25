@@ -5,6 +5,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -69,17 +70,34 @@ public class EnvironmentService implements ApplicationContextAware {
         return accessHost;
     }
 
-    public String getInnerIp() {
+    public Pair<String, String> getInnerProtocolAndIp() {
+        String innerIpProtocol;
         String innerIp;
         if (isInK8s()) {
             innerIp = getInnerIpInK8s();
         } else {
-            innerIp = workerConfig.getInnerIp();
+            innerIp = workerConfig.getInnerIp().trim();
         }
         if (StringUtils.isBlank(innerIp)) {
             innerIp = IpUtils.getFirstMachineIP();
             log.debug("innerIp is blank, use first machine ip");
         }
-        return innerIp;
+        String protocolInferredByIp = IpUtils.inferProtocolByIp(innerIp);
+        if (StringUtils.isNotBlank(workerConfig.getInnerIpProtocol())) {
+            innerIpProtocol = workerConfig.getInnerIpProtocol().trim();
+            if (!protocolInferredByIp.equalsIgnoreCase(innerIpProtocol)) {
+                log.warn(
+                    "innerIp({}) protocol specified by job.file-worker.inner-ip-protocol={} " +
+                        "not match protocolInferredByIp({}), use {}",
+                    innerIp,
+                    innerIpProtocol,
+                    protocolInferredByIp,
+                    innerIpProtocol
+                );
+            }
+        } else {
+            innerIpProtocol = protocolInferredByIp;
+        }
+        return Pair.of(innerIpProtocol, innerIp);
     }
 }

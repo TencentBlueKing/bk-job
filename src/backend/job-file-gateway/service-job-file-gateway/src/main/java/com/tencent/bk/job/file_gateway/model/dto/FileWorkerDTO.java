@@ -86,6 +86,10 @@ public class FileWorkerDTO {
      */
     private Long cloudAreaId;
     /**
+     * 内网IP协议，取值：v4/v6
+     */
+    private String innerIpProtocol;
+    /**
      * 内网IP
      */
     private String innerIp;
@@ -167,6 +171,7 @@ public class FileWorkerDTO {
         fileWorkerDTO.setAccessHost(heartBeatReq.getAccessHost());
         fileWorkerDTO.setAccessPort(heartBeatReq.getAccessPort());
         fileWorkerDTO.setCloudAreaId(heartBeatReq.getCloudAreaId());
+        fileWorkerDTO.setInnerIpProtocol(heartBeatReq.getInnerIpProtocol());
         fileWorkerDTO.setInnerIp(heartBeatReq.getInnerIp());
         FileWorkerConfig fileWorkerConfig = heartBeatReq.getFileWorkerConfig();
         List<FileSourceMetaData> fileSourceMetaDataList = fileWorkerConfig.getFileSourceMetaDataList();
