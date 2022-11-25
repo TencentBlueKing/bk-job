@@ -96,8 +96,6 @@
 
     import ItemFactory from '@components/task-step/script/item-factory';
 
-    import I18n from '@/i18n';
-
     const getDefaultData = () => ({
         isScriptContentLoading: false,
         // 脚本步骤名称
