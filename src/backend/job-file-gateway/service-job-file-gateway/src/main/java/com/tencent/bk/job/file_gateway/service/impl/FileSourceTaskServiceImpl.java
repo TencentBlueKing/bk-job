@@ -318,6 +318,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         });
         fileSourceTaskStatusDTO.setMessage(messageBuilder.toString());
         fileSourceTaskStatusDTO.setCloudId(fileWorkerDTO.getCloudAreaId());
+        fileSourceTaskStatusDTO.setIpProtocol(fileWorkerDTO.getInnerIpProtocol());
         fileSourceTaskStatusDTO.setIp(fileWorkerDTO.getInnerIp());
         fileSourceTaskStatusDTO.setFileCleared(fileSourceTaskDTO.getFileCleared());
         Map<String, String> filePathMap = new HashMap<>();

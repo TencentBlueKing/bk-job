@@ -66,6 +66,9 @@ public class WorkerConfig {
     @Value("${job.file-worker.cloud-area-id:0}")
     private Long cloudAreaId;
 
+    @Value("${job.file-worker.inner-ip-protocol:}")
+    private String innerIpProtocol;
+
     @Value("${job.file-worker.inner-ip:}")
     private String innerIp;
 

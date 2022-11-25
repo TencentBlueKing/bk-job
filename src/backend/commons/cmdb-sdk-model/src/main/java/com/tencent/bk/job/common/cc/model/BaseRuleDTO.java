@@ -40,7 +40,7 @@ public class BaseRuleDTO implements IRule {
      */
     private String field;
     /**
-     * 操作符,可选值 equal,not_equal,in,not_in,less,less_or_equal,greater,greater_or_equal,between,not_between
+     * 操作符,可选值 equal,not_equal,in,not_in,less,less_or_equal,greater,greater_or_equal,between,not_between,contains
      */
     private String operator;
     /**

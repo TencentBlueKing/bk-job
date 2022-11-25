@@ -34,6 +34,7 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -95,4 +96,16 @@ public interface ServiceHostResource {
     InternalResponse<List<ServiceHostDTO>> batchGetHosts(
         @RequestBody
             ServiceBatchGetHostsReq req);
+
+    /**
+     * 通过云区域ID与Ipv6地址获取主机信息
+     *
+     * @param req 请求
+     * @return 主机信息
+     */
+    @ApiOperation(value = "通过云区域ID与Ipv6地址查询主机信息", produces = "application/json")
+    @PostMapping("/hosts/getByCloudIpv6")
+    InternalResponse<List<ServiceHostDTO>> getHostsByCloudIpv6(
+        @RequestBody
+            ServiceGetHostsByCloudIpv6Req req);
 }

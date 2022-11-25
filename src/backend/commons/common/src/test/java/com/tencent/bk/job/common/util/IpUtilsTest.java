@@ -88,4 +88,32 @@ public class IpUtilsTest {
         result = IpUtils.removeBkCloudId(null);
         assertThat(result).isNull();
     }
+
+    @Test
+    void testInferProtocolByIp() {
+        // Ipv6正例
+        assertThat(IpUtils.inferProtocolByIp("::1")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("0::1")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("1::1")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("1:1::1")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("0:0:0:0:0:0:0:0")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("00:00::00:00:00")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("00:00:00:00:00:00:00:00")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("01:23:45:67:89:ab:cd:ef")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("001:023:45:67:89:ab:cd:ef")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("1101:23:45:67:89:ab:cd:ef")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")).isEqualTo(IpUtils.PROTOCOL_IP_V6);
+        // Ipv6负例
+        assertThat(IpUtils.inferProtocolByIp("0ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")).isNotEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("ff:ff:ff:ff:ff:ff:ff:fg")).isNotEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("1::1::1")).isNotEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("1::1::123")).isNotEqualTo(IpUtils.PROTOCOL_IP_V6);
+        assertThat(IpUtils.inferProtocolByIp("127.0.0.1")).isNotEqualTo(IpUtils.PROTOCOL_IP_V6);
+        // Ipv4正例
+        assertThat(IpUtils.inferProtocolByIp("127.0.0.1")).isEqualTo(IpUtils.PROTOCOL_IP_V4);
+        assertThat(IpUtils.inferProtocolByIp("192.168.1.1")).isEqualTo(IpUtils.PROTOCOL_IP_V4);
+        // Ipv4负例
+        assertThat(IpUtils.inferProtocolByIp("::1")).isNotEqualTo(IpUtils.PROTOCOL_IP_V4);
+        assertThat(IpUtils.inferProtocolByIp("01:23:45:67:89:ab:cd:ef")).isNotEqualTo(IpUtils.PROTOCOL_IP_V4);
+    }
 }

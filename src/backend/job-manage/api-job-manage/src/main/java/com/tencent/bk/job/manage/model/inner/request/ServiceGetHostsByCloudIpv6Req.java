@@ -22,51 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.resp.inner;
+package com.tencent.bk.job.manage.model.inner.request;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+/**
+ * 根据云区域ID与Ipv6地址获取主机请求
+ */
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class FileSourceTaskStatusDTO {
-    String taskId;
-    Byte status;
-    String message;
-    Long cloudId;
-    String ipProtocol;
-    String ip;
-    Boolean fileCleared;
-    /**
-     * 文件源文件路径->文件在机器上的真实路径
-     */
-    Map<String, String> filePathMap;
-    List<ServiceHostLogDTO> logList;
-    Boolean logEnd;
-
-    public boolean isDone() {
-        return TaskStatusEnum.isDone(status);
-    }
-
-    /**
-     * 通过一些关键字段描述对象，通常用于日志打印忽略非关键字段
-     *
-     * @return 描述信息
-     */
-    public String getSimpleDesc() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("taskId", taskId);
-        map.put("status", status);
-        map.put("message", message);
-        return JsonUtils.toJson(map);
-    }
+public class ServiceGetHostsByCloudIpv6Req {
+    Long cloudAreaId;
+    String ipv6;
 }

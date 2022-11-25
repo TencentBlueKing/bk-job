@@ -38,11 +38,11 @@ import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupDTO;
-import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
 import com.tencent.bk.job.common.cc.model.ComposeRuleDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
@@ -189,13 +189,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-        build(new CacheLoader<Long, InstanceTopologyDTO>() {
-                  @Override
-                  public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
-                      return getBizInstCompleteTopology(bizId);
+            build(new CacheLoader<Long, InstanceTopologyDTO>() {
+                      @Override
+                      public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
+                          return getBizInstCompleteTopology(bizId);
+                      }
                   }
-              }
-        );
+            );
 
     public BizCmdbClient(BkApiConfig bkApiConfig,
                          CmdbConfig cmdbConfig,
@@ -1041,17 +1041,28 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             hostRule.setCondition("AND");
             hostRule.addRule(buildCloudIdRule(bkCloudId));
 
-            BaseRuleDTO ipRule = new BaseRuleDTO();
-            ipRule.setField("bk_host_innerip_v6");
-            ipRule.setOperator("in");
-            ipRule.setValue(ipv6s);
-            hostRule.addRule(ipRule);
+            ComposeRuleDTO multiIpv6Rule = buildMultiIpv6LikeRule(ipv6s);
+            hostRule.addRule(multiIpv6Rule);
 
             condition.addRule(hostRule);
         });
         req.setCondition(condition);
 
         return listHostsWithoutBiz(req);
+    }
+
+    private ComposeRuleDTO buildMultiIpv6LikeRule(List<String> ipv6s) {
+        ComposeRuleDTO multiIpv6Rule = new ComposeRuleDTO();
+        multiIpv6Rule.setCondition("OR");
+        ipv6s.forEach(ipv6 -> {
+            BaseRuleDTO ipv6Rule = new BaseRuleDTO();
+            // ipv6字段可能包含多个IPv6地址，故此处使用contains
+            ipv6Rule.setField("bk_host_innerip_v6");
+            ipv6Rule.setOperator("contains");
+            ipv6Rule.setValue(ipv6);
+            multiIpv6Rule.addRule(ipv6Rule);
+        });
+        return multiIpv6Rule;
     }
 
     private BaseRuleDTO buildCloudIdRule(Long bkCloudId) {

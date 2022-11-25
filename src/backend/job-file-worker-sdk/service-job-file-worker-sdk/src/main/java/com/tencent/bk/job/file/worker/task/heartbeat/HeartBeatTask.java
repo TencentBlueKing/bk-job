@@ -34,6 +34,7 @@ import com.tencent.bk.job.file.worker.cos.service.GatewayInfoService;
 import com.tencent.bk.job.file.worker.cos.service.MetaDataService;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -77,7 +78,9 @@ public class HeartBeatTask {
 
         // 二进制部署环境与K8s环境差异处理
         heartBeatReq.setAccessHost(environmentService.getAccessHost());
-        heartBeatReq.setInnerIp(environmentService.getInnerIp());
+        Pair<String, String> protocolAndIpPair = environmentService.getInnerProtocolAndIp();
+        heartBeatReq.setInnerIpProtocol(protocolAndIpPair.getLeft());
+        heartBeatReq.setInnerIp(protocolAndIpPair.getRight());
 
         heartBeatReq.setAccessPort(workerConfig.getAccessPort());
         heartBeatReq.setCloudAreaId(workerConfig.getCloudAreaId());
