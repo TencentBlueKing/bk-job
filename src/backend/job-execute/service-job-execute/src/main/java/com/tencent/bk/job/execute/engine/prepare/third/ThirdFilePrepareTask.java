@@ -345,7 +345,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                     fileSourceTaskStatusDTO.getIp()
                 );
                 if (hostDTO == null) {
-                    log.warn(
+                    log.error(
                         "[{}]: Cannot find file-worker host info by IP{} (cloudAreaId={}, ip={}), " +
                             "plz check whether file-worker gse agent is installed",
                         stepInstance.getUniqueKey(),
@@ -353,8 +353,9 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         fileSourceTaskStatusDTO.getCloudId(),
                         fileSourceTaskStatusDTO.getIp()
                     );
+                } else {
+                    hostDTO.setAgentId(hostDTO.getFinalAgentId());
                 }
-
                 List<HostDTO> hostDTOList = Collections.singletonList(hostDTO);
                 servers.addStaticIps(hostDTOList);
                 if (servers.getIpList() == null) {
@@ -415,10 +416,14 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             ipProtocol = IpUtils.inferProtocolByIp(ip);
             log.info("ipProtocol is null or blank, use {} inferred by ip {}", ipProtocol, ip);
         }
+        HostDTO hostDTO;
         if (IpUtils.PROTOCOL_IP_V6.equalsIgnoreCase(ipProtocol)) {
-            return ServiceHostDTO.toHostDTO(hostService.getHostByCloudIpv6(cloudAreaId, ip));
+            hostDTO = ServiceHostDTO.toHostDTO(hostService.getHostByCloudIpv6(cloudAreaId, ip));
+        } else {
+            hostDTO = ServiceHostDTO.toHostDTO(hostService.getHost(new HostDTO(cloudAreaId, ip)));
         }
-        return ServiceHostDTO.toHostDTO(hostService.getHost(new HostDTO(cloudAreaId, ip)));
+        log.debug("host get by ({},{},{}) is {}", ipProtocol, cloudAreaId, ip, hostDTO);
+        return hostDTO;
     }
 
     private void writeLogs(StepInstanceDTO stepInstance, List<ServiceHostLogDTO> logDTOList) {
