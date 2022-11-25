@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
@@ -144,7 +144,7 @@ public interface HostService {
      * @param username         用户名
      * @return 动态分组信息列表
      */
-    List<DynamicGroupInfoDTO> getAppDynamicGroupList(String username, AppResourceScope appResourceScope);
+    List<DynamicGroupWithHost> getAppDynamicGroupList(String username, AppResourceScope appResourceScope);
 
     /**
      * 根据动态分组 ID 列表批量获取带主机信息的动态分组信息列表
@@ -154,9 +154,9 @@ public interface HostService {
      * @param dynamicGroupIdList 动态分组 ID 列表
      * @return 带主机信息的动态分组信息列表
      */
-    List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username,
-                                                         Long bizId,
-                                                         List<String> dynamicGroupIdList);
+    List<DynamicGroupWithHost> getBizDynamicGroupHostList(String username,
+                                                          Long bizId,
+                                                          List<String> dynamicGroupIdList);
 
     /**
      * 根据 IP 列表查询主机信息

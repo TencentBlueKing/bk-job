@@ -26,7 +26,7 @@ package com.tencent.bk.job.common.cc.sdk;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
@@ -120,7 +120,7 @@ public interface IBizCmdbClient {
      * @param bizId cmdb业务ID
      * @return 动态分组
      */
-    List<CcGroupDTO> getDynamicGroupList(long bizId);
+    List<CcDynamicGroupDTO> getDynamicGroupList(long bizId);
 
     /**
      * 获取动态分组下面的主机

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
@@ -45,7 +45,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
@@ -478,11 +478,11 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<DynamicGroupInfoDTO> getAppDynamicGroupList(String username,
-                                                            AppResourceScope appResourceScope) {
+    public List<DynamicGroupWithHost> getAppDynamicGroupList(String username,
+                                                             AppResourceScope appResourceScope) {
         ApplicationDTO applicationInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
 
-        Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
+        Map<String, DynamicGroupWithHost> ccGroupInfoMap = new HashMap<>();
         Map<Long, List<String>> appId2GroupIdMap = new HashMap<>();
         if (ResourceScopeTypeEnum.BIZ_SET == appResourceScope.getType()) {
             for (long subAppId : applicationInfo.getSubBizIds()) {
@@ -502,58 +502,69 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username, Long bizId,
-                                                                List<String> dynamicGroupIdList) {
-        ApplicationDTO applicationInfo = applicationService.getAppByScope(
-            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
-        );
-        String maintainer = applicationInfo.getMaintainers().split("[,;]")[0];
+    public List<DynamicGroupWithHost> getBizDynamicGroupHostList(String username,
+                                                                 Long bizId,
+                                                                 List<String> dynamicGroupIdList) {
+        Set<String> dynamicGroupIdSet = new HashSet<>(dynamicGroupIdList);
+        IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
+        List<CcDynamicGroupDTO> dynamicGroupList = cmdbClient.getDynamicGroupList(bizId);
+        List<DynamicGroupWithHost> dynamicGroupWithHostList = dynamicGroupList.stream()
+            .filter(dynamicGroup -> dynamicGroupIdSet.contains(dynamicGroup.getId()))
+            .map(CcDynamicGroupDTO::toDynamicGroupWithHost)
+            .collect(Collectors.toList());
 
-        Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
-        Map<Long, List<String>> bizId2GroupIdMap = new HashMap<>();
-        getCustomGroupListByBizId(bizId, ccGroupInfoMap, bizId2GroupIdMap);
+        // 查询业务数据
+        ResourceScope resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString());
+        ApplicationDTO appInfo = applicationService.getAppByScope(resourceScope);
 
-        for (Map.Entry<Long, List<String>> entry : bizId2GroupIdMap.entrySet()) {
-            long groupBizId = entry.getKey();
-            for (String customerGroupId : entry.getValue()) {
-                if (!dynamicGroupIdList.contains(customerGroupId)) {
-                    ccGroupInfoMap.remove(customerGroupId);
-                    continue;
+        dynamicGroupWithHostList.forEach(dynamicGroupWithHost -> {
+            // 填充业务信息
+            fillAppInfo(appInfo, dynamicGroupWithHost);
+            // 填充主机IP信息
+            List<CcGroupHostPropDTO> ccGroupHostProps =
+                cmdbClient.getDynamicGroupIp(bizId, dynamicGroupWithHost.getId());
+            List<String> cloudIpList = new ArrayList<>();
+            for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
+                if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
+                    cloudIpList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
+                } else {
+                    log.warn("Wrong host info! No cloud area!|{}", groupHost);
                 }
-                List<CcGroupHostPropDTO> ccGroupHostProps =
-                    CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-                        .getDynamicGroupIp(groupBizId, customerGroupId);
-                List<String> ipList = new ArrayList<>();
-                for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
-                    if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
-                        ipList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
-                    } else {
-                        log.warn("Wrong host info! No cloud area!|{}", groupHost);
-                    }
-                }
-
-                ccGroupInfoMap.get(customerGroupId).setIpList(ipList);
             }
-        }
-
-        fillAppInfo(ccGroupInfoMap);
-
-        for (DynamicGroupInfoDTO group : ccGroupInfoMap.values()) {
-            List<ApplicationHostDTO> applicationHostDTOList = topologyHelper.getIpStatusListByIps(bizId,
-                group.getIpList());
-            applicationHostDTOList.forEach(ApplicationHostDTO -> {
-                ApplicationHostDTO appHostInfo = applicationHostDAO.getLatestHost(dslContext, bizId,
-                    ApplicationHostDTO.getCloudAreaId(), ApplicationHostDTO.getIp());
-                if (appHostInfo != null) {
-                    // 填充主机名称与操作系统
-                    ApplicationHostDTO.setHostId(appHostInfo.getHostId());
-                    ApplicationHostDTO.setIpDesc(appHostInfo.getIpDesc());
-                    ApplicationHostDTO.setOs(appHostInfo.getOs());
+            dynamicGroupWithHost.setIpList(cloudIpList);
+            // 填充主机详情
+            List<IpDTO> hostIps = buildIpDTOList(cloudIpList);
+            List<ApplicationHostDTO> hostDetailList = listHosts(hostIps);
+            if (hostDetailList.size() < cloudIpList.size()) {
+                Set<String> existCloudIps = new HashSet<>(buildIpList(hostDetailList));
+                Set<String> cloudIpSet = new HashSet<>(cloudIpList);
+                cloudIpSet.removeAll(existCloudIps);
+                if (!cloudIpSet.isEmpty()) {
+                    log.warn("Cannot find hostDetail for {} ips: {}", cloudIpSet.size(), cloudIpSet);
                 }
-            });
-            group.setIpListStatus(applicationHostDTOList);
+            }
+            // 填充Agent状态信息
+            fillAgentStatus(hostDetailList);
+            dynamicGroupWithHost.setIpListStatus(hostDetailList);
+        });
+        return dynamicGroupWithHostList;
+    }
+
+    private void fillAppInfo(ApplicationDTO appInfo, DynamicGroupWithHost dynamicGroupWithHost) {
+        if (appInfo != null) {
+            dynamicGroupWithHost.setBizName(appInfo.getName());
+            dynamicGroupWithHost.setOwner(appInfo.getBkSupplierAccount());
+            dynamicGroupWithHost.setOwnerName(appInfo.getBkSupplierAccount());
+        } else {
+            log.warn("appInfo is null");
         }
-        return new ArrayList<>(ccGroupInfoMap.values());
+    }
+
+    private List<IpDTO> buildIpDTOList(List<String> cloudIpList) {
+        if (CollectionUtils.isEmpty(cloudIpList)) {
+            return Collections.emptyList();
+        }
+        return cloudIpList.stream().map(IpDTO::fromCloudAreaIdAndIpStr).collect(Collectors.toList());
     }
 
     @Override
@@ -1077,22 +1088,22 @@ public class HostServiceImpl implements HostService {
     }
 
     private void getCustomGroupListByBizId(Long bizId,
-                                           Map<String, DynamicGroupInfoDTO> ccGroupInfoList,
+                                           Map<String, DynamicGroupWithHost> ccGroupInfoList,
                                            Map<Long, List<String>> bizId2GroupIdMap) {
         List<String> groupIdList = new ArrayList<>();
-        List<CcGroupDTO> ccGroupList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
+        List<CcDynamicGroupDTO> ccGroupList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
             .getDynamicGroupList(bizId);
-        ccGroupList.forEach(ccGroupDTO -> {
-            ccGroupInfoList.put(ccGroupDTO.getId(), ccGroupDTO.toDynamicGroupInfo());
-            groupIdList.add(ccGroupDTO.getId());
+        ccGroupList.forEach(ccDynamicGroup -> {
+            ccGroupInfoList.put(ccDynamicGroup.getId(), ccDynamicGroup.toDynamicGroupWithHost());
+            groupIdList.add(ccDynamicGroup.getId());
         });
         bizId2GroupIdMap.put(bizId, groupIdList);
     }
 
-    private void fillAppInfo(Map<String, DynamicGroupInfoDTO> ccGroupInfoMap) {
+    private void fillAppInfo(Map<String, DynamicGroupWithHost> ccGroupInfoMap) {
         // 分组中的获取app信息
         Set<Long> bizIdSet = new HashSet<>();
-        for (DynamicGroupInfoDTO groupInfo : ccGroupInfoMap.values()) {
+        for (DynamicGroupWithHost groupInfo : ccGroupInfoMap.values()) {
             bizIdSet.add(groupInfo.getBizId());
         }
         List<ApplicationDTO> appInfoList = applicationService.listBizAppsByBizIds(bizIdSet);
@@ -1102,7 +1113,7 @@ public class HostServiceImpl implements HostService {
             id2AppInfoMap.put(appInfo.getScope().getId(), appInfo);
         }
 
-        for (DynamicGroupInfoDTO groupInfo : ccGroupInfoMap.values()) {
+        for (DynamicGroupWithHost groupInfo : ccGroupInfoMap.values()) {
             ApplicationDTO appInfo = id2AppInfoMap.get(groupInfo.getBizId().toString());
             if (appInfo == null) {
                 groupInfo.setBizName("");
@@ -1260,7 +1271,7 @@ public class HostServiceImpl implements HostService {
         // 只有普通业务才查动态分组
         if (applicationDTO.isBiz()) {
             List<ApplicationHostDTO> hostDTOsByDynamicGroupIds = new ArrayList<>();
-            List<DynamicGroupInfoDTO> dynamicGroupList = getBizDynamicGroupHostList(
+            List<DynamicGroupWithHost> dynamicGroupList = getBizDynamicGroupHostList(
                 username,
                 applicationDTO.getBizIdIfBizApp(),
                 agentStatisticsReq.getDynamicGroupIds()

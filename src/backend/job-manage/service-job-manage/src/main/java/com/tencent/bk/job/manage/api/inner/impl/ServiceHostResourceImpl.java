@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
@@ -105,13 +105,13 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
         }
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
-        List<DynamicGroupInfoDTO> dynamicGroupInfoDTOList = hostService.getBizDynamicGroupHostList(
+        List<DynamicGroupWithHost> dynamicGroupWithHostList = hostService.getBizDynamicGroupHostList(
             JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
             appDTO.getBizIdIfBizApp(),
             dynamicGroupIdList
         );
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        dynamicGroupInfoDTOList.parallelStream().forEach(dynamicGroupInfoDTO ->
+        dynamicGroupWithHostList.parallelStream().forEach(dynamicGroupInfoDTO ->
             dynamicGroupInfoDTO.getIpListStatus().forEach(hostInfoVO -> {
                 ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
                 serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
