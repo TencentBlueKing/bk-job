@@ -36,8 +36,10 @@
                     <bk-input
                         v-show="enabled"
                         class="speed-limit-input"
-                        @change="handleChange"
-                        :value="formData[field]">
+                        :min="0"
+                        type="number"
+                        :value="formData[field]"
+                        @change="handleChange">
                         <template slot="append">
                             <div class="group-text">MB/s</div>
                         </template>
