@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
 */
 
+/* eslint-disable max-len */
 export default {
     namespace: 'scriptTemplate',
     message: {
@@ -41,5 +42,6 @@ export default {
         保存成功: 'The change has been saved.',
         重置成功: 'Reset Successful',
         还原默认成功: 'Initialize Successful',
+        '脚本模板仅对当前用户在新建脚本相关场景下有效（如快速执行脚本、新建脚本、作业脚本步骤）': 'Script template is only valid for the current user in scenarios related to new scripts (e.g. Quick script execution, New scripts, New job script steps)',
     },
 };
