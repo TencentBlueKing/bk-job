@@ -123,6 +123,12 @@
                 this.currentRules.splice(index, 1, currentRule);
             },
             handleSave () {
+                const isEmpty = _.find(this.currentRules, item => !_.trim(item.expression));
+                if (isEmpty) {
+                    this.messageError('请输入命名规则不能为空');
+                    return;
+                }
+
                 this.isSubmitting = true;
                 GlobalSettingService.updateNameRules({
                     rules: this.currentRules,
