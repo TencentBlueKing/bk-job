@@ -83,6 +83,11 @@
                 {{ $t('scriptTemplate.渲染预览') }}
             </div>
         </div>
+        <element-teleport to="#siteHeaderStatusBar">
+            <span style="padding-left: 12px; font-size: 12px;">
+                {{ $t('脚本模板仅对当前用户在新建脚本相关场景下有效（如快速执行脚本、新建脚本、作业脚本步骤）') }}
+            </span>
+        </element-teleport>
     </div>
 </template>
 <script>
