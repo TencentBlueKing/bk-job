@@ -87,6 +87,7 @@
     const {
         key: hostRenderKey,
     } = useHostRenderKey();
+
     const isLoading = ref(false);
     const listData = shallowRef([]);
 
@@ -166,7 +167,6 @@
             }
             return result;
         }, []);
-
         emits('change', 'hostList', result);
     };
 

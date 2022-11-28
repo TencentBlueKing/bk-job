@@ -2,8 +2,10 @@
     <th
         ref="rootRef"
         :class="{
-            [`host-column-${columnKey}`]: true,
+            [`host-column-${columnKey}`]: true
         }"
+        :data-width="columnConfig.width"
+        :role="columnKey"
         @mousedown="handleMouseDown"
         @mousemove="handleMouseMove">
         <div class="cell">
@@ -82,9 +84,7 @@
             const {
                 width: renderWidth,
             } = rootRef.value.getBoundingClientRect();
-            if (renderWidth > ~~columnConfig.value.width) {
-                rootRef.value.style.width = `${renderWidth}px`;
-            }
+            rootRef.value.style.width = `${Math.max(renderWidth, parseInt(columnConfig.value.width, 10))}px`;
         }
     });
 </script>

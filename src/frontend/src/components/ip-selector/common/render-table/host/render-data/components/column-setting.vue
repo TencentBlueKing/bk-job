@@ -10,7 +10,7 @@
             <div class="setting-header">
                 表格设置
             </div>
-            <bk-checkbox-group v-model="selectedList">
+            <bk-checkbox-group v-model="localSelectedList">
                 <vuedraggable
                     :animation="200"
                     class="column-list"
@@ -26,10 +26,10 @@
                             v-if="item.key === 'ip'"
                             v-bk-tooltips="{
                                 content: 'IP 与 IPv6 至少需保留一个',
-                                disabled: selectedList.includes('ipv6'),
+                                disabled: localSelectedList.includes('ipv6'),
                             }">
                             <bk-checkbox
-                                :disabled="!selectedList.includes('ipv6')"
+                                :disabled="!localSelectedList.includes('ipv6')"
                                 :value="item.key">
                                 {{ item.label }}
                             </bk-checkbox>
@@ -38,10 +38,10 @@
                             v-else-if="item.key === 'ipv6'"
                             v-bk-tooltips="{
                                 content: 'IP 与 IPv6 至少需保留一个',
-                                disabled: selectedList.includes('ip'),
+                                disabled: localSelectedList.includes('ip'),
                             }">
                             <bk-checkbox
-                                :disabled="!selectedList.includes('ip')"
+                                :disabled="!localSelectedList.includes('ip')"
                                 :value="item.key">
                                 {{ item.label }}
                             </bk-checkbox>
@@ -111,7 +111,7 @@
 
     const rootRef = ref();
     const popRef = ref();
-    const selectedList = shallowRef([...props.selectedList]);
+    const localSelectedList = shallowRef([...props.selectedList]);
 
     const renderColumnList = shallowRef(props.sortList.reduce((result, key) => {
         if (tableColumnConfig[key]) {
@@ -132,7 +132,7 @@
 
     const handleSubmitSetting = () => {
         const sortList = renderColumnList.value.map(item => item.key);
-        emits('change', selectedList.value, sortList);
+        emits('change', [...localSelectedList.value], sortList);
         tippyInstance.hide();
     };
 

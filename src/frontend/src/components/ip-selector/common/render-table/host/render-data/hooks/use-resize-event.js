@@ -6,7 +6,13 @@ import {
     ref,
 } from 'vue';
 
+import Manager from '../../../../../manager';
+
+let widthMemo = {};
+
 export default function (tableRef, tableColumnResizeRef) {
+    const memoCacheKey = `BKIpSelectorHostTableColumnWidth${Manager.config.version}`;
+    widthMemo = JSON.parse(localStorage.getItem(memoCacheKey) || '{}');
     const currentInstance = getCurrentInstance();
     let dragable = false;
     const dragging = ref(false);
@@ -15,14 +21,38 @@ export default function (tableRef, tableColumnResizeRef) {
     const initColumnWidth = () => {
         setTimeout(() => {
             const tableEl = tableRef.value;
+            const {
+                width: totalWidth,
+            } = tableEl.getBoundingClientRect();
+
+            let columnWidthAdd = 0;
+            let firstKeyColumnEl;
             tableEl.querySelectorAll('th').forEach((columnEl) => {
-                const { width } = columnEl.getBoundingClientRect();
-                if (columnEl.classList.contains('host-column-first-key')) {
-                    columnEl.style.width = `${Math.max(width, 180)}px`;
+                const role = columnEl.getAttribute('role');
+                let width = 60;
+                if (widthMemo[role]) {
+                    width = parseInt(widthMemo[role], 10);
                 } else {
-                    columnEl.style.width = `${Math.max(width, 60)}px`;
+                    width = parseInt(columnEl.getAttribute('data-width') || '60', 10);
+                }
+                if (columnEl.classList.contains('host-column-first-key')) {
+                    firstKeyColumnEl = columnEl;
+                } else {
+                    const renderWidth = Math.max(width, 60);
+                    columnWidthAdd += renderWidth;
+                    columnEl.style.width = `${renderWidth}px`;
                 }
             });
+
+            if (firstKeyColumnEl) {
+                let width = 180;
+                const role = firstKeyColumnEl.getAttribute('role');
+                if (widthMemo[role]) {
+                    width = Math.max(parseInt(widthMemo[role], 10), width);
+                }
+                const lastWidth = totalWidth - columnWidthAdd;
+                firstKeyColumnEl.style.width = `${Math.max(lastWidth, width)}px`;
+            }
         });
     };
 
@@ -66,7 +96,7 @@ export default function (tableRef, tableColumnResizeRef) {
             if (dragging.value) {
                 const { startColumnLeft } = dragState.value;
                 const finalLeft = Number.parseInt(resizeProxy.style.left, 10);
-                const columnWidth = Math.max(finalLeft - startColumnLeft, 60);
+                const columnWidth = parseInt(Math.max(finalLeft - startColumnLeft, 60), 10);
 
                 columnEl.style.width = `${columnWidth}px`;
                 resizeProxy.style.display = 'none';
@@ -74,6 +104,11 @@ export default function (tableRef, tableColumnResizeRef) {
                 dragging.value = false;
                 dragState.value = {};
                 currentInstance.proxy.initalScroll();
+                const columnRole = columnEl.getAttribute('role');
+                if (columnRole) {
+                    widthMemo[columnRole] = columnWidth;
+                    localStorage.setItem(memoCacheKey, JSON.stringify(widthMemo));
+                }
             }
             dragable = false;
 
