@@ -98,6 +98,10 @@ public class EnvironmentService implements ApplicationContextAware {
         } else {
             innerIpProtocol = protocolInferredByIp;
         }
+        // 将IPv6地址转为完整无压缩格式
+        if (IpUtils.PROTOCOL_IP_V6.equalsIgnoreCase(innerIpProtocol)) {
+            innerIp = IpUtils.getFullIpv6ByCompressedOne(innerIp);
+        }
         return Pair.of(innerIpProtocol, innerIp);
     }
 }

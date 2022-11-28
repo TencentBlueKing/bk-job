@@ -79,6 +79,8 @@ public class ErrorCode {
     public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
     // 该功能暂不支持业务集
     public static final int NOT_SUPPORT_FEATURE_FOR_BIZ_SET = 1241013;
+    // IPv6地址段不合法，用于校验的正则表达式：[0-9a-fA-F]{1,4}
+    public static final int INVALID_IPV6_SEQ = 1241014;
     // 业务通用 end
 
     // 配置服务 start
