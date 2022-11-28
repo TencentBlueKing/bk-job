@@ -302,7 +302,7 @@
         bottom: 0;
         left: 0;
         padding: 0 40px;
-        background-color: #fafbfd;
+        background-color: #fff;
 
         .header {
             display: flex;
@@ -384,7 +384,7 @@
             display: flex;
             height: 51px;
             margin: 6px 0 0;
-            background: #2f3033;
+            background: #eaebf0;
             border-radius: 2px 2px 0 0;
 
             .version-left,
@@ -400,9 +400,8 @@
             }
 
             .bk-select {
-                color: #dcdee5;
-                background: #393a3d;
-                border-color: #393a3d;
+                color: #63656e;
+                background: #fff;
             }
         }
 
@@ -412,7 +411,6 @@
 
         .content-wraper {
             max-height: calc(100vh - 92px);
-            background: #1d1d1d;
         }
 
         .d2h-file-wrapper {
