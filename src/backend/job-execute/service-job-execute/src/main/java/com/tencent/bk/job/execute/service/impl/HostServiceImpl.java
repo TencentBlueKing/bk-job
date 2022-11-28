@@ -155,9 +155,11 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public ServiceListAppHostResultDTO batchGetAppHosts(Long appId,
-                                                        Collection<HostDTO> hosts) {
+                                                        Collection<HostDTO> hosts,
+                                                        boolean refreshAgentId) {
         InternalResponse<ServiceListAppHostResultDTO> response =
-            hostResourceClient.batchGetAppHosts(appId, new ServiceBatchGetAppHostsReq(new ArrayList<>(hosts)));
+            hostResourceClient.batchGetAppHosts(appId,
+                new ServiceBatchGetAppHostsReq(new ArrayList<>(hosts), refreshAgentId));
         return response.getData();
     }
 

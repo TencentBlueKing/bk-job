@@ -34,12 +34,10 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
-import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 
 import java.util.Collection;
 import java.util.List;
@@ -177,20 +175,17 @@ public interface HostService {
                                                 Long appId,
                                                 List<BizTopoNode> appTopoNodeList);
 
-    AgentStatistics getAgentStatistics(String username,
-                                       Long appId,
-                                       AgentStatisticsReq agentStatisticsReq);
-
     /**
-     * 获取业务下的主机
+     * 获取业务下的主机。如果在Job缓存的主机中不存在，那么从cmdb查询
      *
-     * @param appId Job业务ID
-     * @param hosts 主机列表
+     * @param appId          Job业务ID
+     * @param hosts          主机列表
+     * @param refreshAgentId 是否刷新主机的bk_agent_id
      */
-    ServiceListAppHostResultDTO listAppHosts(Long appId, List<HostDTO> hosts);
+    ServiceListAppHostResultDTO listAppHostsPreferCache(Long appId, List<HostDTO> hosts, boolean refreshAgentId);
 
     /**
-     * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
+     * 批量获取主机。如果在Job缓存的主机中不存在，那么从cmdb查询
      *
      * @param hosts 主机
      * @return 主机
@@ -204,6 +199,14 @@ public interface HostService {
      * @return 主机 Map<hostId, host>
      */
     Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds);
+
+    /**
+     * 从cmdb实时查询主机
+     *
+     * @param hostIds 主机ID列表
+     * @return 主机
+     */
+    List<ApplicationHostDTO> listHostsFromCmdbByHostIds(List<Long> hostIds);
 
     /**
      * 根据ip获取主机

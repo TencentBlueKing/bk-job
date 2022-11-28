@@ -71,9 +71,10 @@ public interface HostService {
      *
      * @param appId Job业务ID
      * @param hosts 主机列表
+     * @param refreshAgentId 是否重新刷新主机agentId
      * @return 主机信息
      */
-    ServiceListAppHostResultDTO batchGetAppHosts(Long appId, Collection<HostDTO> hosts);
+    ServiceListAppHostResultDTO batchGetAppHosts(Long appId, Collection<HostDTO> hosts, boolean refreshAgentId);
 
     /**
      * 获取动态分组主机
