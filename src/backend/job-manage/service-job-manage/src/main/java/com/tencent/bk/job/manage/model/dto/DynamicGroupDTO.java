@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,7 +50,7 @@ public class DynamicGroupDTO {
 
     private String lastTime;
 
-    public static DynamicGroupDTO fromCcGroupDTO(CcGroupDTO ccGroupDTO) {
+    public static DynamicGroupDTO fromCcGroupDTO(CcDynamicGroupDTO ccGroupDTO) {
         if (ccGroupDTO == null) {
             return null;
         }
