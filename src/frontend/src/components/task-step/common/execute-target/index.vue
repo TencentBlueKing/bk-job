@@ -378,7 +378,7 @@
              * @desc 复制所有异常主机
              */
             handleCopyFail () {
-                const abnormalHostIpList = this.$refs.ipSelector.getNotAlivelHostIpList();
+                const abnormalHostIpList = this.$refs.ipSelector.getAbnormalHostIpList();
                 if (abnormalHostIpList.length < 1) {
                     this.messageWarn(I18n.t('暂无异常主机'));
                     return;
