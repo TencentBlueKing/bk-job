@@ -41,6 +41,7 @@
                             清除异常 IP
                         </div>
                     </template>
+                    <render-host-menu-extends />
                 </extend-action>
             </template>
             <render-host-table
@@ -98,6 +99,7 @@
     } from '../utils';
 
     import CollapseBox from './components/collapse-box.vue';
+    import RenderHostMenuExtends from './components/render-host-menu-extends.vue';
 
     const props = defineProps({
         data: {
@@ -268,6 +270,10 @@
     };
 
     defineExpose({
+        // 所有主机
+        getHostList () {
+            return [...validHostList.value];
+        },
         // 所有 IP 列表
         getHostIpList () {
             return validHostList.value.map(item => item[hostRenderKey.value]);
