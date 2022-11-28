@@ -66,7 +66,7 @@
                     <bk-input
                         v-model="nodeHostListSearch"
                         clearable
-                        placeholder="请输入 IP/IPv6/主机名称"
+                        placeholder="请输入 IP/IPv6/主机名称/OS 名称"
                         style="margin-bottom: 12px;"
                         @clear="handleHostListSearchClear"
                         @keyup="handleEnterKeyUp" />

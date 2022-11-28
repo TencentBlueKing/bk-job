@@ -98,8 +98,11 @@
     const newHostNum = ref(0);
 
     // 通过 host_id 查询主机详情
-    const fetchData = () => {
+    let fetchDataKey = 0;
+    const fetchData = _.debounce(() => {
         isLoading.value = true;
+        const currentFetchDataKey = 0;
+        fetchDataKey = currentFetchDataKey;
         Manager.service.fetchHostsDetails({
             [Manager.nameStyle('hostList')]: props.data.map(item => ({
                 [Manager.nameStyle('hostId')]: item.host_id,
@@ -107,6 +110,9 @@
             })),
         })
         .then((data) => {
+            if (fetchDataKey !== currentFetchDataKey) {
+                return;
+            }
             // 重复设置 loading 的状态，后面需要依靠这个状态来做数据的对比
             isLoading.value = false;
             validHostList.value = data;
@@ -114,16 +120,12 @@
         .finally(() => {
             isLoading.value = false;
         });
-    };
+    }, 300);
 
     watch(() => props.data, () => {
         if (props.data.length > 0) {
-            const withHostDetail = _.every(props.data, item => item.ip || item.ipv6);
-            if (!withHostDetail) {
-                fetchData();
-            } else {
-                validHostList.value = [...props.data];
-            }
+            isLoading.value = true;
+            fetchData();
         } else {
             validHostList.value = [];
         }
