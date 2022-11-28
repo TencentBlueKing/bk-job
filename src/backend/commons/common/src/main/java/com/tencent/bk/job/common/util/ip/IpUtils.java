@@ -416,20 +416,19 @@ public class IpUtils {
         return StringUtils.join(finalSeqArr, ":");
     }
 
+    private static final Pattern ipv6SeqPattern = Pattern.compile("^[A-Fa-f0-9]{1,4}$");
+
     /**
-     * 获取含有4个字符的Ipv6标准段，不足4字符则添加前缀0，超出4字符则截取最后4字符
+     * 获取含有4个字符的Ipv6标准段，不足4字符则添加前缀0
      *
      * @param ipv6Seq ipv6地址的一段
      * @return 4个字符的标准段
      */
     public static String getStandardIpv6Seq(String ipv6Seq) {
         String template = "0000";
-        if (StringUtils.isBlank(ipv6Seq)) {
-            return template;
-        }
-
-        if (ipv6Seq.length() > template.length()) {
-            log.warn("ipv6Seq {} exceed max length({})", ipv6Seq, template.length());
+        Matcher m = ipv6SeqPattern.matcher(ipv6Seq);
+        if (!m.matches()) {
+            log.warn("invalid ipv6Seq:{}, valid pattern:{}", ipv6Seq, ipv6SeqPattern.pattern());
             throw new InvalidIpv6SeqException(ErrorCode.INVALID_IPV6_SEQ);
         }
         return template.substring(0, template.length() - ipv6Seq.length()) + ipv6Seq;
