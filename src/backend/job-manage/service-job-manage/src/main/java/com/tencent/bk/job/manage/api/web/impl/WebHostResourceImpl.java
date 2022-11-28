@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -476,7 +476,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                       String scopeId, List<String> dynamicGroupIds) {
         // 目前只有业务支持动态分组
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
-            List<DynamicGroupInfoDTO> dynamicGroupList =
+            List<DynamicGroupWithHost> dynamicGroupList =
                 hostService.getBizDynamicGroupHostList(
                     username, Long.parseLong(appResourceScope.getId()), dynamicGroupIds
                 );
@@ -494,7 +494,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                               String scopeType,
                                                                               String scopeId,
                                                                               List<String> dynamicGroupIds) {
-        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
+        List<DynamicGroupWithHost> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
