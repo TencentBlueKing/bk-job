@@ -73,6 +73,8 @@ public interface ApplicationHostDAO {
 
     List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s);
 
+    List<ApplicationHostDTO> listHostInfoByCloudIpv6(Long cloudAreaId, String ipv6);
+
     List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames);
 
     List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,

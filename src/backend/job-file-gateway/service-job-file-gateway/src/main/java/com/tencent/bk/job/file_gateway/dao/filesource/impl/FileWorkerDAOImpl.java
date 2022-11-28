@@ -39,7 +39,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Record22;
 import org.jooq.Result;
 import org.jooq.UpdateConditionStep;
 import org.jooq.UpdateSetFirstStep;
@@ -74,6 +73,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     public static final String KEY_FILE_WORKER_ACCESS_HOST = "accessHost";
     public static final String KEY_FILE_WORKER_ACCESS_PORT = "accessPort";
     public static final String KEY_FILE_WORKER_CLOUD_AREA_ID = "cloudAreaId";
+    public static final String KEY_FILE_WORKER_INNER_IP_PROTOCOL = "innerIpProtocol";
     public static final String KEY_FILE_WORKER_INNER_IP = "innerIp";
     public static final String KEY_FILE_WORKER_CPU_OVERLOAD = "cpuOverload";
     public static final String KEY_FILE_WORKER_MEM_RATE = "memRate";
@@ -120,6 +120,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             defaultTable.ACCESS_HOST,
             defaultTable.ACCESS_PORT,
             defaultTable.CLOUD_AREA_ID,
+            defaultTable.INNER_IP_PROTOCOL,
             defaultTable.INNER_IP,
             defaultTable.CPU_OVERLOAD,
             defaultTable.MEM_RATE,
@@ -142,6 +143,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             fileWorkerDTO.getAccessHost(),
             fileWorkerDTO.getAccessPort(),
             fileWorkerDTO.getCloudAreaId(),
+            fileWorkerDTO.getInnerIpProtocol(),
             fileWorkerDTO.getInnerIp(),
             JooqTypeUtil.convertToDouble(fileWorkerDTO.getCpuOverload()),
             JooqTypeUtil.convertToDouble(fileWorkerDTO.getMemRate()),
@@ -183,6 +185,12 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         }
         if (fileWorkerDTO.getCloudAreaId() != null) {
             updateSetMoreStep = updateSetMoreStep.set(defaultTable.CLOUD_AREA_ID, fileWorkerDTO.getCloudAreaId());
+        }
+        if (fileWorkerDTO.getInnerIpProtocol() != null) {
+            updateSetMoreStep = updateSetMoreStep.set(
+                defaultTable.INNER_IP_PROTOCOL,
+                fileWorkerDTO.getInnerIpProtocol()
+            );
         }
         if (fileWorkerDTO.getInnerIp() != null) {
             updateSetMoreStep = updateSetMoreStep.set(defaultTable.INNER_IP, fileWorkerDTO.getInnerIp());
@@ -425,8 +433,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }
-        Result<Record22<Long, Long, String, String, String, String, Integer, Long, String, Double, Double, Double,
-            Double, Double, String, Byte, Long, String, Long, String, Long, String>> records = null;
+        Result<Record> records = null;
         val query = defaultContext.select(
             defaultTable.ID.as(KEY_FILE_WORKER_ID),
             defaultTable.APP_ID.as(KEY_FILE_WORKER_APP_ID),
@@ -436,6 +443,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             defaultTable.ACCESS_HOST.as(KEY_FILE_WORKER_ACCESS_HOST),
             defaultTable.ACCESS_PORT.as(KEY_FILE_WORKER_ACCESS_PORT),
             defaultTable.CLOUD_AREA_ID.as(KEY_FILE_WORKER_CLOUD_AREA_ID),
+            defaultTable.INNER_IP_PROTOCOL.as(KEY_FILE_WORKER_INNER_IP_PROTOCOL),
             defaultTable.INNER_IP.as(KEY_FILE_WORKER_INNER_IP),
             defaultTable.CPU_OVERLOAD.as(KEY_FILE_WORKER_CPU_OVERLOAD),
             defaultTable.MEM_RATE.as(KEY_FILE_WORKER_MEM_RATE),
@@ -481,6 +489,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         fileWorkerDTO.setAccessHost(record.get(defaultTable.ACCESS_HOST));
         fileWorkerDTO.setAccessPort(record.get(defaultTable.ACCESS_PORT));
         fileWorkerDTO.setCloudAreaId(record.get(defaultTable.CLOUD_AREA_ID));
+        fileWorkerDTO.setInnerIpProtocol(record.get(defaultTable.INNER_IP_PROTOCOL));
         fileWorkerDTO.setInnerIp(record.get(defaultTable.INNER_IP));
         fileWorkerDTO.setCpuOverload(JooqTypeUtil.convertToFloat(record.get(defaultTable.CPU_OVERLOAD)));
         fileWorkerDTO.setMemRate(JooqTypeUtil.convertToFloat((record.get(defaultTable.MEM_RATE))));
@@ -499,8 +508,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         return fileWorkerDTO;
     }
 
-    private FileWorkerDTO convertRecordToDto(Record22<Long, Long, String, String, String, String, Integer, Long,
-        String, Double, Double, Double, Double, Double, String, Byte, Long, String, Long, String, Long, String> record) {
+    private FileWorkerDTO convertRecordToDto(Record record) {
         FileWorkerDTO fileWorkerDTO = new FileWorkerDTO();
         fileWorkerDTO.setId((Long) (record.get(KEY_FILE_WORKER_ID)));
         fileWorkerDTO.setAppId((Long) (record.get(KEY_FILE_WORKER_APP_ID)));
@@ -510,6 +518,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         fileWorkerDTO.setAccessHost((String) (record.get(KEY_FILE_WORKER_ACCESS_HOST)));
         fileWorkerDTO.setAccessPort((Integer) (record.get(KEY_FILE_WORKER_ACCESS_PORT)));
         fileWorkerDTO.setCloudAreaId((Long) (record.get(KEY_FILE_WORKER_CLOUD_AREA_ID)));
+        fileWorkerDTO.setInnerIpProtocol((String) (record.get(KEY_FILE_WORKER_INNER_IP_PROTOCOL)));
         fileWorkerDTO.setInnerIp((String) (record.get(KEY_FILE_WORKER_INNER_IP)));
         fileWorkerDTO.setCpuOverload(JooqTypeUtil.convertToFloat((Double) (record.get(KEY_FILE_WORKER_CPU_OVERLOAD))));
         fileWorkerDTO.setMemRate(JooqTypeUtil.convertToFloat((Double) (record.get(KEY_FILE_WORKER_MEM_RATE))));

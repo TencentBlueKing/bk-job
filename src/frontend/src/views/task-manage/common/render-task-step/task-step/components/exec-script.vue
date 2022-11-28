@@ -96,8 +96,6 @@
 
     import ItemFactory from '@components/task-step/script/item-factory';
 
-    import I18n from '@/i18n';
-
     const getDefaultData = () => ({
         isScriptContentLoading: false,
         // 脚本步骤名称
@@ -130,7 +128,7 @@
         account: '',
         // 执行目标信息 （主机和全局变量二选一）
         executeTarget: new TaskHostNodeModel({}),
-        
+
     });
 
     export default {
@@ -234,13 +232,9 @@
 
                 return this.$refs.form.validate()
                     .then(() => true, () => false)
-                    .then((validate) => {
-                        if (this.$store.state.scriptCheckError) {
-                            scriptErrorConfirm();
-                            return Promise.reject(new Error(I18n.t('template.脚本中出现高危语句')));
-                        }
+                    .then(validate => scriptErrorConfirm().then(() => {
                         this.$emit('on-change', result, validate);
-                    });
+                    }));
             },
         },
     };

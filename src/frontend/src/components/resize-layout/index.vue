@@ -50,6 +50,7 @@
                     </div>
                 </scroll-faker>
                 <div
+                    v-if="renderWidth > 5"
                     class="jb-resize-layout-line"
                     :style="lineStyles"
                     @mousedown="handleMousedown">
@@ -135,14 +136,14 @@
         },
         mounted () {
             this.calcRightShowStatus();
-            
+
             document.body.addEventListener('mousemove', this.handleMousemove);
             document.body.addEventListener('mouseup', this.handleMouseup);
             this.$once('hook:beforeDestroy', () => {
                 document.body.removeEventListener('mousemove', this.handleMousemove);
                 document.body.removeEventListener('mouseup', this.handleMouseup);
             });
-            
+
             const observer = new MutationObserver(() => {
                 this.calcRightShowStatus();
             });
@@ -206,7 +207,7 @@
                 const { clientX } = event;
                 let newWidth = 0;
                 newWidth = this.startClientX - clientX + this.moveStartWidth;
-                
+
                 if (newWidth > MAX_WIDTH || newWidth < MIN_WIDTH) {
                     return;
                 }

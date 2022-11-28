@@ -348,6 +348,16 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<ApplicationHostDTO> listHostInfoByCloudIpv6(Long cloudAreaId, String ipv6) {
+        List<Condition> conditions = new ArrayList<>();
+        if (cloudAreaId != null) {
+            conditions.add(TABLE.CLOUD_AREA_ID.eq(JooqDataTypeUtil.buildULong(cloudAreaId)));
+        }
+        conditions.add(TABLE.IP_V6.like("%" + ipv6 + "%"));
+        return listHostInfoByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.IP_DESC.in(hostNames));

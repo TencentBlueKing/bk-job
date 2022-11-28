@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
+import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +49,7 @@ public class BizDynamicGroupService {
     }
 
     public List<DynamicGroupDTO> listDynamicGroup(Long bizId) {
-        List<CcGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(bizId);
+        List<CcDynamicGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(bizId);
         return ccGroupList.parallelStream().map(DynamicGroupDTO::fromCcGroupDTO).collect(Collectors.toList());
     }
 

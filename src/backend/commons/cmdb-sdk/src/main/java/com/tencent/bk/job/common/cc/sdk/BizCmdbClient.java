@@ -37,12 +37,11 @@ import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
 import com.tencent.bk.job.common.cc.model.ComposeRuleDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
@@ -189,13 +188,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-        build(new CacheLoader<Long, InstanceTopologyDTO>() {
-                  @Override
-                  public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
-                      return getBizInstCompleteTopology(bizId);
+            build(new CacheLoader<Long, InstanceTopologyDTO>() {
+                      @Override
+                      public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
+                          return getBizInstCompleteTopology(bizId);
+                      }
                   }
-              }
-        );
+            );
 
     public BizCmdbClient(BkApiConfig bkApiConfig,
                          CmdbConfig cmdbConfig,
@@ -662,30 +661,33 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return applicationHostDTOList;
     }
 
-    private ApplicationHostDTO convertHost(long bizId, CcHostInfoDTO hostInfo) {
-        ApplicationHostDTO ipInfo = new ApplicationHostDTO();
-        ipInfo.setHostId(hostInfo.getHostId());
-        // 部分从cmdb同步过来的资源没有ip，需要过滤掉
-        if (StringUtils.isBlank(hostInfo.getIp())) {
+    private ApplicationHostDTO convertHost(long bizId, CcHostInfoDTO ccHostInfo) {
+        // 部分从cmdb同步过来的资源没有hostId，需要过滤掉
+        if (ccHostInfo.getHostId() == null) {
+            log.warn("host with no hostId ignored:{}", ccHostInfo);
             return null;
         }
+        ApplicationHostDTO hostDTO = new ApplicationHostDTO();
+        hostDTO.setHostId(ccHostInfo.getHostId());
 
-        if (hostInfo.getOs() != null && hostInfo.getOs().length() > 512) {
-            ipInfo.setOsName(hostInfo.getOs().substring(0, 512));
+        if (ccHostInfo.getOs() != null && ccHostInfo.getOs().length() > 512) {
+            log.warn("osName truncated to 512, host={}", ccHostInfo);
+            hostDTO.setOsName(ccHostInfo.getOs().substring(0, 512));
         } else {
-            ipInfo.setOsName(hostInfo.getOs());
+            hostDTO.setOsName(ccHostInfo.getOs());
         }
-        if (hostInfo.getCloudId() != null) {
-            ipInfo.setCloudAreaId(hostInfo.getCloudId());
+        if (ccHostInfo.getCloudId() != null) {
+            hostDTO.setCloudAreaId(ccHostInfo.getCloudId());
         } else {
-            log.warn("Host does not have cloud area id!|{}", hostInfo);
+            log.warn("Host does not have cloud area id!|{}", ccHostInfo);
             return null;
         }
-        ipInfo.setIp(hostInfo.getIp());
-        ipInfo.setBizId(bizId);
-        ipInfo.setHostName(hostInfo.getHostName());
-
-        return ipInfo;
+        hostDTO.setIp(ccHostInfo.getIp());
+        hostDTO.setIpv6(ccHostInfo.getIpv6());
+        hostDTO.setAgentId(ccHostInfo.getAgentId());
+        hostDTO.setBizId(bizId);
+        hostDTO.setHostName(ccHostInfo.getHostName());
+        return hostDTO;
     }
 
     @Override
@@ -755,7 +757,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<CcGroupDTO> getDynamicGroupList(long bizId) {
+    public List<CcDynamicGroupDTO> getDynamicGroupList(long bizId) {
         SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, defaultUin,
             defaultSupplierAccount);
         req.setBizId(bizId);
@@ -790,20 +792,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 }
             }
         }
-        return ccDynamicGroupList.parallelStream().map(this::convertToCcGroupDTO).collect(Collectors.toList());
+        return ccDynamicGroupList;
     }
 
-    private CcGroupDTO convertToCcGroupDTO(CcDynamicGroupDTO ccDynamicGroupDTO) {
-        CcGroupDTO ccGroupDTO = new CcGroupDTO();
-        ccGroupDTO.setBizId(ccDynamicGroupDTO.getBizId());
-        ccGroupDTO.setId(ccDynamicGroupDTO.getId());
-        ccGroupDTO.setName(ccDynamicGroupDTO.getName());
-        ccGroupDTO.setLastTime(ccDynamicGroupDTO.getLastTime());
-        return ccGroupDTO;
-    }
-
-    private List<CcGroupHostPropDTO> convertToCcGroupHostPropList(List<CcHostInfoDTO> hostInfoList) {
-        List<CcGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
+    private List<DynamicGroupHostPropDTO> convertToCcGroupHostPropList(List<CcHostInfoDTO> hostInfoList) {
+        List<DynamicGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
         for (CcHostInfoDTO ccHostInfo : hostInfoList) {
             if (ccHostInfo.getCloudId() == null || ccHostInfo.getCloudId() < 0) {
                 log.warn(
@@ -821,7 +814,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     @Override
-    public List<CcGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId) {
+    public List<DynamicGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId) {
         ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, defaultUin, defaultSupplierAccount);
         req.setBizId(bizId);
         req.setGroupId(groupId);
@@ -829,7 +822,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         int start = 0;
         req.getPage().setLimit(limit);
 
-        List<CcGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
+        List<DynamicGroupHostPropDTO> ccGroupHostList = new ArrayList<>();
         boolean isLastPage = false;
         while (!isLastPage) {
             req.getPage().setStart(start);
@@ -861,18 +854,18 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         return ccGroupHostList;
     }
 
-    private CcGroupHostPropDTO convertToCcHost(CcHostInfoDTO ccHostInfo) {
-        CcGroupHostPropDTO ccGroupHostPropDTO = new CcGroupHostPropDTO();
-        ccGroupHostPropDTO.setId(ccHostInfo.getHostId());
-        ccGroupHostPropDTO.setName(ccHostInfo.getHostName());
-        ccGroupHostPropDTO.setIp(ccHostInfo.getIp());
-        ccGroupHostPropDTO.setIpv6(ccHostInfo.getIpv6());
-        ccGroupHostPropDTO.setAgentId(ccHostInfo.getAgentId());
+    private DynamicGroupHostPropDTO convertToCcHost(CcHostInfoDTO ccHostInfo) {
+        DynamicGroupHostPropDTO dynamicGroupHostPropDTO = new DynamicGroupHostPropDTO();
+        dynamicGroupHostPropDTO.setId(ccHostInfo.getHostId());
+        dynamicGroupHostPropDTO.setName(ccHostInfo.getHostName());
+        dynamicGroupHostPropDTO.setIp(ccHostInfo.getIp());
+        dynamicGroupHostPropDTO.setIpv6(ccHostInfo.getIpv6());
+        dynamicGroupHostPropDTO.setAgentId(ccHostInfo.getAgentId());
         CcCloudIdDTO ccCloudIdDTO = new CcCloudIdDTO();
         // 仅使用CloudId其余属性未用到，暂不设置
         ccCloudIdDTO.setInstanceId(ccHostInfo.getCloudId());
-        ccGroupHostPropDTO.setCloudIdList(Collections.singletonList(ccCloudIdDTO));
-        return ccGroupHostPropDTO;
+        dynamicGroupHostPropDTO.setCloudIdList(Collections.singletonList(ccCloudIdDTO));
+        return dynamicGroupHostPropDTO;
     }
 
     @Override
@@ -1036,22 +1029,27 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");
         Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIpv6s);
-        hostGroups.forEach((bkCloudId, ipv6s) -> {
-            ComposeRuleDTO hostRule = new ComposeRuleDTO();
-            hostRule.setCondition("AND");
-            hostRule.addRule(buildCloudIdRule(bkCloudId));
+        hostGroups.forEach((bkCloudId, ipv6s) ->
+            ipv6s.forEach(ipv6 -> {
+                ComposeRuleDTO hostRule = new ComposeRuleDTO();
+                hostRule.setCondition("AND");
+                hostRule.addRule(buildCloudIdRule(bkCloudId));
 
-            BaseRuleDTO ipRule = new BaseRuleDTO();
-            ipRule.setField("bk_host_innerip_v6");
-            ipRule.setOperator("in");
-            ipRule.setValue(ipv6s);
-            hostRule.addRule(ipRule);
-
-            condition.addRule(hostRule);
-        });
+                BaseRuleDTO ipv6Rule = buildIpv6Rule(ipv6);
+                hostRule.addRule(ipv6Rule);
+                condition.addRule(hostRule);
+            }));
         req.setCondition(condition);
-
         return listHostsWithoutBiz(req);
+    }
+
+    private BaseRuleDTO buildIpv6Rule(String ipv6) {
+        BaseRuleDTO ipv6Rule = new BaseRuleDTO();
+        // ipv6字段可能包含多个IPv6地址，故此处使用contains
+        ipv6Rule.setField("bk_host_innerip_v6");
+        ipv6Rule.setOperator("contains");
+        ipv6Rule.setValue(ipv6);
+        return ipv6Rule;
     }
 
     private BaseRuleDTO buildCloudIdRule(Long bkCloudId) {
@@ -1082,6 +1080,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
             hosts.addAll(pageData.getInfo().stream()
                 .map(host -> convertHost(-1, host))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
 
             // 设置主机业务信息

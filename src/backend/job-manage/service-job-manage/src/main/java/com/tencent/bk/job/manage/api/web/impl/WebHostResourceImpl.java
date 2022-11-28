@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -439,7 +439,7 @@ public class WebHostResourceImpl implements WebHostResource {
             DynamicGroupHostStatisticsVO statisticsVO = new DynamicGroupHostStatisticsVO();
             statisticsVO.setDynamicGroup(dynamicGroupDTO.toBasicVO());
             List<ApplicationHostDTO> hostList = bizDynamicGroupHostService.listHostByDynamicGroup(
-                Long.parseLong(scopeId),
+                appResourceScope,
                 dynamicGroupDTO.getId()
             );
             AgentStatistics agentStatistics = agentStatusService.calcAgentStatistics(hostList);
@@ -457,7 +457,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                       String scopeId,
                                                                       PageListHostsByDynamicGroupReq req) {
         PageData<ApplicationHostDTO> pageData = bizDynamicGroupHostService.pageHostByDynamicGroup(
-            Long.parseLong(scopeId),
+            appResourceScope,
             req.getId(),
             req.getStart().intValue(),
             req.getPageSize().intValue()
@@ -476,7 +476,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                       String scopeId, List<String> dynamicGroupIds) {
         // 目前只有业务支持动态分组
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
-            List<DynamicGroupInfoDTO> dynamicGroupList =
+            List<DynamicGroupWithHost> dynamicGroupList =
                 hostService.getBizDynamicGroupHostList(
                     username, Long.parseLong(appResourceScope.getId()), dynamicGroupIds
                 );
@@ -494,7 +494,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                               String scopeType,
                                                                               String scopeId,
                                                                               List<String> dynamicGroupIds) {
-        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
+        List<DynamicGroupWithHost> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
@@ -652,7 +652,7 @@ public class WebHostResourceImpl implements WebHostResource {
             long bizId = Long.parseLong(scopeId);
             List<ApplicationHostDTO> hostsByDynamicGroup = new ArrayList<>();
             for (String id : dynamicGroupIdList) {
-                hostsByDynamicGroup.addAll(bizDynamicGroupHostService.listHostByDynamicGroup(bizId, id));
+                hostsByDynamicGroup.addAll(bizDynamicGroupHostService.listHostByDynamicGroup(appResourceScope, id));
             }
             log.debug("hostsByDynamicGroup={}", hostsByDynamicGroup);
             allHostList.addAll(hostsByDynamicGroup);

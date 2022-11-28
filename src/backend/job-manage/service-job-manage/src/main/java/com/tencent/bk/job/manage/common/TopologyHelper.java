@@ -35,11 +35,10 @@ import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
-import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -56,7 +55,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -195,40 +193,27 @@ public class TopologyHelper {
         return node;
     }
 
-    public static DynamicGroupBasicVO convertToDynamicGroupBasicVO(DynamicGroupInfoDTO dynamicGroupInfoDTO) {
-        if (dynamicGroupInfoDTO == null) {
-            return null;
-        }
-        return new DynamicGroupBasicVO(
-            dynamicGroupInfoDTO.getId(),
-            dynamicGroupInfoDTO.getName(),
-            dynamicGroupInfoDTO.getLastTime(),
-            null
-        );
-    }
-
     /**
      * 将作业平台内部动态分组信息转换为展示用动态分组信息
      *
-     * @param dynamicGroupInfoDTO 作业平台内部动态分组信息
+     * @param dynamicGroupWithHost 作业平台内部动态分组信息
      * @return 展示用动态分组信息
      */
-    public static DynamicGroupInfoVO convertToDynamicGroupInfoVO(DynamicGroupInfoDTO dynamicGroupInfoDTO) {
-        if (dynamicGroupInfoDTO == null) {
+    public static DynamicGroupInfoVO convertToDynamicGroupInfoVO(DynamicGroupWithHost dynamicGroupWithHost) {
+        if (dynamicGroupWithHost == null) {
             return null;
         }
         DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
         dynamicGroupInfoVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
-        dynamicGroupInfoVO.setScopeId(dynamicGroupInfoDTO.getBizId().toString());
-        dynamicGroupInfoVO.setScopeName(dynamicGroupInfoDTO.getBizName());
-        dynamicGroupInfoVO.setId(dynamicGroupInfoDTO.getId());
-        dynamicGroupInfoVO.setOwner(dynamicGroupInfoDTO.getOwner());
-        dynamicGroupInfoVO.setOwnerName(dynamicGroupInfoDTO.getOwnerName());
-        dynamicGroupInfoVO.setName(dynamicGroupInfoDTO.getName());
-        dynamicGroupInfoVO.setType(dynamicGroupInfoDTO.getType());
-        if (dynamicGroupInfoDTO.getIpListStatus() != null) {
-            dynamicGroupInfoVO.setIpListStatus(dynamicGroupInfoDTO.getIpListStatus().parallelStream()
-                .filter(Objects::nonNull)
+        dynamicGroupInfoVO.setScopeId(dynamicGroupWithHost.getBizId().toString());
+        dynamicGroupInfoVO.setScopeName(dynamicGroupWithHost.getBizName());
+        dynamicGroupInfoVO.setId(dynamicGroupWithHost.getId());
+        dynamicGroupInfoVO.setOwner(dynamicGroupWithHost.getOwner());
+        dynamicGroupInfoVO.setOwnerName(dynamicGroupWithHost.getOwnerName());
+        dynamicGroupInfoVO.setName(dynamicGroupWithHost.getName());
+        dynamicGroupInfoVO.setType(dynamicGroupWithHost.getType());
+        if (dynamicGroupWithHost.getIpListStatus() != null) {
+            dynamicGroupInfoVO.setIpListStatus(dynamicGroupWithHost.getIpListStatus().parallelStream()
                 .map(ApplicationHostDTO::toVO).collect(Collectors.toList()));
         } else {
             dynamicGroupInfoVO.setIpListStatus(null);

@@ -4,7 +4,6 @@
         :class="{
             [`host-column-${columnKey}`]: true,
         }"
-        :data-date="Date.now()"
         @mousedown="handleMouseDown"
         @mousemove="handleMouseMove">
         <div class="cell">
@@ -74,8 +73,18 @@
     };
 
     onMounted(() => {
-        rootRef.value.style.width = props.columnWidthCallback
+        const fixedWidth = props.columnWidthCallback
                 ? props.columnWidthCallback(props.index)
                 : columnConfig.value.width;
+        if (fixedWidth) {
+            rootRef.value.style.width = fixedWidth;
+        } else {
+            const {
+                width: renderWidth,
+            } = rootRef.value.getBoundingClientRect();
+            if (renderWidth > ~~columnConfig.value.width) {
+                rootRef.value.style.width = `${renderWidth}px`;
+            }
+        }
     });
 </script>

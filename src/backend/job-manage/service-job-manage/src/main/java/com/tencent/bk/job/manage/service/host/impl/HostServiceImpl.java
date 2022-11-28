@@ -25,10 +25,11 @@
 package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
+import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
+import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.service.CloudAreaService;
@@ -44,7 +45,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -52,6 +53,7 @@ import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
@@ -74,7 +76,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -96,7 +97,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class HostServiceImpl implements HostService {
-    private final DSLContext dslContext;
+
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
     private final HostTopoDAO hostTopoDAO;
@@ -105,11 +106,11 @@ public class HostServiceImpl implements HostService {
     private final AgentStatusService agentStatusService;
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
+    private final BizCmdbClient bizCmdbClient;
     private final MessageI18nService i18nService;
 
     @Autowired
-    public HostServiceImpl(DSLContext dslContext,
-                           ApplicationHostDAO applicationHostDAO,
+    public HostServiceImpl(ApplicationHostDAO applicationHostDAO,
                            ApplicationService applicationService,
                            HostTopoDAO hostTopoDAO,
                            TopologyHelper topologyHelper,
@@ -117,8 +118,8 @@ public class HostServiceImpl implements HostService {
                            AgentStatusService agentStatusService,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
+                           BizCmdbClient bizCmdbClient,
                            MessageI18nService i18nService) {
-        this.dslContext = dslContext;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
         this.hostTopoDAO = hostTopoDAO;
@@ -127,6 +128,7 @@ public class HostServiceImpl implements HostService {
         this.agentStatusService = agentStatusService;
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
+        this.bizCmdbClient = bizCmdbClient;
         this.i18nService = i18nService;
     }
 
@@ -456,11 +458,11 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<DynamicGroupInfoDTO> getAppDynamicGroupList(String username,
-                                                            AppResourceScope appResourceScope) {
+    public List<DynamicGroupWithHost> getAppDynamicGroupList(String username,
+                                                             AppResourceScope appResourceScope) {
         ApplicationDTO applicationInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
 
-        Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
+        Map<String, DynamicGroupWithHost> ccGroupInfoMap = new HashMap<>();
         Map<Long, List<String>> appId2GroupIdMap = new HashMap<>();
         if (ResourceScopeTypeEnum.BIZ_SET == appResourceScope.getType()) {
             for (long subAppId : applicationInfo.getSubBizIds()) {
@@ -480,53 +482,69 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<DynamicGroupInfoDTO> getBizDynamicGroupHostList(String username, Long bizId,
-                                                                List<String> dynamicGroupIdList) {
-        Map<String, DynamicGroupInfoDTO> ccGroupInfoMap = new HashMap<>();
-        Map<Long, List<String>> bizId2GroupIdMap = new HashMap<>();
-        getCustomGroupListByBizId(bizId, ccGroupInfoMap, bizId2GroupIdMap);
+    public List<DynamicGroupWithHost> getBizDynamicGroupHostList(String username,
+                                                                 Long bizId,
+                                                                 List<String> dynamicGroupIdList) {
+        Set<String> dynamicGroupIdSet = new HashSet<>(dynamicGroupIdList);
+        IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
+        List<CcDynamicGroupDTO> dynamicGroupList = cmdbClient.getDynamicGroupList(bizId);
+        List<DynamicGroupWithHost> dynamicGroupWithHostList = dynamicGroupList.stream()
+            .filter(dynamicGroup -> dynamicGroupIdSet.contains(dynamicGroup.getId()))
+            .map(CcDynamicGroupDTO::toDynamicGroupWithHost)
+            .collect(Collectors.toList());
 
-        for (Map.Entry<Long, List<String>> entry : bizId2GroupIdMap.entrySet()) {
-            long groupBizId = entry.getKey();
-            for (String customerGroupId : entry.getValue()) {
-                if (!dynamicGroupIdList.contains(customerGroupId)) {
-                    ccGroupInfoMap.remove(customerGroupId);
-                    continue;
-                }
-                List<CcGroupHostPropDTO> ccGroupHostProps =
-                    CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-                        .getDynamicGroupIp(groupBizId, customerGroupId);
-                List<String> cloudIpList = new ArrayList<>();
-                for (CcGroupHostPropDTO groupHost : ccGroupHostProps) {
-                    if (CollectionUtils.isNotEmpty(groupHost.getCloudIdList())) {
-                        cloudIpList.add(groupHost.getCloudIdList().get(0).getInstanceId() + ":" + groupHost.getIp());
-                    } else {
-                        log.warn("Wrong host info! No cloud area!|{}", groupHost);
-                    }
-                }
+        // 查询业务数据
+        ResourceScope resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString());
+        ApplicationDTO appInfo = applicationService.getAppByScope(resourceScope);
 
-                ccGroupInfoMap.get(customerGroupId).setIpList(cloudIpList);
+        dynamicGroupWithHostList.forEach(dynamicGroupWithHost -> {
+            // 填充业务信息
+            fillAppInfo(appInfo, dynamicGroupWithHost);
+            // 填充主机IP信息
+            List<DynamicGroupHostPropDTO> dynamicGroupHostProps =
+                cmdbClient.getDynamicGroupIp(bizId, dynamicGroupWithHost.getId());
+            List<String> cloudIpList = new ArrayList<>();
+            for (DynamicGroupHostPropDTO groupHostProp : dynamicGroupHostProps) {
+                if (CollectionUtils.isNotEmpty(groupHostProp.getCloudIdList())) {
+                    cloudIpList.add(groupHostProp.getCloudIdList().get(0).getInstanceId() + ":" + groupHostProp.getIp());
+                } else {
+                    log.warn("Wrong host info! No cloud area!|{}", groupHostProp);
+                }
             }
-        }
-
-        fillAppInfo(ccGroupInfoMap);
-
-        for (DynamicGroupInfoDTO group : ccGroupInfoMap.values()) {
-            List<ApplicationHostDTO> applicationHostDTOList = topologyHelper.getIpStatusListByIps(bizId,
-                group.getIpList());
-            applicationHostDTOList.forEach(ApplicationHostDTO -> {
-                ApplicationHostDTO appHostInfo = applicationHostDAO.getLatestHost(bizId,
-                    ApplicationHostDTO.getCloudAreaId(), ApplicationHostDTO.getIp());
-                if (appHostInfo != null) {
-                    // 填充主机名称与操作系统
-                    ApplicationHostDTO.setHostId(appHostInfo.getHostId());
-                    ApplicationHostDTO.setHostName(appHostInfo.getHostName());
-                    ApplicationHostDTO.setOsName(appHostInfo.getOsName());
+            dynamicGroupWithHost.setIpList(cloudIpList);
+            // 填充主机详情
+            List<HostDTO> hostIps = buildHostDTOListFromCloudIp(cloudIpList);
+            List<ApplicationHostDTO> hostDetailList = listHosts(hostIps);
+            if (hostDetailList.size() < cloudIpList.size()) {
+                Set<String> existCloudIps = new HashSet<>(buildIpList(hostDetailList));
+                Set<String> cloudIpSet = new HashSet<>(cloudIpList);
+                cloudIpSet.removeAll(existCloudIps);
+                if (!cloudIpSet.isEmpty()) {
+                    log.warn("Cannot find hostDetail for {} ips: {}", cloudIpSet.size(), cloudIpSet);
                 }
-            });
-            group.setIpListStatus(applicationHostDTOList);
+            }
+            // 填充Agent状态信息
+            agentStatusService.fillRealTimeAgentStatus(hostDetailList);
+            dynamicGroupWithHost.setIpListStatus(hostDetailList);
+        });
+        return dynamicGroupWithHostList;
+    }
+
+    private void fillAppInfo(ApplicationDTO appInfo, DynamicGroupWithHost dynamicGroupWithHost) {
+        if (appInfo != null) {
+            dynamicGroupWithHost.setBizName(appInfo.getName());
+            dynamicGroupWithHost.setOwner(appInfo.getBkSupplierAccount());
+            dynamicGroupWithHost.setOwnerName(appInfo.getBkSupplierAccount());
+        } else {
+            log.warn("appInfo is null");
         }
-        return new ArrayList<>(ccGroupInfoMap.values());
+    }
+
+    private List<HostDTO> buildHostDTOListFromCloudIp(List<String> cloudIpList) {
+        if (CollectionUtils.isEmpty(cloudIpList)) {
+            return Collections.emptyList();
+        }
+        return cloudIpList.stream().map(HostDTO::fromCloudIp).collect(Collectors.toList());
     }
 
     @Override
@@ -1055,22 +1073,22 @@ public class HostServiceImpl implements HostService {
     }
 
     private void getCustomGroupListByBizId(Long bizId,
-                                           Map<String, DynamicGroupInfoDTO> ccGroupInfoList,
+                                           Map<String, DynamicGroupWithHost> ccGroupInfoList,
                                            Map<Long, List<String>> bizId2GroupIdMap) {
         List<String> groupIdList = new ArrayList<>();
-        List<CcGroupDTO> ccGroupList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
+        List<CcDynamicGroupDTO> ccGroupList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
             .getDynamicGroupList(bizId);
-        ccGroupList.forEach(ccGroupDTO -> {
-            ccGroupInfoList.put(ccGroupDTO.getId(), ccGroupDTO.toDynamicGroupInfo());
-            groupIdList.add(ccGroupDTO.getId());
+        ccGroupList.forEach(ccDynamicGroup -> {
+            ccGroupInfoList.put(ccDynamicGroup.getId(), ccDynamicGroup.toDynamicGroupWithHost());
+            groupIdList.add(ccDynamicGroup.getId());
         });
         bizId2GroupIdMap.put(bizId, groupIdList);
     }
 
-    private void fillAppInfo(Map<String, DynamicGroupInfoDTO> ccGroupInfoMap) {
+    private void fillAppInfo(Map<String, DynamicGroupWithHost> ccGroupInfoMap) {
         // 分组中的获取app信息
         Set<Long> bizIdSet = new HashSet<>();
-        for (DynamicGroupInfoDTO groupInfo : ccGroupInfoMap.values()) {
+        for (DynamicGroupWithHost groupInfo : ccGroupInfoMap.values()) {
             bizIdSet.add(groupInfo.getBizId());
         }
         List<ApplicationDTO> appInfoList = applicationService.listBizAppsByBizIds(bizIdSet);
@@ -1080,7 +1098,7 @@ public class HostServiceImpl implements HostService {
             id2AppInfoMap.put(appInfo.getScope().getId(), appInfo);
         }
 
-        for (DynamicGroupInfoDTO groupInfo : ccGroupInfoMap.values()) {
+        for (DynamicGroupWithHost groupInfo : ccGroupInfoMap.values()) {
             ApplicationDTO appInfo = id2AppInfoMap.get(groupInfo.getBizId().toString());
             if (appInfo == null) {
                 groupInfo.setBizName("");
@@ -1233,6 +1251,38 @@ public class HostServiceImpl implements HostService {
             return Collections.emptyList();
         }
         return hostResult.getRight();
+    }
+
+    public List<ApplicationHostDTO> listHostsByCloudIpv6(Long cloudAreaId, String ipv6) {
+        List<ApplicationHostDTO> hosts = applicationHostDAO.listHostInfoByCloudIpv6(cloudAreaId, ipv6);
+        // 多个Ipv6中的具体一个与查询条件Ipv6相等才有效
+        hosts = filterHostsByCloudIpv6(hosts, cloudAreaId, ipv6);
+        if (CollectionUtils.isEmpty(hosts)) {
+            hosts = bizCmdbClient.listHostsByCloudIpv6s(Collections.singletonList(cloudAreaId + IpUtils.COLON + ipv6));
+            hosts = filterHostsByCloudIpv6(hosts, cloudAreaId, ipv6);
+        }
+        return hosts;
+    }
+
+    /**
+     * 筛选出与指定云区域ID、Ipv6地址匹配的主机
+     * 指定的Ipv6地址必须与主机多个Ipv6地址的其中一个精确匹配
+     *
+     * @param hosts       筛选前的主机列表
+     * @param cloudAreaId 云区域ID
+     * @param ipv6        Ipv6地址
+     * @return 筛选后的主机列表
+     */
+    private List<ApplicationHostDTO> filterHostsByCloudIpv6(List<ApplicationHostDTO> hosts,
+                                                            Long cloudAreaId,
+                                                            String ipv6) {
+        return hosts.stream().filter(host -> {
+            String multiIpv6 = host.getIpv6();
+            Set<String> ipv6s = Arrays.stream(multiIpv6.split("[,;]"))
+                .map(String::trim)
+                .collect(Collectors.toSet());
+            return host.getCloudAreaId().equals(cloudAreaId) && ipv6s.contains(ipv6);
+        }).collect(Collectors.toList());
     }
 
     @Override

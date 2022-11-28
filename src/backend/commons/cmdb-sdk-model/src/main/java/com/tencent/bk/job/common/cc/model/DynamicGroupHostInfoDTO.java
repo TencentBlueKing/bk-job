@@ -22,12 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model;
 
-import com.tencent.bk.job.common.cc.model.CcGroupHostInfoDTO;
+import lombok.Data;
 
 /**
- * @date 2019/3/7
+ * CMDB动态分组-主机
  */
-public class SearchCustomGroupIpResult extends AbstractCcSearchResult<CcGroupHostInfoDTO> {
+@Data
+public class DynamicGroupHostInfoDTO {
+    private DynamicGroupHostPropDTO host;
 }

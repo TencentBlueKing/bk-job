@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
@@ -41,6 +41,7 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -51,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -105,13 +107,13 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
         }
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
-        List<DynamicGroupInfoDTO> dynamicGroupInfoDTOList = hostService.getBizDynamicGroupHostList(
+        List<DynamicGroupWithHost> dynamicGroupWithHostList = hostService.getBizDynamicGroupHostList(
             JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
             appDTO.getBizIdIfBizApp(),
             dynamicGroupIdList
         );
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        dynamicGroupInfoDTOList.parallelStream().forEach(dynamicGroupInfoDTO ->
+        dynamicGroupWithHostList.parallelStream().forEach(dynamicGroupInfoDTO ->
             dynamicGroupInfoDTO.getIpListStatus().forEach(hostInfoVO -> {
                 ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
                 serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
@@ -154,7 +156,20 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         List<HostDTO> hostIps = req.getHosts();
         List<ApplicationHostDTO> hosts = hostService.listHosts(hostIps);
         if (CollectionUtils.isEmpty(hosts)) {
-            return InternalResponse.buildSuccessResp(null);
+            return InternalResponse.buildSuccessResp(Collections.emptyList());
+        }
+
+        return InternalResponse.buildSuccessResp(
+            hosts.stream()
+                .map(ServiceHostDTO::fromApplicationHostDTO)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    public InternalResponse<List<ServiceHostDTO>> getHostsByCloudIpv6(ServiceGetHostsByCloudIpv6Req req) {
+        List<ApplicationHostDTO> hosts = hostService.listHostsByCloudIpv6(req.getCloudAreaId(), req.getIpv6());
+        if (CollectionUtils.isEmpty(hosts)) {
+            return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
 
         return InternalResponse.buildSuccessResp(

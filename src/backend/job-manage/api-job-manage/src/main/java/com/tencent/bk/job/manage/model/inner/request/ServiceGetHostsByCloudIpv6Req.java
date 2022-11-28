@@ -22,43 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.model.inner.request;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * @since 4/12/2019 19:06
+ * 根据云区域ID与Ipv6地址获取主机请求
  */
-@Data
-@EqualsAndHashCode
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class DynamicGroupInfoDTO {
-
-    private Long bizId;
-
-    private String bizName;
-
-    private String id;
-
-    private String owner;
-
-    private String ownerName;
-
-    private String name;
-
-    private String lastTime;
-
-    private String type;
-
-    private List<String> ipList;
-
-    private List<ApplicationHostDTO> ipListStatus = new ArrayList<>();
-
+public class ServiceGetHostsByCloudIpv6Req {
+    Long cloudAreaId;
+    String ipv6;
 }

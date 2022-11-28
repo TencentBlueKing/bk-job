@@ -119,6 +119,12 @@
     };
 
     defineExpose({
+        getHostList () {
+            if (!hostRef.value) {
+                return [];
+            }
+            return hostRef.value.getHostList();
+        },
         getHostIpList () {
             if (!hostRef.value) {
                 return [];

@@ -38,6 +38,7 @@ const config = {
     nameStyle: 'kebabCase', // 'camelCase' | 'kebabCase'
     hostTableCustomColumnList: [],
     hostTableRenderColumnList: [],
+    hostMemuExtends: [],
 };
 
 const service = {};

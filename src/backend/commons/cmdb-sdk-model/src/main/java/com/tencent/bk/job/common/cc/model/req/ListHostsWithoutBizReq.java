@@ -45,6 +45,7 @@ public class ListHostsWithoutBizReq extends EsbReq {
         "bk_host_id",
         "bk_host_innerip",
         "bk_host_innerip_v6",
+        "bk_agent_id",
         "bk_host_name",
         "bk_os_name",
         "bk_cloud_id"

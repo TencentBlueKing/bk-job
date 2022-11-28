@@ -22,45 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.common.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * CC动态分组
+ * 含有主机信息的动态分组
  */
 @Data
-public class CcGroupDTO {
-    /**
-     * cmdb 业务ID
-     */
-    @JsonProperty("bk_biz_id")
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class DynamicGroupWithHost {
+
     private Long bizId;
 
-    /**
-     * 动态分组ID
-     */
+    private String bizName;
+
     private String id;
 
-    /**
-     * 动态分组名称
-     */
+    private String owner;
+
+    private String ownerName;
+
     private String name;
 
-    /**
-     * 最后修改时间
-     */
-    @JsonProperty("last_time")
     private String lastTime;
 
-    public DynamicGroupInfoDTO toDynamicGroupInfo() {
-        DynamicGroupInfoDTO dynamicGroupInfoDTO = new DynamicGroupInfoDTO();
-        dynamicGroupInfoDTO.setId(this.getId());
-        dynamicGroupInfoDTO.setBizId(this.getBizId());
-        dynamicGroupInfoDTO.setName(this.getName());
-        dynamicGroupInfoDTO.setLastTime(this.getLastTime());
-        return dynamicGroupInfoDTO;
-    }
+    private String type;
+
+    private List<String> ipList;
+
+    private List<ApplicationHostDTO> ipListStatus = new ArrayList<>();
+
 }

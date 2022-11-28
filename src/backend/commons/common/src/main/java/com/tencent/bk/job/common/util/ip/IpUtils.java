@@ -50,6 +50,8 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class IpUtils {
+    public static final String PROTOCOL_IP_V4 = "v4";
+    public static final String PROTOCOL_IP_V6 = "v6";
     public static final String COLON = ":";
 
     /**
@@ -345,5 +347,18 @@ public class IpUtils {
             }
         }
         return Pair.of(ipList, cloudIpList);
+    }
+
+    /**
+     * 根据IP推断IP协议
+     *
+     * @param ip ip地址
+     * @return 协议号，常量值：PROTOCOL_IP_V6/PROTOCOL_IP_V4
+     */
+    public static String inferProtocolByIp(String ip) {
+        if (IpUtils.checkIpv6(ip)) {
+            return PROTOCOL_IP_V6;
+        }
+        return PROTOCOL_IP_V4;
     }
 }
