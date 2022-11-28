@@ -161,7 +161,7 @@
     // 移除单个IP
     const handleRemove = (removeTarget) => {
         const result = props.data.reduce((result, item) => {
-            if (removeTarget !== item) {
+            if (removeTarget.host_id !== item.host_id) {
                 result.push(item);
             }
             return result;
