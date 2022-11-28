@@ -8,7 +8,7 @@
             }"
             :style="styles">
             <table v-if="!isLoadingCustom">
-                <thead>
+                <thead id="bkIPSelectorHostTableHead">
                     <tr>
                         <th
                             v-if="slots['header-selection']"
@@ -154,6 +154,7 @@
         hostTableRenderColumnList,
         hostTableCustomColumnList,
     } = Manager.config;
+    // 配置的自定义列
     if (hostTableCustomColumnList) {
         const keySortList = Object.keys(tableColumnConfig);
         hostTableCustomColumnList.forEach((columnConfig) => {
@@ -165,8 +166,18 @@
         });
         columnKeySortList.value = keySortList;
     }
+    // 默认显示的列表
     if (hostTableRenderColumnList.length > 0) {
         columnKeyRenderList.value = [...hostTableRenderColumnList];
+        const keyRenderMap = makeMap(hostTableRenderColumnList);
+        const defaultSortList = columnKeySortList.value.reduce((result, columnKey) => {
+            if (!keyRenderMap[columnKey]) {
+                result.push(columnKey);
+            }
+            return result;
+        }, []);
+        columnKeySortList.value = [...hostTableRenderColumnList, ...defaultSortList];
+        console.log('asdadad \n\n\n\n\n\n\n\n\n', defaultSortList, columnKeySortList.value, '\n\n\n\n\n\n\n\n\n');
     }
 
     const slots = useSlots();

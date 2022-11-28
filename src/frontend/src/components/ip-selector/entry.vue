@@ -37,7 +37,10 @@
         mergeLocalService,
     } from './manager.js';
     import SelectorBox from './selector-box/index.vue';
-    import { formatInput } from './utils/index';
+    import {
+        formatInput,
+        formatOutput,
+    } from './utils/index';
     import ViewsBox from './views-box/index.vue';
 
     import './bk-icon/style.css';
@@ -166,6 +169,12 @@
     });
 
     defineExpose({
+        getHostList () {
+            if (!viewsRef.value) {
+                return [];
+            }
+            return viewsRef.value.getHostList();
+        },
         getHostIpList () {
             if (!viewsRef.value) {
                 return [];
@@ -179,10 +188,11 @@
             return viewsRef.value.getAbnormalHostIpList();
         },
         resetValue () {
-            if (props.value) {
-                return;
-            }
-            selectorValue.value = {};
+            handleValueChange(formatOutput({
+                hostList: [],
+                nodeList: [],
+                dynamicGroupList: [],
+            }));
         },
         refresh () {
             viewsRef.value && viewsRef.value.refresh();

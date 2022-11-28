@@ -27,7 +27,7 @@
 
 <template>
     <div
-        class="bk-diff"
+        class="jb-diff"
         :class="classes">
         <div
             ref="content"
@@ -51,7 +51,7 @@
     import xml from 'highlight.js/lib/languages/xml';
     import _ from 'lodash';
 
-    import 'highlight.js/styles/vs.css';
+    import 'highlight.js/styles/dark.css';
 
     const languageList = [
         { lang: 'javascript', mod: javascript },
@@ -154,16 +154,14 @@
     };
 </script>
 <style lang="postcss">
-    .bk-diff {
-        &.dark {
-            .d2h-code-line-ctn {
-                color: #979ba5;
-            }
+    .jb-diff {
+        .d2h-file-header {
+            display: none;
+        }
 
-            .hljs-addition,
-            .hljs-deletion {
-                width: auto;
-                background: none;
+        tbody {
+            tr:last-child {
+                display: none;
             }
         }
     }

@@ -66,7 +66,7 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 // import 'lib/ip-selector/styles/index.css';
 
 const IpSelector = createIpSelector({
-    version: '5',
+    version: '6',
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
     unqiuePanelValue: false,
     nameStyle: 'camelCase',
@@ -90,7 +90,21 @@ const IpSelector = createIpSelector({
     //         renderCell: h => h('span', 'render test1'),
     //     },
     // ],
-    // hostTableRenderColumnList: ['ip', 'ipv6', 'a1', 'A2', 'alive', 'osName', 'coludArea'],
+    // hostTableRenderColumnList: ['ip', 'alive', 'osName', 'ipv6', 'cloudArea'],
+    // hostMemuExtends: [
+    //     {
+    //         name: '复制更多一',
+    //         action: () => {
+    //             console.log('复制更多一');
+    //         },
+    //     },
+    //     {
+    //         name: '复制更多二',
+    //         action: () => {
+    //             console.log('复制更多二');
+    //         },
+    //     },
+    // ],
     fetchTopologyHostCount: HostManageService.fetchTopologyWithCount,
     fetchTopologyHostsNodes: HostManageService.fetchTopologyHost,
     fetchTopologyHostIdsNodes: HostManageService.fetchTopogyHostIdList,

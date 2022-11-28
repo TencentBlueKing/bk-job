@@ -1,5 +1,8 @@
+import _ from 'lodash';
 import {
     getCurrentInstance,
+    onBeforeUnmount,
+    onMounted,
     ref,
 } from 'vue';
 
@@ -12,12 +15,12 @@ export default function (tableRef, tableColumnResizeRef) {
     const initColumnWidth = () => {
         setTimeout(() => {
             const tableEl = tableRef.value;
-            tableEl.querySelectorAll('th').forEach((columnEl, index) => {
+            tableEl.querySelectorAll('th').forEach((columnEl) => {
                 const { width } = columnEl.getBoundingClientRect();
-                if (columnEl.classList.contains('host-column-first-key') && width < 180) {
-                    columnEl.style.width = '180px';
+                if (columnEl.classList.contains('host-column-first-key')) {
+                    columnEl.style.width = `${Math.max(width, 180)}px`;
                 } else {
-                    columnEl.style.width = `${width}px`;
+                    columnEl.style.width = `${Math.max(width, 60)}px`;
                 }
             });
         });
@@ -99,6 +102,24 @@ export default function (tableRef, tableColumnResizeRef) {
         }
     };
 
+    const handleOuterMousemove = _.throttle((event) => {
+        let i = event.path.length - 1;
+        while (i >= 0) {
+            if (event.path[i].id === 'bkIPSelectorHostTableHead') {
+                return;
+            }
+            i = i - 1;
+        }
+        document.body.style.cursor = '';
+    }, 500);
+
+    onMounted(() => {
+        document.addEventListener('mousemove', handleOuterMousemove);
+    });
+
+    onBeforeUnmount(() => {
+        document.removeEventListener('mousemove', handleOuterMousemove);
+    });
     return {
         initColumnWidth,
         handleMouseDown,
