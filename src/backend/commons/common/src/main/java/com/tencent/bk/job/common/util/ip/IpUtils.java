@@ -205,6 +205,12 @@ public class IpUtils {
         return matcher.matches();
     }
 
+    /**
+     * 从网卡获取首个机器IP，优先获取IPv4地址
+     * 若获取到的值为v6协议的IP，默认提供完整无压缩的IPv6地址
+     *
+     * @return 首个机器IP地址
+     */
     public static String getFirstMachineIP() {
         return getFirstMachineIpPreferV4();
     }
@@ -216,7 +222,8 @@ public class IpUtils {
         }
         Map<String, String> ipv6Map = getMachineIPv6Map();
         if (!ipv6Map.isEmpty()) {
-            return ipv6Map.values().iterator().next();
+            String ipv6 = ipv6Map.values().iterator().next();
+            return getFullIpv6ByCompressedOne(ipv6);
         }
         log.error("no available ip, plz check net interface");
         return null;
@@ -360,5 +367,64 @@ public class IpUtils {
             return PROTOCOL_IP_V6;
         }
         return PROTOCOL_IP_V4;
+    }
+
+    /**
+     * 有压缩的IPv6地址转换成完整无压缩的IPv6
+     *
+     * @param compressedIpv6 有压缩的IPv6地址
+     * @return 完整无压缩的IPv6地址
+     */
+    public static String getFullIpv6ByCompressedOne(String compressedIpv6) {
+        if (StringUtils.isEmpty(compressedIpv6)) {
+            return compressedIpv6;
+        }
+        String[] finalSeqArr = new String[]{"0000", "0000", "0000", "0000", "0000", "0000", "0000", "0000"};
+        // 连续0标识符
+        String continueZeroToken = "::";
+        // 段之间分隔符
+        String seqSeparator = ":";
+        // 一个IPv6地址最多有8段
+        int maxSeqNum = 8;
+        if (compressedIpv6.startsWith(continueZeroToken)) {
+            compressedIpv6 = "0" + compressedIpv6;
+        }
+        if (compressedIpv6.endsWith(continueZeroToken)) {
+            compressedIpv6 = compressedIpv6 + "0";
+        }
+        if (compressedIpv6.contains(continueZeroToken)) {
+            String[] seqArr = compressedIpv6.split(continueZeroToken);
+            String[] leftSeqArr = seqArr[0].split(seqSeparator);
+            for (int i = 0; i < leftSeqArr.length && i < maxSeqNum; i++) {
+                finalSeqArr[i] = getStandardIpv6Seq(leftSeqArr[i]);
+            }
+            String[] rightSeqArr = seqArr[1].split(seqSeparator);
+            for (int i = 0; i < rightSeqArr.length && i < maxSeqNum; i++) {
+                finalSeqArr[i + maxSeqNum - rightSeqArr.length] = getStandardIpv6Seq(rightSeqArr[i]);
+            }
+        } else {
+            String[] seqArr = compressedIpv6.split(seqSeparator);
+            for (int i = 0; i < seqArr.length && i < maxSeqNum; i++) {
+                finalSeqArr[i] = getStandardIpv6Seq(seqArr[i]);
+            }
+        }
+        return StringUtils.join(finalSeqArr, ":");
+    }
+
+    /**
+     * 获取含有4个字符的Ipv6标准段，不足4字符则添加前缀0，超出4字符则截取最后4字符
+     *
+     * @param ipv6Seq ipv6地址的一段
+     * @return 4个字符的标准段
+     */
+    public static String getStandardIpv6Seq(String ipv6Seq) {
+        String template = "0000";
+        if (StringUtils.isBlank(ipv6Seq)) {
+            return template;
+        }
+        if (ipv6Seq.length() > template.length()) {
+            return ipv6Seq.substring(ipv6Seq.length() - template.length());
+        }
+        return template.substring(0, template.length() - ipv6Seq.length()) + ipv6Seq;
     }
 }
