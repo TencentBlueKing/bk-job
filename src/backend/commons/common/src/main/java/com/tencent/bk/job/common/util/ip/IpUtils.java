@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.util.ip;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidIpv6SeqException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -386,12 +388,15 @@ public class IpUtils {
         String seqSeparator = ":";
         // 一个IPv6地址最多有8段
         int maxSeqNum = 8;
+        // ::开头的IP首位补0便于后续统一分割处理
         if (compressedIpv6.startsWith(continueZeroToken)) {
             compressedIpv6 = "0" + compressedIpv6;
         }
+        // ::结尾的IP末位补0便于后续统一分割处理
         if (compressedIpv6.endsWith(continueZeroToken)) {
             compressedIpv6 = compressedIpv6 + "0";
         }
+        // 统一分割、解析
         if (compressedIpv6.contains(continueZeroToken)) {
             String[] seqArr = compressedIpv6.split(continueZeroToken);
             String[] leftSeqArr = seqArr[0].split(seqSeparator);
@@ -422,8 +427,10 @@ public class IpUtils {
         if (StringUtils.isBlank(ipv6Seq)) {
             return template;
         }
+
         if (ipv6Seq.length() > template.length()) {
-            return ipv6Seq.substring(ipv6Seq.length() - template.length());
+            log.warn("ipv6Seq {} exceed max length({})", ipv6Seq, template.length());
+            throw new InvalidIpv6SeqException(ErrorCode.INVALID_IPV6_SEQ);
         }
         return template.substring(0, template.length() - ipv6Seq.length()) + ipv6Seq;
     }

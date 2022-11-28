@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 public class IpUtilsTest {
     @Test
@@ -121,12 +122,11 @@ public class IpUtilsTest {
 
     @Test
     void testGetStandardIpv6Seq() {
-        assertThat(IpUtils.getStandardIpv6Seq("")).isEqualTo("0000");
         assertThat(IpUtils.getStandardIpv6Seq("0")).isEqualTo("0000");
         assertThat(IpUtils.getStandardIpv6Seq("1")).isEqualTo("0001");
         assertThat(IpUtils.getStandardIpv6Seq("1001")).isEqualTo("1001");
         assertThat(IpUtils.getStandardIpv6Seq("ff")).isEqualTo("00ff");
-        assertThat(IpUtils.getStandardIpv6Seq("aabbcc")).isEqualTo("bbcc");
+        assertThatThrownBy(() -> IpUtils.getStandardIpv6Seq("aabbcc"));
     }
 
     @Test
@@ -143,8 +143,7 @@ public class IpUtilsTest {
             .isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001");
         assertThat(IpUtils.getFullIpv6ByCompressedOne("0000::1"))
             .isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001");
-        assertThat(IpUtils.getFullIpv6ByCompressedOne("00000::1"))
-            .isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001");
+        assertThatThrownBy(() -> IpUtils.getFullIpv6ByCompressedOne("00000::1"));
         assertThat(IpUtils.getFullIpv6ByCompressedOne("1:0000::1"))
             .isEqualTo("0001:0000:0000:0000:0000:0000:0000:0001");
         assertThat(IpUtils.getFullIpv6ByCompressedOne("1:1:1:1:1:1:1:1"))
@@ -153,8 +152,7 @@ public class IpUtilsTest {
             .isEqualTo("0001:0001:0001:0000:0000:0001:0001:0001");
         assertThat(IpUtils.getFullIpv6ByCompressedOne("ffff:1:1:0:0:1:1:ffff"))
             .isEqualTo("ffff:0001:0001:0000:0000:0001:0001:ffff");
-        assertThat(IpUtils.getFullIpv6ByCompressedOne("aaffff:1:1:0:0:1:1:bbffff"))
-            .isEqualTo("ffff:0001:0001:0000:0000:0001:0001:ffff");
+        assertThatThrownBy(() -> IpUtils.getFullIpv6ByCompressedOne("aaffff:1:1:0:0:1:1:bbffff"));
         assertThat(IpUtils.getFullIpv6ByCompressedOne("ffff:0001:0001:0000:0000:0001:0001:ffff"))
             .isEqualTo("ffff:0001:0001:0000:0000:0001:0001:ffff");
     }
