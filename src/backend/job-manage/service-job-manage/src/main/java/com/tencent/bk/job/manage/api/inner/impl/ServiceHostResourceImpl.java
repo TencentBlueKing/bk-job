@@ -147,7 +147,8 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     @Override
     public InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(Long appId,
                                                                           ServiceBatchGetAppHostsReq req) {
-        return InternalResponse.buildSuccessResp(hostService.listAppHosts(appId, req.getHosts()));
+        return InternalResponse.buildSuccessResp(
+            hostService.listAppHostsPreferCache(appId, req.getHosts(), req.isRefreshAgentId()));
     }
 
     @Override

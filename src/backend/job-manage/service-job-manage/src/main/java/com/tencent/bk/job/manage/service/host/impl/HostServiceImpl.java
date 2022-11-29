@@ -64,12 +64,10 @@ import com.tencent.bk.job.manage.model.db.CacheHostDO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
-import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import com.tencent.bk.job.manage.service.host.HostService;
@@ -930,7 +928,6 @@ public class HostServiceImpl implements HostService {
             }
         });
         // 对于本地不在目标业务下的主机再到CMDB查询
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         List<HostDTO> ipDTOList = notInAppIPListByLocal.parallelStream()
             .map(CloudIPDTO::toHostDTO)
             .collect(Collectors.toList());
@@ -1042,8 +1039,7 @@ public class HostServiceImpl implements HostService {
         validIPList.removeIf(cloudIPDTO -> localHostCloudIPSet.contains(cloudIPDTO.getCloudIP()));
         // 查不到的再去CMDB查
         if (!validIPList.isEmpty()) {
-            IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient();
-            List<ApplicationHostDTO> cmdbHosts = cmdbClient.listHostsByCloudIps(
+            List<ApplicationHostDTO> cmdbHosts = bizCmdbClient.listHostsByCloudIps(
                 validIPList.parallelStream()
                     .map(CloudIPDTO::getCloudIP)
                     .collect(Collectors.toList())
@@ -1235,61 +1231,6 @@ public class HostServiceImpl implements HostService {
         return finalHostInfoVOList;
     }
 
-    @Override
-    public AgentStatistics getAgentStatistics(String username, Long appId, AgentStatisticsReq agentStatisticsReq) {
-        log.info("Input=({},{},{})", username, appId, JsonUtils.toJson(agentStatisticsReq));
-        ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
-        Set<HostInfoVO> allHostsSet = new HashSet<>();
-        List<Long> hostIdList = agentStatisticsReq.getHostIdList();
-        if (CollectionUtils.isNotEmpty(hostIdList)) {
-            List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostInfoByHostIds(hostIdList);
-            Set<HostInfoVO> hostsByHostId = hostDTOList.parallelStream()
-                .map(ApplicationHostDTO::toVO).collect(Collectors.toSet());
-            log.debug("hostsByHostId={}", hostsByHostId);
-            allHostsSet.addAll(hostsByHostId);
-        }
-        List<String> ipList = agentStatisticsReq.getIpList();
-        if (CollectionUtils.isNotEmpty(ipList)) {
-            List<HostInfoVO> hostsByIp = getHostsByIp(username, appId, null, ipList);
-            log.debug("hostsByIp={}", hostsByIp);
-            allHostsSet.addAll(hostsByIp);
-        }
-        List<HostInfoVO> hostsByNodes = listHostByAppTopologyNodes(username, appId,
-            agentStatisticsReq.getNodeList());
-        log.debug("hostsByNodes={}", hostsByNodes);
-        allHostsSet.addAll(hostsByNodes);
-        // 只有普通业务才查动态分组
-        if (applicationDTO.isBiz()) {
-            List<ApplicationHostDTO> hostDTOsByDynamicGroupIds = new ArrayList<>();
-            List<DynamicGroupWithHost> dynamicGroupList = getBizDynamicGroupHostList(
-                username,
-                applicationDTO.getBizIdIfBizApp(),
-                agentStatisticsReq.getDynamicGroupIds()
-            );
-            dynamicGroupList.forEach(dynamicGroupInfoDTO -> {
-                List<ApplicationHostDTO> applicationHostDTOList = dynamicGroupInfoDTO.getIpListStatus();
-                if (applicationHostDTOList != null && !applicationHostDTOList.isEmpty()) {
-                    hostDTOsByDynamicGroupIds.addAll(applicationHostDTOList);
-                }
-            });
-            agentStatusService.fillRealTimeAgentStatus(hostDTOsByDynamicGroupIds);
-            List<HostInfoVO> hostsByDynamicGroupIds = fillCloudAreaNameAndConvertToVOList(hostDTOsByDynamicGroupIds);
-            log.debug("hostsByDynamicGroupIds={}", hostsByDynamicGroupIds);
-            allHostsSet.addAll(hostsByDynamicGroupIds);
-        }
-        log.debug("allHostsSet.size={},allHostsSet={}", allHostsSet.size(), allHostsSet);
-        int normalCount = 0;
-        int abnormalCount = 0;
-        for (HostInfoVO it : allHostsSet) {
-            if (it.getAgentStatus() == 1) {
-                normalCount += 1;
-            } else {
-                abnormalCount += 1;
-            }
-        }
-        return new AgentStatistics(normalCount, abnormalCount);
-    }
-
     private List<Long> buildIncludeBizIdList(ApplicationDTO application) {
         List<Long> bizIdList = new ArrayList<>();
         if (application.isBiz()) {
@@ -1343,14 +1284,16 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public ServiceListAppHostResultDTO listAppHosts(Long appId,
-                                                    List<HostDTO> hosts) {
+    public ServiceListAppHostResultDTO listAppHostsPreferCache(Long appId,
+                                                               List<HostDTO> hosts,
+                                                               boolean refreshAgentId) {
         ServiceListAppHostResultDTO result = new ServiceListAppHostResultDTO();
         ApplicationDTO application = applicationService.getAppByAppId(appId);
 
         Pair<List<HostDTO>, List<ApplicationHostDTO>> hostResult = listHostsFromCacheOrCmdb(hosts);
         List<HostDTO> notExistHosts = hostResult.getLeft();
         List<ApplicationHostDTO> existHosts = hostResult.getRight();
+        refreshHostAgentIdIfNeed(refreshAgentId, existHosts);
         List<HostDTO> validHosts = new ArrayList<>();
         List<HostDTO> notInAppHosts = new ArrayList<>();
 
@@ -1390,6 +1333,35 @@ public class HostServiceImpl implements HostService {
         result.setNotInAppHosts(notInAppHosts);
 
         return result;
+    }
+
+    private void refreshHostAgentIdIfNeed(boolean needRefreshAgentId, List<ApplicationHostDTO> hosts) {
+        // 如果Job缓存的主机中没有agentId，那么需要从cmdb实时获取（解决一些特殊场景，比如节点管理Agent插件安装，bk_agent_id更新事件还没被处理的场景
+        if (!needRefreshAgentId || CollectionUtils.isEmpty(hosts)) {
+            return;
+        }
+        long start = System.currentTimeMillis();
+        List<Long> missingAgentIdHostIds = hosts.stream()
+            .filter(host -> StringUtils.isEmpty(host.getAgentId()))
+            .map(ApplicationHostDTO::getHostId)
+            .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(missingAgentIdHostIds)) {
+            return;
+        }
+        List<ApplicationHostDTO> cmdbHosts = listHostsFromCmdbByHostIds(missingAgentIdHostIds);
+        if (CollectionUtils.isEmpty(cmdbHosts)) {
+            return;
+        }
+
+        Map<Long, String> hostIdAndAgentIdMap = cmdbHosts.stream()
+            .collect(Collectors.toMap(ApplicationHostDTO::getHostId, ApplicationHostDTO::getAgentId));
+        hosts.forEach(host -> {
+            if (StringUtils.isEmpty(host.getAgentId())) {
+                host.setAgentId(hostIdAndAgentIdMap.get(host.getHostId()));
+            }
+        });
+        log.info("Refresh host agent id, hostIds: {}, cost: {}", missingAgentIdHostIds,
+            System.currentTimeMillis() - start);
     }
 
     private Pair<List<HostDTO>, List<ApplicationHostDTO>> listHostsFromCacheOrCmdb(Collection<HostDTO> hosts) {
@@ -1513,7 +1485,6 @@ public class HostServiceImpl implements HostService {
         public Pair<List<String>, List<ApplicationHostDTO>> listHostsFromCmdb(List<String> cloudIps) {
             List<String> notExistCloudIps = new ArrayList<>(cloudIps);
 
-            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
             List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(cloudIps);
             if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
                 List<String> cmdbExistHostIds = cmdbExistHosts.stream()
@@ -1569,9 +1540,7 @@ public class HostServiceImpl implements HostService {
         @Override
         public Pair<List<Long>, List<ApplicationHostDTO>> listHostsFromCmdb(List<Long> hostIds) {
             List<Long> notExistHostIds = new ArrayList<>(hostIds);
-
-            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-            List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByHostIds(hostIds);
+            List<ApplicationHostDTO> cmdbExistHosts = listHostsFromCmdbByHostIds(hostIds);
             if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
                 List<Long> cmdbExistHostIds = cmdbExistHosts.stream()
                     .map(ApplicationHostDTO::getHostId)
@@ -1590,6 +1559,17 @@ public class HostServiceImpl implements HostService {
         Pair<List<Long>, List<ApplicationHostDTO>> result = listHostsByStrategy(new ArrayList<>(hostIds),
             new ListHostByHostIdsStrategy());
         return result.getRight().stream().collect(Collectors.toMap(ApplicationHostDTO::getHostId, host -> host));
+    }
+
+    /**
+     * 从cmdb实时查询主机
+     *
+     * @param hostIds 主机ID列表
+     * @return 主机 Map<hostId, host>
+     */
+    @Override
+    public List<ApplicationHostDTO> listHostsFromCmdbByHostIds(List<Long> hostIds) {
+        return bizCmdbClient.listHostsByHostIds(hostIds);
     }
 
     @Override

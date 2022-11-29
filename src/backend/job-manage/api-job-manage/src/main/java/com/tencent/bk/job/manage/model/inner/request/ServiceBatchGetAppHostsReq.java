@@ -40,9 +40,18 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 public class ServiceBatchGetAppHostsReq {
-    List<HostDTO> hosts;
+    /**
+     * 查询的主机列表
+     */
+    private List<HostDTO> hosts;
+    /**
+     * 是否需要刷新主机的bk_agent_id
+     */
+    private boolean refreshAgentId;
 
-    public ServiceBatchGetAppHostsReq(List<HostDTO> hosts) {
+
+    public ServiceBatchGetAppHostsReq(List<HostDTO> hosts, boolean refreshAgentId) {
         this.hosts = hosts;
+        this.refreshAgentId = refreshAgentId;
     }
 }
