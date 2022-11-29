@@ -60,29 +60,31 @@
                     </div>
                 </div>
             </div>
-            <div class="version-select-layout">
-                <div class="version-left">
-                    引用脚本版本（{{ oldVersionScript.version }}）
+            <div style="padding: 0 16px;">
+                <div class="version-select-layout">
+                    <div class="version-left">
+                        引用脚本版本（{{ oldVersionScript.version }}）
+                    </div>
+                    <div class="version-right">
+                        最新脚本版本（{{ lastVersionScript.version }}）
+                    </div>
                 </div>
-                <div class="version-right">
-                    最新脚本版本（{{ lastVersionScript.version }}）
-                </div>
+                <scroll-faker class="content-wraper">
+                    <jb-diff
+                        ref="diff"
+                        class="diff-details"
+                        :context="Infinity"
+                        format="side-by-side"
+                        :language="language"
+                        :new-content="lastVersionScript.content"
+                        :old-content="oldContent"
+                        theme="dark" />
+                </scroll-faker>
             </div>
-            <scroll-faker class="content-wraper">
-                <jb-diff
-                    ref="diff"
-                    class="diff-details"
-                    :context="Infinity"
-                    format="side-by-side"
-                    :language="language"
-                    :new-content="lastVersionScript.content"
-                    :old-content="oldContent"
-                    theme="dark" />
-            </scroll-faker>
-            <i
-                class="bk-icon icon-close"
-                @click="handleClose" />
         </div>
+        <i
+            class="bk-icon icon-close"
+            @click="handleClose" />
     </div>
 </template>
 <script>
@@ -262,22 +264,23 @@
         right: 0;
         bottom: 0;
         left: 0;
-        padding: 0 40px;
+        padding: 8px 24px;
         background-color: #fff;
 
         .header {
             display: flex;
-            height: 40px;
             align-items: center;
+            padding-right: 16px;
 
             .title {
-                font-size: 14px;
+                font-size: 20px;
+                line-height: 28px;
                 color: #313238;
             }
 
             .diff-info {
                 display: flex;
-                margin-right: 114px;
+                margin-top: 15px;
                 margin-left: auto;
                 font-size: 12px;
                 line-height: 1em;
@@ -343,26 +346,21 @@
 
         .version-select-layout {
             display: flex;
-            height: 51px;
-            margin: 6px 0 0;
+            height: 48px;
+            margin-top: 18px;
             background: #eaebf0;
             border-radius: 2px 2px 0 0;
 
             .version-left,
             .version-right {
                 display: flex;
-                padding: 0 10px;
+                padding: 0 8px;
                 flex: 0 0 50%;
                 align-items: center;
             }
 
             .version-left {
                 border-right: 1px solid #dcdee5;
-            }
-
-            .bk-select {
-                color: #63656e;
-                background: #fff;
             }
         }
 
@@ -406,7 +404,7 @@
             width: 26px;
             height: 26px;
             font-size: 22px;
-            color: #313238;
+            color: #979ba5;
             cursor: pointer;
             border-radius: 50%;
             transition: all 0.1s;
