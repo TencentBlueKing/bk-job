@@ -44,7 +44,7 @@
                 <bk-button
                     v-if="stepInfo.isNeedUpdate"
                     text
-                    @click="handleGoScriptVersion">
+                    @click="handleShowScriptVersionDiff">
                     {{ $t('template.版本对比') }}
                 </bk-button>
                 <bk-button text @click="handleUpdateScript">
@@ -79,6 +79,10 @@
                 :host-node-info="stepInfo.executeTarget.hostNodeInfo" />
         </detail-item>
         <slot />
+        <sync-script-version-diff
+            v-if="isShowDiff"
+            :old-version-script="scriptInfo"
+            @close="handleDiffClose" />
     </div>
 </template>
 <script>
@@ -92,6 +96,7 @@
     import {
         formatScriptTypeValue,
     } from '@utils/assist';
+    import SyncScriptVersionDiff from './components/sync-script-version-diff';
 
     export default {
         name: '',
@@ -101,7 +106,7 @@
             DetailItem,
             JbEditTextarea,
             RenderGlobalVariable,
-            
+            SyncScriptVersionDiff,
         },
         props: {
             data: {
@@ -122,6 +127,7 @@
                 scriptInfo: {},
                 isShowScriptSource: false,
                 requestQueue: [],
+                isShowDiff: false,
             };
         },
         computed: {
@@ -198,15 +204,11 @@
             /**
              * @desc 脚本版本对比
              */
-            handleGoScriptVersion () {
-                const routerName = this.isReferPublicScript ? 'publicScriptVersion' : 'scriptVersion';
-                const { href } = this.$router.resolve({
-                    name: routerName,
-                    params: {
-                        id: this.stepInfo.scriptId,
-                    },
-                });
-                window.open(href);
+            handleShowScriptVersionDiff () {
+                this.isShowDiff = true;
+            },
+            handleDiffClose () {
+                this.isShowDiff = false;
             },
             /**
              * @desc 编辑作业模板，更新步骤引用的脚本版本
