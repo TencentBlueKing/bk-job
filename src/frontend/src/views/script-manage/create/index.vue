@@ -72,7 +72,7 @@
                     :placeholder="$t('script.输入版本号')" />
             </jb-form-item>
             <jb-form-item
-                :label="$t('script.脚本内容')"
+                :label="$t('script.脚本内容.label')"
                 property="content"
                 required>
                 <div ref="content">
