@@ -121,20 +121,9 @@ public class IpUtilsTest {
     }
 
     @Test
-    void testGetStandardIpv6Seq() {
-        assertThat(IpUtils.getStandardIpv6Seq("0")).isEqualTo("0000");
-        assertThat(IpUtils.getStandardIpv6Seq("1")).isEqualTo("0001");
-        assertThat(IpUtils.getStandardIpv6Seq("1001")).isEqualTo("1001");
-        assertThat(IpUtils.getStandardIpv6Seq("ff")).isEqualTo("00ff");
-        assertThatThrownBy(() -> IpUtils.getStandardIpv6Seq(".*gg"));
-        assertThatThrownBy(() -> IpUtils.getStandardIpv6Seq("aagg"));
-        assertThatThrownBy(() -> IpUtils.getStandardIpv6Seq("aabbcc"));
-    }
-
-    @Test
     void testGetFullIpv6ByCompressedOne() {
-        assertThat(IpUtils.getFullIpv6ByCompressedOne(null)).isEqualTo(null);
-        assertThat(IpUtils.getFullIpv6ByCompressedOne("")).isEqualTo("");
+        assertThatThrownBy(() -> IpUtils.getFullIpv6ByCompressedOne(null));
+        assertThatThrownBy(() -> IpUtils.getFullIpv6ByCompressedOne(""));
         assertThat(IpUtils.getFullIpv6ByCompressedOne("::"))
             .isEqualTo("0000:0000:0000:0000:0000:0000:0000:0000");
         assertThat(IpUtils.getFullIpv6ByCompressedOne("::1"))
@@ -146,6 +135,7 @@ public class IpUtilsTest {
         assertThat(IpUtils.getFullIpv6ByCompressedOne("0000::1"))
             .isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001");
         assertThatThrownBy(() -> IpUtils.getFullIpv6ByCompressedOne("00000::1"));
+        assertThatThrownBy(() -> IpUtils.getFullIpv6ByCompressedOne("10000::1"));
         assertThat(IpUtils.getFullIpv6ByCompressedOne("1:0000::1"))
             .isEqualTo("0001:0000:0000:0000:0000:0000:0000:0001");
         assertThat(IpUtils.getFullIpv6ByCompressedOne("1:1:1:1:1:1:1:1"))
@@ -159,5 +149,8 @@ public class IpUtilsTest {
         assertThatThrownBy(() -> IpUtils.getFullIpv6ByCompressedOne("aaffff:1:1:0:0:1:1:bbffff"));
         assertThat(IpUtils.getFullIpv6ByCompressedOne("ffff:0001:0001:0000:0000:0001:0001:ffff"))
             .isEqualTo("ffff:0001:0001:0000:0000:0001:0001:ffff");
+        // 兼容IPv4地址的用例
+        assertThat(IpUtils.getFullIpv6ByCompressedOne("::FFFF:192.168.0.1"))
+            .isEqualTo("0000:0000:0000:0000:0000:0000:FFFF:192.168.0.1");
     }
 }

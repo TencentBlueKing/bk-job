@@ -29,42 +29,42 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * IPv6地址段不合法
+ * IPv6地址不合法
  */
 @Getter
 @ToString
-public class InvalidIpv6SeqException extends ServiceException {
+public class InvalidIpv6Exception extends ServiceException {
 
-    public InvalidIpv6SeqException(Integer errorCode) {
+    public InvalidIpv6Exception(Integer errorCode) {
         super(ErrorType.INTERNAL, errorCode);
     }
 
-    public InvalidIpv6SeqException(Integer errorCode, Object[] errorParams) {
+    public InvalidIpv6Exception(Integer errorCode, Object[] errorParams) {
         super(ErrorType.INTERNAL, errorCode, errorParams);
     }
 
-    public InvalidIpv6SeqException(String message, Integer errorCode) {
+    public InvalidIpv6Exception(String message, Integer errorCode) {
         super(message, ErrorType.INTERNAL, errorCode);
     }
 
-    public InvalidIpv6SeqException(String message, Integer errorCode, Object[] errorParams) {
+    public InvalidIpv6Exception(String message, Integer errorCode, Object[] errorParams) {
         super(message, ErrorType.INTERNAL, errorCode, errorParams);
     }
 
-    public InvalidIpv6SeqException(Throwable cause, Integer errorCode) {
+    public InvalidIpv6Exception(Throwable cause, Integer errorCode) {
         super(cause, ErrorType.INTERNAL, errorCode);
     }
 
-    public InvalidIpv6SeqException(Throwable cause, Integer errorCode, Object[] errorParams) {
+    public InvalidIpv6Exception(Throwable cause, Integer errorCode, Object[] errorParams) {
         super(cause, ErrorType.INTERNAL, errorCode, errorParams);
     }
 
-    public InvalidIpv6SeqException(String message, Throwable cause, Integer errorCode) {
+    public InvalidIpv6Exception(String message, Throwable cause, Integer errorCode) {
         super(message, cause, ErrorType.INTERNAL, errorCode);
     }
 
-    public InvalidIpv6SeqException(String message, Throwable cause, Integer errorCode,
-                                   Object[] errorParams) {
+    public InvalidIpv6Exception(String message, Throwable cause, Integer errorCode,
+                                Object[] errorParams) {
         super(message, cause, ErrorType.INTERNAL, errorCode, errorParams);
     }
 }

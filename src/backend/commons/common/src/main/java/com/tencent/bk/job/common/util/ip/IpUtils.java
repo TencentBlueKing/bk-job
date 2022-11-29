@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.util.ip;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InvalidIpv6SeqException;
+import com.tencent.bk.job.common.exception.InvalidIpv6Exception;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -225,6 +225,9 @@ public class IpUtils {
         Map<String, String> ipv6Map = getMachineIPv6Map();
         if (!ipv6Map.isEmpty()) {
             String ipv6 = ipv6Map.values().iterator().next();
+            if (ipv6.contains("%")) {
+                ipv6 = ipv6.substring(0, ipv6.indexOf("%"));
+            }
             return getFullIpv6ByCompressedOne(ipv6);
         }
         log.error("no available ip, plz check net interface");
@@ -378,8 +381,8 @@ public class IpUtils {
      * @return 完整无压缩的IPv6地址
      */
     public static String getFullIpv6ByCompressedOne(String compressedIpv6) {
-        if (StringUtils.isEmpty(compressedIpv6)) {
-            return compressedIpv6;
+        if (!checkIpv6(compressedIpv6)) {
+            throw new InvalidIpv6Exception(ErrorCode.INVALID_IPV6_ADDRESS, new String[]{compressedIpv6});
         }
         String[] finalSeqArr = new String[]{"0000", "0000", "0000", "0000", "0000", "0000", "0000", "0000"};
         // 连续0标识符
@@ -416,21 +419,18 @@ public class IpUtils {
         return StringUtils.join(finalSeqArr, ":");
     }
 
-    private static final Pattern ipv6SeqPattern = Pattern.compile("^[A-Fa-f0-9]{1,4}$");
-
     /**
      * 获取含有4个字符的Ipv6标准段，不足4字符则添加前缀0
      *
      * @param ipv6Seq ipv6地址的一段
      * @return 4个字符的标准段
      */
-    public static String getStandardIpv6Seq(String ipv6Seq) {
-        String template = "0000";
-        Matcher m = ipv6SeqPattern.matcher(ipv6Seq);
-        if (!m.matches()) {
-            log.warn("invalid ipv6Seq:{}, valid pattern:{}", ipv6Seq, ipv6SeqPattern.pattern());
-            throw new InvalidIpv6SeqException(ErrorCode.INVALID_IPV6_SEQ);
+    private static String getStandardIpv6Seq(String ipv6Seq) {
+        // 兼容IPv4地址的最后一个地址段
+        if (ipv6Seq.contains(".")) {
+            return ipv6Seq;
         }
+        String template = "0000";
         return template.substring(0, template.length() - ipv6Seq.length()) + ipv6Seq;
     }
 }
