@@ -13,6 +13,7 @@
                         <th
                             v-if="slots['header-selection']"
                             class="columu-fixed"
+                            data-width="60px"
                             style="width: 60px;">
                             <slot name="header-selection" />
                         </th>
@@ -36,12 +37,14 @@
                         <th
                             v-if="slots.action"
                             class="columu-fixed-right"
+                            data-width="60px"
                             style="top: 0; right: 0; width: 60px;">
                             <slot name="action" />
                         </th>
                         <th
                             v-if="showSetting"
                             class="columu-fixed-right"
+                            data-width="40px"
                             style="top: 0; right: 0; width: 40px; padding: 0;">
                             <column-setting
                                 :selected-list="columnKeyRenderList"
@@ -80,7 +83,6 @@
     import {
         computed,
         nextTick,
-        onMounted,
         ref,
         shallowRef,
         useSlots,
@@ -177,7 +179,6 @@
             return result;
         }, []);
         columnKeySortList.value = [...hostTableRenderColumnList, ...defaultSortList];
-        console.log('asdadad \n\n\n\n\n\n\n\n\n', defaultSortList, columnKeySortList.value, '\n\n\n\n\n\n\n\n\n');
     }
 
     const slots = useSlots();
@@ -264,10 +265,6 @@
         setHostListRenderPrimaryKey();
         initalScroll();
      };
-
-    onMounted(() => {
-        initColumnWidth();
-    });
 
     defineExpose({
         initalScroll,

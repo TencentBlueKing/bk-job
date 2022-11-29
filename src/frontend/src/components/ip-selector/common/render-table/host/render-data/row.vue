@@ -37,14 +37,13 @@
             <td
                 v-if="slots.action"
                 class="columu-fixed-right"
+                :colspan="showSetting ? 2 : 1"
                 style="top: 0; right: 0;">
                 <slot
                     name="action"
                     :row="hostDataItem" />
             </td>
-            <td
-                v-if="showSetting"
-                key="settting" />
+            <td v-if="showSetting && !slots.action" />
         </tr>
     </tbody>
 </template>

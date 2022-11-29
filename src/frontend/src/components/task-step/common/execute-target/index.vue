@@ -378,7 +378,7 @@
              * @desc 复制所有异常主机
              */
             handleCopyFail () {
-                const abnormalHostIpList = this.$refs.ipSelector.getNotAlivelHostIpList();
+                const abnormalHostIpList = this.$refs.ipSelector.getAbnormalHostIpList();
                 if (abnormalHostIpList.length < 1) {
                     this.messageWarn(I18n.t('暂无异常主机'));
                     return;
@@ -390,10 +390,8 @@
              * @desc 复制所有主机数据
              */
             handleClearAll () {
-                const { hostNodeInfo } = new TaskHostNodeModel({});
-                this.localHost = Object.freeze(hostNodeInfo);
+                this.$refs.ipSelector.resetValue();
                 this.messageSuccess(I18n.t('清空成功'));
-                this.triggerChange();
             },
             /**
              * @desc 刷新所有主机的状态信息

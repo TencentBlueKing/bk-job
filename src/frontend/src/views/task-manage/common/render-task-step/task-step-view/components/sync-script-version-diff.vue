@@ -27,78 +27,60 @@
 
 <template>
     <div
-        class="jb-diff-layout"
+        class="sync-script-version-diff"
         :style="{
             'z-index': zIndex,
         }">
-        <div class="header">
-            <div class="title">
-                {{ title }}
-            </div>
-            <div class="diff-info">
-                <div
-                    class="diff-del"
-                    @click="handleViewDel">
-                    <span class="before" />
-                    <span class="after" />
-                    <span>{{ $t('删除') }}（{{ del }}）</span>
+        <div v-bkloading="{ isLoading }">
+            <div class="header">
+                <div class="title">
+                    {{ oldVersionScript.name }}
                 </div>
-                <div
-                    class="diff-change"
-                    @click="handleViewChange">
-                    <span class="before" />
-                    <span class="after" />
-                    <span>{{ $t('变换') }}（{{ change }}）</span>
-                </div>
-                <div
-                    class="diff-ins"
-                    @click="handleViewIns">
-                    <span class="before" />
-                    <span class="after" />
-                    <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
-                </div>
-            </div>
-        </div>
-        <div style="padding: 0 16px;">
-            <div class="version-select-layout">
-                <div class="version-left">
-                    <bk-select
-                        v-model="oldVersion"
-                        class="version-selector"
-                        :clearable="false">
-                        <bk-option
-                            v-for="item in data"
-                            :id="item.scriptVersionId"
-                            :key="item.scriptVersionId"
-                            :disabled="item.scriptVersionId === oldVersion"
-                            :name="item.version" />
-                    </bk-select>
-                </div>
-                <div class="version-right">
-                    <bk-select
-                        v-model="newVersion"
-                        class="version-selector"
-                        :clearable="false">
-                        <bk-option
-                            v-for="item in data"
-                            :id="item.scriptVersionId"
-                            :key="item.scriptVersionId"
-                            :disabled="item.scriptVersionId === newVersion"
-                            :name="item.version" />
-                    </bk-select>
+                <div class="diff-info">
+                    <div
+                        class="diff-del"
+                        @click="handleViewDel">
+                        <span class="before" />
+                        <span class="after" />
+                        <span>{{ $t('删除') }}（{{ del }}）</span>
+                    </div>
+                    <div
+                        class="diff-change"
+                        @click="handleViewChange">
+                        <span class="before" />
+                        <span class="after" />
+                        <span>{{ $t('变换') }}（{{ change }}）</span>
+                    </div>
+                    <div
+                        class="diff-ins"
+                        @click="handleViewIns">
+                        <span class="before" />
+                        <span class="after" />
+                        <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
+                    </div>
                 </div>
             </div>
-            <scroll-faker class="content-wraper">
-                <jb-diff
-                    ref="diff"
-                    class="diff-details"
-                    :context="Infinity"
-                    format="side-by-side"
-                    :language="language"
-                    :new-content="newContent"
-                    :old-content="oldContent"
-                    theme="dark" />
-            </scroll-faker>
+            <div style="padding: 0 16px;">
+                <div class="version-select-layout">
+                    <div class="version-left">
+                        引用脚本版本（{{ oldVersionScript.version }}）
+                    </div>
+                    <div class="version-right">
+                        最新脚本版本（{{ lastVersionScript.version }}）
+                    </div>
+                </div>
+                <scroll-faker class="content-wraper">
+                    <jb-diff
+                        ref="diff"
+                        class="diff-details"
+                        :context="Infinity"
+                        format="side-by-side"
+                        :language="language"
+                        :new-content="lastVersionScript.content"
+                        :old-content="oldContent"
+                        theme="dark" />
+                </scroll-faker>
+            </div>
         </div>
         <i
             class="bk-icon icon-close"
@@ -107,66 +89,26 @@
 </template>
 <script>
     import { Base64 } from 'js-base64';
-    import _ from 'lodash';
+    import ScriptService from '@service/script-manage';
+    import PublicScriptService from '@service/public-script-manage';
 
     export default {
         props: {
-            data: {
-                type: Array,
-                required: true,
-            },
-            title: {
-                type: String,
-                default: '',
-            },
-            oldVersionId: {
-                type: Number,
-                required: true,
-            },
-            newVersionId: {
-                type: Number,
-                required: true,
+            oldVersionScript: {
+                type: Object,
             },
         },
         data () {
             return {
-                oldVersion: this.oldVersionId,
-                newVersion: this.newVersionId,
+                isLoading: true,
+                oldContent: '',
+                newContent: '',
+                lastVersionScript: {},
                 zIndex: 'auto',
                 del: 0,
                 ins: 0,
                 change: 0,
             };
-        },
-        computed: {
-            language () {
-                if (this.data.length < 1) {
-                    return '';
-                }
-                return this.data[0].typeName.toLocaleLowerCase();
-            },
-            oldContent () {
-                const script = _.find(this.data, _ => _.scriptVersionId === this.oldVersion);
-                if (script) {
-                    return Base64.decode(script.content);
-                }
-                return '';
-            },
-            newContent () {
-                const script = _.find(this.data, _ => _.scriptVersionId === this.newVersion);
-                if (script) {
-                    return Base64.decode(script.content);
-                }
-                return '';
-            },
-        },
-        watch: {
-            oldContent () {
-                this.statisticsDiff();
-            },
-            newContent () {
-                this.statisticsDiff();
-            },
         },
         created () {
             this.scrollTopMemo = 0;
@@ -176,13 +118,14 @@
             this.delIndex = 0;
             this.changeElements = [];
             this.changeIndex = 0;
+            this.fetchData();
         },
         mounted () {
             this.zIndex = window.__bk_zIndex_manager.nextZIndex(); // eslint-disable-line no-underscore-dangle
             document.body.append(this.$el);
             window.addEventListener('keydown', this.handleEsc);
             this.resetBodyStyle();
-            this.statisticsDiff();
+
             this.$once('hook:beforeDestroy', () => {
                 window.removeEventListener('keydown', this.handleEsc);
                 try {
@@ -191,6 +134,24 @@
             });
         },
         methods: {
+            fetchData () {
+                this.isLoading = true;
+                this.oldContent = Base64.decode(this.oldVersionScript.content);
+                this.language = this.oldVersionScript.typeName;
+
+                const requestHandler = this.oldVersionScript.publicScript ? PublicScriptService : ScriptService;
+                requestHandler.getOneOnlineScript({
+                    id: this.oldVersionScript.id,
+                    publicScript: this.oldVersionScript.publicScript,
+                })
+                    .then((data) => {
+                        this.lastVersionScript = data;
+                        this.statisticsDiff();
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
+                    });
+            },
             statisticsDiff () {
                 this.$nextTick(() => {
                     const $contentTarget = this.$refs.diff.$el.querySelectorAll('.d2h-file-side-diff');
@@ -297,7 +258,7 @@
     };
 </script>
 <style lang="postcss">
-    .jb-diff-layout {
+    .sync-script-version-diff {
         position: fixed;
         top: 0;
         right: 0;
@@ -400,11 +361,6 @@
 
             .version-left {
                 border-right: 1px solid #dcdee5;
-            }
-
-            .bk-select {
-                color: #63656e;
-                background: #fff;
             }
         }
 

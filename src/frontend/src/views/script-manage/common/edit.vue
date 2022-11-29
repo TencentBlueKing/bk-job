@@ -62,7 +62,7 @@
                         readonly
                         :value="formData.version" />
                 </jb-form-item>
-                <jb-form-item :label="$t('script.版本日志')">
+                <jb-form-item :label="$t('script.版本日志.label')">
                     <bk-input
                         v-model="formData.versionDesc"
                         :maxlength="100"

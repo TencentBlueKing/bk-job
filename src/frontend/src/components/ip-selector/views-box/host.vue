@@ -47,7 +47,7 @@
             <render-host-table
                 :column-width-callback="columnWidthCallback"
                 :data="renderData"
-                :show-setting="false">
+                :show-setting="true">
                 <template #[hostRenderKey]="{ row }">
                     <diff-tag :value="diffMap[row.host_id]" />
                 </template>

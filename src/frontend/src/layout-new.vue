@@ -325,7 +325,7 @@
     }, {
         immediate: true,
     });
-    
+
      /**
      * @desc 获取是否是admin用户
      */
@@ -340,7 +340,7 @@
         .then((data) => {
             isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
         });
-        
+
     /**
      * @desc 侧导航展开收起
      */
@@ -363,13 +363,13 @@
         if (routerName === localtionRouterName) {
             return;
         }
-        
+
         routerName = localtionRouterName;
         router.push({
             name: routerName,
         });
     };
-            
+
 </script>
 <style lang="postcss">
     #app {

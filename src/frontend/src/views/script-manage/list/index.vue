@@ -374,6 +374,11 @@
                     remoteExecuteImmediate: true,
                 },
                 {
+                    name: I18n.t('script.脚本内容.colHead'),
+                    id: 'content',
+                    default: true,
+                },
+                {
                     name: I18n.t('script.场景标签.colHead'),
                     id: 'tags',
                     remoteMethod: this.tagSericeHandler.fetchTagOfSearch,
@@ -453,7 +458,7 @@
                     { id: 'lastModifyTime' },
                 ]);
             }
-            
+
             this.rules = {
                 name: [
                     {
