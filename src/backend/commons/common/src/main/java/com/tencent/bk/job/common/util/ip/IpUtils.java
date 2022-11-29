@@ -225,12 +225,15 @@ public class IpUtils {
         Map<String, String> ipv6Map = getMachineIPv6Map();
         if (!ipv6Map.isEmpty()) {
             String ipv6 = ipv6Map.values().iterator().next();
-            // 此处处理原因详情可见Inet6Address.getHostAddress()方法说明。
-            // Because link-local and site-local addresses are non-global, it is possible that different hosts
-            // may have the same destination address and may be reachable through different interfaces on the
-            // same originating system. In this case, the originating system is said to be connected to multiple
-            // zones of the same scope. In order to disambiguate which is the intended destination zone, it is
-            // possible to append a zone identifier (or scope_id) to an IPv6 address.
+            /*
+             * 此处处理原因详情可见Inet6Address.getHostAddress()方法说明。
+             * Because link-local and site-local addresses are non-global, it is possible that
+             * different hosts may have the same destination address and may be reachable through
+             * different interfaces on the same originating system. In this case, the originating
+             * system is said to be connected to multiple zones of the same scope. In order to
+             * disambiguate which is the intended destination zone, it is possible to append a
+             * zone identifier (or scope_id) to an IPv6 address.
+             */
             if (ipv6.contains("%")) {
                 ipv6 = ipv6.substring(0, ipv6.indexOf("%"));
             }
