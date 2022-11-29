@@ -50,14 +50,14 @@
                 :class="{ active: contentTab === 'content' }"
                 @click="handleChangeDispaly('content')"
                 v-test="{ type: 'button', value: 'scriptContentTab' }">
-                {{ $t('script.脚本内容') }}
+                {{ $t('script.脚本内容.label') }}
             </div>
             <div
                 class="content-tab-item"
                 :class="{ active: contentTab === 'log' }"
                 @click="handleChangeDispaly('log')"
                 v-test="{ type: 'button', value: 'scriptVersionLogTab' }">
-                {{ $t('script.版本日志') }}
+                {{ $t('script.版本日志.label') }}
             </div>
         </div>
         <div class="version-content">

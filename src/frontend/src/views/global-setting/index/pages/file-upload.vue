@@ -93,6 +93,8 @@
     </div>
 </template>
 <script>
+    import _ from 'lodash';
+
     import GlobalSettingService from '@service/global-setting';
     import I18n from '@/i18n';
 
@@ -106,7 +108,7 @@
         const ruleMap = [];
         suffixList.forEach((rule) => {
             // . 开头，后面跟上不超过24个英文字符
-            if (rule.length > 25) {
+            if (!_.trim(rule) || rule.length > 25) {
                 lengthStack.push(rule);
                 return;
             }

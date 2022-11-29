@@ -66,7 +66,7 @@
                         <Icon type="new-dark" svg class="new-flag" />
                     </div>
                 </jb-form-item>
-                <jb-form-item :label="$t('script.版本日志')">
+                <jb-form-item :label="$t('script.版本日志.label')">
                     <bk-input
                         v-model="formData.versionDesc"
                         type="textarea"

@@ -257,7 +257,7 @@
             JbItemGroup,
             AppSelect,
         },
-        setup () {
+        setup (props, context) {
             const navigationDefatulOpen = localStorage.getItem(TOGGLE_CACHE) !== null;
 
             const state = reactive({
@@ -269,46 +269,42 @@
                 routerTitle: '',
                 ENABLE_FEATURE_FILE_MANAGE: false,
             });
-            
-            const methods = {
-                /**
+
+            console.dir(context);
+
+            /**
                  * @desc 返回首页
                  */
-                handleBackHome () {
-                    this.$router.push({
-                        name: 'home',
-                    });
-                },
-                /**
-                 * @desc 侧导航展开收起
-                 */
-                handleSideFixedChnage () {
-                    state.isFrameSideFixed = !state.isFrameSideFixed;
-                    if (state.isFrameSideFixed) {
-                        localStorage.setItem(TOGGLE_CACHE, state.isFrameSideFixed);
-                    } else {
-                        localStorage.removeItem(TOGGLE_CACHE);
-                    }
-                },
-                handleSideExpandChange (sideExpand) {
-                    state.isSideExpand = sideExpand;
-                },
-                handleGroupChange (group) {
-                    state.routerGroup = group;
-                },
-                /**
-                 * @desc 跳转路由
-                 * @param {String} routerName 跳转的路由名
-                 */
-                handleRouterChange (routerName) {
-                    if (this.routerName === routerName) {
-                        return;
-                    }
-                    this.routerName = routerName;
-                    this.$router.push({
-                        name: routerName,
-                    });
-                },
+            const handleBackHome = () => {
+                this.$router.push({
+                    name: 'home',
+                });
+            };
+            /**
+             * @desc 侧导航展开收起
+             */
+            const handleSideFixedChnage = () => {
+                state.isFrameSideFixed = !state.isFrameSideFixed;
+                if (state.isFrameSideFixed) {
+                    localStorage.setItem(TOGGLE_CACHE, state.isFrameSideFixed);
+                } else {
+                    localStorage.removeItem(TOGGLE_CACHE);
+                }
+            };
+            const handleSideExpandChange = (sideExpand) => {
+                state.isSideExpand = sideExpand;
+            };
+            const handleGroupChange = (group) => {
+                state.routerGroup = group;
+            };
+            /**
+             * @desc 跳转路由
+             * @param {String} routerName 跳转的路由名
+             */
+            const handleRouterChange = (routerName) => {
+                context.root.$router.push({
+                    name: routerName,
+                });
             };
             /**
              * @desc 获取是否是admin用户
@@ -324,10 +320,14 @@
                 .then((data) => {
                     state.ENABLE_FEATURE_FILE_MANAGE = data.ENABLE_FEATURE_FILE_MANAGE;
                 });
-            
+
             return {
                 ...toRefs(state),
-                ...methods,
+                handleBackHome,
+                handleSideFixedChnage,
+                handleSideExpandChange,
+                handleGroupChange,
+                handleRouterChange,
             };
         },
         watch: {

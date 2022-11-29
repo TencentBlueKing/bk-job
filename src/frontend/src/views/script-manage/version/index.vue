@@ -44,7 +44,7 @@
                     <jb-search-select
                         @on-change="handleSearch"
                         :data="searchSelect"
-                        :placeholder="$t('script.直接输入 版本号 或 更新人 进行全局模糊搜索')"
+                        :placeholder="$t('script.选择匹配的字段并输入关键字进行搜索')"
                         :show-condition="false"
                         style="width: 420px;" />
                 </template>
@@ -360,6 +360,7 @@
     import ScriptBasic from './components/script-basic';
     import Diff from '../common/diff';
     import NewVersion from './components/new-version';
+    import { Base64 } from 'js-base64';
 
     const TABLE_COLUMN_CACHE = 'script_version_list_columns';
 
@@ -513,11 +514,21 @@
             this.scriptId = this.$route.params.id;
 
             this.fetchData(true);
-            
+
             this.searchSelect = [
                 {
                     name: I18n.t('script.版本号.colHead'),
                     id: 'version',
+                    default: true,
+                },
+                {
+                    name: I18n.t('script.脚本内容.colHead'),
+                    id: 'content',
+                    default: true,
+                },
+                {
+                    name: I18n.t('script.版本日志.colHead'),
+                    id: 'versionDesc',
                     default: true,
                 },
                 {
@@ -625,7 +636,7 @@
                 const windowHeight = window.innerHeight;
                 this.tableHeight = windowHeight - top - 20;
             },
-            
+
             rowClassName ({ row }) {
                 return row.scriptVersionId === this.selectVersionId ? 'active' : '';
             },
@@ -679,12 +690,16 @@
              * @param {Object} payload 搜索字段
              */
             handleSearch (payload) {
-                let list = this.dataMemo;
+                let scriptVersionList = this.dataMemo;
                 Object.keys(payload).forEach((key) => {
                     const reg = new RegExp(encodeRegexp(payload[key]));
-                    list = list.filter(item => reg.test(item[key]));
+
+                    scriptVersionList = scriptVersionList.filter((scriptVersionData) => {
+                        const value = key === 'content' ? Base64.decode(scriptVersionData.content) : scriptVersionData[key];
+                        return reg.test(value);
+                    });
                 });
-                this.data = Object.freeze(list);
+                this.data = Object.freeze(scriptVersionList);
                 this.handleLayoutFlod();
             },
             /**
@@ -824,7 +839,7 @@
              */
             handleSync (row) {
                 const routerName = this.isPublicScript ? 'scriptPublicSync' : 'scriptSync';
-                
+
                 this.$router.push({
                     name: routerName,
                     params: {
@@ -965,7 +980,7 @@
             handleEditCancel () {
                 this.displayCom = 'detail';
             },
-            
+
             /**
              * @desc 判断是否可以选中
              * @param {Object} row 脚本数据
