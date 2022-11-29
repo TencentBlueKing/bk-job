@@ -928,7 +928,6 @@ public class HostServiceImpl implements HostService {
             }
         });
         // 对于本地不在目标业务下的主机再到CMDB查询
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         List<HostDTO> ipDTOList = notInAppIPListByLocal.parallelStream()
             .map(CloudIPDTO::toHostDTO)
             .collect(Collectors.toList());
@@ -1040,8 +1039,7 @@ public class HostServiceImpl implements HostService {
         validIPList.removeIf(cloudIPDTO -> localHostCloudIPSet.contains(cloudIPDTO.getCloudIP()));
         // 查不到的再去CMDB查
         if (!validIPList.isEmpty()) {
-            IBizCmdbClient cmdbClient = CmdbClientFactory.getCmdbClient();
-            List<ApplicationHostDTO> cmdbHosts = cmdbClient.listHostsByCloudIps(
+            List<ApplicationHostDTO> cmdbHosts = bizCmdbClient.listHostsByCloudIps(
                 validIPList.parallelStream()
                     .map(CloudIPDTO::getCloudIP)
                     .collect(Collectors.toList())
@@ -1339,28 +1337,31 @@ public class HostServiceImpl implements HostService {
 
     private void refreshHostAgentIdIfNeed(boolean needRefreshAgentId, List<ApplicationHostDTO> hosts) {
         // 如果Job缓存的主机中没有agentId，那么需要从cmdb实时获取（解决一些特殊场景，比如节点管理Agent插件安装，bk_agent_id更新事件还没被处理的场景
-        if (needRefreshAgentId && CollectionUtils.isNotEmpty(hosts)) {
-            long start = System.currentTimeMillis();
-            List<Long> missingAgentIdHostIds = hosts.stream()
-                .filter(host -> StringUtils.isEmpty(host.getAgentId()))
-                .map(ApplicationHostDTO::getHostId)
-                .collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(missingAgentIdHostIds)) {
-                List<ApplicationHostDTO> cmdbHosts = listHostsFromCmdbByHostIds(missingAgentIdHostIds);
-                if (CollectionUtils.isEmpty(cmdbHosts)) {
-                    return;
-                }
-                Map<Long, String> hostIdAndAgentIdMap = cmdbHosts.stream()
-                    .collect(Collectors.toMap(ApplicationHostDTO::getHostId, ApplicationHostDTO::getAgentId));
-                hosts.forEach(host -> {
-                    if (StringUtils.isEmpty(host.getAgentId())) {
-                        host.setAgentId(hostIdAndAgentIdMap.get(host.getHostId()));
-                    }
-                });
-            }
-            log.info("Refresh host agent id, hostIds: {}, cost: {}", missingAgentIdHostIds,
-                System.currentTimeMillis() - start);
+        if (!needRefreshAgentId || CollectionUtils.isEmpty(hosts)) {
+            return;
         }
+        long start = System.currentTimeMillis();
+        List<Long> missingAgentIdHostIds = hosts.stream()
+            .filter(host -> StringUtils.isEmpty(host.getAgentId()))
+            .map(ApplicationHostDTO::getHostId)
+            .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(missingAgentIdHostIds)) {
+            return;
+        }
+        List<ApplicationHostDTO> cmdbHosts = listHostsFromCmdbByHostIds(missingAgentIdHostIds);
+        if (CollectionUtils.isEmpty(cmdbHosts)) {
+            return;
+        }
+
+        Map<Long, String> hostIdAndAgentIdMap = cmdbHosts.stream()
+            .collect(Collectors.toMap(ApplicationHostDTO::getHostId, ApplicationHostDTO::getAgentId));
+        hosts.forEach(host -> {
+            if (StringUtils.isEmpty(host.getAgentId())) {
+                host.setAgentId(hostIdAndAgentIdMap.get(host.getHostId()));
+            }
+        });
+        log.info("Refresh host agent id, hostIds: {}, cost: {}", missingAgentIdHostIds,
+            System.currentTimeMillis() - start);
     }
 
     private Pair<List<HostDTO>, List<ApplicationHostDTO>> listHostsFromCacheOrCmdb(Collection<HostDTO> hosts) {
@@ -1484,7 +1485,6 @@ public class HostServiceImpl implements HostService {
         public Pair<List<String>, List<ApplicationHostDTO>> listHostsFromCmdb(List<String> cloudIps) {
             List<String> notExistCloudIps = new ArrayList<>(cloudIps);
 
-            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
             List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(cloudIps);
             if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
                 List<String> cmdbExistHostIds = cmdbExistHosts.stream()
@@ -1569,7 +1569,6 @@ public class HostServiceImpl implements HostService {
      */
     @Override
     public List<ApplicationHostDTO> listHostsFromCmdbByHostIds(List<Long> hostIds) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         return bizCmdbClient.listHostsByHostIds(hostIds);
     }
 
