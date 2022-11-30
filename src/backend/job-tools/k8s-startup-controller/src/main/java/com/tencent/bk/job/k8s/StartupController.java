@@ -30,15 +30,16 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodList;
-import io.kubernetes.client.openapi.models.V1PodStatus;
-import io.kubernetes.client.openapi.models.V1Probe;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1ObjectReference;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -129,6 +130,17 @@ public class StartupController {
     }
 
     /**
+     * 打印服务间依赖关系Map
+     *
+     * @param dependencyMap 服务间依赖关系Map
+     */
+    private static void printDependencyMap(Map<String, List<String>> dependencyMap) {
+        dependencyMap.forEach(
+            (serviceName, dependServiceList) -> log.info("{} depends on {}", serviceName, dependServiceList)
+        );
+    }
+
+    /**
      * 检查所有依赖服务是否准备好
      *
      * @param namespace         命名空间
@@ -146,91 +158,108 @@ public class StartupController {
         return true;
     }
 
-    private static String buildServiceLabelSelector(String serviceName) {
-        return "bk.job.scope=backend,app.kubernetes.io/component=" + serviceName;
-    }
-
     /**
-     * 根据服务名称获取Pod列表
+     * 根据服务名称获取EndPointAddress列表
      *
      * @param namespace   命名空间
      * @param serviceName 服务名称
-     * @return Pod列表
+     * @return EndPointAddress列表，根据服务名称查询不到相关EndPointAddress信息则返回null
      */
-    private static List<V1Pod> listPodByServiceName(String namespace, String serviceName) {
-        String labelSelector = buildServiceLabelSelector(serviceName);
+    private static Pair<List<V1EndpointAddress>, List<V1EndpointAddress>> listEndPointAddressByServiceName(
+        String namespace,
+        String serviceName
+    ) {
+        String nameFieldSelector = buildServiceEndpointNameSelector(serviceName);
         try {
-            V1PodList podList = api.listNamespacedPod(
-                namespace, null, null, null,
-                null, labelSelector, null, null,
-                null, null, null
-            );
-            return podList.getItems();
+            V1EndpointsList endpointsList = api.listNamespacedEndpoints(namespace, null, null,
+                null, nameFieldSelector, null, null,
+                null, null, null, null);
+            List<V1Endpoints> endPoints = endpointsList.getItems();
+            if (CollectionUtils.isEmpty(endPoints)) {
+                log.warn(
+                    "Found no endPoints for service:{}/{}, nameFieldSelector={}, endpointsList={}",
+                    namespace,
+                    serviceName,
+                    nameFieldSelector,
+                    endpointsList
+                );
+                return null;
+            } else {
+                log.debug("{} endpoints found for service:{}/{}", endPoints.size(), namespace, serviceName);
+            }
+            V1Endpoints endpoint = endpointsList.getItems().get(0);
+            List<V1EndpointSubset> endpointSubsets = endpoint.getSubsets();
+            if (CollectionUtils.isEmpty(endpointSubsets)) {
+                log.warn("Found no endpointSubsets for endpoint:{}", endpoint.getMetadata());
+                return null;
+            } else {
+                log.debug("{} endpointSubsets found for endpoint:{}", endpointSubsets.size(), endpoint.getMetadata());
+            }
+            V1EndpointSubset endpointSubset = endpointSubsets.get(0);
+            List<V1EndpointAddress> addressList = endpointSubset.getAddresses();
+            List<V1EndpointAddress> notReadyAddressList = endpointSubset.getNotReadyAddresses();
+            return Pair.of(addressList, notReadyAddressList);
         } catch (ApiException e) {
-            log.error("Fail to list pod", e);
-            return Collections.emptyList();
+            log.error("Fail to listEndPointAddressByServiceName", e);
+            return null;
         }
     }
 
-    private static void printDependencyMap(Map<String, List<String>> dependencyMap) {
-        dependencyMap.forEach(
-            (serviceName, dependServiceList) -> log.info("{} depends on {}", serviceName, dependServiceList)
-        );
+    private static final Map<String, String> k8sServiceNameMap = new HashMap<String, String>() {{
+        put("job-frontend", "bk-job-frontend");
+        put("job-gateway", "bk-job-gateway");
+    }};
+
+    private static String buildServiceEndpointNameSelector(String serviceName) {
+        if (k8sServiceNameMap.containsKey(serviceName)) {
+            serviceName = k8sServiceNameMap.get(serviceName);
+        }
+        return "name=" + serviceName;
     }
 
     /**
-     * 根据服务名称对应的Pod状态判断服务是否准备好，依据：所有Pod均准备好
+     * 根据服务名称对应的Pod状态判断服务是否准备好，依据：服务所有Container的Readiness探针已准备好，EndPointAddress全部处于Ready状态
      *
      * @param namespace   命名空间
      * @param serviceName 服务名称
      * @return 服务是否准备好布尔值
      */
     private static boolean isServiceReady(String namespace, String serviceName) {
-        List<V1Pod> servicePodList = listPodByServiceName(namespace, serviceName);
-        if (CollectionUtils.isEmpty(servicePodList)) {
-            log.info("no pod found by service {}", serviceName);
-            return true;
+        Pair<List<V1EndpointAddress>, List<V1EndpointAddress>> pair =
+            listEndPointAddressByServiceName(namespace, serviceName);
+        if (pair == null) {
+            log.warn("cannot find endpoint address by service {}/{}, consider as not ready", namespace, serviceName);
+            return false;
         }
-        int readyPodNum = 0;
-        for (V1Pod v1Pod : servicePodList) {
-            if (isPodReady(v1Pod)) {
-                readyPodNum++;
-            } else {
-                V1ObjectMeta metaData = v1Pod.getMetadata();
-                if (metaData != null) {
-                    log.info("pod {} is not ready", metaData.getName());
-                } else {
-                    log.warn("pod {} is not ready", v1Pod);
-                }
-            }
+        List<V1EndpointAddress> readyEndpointAddressList = pair.getLeft();
+        List<V1EndpointAddress> notReadyEndpointAddressList = pair.getRight();
+        if (log.isDebugEnabled()) {
+            log.debug("Ready endpoints for {}:", serviceName);
+            printEndPointAddressList(readyEndpointAddressList);
+            log.debug("NotReady endpoints for {}:", serviceName);
+            printEndPointAddressList(notReadyEndpointAddressList);
         }
-        log.info("{}: {}/{} pod ready", serviceName, readyPodNum, servicePodList.size());
-        return readyPodNum == servicePodList.size();
+        int readyAddressNum = readyEndpointAddressList.size();
+        int allAddressNum = readyAddressNum + notReadyEndpointAddressList.size();
+        log.info("{}: {}/{} EndpointAddress ready",
+            serviceName,
+            readyAddressNum,
+            allAddressNum
+        );
+        return readyAddressNum > 0 && readyAddressNum == allAddressNum;
     }
 
     /**
-     * 判断Pod是否准备好，判断依据：状态数据中的phase字段值
+     * 可视化打印V1EndpointAddress列表数据
      *
-     * @param v1Pod Pod实例信息
-     * @return Pod是否准备好布尔值
+     * @param endpointAddressList EndpointAddress列表数据
      */
-    private static boolean isPodReady(V1Pod v1Pod) {
-        V1PodStatus v1PodStatus = v1Pod.getStatus();
-        if (log.isDebugEnabled()) {
-            if (v1Pod.getMetadata() == null) {
-                log.debug("unexpected pod:{}", v1Pod);
-                return false;
-            }
-            if (v1PodStatus == null) {
-                log.debug("status of pod {} is null", v1Pod.getMetadata().getName());
-                return false;
-            }
-            log.debug("phase of pod {}:{}", v1Pod.getMetadata().getName(), v1PodStatus.getPhase());
-        }
-        V1Probe readinessProbe = v1Pod.getSpec().getContainers().get(0).getReadinessProbe();
-        log.info("readinessProbe={}", readinessProbe.getHttpGet());
-        return v1PodStatus != null
-            && "Running".equalsIgnoreCase(v1PodStatus.getPhase());
+    private static void printEndPointAddressList(List<V1EndpointAddress> endpointAddressList) {
+        endpointAddressList.forEach(endpointAddress -> {
+            V1ObjectReference targetRef = endpointAddress.getTargetRef();
+            assert targetRef != null;
+            log.debug("{}: {}", targetRef.getKind(), targetRef.getName());
+        });
     }
 
 }
