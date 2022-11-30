@@ -30,34 +30,39 @@
         v-bkloading="{ isLoading }"
         class="page-account-rule">
         <smart-action offset-target="expression-input">
-            <div class="wraper">
-                <div
+            <jb-form
+                ref="form"
+                class="wraper"
+                :model="formData"
+                :rules="rules">
+                <jb-form-item
                     v-for="(rule, index) in currentRules"
                     :key="index"
-                    class="account-block">
-                    <div class="name">
-                        {{ rule.osTypeText }}
+                    :label="rule.osTypeText"
+                    :property="rule.osTypeKey"
+                    required>
+                    <div class="account-block">
+                        <div class="expression-input">
+                            <bk-input
+                                :placeholder="$t('setting.请输入命名规则')"
+                                :value="rule.expression"
+                                @change="value => handleChange('expression', value, index)" />
+                        </div>
+                        <div class="rule">
+                            <bk-input
+                                :placeholder="$t('setting.请输入命名规则提醒文案')"
+                                :value="rule.description"
+                                @change="value => handleChange('description', value, index)" />
+                        </div>
+                        <bk-button
+                            class="reset"
+                            text
+                            @click="handleReset(index)">
+                            {{ $t('setting.恢复默认') }}
+                        </bk-button>
                     </div>
-                    <div class="expression-input">
-                        <bk-input
-                            :placeholder="$t('setting.请输入命名规则')"
-                            :value="rule.expression"
-                            @change="value => handleChange('expression', value, index)" />
-                    </div>
-                    <div class="rule">
-                        <bk-input
-                            :placeholder="$t('setting.请输入命名规则提醒文案')"
-                            :value="rule.description"
-                            @change="value => handleChange('description', value, index)" />
-                    </div>
-                    <bk-button
-                        class="reset"
-                        text
-                        @click="handleReset(index)">
-                        {{ $t('setting.恢复默认') }}
-                    </bk-button>
-                </div>
-            </div>
+                </jb-form-item>
+            </jb-form>
             <template #action>
                 <bk-button
                     class="w120 mr10"
@@ -92,12 +97,46 @@
                 isLoading: false,
                 isSubmitting: false,
                 currentRules: [],
+                formData: {},
             };
         },
         created () {
             this.fetchData();
             this.defaultRules = [];
             this.selfLastRules = [];
+
+            this.rules = {
+                linux: [
+                    {
+                        validator: () => {
+                            const currentRule = _.find(this.currentRules, item => item.osTypeKey === 'linux');
+                            return currentRule.expression;
+                        },
+                        message: I18n.t('setting.Linux 账号不能为空'),
+                        trigger: 'blur',
+                    },
+                ],
+                windows: [
+                    {
+                        validator: () => {
+                            const currentRule = _.find(this.currentRules, item => item.osTypeKey === 'windows');
+                            return currentRule.expression;
+                        },
+                        message: I18n.t('setting.Windows 账号不能为空'),
+                        trigger: 'blur',
+                    },
+                ],
+                db: [
+                    {
+                        validator: () => {
+                            const currentRule = _.find(this.currentRules, item => item.osTypeKey === 'db');
+                            return currentRule.expression;
+                        },
+                        message: I18n.t('setting.数据库账号不能为空'),
+                        trigger: 'blur',
+                    },
+                ],
+            };
         },
         methods: {
             fetchData () {
@@ -123,21 +162,19 @@
                 this.currentRules.splice(index, 1, currentRule);
             },
             handleSave () {
-                const isEmpty = _.find(this.currentRules, item => !_.trim(item.expression));
-                if (isEmpty) {
-                    this.messageError('请输入命名规则不能为空');
-                    return;
-                }
-
-                this.isSubmitting = true;
-                GlobalSettingService.updateNameRules({
-                    rules: this.currentRules,
-                }).then(() => {
-                    window.changeConfirm = false;
-                    this.messageSuccess(I18n.t('setting.账号命名规则保存成功'));
-                })
-                    .finally(() => {
-                        this.isSubmitting = false;
+                this.$refs.form.validate()
+                    .then(() => {
+                        this.isSubmitting = true;
+                        GlobalSettingService.updateNameRules({
+                            rules: this.currentRules,
+                        })
+                            .then(() => {
+                                window.changeConfirm = false;
+                                this.messageSuccess(I18n.t('setting.账号命名规则保存成功'));
+                            })
+                            .finally(() => {
+                                this.isSubmitting = false;
+                            });
                     });
             },
             handleResetAll () {
@@ -161,7 +198,6 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            margin-bottom: 20px;
             color: #63656e;
 
             .name {
@@ -170,7 +206,6 @@
 
             .expression-input {
                 width: 300px;
-                margin-left: 24px;
             }
 
             .rule {
