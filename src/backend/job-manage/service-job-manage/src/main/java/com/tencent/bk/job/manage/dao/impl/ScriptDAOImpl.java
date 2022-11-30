@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobUUID;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
@@ -64,7 +65,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @date 2019/09/19
+ * 脚本DAO - script/script_version
  */
 @Repository
 public class ScriptDAOImpl implements ScriptDAO {
@@ -80,9 +81,72 @@ public class ScriptDAOImpl implements ScriptDAO {
     @Override
     public PageData<ScriptDTO> listPageScript(ScriptQuery scriptQuery,
                                               BaseSearchCondition baseSearchCondition) {
-        long count = getPageScriptCount(scriptQuery, baseSearchCondition);
+        if (scriptQuery.hasScriptVersionQueryCondition()) {
+            return listPageScriptWithScriptVersionQueryCondition(scriptQuery, baseSearchCondition);
+        } else {
+            return listPageScriptWithBasicQueryCondition(scriptQuery, baseSearchCondition);
+        }
+    }
 
-        Collection<SortField<?>> orderFields = new ArrayList<>();
+    private PageData<ScriptDTO> listPageScriptWithBasicQueryCondition(ScriptQuery scriptQuery,
+                                                                      BaseSearchCondition baseSearchCondition) {
+        long count = getPageScriptCountWithBasicQueryCondition(scriptQuery, baseSearchCondition);
+
+        List<SortField<?>> orderFields = buildOrderFields(baseSearchCondition);
+
+        int start = baseSearchCondition.getStartOrDefault(0);
+        int length = baseSearchCondition.getLengthOrDefault(10);
+        Result<? extends Record> result =
+            create.select(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
+                TB_SCRIPT.TYPE, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME, TB_SCRIPT.LAST_MODIFY_USER,
+                TB_SCRIPT.LAST_MODIFY_TIME, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.DESCRIPTION)
+                .from(TB_SCRIPT)
+                .where(buildScriptConditionList(scriptQuery, baseSearchCondition))
+                .orderBy(orderFields)
+                .limit(start, length).fetch();
+        return pageResult(result, count, start, length);
+    }
+
+    private long getPageScriptCountWithBasicQueryCondition(ScriptQuery scriptQuery,
+                                                           BaseSearchCondition baseSearchCondition) {
+        List<Condition> conditions = buildScriptConditionList(scriptQuery, baseSearchCondition);
+        Long count = create.selectCount().from(TB_SCRIPT).where(conditions).fetchOne(0, Long.class);
+        return count == null ? 0 : count;
+    }
+
+    private PageData<ScriptDTO> listPageScriptWithScriptVersionQueryCondition(ScriptQuery scriptQuery,
+                                                                              BaseSearchCondition baseSearchCondition) {
+        // 如果查询条件包含script_version表中的字段，比如脚本内容，需要关联 script+script_version 查询
+        int count = getPageScriptCountWithScriptVersionQueryCondition(scriptQuery, baseSearchCondition);
+        List<SortField<?>> orderFields = buildOrderFields(baseSearchCondition);
+        int start = baseSearchCondition.getStartOrDefault(0);
+        int length = baseSearchCondition.getLengthOrDefault(10);
+
+        Result<? extends Record> result =
+            create.selectDistinct(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
+                TB_SCRIPT.TYPE, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME, TB_SCRIPT.LAST_MODIFY_USER,
+                TB_SCRIPT.LAST_MODIFY_TIME, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.DESCRIPTION)
+                .from(TB_SCRIPT)
+                .leftJoin(TB_SCRIPT_VERSION)
+                .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+                .where(buildScriptConditionList(scriptQuery, baseSearchCondition))
+                .orderBy(orderFields)
+                .limit(start, length).fetch();
+        return pageResult(result, count, start, length);
+    }
+
+    private int getPageScriptCountWithScriptVersionQueryCondition(ScriptQuery scriptQuery,
+                                                                  BaseSearchCondition baseSearchCondition) {
+        return create.fetchCount(
+            create.selectDistinct(TB_SCRIPT.ID)
+                .from(TB_SCRIPT)
+                .leftJoin(TB_SCRIPT_VERSION)
+                .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+                .where(buildScriptConditionList(scriptQuery, baseSearchCondition)));
+    }
+
+    private List<SortField<?>> buildOrderFields(BaseSearchCondition baseSearchCondition) {
+        List<SortField<?>> orderFields = new ArrayList<>();
         if (StringUtils.isBlank(baseSearchCondition.getOrderField())) {
             orderFields.add(TB_SCRIPT.LAST_MODIFY_TIME.desc());
         } else {
@@ -120,17 +184,10 @@ public class ScriptDAOImpl implements ScriptDAO {
                 orderFields.add(TB_SCRIPT.LAST_MODIFY_TIME.desc());
             }
         }
+        return orderFields;
+    }
 
-        int start = baseSearchCondition.getStartOrDefault(0);
-        int length = baseSearchCondition.getLengthOrDefault(10);
-        Result<? extends Record> result =
-            create.select(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
-                TB_SCRIPT.TYPE, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME, TB_SCRIPT.LAST_MODIFY_USER,
-                TB_SCRIPT.LAST_MODIFY_TIME, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.DESCRIPTION)
-                .from(TB_SCRIPT)
-                .where(buildScriptConditionList(scriptQuery, baseSearchCondition))
-                .orderBy(orderFields)
-                .limit(start, length).fetch();
+    private PageData<ScriptDTO> pageResult(Result<? extends Record> result, long count, int start, int length) {
         List<ScriptDTO> scripts = new ArrayList<>();
         if (result.size() != 0) {
             scripts = result.map(this::extractScriptData);
@@ -142,12 +199,6 @@ public class ScriptDAOImpl implements ScriptDAO {
         scriptPageData.setData(scripts);
         scriptPageData.setStart(start);
         return scriptPageData;
-    }
-
-    private long getPageScriptCount(ScriptQuery scriptQuery, BaseSearchCondition baseSearchCondition) {
-        List<Condition> conditions = buildScriptConditionList(scriptQuery, baseSearchCondition);
-        Long count = create.selectCount().from(TB_SCRIPT).where(conditions).fetchOne(0, Long.class);
-        return count == null ? 0 : count;
     }
 
     @Override
@@ -290,6 +341,15 @@ public class ScriptDAOImpl implements ScriptDAO {
             int publicFlag = scriptQuery.isPublicScript() ? ScriptScopeEnum.PUBLIC.getValue() :
                 ScriptScopeEnum.APP.getValue();
             conditions.add(TB_SCRIPT.IS_PUBLIC.eq(UByte.valueOf(String.valueOf(publicFlag))));
+
+            if (StringUtils.isNotEmpty(scriptQuery.getContentKeyword())) {
+                // 对于like表达式中的%_\三个特殊字符转义
+                conditions.add(TB_SCRIPT_VERSION.CONTENT.like("%" +
+                        StringUtil.escape(scriptQuery.getContentKeyword(),
+                            new char[]{'%', '_', '\\'}, new String[]{"\\%", "\\_", "\\\\"}) + "%"
+                    )
+                );
+            }
         }
 
         return conditions;

@@ -193,6 +193,9 @@ public interface WebScriptResource {
         @ApiParam("脚本ID")
         @RequestParam(value = "scriptId", required = false)
             String scriptId,
+        @ApiParam("脚本内容关键字,支持模糊搜索")
+        @RequestParam(value = "content", required = false)
+            String content,
         @ApiParam("分页-开始")
         @RequestParam(value = "start", required = false)
             Integer start,

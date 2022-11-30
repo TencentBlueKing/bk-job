@@ -30,10 +30,10 @@ import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
-import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import org.jooq.generated.tables.Script;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,6 @@ import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -146,20 +145,42 @@ class ScriptDAOImplIntegrationTest {
         assertThat(pageData.getData()).isNullOrEmpty();
     }
 
-    @Test
-    public void whenListPageScriptByScriptIdThenReturnSingleData() {
-        ScriptQuery scriptCondition = new ScriptQuery();
-        scriptCondition.setId("dc65a20cd91811e993a2309c2357fc12");
 
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(0);
-        baseSearchCondition.setLength(10);
+    @Nested
+    @DisplayName("TestListPageScript")
+    class TestListPageScript {
+        @Test
+        public void whenListPageScriptByScriptIdThenReturnSingleData() {
+            ScriptQuery scriptCondition = new ScriptQuery();
+            scriptCondition.setId("dc65a20cd91811e993a2309c2357fc12");
 
-        PageData<ScriptDTO> pageData = scriptDAO.listPageScript(scriptCondition, baseSearchCondition);
-        assertThat(pageData).isNotNull();
-        assertThat(pageData.getTotal()).isEqualTo(1);
-        assertThat(pageData.getData()).isNotNull();
-        assertThat(pageData.getData().get(0).getId()).isEqualTo("dc65a20cd91811e993a2309c2357fc12");
+            BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+            baseSearchCondition.setStart(0);
+            baseSearchCondition.setLength(10);
+
+            PageData<ScriptDTO> pageData = scriptDAO.listPageScript(scriptCondition, baseSearchCondition);
+            assertThat(pageData).isNotNull();
+            assertThat(pageData.getTotal()).isEqualTo(1);
+            assertThat(pageData.getData()).isNotNull();
+            assertThat(pageData.getData().get(0).getId()).isEqualTo("dc65a20cd91811e993a2309c2357fc12");
+        }
+
+        @Test
+        public void whenListPageScriptByScriptContentReturn() {
+            ScriptQuery scriptCondition = new ScriptQuery();
+            scriptCondition.setContentKeyword("ls");
+
+            BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+            baseSearchCondition.setStart(0);
+            baseSearchCondition.setLength(10);
+
+            PageData<ScriptDTO> pageData = scriptDAO.listPageScript(scriptCondition, baseSearchCondition);
+            assertThat(pageData).isNotNull();
+            assertThat(pageData.getTotal()).isEqualTo(2);
+            assertThat(pageData.getData()).isNotNull();
+            assertThat(pageData.getData()).extracting("id")
+                .containsOnly("dc65a20cd91811e993a2309c2357fc12", "553285c5db8211e9ac466c92bf62a896");
+        }
     }
 
     @Test
@@ -172,7 +193,8 @@ class ScriptDAOImplIntegrationTest {
         List<ScriptDTO> scripts = scriptDAO.listScripts(scriptCondition);
         assertThat(scripts).isNotEmpty();
         assertThat(scripts.size()).isEqualTo(2);
-        assertThat(scripts).extracting("id").containsOnly("dc65a20cd91811e993a2309c2357fc12", "d68700a6db8711e9ac466c92bf62a896");
+        assertThat(scripts).extracting("id").containsOnly("dc65a20cd91811e993a2309c2357fc12",
+            "d68700a6db8711e9ac466c92bf62a896");
     }
 
     @Test
@@ -322,7 +344,8 @@ class ScriptDAOImplIntegrationTest {
     @Test
     public void whenDeleteAllScriptVersionThenDeleted() {
         scriptDAO.deleteScriptVersionByScriptId("dc65a20cd91811e993a2309c2357fc12");
-        List<ScriptDTO> existScriptVersions = scriptDAO.listScriptVersionsByScriptId("dc65a20cd91811e993a2309c2357fc12");
+        List<ScriptDTO> existScriptVersions = scriptDAO.listScriptVersionsByScriptId(
+            "dc65a20cd91811e993a2309c2357fc12");
         assertThat(existScriptVersions).describedAs("check that all script version is deleted").isNullOrEmpty();
     }
 
@@ -483,31 +506,6 @@ class ScriptDAOImplIntegrationTest {
         assertThat(pageData.getPageSize()).isEqualTo(100);
         assertThat(pageData.getData()).hasSize(2);
 
-    }
-
-    private static class TagListComparator implements Comparator<List<? extends TagDTO>> {
-        @Override
-        public int compare(List<? extends TagDTO> tagList1, List<? extends TagDTO> tagList2) {
-            if (tagList1 == null && tagList2 == null) {
-                return 0;
-            }
-            if (tagList1 != null && tagList2 != null) {
-                if (tagList1.size() != tagList2.size()) {
-                    return -1;
-                }
-                boolean isEqual = true;
-                for (int i = 0; i < tagList1.size(); i++) {
-                    TagDTO tagInList1 = tagList1.get(i);
-                    TagDTO tagInList2 = tagList2.get(i);
-                    if (!tagInList1.getId().equals(tagInList2.getId())) {
-                        isEqual = false;
-                        break;
-                    }
-                }
-                return isEqual ? 0 : -1;
-            }
-            return -1;
-        }
     }
 
 
