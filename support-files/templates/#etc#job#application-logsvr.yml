@@ -9,7 +9,7 @@ spring:
         service-name: 'job-logsvr'
         instance-id: job-logsvr-${machine.ip}-${server.port}
         enabled: true
-        prefer-ip-address: false
+        prefer-ip-address: true
       #tls:
         #key-store-instance-type:
         #key-store-path:
