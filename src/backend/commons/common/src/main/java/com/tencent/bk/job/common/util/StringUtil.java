@@ -30,6 +30,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -282,6 +283,33 @@ public class StringUtil {
             return !str1.equals(str2);
         }
         return true;
+    }
+
+    /**
+     * 对字符串特殊字符进行转义
+     *
+     * @param str         要转义的字符串
+     * @param chars       需要被转义的特殊字符
+     * @param escapeTexts 特殊字符的转义之后的值；与参数chars一一对应
+     * @return 转义之后的字符串
+     */
+    public static String escape(String str, char[] chars, String[] escapeTexts) {
+        StringWriter writer = new StringWriter(str.length() * 2);
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            boolean isMatch = false;
+            for (int j = 0; j < chars.length; j++) {
+                if (ch == chars[j]) {
+                    writer.write(escapeTexts[j]);
+                    isMatch = true;
+                    break;
+                }
+            }
+            if (!isMatch) {
+                writer.write(ch);
+            }
+        }
+        return writer.toString();
     }
 
     /**

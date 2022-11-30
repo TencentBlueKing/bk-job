@@ -29,6 +29,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -85,8 +86,17 @@ public class ScriptQuery {
      */
     private Integer status;
 
+    /**
+     * 脚本内容检索关键字
+     */
+    private String contentKeyword;
+
     public boolean isExistTagCondition() {
         return this.untaggedScript || CollectionUtils.isNotEmpty(this.tagIds);
+    }
+
+    public boolean hasScriptVersionQueryCondition() {
+        return StringUtils.isNotEmpty(contentKeyword);
     }
 
 }
