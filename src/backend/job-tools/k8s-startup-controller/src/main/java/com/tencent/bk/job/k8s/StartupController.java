@@ -214,7 +214,7 @@ public class StartupController {
         if (k8sServiceNameMap.containsKey(serviceName)) {
             serviceName = k8sServiceNameMap.get(serviceName);
         }
-        return "name=" + serviceName;
+        return "metadata.name=" + serviceName;
     }
 
     /**
