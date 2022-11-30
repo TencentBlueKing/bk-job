@@ -58,7 +58,7 @@ spec:
       {{- end }}
       initContainers:
       {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
-      {{- include "job.initContainer.waitForDependServices"   ( dict "appName" "job-execute" "global" $) | nindent 8 }}
+      {{- include "job.initContainer.waitForDependServices"   ( dict "appName" "job-execute" "context" $) | nindent 8 }}
       containers:
         - name: "job-execute"
           {{- if .Values.executeConfig.containerSecurityContext.enabled }}

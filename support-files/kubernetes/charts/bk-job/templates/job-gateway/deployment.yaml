@@ -57,7 +57,7 @@ spec:
       securityContext: {{- omit .Values.gatewayConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
       initContainers:
-      {{- include "job.initContainer.waitForDependServices"   ( dict "appName" "job-gateway" "global" $) | nindent 8 }}
+      {{- include "job.initContainer.waitForDependServices"   ( dict "appName" "job-gateway" "context" $) | nindent 8 }}
       containers:
         - name: "job-gateway"
           {{- if .Values.gatewayConfig.containerSecurityContext.enabled }}

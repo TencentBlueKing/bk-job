@@ -476,20 +476,20 @@ Return the Job InitContainer WaitForMigration Content
 
 {{/*
 Return the Job InitContainer WaitForDependServices Content
-{{ include "job.initContainer.waitForDependServices" ( dict "appName" "${appName}" "global" $) }}
+{{ include "job.initContainer.waitForDependServices" ( dict "appName" "${appName}" "context" $) }}
 */}}
 {{- define "job.initContainer.waitForDependServices" -}}
-{{- if .global.waitForDependServices.enabled -}}
+{{- if .context.Values.waitForDependServices.enabled -}}
 - name: "wait-for-depend-services"
-  image: {{ include "common.images.image" (dict "imageRoot" .global.waitForDependServices.image "global" .global.global) }}
-  imagePullPolicy: {{ .global.waitForDependServices.image.pullPolicy }}
+  image: {{ include "common.images.image" (dict "imageRoot" .context.Values.waitForDependServices.image "global" .context.Values.global) }}
+  imagePullPolicy: {{ .context.Values.waitForDependServices.image.pullPolicy }}
   env:
     - name: KUBERNETES_NAMESPACE
-      value: {{ .global.Release.Namespace }}
+      value: {{ .context.Release.Namespace }}
     - name: BK_JOB_APP_NAME
       value: {{ .appName }}
     - name: BK_JOB_STARTUP_DEPENDENCIES_STR
-      value: {{ .global.waitForDependServices.dependencies }}
+      value: {{ .context.Values.waitForDependServices.dependencies }}
 {{- end -}}
 {{- end -}}
 

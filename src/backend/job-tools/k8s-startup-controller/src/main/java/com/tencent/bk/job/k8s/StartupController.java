@@ -30,9 +30,11 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodStatus;
+import io.kubernetes.client.openapi.models.V1Probe;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -74,7 +76,17 @@ public class StartupController {
         log.info("currentService={}", currentService);
         Map<String, List<String>> dependencyMap = parseDependencyMap(dependenciesStr);
         printDependencyMap(dependencyMap);
-        while (!isAllDependServiceReady(dependencyMap, namespace, currentService)) {
+        if (StringUtils.isBlank(currentService)) {
+            log.warn("currentService is blank, ignore dependency check");
+            return;
+        }
+        List<String> dependServiceList = dependencyMap.get(currentService);
+        if (CollectionUtils.isEmpty(dependServiceList)) {
+            log.info("There is no depend service for {}", currentService);
+            return;
+        }
+        log.info("{} depend service found for {}:{}", dependServiceList.size(), currentService, dependServiceList);
+        while (!isAllDependServiceReady(namespace, dependServiceList)) {
             ThreadUtils.sleep(3000);
         }
         log.info("all depend services are ready, it`s time for {} to start", currentService);
@@ -117,28 +129,17 @@ public class StartupController {
     }
 
     /**
-     * 检查当前服务的所有依赖服务是否准备好
+     * 检查所有依赖服务是否准备好
      *
-     * @param dependencyMap  依赖关系Map
-     * @param namespace      命名空间
-     * @param currentService 当前服务名称
+     * @param namespace         命名空间
+     * @param dependServiceList 依赖服务列表
      * @return 所有依赖服务是否准备好
      */
-    private static boolean isAllDependServiceReady(Map<String, List<String>> dependencyMap,
-                                                   String namespace,
-                                                   String currentService) {
-        if (StringUtils.isBlank(currentService)) {
-            log.warn("currentService is blank, ignore dependency check");
-            return true;
-        }
-        List<String> dependServiceList = dependencyMap.get(currentService);
-        if (CollectionUtils.isEmpty(dependServiceList)) {
-            log.info("There is no depend service for {}", currentService);
-            return true;
-        }
-        log.info("{} depend service found for {}:{}", dependServiceList.size(), currentService, dependServiceList);
+    private static boolean isAllDependServiceReady(String namespace,
+                                                   List<String> dependServiceList) {
         for (String dependService : dependServiceList) {
             if (!isServiceReady(namespace, dependService)) {
+                log.info("{} is not ready, waiting...", dependService);
                 return false;
             }
         }
@@ -194,9 +195,16 @@ public class StartupController {
         for (V1Pod v1Pod : servicePodList) {
             if (isPodReady(v1Pod)) {
                 readyPodNum++;
+            } else {
+                V1ObjectMeta metaData = v1Pod.getMetadata();
+                if (metaData != null) {
+                    log.info("pod {} is not ready", metaData.getName());
+                } else {
+                    log.warn("pod {} is not ready", v1Pod);
+                }
             }
         }
-        log.info("{}/{} pod ready for service {}", readyPodNum, servicePodList.size(), serviceName);
+        log.info("{}: {}/{} pod ready", serviceName, readyPodNum, servicePodList.size());
         return readyPodNum == servicePodList.size();
     }
 
@@ -219,7 +227,10 @@ public class StartupController {
             }
             log.debug("phase of pod {}:{}", v1Pod.getMetadata().getName(), v1PodStatus.getPhase());
         }
-        return v1PodStatus != null && "Running".equalsIgnoreCase(v1PodStatus.getPhase());
+        V1Probe readinessProbe = v1Pod.getSpec().getContainers().get(0).getReadinessProbe();
+        log.info("readinessProbe={}", readinessProbe.getHttpGet());
+        return v1PodStatus != null
+            && "Running".equalsIgnoreCase(v1PodStatus.getPhase());
     }
 
 }

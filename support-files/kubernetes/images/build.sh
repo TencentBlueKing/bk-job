@@ -228,7 +228,7 @@ build_migration_image(){
 build_startup_controller_image(){
     log "Building startup-controller image, version: ${VERSION}..."
     TOOL_NAME="k8s-startup-controller"
-    $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :job-tools:$TOOL_NAME:shadowJar -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
+    $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :job-tools:$TOOL_NAME:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     rm -rf tmp/*
     cp $BACKEND_DIR/release/$TOOL_NAME-$VERSION.jar tmp/$TOOL_NAME.jar
     cp startup-controller/startup.sh tmp/
