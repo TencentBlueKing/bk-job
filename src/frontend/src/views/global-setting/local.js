@@ -31,7 +31,9 @@ export default {
         存储策略: 'History Setting',
         账号命名规则: 'Naming Rules',
         高危语句规则: 'High-risk Grammar',
-        
+        'Linux 账号不能为空': 'Linux account rule is required',
+        'Windows 账号不能为空': 'Windows account rule is required',
+        数据库账号不能为空: 'DB account is required',
         保存: 'Save',
         取消: 'Cancel',
         请填写完整的语法检测表达式和说明: 'Grammar Regex and Description not defined.',
