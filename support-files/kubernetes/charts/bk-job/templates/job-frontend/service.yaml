@@ -17,7 +17,7 @@ spec:
   ports:
     - name: http
       port: {{ .Values.frontendConfig.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.frontendConfig.containerPort }}
       protocol: TCP
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
     app.kubernetes.io/component: "job-frontend"
