@@ -30,6 +30,8 @@ spec:
           image: {{ include "common.images.image" (dict "imageRoot" .Values.migrationInit.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.migrationInit.image.pullPolicy }}
           command: ['sh', '-c', 'until nc -zw3 {{ include "job.mariadb.host" . }} {{ include "job.mariadb.port" . }}; do echo waiting for mariadb; sleep 2; done']
+          resources:
+            {{- toYaml .Values.migrationInit.resources | nindent 12 }}
       containers:
         - name: "job-migration"
           image: {{ include "job-migration.image" . }}
