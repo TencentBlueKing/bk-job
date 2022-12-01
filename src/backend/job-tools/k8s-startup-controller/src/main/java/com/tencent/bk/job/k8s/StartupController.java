@@ -239,8 +239,8 @@ public class StartupController {
             log.debug("NotReady endpoints for {}:", serviceName);
             printEndPointAddressList(notReadyEndpointAddressList);
         }
-        int readyAddressNum = readyEndpointAddressList.size();
-        int allAddressNum = readyAddressNum + notReadyEndpointAddressList.size();
+        int readyAddressNum = safeGetEndPointListSize(readyEndpointAddressList);
+        int allAddressNum = readyAddressNum + safeGetEndPointListSize(notReadyEndpointAddressList);
         log.info("{}: {}/{} EndpointAddress ready",
             serviceName,
             readyAddressNum,
@@ -255,11 +255,28 @@ public class StartupController {
      * @param endpointAddressList EndpointAddress列表数据
      */
     private static void printEndPointAddressList(List<V1EndpointAddress> endpointAddressList) {
+        if (endpointAddressList == null) {
+            log.debug("endpointAddressList is null");
+            return;
+        }
         endpointAddressList.forEach(endpointAddress -> {
             V1ObjectReference targetRef = endpointAddress.getTargetRef();
             assert targetRef != null;
             log.debug("{}: {}", targetRef.getKind(), targetRef.getName());
         });
+    }
+
+    /**
+     * 安全获取endpointAddressList的元素数量，避免空指针异常
+     *
+     * @param endpointAddressList 列表数据
+     * @return 列表内元素数量
+     */
+    private static int safeGetEndPointListSize(List<V1EndpointAddress> endpointAddressList) {
+        if (CollectionUtils.isEmpty(endpointAddressList)) {
+            return 0;
+        }
+        return endpointAddressList.size();
     }
 
 }
