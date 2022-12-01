@@ -24,18 +24,48 @@
 
 package com.tencent.bk.job.k8s;
 
+import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StartupControllerTest {
 
     @Test
+    void testParseDependModelFromArgsOrEnv() {
+        // 测试异常参数解析
+        assertThrows(ParameterException.class, () -> StartupController.parseDependModelFromArgsOrEnv(
+            new String[]{"-nn", "ns1", "-ss", " job-execute"}
+        ));
+        // 测试简写参数解析
+        String[] args = new String[]{"-n", "ns1", "-s", " job-execute", "-d", "(job-execute:job-manage,job-logsvr)"};
+        ServiceDependModel serviceDependModel = StartupController.parseDependModelFromArgsOrEnv(args);
+        assertNotNull(serviceDependModel);
+        assertEquals("ns1", serviceDependModel.getNamespace());
+        assertEquals("job-execute", serviceDependModel.getServiceName());
+        assertEquals("(job-execute:job-manage,job-logsvr)", serviceDependModel.getDependenciesStr());
+        // 测试全写参数解析
+        args = new String[]{
+            "--namespace", "ns1",
+            "--service", " job-execute",
+            "--dependencies", "(job-execute:job-manage,job-logsvr)"
+        };
+        serviceDependModel = StartupController.parseDependModelFromArgsOrEnv(args);
+        assertNotNull(serviceDependModel);
+        assertEquals("ns1", serviceDependModel.getNamespace());
+        assertEquals("job-execute", serviceDependModel.getServiceName());
+        assertEquals("(job-execute:job-manage,job-logsvr)", serviceDependModel.getDependenciesStr());
+    }
+
+    @Test
     void testParseDependencyMap() {
+        // 测试结构化依赖关系映射表解析
         String dependenciesStr = "(job-execute:job-manage,job-logsvr)," +
             "(job-crontab:job-execute),(job-analysis:job-crontab),(job-file-worker:job-file-gateway)";
         Map<String, List<String>> dependencyMap = StartupController.parseDependencyMap(dependenciesStr);

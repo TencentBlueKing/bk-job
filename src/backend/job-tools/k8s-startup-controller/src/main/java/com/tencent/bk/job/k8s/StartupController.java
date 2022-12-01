@@ -83,6 +83,7 @@ public class StartupController {
         printDependencyMap(dependencyMap);
         if (StringUtils.isBlank(currentService)) {
             log.warn("currentService is blank, ignore dependency check");
+            // 异常退出
             System.exit(1);
         }
         // 获取依赖服务列表
@@ -93,8 +94,9 @@ public class StartupController {
         }
         log.info("{} depend service found for {}:{}", dependServiceList.size(), currentService, dependServiceList);
         // 等待所有依赖服务启动完成
+        long sleepMillsOnce = 3000;
         while (!isAllDependServiceReady(namespace, dependServiceList)) {
-            ThreadUtils.sleep(3000);
+            ThreadUtils.sleep(sleepMillsOnce);
         }
         log.info("all depend services are ready, it`s time for {} to start", currentService);
     }
@@ -105,7 +107,7 @@ public class StartupController {
      * @param args 命令行参数
      * @return 服务依赖数据
      */
-    private static ServiceDependModel parseDependModelFromArgsOrEnv(String[] args) {
+    static ServiceDependModel parseDependModelFromArgsOrEnv(String[] args) {
         ServiceDependModel serviceDependModel = new ServiceDependModel();
         JCommander.newBuilder()
             .addObject(serviceDependModel)
@@ -151,7 +153,7 @@ public class StartupController {
      *                        含义：service1依赖于service2、service3，service2依赖于service4
      * @return 服务间依赖关系Map<服务名 ， 依赖的服务列表>
      */
-    public static Map<String, List<String>> parseDependencyMap(String dependenciesStr) {
+    static Map<String, List<String>> parseDependencyMap(String dependenciesStr) {
         if (StringUtils.isBlank(dependenciesStr)) {
             return Collections.emptyMap();
         }
