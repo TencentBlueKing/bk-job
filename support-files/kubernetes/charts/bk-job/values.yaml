@@ -1256,6 +1256,11 @@ migration:
     tag: "{{APP_VERSION}}"
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  # 迁移任务资源限制
+  resources:
+    limits:
+      cpu: 1024m
+      memory: 1Gi
 
 ## migration的init任务配置
 migrationInit:
