@@ -1289,7 +1289,7 @@ waitForMigration:
     # 镜像拉取策略
     pullPolicy: IfNotPresent
 
-## 服务Pod等待依赖的其他服务完成启动的init任务配置
+## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
 waitForDependServices:
   image:
     # 镜像拉取仓库根地址
@@ -1310,3 +1310,11 @@ waitForDependServices:
   dependencies: (job-execute:job-manage,job-logsvr),(bk-job-frontend:job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,bk-job-gateway,job-manage)
   # 日志级别：默认INFO，可选DEBUG/WARN/ERROR
   logLevel: "INFO"
+  # 资源要求与限制
+  resources:
+    limits:
+      cpu: 1024m
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi

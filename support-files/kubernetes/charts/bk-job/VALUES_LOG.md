@@ -1,4 +1,38 @@
 # chart values 更新日志
+## 0.3.0-rc.43
+1.增加服务启动顺序控制相关配置
+```shell script
+## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
+waitForDependServices:
+  image:
+    # 镜像拉取仓库根地址
+    registry: "hub.bktencent.com"
+    # 镜像拉取仓库组织与镜像名称
+    repository: "blueking/job-tools-k8s-startup-controller"
+    # 镜像标签
+    tag: "{{APP_VERSION}}"
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+  # 是否开启服务启动顺序控制，不开启则所有服务并行启动，默认不开启
+  enabled: false
+  # 服务间的依赖关系定义，多个依赖关系用逗号分隔
+  # 例如：(A:B,C),(B:D)表示服务A必须在服务B与服务C启动完成后才启动，服务B必须在服务D启动完成后才启动
+  # 全量服务名称：job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,job-file-worker-headless,
+  #            bk-job-gateway,job-logsvr,job-manage,bk-job-frontend
+  # 说明：bk-job-gateway与bk-job-frontend为对其他产品暴露的服务，因此有bk-前缀，job-file-worker-headless为无头服务，因此有-headless后缀
+  dependencies: (job-execute:job-manage,job-logsvr),(bk-job-frontend:job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,bk-job-gateway,job-manage)
+  # 日志级别：默认INFO，可选DEBUG/WARN/ERROR
+  logLevel: "INFO"
+  # 资源要求与限制
+  resources:
+    limits:
+      cpu: 1024m
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
+```
+
 ## 0.3.0-rc.37
 1.增加文件网关系统file-worker调度标签相关配置
 ```shell script

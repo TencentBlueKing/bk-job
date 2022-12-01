@@ -483,6 +483,8 @@ Return the Job InitContainer WaitForDependServices Content
 - name: "wait-for-depend-services"
   image: {{ include "common.images.image" (dict "imageRoot" .context.Values.waitForDependServices.image "global" .context.Values.global) }}
   imagePullPolicy: {{ .context.Values.waitForDependServices.image.pullPolicy }}
+  resources:
+    {{- toYaml .context.Values.waitForDependServices.resources | nindent 4 }}
   env:
     - name: KUBERNETES_NAMESPACE
       value: {{ .context.Release.Namespace }}
