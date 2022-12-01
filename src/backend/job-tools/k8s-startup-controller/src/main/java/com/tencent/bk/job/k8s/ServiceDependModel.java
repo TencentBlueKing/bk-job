@@ -35,7 +35,7 @@ public class ServiceDependModel {
     @Parameter(names = {"-s", "--service"}, description = "当前服务名称")
     private String serviceName;
 
-    @Parameter(names = {"-d", "--dependency"}, description = "服务间的依赖关系定义，多个依赖关系用英文逗号分隔，" +
+    @Parameter(names = {"-d", "--dependencies"}, description = "服务间的依赖关系定义，多个依赖关系用英文逗号分隔，" +
         "例如：(A:B,C),(B:D)表示服务A必须在服务B与服务C启动完成后才启动，服务B必须在服务D启动完成后才启动")
-    private String dependencyStr;
+    private String dependenciesStr;
 }

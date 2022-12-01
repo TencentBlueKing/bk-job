@@ -74,7 +74,7 @@ public class StartupController {
         ServiceDependModel serviceDependModel = parseDependModelFromArgsOrEnv(args);
         String namespace = serviceDependModel.getNamespace();
         String currentService = serviceDependModel.getServiceName();
-        String dependenciesStr = serviceDependModel.getDependencyStr();
+        String dependenciesStr = serviceDependModel.getDependenciesStr();
         log.info("namespace={}", namespace);
         log.info("dependenciesStr={}", dependenciesStr);
         log.info("currentService={}", currentService);
@@ -131,15 +131,15 @@ public class StartupController {
             );
             serviceDependModel.setServiceName(serviceName);
         }
-        String dependenciesStr = serviceDependModel.getDependencyStr();
+        String dependenciesStr = serviceDependModel.getDependenciesStr();
         if (StringUtils.isBlank(dependenciesStr)) {
             dependenciesStr = System.getenv(Consts.KEY_STARTUP_DEPENDENCIES_STR);
             log.info(
-                "Commandline param [-d,--dependency] is null or blank, use env variable {}={}",
+                "Commandline param [-d,--dependencies] is null or blank, use env variable {}={}",
                 Consts.KEY_STARTUP_DEPENDENCIES_STR,
                 dependenciesStr
             );
-            serviceDependModel.setDependencyStr(dependenciesStr);
+            serviceDependModel.setDependenciesStr(dependenciesStr);
         }
         return serviceDependModel;
     }
