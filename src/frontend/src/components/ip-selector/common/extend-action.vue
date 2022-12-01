@@ -34,7 +34,7 @@
             appendTo: () => document.body,
             theme: 'light',
             maxWidth: 'none',
-            trigger: 'click',
+            trigger: 'mouseenter click',
             interactive: true,
             arrow: true,
             offset: [8, 8],

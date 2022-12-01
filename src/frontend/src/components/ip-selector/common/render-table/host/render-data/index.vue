@@ -38,8 +38,14 @@
                             v-if="slots.action"
                             class="columu-fixed-right"
                             data-width="60px"
-                            style="top: 0; right: 0; width: 60px;">
+                            :style="{
+                                top: 0,
+                                right: 0,
+                                width: '60px',
+                                right: showSetting ? '40px' : 0
+                            }">
                             <slot name="action" />
+                            操作
                         </th>
                         <th
                             v-if="showSetting"
@@ -272,6 +278,7 @@
 </script>
 <style lang="postcss">
     @import "../../../../styles/table.mixin.css";
+    @import "../../../../styles/scroller.mixin.css";
 
     .render-table-host-content {
         position: relative;
@@ -280,6 +287,8 @@
             position: relative;
             overflow-x: auto;
             border-top: 1px solid #f0f1f5;
+
+            @include scroller;
 
             &.not-empty {
                 border-bottom: 1px solid #dcdee5;
@@ -302,6 +311,9 @@
             }
 
             .table-empty {
+                position: sticky;
+                top: 0;
+                left: 0;
                 padding-top: 75px;
                 padding-bottom: 25px;
                 font-size: 12px;

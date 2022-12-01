@@ -38,7 +38,7 @@ export default function (tableRef, tableColumnResizeRef) {
                 if (columnEl.classList.contains('host-column-first-key')) {
                     firstKeyColumnEl = columnEl;
                 } else {
-                    const renderWidth = Math.max(width, 60);
+                    const renderWidth = width;
                     columnWidthAdd += renderWidth;
                     columnEl.style.width = `${renderWidth}px`;
                 }
