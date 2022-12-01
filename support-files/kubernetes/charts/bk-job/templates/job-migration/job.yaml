@@ -36,6 +36,8 @@ spec:
         - name: "job-migration"
           image: {{ include "job-migration.image" . }}
           imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.migration.resources | nindent 12 }}
           command: ["bash"]
           args: ["/data/job/exec/startup.sh"]
           env:
