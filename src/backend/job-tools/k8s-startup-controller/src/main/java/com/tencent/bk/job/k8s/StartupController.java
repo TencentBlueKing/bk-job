@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 启动控制器，用于控制在K8s部署时各微服务的启动顺序
+ * 启动控制器，用于控制在K8s部署时各Service的启动顺序
  */
 @Slf4j
 public class StartupController {
@@ -205,15 +205,7 @@ public class StartupController {
         }
     }
 
-    private static final Map<String, String> k8sServiceNameMap = new HashMap<String, String>() {{
-        put("job-frontend", "bk-job-frontend");
-        put("job-gateway", "bk-job-gateway");
-    }};
-
     private static String buildServiceEndpointNameSelector(String serviceName) {
-        if (k8sServiceNameMap.containsKey(serviceName)) {
-            serviceName = k8sServiceNameMap.get(serviceName);
-        }
         return "metadata.name=" + serviceName;
     }
 
