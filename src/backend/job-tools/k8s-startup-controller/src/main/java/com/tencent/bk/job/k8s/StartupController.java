@@ -83,7 +83,7 @@ public class StartupController {
         printDependencyMap(dependencyMap);
         if (StringUtils.isBlank(currentService)) {
             log.warn("currentService is blank, ignore dependency check");
-            return;
+            System.exit(1);
         }
         // 获取依赖服务列表
         List<String> dependServiceList = dependencyMap.get(currentService);
