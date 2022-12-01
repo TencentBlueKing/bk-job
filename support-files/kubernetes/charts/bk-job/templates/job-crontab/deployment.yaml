@@ -58,7 +58,7 @@ spec:
       {{- end }}
       initContainers:
       {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
-      {{- include "job.initContainer.waitForDependServices"   ( dict "appName" "job-crontab" "context" $) | nindent 8 }}
+      {{- include "job.initContainer.waitForDependServices"   ( dict "currentServiceName" "job-crontab" "context" $) | nindent 8 }}
       containers:
         - name: "job-crontab"
           {{- if .Values.crontabConfig.containerSecurityContext.enabled }}

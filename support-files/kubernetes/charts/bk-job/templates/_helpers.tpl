@@ -486,8 +486,8 @@ Return the Job InitContainer WaitForDependServices Content
   env:
     - name: KUBERNETES_NAMESPACE
       value: {{ .context.Release.Namespace }}
-    - name: BK_JOB_APP_NAME
-      value: {{ .appName }}
+    - name: BK_JOB_CURRENT_SERVICE_NAME
+      value: {{ .currentServiceName }}
     - name: BK_JOB_STARTUP_DEPENDENCIES_STR
       value: {{ .context.Values.waitForDependServices.dependencies }}
     - name: BK_JOB_LOG_LEVEL

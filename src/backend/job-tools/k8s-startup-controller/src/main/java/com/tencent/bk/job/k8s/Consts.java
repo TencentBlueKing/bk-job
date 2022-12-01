@@ -27,5 +27,5 @@ package com.tencent.bk.job.k8s;
 public class Consts {
     public static String KEY_KUBERNETES_NAMESPACE = "KUBERNETES_NAMESPACE";
     public static String KEY_STARTUP_DEPENDENCIES_STR = "BK_JOB_STARTUP_DEPENDENCIES_STR";
-    public static String KEY_CURRENT_SERVICE = "BK_JOB_APP_NAME";
+    public static String KEY_CURRENT_SERVICE_NAME = "BK_JOB_CURRENT_SERVICE_NAME";
 }

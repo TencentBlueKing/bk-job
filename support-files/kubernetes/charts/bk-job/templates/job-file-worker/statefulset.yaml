@@ -58,7 +58,7 @@ spec:
       securityContext: {{- omit .Values.fileWorkerConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
       initContainers:
-      {{- include "job.initContainer.waitForDependServices"   ( dict "appName" "job-file-worker" "context" $) | nindent 8 }}
+      {{- include "job.initContainer.waitForDependServices"   ( dict "currentServiceName" "job-file-worker-headless" "context" $) | nindent 8 }}
       containers:
         - name: "job-file-worker"
           {{- if .Values.fileWorkerConfig.containerSecurityContext.enabled }}

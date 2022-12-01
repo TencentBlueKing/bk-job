@@ -71,7 +71,7 @@ public class StartupController {
     public static void main(String[] args) {
         String namespace = System.getenv(Consts.KEY_KUBERNETES_NAMESPACE);
         String dependenciesStr = System.getenv(Consts.KEY_STARTUP_DEPENDENCIES_STR);
-        String currentService = System.getenv(Consts.KEY_CURRENT_SERVICE);
+        String currentService = System.getenv(Consts.KEY_CURRENT_SERVICE_NAME);
         log.info("namespace={}", namespace);
         log.info("dependenciesStr={}", dependenciesStr);
         log.info("currentService={}", currentService);
