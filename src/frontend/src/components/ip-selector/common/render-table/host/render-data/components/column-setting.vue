@@ -111,7 +111,7 @@
 
     const rootRef = ref();
     const popRef = ref();
-    const localSelectedList = shallowRef([...props.selectedList]);
+    const localSelectedList = ref([...props.selectedList]);
 
     const renderColumnList = shallowRef(props.sortList.reduce((result, key) => {
         if (tableColumnConfig[key]) {
