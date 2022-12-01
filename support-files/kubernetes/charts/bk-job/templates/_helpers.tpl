@@ -490,6 +490,8 @@ Return the Job InitContainer WaitForDependServices Content
       value: {{ .appName }}
     - name: BK_JOB_STARTUP_DEPENDENCIES_STR
       value: {{ .context.Values.waitForDependServices.dependencies }}
+    - name: BK_JOB_LOG_LEVEL
+      value: {{ .context.Values.waitForDependServices.logLevel }}
 {{- end -}}
 {{- end -}}
 

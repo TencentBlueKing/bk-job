@@ -2,9 +2,10 @@
 <configuration scan="true" scanPeriod="30 seconds">
     <property name="LOG_PATTERN"
               value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
-    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="BK_LOG_DIR_CONTROLLER" value="${BK_LOG_DIR}/controller"/>
-    <property name="CONTROLLER_LOG_FILE" value="${BK_LOG_DIR_CONTROLLER}/controller.log"/>
+    <property name="LOG_LEVEL" value="${log.level:-INFO}"/>
+    <property name="LOG_DIR" value="${log.dir:-/data/logs}"/>
+    <property name="LOG_DIR_CONTROLLER" value="${LOG_DIR}/controller"/>
+    <property name="CONTROLLER_LOG_FILE" value="${LOG_DIR_CONTROLLER}/controller.log"/>
     <contextName>logback</contextName>
 
     <appender name="controller-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -25,7 +26,7 @@
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
-    <root level="INFO">
+    <root level="${LOG_LEVEL}">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="controller-appender"/>
     </root>

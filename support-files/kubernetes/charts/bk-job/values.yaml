@@ -1308,3 +1308,5 @@ waitForDependServices:
   #            bk-job-gateway,job-logsvr,job-manage,bk-job-frontend
   # 说明：bk-job-gateway与bk-job-frontend为对其他产品暴露的服务，因此有bk-前缀
   dependencies: (job-execute:job-manage,job-logsvr),(bk-job-frontend:job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,bk-job-gateway,job-manage)
+  # 日志级别：默认INFO，可选DEBUG/WARN/ERROR
+  logLevel: "INFO"
