@@ -21,40 +21,21 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-plugins {
-    id "com.github.johnrengelman.shadow" version "7.1.1"
-}
-ext {
-    if (System.getProperty("jobToolsVersion")) {
-        set("jobToolsVersion", System.getProperty("jobToolsVersion"))
-    } else if (System.getProperty("bkjobVersion")) {
-        set("jobToolsVersion", System.getProperty("bkjobVersion"))
-    } else {
-        set("jobToolsVersion", "1.0.0")
-    }
-}
-version "${jobToolsVersion}"
-dependencies {
-    api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
-    api "com.beust:jcommander"
-}
-apply plugin: "com.github.johnrengelman.shadow"
-apply plugin: "application"
 
-// 固定入口类 不要改
-mainClassName = "com.tencent.bk.job.k8s.StartupController"
+package com.tencent.bk.job.k8s;
 
-shadowJar {
-    classifier = null
-    zip64 true
-}
-task copyToRelease(type: Copy) {
-    from("build/libs") {
-        include("**/k8s-startup-controller-*.jar")
-    }
-    into "${rootDir}/release"
-    outputs.upToDateWhen { false }
-}
+import com.beust.jcommander.Parameter;
+import lombok.Data;
 
-copyToRelease.dependsOn shadowJar
-build.dependsOn copyToRelease
+@Data
+public class ServiceDependModel {
+    @Parameter(names = {"-n", "--namespace"}, description = "当前服务所在的命名空间")
+    private String namespace;
+
+    @Parameter(names = {"-s", "--service"}, description = "当前服务名称")
+    private String serviceName;
+
+    @Parameter(names = {"-d", "--dependency"}, description = "服务间的依赖关系定义，多个依赖关系用英文逗号分隔，" +
+        "例如：(A:B,C),(B:D)表示服务A必须在服务B与服务C启动完成后才启动，服务B必须在服务D启动完成后才启动")
+    private String dependencyStr;
+}

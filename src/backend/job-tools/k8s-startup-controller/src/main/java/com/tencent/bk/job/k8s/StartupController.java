@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.k8s;
 
+import com.beust.jcommander.JCommander;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import io.kubernetes.client.openapi.ApiClient;
@@ -69,28 +70,78 @@ public class StartupController {
     }
 
     public static void main(String[] args) {
-        String namespace = System.getenv(Consts.KEY_KUBERNETES_NAMESPACE);
-        String dependenciesStr = System.getenv(Consts.KEY_STARTUP_DEPENDENCIES_STR);
-        String currentService = System.getenv(Consts.KEY_CURRENT_SERVICE_NAME);
+        // 解析需要的依赖参数
+        ServiceDependModel serviceDependModel = parseDependModelFromArgsOrEnv(args);
+        String namespace = serviceDependModel.getNamespace();
+        String currentService = serviceDependModel.getServiceName();
+        String dependenciesStr = serviceDependModel.getDependencyStr();
         log.info("namespace={}", namespace);
         log.info("dependenciesStr={}", dependenciesStr);
         log.info("currentService={}", currentService);
+        // 解析出结构化的依赖映射表
         Map<String, List<String>> dependencyMap = parseDependencyMap(dependenciesStr);
         printDependencyMap(dependencyMap);
         if (StringUtils.isBlank(currentService)) {
             log.warn("currentService is blank, ignore dependency check");
             return;
         }
+        // 获取依赖服务列表
         List<String> dependServiceList = dependencyMap.get(currentService);
         if (CollectionUtils.isEmpty(dependServiceList)) {
             log.info("There is no depend service for {}", currentService);
             return;
         }
         log.info("{} depend service found for {}:{}", dependServiceList.size(), currentService, dependServiceList);
+        // 等待所有依赖服务启动完成
         while (!isAllDependServiceReady(namespace, dependServiceList)) {
             ThreadUtils.sleep(3000);
         }
         log.info("all depend services are ready, it`s time for {} to start", currentService);
+    }
+
+    /**
+     * 从命令行参数或环境变量解析出程序运行需要的服务依赖参数
+     *
+     * @param args 命令行参数
+     * @return 服务依赖数据
+     */
+    private static ServiceDependModel parseDependModelFromArgsOrEnv(String[] args) {
+        ServiceDependModel serviceDependModel = new ServiceDependModel();
+        JCommander.newBuilder()
+            .addObject(serviceDependModel)
+            .build()
+            .parse(args);
+        String namespace = serviceDependModel.getNamespace();
+        if (StringUtils.isBlank(namespace)) {
+            namespace = System.getenv(Consts.KEY_KUBERNETES_NAMESPACE);
+            log.info(
+                "Commandline param [-n,--namespace] is null or blank, use env variable {}={}",
+                Consts.KEY_KUBERNETES_NAMESPACE,
+                namespace
+            );
+            serviceDependModel.setNamespace(namespace);
+        }
+        String serviceName = serviceDependModel.getServiceName();
+        if (StringUtils.isBlank(serviceName)) {
+            serviceName = System.getenv(Consts.KEY_CURRENT_SERVICE_NAME);
+            log.info(
+                "Commandline param [-s,--service] is null or blank, use env variable {}={}",
+                Consts.KEY_CURRENT_SERVICE_NAME,
+                serviceName
+            );
+            serviceDependModel.setServiceName(serviceName);
+        }
+        String dependenciesStr = serviceDependModel.getDependencyStr();
+        if (StringUtils.isBlank(dependenciesStr)) {
+            dependenciesStr = System.getenv(Consts.KEY_STARTUP_DEPENDENCIES_STR);
+            log.info(
+                "Commandline param [-d,--dependency] is null or blank, use env variable {}={}",
+                Consts.KEY_STARTUP_DEPENDENCIES_STR,
+                dependenciesStr
+            );
+            serviceDependModel.setDependencyStr(dependenciesStr);
+        }
+        return serviceDependModel;
     }
 
     /**
