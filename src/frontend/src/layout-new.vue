@@ -297,7 +297,6 @@
 
     const TOGGLE_CACHE = 'navigation_toggle_status';
 
-    let routerName = '';
     const routerGroup = ref('');
     const isFrameSideFixed = ref(localStorage.getItem(TOGGLE_CACHE) !== null);
     const isSideExpand = ref(false);
@@ -310,7 +309,6 @@
 
     watch(route, (currentRoute) => {
         routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);
-
         // 确认路由分组
         const {
             matched,
@@ -360,13 +358,14 @@
      * @param {String} routerName 跳转的路由名
      */
     const handleRouterChange = (localtionRouterName) => {
-        if (routerName === localtionRouterName) {
+        const nextRouter = router.resolve({
+            name: localtionRouterName,
+        });
+        if (nextRouter.route.path === route.value.path) {
             return;
         }
-
-        routerName = localtionRouterName;
         router.push({
-            name: routerName,
+            name: localtionRouterName,
         });
     };
 
