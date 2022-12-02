@@ -293,7 +293,6 @@ public class ScriptServiceImpl implements ScriptService {
         script.setStatus(JobResourceStatusEnum.DRAFT.getValue());
 
         Long scriptVersionId = script.getScriptVersionId();
-        String scriptId = script.getId();
         if (StringUtils.isNotBlank(script.getId())) {
             // 更新当前版本
             if (script.getScriptVersionId() != null && script.getScriptVersionId() > 0) {
@@ -314,6 +313,7 @@ public class ScriptServiceImpl implements ScriptService {
                     throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
                 }
                 scriptVersionId = scriptDAO.saveScriptVersion(script);
+                script.setScriptVersionId(scriptVersionId);
                 scriptDAO.updateScript(script);
             }
         } else {
@@ -323,16 +323,12 @@ public class ScriptServiceImpl implements ScriptService {
                 log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
                 throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
             }
-            scriptId = JobUUID.getUUID();
-            script.setId(scriptId);
+            script.setId(JobUUID.getUUID());
             scriptDAO.saveScript(script);
             scriptVersionId = scriptDAO.saveScriptVersion(script);
+            script.setScriptVersionId(scriptVersionId);
+            saveScriptTags(appId, script);
         }
-
-        script.setId(scriptId);
-        script.setScriptVersionId(scriptVersionId);
-
-        saveScriptTags(appId, script);
 
         return scriptDAO.getScriptVersionById(scriptVersionId);
     }
