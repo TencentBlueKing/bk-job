@@ -250,6 +250,9 @@ public class StartupController {
         Set<String> dependServiceSet = new HashSet<>(dependServiceList);
         Map<String, Map<String, String>> servicePodLabelsMap = new HashMap<>(dependServiceSet.size());
         dependServiceSet.forEach(service -> servicePodLabelsMap.put(service, new HashMap<>(commonLabelMap)));
+        if (StringUtils.isBlank(expectPodLabelsService)) {
+            return servicePodLabelsMap;
+        }
         // 服务单独定义的标签
         String[] servicePodLabelsStrArr = expectPodLabelsService.split("\\),\\s*\\(");
         for (String servicePodLabelsStr : servicePodLabelsStrArr) {
