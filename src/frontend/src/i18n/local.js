@@ -564,7 +564,7 @@ export default {
     '警告！': 'Warning !!!',
     详见编辑框左侧: 'See the tips on the',
     图标的提示: 'icon on the left side of editor for details',
-    请确定是否要继续执行: 'Are you sure want to continue to run?',
+    请确定是否要继续执行: 'Are you sure want to proceed?',
     继续执行: 'YES',
     立即取消: 'CANCEL',
     全业务: 'All',

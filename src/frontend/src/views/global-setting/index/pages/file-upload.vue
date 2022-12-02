@@ -59,7 +59,7 @@
                     <bk-radio-group
                         v-model="info.restrictMode"
                         class="restrict-mode-radio"
-                        @change="handleRestSuffixError">
+                        @change="handleRestrictModeChange">
                         <bk-radio-button :value="-1">
                             {{ $t('setting.不限制') }}
                         </bk-radio-button>
@@ -75,10 +75,10 @@
                     <jb-form-item>
                         <bk-tag-input
                             :key="info.restrictMode"
-                            v-model="info.suffixList"
                             allow-create
                             has-delete-icon
-                            @change="handleRestSuffixError" />
+                            :value="info.suffixList"
+                            @change="handleSuffixChange" />
                     </jb-form-item>
                     <div
                         class="form-item-error"
@@ -187,8 +187,12 @@
                         this.isLoading = false;
                     });
             },
-            handleRestSuffixError () {
+            handleRestrictModeChange () {
                 this.suffixError = '';
+            },
+            handleSuffixChange (tagList) {
+                this.suffixError = '';
+                this.info.suffixList = tagList.map(tagItem => tagItem.replace(/ /g, ''));
             },
             /**
              * @desc 提交修改

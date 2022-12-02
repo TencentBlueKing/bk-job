@@ -120,7 +120,7 @@ export const scriptErrorConfirm = () => new Promise((resolve, reject) => {
     if (!scriptCheckError) {
         return resolve();
     }
-    
+
     if (scriptCheckError.isActionScan) {
         sacnDialog(resolve, reject);
     } else {
