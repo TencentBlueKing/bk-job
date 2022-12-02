@@ -38,4 +38,13 @@ public class ServiceDependModel {
     @Parameter(names = {"-d", "--dependencies"}, description = "服务间的依赖关系定义，多个依赖关系用英文逗号分隔，" +
         "例如：(A:B,C),(B:D)表示服务A必须在服务B与服务C启动完成后才启动，服务B必须在服务D启动完成后才启动")
     private String dependenciesStr;
+
+    @Parameter(names = {"-lc", "--expect-pod-labels-common"},
+        description = "所有依赖服务都必须拥有的label，多个label间用英文逗号分隔，格式：label1=value1,label2=value2,...")
+    private String expectLabelsCommon;
+
+    @Parameter(names = {"-ls", "--expect-pod-labels-service"},
+        description = "为每个依赖服务单独定义的必须拥有的label，多个服务间用英文括号及英文逗号分隔，" +
+            "格式：(job-manage:label1=value1,label2=value2),(job-execute:label3=value3),(...)")
+    private String expectLabelsService;
 }

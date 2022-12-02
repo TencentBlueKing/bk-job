@@ -21,6 +21,14 @@ waitForDependServices:
   #            bk-job-gateway,job-logsvr,job-manage,bk-job-frontend
   # 说明：bk-job-gateway与bk-job-frontend为对其他产品暴露的服务，因此有bk-前缀，job-file-worker-headless为无头服务，因此有-headless后缀
   dependencies: (job-execute:job-manage,job-logsvr),(bk-job-frontend:job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,bk-job-gateway,job-manage)
+  # 依赖服务的Pod启动完成后需要拥有的label（label与value中请勿包含英文逗号/括号）
+  expectPodLabels:
+    # 所有依赖服务都必须拥有的label，多个label间用英文逗号分隔
+    # 格式：label1=value1,label2=value2,...
+    common: "bk.job.image/tag={{APP_VERSION}}"
+    # 为每个依赖服务单独定义的必须拥有的label，多个服务间用英文括号及英文逗号分隔
+    # 格式：(job-manage:label1=value1,label2=value2),(job-execute:label3=value3),(...)
+    service: ""
   # 日志级别：默认INFO，可选DEBUG/WARN/ERROR
   logLevel: "INFO"
   # 资源要求与限制

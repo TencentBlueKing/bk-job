@@ -496,6 +496,10 @@ Return the Job InitContainer WaitForDependServices Content
       value: {{ .context.Values.waitForDependServices.dependencies }}
     - name: BK_JOB_LOG_LEVEL
       value: {{ .context.Values.waitForDependServices.logLevel }}
+    - name: BK_JOB_EXPECT_POD_LABELS_COMMON
+      value: {{ .context.Values.waitForDependServices.expectPodLabels.common }}
+    - name: BK_JOB_EXPECT_POD_LABELS_SERVICE
+      value: {{ .context.Values.waitForDependServices.expectPodLabels.service }}
 {{- end -}}
 {{- end -}}
 

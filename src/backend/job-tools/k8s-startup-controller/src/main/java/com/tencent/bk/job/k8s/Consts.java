@@ -31,4 +31,8 @@ public class Consts {
     public static String KEY_STARTUP_DEPENDENCIES_STR = "BK_JOB_STARTUP_DEPENDENCIES_STR";
     // 当前服务名称
     public static String KEY_CURRENT_SERVICE_NAME = "BK_JOB_CURRENT_SERVICE_NAME";
+    // 所有依赖服务达到Ready状态时必须要有的公共标签
+    public static String KEY_EXPECT_POD_LABELS_COMMON = "BK_JOB_EXPECT_POD_LABELS_COMMON";
+    // 为每个依赖服务单独定义的达到Ready状态时必须要有的标签
+    public static String KEY_EXPECT_POD_LABELS_SERVICE = "BK_JOB_EXPECT_POD_LABELS_SERVICE";
 }
