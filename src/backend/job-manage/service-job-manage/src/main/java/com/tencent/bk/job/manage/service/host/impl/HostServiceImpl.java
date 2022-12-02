@@ -1350,18 +1350,20 @@ public class HostServiceImpl implements HostService {
         }
         List<ApplicationHostDTO> cmdbHosts = listHostsFromCmdbByHostIds(missingAgentIdHostIds);
         if (CollectionUtils.isEmpty(cmdbHosts)) {
+            log.warn("Refresh host agent id, hosts are not exist in cmdb! hosts: {}", missingAgentIdHostIds);
             return;
         }
 
         Map<Long, String> hostIdAndAgentIdMap = cmdbHosts.stream()
+            .filter(host -> StringUtils.isNotEmpty(host.getAgentId()))
             .collect(Collectors.toMap(ApplicationHostDTO::getHostId, ApplicationHostDTO::getAgentId));
         hosts.forEach(host -> {
             if (StringUtils.isEmpty(host.getAgentId())) {
                 host.setAgentId(hostIdAndAgentIdMap.get(host.getHostId()));
             }
         });
-        log.info("Refresh host agent id, hostIds: {}, cost: {}", missingAgentIdHostIds,
-            System.currentTimeMillis() - start);
+        log.info("Refresh host agent id, hostIds: {}, hostIdAndAgentIdMap: {}, cost: {}",
+            missingAgentIdHostIds, hostIdAndAgentIdMap, System.currentTimeMillis() - start);
     }
 
     private Pair<List<HostDTO>, List<ApplicationHostDTO>> listHostsFromCacheOrCmdb(Collection<HostDTO> hosts) {

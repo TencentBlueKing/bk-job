@@ -1063,7 +1063,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void throwHostInvalidException(Collection<HostDTO> invalidHosts) {
         String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
-        log.warn("The following hosts are invalid, hosts={}", hostListStr);
+        log.warn("The following hosts are invalid, hosts={}", invalidHosts);
         throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{hostListStr});
     }
 
