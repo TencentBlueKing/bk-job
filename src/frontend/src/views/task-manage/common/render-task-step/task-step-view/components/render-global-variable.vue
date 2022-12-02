@@ -39,28 +39,19 @@
         </div>
         <jb-dialog
             v-model="isShowDetail"
-            cancel-text=""
+            :cancel-text="$t('template.关闭')"
             class="global-host-variable-detail-dialog"
-            :ok-text="$t('template.关闭')"
-            :title="title"
+            ok-text=""
             :width="1020">
-            <template #header>
-                <div class="variable-title">
-                    <span>{{ title }}</span>
-                    <i
-                        class="global-variable-dialog-close bk-icon icon-close"
-                        @click="handleClose" />
-                </div>
-            </template>
+            <div class="variable-title">
+                <span>{{ title }}</span>
+            </div>
             <div class="content-wraper">
                 <Empty
                     v-if="isEmpty"
                     style="height: 100%;"
                     :title="$t('template.变量值为空')" />
                 <scroll-faker v-else>
-                    <!-- <server-panel
-                        detail-mode="dialog"
-                        :host-node-info="hostNodeInfo" /> -->
                     <ip-selector
                         readonly
                         show-view
@@ -73,7 +64,6 @@
 <script>
     import TaskHostNodeModel from '@model/task-host-node';
 
-    // import ServerPanel from '@components/choose-ip/server-panel';
     import Empty from '@components/empty';
     import ScrollFaker from '@components/scroll-faker';
 
@@ -102,7 +92,7 @@
         },
         data () {
             const { hostNodeInfo } = new TaskHostNodeModel({});
-            
+
             return {
                 isShowDetail: false,
                 hostNodeInfo,
@@ -123,7 +113,7 @@
             handlerView () {
                 const curVariable = this.data.find(item => item.name === this.name);
                 this.hostNodeInfo = Object.freeze(curVariable.defaultTargetValue.hostNodeInfo);
-                
+
                 this.isShowDetail = true;
             },
             handleClose () {
@@ -159,58 +149,20 @@
             text-align: left;
         }
 
-        .bk-dialog-wrapper .bk-dialog-body {
-            padding: 0;
-
-            .server-panel {
-                height: 100%;
-
-                &.show-detail {
-                    overflow: hidden;
-                }
-
-                .host-detail.show {
-                    padding-left: 20%;
-                }
-            }
+        .variable-title {
+            position: relative;
+            margin-top: 18px;
+            font-size: 20px;
+            line-height: 28px;
+            color: #313238;
+            text-align: left;
         }
 
         .content-wraper {
             height: 450px;
             max-height: 450px;
             min-height: 450px;
-            margin-top: -1px;
-        }
-
-        button[name="cancel"] {
-            display: none;
-        }
-
-        .variable-title {
-            position: relative;
-            height: 68px;
-            padding-top: 0;
-            padding-bottom: 0;
-            padding-left: 25px;
-            font-size: 20px;
-            line-height: 68px;
-            color: #000;
-            text-align: left;
-            border-bottom: 1px solid #dcdee5;
-        }
-
-        .global-variable-dialog-close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 32px;
-            color: #c4c6cc;
-            cursor: pointer;
-            transition: all 0.15s;
-
-            &:hover {
-                transform: rotateZ(90deg);
-            }
+            margin-top: 12px;
         }
     }
 </style>

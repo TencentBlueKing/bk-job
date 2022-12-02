@@ -37,6 +37,9 @@
         :width="renderWidth"
         v-on="$listeners"
         @input="handleInputValue">
+        <template #header>
+            <slot name="header" />
+        </template>
         <template v-if="isRender">
             <slot />
         </template>
@@ -46,6 +49,7 @@
             <slot name="footer">
                 <div class="jb-dialog-footer">
                     <bk-button
+                        v-if="okText"
                         :loading="isSubmiting"
                         theme="primary"
                         @click="handleConfirm">
