@@ -582,6 +582,7 @@ public class StartupController {
             log.warn("podLabelsMap is null/empty, metaData={}", metaData);
             return false;
         }
+        log.debug("pod={},requiredPodLabelsMap={},podLabelsMap={}", v1Pod, requiredPodLabelsMap, podLabelsMap);
         for (Map.Entry<String, String> entry : requiredPodLabelsMap.entrySet()) {
             String requiredLabelKey = entry.getKey();
             String requiredLabelValue = entry.getValue();

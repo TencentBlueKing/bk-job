@@ -1344,7 +1344,7 @@ waitForDependServices:
   # 资源要求与限制
   resources:
     limits:
-      cpu: 1024m
+      cpu: 500m
       memory: 1Gi
     requests:
       cpu: 125m
