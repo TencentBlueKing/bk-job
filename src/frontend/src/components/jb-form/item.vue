@@ -28,14 +28,13 @@
 <template>
     <bk-form-item
         ref="bkFormItem"
+        class="jb-form-item"
         :class="classes"
         :error-display-type="errorDisplayType"
         :label="label"
         v-bind="$attrs"
         v-on="$listeners">
-        <div class="jb-form-item-content">
-            <slot />
-        </div>
+        <slot />
     </bk-form-item>
 </template>
 <script>
@@ -47,29 +46,21 @@
                 type: String,
                 default: '',
             },
-            layout: {
-                type: String,
-                default: '',
-            },
             errorDisplayType: {
                 type: String,
                 default: 'normal',
             },
         },
-        
+
         computed: {
             classes () {
                 const classes = {
-                    'jb-form-item': true,
                     'label-miss': !this.label,
                 };
-                if (this.layout) {
-                    classes[`layout-${this.layout}`] = true;
-                }
                 return classes;
             },
         },
-        
+
         methods: {
             clearValidator () {
                 this.$refs.bkFormItem.clearValidator();
@@ -87,20 +78,8 @@
             }
         }
 
-        &.layout-inline {
-            flex-direction: row !important;
-        }
-
-        &.layout-vertical {
-            flex-direction: column !important;
-        }
-
         .jb-form-item-content {
             flex: 1;
-        }
-
-        .bk-label {
-            height: 32px;
         }
     }
 </style>

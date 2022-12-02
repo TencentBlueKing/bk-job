@@ -319,6 +319,8 @@
 </script>
 <style lang='postcss'>
     .dangerous-rule-manage-page {
+        padding-bottom: 20px;
+
         .rule-table {
             width: 100%;
             border: 1px solid #dcdee5;
