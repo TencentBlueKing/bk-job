@@ -112,11 +112,13 @@
                     const { width } = item.querySelector('span').getBoundingClientRect();
                     max = Math.max(max, width);
                 });
+
+                const labelWidth = max + labelPadding + safePadding;
                 $labelEleList.forEach((item) => {
-                    item.style.width = `${max + labelPadding + safePadding}px`;
+                    item.style.width = `${labelWidth}px`;
                 });
                 $formEle.querySelectorAll('.bk-form-content').forEach((item) => {
-                    item.style.marginLeft = `${max + this.paddingLeft}px`;
+                    item.style.marginLeft = `${labelWidth}px`;
                 });
                 this.max = max;
             },
@@ -180,28 +182,20 @@
 <style lang='postcss'>
     .job-form {
         .bk-form {
+            .bk-label {
+                height: 32px;
+                padding-right: 24px;
+                word-break: keep-all;
+                white-space: pre;
+                box-sizing: border-box;
+            }
+
             .bk-form-item {
-                display: flex;
                 margin-bottom: 20px;
-
-                .bk-form-content {
-                    flex: 1;
-                    display: flex;
-                    flex-direction: column;
-                    margin-left: 0 !important;
-                }
-
-                /* .tooltips-icon {
-                    position: relative;
-                    top: 0 !important;
-                    right: 0 !important;
-                    margin-left: -24px;
-                } */
             }
 
             &.bk-form-vertical {
                 .bk-form-item {
-                    flex-direction: column;
                     margin: 0;
                     margin-bottom: 20px;
                 }
@@ -234,13 +228,6 @@
                     }
                 }
             }
-        }
-
-        .bk-label {
-            padding-right: 24px;
-            word-break: keep-all;
-            white-space: pre;
-            box-sizing: border-box;
         }
     }
 </style>
