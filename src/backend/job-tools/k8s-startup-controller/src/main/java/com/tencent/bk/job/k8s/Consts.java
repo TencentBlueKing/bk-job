@@ -25,7 +25,10 @@
 package com.tencent.bk.job.k8s;
 
 public class Consts {
+    // k8s命名空间
     public static String KEY_KUBERNETES_NAMESPACE = "KUBERNETES_NAMESPACE";
+    // 服务启动依赖关系定义字符串
     public static String KEY_STARTUP_DEPENDENCIES_STR = "BK_JOB_STARTUP_DEPENDENCIES_STR";
+    // 当前服务名称
     public static String KEY_CURRENT_SERVICE_NAME = "BK_JOB_CURRENT_SERVICE_NAME";
 }
