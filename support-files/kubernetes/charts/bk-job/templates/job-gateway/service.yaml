@@ -18,15 +18,15 @@ spec:
   ports:
     - name: http
       port: {{ .Values.gatewayConfig.service.port.http }}
-      targetPort: http
+      targetPort: {{ .Values.gatewayConfig.containerPort.http }}
       protocol: TCP
     - name: https
       port: {{ .Values.gatewayConfig.service.port.https }}
-      targetPort: https
+      targetPort: {{ .Values.gatewayConfig.containerPort.https }}
       protocol: TCP
     - name: management
       port: {{ .Values.gatewayConfig.containerPort.management }}
-      targetPort: management
+      targetPort: {{ .Values.gatewayConfig.containerPort.management }}
       protocol: TCP
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
     app.kubernetes.io/component: "job-gateway"
