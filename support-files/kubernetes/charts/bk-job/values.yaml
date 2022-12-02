@@ -664,7 +664,7 @@ gatewayConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 1024m
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -753,7 +753,7 @@ manageConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 1024m
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -812,7 +812,7 @@ executeConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 2048m
+      cpu: 900m
       memory: 2Gi
     requests:
       cpu: 250m
@@ -864,7 +864,7 @@ crontabConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 1024m
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -925,7 +925,7 @@ logsvrConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 1024m
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -981,7 +981,7 @@ backupConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 1024m
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1032,7 +1032,7 @@ analysisConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 1024m
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1140,7 +1140,7 @@ fileWorkerConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 1024m
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1216,7 +1216,7 @@ frontendConfig:
   hostAliases: []
   resources:
     limits:
-      cpu: 1024m
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1277,7 +1277,7 @@ migration:
   # 迁移任务资源限制
   resources:
     limits:
-      cpu: 1024m
+      cpu: 500m
       memory: 1Gi
 
 ## migration的init任务配置
@@ -1293,7 +1293,7 @@ migrationInit:
     pullPolicy: IfNotPresent
   resources:
     limits:
-      cpu: 1024m
+      cpu: 500m
       memory: 1Gi
 
 ## 其他服务Pod等待migration完成的init任务配置
@@ -1309,7 +1309,7 @@ waitForMigration:
     pullPolicy: IfNotPresent
   resources:
     limits:
-      cpu: 1024m
+      cpu: 500m
       memory: 1Gi
 
 ## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
