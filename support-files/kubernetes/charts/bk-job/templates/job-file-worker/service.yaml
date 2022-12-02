@@ -18,7 +18,7 @@ spec:
   ports:
     - name: http
       port: {{ .Values.fileWorkerConfig.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.fileWorkerConfig.containerPort }}
       protocol: TCP
   clusterIP: None
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
