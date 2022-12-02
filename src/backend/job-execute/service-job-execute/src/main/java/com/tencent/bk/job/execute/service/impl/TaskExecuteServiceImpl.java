@@ -711,7 +711,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return taskInstance.getStartupMode() == TaskStartupModeEnum.API.getValue()
             && StringUtils.isNotEmpty(taskInstance.getAppCode())
             && (StringUtils.equals(taskInstance.getAppCode(), "bkc-nodeman")
-            || StringUtils.equals(taskInstance.getAppCode(), "bk-nodeman"));
+            || StringUtils.equals(taskInstance.getAppCode(), "bk_nodeman"));
     }
 
     private CheckHostResult checkHosts(Long appId,
