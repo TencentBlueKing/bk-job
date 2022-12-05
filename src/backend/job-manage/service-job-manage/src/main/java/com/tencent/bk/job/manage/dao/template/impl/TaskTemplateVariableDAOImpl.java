@@ -220,6 +220,13 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
     }
 
     @Override
+    public int deleteVariableByParentId(long parentId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.TEMPLATE_ID.eq(ULong.valueOf(parentId)));
+        return context.deleteFrom(TABLE).where(conditions).execute();
+    }
+
+    @Override
     public boolean batchInsertVariableWithId(List<TaskVariableDTO> variableList) {
         InsertValuesStep8<TaskTemplateVariableRecord, ULong, ULong, String, UByte, String, String, UByte,
             UByte> insertStep = context.insertInto(TABLE).columns(TABLE.ID, TABLE.TEMPLATE_ID, TABLE.NAME, TABLE.TYPE,

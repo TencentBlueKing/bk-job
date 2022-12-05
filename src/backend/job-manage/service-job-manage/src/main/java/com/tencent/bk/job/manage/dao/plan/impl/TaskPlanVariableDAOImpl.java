@@ -195,6 +195,13 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
     }
 
     @Override
+    public int deleteVariableByParentId(long parentId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.PLAN_ID.eq(ULong.valueOf(parentId)));
+        return context.deleteFrom(TABLE).where(conditions).execute();
+    }
+
+    @Override
     public boolean batchInsertVariableWithId(List<TaskVariableDTO> variableList) {
         return false;
     }
