@@ -30,7 +30,7 @@ import lombok.Data;
 @Data
 public class ServiceDependModel {
     @Parameter(names = {"-n", "--namespace"}, description = "当前服务所在的命名空间")
-    private String namespace = "default";
+    private String namespace;
 
     @Parameter(names = {"-s", "--service"}, description = "当前服务名称")
     private String serviceName;
