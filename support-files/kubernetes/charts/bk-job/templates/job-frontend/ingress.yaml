@@ -35,7 +35,7 @@ spec:
             {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
             pathType: {{ .Values.frontendConfig.ingress.pathType }}
             {{- end }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-frontend" (include "common.names.fullname" .)) "servicePort" .Values.frontendConfig.service.port "context" $)  | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" "bk-job-frontend" "servicePort" .Values.frontendConfig.service.port "context" $)  | nindent 14 }}
     {{- end }}
     {{- range .Values.frontendConfig.ingress.extraHosts }}
     - host: {{ .name }}
@@ -45,7 +45,7 @@ spec:
             {{- if eq "true" (include "common.ingress.supportsPathType" $) }}
             pathType: {{ default "ImplementationSpecific" .pathType }}
             {{- end }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-frontend" (include "common.names.fullname" $)) "servicePort" "http" "context" $)  | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" "bk-job-frontend" "servicePort" "http" "context" $)  | nindent 14 }}
     {{- end }}
   {{- if .Values.job.ingress.https.enabled }}
   {{- include "job.ingress.frontend.tls" . | nindent 2 }}
