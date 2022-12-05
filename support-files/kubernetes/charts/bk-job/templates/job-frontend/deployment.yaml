@@ -54,6 +54,8 @@ spec:
       {{- if .Values.frontendConfig.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.frontendConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
+      initContainers:
+      {{- include "job.initContainer.waitForDependServices"   ( dict "currentServiceName" "bk-job-frontend" "context" $) | nindent 8 }}
       containers:
         - name: "job-frontend"
           {{- if .Values.frontendConfig.containerSecurityContext.enabled }}

@@ -114,6 +114,7 @@ ext {
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.9.2-alpha")
     set('commonsValidatorVersion', "1.6")
+    set('jcommanderVersion', "1.71")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersoin:" + bkjobVersion
@@ -271,6 +272,7 @@ subprojects {
             dependencySet(group: 'org.hibernate.validator', version: "$hibernateValidatorVersion") {
                 entry "hibernate-validator"
             }
+            dependency "com.beust:jcommander:$jcommanderVersion"
         }
     }
     configurations {
