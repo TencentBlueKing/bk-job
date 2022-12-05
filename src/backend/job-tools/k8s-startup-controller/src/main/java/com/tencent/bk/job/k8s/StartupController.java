@@ -66,7 +66,7 @@ import java.util.Set;
 public class StartupController {
 
     // K8s API
-    private final static CoreV1Api api;
+    private static final CoreV1Api api;
 
     static {
         ApiClient client = null;
