@@ -139,6 +139,10 @@ public class StartupController {
                 Consts.KEY_KUBERNETES_NAMESPACE,
                 namespace
             );
+            if (StringUtils.isBlank(namespace)) {
+                namespace = Consts.VALUE_NAMESPACE_DEFAULT;
+                log.warn("use default namespace:{}", namespace);
+            }
             serviceDependModel.setNamespace(namespace);
         }
         String serviceName = serviceDependModel.getServiceName();
