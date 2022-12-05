@@ -93,6 +93,14 @@ public interface TaskVariableDAO {
     boolean deleteVariableById(long parentId, long id);
 
     /**
+     * 根据 父资源ID 删除变量信息
+     *
+     * @param parentId 父资源ID
+     * @return 是否删除成功
+     */
+    int deleteVariableByParentId(long parentId);
+
+    /**
      * 保留变量 ID 批量插入变量信息
      *
      * @param variableList 变量信息列表
