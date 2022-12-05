@@ -80,8 +80,9 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     private final TaskPlanDAO taskPlanDAO;
     private final MessageI18nService i18nService;
     private final CronJobService cronJobService;
-    private AbstractTaskStepService taskPlanStepService;
-    private AbstractTaskVariableService taskPlanVariableService;
+    private final AbstractTaskStepService taskPlanStepService;
+    private final AbstractTaskVariableService taskTemplateVariableService;
+    private final AbstractTaskVariableService taskPlanVariableService;
 
     @Autowired
     private TaskTemplateService taskTemplateService;
@@ -92,11 +93,13 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     public TaskPlanServiceImpl(
         TaskPlanDAO taskPlanDAO,
         @Qualifier("TaskPlanStepServiceImpl") AbstractTaskStepService taskPlanStepService,
+        @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskTemplateVariableService,
         @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService,
         MessageI18nService i18nService, CronJobService cronJobService
     ) {
         this.taskPlanDAO = taskPlanDAO;
         this.taskPlanStepService = taskPlanStepService;
+        this.taskTemplateVariableService = taskTemplateVariableService;
         this.taskPlanVariableService = taskPlanVariableService;
         this.i18nService = i18nService;
         this.cronJobService = cronJobService;
@@ -296,9 +299,22 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         }
         if (taskPlan != null) {
             if (!taskTemplateInfo.getVersion().equals(taskPlan.getVersion())) {
+                // 作业模板有更新，需要同步到调试执行方案（不含变量）
                 taskPlanService.sync(appId, templateId, taskPlan.getId(), taskTemplateInfo.getVersion());
                 taskPlan = taskPlanDAO.getDebugTaskPlan(appId, templateId);
             }
+            List<TaskVariableDTO> templateVariableList =
+                taskTemplateVariableService.listVariablesByParentId(taskPlan.getTemplateId());
+            // 始终使用模板最新变量作为执行方案变量并更新到DB
+            setPlanIdForVariables(taskPlan.getId(), templateVariableList);
+            int deletedVarNum = taskPlanVariableService.deleteVariableByParentId(taskPlan.getId());
+            List<Long> insertedVarIds = taskPlanVariableService.batchInsertVariable(templateVariableList);
+            log.debug(
+                "sync template variable to debug plan:{} taskPlan variable deleted, {} variable inserted:{}",
+                deletedVarNum,
+                insertedVarIds.size(),
+                insertedVarIds
+            );
             taskPlan.setStepList(taskPlanStepService.listStepsByParentId(taskPlan.getId()));
             taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(taskPlan.getId()));
             return taskPlan;
@@ -328,6 +344,13 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         }
         taskPlanService.saveTaskPlan(taskPlan);
         return taskPlan;
+    }
+
+    private void setPlanIdForVariables(Long planId, List<TaskVariableDTO> variableList) {
+        if (CollectionUtils.isEmpty(variableList)) {
+            return;
+        }
+        variableList.forEach(variable -> variable.setPlanId(planId));
     }
 
     @Override
