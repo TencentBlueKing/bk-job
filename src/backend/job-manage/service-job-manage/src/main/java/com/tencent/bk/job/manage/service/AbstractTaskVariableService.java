@@ -88,6 +88,16 @@ public abstract class AbstractTaskVariableService {
     }
 
     /**
+     * 根据 父资源ID 删除变量
+     *
+     * @param parentId 父资源 ID
+     * @return 删除的数据条数
+     */
+    public int deleteVariableByParentId(Long parentId) {
+        return taskVariableDAO.deleteVariableByParentId(parentId);
+    }
+
+    /**
      * 根据变量 ID 拉取变量信息
      *
      * @param parentId 父资源 ID
