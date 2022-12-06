@@ -30,7 +30,9 @@
         class="file-upload-manage-page"
         v-bkloading="{ isLoading }">
         <smart-action offset-target="input-wraper">
-            <jb-form style="width: 480px; margin-bottom: 20px;">
+            <jb-form
+                form-type="vertical"
+                style="width: 480px; margin-bottom: 20px;">
                 <div class="block-title">
                     {{ $t('setting.本地文件上传大小限制') }}:
                 </div>
