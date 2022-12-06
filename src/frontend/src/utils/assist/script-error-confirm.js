@@ -56,7 +56,7 @@ const sacnDialog = (resolve, reject) => {
                     <img src="/static/images/ace-editor/error-tips.png" style="width: 14px; vertical-align: middle;" />
                     <span> { I18n.t('图标的提示') }</span>
                     <span>）</span>
-                    <span> { I18n.t('请确定是否要继续执行') }</span>
+                    <span> { I18n.t('请确定是否要继续操作？') }</span>
                 </div>
                 <div style="padding: 24px 0 21px; text-align: center">
                     <bk-button
@@ -64,7 +64,7 @@ const sacnDialog = (resolve, reject) => {
                         class="mr10"
                         style="width: 96px"
                         theme="primary">
-                        { I18n.t('继续执行') }
+                        { I18n.t('确定继续') }
                     </bk-button>
                     <bk-button
                         onClick={handleCancel}
@@ -119,7 +119,7 @@ export const scriptErrorConfirm = () => new Promise((resolve, reject) => {
     if (!scriptCheckError) {
         return resolve();
     }
-    
+
     if (scriptCheckError.isActionScan) {
         sacnDialog(resolve, reject);
     } else {
