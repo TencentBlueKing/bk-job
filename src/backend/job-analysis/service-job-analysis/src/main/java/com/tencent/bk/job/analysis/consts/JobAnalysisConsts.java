@@ -22,43 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.task.analysis.task.impl;
+package com.tencent.bk.job.analysis.consts;
 
-import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
-import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
-import com.tencent.bk.job.analysis.service.ApplicationService;
-import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
-import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
-import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-
-/**
- * @Description 默认文本提示
- * @Date 2020/3/6
- * @Version 1.0
- */
-@Component
-@AnalysisTask("DefaultTipsProvider")
-@Slf4j
-public class DefaultTipsProvider extends BaseAnalysisTask {
-
-    @Autowired
-    public DefaultTipsProvider(DSLContext dslContext, AnalysisTaskDAO analysisTaskDAO,
-                               AnalysisTaskInstanceDAO analysisTaskInstanceDAO, ApplicationService applicationService) {
-        super(dslContext, analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
-    }
-
-    @Override
-    public void run() {
-    }
-
-    @Override
-    public AnalysisTaskResultVO renderResultVO(String descriptionTpl, String itemTpl, String data) {
-        return new AnalysisTaskResultVO(data, Collections.emptyList());
-    }
+public class JobAnalysisConsts {
+    // 分析结果描述中的占位符：执行方案名称
+    public static final String PLACEHOLDER_PLAN_NAME = "${planName}";
+    // 分析结果描述中的占位符：步骤名称
+    public static final String PLACEHOLDER_STEP_NAME = "${stepName}";
+    // 分析结果描述中的占位符：描述
+    public static final String PLACEHOLDER_DESCRIPTION = "${description}";
+    // 分析结果描述中的占位符：条目数量
+    public static final String PLACEHOLDER_ITEMS_COUNT = "${itemsCount}";
 }
