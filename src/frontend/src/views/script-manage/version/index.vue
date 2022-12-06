@@ -211,7 +211,7 @@
                                         :permission="row.canClone"
                                         :resource-id="row.id"
                                         text
-                                        @click="handleToggleCopyCreate(row)">
+                                        @click.stop="handleToggleCopyCreate(row)">
                                         {{ $t('script.复制并新建') }}
                                     </auth-button>
                                 </span>
