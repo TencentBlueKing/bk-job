@@ -39,18 +39,8 @@ public class ServiceHostStatusDTO {
     @ApiModelProperty("服务器ID")
     private Long hostId;
 
-    @ApiModelProperty("云区域ID")
-    private Long cloudId;
-
-    @ApiModelProperty("主机IP")
-    private String ip;
-
     @ApiModelProperty("GSE Agent状态")
     private int alive;
-
-    public String getCloudIp() {
-        return cloudId + ":" + ip;
-    }
 
     @Override
     public boolean equals(Object o) {

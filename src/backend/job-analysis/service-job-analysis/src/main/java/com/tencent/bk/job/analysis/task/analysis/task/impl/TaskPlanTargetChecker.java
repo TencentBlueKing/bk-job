@@ -61,8 +61,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -131,25 +132,20 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                         abnormalPlanList,
                         taskHostNodeDTO,
                         appId,
-                        "" + taskPlanInfoDTO.getTaskTemplateId()
-                            + "," + taskPlanInfoDTO.getId(),
+                        "" + taskPlanInfoDTO.getTaskTemplateId() + "," + taskPlanInfoDTO.getId(),
                         taskPlanInfoDTO.getName(),
-                        "${job.analysis.analysistask.result.AbnormalTargetPlanInfo.stepName"
-                            + ".scope.Step}",
+                        "${job.analysis.analysistask.result.AbnormalTargetPlanInfo.stepName.scope.Step}",
                         taskStepDTO.getName(),
-                        "${job.analysis.analysistask.result.AbnormalTargetPlanInfo"
-                            + ".description.AbnormalTarget}"
+                        "${job.analysis.analysistask.result.AbnormalTargetPlanInfo.description.AbnormalTarget}"
                     );
                 }
             }
         } catch (Throwable t) {
-            log.warn(
-                String.format("Task of app(id=%d) template(id=%d) taskplan(id=%d) failed"
-                        + " because of exception",
-                    appId,
-                    templateId,
-                    taskPlanId),
-                t);
+            FormattingTuple msg = MessageFormatter.format(
+                "Task of app(id={}) template(id={}) taskplan(id={}) failed because of exception",
+                new Object[]{appId, templateId, taskPlanId}
+            );
+            log.warn(msg.getMessage(), t);
         }
     }
 
@@ -161,9 +157,11 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         try {
             templateCounter.addOne();
             log.info(
-                "beigin to analysis taskTemplate:"
-                    + templateCounter.getValue() + "/" + allTemplateNum + ","
-                    + templateBasicInfo.getId() + "," + templateBasicInfo.getName()
+                "beigin to analysis taskTemplate:{}/{},{},{}",
+                templateCounter.getValue(),
+                allTemplateNum,
+                templateBasicInfo.getId(),
+                templateBasicInfo.getName()
             );
             List<Long> taskPlanIdList =
                 taskPlanService.listTaskPlanIds(templateBasicInfo.getId());
@@ -176,11 +174,12 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
                 analysisOnePlan(appId, templateBasicInfo.getId(), taskPlanId, abnormalPlanList);
             }
         } catch (Throwable t) {
-            log.warn(String.format(
-                "Task of app(id=%d) template(id=%d) failed because of exception",
+            FormattingTuple msg = MessageFormatter.format(
+                "Task of app(id={}) template(id={}) failed because of exception",
                 appId,
                 templateBasicInfo.getId()
-            ), t);
+            );
+            log.warn(msg.getMessage(), t);
         }
     }
 
@@ -191,9 +190,11 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         Long appId = applicationInfoDTO.getId();
         appCounter.addOne();
         log.info(
-            "begin to analysis app:"
-                + appCounter.getValue() + "/" + allAppNum + ","
-                + appId + "," + applicationInfoDTO.getName()
+            "begin to analysis app:{}/{},{},{}",
+            appCounter.getValue(),
+            allAppNum,
+            appId,
+            applicationInfoDTO.getName()
         );
         //初始化
         val analysisTaskInstanceDTO = new AnalysisTaskInstanceDTO(
@@ -242,21 +243,28 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             );
             analysisTaskInstanceDTO.setStatus(AnalysisTaskStatusEnum.SUCCESS.getValue());
             updateAnalysisTaskInstanceById(analysisTaskInstanceDTO);
-            log.debug(String.format("%d found agentAbnormalItems are recorded:%s",
-                abnormalPlanList.size(), JsonUtils.toJson(abnormalPlanList)));
+            log.debug(
+                "{} found agentAbnormalItems are recorded:{}",
+                abnormalPlanList.size(),
+                JsonUtils.toJson(abnormalPlanList)
+            );
         } catch (Throwable t) {
             analysisTaskInstanceDTO.setStatus(AnalysisTaskStatusEnum.FAIL.getValue());
             updateAnalysisTaskInstanceById(analysisTaskInstanceDTO);
-            log.warn(String.format("Task of app(id=%d) failed because of exception", appId), t);
+            FormattingTuple msg = MessageFormatter.format(
+                "Task of app(id={}) failed because of exception",
+                appId
+            );
+            log.warn(msg.getMessage(), t);
         } finally {
-            log.info(String.format("Task:%s of app(id=%d) end", getTaskCode(), appId));
+            log.info("Task:{} of app(id={}) end", getTaskCode(), appId);
         }
     }
 
     @Override
     public void run() {
         try {
-            log.info("Task " + getTaskCode() + " start");
+            log.info("Task {} start", getTaskCode());
             List<ServiceApplicationDTO> appInfoList = getAppInfoList();
             Counter appCounter = new Counter();
             AnalysisTaskDTO analysisTask = getAnalysisTask();
@@ -269,29 +277,35 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         } catch (Throwable t) {
             log.warn("Task failed because of exception", t);
         } finally {
-            log.info("Task " + getTaskCode() + " end");
+            log.info("Task {} end", getTaskCode());
         }
     }
 
-    private AbnormalTargetPlanInfo getAbnormalTargetPlanInfo(AnalysisResourceEnum analysisResourceEnum,
-                                                             String locationContent, String instanceName,
-                                                             String scope, String scopeName, String description) {
+    private AbnormalTargetPlanInfo getAbnormalTargetPlanInfo(String locationContent,
+                                                             String instanceName,
+                                                             String scope,
+                                                             String scopeName,
+                                                             String description) {
         return new AbnormalTargetPlanInfo(
-            AnalysisResourceEnum.TASK_PLAN
-            , new AnalysisTaskResultItemLocation(
-            "${job.analysis.analysistask.result.ItemLocation.description"
-                + ".CommaSeparatedTplIdAndPlanId}",
-            locationContent)
-            , instanceName
-            , scope + ":" + scopeName
-            , description
+            AnalysisResourceEnum.TASK_PLAN,
+            new AnalysisTaskResultItemLocation(
+                "${job.analysis.analysistask.result.ItemLocation.description.CommaSeparatedTplIdAndPlanId}",
+                locationContent
+            ),
+            instanceName,
+            scope + ":" + scopeName,
+            description
         );
     }
 
     private void findAgentAbnormalInTaskHostNodeVO(List<AbnormalTargetPlanInfo> abnormalTargetPlanInfoList,
                                                    ServiceTaskHostNodeDTO serviceTaskHostNodeDTO,
-                                                   Long appId, String locationContent, String instanceName,
-                                                   String scope, String scopeName, String description) {
+                                                   Long appId,
+                                                   String locationContent,
+                                                   String instanceName,
+                                                   @SuppressWarnings("SameParameterValue") String scope,
+                                                   String scopeName,
+                                                   @SuppressWarnings("SameParameterValue") String description) {
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
         //（1）目标节点
         List<ServiceTaskNodeInfoDTO> targetNodeVOList = serviceTaskHostNodeDTO.getNodeInfoList();
@@ -307,8 +321,9 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             //找到目标节点对应的所有主机
             for (ServiceHostStatusDTO serviceHostStatusDTO : hostStatusDTOList) {
                 if (serviceHostStatusDTO.getAlive() != 1) {
-                    abnormalTargetPlanInfoList.add(getAbnormalTargetPlanInfo(AnalysisResourceEnum.TASK_PLAN,
-                        locationContent, instanceName, scope, scopeName, description));
+                    abnormalTargetPlanInfoList.add(
+                        getAbnormalTargetPlanInfo(locationContent, instanceName, scope, scopeName, description)
+                    );
                     break;
                 }
             }
@@ -322,7 +337,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         //找到目标节点对应的所有主机//主机异常
         for (ServiceHostStatusDTO hostStatusDTO : hostStatusDTOList) {
             if (hostStatusDTO.getAlive() != 1) {
-                abnormalTargetPlanInfoList.add(getAbnormalTargetPlanInfo(AnalysisResourceEnum.TASK_PLAN,
+                abnormalTargetPlanInfoList.add(getAbnormalTargetPlanInfo(
                     locationContent, instanceName, scope, scopeName, description));
                 break;
             }
@@ -330,7 +345,9 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         //（3）主机
         List<ServiceHostInfoDTO> serviceHostInfoDTOList = serviceTaskHostNodeDTO.getHostList();
         if (serviceHostInfoDTOList == null || serviceHostInfoDTOList.isEmpty()) return;
+        //noinspection deprecation
         List<HostDTO> hostList = serviceHostInfoDTOList.parallelStream().map(serviceHostInfoDTO ->
+            // TODO:执行方案数据迁移添加hostId后此处可去除cloudAreaId与ip
             HostDTO.fromHostIdOrCloudIp(
                 serviceHostInfoDTO.getHostId(),
                 serviceHostInfoDTO.getCloudAreaId(),
@@ -340,22 +357,17 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         List<ServiceHostStatusDTO> hostStatusDTOListByHost =
             hostService.getHostStatusByHost(appId, hostList);
         Map<Long, ServiceHostStatusDTO> hostIdMap = new HashMap<>();
-        Map<String, ServiceHostStatusDTO> cloudIpMap = new HashMap<>();
-        hostStatusDTOListByHost.forEach(hostStatusDTO -> {
-            hostIdMap.put(hostStatusDTO.getHostId(), hostStatusDTO);
-            cloudIpMap.put(hostStatusDTO.getCloudIp(), hostStatusDTO);
-        });
+        hostStatusDTOListByHost.forEach(hostStatusDTO -> hostIdMap.put(hostStatusDTO.getHostId(), hostStatusDTO));
         if (hostList.isEmpty()) {
             return;
         }
         for (HostDTO host : hostList) {
-            if (isHostAlive(hostIdMap, cloudIpMap, host)) {
+            if (isHostAlive(hostIdMap, host)) {
                 continue;
             }
             // 主机异常
             abnormalTargetPlanInfoList.add(
                 getAbnormalTargetPlanInfo(
-                    AnalysisResourceEnum.TASK_PLAN,
                     locationContent,
                     instanceName,
                     scope,
@@ -378,21 +390,8 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         return hostIdMap.get(hostId).getAlive() == 1;
     }
 
-    private boolean isHostAliveByCloudIp(Map<String, ServiceHostStatusDTO> cloudIpMap, HostDTO host) {
-        String cloudIp = host.toCloudIp();
-        if (StringUtils.isBlank(cloudIp)) {
-            return false;
-        }
-        if (!cloudIpMap.containsKey(cloudIp)) {
-            return false;
-        }
-        return cloudIpMap.get(cloudIp).getAlive() == 1;
-    }
-
-    private boolean isHostAlive(Map<Long, ServiceHostStatusDTO> hostIdMap,
-                                Map<String, ServiceHostStatusDTO> cloudIpMap,
-                                HostDTO host) {
-        return isHostAliveByHostId(hostIdMap, host) || isHostAliveByCloudIp(cloudIpMap, host);
+    private boolean isHostAlive(Map<Long, ServiceHostStatusDTO> hostIdMap, HostDTO host) {
+        return isHostAliveByHostId(hostIdMap, host);
     }
 
     @Override
