@@ -25,13 +25,13 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
@@ -43,9 +43,10 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostR
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
-import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.host.BizTopoHostService;
 import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,20 +54,31 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
 public class ServiceHostResourceImpl implements ServiceHostResource {
+    private final AppScopeMappingService appScopeMappingService;
     private final ApplicationService applicationService;
     private final HostService hostService;
+    private final BizTopoHostService bizTopoHostService;
+    private final BizDynamicGroupHostService bizDynamicGroupHostService;
 
     @Autowired
-    public ServiceHostResourceImpl(ApplicationService applicationService,
-                                   HostService hostService) {
+    public ServiceHostResourceImpl(AppScopeMappingService appScopeMappingService,
+                                   ApplicationService applicationService,
+                                   HostService hostService,
+                                   BizTopoHostService bizTopoHostService,
+                                   BizDynamicGroupHostService bizDynamicGroupHostService) {
+        this.appScopeMappingService = appScopeMappingService;
         this.applicationService = applicationService;
         this.hostService = hostService;
+        this.bizTopoHostService = bizTopoHostService;
+        this.bizDynamicGroupHostService = bizDynamicGroupHostService;
     }
 
     @Override
@@ -78,22 +90,15 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
         }
         List<BizTopoNode> treeNodeList = req.getTreeNodeList();
-        List<NodeInfoVO> nodeInfoVOList = hostService.getBizHostsByNode(
-            JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
-            appDTO.getBizIdIfBizApp(),
-            treeNodeList
-        );
-        List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        nodeInfoVOList.parallelStream().forEach(nodeInfoVO -> nodeInfoVO.getIpListStatus().forEach(hostInfoVO -> {
+        List<ApplicationHostDTO> hostList = bizTopoHostService.listHostByNodes(appDTO.getBizIdIfBizApp(), treeNodeList);
+        Set<ServiceHostStatusDTO> hostStatusDTOSet = new HashSet<>();
+        hostList.parallelStream().forEach(host -> {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-            serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-            serviceHostStatusDTO.setIp(hostInfoVO.getIp());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getAgentStatus());
-            if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
-                hostStatusDTOList.add(serviceHostStatusDTO);
-            }
-        }));
-        return InternalResponse.buildSuccessResp(hostStatusDTOList);
+            serviceHostStatusDTO.setHostId(host.getHostId());
+            serviceHostStatusDTO.setAlive(host.getAgentStatusValue());
+            hostStatusDTOSet.add(serviceHostStatusDTO);
+        });
+        return InternalResponse.buildSuccessResp(new ArrayList<>(hostStatusDTOSet));
     }
 
     @Override
@@ -107,23 +112,20 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
         }
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
-        List<DynamicGroupWithHost> dynamicGroupWithHostList = hostService.getBizDynamicGroupHostList(
-            JobConstants.DEFAULT_SYSTEM_USER_ADMIN,
-            appDTO.getBizIdIfBizApp(),
+        AppResourceScope appResourceScope = new AppResourceScope(appId);
+        appScopeMappingService.fillAppResourceScope(appResourceScope);
+        List<ApplicationHostDTO> hostList = bizDynamicGroupHostService.listHostByDynamicGroups(
+            appResourceScope,
             dynamicGroupIdList
         );
-        List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
-        dynamicGroupWithHostList.parallelStream().forEach(dynamicGroupInfoDTO ->
-            dynamicGroupInfoDTO.getIpListStatus().forEach(hostInfoVO -> {
-                ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-                serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-                serviceHostStatusDTO.setIp(hostInfoVO.getIp());
-                serviceHostStatusDTO.setAlive(hostInfoVO.getGseAgentAlive() ? 1 : 0);
-                if (!hostStatusDTOList.contains(serviceHostStatusDTO)) {
-                    hostStatusDTOList.add(serviceHostStatusDTO);
-                }
-            }));
-        return InternalResponse.buildSuccessResp(hostStatusDTOList);
+        Set<ServiceHostStatusDTO> hostStatusDTOSet = new HashSet<>();
+        hostList.forEach(hostInfoVO -> {
+            ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
+            serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
+            serviceHostStatusDTO.setAlive(hostInfoVO.getGseAgentAlive() ? 1 : 0);
+            hostStatusDTOSet.add(serviceHostStatusDTO);
+        });
+        return InternalResponse.buildSuccessResp(new ArrayList<>(hostStatusDTOSet));
     }
 
     @Override
@@ -134,8 +136,6 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         hostDTOList.forEach(host -> {
             ServiceHostStatusDTO hostStatusDTO = new ServiceHostStatusDTO();
             hostStatusDTO.setHostId(host.getHostId());
-            hostStatusDTO.setCloudId(host.getCloudAreaId());
-            hostStatusDTO.setIp(host.getIp());
             hostStatusDTO.setAlive(host.getAgentStatusValue());
             if (!hostStatusDTOList.contains(hostStatusDTO)) {
                 hostStatusDTOList.add(hostStatusDTO);

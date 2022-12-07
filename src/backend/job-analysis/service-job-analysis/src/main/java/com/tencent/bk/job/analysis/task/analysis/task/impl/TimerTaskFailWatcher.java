@@ -116,7 +116,7 @@ public class TimerTaskFailWatcher extends AbstractTimerTaskWatcher {
     }
 
     @Override
-    public AnalysisTaskResultVO generateResultVO(String descriptionTpl, String itemTpl, String data) {
+    public AnalysisTaskResultVO renderResultVO(String descriptionTpl, String itemTpl, String data) {
         AnalysisTaskResultData<FailCronJobBaseInfo> resultData = JsonUtils.fromJson(data,
             new TypeReference<AnalysisTaskResultData<FailCronJobBaseInfo>>() {
             });

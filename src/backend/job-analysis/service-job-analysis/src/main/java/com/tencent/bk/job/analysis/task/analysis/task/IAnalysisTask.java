@@ -37,8 +37,15 @@ public interface IAnalysisTask extends Runnable {
 
     AnalysisTaskDTO getAnalysisTask();
 
-    //生成每一条任务结果数据的结果文本
-    AnalysisTaskResultVO generateResultVO(String descriptionTpl, String itemTpl, String data);
+    /**
+     * 渲染每一条分析任务结果数据的结果文本
+     *
+     * @param descriptionTpl 总体概括描述模板
+     * @param itemTpl        单条数据模板
+     * @param data           数据
+     * @return 封装好的分析结果数据实例
+     */
+    AnalysisTaskResultVO renderResultVO(String descriptionTpl, String itemTpl, String data);
 
     long getPeriodSeconds();
 }

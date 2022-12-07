@@ -55,4 +55,10 @@ public class BizTopoHostServiceImpl implements BizTopoHostService {
         List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, Collections.singletonList(node));
         return bizHostService.getHostsByModuleIds(moduleIds);
     }
+
+    @Override
+    public List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes) {
+        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, nodes);
+        return bizHostService.getHostsByModuleIds(moduleIds);
+    }
 }
