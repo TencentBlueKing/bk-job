@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -89,6 +90,8 @@ public class LocalFilePrepareService {
         List<FileSourceDTO> fileSourceList,
         LocalFilePrepareTaskResultHandler resultHandler
     ) {
+        fillLocalFileSourceHost(fileSourceList, stepInstanceId);
+
         if (!JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
             localFileConfigForExecute.getStorageBackend()
         )) {
@@ -115,6 +118,26 @@ public class LocalFilePrepareService {
         );
         taskMap.put(stepInstanceId, task);
         task.execute();
+    }
+
+    private void fillLocalFileSourceHost(List<FileSourceDTO> fileSourceList, long stepInstanceId) {
+        ServersDTO localServersDTO = agentService.getLocalServersDTO();
+        int localFileSourceCount = 0;
+        for (FileSourceDTO fileSourceDTO : fileSourceList) {
+            if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
+                fileSourceDTO.setServers(localServersDTO);
+                localFileSourceCount += 1;
+            }
+        }
+        if (localFileSourceCount > 0) {
+            log.info(
+                "localServer({}) has been set for {} local fileSource",
+                localServersDTO.getIpList(),
+                localFileSourceCount
+            );
+        }
+        // 更新本地文件任务内容
+        taskInstanceService.updateResolvedSourceFile(stepInstanceId, fileSourceList);
     }
 
     public void clearPreparedTmpFile(long stepInstanceId) {
