@@ -35,7 +35,7 @@ dependencies {
     runtimeOnly('mysql:mysql-connector-java')
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.file_gateway.JobFileGatewayBootApplication"
+    getMainClass().set("com.tencent.bk.job.file_gateway.JobFileGatewayBootApplication")
     buildInfo()
 }
 task renameArtifacts(type: Copy) {
