@@ -108,7 +108,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     public GseTaskResponse terminateGseFileTask(TerminateGseTaskRequest request) {
         log.info("TerminateGseFileTask, request: {}", request);
         EsbResp<AsyncGseTaskResult> resp =
-            doHttpPost("/api/v2/task/async/async_terminate_transfer_file",
+            doHttpPost("/api/v2/task/async_terminate_transfer_file",
                 request, new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 }, null);
         GseTaskResponse gseTaskResponse = buildGseTaskResponse(resp);
@@ -120,7 +120,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     public GseTaskResponse terminateGseScriptTask(TerminateGseTaskRequest request) {
         log.info("TerminateGseScriptTask, request: {}", request);
         EsbResp<AsyncGseTaskResult> resp =
-            doHttpPost("/api/v2/task/async/async_terminate_execute_script",
+            doHttpPost("/api/v2/task/async_terminate_execute_script",
                 request, new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 }, null);
         GseTaskResponse gseTaskResponse = buildGseTaskResponse(resp);
