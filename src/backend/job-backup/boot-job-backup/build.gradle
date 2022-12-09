@@ -31,8 +31,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
-    // Fix RoutingFunction SpEL evaluation
-    implementation 'org.springframework.cloud:spring-cloud-function-context:3.1.7'
     implementation 'org.springframework:spring-webmvc'
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
     runtimeOnly('mysql:mysql-connector-java')
@@ -40,7 +38,7 @@ dependencies {
     testImplementation("com.h2database:h2")
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.backup.JobBackupBootApplication"
+    getMainClass().set("com.tencent.bk.job.backup.JobBackupBootApplication")
     buildInfo()
 }
 task renameArtifacts(type: Copy) {

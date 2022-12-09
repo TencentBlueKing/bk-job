@@ -39,7 +39,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.file.worker.JobFileWorkerBootApplication"
+    getMainClass().set("com.tencent.bk.job.file.worker.JobFileWorkerBootApplication")
     buildInfo()
 }
 task renameArtifacts(type: Copy) {
