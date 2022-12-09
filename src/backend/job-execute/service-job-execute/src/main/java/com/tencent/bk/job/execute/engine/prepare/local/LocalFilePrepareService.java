@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -89,6 +90,8 @@ public class LocalFilePrepareService {
         List<FileSourceDTO> fileSourceList,
         LocalFilePrepareTaskResultHandler resultHandler
     ) {
+        fillLocalFileSourceHost(fileSourceList, stepInstance);
+
         if (!JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(
             localFileConfigForExecute.getStorageBackend()
         )) {
@@ -96,13 +99,6 @@ public class LocalFilePrepareService {
             resultHandler.onSuccess(new NFSLocalFilePrepareTask(false));
             return;
         }
-        fileSourceList.forEach(fileSourceDTO -> {
-            if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
-                fileSourceDTO.setServers(agentService.getLocalServersDTO());
-            }
-        });
-        // 更新本地文件任务内容
-        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         ArtifactoryLocalFilePrepareTask task = new ArtifactoryLocalFilePrepareTask(
             stepInstance,
             false,
@@ -116,6 +112,16 @@ public class LocalFilePrepareService {
         );
         taskMap.put(stepInstance.getUniqueKey(), task);
         task.execute();
+    }
+
+    private void fillLocalFileSourceHost(List<FileSourceDTO> fileSourceList, StepInstanceBaseDTO stepInstance) {
+        fileSourceList.forEach(fileSourceDTO -> {
+            if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
+                fileSourceDTO.setServers(agentService.getLocalServersDTO());
+            }
+        });
+        // 更新本地文件任务内容
+        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
     }
 
     public void clearPreparedTmpFile(long stepInstanceId) {
