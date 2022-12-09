@@ -117,6 +117,9 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersoin:" + bkjobVersion
     }
+    // Fix Spring Cloud Function Spel表达式注入漏洞(CVE-2022-22963)
+    // Fix Spring Cloud Function 拒绝服务漏洞(CVE-2022-22979)
+    set('spring-cloud-function.version', "3.2.8")
 }
 
 group "com.tencent.bk.job"

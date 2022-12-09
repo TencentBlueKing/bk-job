@@ -37,7 +37,7 @@ dependencies {
     testImplementation("com.h2database:h2")
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.crontab.JobCrontabBootApplication"
+    getMainClass().set("com.tencent.bk.job.crontab.JobCrontabBootApplication")
     buildInfo()
 }
 task renameArtifacts(type: Copy) {
