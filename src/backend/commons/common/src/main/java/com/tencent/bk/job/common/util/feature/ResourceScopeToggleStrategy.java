@@ -8,28 +8,28 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 根据业务（集）ID的灰度策略
+ * 根据资源范围灰度策略
  */
 public class ResourceScopeToggleStrategy extends AbstractToggleStrategy {
     /**
-     * 策略参数-自愿范围策略表达式
+     * 策略参数-资源范围
      */
-    public static final String INIT_PARAM_RESOURCE_SCOPE_EXPR = "resource_scope";
+    public static final String INIT_PARAM_RESOURCE_SCOPE = "resource_scope";
     /**
      * 上下文参数-资源范围
      */
     public static final String CTX_PARAM_RESOURCE_SCOPE = "resourceScope";
     /**
-     * 获取特性开关开启策略ID
+     * 特性开关开启策略ID
      */
     public static final String STRATEGY_ID = "ResourceScopeToggleStrategy";
 
     private static final Set<ResourceScope> allowedResourceScopes = new HashSet<>();
 
     public ResourceScopeToggleStrategy(String featureId, Map<String, String> initParams) {
-        assertRequiredParameter(INIT_PARAM_RESOURCE_SCOPE_EXPR);
+        assertRequiredParameter(INIT_PARAM_RESOURCE_SCOPE);
         super.init(featureId, initParams);
-        String allowedResourceScopeValues = initParams.get(INIT_PARAM_RESOURCE_SCOPE_EXPR);
+        String allowedResourceScopeValues = initParams.get(INIT_PARAM_RESOURCE_SCOPE);
         if (StringUtils.isNotEmpty(allowedResourceScopeValues)) {
             String[] resourceScopes = allowedResourceScopeValues.split(",");
             for (String resourceScope : resourceScopes) {

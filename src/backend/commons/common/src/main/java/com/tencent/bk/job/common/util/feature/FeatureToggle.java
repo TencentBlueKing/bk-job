@@ -78,25 +78,26 @@ public class FeatureToggle {
         }
 
         featureToggleConfig.getFeatures().forEach(featureConfig -> {
-            String featureId = featureConfig.getId();
-            ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
-            String strategyId = strategyConfig.getId();
-
             Feature feature = new Feature();
-            feature.setId(featureConfig.getId());
+            String featureId = featureConfig.getId();
+            feature.setId(featureId);
             feature.setEnabled(featureConfig.isEnabled());
 
-            ToggleStrategy toggleStrategy = null;
-            switch (strategyId) {
-                case ResourceScopeToggleStrategy.STRATEGY_ID:
-                    toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
-                    break;
-                default:
-                    log.error("Invalid toggle strategy: {} for feature: {}, ignore it!", strategyId, featureId);
-                    break;
-            }
-            if (toggleStrategy != null) {
-                feature.setStrategy(toggleStrategy);
+            ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
+            if (strategyConfig != null) {
+                String strategyId = strategyConfig.getId();
+                ToggleStrategy toggleStrategy = null;
+                switch (strategyId) {
+                    case ResourceScopeToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
+                        break;
+                    default:
+                        log.error("Invalid toggle strategy: {} for feature: {}, ignore it!", strategyId, featureId);
+                        break;
+                }
+                if (toggleStrategy != null) {
+                    feature.setStrategy(toggleStrategy);
+                }
             }
             features.put(featureId, feature);
         });
