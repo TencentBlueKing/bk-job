@@ -137,13 +137,29 @@ public class JobSrcFileUtils {
                         if (predicate.test(sourceHost)) {
                             // 第三方源文件的displayName不同
                             if (isThirdFile) {
-                                sendFiles.add(new JobFile(TaskFileTypeEnum.FILE_SOURCE, sourceHost,
+                                sendFiles.add(new JobFile(
+                                    TaskFileTypeEnum.FILE_SOURCE,
+                                    sourceHost,
                                     file.getThirdFilePathWithFileSourceName(),
                                     file.getThirdFilePathWithFileSourceName(),
-                                    dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
+                                    dir,
+                                    fileName,
+                                    stepInstance.getAppId(),
+                                    accountId,
+                                    accountAlias
+                                ));
                             } else {
-                                sendFiles.add(new JobFile(TaskFileTypeEnum.SERVER, sourceHost, filePath, filePath, dir,
-                                    fileName, stepInstance.getAppId(), accountId, accountAlias));
+                                sendFiles.add(new JobFile(
+                                    TaskFileTypeEnum.SERVER,
+                                    sourceHost,
+                                    filePath,
+                                    filePath,
+                                    dir,
+                                    fileName,
+                                    stepInstance.getAppId(),
+                                    accountId,
+                                    accountAlias
+                                ));
                             }
                         }
                     }
@@ -199,8 +215,7 @@ public class JobSrcFileUtils {
     public static Map<String, String> buildSourceFileDisplayMapping(Set<JobFile> sourceFiles, String localUploadDir) {
         Map<String, String> sourceFileDisplayMap = new HashMap<>();
         sourceFiles.forEach(sourceFile -> {
-            Pair<String, String> pair = FilePathUtils.parseDirAndFileName(sourceFile.getFilePath());
-            String standardPath = FilePathUtils.standardizedDirPath(pair.getLeft()) + pair.getRight();
+            String standardPath = sourceFile.getStandardFilePath();
             if (sourceFile.getFileType() == TaskFileTypeEnum.LOCAL && !standardPath.startsWith(localUploadDir)) {
                 sourceFileDisplayMap.put(PathUtil.joinFilePath(localUploadDir, standardPath),
                     sourceFile.getDisplayFilePath());
