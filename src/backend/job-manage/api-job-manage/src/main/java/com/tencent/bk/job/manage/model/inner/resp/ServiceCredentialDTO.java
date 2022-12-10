@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner.resp;
 
-import com.tencent.bk.job.manage.model.credential.CommonCredential;
+import com.tencent.bk.job.common.model.dto.CommonCredential;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
