@@ -27,8 +27,9 @@ public class ResourceScopeToggleStrategy extends AbstractToggleStrategy {
     private static final Set<ResourceScope> allowedResourceScopes = new HashSet<>();
 
     public ResourceScopeToggleStrategy(String featureId, Map<String, String> initParams) {
+        super(featureId, initParams);
         assertRequiredParameter(INIT_PARAM_RESOURCE_SCOPE);
-        super.init(featureId, initParams);
+
         String allowedResourceScopeValues = initParams.get(INIT_PARAM_RESOURCE_SCOPE);
         if (StringUtils.isNotEmpty(allowedResourceScopeValues)) {
             String[] resourceScopes = allowedResourceScopeValues.split(",");

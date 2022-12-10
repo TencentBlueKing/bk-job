@@ -12,15 +12,22 @@ import java.util.StringJoiner;
  */
 public abstract class AbstractToggleStrategy implements ToggleStrategy {
 
-    private Map<String, String> initParams = new HashMap<>();
-    private String featureId;
+    private final Map<String, String> initParams;
+    private final String featureId;
 
-
-
-    @Override
-    public void init(String featureId, Map<String, String> initParams) {
+    /**
+     * 初始化特性开关
+     *
+     * @param featureId  特性ID
+     * @param initParams 初始化参数
+     */
+    public AbstractToggleStrategy(String featureId, Map<String, String> initParams) {
         this.featureId = featureId;
-        this.initParams = initParams;
+        if (initParams != null) {
+            this.initParams = initParams;
+        } else {
+            this.initParams = new HashMap<>();
+        }
     }
 
     @Override
@@ -42,7 +49,7 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
     }
 
     public void assertRequiredAtLeastOneParameter(String... paramNames) {
-        boolean anyMatch = Arrays.stream(paramNames).anyMatch(paramName -> initParams.containsKey(paramName));
+        boolean anyMatch = Arrays.stream(paramNames).anyMatch(initParams::containsKey);
         if (!anyMatch) {
             String msg = MessageFormatter.format(
                 "Required at least one parameter({}) for this ToggleStrategy", paramNames).getMessage();

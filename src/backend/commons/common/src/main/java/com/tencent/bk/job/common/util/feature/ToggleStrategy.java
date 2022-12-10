@@ -7,14 +7,6 @@ import java.util.Map;
  */
 public interface ToggleStrategy {
     /**
-     * 初始化特性开关
-     *
-     * @param featureId  特性ID
-     * @param initParams 初始化参数
-     */
-    void init(String featureId, Map<String, String> initParams);
-
-    /**
      * 获取特性ID
      */
     String getFeatureId();
