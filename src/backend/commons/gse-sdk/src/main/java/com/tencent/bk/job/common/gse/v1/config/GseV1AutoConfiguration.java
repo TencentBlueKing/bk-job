@@ -42,7 +42,7 @@ import java.util.Objects;
 
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = "gse.version", havingValue = "v1")
+@ConditionalOnProperty(name = "gse.v1.enabled", havingValue = "true")
 public class GseV1AutoConfiguration {
 
     private static final String ZOOKEEPER_SERVER_TYPE = "zookeeper";

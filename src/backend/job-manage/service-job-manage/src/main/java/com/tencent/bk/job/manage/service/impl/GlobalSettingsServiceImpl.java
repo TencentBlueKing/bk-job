@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.consts.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
@@ -130,8 +131,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final BuildProperties buildProperties;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
-    @Value("${job.feature.file-manage.enabled:false}")
-    private Boolean enableFeatureFileManage;
 
     @Autowired
     public GlobalSettingsServiceImpl(
@@ -789,7 +788,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     private void addEnableFeatureFileManageConfig(Map<String, Object> configMap) {
-        configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE, enableFeatureFileManage);
+        configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE,
+            FeatureToggle.getInstance().checkFeature(FeatureToggle.FEATURE_FILE_MANAGE, null));
     }
 
     private void addEnableUploadToArtifactoryConfig(Map<String, Object> configMap) {

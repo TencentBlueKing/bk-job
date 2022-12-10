@@ -57,7 +57,7 @@ public enum ResourceScopeTypeEnum {
                 return scopeType;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No ResourceScopeTypeEnum constant: " + type);
     }
 
     public String getValue() {
@@ -65,6 +65,11 @@ public enum ResourceScopeTypeEnum {
     }
 
     public static boolean isValid(String type) {
-        return from(type) != null;
+        try {
+            from(type);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

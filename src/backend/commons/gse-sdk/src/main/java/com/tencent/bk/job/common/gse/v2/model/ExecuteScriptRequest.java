@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -37,6 +38,9 @@ public class ExecuteScriptRequest {
      */
     @JsonProperty("atomic_tasks_relations")
     private List<AtomicScriptTaskRelation> atomicScriptTaskRelations = new ArrayList<>();
+
+    @JsonIgnore
+    private GseExecutionContext context;
 
     public void addScript(GseScript script) {
         scripts.add(script);

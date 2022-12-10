@@ -1,6 +1,8 @@
 package com.tencent.bk.job.common.gse.v2.model.req;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.gse.v2.model.GseExecutionContext;
 import lombok.Data;
 
 import java.util.List;
@@ -15,5 +17,8 @@ public class ListAgentStateReq {
      */
     @JsonProperty("agent_id_list")
     private List<String> agentIdList;
+
+    @JsonIgnore
+    private GseExecutionContext context;
 
 }

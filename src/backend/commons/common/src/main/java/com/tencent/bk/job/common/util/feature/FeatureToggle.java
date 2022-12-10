@@ -25,31 +25,108 @@
 package com.tencent.bk.job.common.util.feature;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 特性开关
  */
+@Slf4j
 public class FeatureToggle {
-
-    private FeatureToggle() {
-    }
-
-    private static FeatureToggleConfig get() {
-        return Inner.instance;
-    }
-
-    private static class Inner {
-        private static final FeatureToggleConfig instance =
-            ApplicationContextRegister.getBean(FeatureToggleConfig.class);
-    }
+    /**
+     * 特性: 对接 GSE2.0
+     */
+    public static final String FEATURE_GSE_V2 = "gse_v2";
+    /**
+     * 特性: OpenAPI 兼容bk_biz_id参数
+     */
+    public static final String FEATURE_BK_BIZ_ID_COMPATIBLE = "bk_biz_id_compatible";
+    /**
+     * 特性-第三方文件源
+     */
+    public static final String FEATURE_FILE_MANAGE = "file_manage";
 
     /**
-     * 是否兼容ESB bk_biz_id 参数
+     * key: featureId; value: Feature
      */
-    public static boolean isBkBizIdEnabled() {
-        FeatureToggleConfig featureToggleConfig = get();
-        FeatureToggleConfig.ToggleConfig toggleConfig = featureToggleConfig.getEsbApiParamBkBizId();
-        return toggleConfig.isOpen();
+    private final Map<String, Feature> features = new ConcurrentHashMap<>();
+
+    private static class FeatureToggleHolder {
+        private static final FeatureToggle INSTANCE = new FeatureToggle();
+    }
+
+    private FeatureToggle() {
+        reload();
+    }
+
+    public static FeatureToggle getInstance() {
+        return FeatureToggleHolder.INSTANCE;
+    }
+
+    public void reload() {
+        FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
+
+        if (CollectionUtils.isEmpty(featureToggleConfig.getFeatures())) {
+            log.info("Feature toggle config empty!");
+            return;
+        }
+
+        featureToggleConfig.getFeatures().forEach(featureConfig -> {
+            String featureId = featureConfig.getId();
+            ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
+            String strategyId = strategyConfig.getId();
+
+            Feature feature = new Feature();
+            feature.setId(featureConfig.getId());
+            feature.setEnabled(featureConfig.isEnabled());
+
+            ToggleStrategy toggleStrategy = null;
+            switch (strategyId) {
+                case ResourceScopeToggleStrategy.STRATEGY_ID:
+                    toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
+                    break;
+                default:
+                    log.error("Invalid toggle strategy: {} for feature: {}, ignore it!", strategyId, featureId);
+                    break;
+            }
+            if (toggleStrategy != null) {
+                feature.setStrategy(toggleStrategy);
+            }
+            features.put(featureId, feature);
+        });
+        log.info("Load feature toggle config done! features: {}", JsonUtils.toJson(features));
+    }
+
+
+    /**
+     * 判断特性是否开启
+     *
+     * @param featureId 特性ID
+     * @param ctx       特性运行上下文
+     * @return 是否开启
+     */
+    public boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
+        Feature feature = features.get(featureId);
+        if (feature == null) {
+            log.warn("Feature: {} is not exist!", featureId);
+            return false;
+        }
+        if (!feature.isEnabled()) {
+            log.warn("Feature: {} is disabled!", featureId);
+            return false;
+        }
+
+        ToggleStrategy strategy = feature.getStrategy();
+        if (strategy == null) {
+            // 如果没有配置特性开启策略，且enabled=true，判定为特性开启
+            return true;
+        }
+        return strategy.evaluate(featureId, ctx);
     }
 }
