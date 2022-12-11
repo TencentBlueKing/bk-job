@@ -70,9 +70,13 @@ job:
     password: __BK_JOB_ENCRYPT_PASSWORD__
   web:
     url: __BK_JOB_PUBLIC_URL__
-  feature:
-    file-manage:
+  features:
+    file_manage:
       enabled: false
+    bk_biz_id_compatible:
+      enabled: true
+    gse_v2:
+      enabled: true
   storage:
     root-path: __BK_HOME__/public/job
 

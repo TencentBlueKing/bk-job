@@ -563,17 +563,16 @@ job:
   encrypt:
     # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
-  feature:
-    toggle:
-      fileManage:
-        # 是否开启文件管理特性，容器化环境默认开启
-        enabled: true 
-      cmdbBizSet:
-        # 是否开启cmdb业务集特性，默认开启
-        enabled: true
-      esbApiParamBkBizId:
-        # 是否兼容bk_biz_id参数
-        enabled: true
+  features:
+    file_manage:
+      # 是否开启文件管理特性，容器化环境默认开启
+      enabled: true
+    bk_biz_id_compatible:
+      # 是否兼容bk_biz_id参数
+      enabled: true
+    gse_v2:
+      # 是否对接GSE2.0, 默认使用GSE2.0. 如果需要使用GSE1.0，设置enabled=false
+      enabled: true
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
