@@ -213,7 +213,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         } else {
             sb.append(" EMPTY");
         }
-        return sqlScriptFileName + " " + sb.toString();
+        return scriptFilePath + "/" + sqlScriptFileName + " " + sb.toString();
     }
 
 }

@@ -58,7 +58,7 @@ public class DefaultTipsProvider extends BaseAnalysisTask {
     }
 
     @Override
-    public AnalysisTaskResultVO generateResultVO(String descriptionTpl, String itemTpl, String data) {
+    public AnalysisTaskResultVO renderResultVO(String descriptionTpl, String itemTpl, String data) {
         return new AnalysisTaskResultVO(data, Collections.emptyList());
     }
 }

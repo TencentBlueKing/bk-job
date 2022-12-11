@@ -49,9 +49,9 @@ public enum AnalysisResourceEnum {
 
     public static AnalysisResourceEnum get(int type) {
         val values = AnalysisResourceEnum.values();
-        for (int i = 0; i < values.length; i++) {
-            if (values[i].type == type) {
-                return values[i];
+        for (AnalysisResourceEnum value : values) {
+            if (value.type == type) {
+                return value;
             }
         }
         return null;

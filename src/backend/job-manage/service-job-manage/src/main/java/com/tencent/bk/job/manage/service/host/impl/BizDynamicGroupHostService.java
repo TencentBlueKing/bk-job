@@ -39,9 +39,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -73,6 +76,13 @@ public class BizDynamicGroupHostService {
             hostIdPageData.getData()
         );
         return PageUtil.copyPageWithNewData(hostIdPageData, hostList);
+    }
+
+    public List<ApplicationHostDTO> listHostByDynamicGroups(AppResourceScope appResourceScope, Collection<String> ids) {
+        Set<Long> hostIds = new HashSet<>();
+        ids.forEach(id -> hostIds.addAll(listHostIdsByDynamicGroup(appResourceScope, id)));
+        // 展示信息需要包含主机详情完整字段
+        return hostDetailService.listHostDetails(appResourceScope, hostIds);
     }
 
     public List<ApplicationHostDTO> listHostByDynamicGroup(AppResourceScope appResourceScope, String id) {

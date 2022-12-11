@@ -124,7 +124,7 @@ public class IndexService {
             }
             descriptionTemplate = parseVariables(descriptionTemplate);
             itemTemplate = parseVariables(itemTemplate);
-            AnalysisTaskResultVO taskResultVO = analysisTask.generateResultVO(descriptionTemplate, itemTemplate,
+            AnalysisTaskResultVO taskResultVO = analysisTask.renderResultVO(descriptionTemplate, itemTemplate,
                 resultData);
             if (taskResultVO == null) {
                 return null;
