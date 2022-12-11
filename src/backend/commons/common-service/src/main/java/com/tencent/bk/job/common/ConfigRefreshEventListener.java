@@ -19,7 +19,7 @@ public class ConfigRefreshEventListener {
      */
     @EventListener
     public void onEvent(EnvironmentChangeEvent event) {
-        log.info("Handle EnvironmentChangeEvent, event: {}", event);
+        log.info("Handle EnvironmentChangeEvent");
         log.info("Reload feature toggle start ..");
         FeatureToggle.getInstance().reload();
         log.info("Reload feature toggle successfully");
