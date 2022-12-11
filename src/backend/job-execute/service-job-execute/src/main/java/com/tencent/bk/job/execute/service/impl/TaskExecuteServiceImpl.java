@@ -40,9 +40,12 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContextBuilder;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.client.ServiceUserResourceClient;
@@ -156,6 +159,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final RollingConfigService rollingConfigService;
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
+    private final AppScopeMappingService appScopeMappingService;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -175,7 +179,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                  RollingConfigService rollingConfigService) {
+                                  RollingConfigService rollingConfigService,
+                                  AppScopeMappingService appScopeMappingService) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -192,6 +197,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.rollingConfigService = rollingConfigService;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -695,10 +701,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throwHostInvalidException(queryHostsResult.getNotExistHosts());
         }
 
-        setAgentStatus(queryHostsResult.getValidHosts());
-        setAgentStatus(queryHostsResult.getNotInAppHosts());
 
-        fillHostDetail(stepInstances, variables, queryHostsResult);
+        fillTaskInstanceHostDetail(appId, stepInstances, variables, queryHostsResult);
 
         return queryHostsResult;
     }
@@ -719,9 +723,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                        ServiceListAppHostResultDTO hosts) {
         // 检查步骤引用的主机不为空
         stepInstances.forEach(this::checkStepInstanceHostNonEmpty);
-
-        // 检查主机agentId;没有agentId的不允许执行
-        checkHostAgentId(ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
 
         CheckHostResult checkHostResult = new CheckHostResult();
         checkHostResult.setAppHosts(hosts.getValidHosts());
@@ -745,14 +746,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return checkHostResult;
     }
 
-    private void checkHostAgentId(Collection<HostDTO> hosts) {
-        List<HostDTO> missingAgentIdHosts = hosts.stream()
-            .filter(host -> StringUtils.isEmpty(host.getFinalAgentId()))
-            .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(missingAgentIdHosts)) {
-            log.warn("Found hosts missing agentId!");
-            throwHostInvalidException(missingAgentIdHosts);
-        }
+
+    private boolean isUsingGseV2(long appId) {
+        return FeatureToggle.getInstance().checkFeature(
+            FeatureToggle.FEATURE_GSE_V2,
+            FeatureExecutionContextBuilder.builder()
+                .resourceScope(appScopeMappingService.getScopeByAppId(appId))
+                .build()
+        );
     }
 
     private void extractDynamicGroupsAndTopoNodes(StepInstanceDTO stepInstance,
@@ -877,9 +878,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return !stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue());
     }
 
-    private void fillHostDetail(List<StepInstanceDTO> stepInstanceList,
-                                Collection<TaskVariableDTO> variables,
-                                ServiceListAppHostResultDTO hosts) {
+    private void fillTaskInstanceHostDetail(long appId,
+                                            List<StepInstanceDTO> stepInstanceList,
+                                            Collection<TaskVariableDTO> variables,
+                                            ServiceListAppHostResultDTO hosts) {
+
+        fillHostAgent(appId, hosts);
+
         Map<String, HostDTO> hostMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
             hosts.getValidHosts().forEach(host -> {
@@ -912,6 +917,39 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             });
         }
     }
+
+    private void fillHostAgent(long appId, ServiceListAppHostResultDTO hosts) {
+        boolean isUsingGseV2 = isUsingGseV2(appId);
+        /*
+         * 后续下发任务给GSE会根据agentId路由请求到GSE1.0/2.0。如果要使用GSE2.0，那么直接使用原始bk_agent_id;如果要使用GSE1.0,
+         * 按照{云区域ID:ip}的方式构造agent_id
+         */
+        if (!isUsingGseV2) {
+            // 如果对接GSE1.0,使用云区域+ipv4构造agentId
+            if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
+                hosts.getValidHosts().forEach(host -> host.setAgentId(host.toCloudIp()));
+            }
+            if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
+                hosts.getNotInAppHosts().forEach(host -> host.setAgentId(host.toCloudIp()));
+            }
+        }
+        // 检查主机agentId;没有agentId的不允许执行
+        checkHostAgentId(ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
+
+        setAgentStatus(hosts.getValidHosts());
+        setAgentStatus(hosts.getNotInAppHosts());
+    }
+
+    private void checkHostAgentId(Collection<HostDTO> hosts) {
+        List<HostDTO> missingAgentIdHosts = hosts.stream()
+            .filter(host -> StringUtils.isEmpty(host.getAgentId()))
+            .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(missingAgentIdHosts)) {
+            log.warn("Found hosts missing agentId!");
+            throwHostInvalidException(missingAgentIdHosts);
+        }
+    }
+
 
     private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
         fillServersDetail(stepInstance.getTargetServers(), hostMap);
@@ -954,11 +992,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 host.setBkCloudId(hostDetail.getBkCloudId());
                 host.setIp(hostDetail.getIp());
                 host.setIpv6(hostDetail.getIpv6());
-                // 兼容没有agent_id的主机，按照与GSE的约定，按照{云区域ID:ip}的方式构造agent_id
-                host.setAgentId(StringUtils.isEmpty(hostDetail.getAgentId()) ? host.toCloudIp() :
-                    hostDetail.getAgentId());
                 host.setBkCloudName(hostDetail.getBkCloudName());
-                host.setAlive(hostDetail.getAlive());
             });
         }
     }
@@ -1971,17 +2005,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return servers;
     }
 
-    private void setAgentStatus(List<HostDTO> hostDTOList) {
-        if (hostDTOList == null || hostDTOList.isEmpty()) {
+    private void setAgentStatus(List<HostDTO> hosts) {
+        if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
-        List<String> agentIdList = new ArrayList<>(hostDTOList.size());
-        for (HostDTO host : hostDTOList) {
-            agentIdList.add(host.getFinalAgentId());
-        }
+        List<String> agentIdList = hosts.stream().map(HostDTO::getAgentId).distinct().collect(Collectors.toList());
         Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
-        for (HostDTO host : hostDTOList) {
-            AgentState agentState = agentStateMap.get(host.getFinalAgentId());
+        for (HostDTO host : hosts) {
+            AgentState agentState = agentStateMap.get(host.getAgentId());
             host.setAlive(AgentStatusEnum.fromAgentState(agentState).getValue());
         }
     }

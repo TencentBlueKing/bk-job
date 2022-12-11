@@ -1,28 +1,23 @@
 package com.tencent.bk.job.common.gse;
 
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
 import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
-import com.tencent.bk.job.common.gse.v2.model.GseExecutionContext;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
-import com.tencent.bk.job.common.util.feature.ResourceScopeToggleStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Component("GseApiClient")
 @Slf4j
@@ -41,25 +36,16 @@ public class GseClient implements IGseClient {
 
     @Override
     public GseTaskResponse asyncExecuteScript(ExecuteScriptRequest request) {
-        return getGseApiClient(request.getContext()).asyncExecuteScript(request);
+        return chooseGseApiClientByAgentId(request.getAgents().get(0).getAgentId()).asyncExecuteScript(request);
     }
 
-    private IGseClient getGseApiClient(GseExecutionContext gseExecutionContext) {
-        FeatureExecutionContext featureExecutionContext = null;
-        if (gseExecutionContext != null) {
-            Map<String, Object> params = new HashMap<>();
-            if (gseExecutionContext.getResourceScope() != null) {
-                params.put(ResourceScopeToggleStrategy.CTX_PARAM_RESOURCE_SCOPE,
-                    gseExecutionContext.getResourceScope());
-            }
-            featureExecutionContext = new FeatureExecutionContext(params);
-        }
-        if (FeatureToggle.getInstance().checkFeature(FeatureToggle.FEATURE_GSE_V2, featureExecutionContext)) {
-            log.debug("Choose GseV2ApiClient, gseExecutionContext: {}", gseExecutionContext);
-            return gseV2APIClient;
-        } else {
-            log.debug("Choose GseV1ApiClient, gseExecutionContext: {}", gseExecutionContext);
+    private IGseClient chooseGseApiClientByAgentId(String agentId) {
+        if (AgentUtils.isGseV1AgentId(agentId)) {
+            log.debug("Choose GseV1ApiClient, agentId: {}", agentId);
             return gseV1ApiClient;
+        } else {
+            log.debug("Choose GseV2ApiClient, agent: {}", agentId);
+            return gseV2APIClient;
         }
     }
 
@@ -78,12 +64,13 @@ public class GseClient implements IGseClient {
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
-        return getGseApiClient(req.getContext()).listAgentState(req);
+        return chooseGseApiClientByAgentId(req.getAgentIdList().get(0)).listAgentState(req);
     }
 
     @Override
     public GseTaskResponse asyncTransferFile(TransferFileRequest request) {
-        return getGseApiClient(request.getContext()).asyncTransferFile(request);
+        return chooseGseApiClientByAgentId(request.getTasks().get(0).getTarget().getAgents().get(0).getAgentId())
+            .asyncTransferFile(request);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -41,9 +40,6 @@ public class TransferFileRequest {
      */
     @JsonProperty("download_speed")
     private Integer downloadSpeed;
-
-    @JsonIgnore
-    private GseExecutionContext context;
 
     public void addFileTask(FileTransferTask task) {
         tasks.add(task);
