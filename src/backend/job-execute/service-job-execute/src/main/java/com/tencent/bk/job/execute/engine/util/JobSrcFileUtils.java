@@ -137,29 +137,13 @@ public class JobSrcFileUtils {
                         if (predicate.test(sourceHost)) {
                             // 第三方源文件的displayName不同
                             if (isThirdFile) {
-                                sendFiles.add(new JobFile(
-                                    TaskFileTypeEnum.FILE_SOURCE,
-                                    sourceHost,
+                                sendFiles.add(new JobFile(TaskFileTypeEnum.FILE_SOURCE, sourceHost,
                                     file.getThirdFilePathWithFileSourceName(),
                                     file.getThirdFilePathWithFileSourceName(),
-                                    dir,
-                                    fileName,
-                                    stepInstance.getAppId(),
-                                    accountId,
-                                    accountAlias
-                                ));
+                                    dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
                             } else {
-                                sendFiles.add(new JobFile(
-                                    TaskFileTypeEnum.SERVER,
-                                    sourceHost,
-                                    filePath,
-                                    filePath,
-                                    dir,
-                                    fileName,
-                                    stepInstance.getAppId(),
-                                    accountId,
-                                    accountAlias
-                                ));
+                                sendFiles.add(new JobFile(TaskFileTypeEnum.SERVER, sourceHost, filePath, filePath, dir,
+                                    fileName, stepInstance.getAppId(), accountId, accountAlias));
                             }
                         }
                     }
