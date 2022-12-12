@@ -1,5 +1,12 @@
 @mixin scroller {
+    &:hover {
+        &::-webkit-scrollbar {
+            display: block;
+        }
+    }
+
     &::-webkit-scrollbar {
+        display: none;
         width: 6px;
         height: 6px;
         background: transparent;
