@@ -22,14 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.client;
+package com.tencent.bk.job.common.model.dto;
 
-import com.tencent.bk.job.logsvr.api.ServiceLogResource;
-import org.springframework.cloud.openfeign.FeignClient;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-/**
- * 日志服务远程调用客户端
- */
-@FeignClient(value = "job-logsvr", contextId = "log")
-public interface LogServiceResourceClient extends ServiceLogResource {
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@EqualsAndHashCode
+public class CommonCredential {
+    String accessKey;
+    String secretKey;
+    String username;
+    String password;
+    /**
+     * 类型
+     */
+    private String type;
 }

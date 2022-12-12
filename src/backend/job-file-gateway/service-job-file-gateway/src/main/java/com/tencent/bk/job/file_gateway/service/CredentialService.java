@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
-import com.tencent.bk.job.manage.model.credential.CommonCredential;
+import com.tencent.bk.job.common.model.dto.CommonCredential;
 
 
 public interface CredentialService {

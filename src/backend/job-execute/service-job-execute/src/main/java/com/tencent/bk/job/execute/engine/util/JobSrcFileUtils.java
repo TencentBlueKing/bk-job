@@ -199,8 +199,7 @@ public class JobSrcFileUtils {
     public static Map<String, String> buildSourceFileDisplayMapping(Set<JobFile> sourceFiles, String localUploadDir) {
         Map<String, String> sourceFileDisplayMap = new HashMap<>();
         sourceFiles.forEach(sourceFile -> {
-            Pair<String, String> pair = FilePathUtils.parseDirAndFileName(sourceFile.getFilePath());
-            String standardPath = FilePathUtils.standardizedDirPath(pair.getLeft()) + pair.getRight();
+            String standardPath = sourceFile.getStandardFilePath();
             if (sourceFile.getFileType() == TaskFileTypeEnum.LOCAL && !standardPath.startsWith(localUploadDir)) {
                 sourceFileDisplayMap.put(PathUtil.joinFilePath(localUploadDir, standardPath),
                     sourceFile.getDisplayFilePath());
