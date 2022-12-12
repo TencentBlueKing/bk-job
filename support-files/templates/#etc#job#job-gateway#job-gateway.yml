@@ -1,3 +1,24 @@
+spring:
+  cloud:
+    stream:
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          binder: springCloudBus
+        springCloudBusOutput:
+          destination: springCloudBus
+          binder: springCloudBus
+      binders:
+        springCloudBus:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: __BK_JOB_RABBITMQ_HOST__
+                port: __BK_JOB_RABBITMQ_PORT__
+                username: __BK_JOB_RABBITMQ_USERNAME__
+                password: __BK_JOB_RABBITMQ_PASSWORD__
+                virtual-host: __BK_JOB_RABBITMQ_VHOST__
 server:
   http:
     enabled: __BK_JOB_GATEWAY_SERVER_HTTP_ENABLED__

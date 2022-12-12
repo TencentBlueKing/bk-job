@@ -1,6 +1,26 @@
 spring:
   application:
     name: job-crontab
+  cloud:
+    stream:
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          binder: springCloudBus
+        springCloudBusOutput:
+          destination: springCloudBus
+          binder: springCloudBus
+      binders:
+        springCloudBus:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: __BK_JOB_RABBITMQ_HOST__
+                port: __BK_JOB_RABBITMQ_PORT__
+                username: __BK_JOB_RABBITMQ_USERNAME__
+                password: __BK_JOB_RABBITMQ_PASSWORD__
+                virtual-host: __BK_JOB_RABBITMQ_VHOST__
   datasource:
     job-crontab:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
@@ -13,12 +33,6 @@ spring:
       idle-timeout: 600000
       poolName: "job-crontab"
       validationTimeout: 5000
-  rabbitmq:
-    host: __BK_JOB_CRONTAB_RABBITMQ_HOST__
-    port: __BK_JOB_CRONTAB_RABBITMQ_PORT__
-    username: __BK_JOB_CRONTAB_RABBITMQ_USERNAME__
-    password: __BK_JOB_CRONTAB_RABBITMQ_PASSWORD__
-    virtual-host: __BK_JOB_CRONTAB_RABBITMQ_VHOST__
   redis:
     {# 社区版默认配置 -#}
     {% if job_edition != "ee" -%}

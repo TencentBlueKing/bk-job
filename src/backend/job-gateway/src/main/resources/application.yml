@@ -222,6 +222,9 @@ management:
       enabled: true
     readinessstate:
       enabled: true
+    # 使用spring cloud stream rabbitmq, 禁用掉springboot的rabbitmq health检查
+    rabbit:
+      enabled: false
   server:
     port: 19876
     ssl:
@@ -229,7 +232,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh,busrefresh,bindings
       base-path: /actuator
     enabled-by-default: false
   endpoint:
@@ -259,6 +262,8 @@ management:
     info:
       enabled: true
     refresh:
+      enabled: true
+    busrefresh:
       enabled: true
 
 job:

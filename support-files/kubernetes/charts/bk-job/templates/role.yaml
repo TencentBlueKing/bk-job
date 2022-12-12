@@ -12,6 +12,8 @@ rules:
   - apiGroups:
       - ""
       - "batch"
+      - "extensions"
+      - "apps"
     resources:
       - jobs
       - secrets

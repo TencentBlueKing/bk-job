@@ -33,7 +33,6 @@ import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.message.TaskProcessor;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -46,8 +45,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -57,7 +54,6 @@ import java.util.List;
  * 执行引擎事件处理-作业
  */
 @Component
-@EnableBinding({TaskProcessor.class})
 @Slf4j
 public class JobListener {
 
@@ -89,7 +85,6 @@ public class JobListener {
      *
      * @param jobEvent 作业执行相关的事件
      */
-    @StreamListener(TaskProcessor.INPUT)
     public void handleEvent(JobEvent jobEvent) {
         log.info("Handle job event, event: {}", jobEvent);
         long jobInstanceId = jobEvent.getJobInstanceId();
@@ -368,7 +363,7 @@ public class JobListener {
             stepInstance.setStatus(stepStatus.getValue());
             stepInstanceList.add(stepInstance);
             callback.setStepInstances(stepInstanceList);
-            taskExecuteMQEventDispatcher.sendCallback(callback);
+            taskExecuteMQEventDispatcher.dispatchCallbackMsg(callback);
         }
     }
 

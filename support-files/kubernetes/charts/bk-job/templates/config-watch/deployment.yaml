@@ -1,0 +1,59 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-config-watcher
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-config-watcher"
+    {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  annotations:
+  {{- if .Values.commonAnnotations }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.configWatcher.replicaCount }}
+  selector:
+    matchLabels: 
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: job-config-watcher
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: job-config-watcher
+        {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+    spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      containers:
+        - name: "job-config-watcher"
+          image: {{ include "job-config-watcher.image" . }}
+          imagePullPolicy: {{ .Values.configWatcher.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.configWatcher.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+            successThreshold: 1
+          resources:
+            {{- toYaml .Values.configWatcher.resources | nindent 12 }}

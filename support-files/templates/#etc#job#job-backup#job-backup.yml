@@ -1,6 +1,26 @@
 spring:
   application:
     name: job-backup
+  cloud:
+    stream:
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+          binder: springCloudBus
+        springCloudBusOutput:
+          destination: springCloudBus
+          binder: springCloudBus
+      binders:
+        springCloudBus:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: __BK_JOB_RABBITMQ_HOST__
+                port: __BK_JOB_RABBITMQ_PORT__
+                username: __BK_JOB_RABBITMQ_USERNAME__
+                password: __BK_JOB_RABBITMQ_PASSWORD__
+                virtual-host: __BK_JOB_RABBITMQ_VHOST__
   datasource:
     job-backup:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
@@ -36,13 +56,6 @@ spring:
       #idle-timeout: 6000
       #poolName: "job-execute-archive"
       #validationTimeout: 5000
-
-  rabbitmq:
-    host: __BK_JOB_BACKUP_RABBITMQ_HOST__
-    port: __BK_JOB_BACKUP_RABBITMQ_PORT__
-    username: __BK_JOB_BACKUP_RABBITMQ_USERNAME__
-    password: __BK_JOB_BACKUP_RABBITMQ_PASSWORD__
-    virtual-host: __BK_JOB_BACKUP_RABBITMQ_VHOST__
   redis:
     {# 社区版默认配置 -#}
     {% if job_edition != "ee" -%}

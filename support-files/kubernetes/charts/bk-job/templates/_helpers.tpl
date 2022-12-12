@@ -130,6 +130,13 @@ Return the proper job-migration image name
 {{- end -}}
 
 {{/*
+Return the proper job-config-watcher image name
+*/}}
+{{- define "job-config-watcher.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.configWatcher.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "job.imagePullSecrets" -}}

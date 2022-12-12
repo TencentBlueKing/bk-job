@@ -52,11 +52,6 @@ public class JobExecuteAutoConfiguration {
         );
     }
 
-    static class CmdbConfigSetter {
-        CmdbConfigSetter() {
-        }
-    }
-
     @Bean
     AppScopeMappingService appScopeMappingService(ApplicationResourceClient applicationResource) {
         return new AppScopeMappingServiceImpl(applicationResource);

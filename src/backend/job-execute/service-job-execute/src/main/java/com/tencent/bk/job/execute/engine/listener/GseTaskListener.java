@@ -29,22 +29,17 @@ import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableExce
 import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
 import com.tencent.bk.job.execute.engine.executor.GseTaskManager;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
-import com.tencent.bk.job.execute.engine.message.GseTaskProcessor;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.annotation.StreamListener;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 /**
  * 执行引擎事件处理-GSE任务
  */
 @Component
-@EnableBinding({GseTaskProcessor.class})
 @Slf4j
 public class GseTaskListener {
     private final GseTaskManager gseTaskManager;
@@ -65,8 +60,7 @@ public class GseTaskListener {
      *
      * @param gseTaskEvent GSE任务事件
      */
-    @StreamListener(GseTaskProcessor.INPUT)
-    public void handleEvent(@Payload GseTaskEvent gseTaskEvent) {
+    public void handleEvent(GseTaskEvent gseTaskEvent) {
         log.info("Handel gse task event: {}", gseTaskEvent);
         GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
         String requestId = gseTaskEvent.getRequestId();

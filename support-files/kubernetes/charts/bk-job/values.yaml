@@ -1352,3 +1352,33 @@ waitForDependServices:
     requests:
       cpu: 125m
       memory: 256Mi
+
+## job-config-watcher 配置
+configWatcher:
+  image:
+    registry: hub.bktencent.com
+    repository: springcloud/spring-cloud-kubernetes-configuration-watcher
+    tag: "2.0.1-SNAPSHOT"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  containerPort: 19811
+  service:
+    port: 80
+    type: ClusterIP
+  cloudAreaId: 0
+  # 文件下载相关配置
+  downloadFile:
+    # 最大占用空间（GB），超过则进行清理
+    maxSizeGB: 100
+    # 下载的文件过期时间
+    expireDays: 7
+  # 运行时JVM参数
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"      
