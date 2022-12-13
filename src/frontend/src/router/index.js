@@ -246,7 +246,6 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
                     history.pushState(null, null, document.URL);
                 });
         };
-
         window.addEventListener('popstate', callback);
 
         const currentRoute = _.last(router.currentRoute.matched);

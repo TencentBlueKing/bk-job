@@ -158,7 +158,7 @@
              * store记录服务器文件的编辑状态
              */
             handleFileChange (fileLocation) {
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 this.serverFile.fileLocation = fileLocation;
                 this.editNewSourceFile(true);
             },
@@ -170,7 +170,7 @@
              */
             handleHostChange (hostNodeInfo) {
                 this.serverFile.host.hostNodeInfo = Object.freeze(hostNodeInfo);
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 this.editNewSourceFile(true);
             },
             /**

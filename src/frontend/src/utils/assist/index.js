@@ -80,16 +80,16 @@ export const downloadUrl = (url) => {
     const eleLink = document.createElement('a');
     eleLink.style.display = 'none';
     eleLink.href = url;
-    
+
     // 触发点击
     document.body.appendChild(eleLink);
     const { changeAlert } = window;
-    window.changeConfirm = false;
+    window.changeFlag = false;
     eleLink.click();
     setTimeout(() => {
-        window.changeConfirm = changeAlert;
+        window.changeFlag = changeAlert;
     });
-    
+
     // 然后移除
     document.body.removeChild(eleLink);
 };

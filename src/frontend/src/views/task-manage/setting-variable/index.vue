@@ -98,9 +98,14 @@
     import GlobalVariable from '@components/global-variable/edit';
     import GlobalVariableLayout from '@components/global-variable/layout';
     import ToggleDisplay from '@components/global-variable/toggle-display';
+<<<<<<< HEAD
 
     import I18n from '@/i18n';
     
+=======
+    import BackTop from '@components/back-top';
+
+>>>>>>> 3.6.x
     export default {
         name: '',
         components: {
@@ -155,7 +160,7 @@
                         result[item] = true;
                         return result;
                     }, {});
-                    
+
                     // 执行方案中的步骤使用了得变量
                     const usedList = [];
                     // 未被使用的变量
@@ -224,7 +229,7 @@
                             theme: 'success',
                             message: I18n.t('template.执行成功'),
                         });
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.$router.push({
                             name: 'historyTask',
                             params: {
