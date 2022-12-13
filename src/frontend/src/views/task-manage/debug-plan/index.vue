@@ -36,7 +36,7 @@
                         class="detail-item-title"
                         style="margin-bottom: 8px;">
                         <span>{{ $t('template.全局变量.label') }}</span>
-                        <span>（ {{ variableList.length }} / {{ selectedVariable.length }} ）</span>
+                        <span>（ {{ selectedVariable.length }} / {{ variableList.length }} ）</span>
                     </div>
                     <render-global-var
                         :list="variableList"
