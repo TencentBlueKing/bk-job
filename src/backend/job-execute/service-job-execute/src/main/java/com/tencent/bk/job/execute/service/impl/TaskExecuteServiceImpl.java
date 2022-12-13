@@ -219,7 +219,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 获取主机
             watch.start("acquireAndSetHosts");
             ServiceListAppHostResultDTO hosts =
-                acquireAndSetHosts(taskInstance.getAppId(), Collections.singletonList(stepInstance), null);
+                acquireAndSetHosts(taskInstance, Collections.singletonList(stepInstance), null);
             watch.stop();
 
             //检查主机
@@ -616,9 +616,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
 
-    private ServiceListAppHostResultDTO acquireAndSetHosts(Long appId,
+    private ServiceListAppHostResultDTO acquireAndSetHosts(TaskInstanceDTO taskInstance,
                                                            List<StepInstanceDTO> stepInstances,
                                                            Collection<TaskVariableDTO> variables) {
+        long appId = taskInstance.getAppId();
+
         // 提取动态分组/topo节点
         Set<DynamicServerGroupDTO> groups = new HashSet<>();
         Set<DynamicServerTopoNodeDTO> topoNodes = new HashSet<>();
@@ -684,7 +686,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         Set<HostDTO> queryHosts = extractHosts(stepInstances, variables);
-        ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts);
+
+        ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts,
+            needRefreshHostBkAgentId(taskInstance));
 
         if (CollectionUtils.isNotEmpty(queryHostsResult.getNotExistHosts())) {
             // 如果主机在cmdb不存在，直接报错
@@ -697,6 +701,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         fillHostDetail(stepInstances, variables, queryHostsResult);
 
         return queryHostsResult;
+    }
+
+    private boolean needRefreshHostBkAgentId(TaskInstanceDTO taskInstance) {
+        /*
+         * tmp: GSE Agent v1/v2 兼容期间特殊逻辑, 对于节点管理安装Agent插件的请求需要实时获取bk_agent_id。等后续只对接GSE V2 之后，
+         * 此处代码可删除。 https://github.com/Tencent/bk-job/issues/1542
+         */
+        return taskInstance.getStartupMode() == TaskStartupModeEnum.API.getValue()
+            && StringUtils.isNotEmpty(taskInstance.getAppCode())
+            && (StringUtils.equals(taskInstance.getAppCode(), "bkc-nodeman")
+            || StringUtils.equals(taskInstance.getAppCode(), "bk_nodeman"));
     }
 
     private CheckHostResult checkHosts(Long appId,
@@ -1048,7 +1063,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void throwHostInvalidException(Collection<HostDTO> invalidHosts) {
         String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
-        log.warn("The following hosts are invalid, hosts={}", hostListStr);
+        log.warn("The following hosts are invalid, hosts={}", invalidHosts);
         throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{hostListStr});
     }
 
@@ -1157,7 +1172,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 获取主机列表
             watch.start("acquireAndSetHosts");
             ServiceListAppHostResultDTO hosts =
-                acquireAndSetHosts(taskInstance.getAppId(), stepInstanceList, finalVariableValueMap.values());
+                acquireAndSetHosts(taskInstance, stepInstanceList, finalVariableValueMap.values());
             watch.stop();
 
             //检查主机
@@ -1523,7 +1538,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
 
         // 获取主机列表
-        ServiceListAppHostResultDTO hosts = acquireAndSetHosts(appId, stepInstanceList, finalVariableValueMap.values());
+        ServiceListAppHostResultDTO hosts = acquireAndSetHosts(taskInstance, stepInstanceList,
+            finalVariableValueMap.values());
 
         // 检查主机合法性
         CheckHostResult checkHostResult = checkHosts(appId, stepInstanceList, hosts);
@@ -2301,7 +2317,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         watch.start("acquireAndSetHosts");
         ServiceListAppHostResultDTO hosts =
-            acquireAndSetHosts(executeParam.getAppId(), taskInfo.getStepInstances(),
+            acquireAndSetHosts(taskInfo.getTaskInstance(), taskInfo.getStepInstances(),
                 taskInfo.getVariables() != null ? taskInfo.getVariables().values() : null);
         watch.stop();
 

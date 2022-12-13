@@ -73,4 +73,12 @@ public class StringUtilTest {
         assertEquals(StringUtil.isDifferent("123", null), true);
         assertEquals(StringUtil.isDifferent("123", "123 "), true);
     }
+
+    @Test
+    public void testEscape() {
+        assertEquals(StringUtil.escape("a_b", new char[] {'_', '%', '\\'}, new String[] {"\\_", "\\%", "\\\\"}), "a\\_b");
+        assertEquals(StringUtil.escape("a%b", new char[] {'_', '%', '\\'}, new String[] {"\\_", "\\%", "\\\\"}), "a\\%b");
+        assertEquals(StringUtil.escape("a\\b", new char[] {'_', '%', '\\'}, new String[] {"\\_", "\\%", "\\\\"}), "a\\\\b");
+        assertEquals(StringUtil.escape("a_b%c\\d", new char[] {'_', '%', '\\'}, new String[] {"\\_", "\\%", "\\\\"}), "a\\_b\\%c\\\\d");
+    }
 }

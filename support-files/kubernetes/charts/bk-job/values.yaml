@@ -668,6 +668,7 @@ gatewayConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -756,6 +757,7 @@ manageConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -814,6 +816,7 @@ executeConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 2Gi
     requests:
       cpu: 250m
@@ -865,6 +868,7 @@ crontabConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -925,6 +929,7 @@ logsvrConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -980,6 +985,7 @@ backupConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1030,6 +1036,7 @@ analysisConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1080,6 +1087,7 @@ fileGatewayConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 1024m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1136,6 +1144,7 @@ fileWorkerConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1211,6 +1220,7 @@ frontendConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1268,6 +1278,11 @@ migration:
     tag: "{{APP_VERSION}}"
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  # 迁移任务资源限制
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
 ## migration的init任务配置
 migrationInit:
@@ -1280,6 +1295,10 @@ migrationInit:
     tag: 1.34.0
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
 ## 其他服务Pod等待migration完成的init任务配置
 waitForMigration:
@@ -1292,3 +1311,45 @@ waitForMigration:
     tag: v1.5.1
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
+waitForDependServices:
+  image:
+    # 镜像拉取仓库根地址
+    registry: "hub.bktencent.com"
+    # 镜像拉取仓库组织与镜像名称
+    repository: "blueking/job-tools-k8s-startup-controller"
+    # 镜像标签
+    tag: "{{APP_VERSION}}"
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+  # 是否开启服务启动顺序控制，不开启则所有服务并行启动，默认不开启
+  enabled: false
+  # 服务间的依赖关系定义，多个依赖关系用逗号分隔
+  # 例如：(A:B,C),(B:D)表示服务A必须在服务B与服务C启动完成后才启动，服务B必须在服务D启动完成后才启动
+  # 全量服务名称：job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,job-file-worker-headless,
+  #            bk-job-gateway,job-logsvr,job-manage,bk-job-frontend
+  # 说明：bk-job-gateway与bk-job-frontend为对其他产品暴露的服务，因此有bk-前缀，job-file-worker-headless为无头服务，因此有-headless后缀
+  dependencies: (job-execute:job-manage,job-logsvr),(bk-job-frontend:job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,bk-job-gateway,job-manage)
+  # 依赖服务的Pod启动完成后需要拥有的label（label与value中请勿包含英文逗号/括号）
+  expectPodLabels:
+    # 所有依赖服务都必须拥有的label，多个label间用英文逗号分隔
+    # 格式：label1=value1,label2=value2,...
+    common: "bk.job.image/tag={{APP_VERSION}}"
+    # 为每个依赖服务单独定义的必须拥有的label，多个服务间用英文括号及英文逗号分隔
+    # 格式：(job-manage:label1=value1,label2=value2),(job-execute:label3=value3),(...)
+    service: ""
+  # 日志级别：默认INFO，可选DEBUG/WARN/ERROR
+  logLevel: "INFO"
+  # 资源要求与限制
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi

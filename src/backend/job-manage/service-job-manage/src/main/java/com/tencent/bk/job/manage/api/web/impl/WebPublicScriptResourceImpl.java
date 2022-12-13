@@ -91,12 +91,13 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
                                                        String creator,
                                                        String lastModifyUser,
                                                        String scriptId,
+                                                       String content,
                                                        Integer start,
                                                        Integer pageSize,
                                                        String orderField,
                                                        Integer order) {
         return scriptResourceProxy.listPageScript(username, null, null, null, true, name,
-            type, tags, panelTag, panelType, creator, lastModifyUser, scriptId,
+            type, tags, panelTag, panelType, creator, lastModifyUser, scriptId, content,
             start, pageSize, orderField, order);
     }
 

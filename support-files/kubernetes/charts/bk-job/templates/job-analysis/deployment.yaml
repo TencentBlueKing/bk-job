@@ -58,6 +58,7 @@ spec:
       {{- end }}
       initContainers:
       {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
+      {{- include "job.initContainer.waitForDependServices"  ( dict "currentServiceName" "job-analysis" "context" $) | nindent 8 }}
       containers:
         - name: "job-analysis"
           {{- if .Values.analysisConfig.containerSecurityContext.enabled }}

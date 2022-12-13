@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.util.ip;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidIpv6Exception;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -205,6 +207,12 @@ public class IpUtils {
         return matcher.matches();
     }
 
+    /**
+     * 从网卡获取首个机器IP，优先获取IPv4地址
+     * 若获取到的值为v6协议的IP，默认提供完整无压缩的IPv6地址
+     *
+     * @return 首个机器IP地址
+     */
     public static String getFirstMachineIP() {
         return getFirstMachineIpPreferV4();
     }
@@ -216,7 +224,20 @@ public class IpUtils {
         }
         Map<String, String> ipv6Map = getMachineIPv6Map();
         if (!ipv6Map.isEmpty()) {
-            return ipv6Map.values().iterator().next();
+            String ipv6 = ipv6Map.values().iterator().next();
+            /*
+             * 此处处理原因详情可见Inet6Address.getHostAddress()方法说明。
+             * Because link-local and site-local addresses are non-global, it is possible that
+             * different hosts may have the same destination address and may be reachable through
+             * different interfaces on the same originating system. In this case, the originating
+             * system is said to be connected to multiple zones of the same scope. In order to
+             * disambiguate which is the intended destination zone, it is possible to append a
+             * zone identifier (or scope_id) to an IPv6 address.
+             */
+            if (ipv6.contains("%")) {
+                ipv6 = ipv6.substring(0, ipv6.indexOf("%"));
+            }
+            return getFullIpv6ByCompressedOne(ipv6);
         }
         log.error("no available ip, plz check net interface");
         return null;
@@ -360,5 +381,65 @@ public class IpUtils {
             return PROTOCOL_IP_V6;
         }
         return PROTOCOL_IP_V4;
+    }
+
+    /**
+     * 有压缩的IPv6地址转换成完整无压缩的IPv6
+     *
+     * @param compressedIpv6 有压缩的IPv6地址
+     * @return 完整无压缩的IPv6地址
+     */
+    public static String getFullIpv6ByCompressedOne(String compressedIpv6) {
+        if (!checkIpv6(compressedIpv6)) {
+            throw new InvalidIpv6Exception(ErrorCode.INVALID_IPV6_ADDRESS, new String[]{compressedIpv6});
+        }
+        String[] finalSeqArr = new String[]{"0000", "0000", "0000", "0000", "0000", "0000", "0000", "0000"};
+        // 连续0标识符
+        String continueZeroToken = "::";
+        // 段之间分隔符
+        String seqSeparator = ":";
+        // 一个IPv6地址最多有8段
+        int maxSeqNum = 8;
+        // ::开头的IP首位补0便于后续统一分割处理
+        if (compressedIpv6.startsWith(continueZeroToken)) {
+            compressedIpv6 = "0" + compressedIpv6;
+        }
+        // ::结尾的IP末位补0便于后续统一分割处理
+        if (compressedIpv6.endsWith(continueZeroToken)) {
+            compressedIpv6 = compressedIpv6 + "0";
+        }
+        // 统一分割、解析
+        if (compressedIpv6.contains(continueZeroToken)) {
+            String[] seqArr = compressedIpv6.split(continueZeroToken);
+            String[] leftSeqArr = seqArr[0].split(seqSeparator);
+            for (int i = 0; i < leftSeqArr.length && i < maxSeqNum; i++) {
+                finalSeqArr[i] = getStandardIpv6Seq(leftSeqArr[i]);
+            }
+            String[] rightSeqArr = seqArr[1].split(seqSeparator);
+            for (int i = 0; i < rightSeqArr.length && i < maxSeqNum; i++) {
+                finalSeqArr[i + maxSeqNum - rightSeqArr.length] = getStandardIpv6Seq(rightSeqArr[i]);
+            }
+        } else {
+            String[] seqArr = compressedIpv6.split(seqSeparator);
+            for (int i = 0; i < seqArr.length && i < maxSeqNum; i++) {
+                finalSeqArr[i] = getStandardIpv6Seq(seqArr[i]);
+            }
+        }
+        return StringUtils.join(finalSeqArr, ":");
+    }
+
+    /**
+     * 获取含有4个字符的Ipv6标准段，不足4字符则添加前缀0
+     *
+     * @param ipv6Seq ipv6地址的一段
+     * @return 4个字符的标准段
+     */
+    private static String getStandardIpv6Seq(String ipv6Seq) {
+        // 兼容IPv4地址的最后一个地址段
+        if (ipv6Seq.contains(".")) {
+            return ipv6Seq;
+        }
+        String template = "0000";
+        return template.substring(0, template.length() - ipv6Seq.length()) + ipv6Seq;
     }
 }

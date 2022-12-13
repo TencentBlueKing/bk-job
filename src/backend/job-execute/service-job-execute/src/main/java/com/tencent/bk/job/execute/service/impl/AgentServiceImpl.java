@@ -29,6 +29,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
@@ -118,8 +119,12 @@ public class AgentServiceImpl implements AgentService {
             }
             ServiceHostDTO host;
             if (physicalMachineMultiIp.contains(":")) {
+                // IPv6地址
+                // 首先转为完整无压缩格式
+                physicalMachineMultiIp = IpUtils.getFullIpv6ByCompressedOne(physicalMachineMultiIp);
                 host = getServiceHostByMultiIpv6(physicalMachineMultiIp);
             } else {
+                // IPv4地址
                 host = getServiceHostByMultiIpv4(physicalMachineMultiIp);
             }
             if (host == null) {

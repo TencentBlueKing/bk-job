@@ -469,9 +469,38 @@ Return the Job InitContainer WaitForMigration Content
 - name: "migration-init"
   image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForMigration.image "global" .Values.global) }}
   imagePullPolicy: {{ .Values.waitForMigration.image.pullPolicy }}
+  resources:
+    {{- toYaml .Values.waitForMigration.resources | nindent 4 }}
   args:
   - "job-wr"
   - {{ printf "%s-migration-%d" (include "common.names.fullname" .) .Release.Revision | quote }}
+{{- end -}}
+
+{{/*
+Return the Job InitContainer WaitForDependServices Content
+{{ include "job.initContainer.waitForDependServices" ( dict "appName" "${appName}" "context" $) }}
+*/}}
+{{- define "job.initContainer.waitForDependServices" -}}
+{{- if .context.Values.waitForDependServices.enabled -}}
+- name: "wait-for-depend-services"
+  image: {{ include "common.images.image" (dict "imageRoot" .context.Values.waitForDependServices.image "global" .context.Values.global) }}
+  imagePullPolicy: {{ .context.Values.waitForDependServices.image.pullPolicy }}
+  resources:
+    {{- toYaml .context.Values.waitForDependServices.resources | nindent 4 }}
+  env:
+    - name: KUBERNETES_NAMESPACE
+      value: {{ .context.Release.Namespace }}
+    - name: BK_JOB_CURRENT_SERVICE_NAME
+      value: {{ .currentServiceName }}
+    - name: BK_JOB_STARTUP_DEPENDENCIES_STR
+      value: {{ .context.Values.waitForDependServices.dependencies }}
+    - name: BK_JOB_LOG_LEVEL
+      value: {{ .context.Values.waitForDependServices.logLevel }}
+    - name: BK_JOB_EXPECT_POD_LABELS_COMMON
+      value: {{ .context.Values.waitForDependServices.expectPodLabels.common }}
+    - name: BK_JOB_EXPECT_POD_LABELS_SERVICE
+      value: {{ .context.Values.waitForDependServices.expectPodLabels.service }}
+{{- end -}}
 {{- end -}}
 
 {{/*

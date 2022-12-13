@@ -36,4 +36,6 @@ public interface BizTopoHostService {
 
     List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node);
 
+    List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes);
+
 }

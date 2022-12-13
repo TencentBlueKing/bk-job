@@ -327,7 +327,7 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
     }
 
     @Override
-    public AnalysisTaskResultVO generateResultVO(String descriptionTpl, String itemTpl, String data) {
+    public AnalysisTaskResultVO renderResultVO(String descriptionTpl, String itemTpl, String data) {
         AnalysisTaskResultData<BadTplPlanInfo> resultData = JsonUtils.fromJson(data,
             new TypeReference<AnalysisTaskResultData<BadTplPlanInfo>>() {
             });

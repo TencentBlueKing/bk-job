@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <property name="LOG_PATTERN"
+              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
+    <property name="LOG_LEVEL" value="${log.level:-INFO}"/>
+    <property name="LOG_DIR" value="${log.dir:-/data/logs}"/>
+    <property name="LOG_DIR_CONTROLLER" value="${LOG_DIR}/controller"/>
+    <property name="CONTROLLER_LOG_FILE" value="${LOG_DIR_CONTROLLER}/controller.log"/>
+    <contextName>logback</contextName>
+
+    <appender name="controller-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${CONTROLLER_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${CONTROLLER_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="controller-appender"/>
+    </root>
+</configuration>
