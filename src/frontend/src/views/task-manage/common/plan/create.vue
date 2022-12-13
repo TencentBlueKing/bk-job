@@ -139,11 +139,8 @@
 
     import Layout from './components/layout';
 
-<<<<<<< HEAD
     import I18n from '@/i18n';
-    
-=======
->>>>>>> 3.6.x
+
     const getDefaultData = () => ({
         id: 0,
         name: genDefaultName(I18n.t('template.执行方案.label')),

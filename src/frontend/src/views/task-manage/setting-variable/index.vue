@@ -98,14 +98,9 @@
     import GlobalVariable from '@components/global-variable/edit';
     import GlobalVariableLayout from '@components/global-variable/layout';
     import ToggleDisplay from '@components/global-variable/toggle-display';
-<<<<<<< HEAD
 
     import I18n from '@/i18n';
-    
-=======
-    import BackTop from '@components/back-top';
 
->>>>>>> 3.6.x
     export default {
         name: '',
         components: {
