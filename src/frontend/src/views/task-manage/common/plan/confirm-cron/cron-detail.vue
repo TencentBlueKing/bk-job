@@ -202,7 +202,7 @@
             handleSubmit () {
                 Promise.all(this.$refs.variable.map(item => item.validate()))
                     .then((variableValue) => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.isEditing = false;
                         this.info.hasConfirm = true;
                         this.info.variableValue = Object.freeze(variableValue);

@@ -140,7 +140,7 @@
     import Layout from './components/layout';
 
     import I18n from '@/i18n';
-    
+
     const getDefaultData = () => ({
         id: 0,
         name: genDefaultName(I18n.t('template.执行方案.label')),
@@ -148,7 +148,7 @@
         templateId: 0,
         variables: [],
     });
-    
+
     export default {
         name: '',
         components: {
@@ -251,7 +251,7 @@
                     const { variables, stepList, name } = data;
                     this.globalVariableList = Object.freeze(variables);
                     this.taskStepList = Object.freeze(stepList);
-                    
+
                     // 新建执行方案默认值处理
                     let planName = genDefaultName(I18n.t('template.执行方案.label'));
                     if (this.firstPlan) {
@@ -336,7 +336,7 @@
                     this.$refs.createPlanForm.validate(),
                 ]).then(() => ExecPlanService.planUpdate(this.formData)
                     .then((data) => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.$bkMessage({
                             theme: 'success',
                             message: I18n.t('template.操作成功'),

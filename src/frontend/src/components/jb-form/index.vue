@@ -64,7 +64,7 @@
                 handler () {
                     setTimeout(() => {
                         if (this.isApplyChange) {
-                            window.changeConfirm = true;
+                            window.changeFlag = true;
                         }
                     });
                 },

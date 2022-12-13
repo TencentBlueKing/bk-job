@@ -149,7 +149,7 @@
                                 theme: 'success',
                                 message: I18n.t('history.操作成功'),
                             });
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                             this.$router.push({
                                 name: 'historyTask',
                                 params: {

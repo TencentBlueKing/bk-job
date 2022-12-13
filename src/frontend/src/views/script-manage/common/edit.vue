@@ -272,7 +272,7 @@
                             ...this.formData,
                             scriptVersionId: this.scriptInfo.scriptVersionId,
                         }).then(() => {
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                             this.$emit('on-edit', {
                                 scriptVersionId: this.scriptInfo.scriptVersionId,
                             });

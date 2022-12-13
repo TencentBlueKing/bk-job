@@ -110,8 +110,8 @@
                     setTimeout(() => {
                         if (val) {
                             this.isRender = true;
-                            this.pageChangeConfirmMemo = window.changeConfirm;
-                            window.changeConfirm = 'dialog';
+                            this.pageChangeConfirmMemo = window.changeFlag;
+                            window.changeFlag = 'dialog';
                             this.calcMediaWidth();
                         }
                         this.isShow = val;
@@ -183,7 +183,7 @@
              * @desc 关闭弹框
              */
             close () {
-                window.changeConfirm = this.pageChangeConfirmMemo;
+                window.changeFlag = this.pageChangeConfirmMemo;
                 this.$emit('input', false);
                 this.$emit('change', false);
             },
@@ -204,7 +204,7 @@
                 // submit 有可能返回不是 Promise, 用 Promise 包裹兼容这种情况
                 Promise.resolve(this.checkHandle().submit())
                     .then(() => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.close();
                     })
                     .finally(() => {

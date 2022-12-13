@@ -38,9 +38,10 @@
                 </div>
                 <jb-form-item>
                     <div class="input-wraper">
-                        <jb-input-number
+                        <bk-input
                             v-model="info.amount"
-                            :min="1" />
+                            :min="1"
+                            type="number" />
                         <bk-select
                             v-model="info.unit"
                             class="unit-item"
