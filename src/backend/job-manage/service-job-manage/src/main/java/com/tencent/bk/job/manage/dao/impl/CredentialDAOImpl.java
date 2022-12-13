@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.config.JobTicketConfig;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
-import com.tencent.bk.job.manage.model.credential.CommonCredential;
+import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import io.micrometer.core.instrument.util.StringUtils;

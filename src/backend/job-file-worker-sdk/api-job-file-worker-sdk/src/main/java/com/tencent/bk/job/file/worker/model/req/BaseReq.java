@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file.worker.model.req;
 
 import com.tencent.bk.job.common.util.json.SkipLogFields;
-import com.tencent.bk.job.manage.model.credential.CommonCredential;
+import com.tencent.bk.job.common.model.dto.CommonCredential;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

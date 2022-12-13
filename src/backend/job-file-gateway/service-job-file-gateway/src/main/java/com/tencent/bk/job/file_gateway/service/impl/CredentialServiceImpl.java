@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.client.ServiceCredentialResourceClient;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
-import com.tencent.bk.job.manage.model.credential.CommonCredential;
+import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.FormattingTuple;

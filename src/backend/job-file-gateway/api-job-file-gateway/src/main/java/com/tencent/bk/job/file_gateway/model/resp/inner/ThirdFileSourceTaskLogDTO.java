@@ -22,24 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.credential;
+package com.tencent.bk.job.file_gateway.model.resp.inner;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
+import java.util.ArrayList;
+import java.util.List;
+
+@ApiModel("第三方文件源文件下载任务日志")
 @Data
-@EqualsAndHashCode
-public class CommonCredential {
-    String accessKey;
-    String secretKey;
-    String username;
-    String password;
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class ThirdFileSourceTaskLogDTO {
     /**
-     * 类型
+     * 文件源下载任务ID
      */
-    private String type;
+    @ApiModelProperty("文件源下载任务ID")
+    private String taskId;
+
+    /**
+     * 任务执行所在的file-worker的cloudIp
+     */
+    @ApiModelProperty(value = "任务执行所在的file-worker的云区域ID:IP")
+    private String ip;
+
+    /**
+     * 文件下载日志
+     */
+    private List<FileLogPieceDTO> fileTaskLogs;
+
+    public void addFileTaskLog(FileLogPieceDTO fileTaskDetailLog) {
+        if (fileTaskLogs == null) {
+            fileTaskLogs = new ArrayList<>();
+        }
+        fileTaskLogs.add(fileTaskDetailLog);
+    }
 }
