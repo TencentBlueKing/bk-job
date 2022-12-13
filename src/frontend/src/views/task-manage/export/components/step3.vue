@@ -301,7 +301,7 @@
                             expireTime: expireTime === 'custom' ? parseInt(customNum, 10) : expireTime,
                             templateInfo,
                         }).then((data) => {
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                             taskExport.setItem('id', data.id);
                             this.$emit('on-change', 4);
                         });

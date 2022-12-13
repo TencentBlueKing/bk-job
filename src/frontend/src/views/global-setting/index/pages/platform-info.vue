@@ -162,7 +162,7 @@
                         this.isSubmitting = true;
                         GlobalSettingService.updateTitleAndFooterConfig(this.formData)
                             .then(() => {
-                                window.changeConfirm = false;
+                                window.changeFlag = false;
                                 this.messageSuccess(I18n.t('setting.保存成功'));
                             })
                             .finally(() => {

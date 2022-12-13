@@ -218,7 +218,7 @@
                     .then(scriptErrorConfirm)
                     .then(() => this.serviceHandler.scriptUpdate(this.formData)
                         .then((data) => {
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                             this.messageSuccess(I18n.t('script.操作成功'), () => {
                                 this.$router.push({
                                     name: this.publicScript ? 'publicScriptVersion' : 'scriptVersion',

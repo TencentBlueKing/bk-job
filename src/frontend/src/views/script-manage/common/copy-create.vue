@@ -314,7 +314,7 @@
                         this.scriptManageServiceHandler.scriptUpdate({
                             ...this.formData,
                         }).then((data) => {
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                             this.$emit('on-create', {
                                 scriptVersionId: data.scriptVersionId,
                             });

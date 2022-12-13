@@ -250,7 +250,7 @@
                     // 拉取模板最新数据
                     if (!isFirst) {
                         setTimeout(() => {
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                         }, 100);
                     }
                 })
@@ -308,7 +308,7 @@
              */
             searchCiphertextVariable () {
                 const stack = [];
-                
+
                 this.formData.variables.forEach((current) => {
                     if (current.isPassword) {
                         stack.push(current.name);
@@ -324,7 +324,7 @@
                     extCls: 'password-variable-info',
                 });
             },
-            
+
             /**
              * @desc 删除全局变量-删除步骤中的变量引用
              * @param {Array} stepList 步骤列表
@@ -499,7 +499,7 @@
                         ...this.formData,
                         id: this.isEdit ? this.taskId : 0,
                     }).then((taskId) => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         return TaskPlanService.fetchTaskPlan({
                             id: taskId,
                         }).then((planList) => {
@@ -563,7 +563,7 @@
                     isClickClose = true;
                     confirmInfo.close();
                 };
-                
+
                 const subHeader = () => (
                 <div>
                     <p style={{ marginBottom: '10px', color: '#979BA5' }}>
