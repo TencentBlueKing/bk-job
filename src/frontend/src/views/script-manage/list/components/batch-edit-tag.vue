@@ -190,7 +190,7 @@
                 const result = allTagList.filter(item => searchReg.test(item.name));
                 return Object.freeze(result);
             });
-            
+
             const fetchScriptList = () => scriptRequestService.fetchBatchBasicInfo({
                 ids: props.scriptList.map(({ id }) => id).join(','),
             }).then((data) => {
@@ -219,7 +219,7 @@
                         }
                     });
                 });
-            
+
                 state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
                 state.operationList = Object.values(memoCheckedMap);
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
@@ -280,7 +280,7 @@
                         checked: false,
                     };
                 }
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
             };
             /**
@@ -293,7 +293,7 @@
                 }
                 tag.isNew = true;
                 state.newTagList.unshift(tag);
-                window.changeConfirm = true;
+                window.changeFlag = true;
             };
             /**
              * @desc 提交批量编辑
@@ -323,7 +323,7 @@
                         deleteTagIdList.push(Number(tagId));
                     }
                 });
-                
+
                 return scriptRequestService.batchUpdateTag({
                     addTagIdList,
                     deleteTagIdList,

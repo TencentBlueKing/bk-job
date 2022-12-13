@@ -79,7 +79,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     let isValidScope = false;
     // scope 是有有权限查看
     let hasScopePermission = false;
-    
+
     const appInfo = appList.find(_ => _.scopeType === scopeType && _.scopeId === scopeId);
     // scope 存在于业务列表中——有效的 scope
     if (appInfo) {
@@ -230,7 +230,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
             window.location.href = lastRouterHrefCache;
         }
     });
-    
+
     router.afterEach(() => {
         history.pushState(null, null, document.URL);
         const callback = () => {
@@ -243,7 +243,6 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
                     history.pushState(null, null, document.URL);
                 });
         };
-        
         window.addEventListener('popstate', callback);
 
         const currentRoute = _.last(router.currentRoute.matched);

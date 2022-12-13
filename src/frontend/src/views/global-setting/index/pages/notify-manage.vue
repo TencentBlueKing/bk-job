@@ -182,7 +182,7 @@
                         this.messageError(I18n.t('setting.保存黑名单失败'));
                     }),
                 ]).then(() => {
-                    window.changeConfirm = false;
+                    window.changeFlag = false;
                     this.messageSuccess(I18n.t('setting.保存成功'));
                 })
                     .finally(() => {

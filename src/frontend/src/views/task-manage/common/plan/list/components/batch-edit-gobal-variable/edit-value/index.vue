@@ -144,7 +144,7 @@
                         globalVariableMap[genGlobalVariableKey(variableData)] = variableData;
                     });
                 });
-               
+
                 this.relatedTemplateNums = Object.values(templateIdMap).length;
                 this.globalVariableMap = Object.freeze(globalVariableMap);
             },
@@ -152,7 +152,7 @@
              * @desc 编辑全局变量值更新
              */
             triggerChange () {
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 this.$emit('on-edit-change', Object.assign({}, this.selectVariableValueMap));
             },
             /**

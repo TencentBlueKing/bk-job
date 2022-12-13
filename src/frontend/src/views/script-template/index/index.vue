@@ -179,7 +179,7 @@
              * @return {Object} 切换二次确认
              */
             beforeLangChange () {
-                window.changeConfirm = this.scriptContent !== this.templateMap[this.scriptLanguage];
+                window.changeFlag = this.scriptContent !== this.templateMap[this.scriptLanguage];
                 return leaveConfirm();
             },
             /**
@@ -233,7 +233,7 @@
                     scriptLanguage: formatScriptTypeValue(this.scriptLanguage),
                     scriptContent: this.scriptContent,
                 }).then(() => {
-                    window.changeConfirm = false;
+                    window.changeFlag = false;
                     this.templateMap[this.scriptLanguage] = this.scriptContent;
                     this.messageSuccess(I18n.t('scriptTemplate.保存成功'));
                 })

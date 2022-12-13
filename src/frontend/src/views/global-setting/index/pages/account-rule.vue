@@ -154,7 +154,7 @@
                     });
             },
             handleChange (field, value, index) {
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 this.currentRules[index][field] = value;
                 this.currentRules = [...this.currentRules];
             },
@@ -170,7 +170,7 @@
                             rules: this.currentRules,
                         })
                             .then(() => {
-                                window.changeConfirm = false;
+                                window.changeFlag = false;
                                 this.messageSuccess(I18n.t('setting.账号命名规则保存成功'));
                             })
                             .finally(() => {

@@ -91,17 +91,17 @@
                 ].includes(this.status);
             },
         },
-        
+
         created () {
             // 自定义路由切换确认框
             this.$route.meta.leavaConfirm = () => new Promise((resolve, reject) => {
-                if (!window.changeConfirm) {
+                if (!window.changeFlag) {
                     resolve();
                     return;
                 }
                 let confirmDialog = null;
                 const keepCallback = () => {
-                    window.changeConfirm = false;
+                    window.changeFlag = false;
                     resolve();
                     confirmDialog.close();
                     setTimeout(() => {
@@ -118,7 +118,7 @@
                     requestHandler({
                         id: this.id,
                     }).then(() => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         resolve();
                         confirmDialog.close();
                         setTimeout(() => {
@@ -129,7 +129,7 @@
                             this.$refs.confirmBtn.loading = false;
                         });
                 };
-                
+
                 confirmDialog = this.$bkInfo({
                     title: I18n.t('template.是否结束当前任务？'),
                     subHeader: (() => (
@@ -151,7 +151,7 @@
                     showFooter: false,
                 });
             });
-            
+
             // 自动下载导出文件
             // 从第3步跳转过来的会有 templateInfo 缓存默认自动下载文件
             // 通过url访问时不会有 templateInfo 缓存默认不自动下载文件
@@ -159,7 +159,7 @@
 
             this.pollingQueue = [];
             taskExport.clearItem();
-            window.changeConfirm = true;
+            window.changeFlag = true;
             this.fetchData();
             this.startTimer();
             this.$once('hook:beforeDestroy', () => {
@@ -198,7 +198,7 @@
                         this.isLoading = false;
                     });
             },
-            
+
             startTimer () {
                 if (this.isClearTimer) {
                     return;
@@ -211,11 +211,11 @@
                     this.startTimer();
                 }, 2000);
             },
-            
+
             clearTimer () {
                 this.isClearTimer = true;
             },
-            
+
             handleDownloadFile () {
                 BackupService.fetchExportFile({
                     id: this.id,
@@ -223,13 +223,13 @@
                     this.messageSuccess(I18n.t('template.下载文件成功'));
                 });
             },
-            
+
             handleFinish () {
                 this.isFinishing = true;
                 BackupService.updateExportComplete({
                     id: this.id,
                 }).then(() => {
-                    window.changeConfirm = false;
+                    window.changeFlag = false;
                     this.$emit('on-cancle');
                 })
                     .finally(() => {

@@ -265,7 +265,7 @@
                         transferMode,
                         uploadSpeedLimit,
                     } = data.stepInfo.fileStepInfo;
-                    
+
                     this.formData = {
                         ...this.formData,
                         name,
@@ -481,7 +481,7 @@
                             rollingExpr,
                             rollingMode,
                         } = this.formData;
-                        
+
                         return TaskExecuteService.pushFile({
                             name,
                             uploadSpeedLimit: parseInt(uploadSpeedLimit, 10),
@@ -500,7 +500,7 @@
                                 mode: rollingMode,
                             },
                         }).then((data) => {
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                             this.$router.push({
                                 name: 'quickLaunchStep',
                                 params: {

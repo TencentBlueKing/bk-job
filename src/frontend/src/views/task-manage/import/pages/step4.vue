@@ -92,7 +92,7 @@
                         id: this.id,
                         templateInfo: this.templateInfo,
                     }).then(() => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.$emit('on-change', 5);
                     }))
                     .finally(() => {

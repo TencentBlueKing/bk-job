@@ -261,7 +261,7 @@
             },
         },
         created () {
-            window.changeConfirm = false;
+            window.changeFlag = false;
             this.publicScript = checkPublicScript(this.$route);
             this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
 
