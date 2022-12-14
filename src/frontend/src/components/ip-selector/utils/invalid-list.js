@@ -8,7 +8,11 @@ export const getInvalidHostList = (lastHostList, validHostList) => {
 
     return lastHostList.reduce((result, item) => {
         if (!validHostMap[item.host_id]) {
-            result.push(item);
+            result.push({
+                ...item,
+                // 无效主机 agent 状态设置为异常
+                alive: 0,
+            });
         }
 
         return result;

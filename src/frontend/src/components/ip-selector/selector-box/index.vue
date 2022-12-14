@@ -107,7 +107,7 @@
     ]);
 
     const panelType = ref('');
-    
+
     const isTopoDataLoading = ref(true);
 
     // 面板单选时数据回填选中的面板
@@ -201,14 +201,15 @@
     }, {
         immediate: true,
     });
-    
+
     // 面板类型切换
     const handleTypeChange = (type) => {
         panelType.value = type;
     };
-    
+
     // 用户操作数据
     const handleChange = (name, value) => {
+        console.log('from handle change = ', name, value);
         switch (name) {
             case 'hostList':
                 lastHostList.value = value;
