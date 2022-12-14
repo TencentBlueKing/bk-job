@@ -205,20 +205,6 @@ public class HostDTO implements Cloneable {
     }
 
     /**
-     * 获取最终的agentId，若agentId不存在，则使用cloudIp作为agentId
-     *
-     * @return 最终的agentId
-     */
-    @JsonIgnore
-    public String getFinalAgentId() {
-        if (StringUtils.isNotBlank(agentId)) {
-            return agentId;
-        } else {
-            return toCloudIp();
-        }
-    }
-
-    /**
      * 获取主机的唯一KEY，用于去重等操作
      *
      * @return 主机KEY
