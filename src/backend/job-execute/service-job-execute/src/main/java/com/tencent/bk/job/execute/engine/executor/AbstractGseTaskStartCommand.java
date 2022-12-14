@@ -152,8 +152,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.requestId = requestId;
         this.stepInstanceService = stepInstanceService;
 
-        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance,
-            host -> host.getAgentId() != null ? host.getAgentId() : host.toCloudIp());
+        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::toCloudIp);
     }
 
 

@@ -245,8 +245,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         });
         this.notStartedTargetAgentIds.addAll(targetAgentIds);
 
-        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance,
-            host -> host.getAgentId() != null ? host.getAgentId() : host.toCloudIp());
+        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::toCloudIp);
 
         // 如果是执行方案，需要初始化全局变量
         if (taskInstance.isPlanInstance()) {

@@ -825,11 +825,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             host.setBkCloudId(hostDetail.getBkCloudId());
             host.setIp(hostDetail.getIp());
             // 兼容没有agent_id的主机，按照与GSE的约定，按照{云区域ID:ip}的方式构造agent_id
-            host.setAgentId(StringUtils.isEmpty(hostDetail.getAgentId()) ? host.toCloudIp() : hostDetail.getAgentId());
+            host.setAgentId(host.toCloudIp());
         } else {
             HostDTO hostDetail = hostMap.get("hostIp:" + host.toCloudIp());
             // 兼容没有agent_id的主机，按照与GSE的约定，按照{云区域ID:ip}的方式构造agent_id
-            host.setAgentId(StringUtils.isEmpty(hostDetail.getAgentId()) ? host.toCloudIp() : hostDetail.getAgentId());
+            host.setAgentId(host.toCloudIp());
             host.setHostId(hostDetail.getHostId());
         }
     }
