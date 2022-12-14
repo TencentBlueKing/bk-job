@@ -110,6 +110,7 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
     /**
      * 传输模式。1-严谨模式，2-强制模式
      */
+    @JsonProperty("transfer_mode")
     private Integer transferMode;
 
     public void trimIps() {
