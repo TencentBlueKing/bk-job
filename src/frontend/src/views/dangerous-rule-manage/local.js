@@ -54,5 +54,7 @@ export default {
         语法检测表达式不能为空: 'Grammar regex is required',
         规则说明不能为空: 'Explanaction is required',
         脚本类型不能为空: 'Script type is required',
+        请填写完整的语法检测表达式和说明: 'Grammar Regex and Description not defined.',
+        新增成功: 'New rule has been created',
     },
 };
