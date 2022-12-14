@@ -3,7 +3,9 @@
         <div class="item-text">
             <slot />
         </div>
-        <div>
+        <div
+            v-if="slots.append"
+            class="item-append">
             <slot name="append" />
         </div>
         <div class="item-action">
@@ -25,6 +27,8 @@
     </div>
 </template>
 <script setup>
+    import { useSlots } from 'vue';
+
     import IpSelectorIcon from '../../../../common/ip-selector-icon';
     import { execCopy } from '../../../../utils';
 
@@ -38,6 +42,8 @@
         },
     });
     const emits = defineEmits(['remove']);
+
+    const slots = useSlots();
 
     // 复制 content
     const handleCopy = () => {
@@ -82,6 +88,11 @@
             white-space: nowrap;
             direction: rtl;
             flex: 0 1 auto;
+            align-items: center;
+        }
+
+        .item-append {
+            display: flex;
             align-items: center;
         }
 

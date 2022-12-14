@@ -1,12 +1,9 @@
 <template>
-    <span
+    <ip-selector-icon
         v-if="value"
-        style="margin-left: 4px; font-size: 20px;">
-        <ip-selector-icon
-            style="width: 1em; height: 1em; margin-right: 5px; vertical-align: middle;"
-            svg
-            :type="iconType" />
-    </span>
+        style=" width: 1em; height: 1em; margin-right: 5px; margin-left: 4px; font-size: 20px; vertical-align: middle;"
+        svg
+        :type="iconType" />
 </template>
 <script setup>
     import { computed } from 'vue';
