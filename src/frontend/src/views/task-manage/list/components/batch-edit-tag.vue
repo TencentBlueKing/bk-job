@@ -184,7 +184,7 @@
             // 展示的 tag 列表
             const renderList = computed(() => {
                 const allTagList = [...state.newTagList, ...state.wholeTagList];
-                
+
                 if (!state.search) {
                     return allTagList;
                 }
@@ -223,7 +223,7 @@
                         }
                     });
                 });
-                    
+
                 state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
                 state.operationList = Object.values(memoCheckedMap);
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
@@ -287,7 +287,7 @@
                         checked: false,
                     };
                 }
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
             };
             /**
@@ -300,7 +300,7 @@
                 }
                 tag.isNew = true;
                 state.newTagList.unshift(tag);
-                window.changeConfirm = true;
+                window.changeFlag = true;
             };
             /**
              * @desc 提交批量编辑
@@ -330,7 +330,7 @@
                         deleteTagIdList.push(Number(tagId));
                     }
                 });
-                
+
                 return TaskManageService.batchUpdateTag({
                     addTagIdList,
                     deleteTagIdList,

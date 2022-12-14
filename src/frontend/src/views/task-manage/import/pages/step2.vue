@@ -207,13 +207,13 @@
                 uploadStatus: '', // waiting: 上传中；failed: 上传失败；success: 上传成功；
             };
         },
-        
+
         computed: {
             isUploadSuccess () {
                 return this.importInfo.status === TASK_STATUS_PACKAGE_PARSE_SUCCESS;
             },
         },
-        
+
         created () {
             this.fileMemo = null;
             this.uploadErrorMsg = '';
@@ -234,11 +234,11 @@
                 this.startTimer();
             }
         },
-        
+
         beforeDestroy () {
             this.clearTimer();
         },
-        
+
         methods: {
             fetchImportInfo () {
                 this.isShowLog = true;
@@ -273,7 +273,7 @@
                         this.isLogLoading = false;
                     });
             },
-            
+
             renderLogRow (row, index, list) {
                 // eslint-disable-next-line max-len
                 const logContent = `<span class="log-header">[ ${escapeHTML(row.timestamp)} ]</span> ${escapeHTML(row.content)}`;
@@ -295,7 +295,7 @@
                 }
                 return logContent;
             },
-            
+
             startTimer () {
                 if (this.isClearTimer) {
                     return;
@@ -308,11 +308,11 @@
                     this.startTimer();
                 }, 1000);
             },
-            
+
             clearTimer () {
                 this.isClearTimer = true;
             },
-            
+
             handleUploadRequest (option) {
                 this.uploadFilename = option.fileObj.name;
 
@@ -347,11 +347,11 @@
                         this.uploadStatus = 'failed';
                     });
             },
-            
+
             handleFileRefresh () {
                 this.handleUploadRequest(this.fileMemo);
             },
-            
+
             hanleFileDelete () {
                 if (this.uploadRequestCancelSource) {
                     this.uploadRequestCancelSource.cancel(I18n.t('template.上传任务已取消'));
@@ -374,7 +374,7 @@
             },
             handleClosePassword () {
                 this.isShowPassword = false;
-                window.changeConfirm = false;
+                window.changeFlag = false;
                 this.$refs.passwordForm.clearError();
                 this.importInfo.log.push({
                     content: I18n.t('template.导入任务已取消！需要重试请点击'),
@@ -405,7 +405,7 @@
                         id: this.id,
                     }).then(() => {
                         this.isShowPassword = false;
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.fetchImportInfo();
                     }))
                     .finally(() => {

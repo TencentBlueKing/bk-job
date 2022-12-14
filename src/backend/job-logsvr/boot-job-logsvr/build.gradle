@@ -32,7 +32,7 @@ dependencies {
     testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
 }
 springBoot {
-    mainClassName = "com.tencent.bk.job.logsvr.JobLogBootApplication"
+    getMainClass().set("com.tencent.bk.job.logsvr.JobLogBootApplication")
     buildInfo()
 }
 task renameArtifacts(type: Copy) {

@@ -245,7 +245,7 @@
                     },
                 ],
             };
-            
+
             this.formData.templateId = this.templateId;
         },
         methods: {
@@ -261,7 +261,7 @@
                     const { variableList, stepList, name } = data;
                     this.globalVariableList = variableList;
                     this.taskStepList = stepList;
-                    
+
                     this.name = name;
                     this.formData.enableSteps = data.enableStepId;
                     this.formData.variables = variableList;
@@ -305,7 +305,7 @@
              * @param {Array} variables
              */
             handleVariableChange (variables) {
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 this.formData.variables = variables;
             },
             /**
@@ -331,7 +331,7 @@
                     this.formData.enableSteps.splice(index, 1);
                     return;
                 }
-                
+
                 this.formData.enableSteps.push(stepData.id);
 
                 if (this.formData.enableSteps.length) {
@@ -348,7 +348,7 @@
                     this.$refs.editPlanForm.validate(),
                 ]).then(() => TaskPlanService.planUpdate(this.formData)
                     .then(() => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.$emit('on-edit-success');
                         this.$bkMessage({
                             theme: 'success',

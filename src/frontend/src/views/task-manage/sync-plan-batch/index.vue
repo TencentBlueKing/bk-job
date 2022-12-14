@@ -280,7 +280,7 @@
             planConfirmInfo () {
                 let confirmed = 0;
                 let unconfirmed = 0;
-                
+
                 this.data.forEach((currentPlan) => {
                     if (currentPlan.isConfirmed) {
                         confirmed += 1;
@@ -329,7 +329,7 @@
                 }).then((data) => {
                     const planData = [];
                     const needCheckCronJobStatusPlanMap = {};
-                    
+
                     data.forEach((_) => {
                         const currentSyncPlan = new SyncPlanVO(_);
                         planData.push(currentSyncPlan);
@@ -367,9 +367,9 @@
                                 this.isCronJobLoading = false;
                             });
                     }
-                    
+
                     if (this.data.length > 0) {
-                        window.changeConfirm = true;
+                        window.changeFlag = true;
                     }
                 })
                     .finally(() => {
@@ -401,7 +401,7 @@
              * 一条条数据串联同步
              */
             handleConfirmAll () {
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 this.isConfirmLoading = true;
                 const syncValueMemoMap = { ...this.syncValueMemoMap };
                 this.data.forEach((item) => {
@@ -419,7 +419,7 @@
                         templateVersion: currentSyncPlan.templateVersion,
                         cronJobInfoList: [],
                     };
-                    
+
                     // 执行方案没有查看和编辑权限——跳过
                     if (!currentSyncPlan.canView || !currentSyncPlan.canEdit) {
                         next();
@@ -436,7 +436,7 @@
                         next();
                         return;
                     }
-                    
+
                     // 定时任务确认中
                     currentSyncPlan.status = SyncPlanVO.STATUS_CONFIRM_PENDGING;
                     Promise.all([
@@ -495,7 +495,7 @@
                             // eslint-disable-next-line no-plusplus
                             for (let j = 0; j < currentTemplateVariableList.length; j++) {
                                 const newVariableFromTemplate = _.cloneDeep(currentTemplateVariableList[j]);
-                                
+
                                 if (currentCronJobVariableMap[newVariableFromTemplate.id]) {
                                     const {
                                         value,
@@ -526,7 +526,7 @@
                             currentCronJobInfo.variableValue = newCronJobVariableList;
                             cronJobInfoList.push(currentCronJobInfo);
                         }
-                        
+
                         // 手动确认过——继续使用手动确认的结果
                         if (!syncValueMemoMap[currentSyncPlan.id]) {
                             syncValue.cronJobInfoList = cronJobInfoList;
@@ -557,7 +557,7 @@
                             next();
                         });
                 };
-                
+
                 runStepByStep(this.data, confirmOnePlan, () => {
                     this.isConfirmLoading = false;
                     this.syncValueMemoMap = Object.freeze(syncValueMemoMap);
@@ -616,10 +616,10 @@
              * @param {Array} cronJobInfoList 执行方案关联的定时任务变量信息
              */
             handleSelectPlanConfirmChange (cronJobInfoList) {
-                window.changeConfirm = true;
+                window.changeFlag = true;
 
                 const syncValueMemoMap = { ...this.syncValueMemoMap };
-                
+
                 syncValueMemoMap[this.selectPlanInfo.planId] = {
                     templateId: this.selectPlanInfo.templateId,
                     id: this.selectPlanInfo.planId,
@@ -650,7 +650,7 @@
                         item.status = SyncPlanVO.STATUS_SYNC_QUEUE;
                     }
                 });
-                
+
                 const syncOnePlan = (plan, next) => {
                     const currentSyncPlan = plan;
                     // 需要同步的执行方案才会变更同步状态
@@ -659,7 +659,7 @@
                         next();
                         return;
                     }
-                    
+
                     // 同步中
                     currentSyncPlan.status = SyncPlanVO.STATUS_SYNC_PENDING;
 
@@ -694,7 +694,7 @@
                 runStepByStep(this.data, syncOnePlan, () => {
                     this.isSyncLoading = false;
                     this.isFinished = true;
-                    window.changeConfirm = false;
+                    window.changeFlag = false;
                 });
             },
             /**
@@ -735,7 +735,7 @@
              * @desc 完成批量同步
              */
             handleFinish () {
-                window.changeConfirm = false;
+                window.changeFlag = false;
                 this.routerBack();
             },
             /**

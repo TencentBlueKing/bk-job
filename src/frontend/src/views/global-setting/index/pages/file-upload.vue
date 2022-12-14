@@ -30,15 +30,18 @@
         v-bkloading="{ isLoading }"
         class="file-upload-manage-page">
         <smart-action offset-target="input-wraper">
-            <jb-form style="width: 480px; margin-bottom: 20px;">
+            <jb-form
+                form-type="vertical"
+                style="width: 480px; margin-bottom: 20px;">
                 <div class="block-title">
                     {{ $t('setting.本地文件上传大小限制') }}:
                 </div>
                 <jb-form-item>
                     <div class="input-wraper">
-                        <jb-input-number
+                        <bk-input
                             v-model="info.amount"
-                            :min="1" />
+                            :min="1"
+                            type="number" />
                         <bk-select
                             v-model="info.unit"
                             class="unit-item"

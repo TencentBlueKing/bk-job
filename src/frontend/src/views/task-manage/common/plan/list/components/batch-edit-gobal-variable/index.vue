@@ -255,7 +255,7 @@
             */
             handleSubmit () {
                 const planList = this.$refs.handler.getRelatePlanList();
-                
+
                 const stack = [];
                 planList.forEach((currentPlan) => {
                     const variableInfoList = [];
@@ -286,7 +286,7 @@
                 });
                 return TaskPlanService.batchUpdateVariable(stack)
                     .then(() => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.messageSuccess(I18n.t('template.编辑成功'));
                         this.$emit('on-success');
                         // settimeout 保证 jb-popover-confirm能被先关闭

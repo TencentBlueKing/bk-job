@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
+import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
-import com.tencent.bk.job.manage.model.credential.CommonCredential;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import lombok.AllArgsConstructor;

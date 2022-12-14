@@ -26,7 +26,6 @@ dependencies {
     api project(':commons:common')
     api project(':commons:common-i18n')
     api project(':commons:common-iam')
-    api project(":job-logsvr:api-job-logsvr")
     api project(":job-file-gateway:api-job-file-gateway-worker")
     api(project(":commons:common-api"))
     api project(':commons:esb-sdk')

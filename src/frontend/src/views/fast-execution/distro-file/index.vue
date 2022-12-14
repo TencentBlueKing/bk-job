@@ -513,7 +513,7 @@
                                 mode: rollingMode,
                             },
                         }).then((data) => {
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                             this.$router.push({
                                 name: 'quickLaunchStep',
                                 params: {
