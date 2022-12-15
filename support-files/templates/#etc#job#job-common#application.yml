@@ -71,11 +71,11 @@ job:
   web:
     url: __BK_JOB_PUBLIC_URL__
   features:
-    file_manage:
+    fileManage:
       enabled: false
-    bk_biz_id_compatible:
+    bkBizIdCompatible:
       enabled: true
-    gse_v2:
+    gseV2:
       enabled: true
   storage:
     root-path: __BK_HOME__/public/job
