@@ -564,13 +564,13 @@ job:
     # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
   features:
-    file_manage:
+    fileManage:
       # 是否开启文件管理特性，容器化环境默认开启
       enabled: true
-    bk_biz_id_compatible:
+    bkBizIdCompatible:
       # 是否兼容bk_biz_id参数
       enabled: true
-    gse_v2:
+    gseV2:
       # 是否对接GSE2.0, 默认使用GSE2.0. 如果需要使用GSE1.0，设置enabled=false
       enabled: true
   trace:

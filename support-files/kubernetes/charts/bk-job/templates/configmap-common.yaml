@@ -95,16 +95,16 @@ data:
         url: {{ include "job.web.url" . }}
       features:
         - id: file_manage
-          enabled: {{ .Values.job.features.file_manage.enabled }}
+          enabled: {{ .Values.job.features.fileManage.enabled }}
         - id: bk_biz_id_compatible
-          enabled: {{ .Values.job.features.bk_biz_id_compatible.enabled }}
+          enabled: {{ .Values.job.features.bkBizIdCompatible.enabled }}
         - id: gse_v2
-          enabled: {{ .Values.job.features.gse_v2.enabled }}
-          {{- if .Values.job.features.gse_v2.strategy }}
+          enabled: {{ .Values.job.features.gseV2.enabled }}
+          {{- if .Values.job.features.gseV2.strategy }}
           strategy:
-            id: {{ .Values.job.features.gse_v2.strategy.id }}
-            {{- if .Values.job.features.gse_v2.strategy.params }}
-            params: {{- include "common.tplvalues.render" ( dict "value" .Values.job.features.gse_v2.strategy.params "context" $ ) | nindent 14 }}
+            id: {{ .Values.job.features.gseV2.strategy.id }}
+            {{- if .Values.job.features.gseV2.strategy.params }}
+            params: {{- include "common.tplvalues.render" ( dict "value" .Values.job.features.gseV2.strategy.params "context" $ ) | nindent 14 }}
             {{- end }}
           {{- end }}
       storage:
