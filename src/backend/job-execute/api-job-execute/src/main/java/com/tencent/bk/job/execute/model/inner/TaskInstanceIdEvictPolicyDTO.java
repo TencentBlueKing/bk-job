@@ -24,17 +24,26 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * 执行引擎任务驱逐策略POJO类
+ * 根据任务实例Id来驱逐任务的策略实体
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = TaskInstanceIdEvictPolicyDTO.class, name = TaskInstanceIdEvictPolicyDTO.classType),
-    @JsonSubTypes.Type(value = AppCodeTaskEvictPolicyDTO.class, name = AppCodeTaskEvictPolicyDTO.classType),
-    @JsonSubTypes.Type(value = AppIdTaskEvictPolicyDTO.class, name = AppIdTaskEvictPolicyDTO.classType),
-    @JsonSubTypes.Type(value = ComposedTaskEvictPolicyDTO.class, name = ComposedTaskEvictPolicyDTO.classType)})
-public class TaskEvictPolicyDTO {
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class TaskInstanceIdEvictPolicyDTO extends TaskEvictPolicyDTO {
+
+    public static final String classType = "TaskInstanceIdEvictPolicy";
+
+    protected List<Long> taskInstanceIdsToEvict;
+
+    public TaskInstanceIdEvictPolicyDTO(List<Long> taskInstanceIdsToEvict) {
+        this.taskInstanceIdsToEvict = taskInstanceIdsToEvict;
+    }
+
 }

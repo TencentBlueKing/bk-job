@@ -22,17 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.execute.engine.evict;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.engine.evict.ComposedTaskEvictPolicy;
-import com.tencent.bk.job.execute.engine.evict.ITaskEvictPolicy;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.AppCodeTaskEvictPolicyDTO;
 import com.tencent.bk.job.execute.model.inner.AppIdTaskEvictPolicyDTO;
 import com.tencent.bk.job.execute.model.inner.ComposedTaskEvictPolicyDTO;
 import com.tencent.bk.job.execute.model.inner.TaskEvictPolicyDTO;
+import com.tencent.bk.job.execute.model.inner.TaskInstanceIdEvictPolicyDTO;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -43,11 +42,13 @@ public class TaskEvictPolicyTest {
 
     @Test
     public void testTaskEvictPolicy() {
+        TaskEvictPolicyDTO taskInstanceIdPolicy = new TaskInstanceIdEvictPolicyDTO(Arrays.asList(1001L, 1002L));
         TaskEvictPolicyDTO appIdPolicy = new AppIdTaskEvictPolicyDTO(Arrays.asList(2L, 3L));
         TaskEvictPolicyDTO appCodePolicy = new AppCodeTaskEvictPolicyDTO(Arrays.asList("appCode1", "appCode2"));
         // 测试策略OR组合
         ComposedTaskEvictPolicyDTO composedPolicyDTO = new ComposedTaskEvictPolicyDTO(
             ComposedTaskEvictPolicy.ComposeOperator.OR,
+            taskInstanceIdPolicy,
             appIdPolicy,
             appCodePolicy
         );
@@ -64,21 +65,28 @@ public class TaskEvictPolicyTest {
         // 负例
         taskInstance.setAppCode("appCode3");
         assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(false);
-        // 正例
-        taskInstance.setAppId(2L);
-        taskInstance.setAppCode("appCode3");
-        assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(true);
-        taskInstance.setAppId(20L);
-        taskInstance.setAppCode("appCode2");
-        assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(true);
-        // 负例
+        taskInstance.setId(1003L);
         taskInstance.setAppId(20L);
         taskInstance.setAppCode("appCode3");
         assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(false);
+        // 正例
+        taskInstance.setId(1003L);
+        taskInstance.setAppId(2L);
+        taskInstance.setAppCode("appCode3");
+        assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(true);
+        taskInstance.setId(1003L);
+        taskInstance.setAppId(20L);
+        taskInstance.setAppCode("appCode2");
+        assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(true);
+        taskInstance.setId(1002L);
+        taskInstance.setAppId(20L);
+        taskInstance.setAppCode("appCode4");
+        assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(true);
 
         // 测试策略AND组合
         composedPolicyDTO = new ComposedTaskEvictPolicy(
             ComposedTaskEvictPolicy.ComposeOperator.AND,
+            taskInstanceIdPolicy,
             appIdPolicy,
             appCodePolicy
         );
@@ -89,13 +97,16 @@ public class TaskEvictPolicyTest {
         });
         composedPolicy = new ComposedTaskEvictPolicy(composedPolicyDTO);
         // 负例
+        taskInstance.setId(1001L);
         taskInstance.setAppId(2L);
         taskInstance.setAppCode("appCode3");
         assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(false);
+        taskInstance.setId(1001L);
         taskInstance.setAppId(20L);
         taskInstance.setAppCode("appCode2");
         assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(false);
         // 正例
+        taskInstance.setId(1001L);
         taskInstance.setAppId(2L);
         taskInstance.setAppCode("appCode1");
         assertThat(composedPolicy.needToEvict(taskInstance)).isEqualTo(true);
