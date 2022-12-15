@@ -42,15 +42,15 @@ public class FeatureToggle {
     /**
      * 特性: 对接 GSE2.0
      */
-    public static final String FEATURE_GSE_V2 = "gse_v2";
+    public static final String FEATURE_GSE_V2 = "gseV2";
     /**
      * 特性: OpenAPI 兼容bk_biz_id参数
      */
-    public static final String FEATURE_BK_BIZ_ID_COMPATIBLE = "bk_biz_id_compatible";
+    public static final String FEATURE_BK_BIZ_ID_COMPATIBLE = "bkBizIdCompatible";
     /**
      * 特性-第三方文件源
      */
-    public static final String FEATURE_FILE_MANAGE = "file_manage";
+    public static final String FEATURE_FILE_MANAGE = "fileManage";
 
     /**
      * key: featureId; value: Feature
