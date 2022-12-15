@@ -96,6 +96,8 @@
     const removedHostList = shallowRef([]);
     const invalidHostList = shallowRef([]);
 
+    let hostListResultMemo = [];
+
     const newHostNum = ref(0);
 
     // 通过 host_id 查询主机详情
@@ -125,8 +127,14 @@
 
     watch(() => props.data, () => {
         if (props.data.length > 0) {
-            isLoading.value = true;
-            fetchData();
+            const hasNotAlive = !!_.find(props.data, item => item.alive === undefined);
+            // 主机缺少 agent 状态需要获取最新的 agent 状态
+            if (hasNotAlive) {
+                isLoading.value = true;
+                fetchData();
+            } else {
+                validHostList.value = [...props.data];
+            }
         } else {
             validHostList.value = [];
         }
@@ -155,13 +163,18 @@
             ...removedHostList.value,
             ...originalList,
         ];
+
+        hostListResultMemo = [
+            ...invalidHostList.value,
+            ...validHostList.value,
+        ];
     }, {
         immediate: true,
     });
 
     // 移除单个IP
     const handleRemove = (removeTarget) => {
-        const result = props.data.reduce((result, item) => {
+        const result = hostListResultMemo.reduce((result, item) => {
             if (removeTarget.host_id !== item.host_id) {
                 result.push(item);
             }
@@ -183,7 +196,7 @@
 
     defineExpose({
         getAllHostList () {
-            return listData.value;
+            return hostListResultMemo;
         },
     });
 </script>
