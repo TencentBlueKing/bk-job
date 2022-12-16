@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,18 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class FeatureToggle {
-    /**
-     * 特性: 对接 GSE2.0
-     */
-    public static final String FEATURE_GSE_V2 = "gseV2";
-    /**
-     * 特性: OpenAPI 兼容bk_biz_id参数
-     */
-    public static final String FEATURE_BK_BIZ_ID_COMPATIBLE = "bkBizIdCompatible";
-    /**
-     * 特性-第三方文件源
-     */
-    public static final String FEATURE_FILE_MANAGE = "fileManage";
 
     /**
      * key: featureId; value: Feature
@@ -72,14 +59,13 @@ public class FeatureToggle {
     public void reload() {
         FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
 
-        if (CollectionUtils.isEmpty(featureToggleConfig.getFeatures())) {
+        if (featureToggleConfig.getFeatures() == null || featureToggleConfig.getFeatures().isEmpty()) {
             log.info("Feature toggle config empty!");
             return;
         }
 
-        featureToggleConfig.getFeatures().forEach(featureConfig -> {
+        featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
             Feature feature = new Feature();
-            String featureId = featureConfig.getId();
             feature.setId(featureId);
             feature.setEnabled(featureConfig.isEnabled());
 
@@ -91,8 +77,10 @@ public class FeatureToggle {
                     case ResourceScopeToggleStrategy.STRATEGY_ID:
                         toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
                         break;
+                    case WeightToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
                     default:
-                        log.error("Invalid toggle strategy: {} for feature: {}, ignore it!", strategyId, featureId);
+                        log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId, featureId);
                         break;
                 }
                 if (toggleStrategy != null) {

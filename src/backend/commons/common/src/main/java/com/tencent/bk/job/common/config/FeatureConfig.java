@@ -8,10 +8,6 @@ import lombok.Data;
 @Data
 public class FeatureConfig {
     /**
-     * 特性ID
-     */
-    private String id;
-    /**
      * 是否启用特性
      */
     private boolean enabled;

@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
+import java.util.Map;
 
 /**
  * 特性开关配置
@@ -47,7 +47,7 @@ public class FeatureToggleConfig {
     /**
      * 特性
      */
-    private List<FeatureConfig> features;
+    private Map<String, FeatureConfig> features;
 
     @PostConstruct
     public void print() {

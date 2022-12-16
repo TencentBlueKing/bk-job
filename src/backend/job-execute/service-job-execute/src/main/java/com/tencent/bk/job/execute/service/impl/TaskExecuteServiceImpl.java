@@ -45,6 +45,7 @@ import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContextBuilder;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -749,7 +750,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private boolean isUsingGseV2(long appId) {
         return FeatureToggle.getInstance().checkFeature(
-            FeatureToggle.FEATURE_GSE_V2,
+            FeatureIdConstants.FEATURE_GSE_V2,
             FeatureExecutionContextBuilder.builder()
                 .resourceScope(appScopeMappingService.getScopeByAppId(appId))
                 .build()
