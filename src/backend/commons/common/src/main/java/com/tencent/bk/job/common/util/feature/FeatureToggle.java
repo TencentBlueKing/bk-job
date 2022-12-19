@@ -103,11 +103,11 @@ public class FeatureToggle {
     public boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
         Feature feature = features.get(featureId);
         if (feature == null) {
-            log.warn("Feature: {} is not exist!", featureId);
+            log.debug("Feature: {} is not exist!", featureId);
             return false;
         }
         if (!feature.isEnabled()) {
-            log.warn("Feature: {} is disabled!", featureId);
+            log.debug("Feature: {} is disabled!", featureId);
             return false;
         }
 
