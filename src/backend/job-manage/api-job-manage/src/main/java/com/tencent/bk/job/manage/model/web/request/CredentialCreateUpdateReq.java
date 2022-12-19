@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
-import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
 import com.tencent.bk.job.common.model.dto.CommonCredential;
+import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.file.worker.artifactory.service;
 
-import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.common.model.dto.CommonCredential;
+import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

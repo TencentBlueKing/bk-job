@@ -25,31 +25,97 @@
 package com.tencent.bk.job.common.util.feature;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 特性开关
  */
+@Slf4j
 public class FeatureToggle {
 
+    /**
+     * key: featureId; value: Feature
+     */
+    private final Map<String, Feature> features = new ConcurrentHashMap<>();
+
+    private static class FeatureToggleHolder {
+        private static final FeatureToggle INSTANCE = new FeatureToggle();
+    }
+
     private FeatureToggle() {
+        reload();
     }
 
-    private static FeatureToggleConfig get() {
-        return Inner.instance;
+    public static FeatureToggle getInstance() {
+        return FeatureToggleHolder.INSTANCE;
     }
 
-    private static class Inner {
-        private static final FeatureToggleConfig instance =
-            ApplicationContextRegister.getBean(FeatureToggleConfig.class);
+    public void reload() {
+        FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
+
+        if (featureToggleConfig.getFeatures() == null || featureToggleConfig.getFeatures().isEmpty()) {
+            log.info("Feature toggle config empty!");
+            return;
+        }
+
+        featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
+            Feature feature = new Feature();
+            feature.setId(featureId);
+            feature.setEnabled(featureConfig.isEnabled());
+
+            ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
+            if (strategyConfig != null) {
+                String strategyId = strategyConfig.getId();
+                ToggleStrategy toggleStrategy = null;
+                switch (strategyId) {
+                    case ResourceScopeToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
+                        break;
+                    case WeightToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
+                    default:
+                        log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId, featureId);
+                        break;
+                }
+                if (toggleStrategy != null) {
+                    feature.setStrategy(toggleStrategy);
+                }
+            }
+            features.put(featureId, feature);
+        });
+        log.info("Load feature toggle config done! features: {}", JsonUtils.toJson(features));
     }
+
 
     /**
-     * 是否兼容ESB bk_biz_id 参数
+     * 判断特性是否开启
+     *
+     * @param featureId 特性ID
+     * @param ctx       特性运行上下文
+     * @return 是否开启
      */
-    public static boolean isBkBizIdEnabled() {
-        FeatureToggleConfig featureToggleConfig = get();
-        FeatureToggleConfig.ToggleConfig toggleConfig = featureToggleConfig.getEsbApiParamBkBizId();
-        return toggleConfig.isOpen();
+    public boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
+        Feature feature = features.get(featureId);
+        if (feature == null) {
+            log.debug("Feature: {} is not exist!", featureId);
+            return false;
+        }
+        if (!feature.isEnabled()) {
+            log.debug("Feature: {} is disabled!", featureId);
+            return false;
+        }
+
+        ToggleStrategy strategy = feature.getStrategy();
+        if (strategy == null) {
+            // 如果没有配置特性开启策略，且enabled=true，判定为特性开启
+            return true;
+        }
+        return strategy.evaluate(featureId, ctx);
     }
 }

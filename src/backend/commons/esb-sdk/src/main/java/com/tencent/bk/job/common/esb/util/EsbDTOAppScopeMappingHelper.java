@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 
 /**
@@ -50,7 +51,7 @@ public class EsbDTOAppScopeMappingHelper {
         esbAppScopeDTO.setScopeType(resourceScope.getType().getValue());
         esbAppScopeDTO.setScopeId(resourceScope.getId());
         // 如果不兼容bk_biz_id，那么使用bk_scope_type+bk_scope_id参数校验方式
-        if (FeatureToggle.isBkBizIdEnabled()) {
+        if (FeatureToggle.getInstance().checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE, null)) {
             esbAppScopeDTO.setBizId(Long.valueOf(resourceScope.getId()));
         }
     }
