@@ -31,6 +31,7 @@ public class GseClient implements IGseClient {
                      @Autowired(required = false) GseV2ApiClient gseV2APIClient) {
         this.gseV1ApiClient = gseV1ApiClient;
         this.gseV2APIClient = gseV2APIClient;
+        log.info("Init gseClient, gseV1ApiClient: {}, gseV2APIClient: {}", gseV1ApiClient, gseV2APIClient);
     }
 
 
@@ -44,7 +45,7 @@ public class GseClient implements IGseClient {
             log.debug("Choose GseV1ApiClient, agentId: {}", agentId);
             return gseV1ApiClient;
         } else {
-            log.debug("Choose GseV2ApiClient, agent: {}", agentId);
+            log.debug("Choose GseV2ApiClient, agentId: {}", agentId);
             return gseV2APIClient;
         }
     }
