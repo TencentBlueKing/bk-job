@@ -94,11 +94,11 @@ data:
       web:
         url: {{ include "job.web.url" . }}
       features:
-        - id: fileManage
+        fileManage:
           enabled: {{ .Values.job.features.fileManage.enabled }}
-        - id: bkBizIdCompatible
+        bkBizIdCompatible:
           enabled: {{ .Values.job.features.bkBizIdCompatible.enabled }}
-        - id: gseV2
+        gseV2:
           enabled: {{ .Values.job.features.gseV2.enabled }}
           {{- if .Values.job.features.gseV2.strategy }}
           strategy:
