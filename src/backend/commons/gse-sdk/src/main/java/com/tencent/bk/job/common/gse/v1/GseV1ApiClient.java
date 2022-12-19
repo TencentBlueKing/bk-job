@@ -61,7 +61,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,7 +80,6 @@ public class GseV1ApiClient implements IGseClient {
     private final MeterRegistry meterRegistry;
     private final GseCacheClientFactory gseCacheClientFactory;
 
-    @Autowired
     public GseV1ApiClient(MeterRegistry meterRegistry,
                           GseCacheClientFactory gseCacheClientFactory) {
         this.meterRegistry = meterRegistry;
