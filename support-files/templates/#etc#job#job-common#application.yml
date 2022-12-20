@@ -25,6 +25,7 @@ esb:
   service:
     url: __BK_PAAS_PRIVATE_URL__
 gse:
+  enabled: true
   cache:
     apiserver:
       host: __BK_GSE_CACHE_APISERVER_HOST__

@@ -1,5 +1,7 @@
 package com.tencent.bk.job.common.gse;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
 import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
@@ -14,6 +16,7 @@ import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +44,10 @@ public class GseClient implements IGseClient {
     }
 
     private IGseClient chooseGseApiClientByAgentId(String agentId) {
+        if (StringUtils.isEmpty(agentId)) {
+            log.error("Empty agentId!");
+            throw new InternalException("AgentId is empty", ErrorCode.INTERNAL_ERROR);
+        }
         if (AgentUtils.isGseV1AgentId(agentId)) {
             log.debug("Choose GseV1ApiClient, agentId: {}", agentId);
             return gseV1ApiClient;
