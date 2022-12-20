@@ -182,7 +182,7 @@
                             id: item.id,
                             planSelectedMap: {},
                             planList: [],
-                            exportAll: 0,
+                            exportAll: 1,
                         };
                         return result;
                     }, {}));
@@ -257,7 +257,7 @@
                 } else {
                     currentTemplate.planSelectedMap[planId] = true;
                     currentTemplate.exportAll
-                        = Number(Object.keys(currentTemplate.planSelectedMap).length === currentTemplate.planList.length);
+                        = Object.keys(currentTemplate.planSelectedMap).length === currentTemplate.planList.length ? 1 : 0;
                 }
                 this.templateInfoMap = Object.freeze(templateInfoMap);
             },
