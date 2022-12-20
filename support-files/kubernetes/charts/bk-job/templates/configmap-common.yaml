@@ -37,6 +37,7 @@ data:
       gse:
         url: {{ .Values.bkGseApiGatewayUrl }}
     gse:
+      enabled: {{ .Values.gse.enabled }}
       version: {{ .Values.gse.version }}
       cache:
         apiserver:
@@ -93,13 +94,20 @@ data:
         password: {{ .Values.job.encrypt.password }}
       web:
         url: {{ include "job.web.url" . }}
-      feature:
-        file-manage:
-          enabled: {{ .Values.job.feature.toggle.fileManage.enabled }}
-        cmdbBizSet:
-          enabled: {{ .Values.job.feature.toggle.cmdbBizSet.enabled }}
-        esbApiParamBkBizId:
-          enabled: {{ .Values.job.feature.toggle.esbApiParamBkBizId.enabled }}
+      features:
+        fileManage:
+          enabled: {{ .Values.job.features.fileManage.enabled }}
+        bkBizIdCompatible:
+          enabled: {{ .Values.job.features.bkBizIdCompatible.enabled }}
+        gseV2:
+          enabled: {{ .Values.job.features.gseV2.enabled }}
+          {{- if .Values.job.features.gseV2.strategy }}
+          strategy:
+            id: {{ .Values.job.features.gseV2.strategy.id }}
+            {{- if .Values.job.features.gseV2.strategy.params }}
+            params: {{- include "common.tplvalues.render" ( dict "value" .Values.job.features.gseV2.strategy.params "context" $ ) | nindent 14 }}
+            {{- end }}
+          {{- end }}
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
     cmdb:

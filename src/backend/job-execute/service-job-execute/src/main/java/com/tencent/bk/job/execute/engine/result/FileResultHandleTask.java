@@ -798,48 +798,89 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         HostDTO sourceHost = result.getSourceHost();
         HostDTO targetHost = result.getTargetHost();
         if (isDownloadResult) {
-            addFileTaskLog(executionLogs,
-                new ServiceFileTaskLogDTO(
-                    FileDistModeEnum.DOWNLOAD.getValue(),
-                    targetHost.getHostId(),
-                    targetHost.toCloudIp(),
-                    targetHost.toCloudIpv6(),
-                    content.getStandardDestFilePath(),
-                    sourceHost.getHostId(),
-                    sourceHost.toCloudIp(),
-                    sourceHost.toCloudIpv6(),
-                    srcFile.getFileType().getType(),
-                    content.getStandardSourceFilePath(),
-                    srcFile.getDisplayFilePath(),
-                    fileSize,
-                    status.getValue(),
-                    status.getName(),
-                    speed,
-                    progressText,
-                    logContentStr)
-            );
+            ServiceFileTaskLogDTO downloadLog = initFileTaskLog(fileSize, status, speed, progressText, logContentStr);
+            fillDownloadFileTaskLog(downloadLog, sourceHost, targetHost, srcFile, content);
+            addFileTaskLog(executionLogs, downloadLog);
         } else {
-            addFileTaskLog(executionLogs,
-                new ServiceFileTaskLogDTO(
-                    FileDistModeEnum.UPLOAD.getValue(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    sourceHost.getHostId(),
-                    sourceHost.toCloudIp(),
-                    sourceHost.toCloudIpv6(),
-                    srcFile.getFileType().getType(),
-                    content.getStandardSourceFilePath(),
-                    displayFilePath,
-                    fileSize,
-                    status.getValue(),
-                    status.getName(),
-                    speed,
-                    progressText,
-                    logContentStr)
-            );
+            ServiceFileTaskLogDTO uploadLog = initFileTaskLog(fileSize, status, speed, progressText, logContentStr);
+            fillUploadFileTaskLog(uploadLog, sourceHost, displayFilePath, srcFile, content);
+            addFileTaskLog(executionLogs, uploadLog);
         }
+    }
+
+    /**
+     * 根据部分字段构造初始文件任务日志对象
+     *
+     * @param fileSize      文件大小
+     * @param status        任务状态
+     * @param speed         传输速度
+     * @param progressText  进度信息
+     * @param logContentStr 详细日志内容
+     * @return 文件任务日志对象
+     */
+    private ServiceFileTaskLogDTO initFileTaskLog(String fileSize,
+                                                  FileDistStatusEnum status,
+                                                  String speed,
+                                                  String progressText,
+                                                  String logContentStr) {
+        ServiceFileTaskLogDTO fileTaskLog = new ServiceFileTaskLogDTO();
+        fileTaskLog.setSize(fileSize);
+        fileTaskLog.setStatus(status.getValue());
+        fileTaskLog.setStatusDesc(status.getName());
+        fileTaskLog.setSpeed(speed);
+        fileTaskLog.setProcess(progressText);
+        fileTaskLog.setContent(logContentStr);
+        return fileTaskLog;
+    }
+
+    /**
+     * 为下载类型的文件任务日志填充源、目标等相关信息
+     *
+     * @param fileTaskLog 文件任务日志对象
+     * @param sourceHost  源主机
+     * @param targetHost  目标主机
+     * @param srcFile     分发的单个文件信息
+     * @param content     GSE任务执行结果(单个文件)
+     */
+    private void fillDownloadFileTaskLog(ServiceFileTaskLogDTO fileTaskLog,
+                                         HostDTO sourceHost,
+                                         HostDTO targetHost,
+                                         JobFile srcFile,
+                                         AtomicFileTaskResultContent content) {
+        fileTaskLog.setMode(FileDistModeEnum.DOWNLOAD.getValue());
+        fileTaskLog.setDestHostId(targetHost.getHostId());
+        fileTaskLog.setDestIp(targetHost.toCloudIp());
+        fileTaskLog.setDestIpv6(targetHost.toCloudIpv6());
+        fileTaskLog.setDestFile(content.getStandardDestFilePath());
+        fileTaskLog.setSrcHostId(sourceHost.getHostId());
+        fileTaskLog.setSrcIp(sourceHost.toCloudIp());
+        fileTaskLog.setSrcIpv6(sourceHost.toCloudIpv6());
+        fileTaskLog.setSrcFileType(srcFile.getFileType().getType());
+        fileTaskLog.setSrcFile(content.getStandardSourceFilePath());
+        fileTaskLog.setDisplaySrcFile(srcFile.getDisplayFilePath());
+    }
+
+    /**
+     * 为上传类型的文件任务日志填充源相关信息
+     *
+     * @param fileTaskLog        文件任务日志对象
+     * @param sourceHost         源主机
+     * @param displaySrcFilePath 用于展示的源文件路径
+     * @param srcFile            分发的单个文件信息
+     * @param content            GSE任务执行结果(单个文件)
+     */
+    private void fillUploadFileTaskLog(ServiceFileTaskLogDTO fileTaskLog,
+                                       HostDTO sourceHost,
+                                       String displaySrcFilePath,
+                                       JobFile srcFile,
+                                       AtomicFileTaskResultContent content) {
+        fileTaskLog.setMode(FileDistModeEnum.UPLOAD.getValue());
+        fileTaskLog.setSrcHostId(sourceHost.getHostId());
+        fileTaskLog.setSrcIp(sourceHost.toCloudIp());
+        fileTaskLog.setSrcIpv6(sourceHost.toCloudIpv6());
+        fileTaskLog.setSrcFileType(srcFile.getFileType().getType());
+        fileTaskLog.setSrcFile(content.getStandardSourceFilePath());
+        fileTaskLog.setDisplaySrcFile(displaySrcFilePath);
     }
 
     private FileDistStatusEnum parseFileTaskStatus(AtomicFileTaskResult result, boolean isDownloadResult) {

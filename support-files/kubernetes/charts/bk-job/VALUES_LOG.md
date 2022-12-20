@@ -1,6 +1,30 @@
 # chart values 更新日志
+## 0.4.0-beta.47
+1.增加特性开关相关配置
+```shell script
+## job-file-gateway文件网关服务配置
+job:
+  features:
+    # 是否开启文件管理特性，容器化环境默认开启
+    fileManage: 
+      enabled: true
+    # 是否兼容ESB API 的 bk_biz_id 参数
+    bkBizIdCompatible:
+      enabled: true
+    # 是否对接GSE2.0, 默认使用GSE2.0. 如果需要使用GSE1.0，设置enabled=false
+    gseV2:
+      enabled: true
+      # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
+      strategy:
+        # 特性策略ID, 当前支持ResourceScopeToggleStrategy/WeightToggleStrategy（按照业务(集)特性开启策略
+        id: ResourceScopeToggleStrategy
+        # 特性策略初始化参数，kv结构，具体传入参数根据不同的StrategyId变化
+        params: {}
+```
+
 ## 0.3.0-rc.46
 1.增加服务启动顺序控制相关配置
+
 ```shell script
 ## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
 waitForDependServices:

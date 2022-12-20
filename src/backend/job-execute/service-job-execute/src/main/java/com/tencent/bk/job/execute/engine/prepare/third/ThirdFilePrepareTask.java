@@ -27,6 +27,10 @@ package com.tencent.bk.job.execute.engine.prepare.third;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -46,6 +50,7 @@ import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
@@ -54,10 +59,14 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.FileLogPieceDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ThirdFileSourceTaskLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -73,6 +82,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * 第三方文件源文件下载进度拉取任务调度
@@ -100,6 +110,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private final ThirdFilePrepareTaskResultHandler resultHandler;
     private int pullTimes = 0;
     private long logStart = 0L;
+
     /**
      * 任务是否已停止
      */
@@ -208,9 +219,9 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             int maxLogSize = 0;
             // 写日志
             for (FileSourceTaskStatusDTO fileSourceTaskStatusDTO : fileSourceTaskStatusInfoList) {
-                List<ServiceHostLogDTO> logList = fileSourceTaskStatusDTO.getLogList();
+                List<ThirdFileSourceTaskLogDTO> logList = fileSourceTaskStatusDTO.getLogList();
                 if (logList != null && !logList.isEmpty()) {
-                    writeLogs(stepInstance, logList);
+                    writeLogs(stepInstance, fileSourceTaskStatusDTO, logList);
                     if (logList.size() > maxLogSize) {
                         maxLogSize = logList.size();
                     }
@@ -316,6 +327,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         Map<String, FileSourceTaskStatusDTO> map = new HashMap<>();
         fileSourceTaskStatusList.forEach(taskStatus -> map.put(taskStatus.getTaskId(), taskStatus));
         //添加服务器文件信息
+        boolean isGseV1Task = isGseV1FileTask(stepInstance);
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             String fileSourceTaskId = fileSourceDTO.getFileSourceTaskId();
             if (StringUtils.isNotBlank(fileSourceTaskId)) {
@@ -353,8 +365,17 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         fileSourceTaskStatusDTO.getCloudId(),
                         fileSourceTaskStatusDTO.getIp()
                     );
+                    throw new InternalException(ErrorCode.FILE_WORKER_NOT_FOUND);
+                }
+
+                HostDTO sourceHost = hostDTO.clone();
+                if (isGseV1Task) {
+                    sourceHost.setAgentId(sourceHost.toCloudIp());
                 } else {
-                    hostDTO.setAgentId(hostDTO.getFinalAgentId());
+                    if (StringUtils.isBlank(sourceHost.getAgentId())) {
+                        log.error("Using gseV2, source host agent id is empty! host: {}", sourceHost);
+                        throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
+                    }
                 }
                 List<HostDTO> hostDTOList = Collections.singletonList(hostDTO);
                 servers.addStaticIps(hostDTOList);
@@ -385,6 +406,11 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         resultHandler.onSuccess(this);
     }
+
+    private boolean isGseV1FileTask(StepInstanceBaseDTO stepInstance) {
+        return AgentUtils.isGseV1AgentId(stepInstance.getTargetServers().getIpList().get(0).getAgentId());
+    }
+
 
     // 查询file-worker对应主机信息使用60s缓存，避免短时间内多次重复查询
     private final LoadingCache<Triple<Long, String, String>, HostDTO> fileWorkerHostCache = CacheBuilder.newBuilder()
@@ -426,9 +452,73 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         return hostDTO;
     }
 
-    private void writeLogs(StepInstanceDTO stepInstance, List<ServiceHostLogDTO> logDTOList) {
-        logService.writeFileLogsWithTimestamp(stepInstance.getCreateTime(), logDTOList,
-            System.currentTimeMillis());
+    private void writeLogs(StepInstanceDTO stepInstance,
+                           FileSourceTaskStatusDTO fileSourceTaskStatusDTO,
+                           List<ThirdFileSourceTaskLogDTO> logDTOList) {
+        List<ServiceHostLogDTO> serviceHostLogDTOList = new ArrayList<>();
+        for (ThirdFileSourceTaskLogDTO logDTO : logDTOList) {
+            HostDTO host = parseFileWorkerHostWithCache(
+                fileSourceTaskStatusDTO.getCloudId(),
+                fileSourceTaskStatusDTO.getIpProtocol(),
+                fileSourceTaskStatusDTO.getIp()
+            );
+            serviceHostLogDTOList.add(buildServiceHostLogDTO(host, logDTO));
+        }
+        logService.writeFileLogsWithTimestamp(
+            stepInstance.getCreateTime(),
+            serviceHostLogDTOList,
+            System.currentTimeMillis()
+        );
+    }
+
+    /**
+     * 将第三方文件源文件的下载任务日志转为统一的日志格式进行存储
+     *
+     * @param host                   机器信息
+     * @param thirdFileSourceTaskLog 第三方源文件下载任务日志
+     * @return 统一格式日志实体
+     */
+    private ServiceHostLogDTO buildServiceHostLogDTO(HostDTO host, ThirdFileSourceTaskLogDTO thirdFileSourceTaskLog) {
+        if (thirdFileSourceTaskLog == null) {
+            return null;
+        }
+        ServiceHostLogDTO serviceHostLog = new ServiceHostLogDTO();
+        serviceHostLog.setStepInstanceId(stepInstance.getId());
+        serviceHostLog.setExecuteCount(stepInstance.getExecuteCount());
+        serviceHostLog.setBatch(stepInstance.getBatch());
+        serviceHostLog.setHostId(host.getHostId());
+        serviceHostLog.setIp(host.getIp());
+        serviceHostLog.setFileTaskLogs(buildFileTaskLogs(host, thirdFileSourceTaskLog.getFileTaskLogs()));
+        return serviceHostLog;
+    }
+
+    /**
+     * 将第三方文件源任务日志转为Job系统统一格式日志用于存储与展示
+     *
+     * @param host          日志关联的主机信息
+     * @param fileLogPieces 文件下载日志列表
+     * @return Job日志列表
+     */
+    private List<ServiceFileTaskLogDTO> buildFileTaskLogs(HostDTO host, List<FileLogPieceDTO> fileLogPieces) {
+        if (CollectionUtils.isEmpty(fileLogPieces)) {
+            return Collections.emptyList();
+        }
+        return fileLogPieces.stream().map(fileLogPiece -> {
+            ServiceFileTaskLogDTO serviceFileTaskLog = new ServiceFileTaskLogDTO();
+            // 第三方源文件下载后用于分发上传，仅有源文件相关属性
+            serviceFileTaskLog.setMode(FileDistModeEnum.UPLOAD.getValue());
+            serviceFileTaskLog.setSrcIp(fileLogPiece.getSrcIp());
+            serviceFileTaskLog.setSrcHostId(host.getHostId());
+            serviceFileTaskLog.setSrcFile(fileLogPiece.getSrcFile());
+            serviceFileTaskLog.setDisplaySrcFile(fileLogPiece.getDisplaySrcFile());
+            serviceFileTaskLog.setSize(fileLogPiece.getSize());
+            serviceFileTaskLog.setStatus(fileLogPiece.getStatus());
+            serviceFileTaskLog.setStatusDesc(fileLogPiece.getStatusDesc());
+            serviceFileTaskLog.setSpeed(fileLogPiece.getSpeed());
+            serviceFileTaskLog.setProcess(fileLogPiece.getProcess());
+            serviceFileTaskLog.setContent(fileLogPiece.getContent());
+            return serviceFileTaskLog;
+        }).collect(Collectors.toList());
     }
 
     @Override

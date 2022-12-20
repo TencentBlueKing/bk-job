@@ -259,13 +259,4 @@ public class AgentTaskDTO {
     public boolean isSuccess() {
         return AgentTaskStatusEnum.isSuccess(status);
     }
-
-    public String getAgentId() {
-        if (StringUtils.isNotBlank(agentId)) {
-            return agentId;
-        } else {
-            // 兼容没有agentId的历史数据
-            return getCloudIp();
-        }
-    }
 }

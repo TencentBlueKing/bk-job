@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -237,7 +238,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
         }
 
         // 如果兼容bk_biz_id参数
-        if (FeatureToggle.isBkBizIdEnabled()) {
+        if (FeatureToggle.getInstance().checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE, null)) {
             // 兼容当前业务ID参数
             if (StringUtils.isNotBlank(bizIdStr)) {
                 long bizId = Long.parseLong(bizIdStr);

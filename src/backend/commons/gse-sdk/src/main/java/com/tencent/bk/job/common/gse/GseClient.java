@@ -1,6 +1,6 @@
 package com.tencent.bk.job.common.gse;
 
-import com.tencent.bk.job.common.gse.config.GseProperties;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
 import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
@@ -25,25 +25,33 @@ public class GseClient implements IGseClient {
 
     private final GseV1ApiClient gseV1ApiClient;
     private final GseV2ApiClient gseV2APIClient;
-    private final GseProperties gseProperties;
 
 
     public GseClient(@Autowired(required = false) GseV1ApiClient gseV1ApiClient,
-                     @Autowired(required = false) GseV2ApiClient gseV2APIClient,
-                     @Autowired GseProperties gseProperties) {
+                     @Autowired(required = false) GseV2ApiClient gseV2APIClient) {
         this.gseV1ApiClient = gseV1ApiClient;
         this.gseV2APIClient = gseV2APIClient;
-        this.gseProperties = gseProperties;
+        log.info("Init gseClient, gseV1ApiClient: {}, gseV2APIClient: {}", gseV1ApiClient, gseV2APIClient);
     }
 
 
     @Override
     public GseTaskResponse asyncExecuteScript(ExecuteScriptRequest request) {
-        return getGseApiClient().asyncExecuteScript(request);
+        return chooseGseApiClientByAgentId(request.getAgents().get(0).getAgentId()).asyncExecuteScript(request);
     }
 
-    private IGseClient getGseApiClient() {
-        if (gseProperties.getVersion().equals("v2")) {
+    private IGseClient chooseGseApiClientByAgentId(String agentId) {
+        if (AgentUtils.isGseV1AgentId(agentId)) {
+            log.debug("Choose GseV1ApiClient, agentId: {}", agentId);
+            return gseV1ApiClient;
+        } else {
+            log.debug("Choose GseV2ApiClient, agentId: {}", agentId);
+            return gseV2APIClient;
+        }
+    }
+
+    private IGseClient chooseGseApiClientByGseTaskId(String gseTaskId) {
+        if (gseTaskId.startsWith("GSE:V2")) {
             return gseV2APIClient;
         } else {
             return gseV1ApiClient;
@@ -52,31 +60,32 @@ public class GseClient implements IGseClient {
 
     @Override
     public ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request) {
-        return getGseApiClient().getExecuteScriptResult(request);
+        return chooseGseApiClientByGseTaskId(request.getTaskId()).getExecuteScriptResult(request);
     }
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
-        return getGseApiClient().listAgentState(req);
+        return chooseGseApiClientByAgentId(req.getAgentIdList().get(0)).listAgentState(req);
     }
 
     @Override
     public GseTaskResponse asyncTransferFile(TransferFileRequest request) {
-        return getGseApiClient().asyncTransferFile(request);
+        return chooseGseApiClientByAgentId(request.getTasks().get(0).getTarget().getAgents().get(0).getAgentId())
+            .asyncTransferFile(request);
     }
 
     @Override
     public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
-        return getGseApiClient().getTransferFileResult(request);
+        return chooseGseApiClientByGseTaskId(request.getTaskId()).getTransferFileResult(request);
     }
 
     @Override
     public GseTaskResponse terminateGseFileTask(TerminateGseTaskRequest request) {
-        return getGseApiClient().terminateGseFileTask(request);
+        return chooseGseApiClientByGseTaskId(request.getTaskId()).terminateGseFileTask(request);
     }
 
     @Override
     public GseTaskResponse terminateGseScriptTask(TerminateGseTaskRequest request) {
-        return getGseApiClient().terminateGseScriptTask(request);
+        return chooseGseApiClientByGseTaskId(request.getTaskId()).terminateGseScriptTask(request);
     }
 }
