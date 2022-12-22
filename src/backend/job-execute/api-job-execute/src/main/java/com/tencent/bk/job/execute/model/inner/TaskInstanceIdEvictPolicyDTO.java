@@ -22,24 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.req.inner;
+package com.tencent.bk.job.execute.model.inner;
 
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 /**
- * 单个文件源的文件任务内容
+ * 根据任务实例Id来驱逐任务的策略实体
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-public class FileSourceTaskContent {
-    @ApiModelProperty(value = "文件源ID")
-    Integer fileSourceId;
-    @ApiModelProperty(value = "文件路径列表")
-    List<String> filePathList;
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class TaskInstanceIdEvictPolicyDTO extends TaskEvictPolicyDTO {
+
+    public static final String classType = "TaskInstanceIdEvictPolicy";
+
+    protected List<Long> taskInstanceIdsToEvict;
+
+    public TaskInstanceIdEvictPolicyDTO(List<Long> taskInstanceIdsToEvict) {
+        this.taskInstanceIdsToEvict = taskInstanceIdsToEvict;
+    }
+
 }

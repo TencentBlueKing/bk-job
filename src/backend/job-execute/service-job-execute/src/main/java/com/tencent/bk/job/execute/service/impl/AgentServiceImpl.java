@@ -220,7 +220,7 @@ public class AgentServiceImpl implements AgentService {
         result.setBkCloudId(host.getCloudAreaId());
         result.setIp(host.getIp());
         result.setIpv6(host.getIpv6());
-        result.setAgentId(host.getFinalAgentId());
+        result.setAgentId(host.getAgentId());
         return result;
     }
 

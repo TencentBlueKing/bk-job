@@ -1,0 +1,178 @@
+{
+  "system_id": "bk_job",
+  "operations": [
+    {
+      "operation": "upsert_common_actions",
+      "data": [
+        {
+          "name": "业务运维",
+          "name_en": "Operator",
+          "actions": [
+            {
+              "id": "access_business"
+            },
+            {
+              "id": "quick_execute_script"
+            },
+            {
+              "id": "quick_transfer_file"
+            },
+            {
+              "id": "execute_script"
+            },
+            {
+              "id": "view_script"
+            },
+            {
+              "id": "create_script"
+            },
+            {
+              "id": "manage_script"
+            },
+            {
+              "id": "create_job_template"
+            },
+            {
+              "id": "view_job_template"
+            },
+            {
+              "id": "edit_job_template"
+            },
+            {
+              "id": "delete_job_template"
+            },
+            {
+              "id": "debug_job_template"
+            },
+            {
+              "id": "launch_job_plan"
+            },
+            {
+              "id": "create_job_plan"
+            },
+            {
+              "id": "view_job_plan"
+            },
+            {
+              "id": "edit_job_plan"
+            },
+            {
+              "id": "delete_job_plan"
+            },
+            {
+              "id": "sync_job_plan"
+            },
+            {
+              "id": "create_tag"
+            },
+            {
+              "id": "manage_tag"
+            },
+            {
+              "id": "create_cron"
+            },
+            {
+              "id": "manage_cron"
+            },
+            {
+              "id": "view_history"
+            },
+            {
+              "id": "notification_setting"
+            },
+            {
+              "id": "use_account"
+            },
+            {
+              "id": "create_account"
+            },
+            {
+              "id": "manage_account"
+            },
+            {
+              "id": "view_file_source"
+            },
+            {
+              "id": "create_file_source"
+            },
+            {
+              "id": "manage_file_source"
+            },
+            {
+              "id": "use_ticket"
+            },
+            {
+              "id": "create_ticket"
+            },
+            {
+              "id": "manage_ticket"
+            },
+            {
+              "id": "execute_public_script"
+            }
+          ]
+        },
+        {
+          "name": "业务只读",
+          "name_en": "Visitor",
+          "actions": [
+            {
+              "id": "access_business"
+            },
+            {
+              "id": "view_script"
+            },
+            {
+              "id": "view_job_template"
+            },
+            {
+              "id": "view_job_plan"
+            },
+            {
+              "id": "view_history"
+            },
+            {
+              "id": "view_file_source"
+            }
+          ]
+        },
+        {
+          "name": "平台管理员",
+          "name_en": "Administrator",
+          "actions": [
+            {
+              "id": "dashboard_view"
+            },
+            {
+              "id": "service_state_access"
+            },
+            {
+              "id": "create_whitelist"
+            },
+            {
+              "id": "manage_whitelist"
+            },
+            {
+              "id": "execute_public_script"
+            },
+            {
+              "id": "create_public_script"
+            },
+            {
+              "id": "manage_public_script_instance"
+            },
+            {
+              "id": "global_settings"
+            },
+            {
+              "id": "high-risk_detect_rule"
+            },
+            {
+              "id": "high-risk_detect_record"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

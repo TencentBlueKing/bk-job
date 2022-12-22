@@ -68,14 +68,16 @@ public class TaskEvictPolicyExecutor {
      * 更新被驱逐的任务的状态为被丢弃状态
      *
      * @param taskInstance 任务实例
-     * @return 是否更新成功
      */
-    public boolean updateEvictedTaskStatus(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
+    public void updateEvictedTaskStatus(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
         long endTime = System.currentTimeMillis();
         Long taskInstanceId = stepInstance.getTaskInstanceId();
-        if (RunStatusEnum.isFinishedStatus(stepInstance.getStatus())) {
-            long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
-                stepInstance.getTotalTime());
+        if (!RunStatusEnum.isFinishedStatus(stepInstance.getStatus())) {
+            long totalTime = TaskCostCalculator.calculate(
+                stepInstance.getStartTime(),
+                endTime,
+                stepInstance.getTotalTime()
+            );
             taskInstanceService.updateStepExecutionInfo(
                 stepInstance.getId(),
                 RunStatusEnum.ABANDONED,
@@ -90,9 +92,12 @@ public class TaskEvictPolicyExecutor {
                 stepInstance.getStatus()
             );
         }
-        if (RunStatusEnum.isFinishedStatus(taskInstance.getStatus())) {
-            long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
-                taskInstance.getTotalTime());
+        if (!RunStatusEnum.isFinishedStatus(taskInstance.getStatus())) {
+            long totalTime = TaskCostCalculator.calculate(
+                taskInstance.getStartTime(),
+                endTime,
+                taskInstance.getTotalTime()
+            );
             taskInstanceService.updateTaskExecutionInfo(
                 taskInstanceId,
                 RunStatusEnum.ABANDONED,
@@ -108,6 +113,5 @@ public class TaskEvictPolicyExecutor {
                 taskInstance.getStatus()
             );
         }
-        return true;
     }
 }

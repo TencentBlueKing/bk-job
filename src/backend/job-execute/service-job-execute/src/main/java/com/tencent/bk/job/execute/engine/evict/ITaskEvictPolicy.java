@@ -30,5 +30,12 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
  * 执行引擎任务驱逐策略接口类
  */
 public interface ITaskEvictPolicy {
+
+    /**
+     * 判断一个任务实例是否需要被驱逐出执行引擎
+     *
+     * @param taskInstance 任务实例
+     * @return 布尔值，是否需要被驱逐
+     */
     boolean needToEvict(TaskInstanceDTO taskInstance);
 }
