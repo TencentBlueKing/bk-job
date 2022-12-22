@@ -339,7 +339,7 @@ public class GseStepEventHandler implements StepEventHandler {
         agentTask.setStatus(status);
         agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
         agentTask.setHostId(host.getHostId());
-        agentTask.setAgentId(host.toCloudIp());
+        agentTask.setAgentId(host.getAgentId());
         return agentTask;
     }
 
