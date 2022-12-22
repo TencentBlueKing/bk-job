@@ -22,24 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.req.inner;
+package com.tencent.bk.job.execute.engine.evict;
 
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.inner.TaskInstanceIdEvictPolicyDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * 单个文件源的文件任务内容
+ * 驱逐策略：根据任务实例ID将任务驱逐出执行引擎
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-public class FileSourceTaskContent {
-    @ApiModelProperty(value = "文件源ID")
-    Integer fileSourceId;
-    @ApiModelProperty(value = "文件路径列表")
-    List<String> filePathList;
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class TaskInstanceIdEvictPolicy extends TaskInstanceIdEvictPolicyDTO implements ITaskEvictPolicy {
+
+    private Set<Long> taskInstanceIdSetToEvict;
+
+    public TaskInstanceIdEvictPolicy(List<Long> taskInstanceIdsToEvict) {
+        super(taskInstanceIdsToEvict);
+        // 使用查找速度为O(1)的Set
+        taskInstanceIdSetToEvict = new HashSet<>(taskInstanceIdsToEvict);
+    }
+
+    @Override
+    public boolean needToEvict(TaskInstanceDTO taskInstance) {
+        Long taskInstanceId = taskInstance.getId();
+        return taskInstanceIdSetToEvict.contains(taskInstanceId);
+    }
 }
