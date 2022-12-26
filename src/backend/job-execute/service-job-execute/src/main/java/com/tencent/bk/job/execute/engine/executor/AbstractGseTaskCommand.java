@@ -37,9 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.sleuth.Tracer;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * GSE 任务命令基础实现
  */
@@ -110,32 +107,6 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.executeCount = gseTask.getExecuteCount();
         this.batch = gseTask.getBatch();
         this.gseTaskUniqueName = gseTask.getTaskUniqueName();
-    }
-
-    /**
-     * 生成GSE trace 信息
-     */
-    protected Map<String, String> buildGSETraceInfo() {
-        // 捕获所有异常，避免影响任务下发主流程
-        Map<String, String> traceInfoMap = new HashMap<>();
-        try {
-            traceInfoMap.put("CALLER_NAME", "JOB");
-            traceInfoMap.put("JOB_ID", stepInstance.getTaskInstanceId().toString());
-            traceInfoMap.put("STEP_ID", stepInstance.getId().toString());
-            traceInfoMap.put("EXECUTE_COUNT", String.valueOf(stepInstance.getExecuteCount()));
-            traceInfoMap.put("JOB_BIZ_ID", taskInstance.getAppId().toString());
-            if (tracer != null) {
-                traceInfoMap.put("REQUEST_ID", tracer.currentSpan().context().traceId());
-            }
-            if (StringUtils.isNotEmpty(taskInstance.getAppCode())) {
-                traceInfoMap.put("APP_CODE", taskInstance.getAppCode());
-            }
-            traceInfoMap.put("CALLER_IP", agentService.getLocalAgentHost().getIp());
-            traceInfoMap.put("TASK_ACCOUNT", stepInstance.getOperator());
-        } catch (Throwable e) {
-            log.error("Build trace info map for gse failed");
-        }
-        return traceInfoMap;
     }
 
     /**

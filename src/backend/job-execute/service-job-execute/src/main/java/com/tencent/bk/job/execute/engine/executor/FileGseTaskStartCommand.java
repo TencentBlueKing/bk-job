@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.executor;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
@@ -53,6 +54,7 @@ import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
@@ -86,11 +88,6 @@ import java.util.Set;
 public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     private final FileAgentTaskService fileAgentTaskService;
-
-    /**
-     * 本地文件服务器 Agent
-     */
-    private HostDTO localAgentHost;
     /**
      * 待分发文件，文件传输的源文件
      */
@@ -160,8 +157,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     @Override
     protected void preExecute() {
-        // 设置本地文件服务器的Agent Ip
-        this.localAgentHost = agentService.getLocalAgentHost();
         // 解析文件源
         resolveFileSource();
         // 解析文件传输的源文件, 得到List<JobFile>
@@ -181,7 +176,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             for (FileSourceDTO fileSource : fileSourceList) {
                 if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()
                     && fileSource.getServers() == null) {
-                    fileSource.setServers(agentService.getLocalServersDTO());
+                    fillLocalServersDTO(fileSource);
                 }
             }
             // 解析源文件路径中的全局变量
@@ -192,11 +187,26 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         }
     }
 
+    private void fillLocalServersDTO(FileSourceDTO fileSource) {
+        HostDTO localAgentHost = agentService.getLocalAgentHost().clone();
+        // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
+        if (stepInstance.getTargetServers().getIpList().stream()
+            .anyMatch(host -> AgentUtils.isGseV1AgentId(host.getAgentId()))) {
+            localAgentHost.setAgentId(localAgentHost.toCloudIp());
+        }
+        List<HostDTO> hostDTOList = new ArrayList<>();
+        hostDTOList.add(localAgentHost);
+        ServersDTO servers = new ServersDTO();
+        servers.setStaticIpList(hostDTOList);
+        servers.setIpList(hostDTOList);
+        fileSource.setServers(servers);
+    }
+
     /**
      * 解析源文件
      */
     private void parseSrcFiles() {
-        srcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, localAgentHost, fileStorageRootPath);
+        srcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, fileStorageRootPath);
         // 设置源文件所在主机账号信息
         setAccountInfoForSourceFiles(srcFiles);
     }

@@ -65,7 +65,7 @@ public class ApplicationHostDTO {
      */
     private Long bizId;
     /**
-     * IP
+     * IPv4(主机的第一个IPv4地址,完整的IPv4地址使用displayIp字段)
      */
     private String ip;
     /**
@@ -78,7 +78,7 @@ public class ApplicationHostDTO {
     private String agentId;
 
     /**
-     * 展示用的IP
+     * 完整的IPv4地址
      */
     private String displayIp;
     /**
@@ -290,13 +290,13 @@ public class ApplicationHostDTO {
         host.setHostId(hostId);
         host.setBkCloudId(cloudAreaId);
         host.setIp(ip);
-        host.setIpv6(extractFirstIp(ipv6));
+        host.setIpv6(ipv6);
         host.setAgentId(agentId);
         host.setAlive(getAgentAliveValue());
         return host;
     }
 
-    private String extractFirstIp(String ip) {
+    public String extractFirstIp() {
         if (StringUtils.isNotEmpty(ip) && ip.contains(",")) {
             return ip.split(",")[0];
         } else {

@@ -192,9 +192,11 @@ public class AgentServiceImpl implements AgentService {
     private ServiceHostDTO findOneAliveHost(Collection<ServiceHostDTO> serviceHosts) {
         Map<String, ServiceHostDTO> agentIdToHostMap = new HashMap<>();
 
-        serviceHosts.forEach(serviceHost -> {
-            agentIdToHostMap.put(serviceHost.getFinalAgentId(), serviceHost);
-        });
+        serviceHosts.forEach(serviceHost -> agentIdToHostMap.put(
+            StringUtils.isNotEmpty(serviceHost.getAgentId()) ? serviceHost.getAgentId()
+                : serviceHost.getCloudIp(),
+            serviceHost)
+        );
         Map<String, Boolean> agentStatusMap =
             agentStateClient.batchGetAgentAliveStatus(new ArrayList<>(agentIdToHostMap.keySet()));
 
@@ -220,7 +222,7 @@ public class AgentServiceImpl implements AgentService {
         result.setBkCloudId(host.getCloudAreaId());
         result.setIp(host.getIp());
         result.setIpv6(host.getIpv6());
-        result.setAgentId(host.getFinalAgentId());
+        result.setAgentId(host.getAgentId());
         return result;
     }
 

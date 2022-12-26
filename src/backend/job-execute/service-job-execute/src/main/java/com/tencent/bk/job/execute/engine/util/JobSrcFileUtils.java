@@ -35,6 +35,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -103,11 +104,10 @@ public class JobSrcFileUtils {
      * 从步骤解析源文件，处理服务器文件、本地文件、第三方源文件的差异，统一为IP+Path信息
      *
      * @param stepInstance      步骤
-     * @param localHost         job local host
      * @param jobStorageRootDir job共享存储根目录
      * @return 多个要分发的源文件信息集合
      */
-    public static Set<JobFile> parseSrcFiles(StepInstanceDTO stepInstance, HostDTO localHost,
+    public static Set<JobFile> parseSrcFiles(StepInstanceDTO stepInstance,
                                              String jobStorageRootDir) {
         Set<JobFile> sendFiles = Sets.newHashSet();
         for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
@@ -152,17 +152,13 @@ public class JobSrcFileUtils {
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
                     ServersDTO servers = fileSource.getServers();
-                    if (servers != null && servers.getIpList() != null && !servers.getIpList().isEmpty()) {
+                    if (servers != null && CollectionUtils.isNotEmpty(servers.getIpList())) {
                         List<HostDTO> ipList = servers.getIpList();
                         for (HostDTO hostDTO : ipList) {
                             sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, hostDTO, file.getFilePath(), dir,
                                 fileName, "root", null,
                                 FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                         }
-                    } else {
-                        sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, localHost, file.getFilePath(), dir,
-                            fileName, "root", null,
-                            FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }
                 }
             } else if (fileSource.getFileType() == TaskFileTypeEnum.BASE64_FILE.getType()) {
