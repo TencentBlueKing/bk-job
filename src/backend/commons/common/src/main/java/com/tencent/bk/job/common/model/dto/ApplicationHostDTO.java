@@ -296,12 +296,4 @@ public class ApplicationHostDTO {
         return host;
     }
 
-    public String extractFirstIp() {
-        if (StringUtils.isNotEmpty(ip) && ip.contains(",")) {
-            return ip.split(",")[0];
-        } else {
-            return ip;
-        }
-    }
-
 }
