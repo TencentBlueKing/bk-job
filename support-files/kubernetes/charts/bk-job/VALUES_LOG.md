@@ -1,6 +1,7 @@
 # chart values 更新日志
 ## 0.4.0-beta.47
 1.增加特性开关相关配置
+
 ```shell script
 ## job-file-gateway文件网关服务配置
 job:
@@ -22,7 +23,16 @@ job:
         params: {}
 ```
 
+2. 新增GSE1.0 控制开关
+
+```
+gse:
+  # 是否启用GSE1.0
+  enabled: true
+```
+
 ## 0.3.0-rc.46
+
 1.增加服务启动顺序控制相关配置
 
 ```shell script

@@ -70,7 +70,6 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.sleuth.Tracer;
@@ -86,11 +85,6 @@ import java.util.Set;
 public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     private final FileAgentTaskService fileAgentTaskService;
-
-    /**
-     * 本地文件服务器 Agent
-     */
-    private HostDTO localAgentHost;
     /**
      * 待分发文件，文件传输的源文件
      */
@@ -160,8 +154,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     @Override
     protected void preExecute() {
-        // 设置本地文件服务器的Agent Ip
-        this.localAgentHost = agentService.getLocalAgentHost();
         // 解析文件源
         resolveFileSource();
         // 解析文件传输的源文件, 得到List<JobFile>
@@ -178,12 +170,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void resolveFileSource() {
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         if (CollectionUtils.isNotEmpty(fileSourceList)) {
-            for (FileSourceDTO fileSource : fileSourceList) {
-                if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()
-                    && fileSource.getServers() == null) {
-                    fileSource.setServers(agentService.getLocalServersDTO());
-                }
-            }
             // 解析源文件路径中的全局变量
             resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
 
@@ -196,7 +182,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      * 解析源文件
      */
     private void parseSrcFiles() {
-        srcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, localAgentHost, fileStorageRootPath);
+        srcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, fileStorageRootPath);
         // 设置源文件所在主机账号信息
         setAccountInfoForSourceFiles(srcFiles);
     }

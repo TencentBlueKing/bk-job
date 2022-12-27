@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.gse.service;
 
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 import java.util.List;
@@ -42,23 +41,6 @@ public interface AgentStateClient {
      * @return Agent状态对象
      */
     AgentState getAgentState(String agentId);
-
-    /**
-     * 根据agentId获取agent存活状态
-     *
-     * @param agentId AgentId
-     * @return Agent是否存活
-     */
-    boolean getAgentAliveStatus(String agentId);
-
-    /**
-     * 从多个agentId中选择一个，优先选择agent状态正常的，都不正常选第一个
-     *
-     * @param agentIdList agentId列表
-     * @return 选择的agentId
-     * @throws InternalException agentIdList为空时抛出异常
-     */
-    String chooseOneAgentIdPreferAlive(List<String> agentIdList);
 
     /**
      * 根据agentId批量获取agent状态

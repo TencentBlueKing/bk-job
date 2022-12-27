@@ -33,13 +33,11 @@ import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.client.ServiceHostResourceClient;
 import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
@@ -78,7 +76,6 @@ public class HostServiceImpl implements HostService {
     private final WhiteIpResourceClient whiteIpResourceClient;
     private final ServiceHostResourceClient hostResourceClient;
     private final AppScopeMappingService appScopeMappingService;
-    private final AgentStateClient agentStateClient;
     private final ExecutorService getHostsByTopoExecutor;
 
     private final LoadingCache<Long, String> cloudAreaNameCache = CacheBuilder.newBuilder()
@@ -108,12 +105,10 @@ public class HostServiceImpl implements HostService {
     public HostServiceImpl(WhiteIpResourceClient whiteIpResourceClient,
                            ServiceHostResourceClient hostResourceClient,
                            AppScopeMappingService appScopeMappingService,
-                           AgentStateClient agentStateClient,
                            @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor) {
         this.hostResourceClient = hostResourceClient;
         this.whiteIpResourceClient = whiteIpResourceClient;
         this.appScopeMappingService = appScopeMappingService;
-        this.agentStateClient = agentStateClient;
         this.getHostsByTopoExecutor = getHostsByTopoExecutor;
     }
 
@@ -184,12 +179,6 @@ public class HostServiceImpl implements HostService {
         return response.getData();
     }
 
-    private String chooseOneIpPreferAlive(Long cloudId, String multiIp) {
-        List<String> agentIdList = IpUtils.buildCloudIpListByMultiIp(cloudId, multiIp);
-        String cloudIp = agentStateClient.chooseOneAgentIdPreferAlive(agentIdList);
-        return cloudIp.split(":")[1];
-    }
-
     @Override
     public List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
@@ -213,9 +202,10 @@ public class HostServiceImpl implements HostService {
                     "hostIp={}", appId, groupId, hostProp.getIp());
                 continue;
             }
-            String singleIp = chooseOneIpPreferAlive(hostCloudId.getInstanceId(), hostProp.getIp());
-            HostDTO host = new HostDTO(hostCloudId.getInstanceId(), singleIp);
+            HostDTO host = new HostDTO();
             host.setHostId(hostProp.getId());
+            host.setBkCloudId(hostCloudId.getInstanceId());
+            host.setIp(hostProp.getIp());
             host.setIpv6(hostProp.getIpv6());
             host.setAgentId(hostProp.getAgentId());
             hostList.add(host);

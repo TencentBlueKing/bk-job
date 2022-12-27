@@ -29,12 +29,13 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
 import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
-import com.tencent.bk.job.common.util.LogUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,37 +84,33 @@ public class AgentStateClientImpl implements AgentStateClient {
     }
 
     @Override
-    public boolean getAgentAliveStatus(String agentId) {
-        AgentState agentState = getAgentState(agentId);
-        return AgentStatusEnum.fromAgentState(agentState) == AgentStatusEnum.ALIVE;
-    }
-
-    @Override
-    public String chooseOneAgentIdPreferAlive(List<String> agentIdList) {
-        if (CollectionUtils.isEmpty(agentIdList)) {
-            throw new InternalException("agentIdList cannot be empty", ErrorCode.INTERNAL_ERROR);
-        }
-        try {
-            Map<String, Boolean> map = batchGetAgentAliveStatus(agentIdList);
-            for (Map.Entry<String, Boolean> entry : map.entrySet()) {
-                String agentId = entry.getKey();
-                Boolean alive = entry.getValue();
-                if (alive) {
-                    return agentId;
-                }
-            }
-        } catch (Exception e) {
-            FormattingTuple msg = MessageFormatter.format(
-                "Fail to get agentState by agentIdList:{}",
-                LogUtil.buildListLog(agentIdList, 20)
-            );
-            log.warn(msg.getMessage(), e);
-        }
-        return agentIdList.get(0);
-    }
-
-    @Override
     public Map<String, AgentState> batchGetAgentState(List<String> agentIdList) {
+        // 对agentId按照对应的GSE Agent 版本进行分类
+        Pair<List<String>, List<String>> classifiedAgentIdList = classifyGseAgentIds(agentIdList);
+
+        Map<String, AgentState> results = batchGetAgentStateConcurrent(classifiedAgentIdList.getLeft());
+        results.putAll(batchGetAgentStateConcurrent(classifiedAgentIdList.getRight()));
+        return results;
+    }
+
+    private Pair<List<String>, List<String>> classifyGseAgentIds(List<String> agentIdList) {
+        List<String> v1AgentIdList = new ArrayList<>();
+        List<String> v2AgentIdList = new ArrayList<>();
+        agentIdList.forEach(agentId -> {
+            if (AgentUtils.isGseV1AgentId(agentId)) {
+                v1AgentIdList.add(agentId);
+            } else {
+                v2AgentIdList.add(agentId);
+            }
+        });
+        return Pair.of(v1AgentIdList, v2AgentIdList);
+    }
+
+    private Map<String, AgentState> batchGetAgentStateConcurrent(List<String> agentIdList) {
+        if (CollectionUtils.isEmpty(agentIdList)) {
+            return Collections.emptyMap();
+        }
+
         long startTime = System.currentTimeMillis();
         Map<String, AgentState> resultMap = new HashMap<>();
         // 分批
