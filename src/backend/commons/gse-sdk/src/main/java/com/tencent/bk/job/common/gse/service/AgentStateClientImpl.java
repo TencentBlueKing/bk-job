@@ -107,12 +107,12 @@ public class AgentStateClientImpl implements AgentStateClient {
     }
 
     private Map<String, AgentState> batchGetAgentStateConcurrent(List<String> agentIdList) {
-        if (CollectionUtils.isEmpty(agentIdList)) {
-            return Collections.emptyMap();
-        }
-
         long startTime = System.currentTimeMillis();
         Map<String, AgentState> resultMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(agentIdList)) {
+            return resultMap;
+        }
+
         // 分批
         int batchSize = agentStateQueryConfig.getGseQueryBatchSize();
         int threadNum = agentStateQueryConfig.getGseQueryThreadsNum();
