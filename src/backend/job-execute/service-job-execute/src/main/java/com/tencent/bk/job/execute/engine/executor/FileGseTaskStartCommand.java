@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.executor;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
-import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
@@ -54,7 +53,6 @@ import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
@@ -72,7 +70,6 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.sleuth.Tracer;
@@ -173,33 +170,12 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void resolveFileSource() {
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         if (CollectionUtils.isNotEmpty(fileSourceList)) {
-            for (FileSourceDTO fileSource : fileSourceList) {
-                if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()
-                    && fileSource.getServers() == null) {
-                    fillLocalServersDTO(fileSource);
-                }
-            }
             // 解析源文件路径中的全局变量
             resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
 
             taskInstanceService.updateResolvedSourceFile(stepInstance.getId(),
                 stepInstance.getFileSourceList());
         }
-    }
-
-    private void fillLocalServersDTO(FileSourceDTO fileSource) {
-        HostDTO localAgentHost = agentService.getLocalAgentHost().clone();
-        // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
-        if (stepInstance.getTargetServers().getIpList().stream()
-            .anyMatch(host -> AgentUtils.isGseV1AgentId(host.getAgentId()))) {
-            localAgentHost.setAgentId(localAgentHost.toCloudIp());
-        }
-        List<HostDTO> hostDTOList = new ArrayList<>();
-        hostDTOList.add(localAgentHost);
-        ServersDTO servers = new ServersDTO();
-        servers.setStaticIpList(hostDTOList);
-        servers.setIpList(hostDTOList);
-        fileSource.setServers(servers);
     }
 
     /**

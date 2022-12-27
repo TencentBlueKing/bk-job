@@ -26,11 +26,13 @@ package com.tencent.bk.job.execute.engine.prepare.local;
 
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentService;
@@ -115,9 +117,17 @@ public class LocalFilePrepareService {
     }
 
     private void fillLocalFileSourceHost(List<FileSourceDTO> fileSourceList, StepInstanceBaseDTO stepInstance) {
+        boolean isGseV1Task = stepInstance.getTargetServers().getIpList().stream()
+            .anyMatch(host -> AgentUtils.isGseV1AgentId(host.getAgentId()));
         fileSourceList.forEach(fileSourceDTO -> {
             if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
-                fileSourceDTO.setServers(agentService.getLocalServersDTO());
+                // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
+                ServersDTO localHost = agentService.getLocalServersDTO().clone();
+                if (isGseV1Task) {
+                    localHost.getIpList().forEach(host -> host.setAgentId(host.toCloudIp()));
+                    localHost.getStaticIpList().forEach(host -> host.setAgentId(host.toCloudIp()));
+                }
+                fileSourceDTO.setServers(localHost);
             }
         });
         // 更新本地文件任务内容
