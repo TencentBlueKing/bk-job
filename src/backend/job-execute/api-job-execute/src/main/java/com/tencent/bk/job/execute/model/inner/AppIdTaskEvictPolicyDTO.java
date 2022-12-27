@@ -30,6 +30,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * 根据Job业务Id来驱逐任务的策略实体
+ */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
