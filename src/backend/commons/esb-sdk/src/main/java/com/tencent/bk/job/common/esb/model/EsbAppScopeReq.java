@@ -108,6 +108,7 @@ public class EsbAppScopeReq extends EsbJobReq {
         }
     }
 
+    @JsonIgnore
     public AppResourceScope getAppResourceScope() {
         return new AppResourceScope(this.scopeType, this.scopeId, this.appId);
     }
