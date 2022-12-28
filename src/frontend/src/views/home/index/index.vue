@@ -130,11 +130,10 @@
         },
         methods: {
             fetchTitleAndFooter () {
-                const formatLink = link => link.replace(/(?=( href))/g, ' target="_blank"');
                 QueryGlobalSettingService.fetchFooterConfig()
                     .then((data) => {
-                        this.footerLink = xssHTML(formatLink(marked(`${data.footerLink}`)));
-                        this.footerCopyRight = xssHTML(marked(data.footerCopyRight));
+                        this.footerLink = xssHTML(marked.parse(`${data.footerLink}`));
+                        this.footerCopyRight = xssHTML(marked.parse(data.footerCopyRight));
                     });
             },
         },

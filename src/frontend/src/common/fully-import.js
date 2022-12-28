@@ -24,6 +24,7 @@
 */
 
 import bkMagicVue from 'bk-magic-vue';
+import marked from 'marked';
 import Vue from 'vue';
 import VueProgressBar from 'vue-progressbar';
 
@@ -172,3 +173,11 @@ Vue.use(Cursor);
 Vue.use(Request);
 Vue.use(TippyTips);
 Vue.use(Test);
+
+marked.use({
+    renderer: {
+        link (link, title, text) {
+            return `<a href="${link}" target="_blank">${text}</a>`;
+        },
+    },
+});
