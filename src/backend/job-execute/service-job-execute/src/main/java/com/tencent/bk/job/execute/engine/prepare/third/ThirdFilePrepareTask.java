@@ -377,7 +377,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
                     }
                 }
-                List<HostDTO> hostDTOList = Collections.singletonList(hostDTO);
+                List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
                 servers.addStaticIps(hostDTOList);
                 if (servers.getIpList() == null) {
                     servers.setIpList(hostDTOList);
