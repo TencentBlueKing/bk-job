@@ -103,10 +103,10 @@
                 if (this.list.length < 1) {
                     return '';
                 }
-                return marked(this.list[this.activeIndex].content);
+                return marked.parse(this.list[this.activeIndex].content);
             },
         },
-        
+
         created () {
             this.fetchData();
             // 对比版本号，每次版本更新自动显示版本日志

@@ -24,7 +24,7 @@
 */
 
 import bkMagicVue from 'bk-magic-vue';
-// import createIpSelector from 'lib/ip-selector/vue2.6.x.js';
+import marked from 'marked';
 import Vue from 'vue';
 import VueProgressBar from 'vue-progressbar';
 
@@ -41,7 +41,7 @@ import ElementTeleport from '@components/element-teleport';
 import Empty from '@components/empty';
 import Exception from '@components/exception';
 import Icon from '@components/icon';
-import createIpSelector from '@components/ip-selector/index.js';
+// import createIpSelector from '@components/ip-selector/index.js';
 import JbBreadcrumb from '@components/jb-breadcrumb';
 import JbBreadcrumbItem from '@components/jb-breadcrumb/jb-breadcrumb-item';
 import JbDialog from '@components/jb-dialog';
@@ -62,8 +62,10 @@ import SmartAction from '@components/smart-action';
 import Test from '@components/test';
 import TippyTips from '@components/tippy-tips';
 
+import createIpSelector from '@blueking/ip-selector';
+
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
-// import 'lib/ip-selector/styles/index.css';
+import '@blueking/ip-selector/dist/styles/index.css';
 
 const IpSelector = createIpSelector({
     version: '6',
@@ -171,3 +173,11 @@ Vue.use(Cursor);
 Vue.use(Request);
 Vue.use(TippyTips);
 Vue.use(Test);
+
+marked.use({
+    renderer: {
+        link (link, title, text) {
+            return `<a href="${link}" target="_blank">${text}</a>`;
+        },
+    },
+});
