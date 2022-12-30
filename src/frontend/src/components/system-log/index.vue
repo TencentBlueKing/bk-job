@@ -80,6 +80,8 @@
 
     import ScrollFaker from '@components/scroll-faker';
 
+    console.log(marked);
+
     export default {
         name: 'SystemVersionLog',
         components: {
@@ -446,10 +448,11 @@
                 white-space: normal;
 
                 &::before {
+                    position: absolute;
                     display: inline-block;
                     width: 6px;
                     height: 6px;
-                    margin-right: 9px;
+                    margin-top: calc(0.9em - 5px);
                     margin-left: -15px;
                     background: #000;
                     border-radius: 50%;
