@@ -41,10 +41,10 @@ public class GseClient implements IGseClient {
 
     @Override
     public GseTaskResponse asyncExecuteScript(ExecuteScriptRequest request) {
-        return chooseGseApiClientGseTaskVersion(request).asyncExecuteScript(request);
+        return chooseGseApiClientByGseTaskVersion(request).asyncExecuteScript(request);
     }
 
-    private IGseClient chooseGseApiClientGseTaskVersion(GseReq gseReq) {
+    private IGseClient chooseGseApiClientByGseTaskVersion(GseReq gseReq) {
         if (gseReq.isGseV2Task()) {
             return gseV2ApiClient;
         } else {
@@ -54,7 +54,7 @@ public class GseClient implements IGseClient {
 
     @Override
     public ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request) {
-        return chooseGseApiClientGseTaskVersion(request).getExecuteScriptResult(request);
+        return chooseGseApiClientByGseTaskVersion(request).getExecuteScriptResult(request);
     }
 
     @Override
@@ -78,21 +78,21 @@ public class GseClient implements IGseClient {
 
     @Override
     public GseTaskResponse asyncTransferFile(TransferFileRequest request) {
-        return chooseGseApiClientGseTaskVersion(request).asyncTransferFile(request);
+        return chooseGseApiClientByGseTaskVersion(request).asyncTransferFile(request);
     }
 
     @Override
     public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
-        return chooseGseApiClientGseTaskVersion(request).getTransferFileResult(request);
+        return chooseGseApiClientByGseTaskVersion(request).getTransferFileResult(request);
     }
 
     @Override
     public GseTaskResponse terminateGseFileTask(TerminateGseTaskRequest request) {
-        return chooseGseApiClientGseTaskVersion(request).terminateGseFileTask(request);
+        return chooseGseApiClientByGseTaskVersion(request).terminateGseFileTask(request);
     }
 
     @Override
     public GseTaskResponse terminateGseScriptTask(TerminateGseTaskRequest request) {
-        return chooseGseApiClientGseTaskVersion(request).terminateGseScriptTask(request);
+        return chooseGseApiClientByGseTaskVersion(request).terminateGseScriptTask(request);
     }
 }

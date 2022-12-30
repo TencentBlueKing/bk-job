@@ -59,7 +59,6 @@ public class GetExecuteScriptResultRequest extends GseReq {
         AgentTask agentTask = new AgentTask();
         agentTask.setAgentId(agentId);
         AtomicTask atomicTask = new AtomicTask();
-        ;
         atomicTask.setAtomicTaskId(atomicTaskId);
         atomicTask.setOffset(offset);
         agentTask.setAtomicTasks(Collections.singletonList(atomicTask));
