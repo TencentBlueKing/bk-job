@@ -24,6 +24,10 @@ app:
 esb:
   service:
     url: __BK_PAAS_PRIVATE_URL__
+# 蓝鲸Api Gateway 配置    
+bkApiGateway:
+  gse:
+    url: __BK_API_GATEWAY_GSE_URL__
 gse:
   enabled: true
   cache:

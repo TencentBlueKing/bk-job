@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
@@ -198,5 +199,14 @@ public class StepInstanceBaseDTO {
             return id.toString();
         }
         return id + "_" + executeCount;
+    }
+
+    /**
+     * 执行目标是否是 GSE V2 Agent
+     */
+    public boolean isTargetGseV2Agent() {
+        boolean isTargetGseV1Agent = this.targetServers.getIpList().stream()
+            .anyMatch(host -> AgentUtils.isGseV1AgentId(host.getAgentId()));
+        return !isTargetGseV1Agent;
     }
 }

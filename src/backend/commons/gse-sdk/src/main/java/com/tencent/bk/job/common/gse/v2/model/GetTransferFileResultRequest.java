@@ -2,6 +2,7 @@ package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -11,7 +12,8 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class GetTransferFileResultRequest {
+@EqualsAndHashCode(callSuper = true)
+public class GetTransferFileResultRequest extends GseReq {
     /**
      * GSE 任务ID
      */

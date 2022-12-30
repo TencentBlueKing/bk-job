@@ -30,7 +30,6 @@ import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
-import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -50,7 +49,6 @@ import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
@@ -327,7 +325,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         Map<String, FileSourceTaskStatusDTO> map = new HashMap<>();
         fileSourceTaskStatusList.forEach(taskStatus -> map.put(taskStatus.getTaskId(), taskStatus));
         //添加服务器文件信息
-        boolean isGseV1Task = isGseV1FileTask(stepInstance);
+        boolean isGseV2Task = stepInstance.isTargetGseV2Agent();
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             String fileSourceTaskId = fileSourceDTO.getFileSourceTaskId();
             if (StringUtils.isNotBlank(fileSourceTaskId)) {
@@ -369,13 +367,13 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                 }
 
                 HostDTO sourceHost = hostDTO.clone();
-                if (isGseV1Task) {
-                    sourceHost.setAgentId(sourceHost.toCloudIp());
-                } else {
+                if (isGseV2Task) {
                     if (StringUtils.isBlank(sourceHost.getAgentId())) {
                         log.error("Using gseV2, source host agent id is empty! host: {}", sourceHost);
                         throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
                     }
+                } else {
+                    sourceHost.setAgentId(sourceHost.toCloudIp());
                 }
                 List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
                 servers.addStaticIps(hostDTOList);
@@ -406,11 +404,6 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         resultHandler.onSuccess(this);
     }
-
-    private boolean isGseV1FileTask(StepInstanceBaseDTO stepInstance) {
-        return AgentUtils.isGseV1AgentId(stepInstance.getTargetServers().getIpList().get(0).getAgentId());
-    }
-
 
     // 查询file-worker对应主机信息使用60s缓存，避免短时间内多次重复查询
     private final LoadingCache<Triple<Long, String, String>, HostDTO> fileWorkerHostCache = CacheBuilder.newBuilder()

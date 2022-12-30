@@ -238,6 +238,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     @Override
     GseLogBatchPullResult<FileTaskResult> pullGseTaskResultInBatches() {
         GetTransferFileResultRequest request = new GetTransferFileResultRequest();
+        request.setGseV2Task(gseV2Task);
         request.setTaskId(gseTask.getGseTaskId());
 
         if (CollectionUtils.isNotEmpty(this.analyseFinishedSourceAgentIds)

@@ -233,6 +233,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
 
     private ScriptTaskResult pullGseTaskResult(List<String> agentIds) {
         GetExecuteScriptResultRequest request = new GetExecuteScriptResultRequest();
+        request.setGseV2Task(gseV2Task);
         request.setTaskId(gseTask.getGseTaskId());
         agentIds.forEach(agentId -> {
             LogPullProgress progress = logPullProgressMap.get(agentId);

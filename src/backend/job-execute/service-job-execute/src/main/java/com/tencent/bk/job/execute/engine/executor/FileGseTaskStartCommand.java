@@ -264,6 +264,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     @Override
     protected GseTaskResponse startGseTask() {
         TransferFileRequest request = new TransferFileRequest();
+        request.setGseV2Task(gseV2Task);
 
         // 账号信息查询与填充
         AccountDTO accountInfo = accountService.getAccount(stepInstance.getAccountId(), AccountCategoryEnum.SYSTEM,
