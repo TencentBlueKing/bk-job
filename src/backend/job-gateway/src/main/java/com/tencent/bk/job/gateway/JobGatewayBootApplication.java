@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.gateway;
 
+import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.reactive.server.ReactiveWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
@@ -44,6 +46,7 @@ import javax.annotation.PreDestroy;
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job")
 @EnableDiscoveryClient
 @Slf4j
+@EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobGatewayBootApplication {
     private HttpHandler httpHandler;
 
