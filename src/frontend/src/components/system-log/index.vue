@@ -446,8 +446,7 @@
                 white-space: normal;
 
                 &::before {
-                    position: absolute;
-                    display: inline-block;
+                    float: left;
                     width: 6px;
                     height: 6px;
                     margin-top: calc(0.9em - 5px);
