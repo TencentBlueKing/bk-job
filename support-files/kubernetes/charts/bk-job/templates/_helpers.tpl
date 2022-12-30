@@ -133,7 +133,7 @@ Return the proper job-migration image name
 Return the proper job-config-watcher image name
 */}}
 {{- define "job-config-watcher.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.configWatcher.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.k8sConfigWatcherConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
