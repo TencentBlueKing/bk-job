@@ -80,8 +80,6 @@
 
     import ScrollFaker from '@components/scroll-faker';
 
-    console.log(marked);
-
     export default {
         name: 'SystemVersionLog',
         components: {
