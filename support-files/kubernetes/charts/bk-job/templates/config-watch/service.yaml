@@ -13,11 +13,11 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  type: {{ .Values.configWatcher.service.type }}
+  type: ClusterIP
   ports:
     - name: http
-      port: {{ .Values.configWatcher.service.port }}
-      targetPort: {{ .Values.configWatcher.containerPort }}
+      port: 8888
+      targetPort: 8888
       protocol: TCP
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
     app.kubernetes.io/component: "job-config-watcher"

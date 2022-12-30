@@ -15,7 +15,7 @@ metadata:
   {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ .Values.configWatcher.replicaCount }}
+  replicas: 1
   selector:
     matchLabels: 
       {{- include "common.labels.matchLabels" . | nindent 6 }}
@@ -28,20 +28,38 @@ spec:
         {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.k8sConfigWatcherConfig.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.k8sConfigWatcherConfig.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.k8sConfigWatcherConfig.podAffinityPreset "component" "job-config-watcher" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.k8sConfigWatcherConfig.podAntiAffinityPreset "component" "job-config-watcher" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.k8sConfigWatcherConfig.nodeAffinityPreset.type "key" .Values.k8sConfigWatcherConfig.nodeAffinityPreset.key "values" .Values.k8sConfigWatcherConfig.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.k8sConfigWatcherConfig.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.k8sConfigWatcherConfig.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.k8sConfigWatcherConfig.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.k8sConfigWatcherConfig.tolerations "context" .) | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      {{- if .Values.k8sConfigWatcherConfig.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.k8sConfigWatcherConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       containers:
         - name: "job-config-watcher"
           image: {{ include "job-config-watcher.image" . }}
-          imagePullPolicy: {{ .Values.configWatcher.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.k8sConfigWatcherConfig.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.configWatcher.containerPort }}
+              containerPort: 8888
               protocol: TCP
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
               port: http
-            initialDelaySeconds: 60
+            initialDelaySeconds: 120
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
@@ -50,10 +68,10 @@ spec:
             httpGet:
               path: /actuator/health/readiness
               port: http
-            initialDelaySeconds: 60
+            initialDelaySeconds: 120
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
             successThreshold: 1
           resources:
-            {{- toYaml .Values.configWatcher.resources | nindent 12 }}
+            {{- toYaml .Values.k8sConfigWatcherConfig.resources | nindent 12 }}

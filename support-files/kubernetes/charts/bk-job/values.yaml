@@ -1,4 +1,4 @@
-# Default values for bk-job.
+ # Default values for bk-job.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -1354,31 +1354,34 @@ waitForDependServices:
       memory: 256Mi
 
 ## job-config-watcher 配置
-configWatcher:
+k8sConfigWatcherConfig:
   image:
     registry: hub.bktencent.com
     repository: springcloud/spring-cloud-kubernetes-configuration-watcher
     tag: "2.0.1-SNAPSHOT"
     pullPolicy: IfNotPresent
     pullSecrets: []
-  replicaCount: 1
+  hostAliases: []
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
   resources:
     limits:
       cpu: 200m
       memory: 512Mi
     requests:
       cpu: 100m
-      memory: 256Mi
-  containerPort: 19811
-  service:
-    port: 80
-    type: ClusterIP
-  cloudAreaId: 0
-  # 文件下载相关配置
-  downloadFile:
-    # 最大占用空间（GB），超过则进行清理
-    maxSizeGB: 100
-    # 下载的文件过期时间
-    expireDays: 7
-  # 运行时JVM参数
-  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"      
+      memory: 256Mi 
