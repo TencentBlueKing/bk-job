@@ -209,19 +209,16 @@ public class EsbFastTransferFileV3ResourceImpl
         if (StringUtils.isBlank(path)) {
             return false;
         }
-        if (path.indexOf(' ') != -1) {
-            return false;
-        }
         Pattern p1 = Pattern.compile("(//|\\\\)+");
         Matcher m1 = p1.matcher(path);
         if (m1.matches()) {
             return false;
         }
-
-        Pattern p2 = Pattern.compile("^[a-zA-Z]:(/|\\\\).*");//windows
+        //windows，以'字母:\\'开头，不包含非法字符
+        Pattern p2 = Pattern.compile("^[a-zA-Z]:((/|\\\\)([^<>:\"/\\\\|?*])*)*$");
         Matcher m2 = p2.matcher(path);
 
-        if (!m2.matches()) { //非windows
+        if (!m2.matches()) { //非windows，除了/之外所有字符都合法
             if (path.charAt(0) == '/') {
                 return !path.contains("\\\\");
             } else {
