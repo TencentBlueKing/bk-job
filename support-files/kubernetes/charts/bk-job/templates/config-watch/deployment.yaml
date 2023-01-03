@@ -55,16 +55,11 @@ spec:
             - name: http
               containerPort: 8888
               protocol: TCP
-          startupProbe:
-            tcpSocket:
-              port: http
-            # 由于spring cloud configuration watcher 启动较慢，所以设置启动探针避免慢启动容器被kill
-            failureThreshold: 30
-            periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
               port: http
+            initialDelaySeconds: 200  
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
@@ -73,6 +68,7 @@ spec:
             httpGet:
               path: /actuator/health/readiness
               port: http
+            initialDelaySeconds: 200
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
