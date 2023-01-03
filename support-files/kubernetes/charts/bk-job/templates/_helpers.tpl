@@ -361,6 +361,17 @@ Return the RabbitMQ secret name
 {{- end -}}
 
 {{/*
+Return the RabbitMQ password key
+*/}}
+{{- define "job.rabbitmq.passwordKey" -}}
+{{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+{{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+{{- else -}}
+${rabbitmq-password}
+{{- end }}
+{{- end -}}
+
+{{/*
 Return the RabbitMQ vhost
 */}}
 {{- define "job.rabbitmq.vhost" -}}
@@ -370,6 +381,7 @@ Return the RabbitMQ vhost
     {{- default "job" (printf "%s" .Values.externalRabbitMQ.vhost) -}}
 {{- end -}}
 {{- end -}}
+
 
 {{/*
 Fully qualified app name for MongoDB

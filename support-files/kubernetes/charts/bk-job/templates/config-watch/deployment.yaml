@@ -55,6 +55,21 @@ spec:
             - name: http
               containerPort: 8888
               protocol: TCP
+          env:
+            - name: spring.profiles.active
+              value: bus-amqp
+            - name: logging.level.org.springframework.cloud.kubernetes
+              value: DEBUG
+            - name: spring.rabbitmq.host
+              value: {{ include "job.rabbitmq.host" . }}
+            - name: spring.rabbitmq.port
+              value: {{ include "job.rabbitmq.port" . }}
+            - name: spring.rabbitmq.username
+              value: {{ include "job.rabbitmq.username" . }}
+            - name: spring.rabbitmq.password
+              value: {{ include "job.rabbitmq.passwordKey" . }}
+            - name: spring.rabbitmq.virtual-host
+              value: {{ include "job.rabbitmq.vhost" . }}
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
@@ -75,3 +90,12 @@ spec:
             successThreshold: 1
           resources:
             {{- toYaml .Values.k8sConfigWatcherConfig.resources | nindent 12 }}
+          volumeMounts:
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
+      volumes:
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
+

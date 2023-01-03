@@ -16,7 +16,7 @@ public class ConfigRefreshEventListener {
     }
 
     /**
-     * 监听并处理Spring cloud 配置更新事件(通过/actuator/refresh 和 /actuator/busfresh endpoint 触发)
+     * 监听并处理Spring cloud 配置更新事件(通过/actuator/refresh 和 /actuator/busrefresh endpoint 触发)
      *
      * @param event 配置更新事件
      */
