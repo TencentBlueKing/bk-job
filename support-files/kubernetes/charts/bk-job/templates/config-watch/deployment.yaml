@@ -63,7 +63,7 @@ spec:
             - name: spring.rabbitmq.host
               value: {{ include "job.rabbitmq.host" . }}
             - name: spring.rabbitmq.port
-              value: {{ include "job.rabbitmq.port" . }}
+              value: {{ include "job.rabbitmq.port" . | quote }}
             - name: spring.rabbitmq.username
               value: {{ include "job.rabbitmq.username" . }}
             - name: spring.rabbitmq.password
