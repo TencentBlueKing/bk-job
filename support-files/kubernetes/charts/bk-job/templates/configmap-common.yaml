@@ -93,20 +93,6 @@ data:
         password: {{ .Values.job.encrypt.password }}
       web:
         url: {{ include "job.web.url" . }}
-      features:
-        fileManage:
-          enabled: {{ .Values.job.features.fileManage.enabled }}
-        bkBizIdCompatible:
-          enabled: {{ .Values.job.features.bkBizIdCompatible.enabled }}
-        gseV2:
-          enabled: {{ .Values.job.features.gseV2.enabled }}
-          {{- if .Values.job.features.gseV2.strategy }}
-          strategy:
-            id: {{ .Values.job.features.gseV2.strategy.id }}
-            {{- if .Values.job.features.gseV2.strategy.params }}
-            params: {{- include "common.tplvalues.render" ( dict "value" .Values.job.features.gseV2.strategy.params "context" $ ) | nindent 14 }}
-            {{- end }}
-          {{- end }}
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
     cmdb:
