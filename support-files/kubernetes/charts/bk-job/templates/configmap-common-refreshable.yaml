@@ -4,6 +4,7 @@ metadata:
   name: {{ include "common.names.fullname" . }}-common-refreshable
   namespace: {{ .Release.Namespace }}
   labels:
+    spring.cloud.kubernetes.config: true
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-common-refreshable"
     {{- if .Values.commonLabels }}
