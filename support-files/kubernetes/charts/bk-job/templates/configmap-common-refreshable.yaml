@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-common-refreshable
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-common-refreshable"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+data:
+  application.yaml: |-
+    job:
+      features:
+        fileManage:
+          enabled: {{ .Values.job.features.fileManage.enabled }}
+        bkBizIdCompatible:
+          enabled: {{ .Values.job.features.bkBizIdCompatible.enabled }}
+        gseV2:
+          enabled: {{ .Values.job.features.gseV2.enabled }}
+          {{- if .Values.job.features.gseV2.strategy }}
+          strategy:
+            id: {{ .Values.job.features.gseV2.strategy.id }}
+            {{- if .Values.job.features.gseV2.strategy.params }}
+            params: {{- include "common.tplvalues.render" ( dict "value" .Values.job.features.gseV2.strategy.params "context" $ ) | nindent 14 }}
+            {{- end }}
+          {{- end }}

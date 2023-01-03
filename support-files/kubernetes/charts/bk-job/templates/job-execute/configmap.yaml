@@ -65,7 +65,7 @@ data:
               binder: jobExecute
               consumer:
                 concurrency: 5
-            handleStepEvent-input-0:
+            handleStepEvent-in-0:
               destination: step
               group: service.job.execute
               binder: jobExecute
