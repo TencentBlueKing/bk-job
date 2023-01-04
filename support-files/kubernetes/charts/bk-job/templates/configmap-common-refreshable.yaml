@@ -10,6 +10,8 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+  annotations:
+    spring.cloud.kubernetes.configmap.apps: "job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,job-gateway,job-logsvr,job-manage"
 data:
   application.yaml: |-
     job:

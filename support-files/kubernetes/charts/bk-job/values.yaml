@@ -1358,7 +1358,7 @@ k8sConfigWatcherConfig:
   image:
     registry: hub.bktencent.com
     repository: springcloud/spring-cloud-kubernetes-configuration-watcher
-    tag: "2.0.1-SNAPSHOT"
+    tag: "3.0.0"
     pullPolicy: IfNotPresent
     pullSecrets: []
   hostAliases: []
