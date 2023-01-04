@@ -70,6 +70,8 @@ spec:
               value: {{ include "job.rabbitmq.passwordKey" . }}
             - name: spring.rabbitmq.virtual-host
               value: {{ include "job.rabbitmq.vhost" . }}
+            - name: spring_cloud_kubernetes_secrets_paths
+              value: /etc/secrets
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
