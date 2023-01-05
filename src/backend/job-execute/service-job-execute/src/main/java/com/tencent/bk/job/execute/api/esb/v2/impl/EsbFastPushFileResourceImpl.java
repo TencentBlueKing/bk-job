@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
+import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.v2.EsbFastPushFileResource;
@@ -124,7 +125,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
     }
 
     private ValidateResult checkFastPushFileRequest(EsbFastPushFileRequest request) {
-        if (!validateFileSystemPath(request.getTargetPath())) {
+        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(request.getTargetPath())) {
             log.warn("Fast transfer file, target path is invalid!path={}", request.getTargetPath());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "file_target_path");
         }
@@ -162,7 +163,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
                 return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source.files");
             }
             for (String file : files) {
-                if (!validateFileSystemPath(file)) {
+                if (!FilePathValidateUtil.validateFileSystemAbsolutePath(file)) {
                     log.warn("Invalid path:{}", file);
                     return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "file_source.files");
                 }
@@ -181,32 +182,6 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
             }
         }
         return ValidateResult.pass();
-    }
-
-    private boolean validateFileSystemPath(String path) {
-        if (StringUtils.isBlank(path)) {
-            return false;
-        }
-        if (path.indexOf(' ') != -1) {
-            return false;
-        }
-        Pattern p1 = Pattern.compile("(//|\\\\)+");
-        Matcher m1 = p1.matcher(path);
-        if (m1.matches()) {
-            return false;
-        }
-
-        Pattern p2 = Pattern.compile("^[a-zA-Z]:(/|\\\\).*");//windows
-        Matcher m2 = p2.matcher(path);
-
-        if (!m2.matches()) { //非windows
-            if (path.charAt(0) == '/') {
-                return !path.contains("\\\\");
-            } else {
-                return false;
-            }
-        }
-        return true;
     }
 
     private TaskInstanceDTO buildFastFileTaskInstance(EsbFastPushFileRequest request) {
