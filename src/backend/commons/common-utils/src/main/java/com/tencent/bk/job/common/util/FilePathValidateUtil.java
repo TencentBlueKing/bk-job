@@ -11,6 +11,24 @@ import java.util.regex.Pattern;
  * 文件路径合法性校验工具类
  */
 public class FilePathValidateUtil {
+    // 传统DOS正则表达式
+    private static final String CONVENTIONAL_DOS_PATH_REGEX = "(^[A-Za-z]:\\\\[^\\\\].*)|(^[A-Za-z]:[\\\\])";
+    // DOS设备路径正则表达式
+    private static final String DOS_DEVICE_PATH_REGEX = "^\\\\\\\\.\\\\.+|\\\\\\\\\\?\\\\.+";
+    // UNC路径正则表达式
+    private static final String UNC_PATH_REGEX = "^\\\\\\\\[^\\\\]+\\\\[^\\\\]+\\\\.*";
+    // Linux路径正则表达式
+    private static final String LINUX_PATH_REGEX = "(^/([^/].*/{0,1})+)|(/)";
+
+    // 传统DOS Pattern
+    private static final Pattern CONVENTIONAL_DOS_PATH_PATTERN = Pattern.compile(CONVENTIONAL_DOS_PATH_REGEX);
+    // DOS设备Pattern
+    private static final Pattern DOS_DEVICE_PATH_PATTERN = Pattern.compile(DOS_DEVICE_PATH_REGEX);
+    // UNC路径Pattern
+    private static final Pattern UNC_PATH_PATTERN = Pattern.compile(UNC_PATH_REGEX);
+    // UNC路径Pattern
+    private static final Pattern LINUX_PATH_PATTERN = Pattern.compile(LINUX_PATH_REGEX);
+
     /**
      * 验证文件系统绝对路径的合法性
      * @param path 绝对路径
@@ -41,40 +59,30 @@ public class FilePathValidateUtil {
     }
 
     /**
-     * 1 DOS设备路径：
-     * 设备路径说明符（\\.\ 或 \\?\），它将路径标识为DOS设备路径
-     * 2 UNC路径
-     * 以\\开头的服务器名或主机名,路径必须始终是完全限定的
-     * 组成：\\服务器名\共享名\可选目录名\可选文件名
-     * 3 传统DOS路径
-     * 标准的DOS路径可由以下三部分组成：
-     * 1)卷号或驱动器号，后跟卷分隔符(:)。
-     * 2)目录名称。目录分隔符用来分隔嵌套目录层次结构中的子目录。
-     * 3)文件名。目录分隔符用来分隔文件路径和文件名。
-     *
+     * 1 传统DOS路径
+     *    标准的DOS路径可由以下三部分组成：
+     *    1)卷号或驱动器号，后跟卷分隔符(:)。
+     *    2)目录名称。目录分隔符用来分隔嵌套目录层次结构中的子目录。
+     *    3)文件名。目录分隔符用来分隔文件路径和文件名。
+     * 2 DOS设备路径：
+     *   设备路径说明符（\\.\ 或 \\?\），它将路径标识为DOS设备路径
+     * 3 UNC路径
+     *   以\\开头的服务器名或主机名,路径必须始终是完全限定的
+     *   组成：\\服务器名\共享名\可选目录名\可选文件名
      * @param path
      * @return boolean
      */
     private static boolean validateWindowsFileSystemAbsolutePath(String path) {
+        // 传统DOS
+        if (CONVENTIONAL_DOS_PATH_PATTERN.matcher(path).matches()) {
+            return true;
+        }
         // DOS设备
-        String pattern = "^\\\\\\\\.\\\\.+|\\\\\\\\\\?\\\\.+";
-        Pattern r = Pattern.compile(pattern);
-        Matcher m = r.matcher(path);
-        if (m.matches()) {
+        if (DOS_DEVICE_PATH_PATTERN.matcher(path).matches()) {
             return true;
         }
         // UNC
-        pattern = "^\\\\\\\\[^\\\\]+\\\\[^\\\\]+\\\\.*";
-        r = Pattern.compile(pattern);
-        m = r.matcher(path);
-        if (m.matches()) {
-            return true;
-        }
-        // 传统DOS
-        pattern = "^[A-Za-z]:\\\\[^\\\\].*";
-        r = Pattern.compile(pattern);
-        m = r.matcher(path);
-        if (m.matches()) {
+        if (UNC_PATH_PATTERN.matcher(path).matches()) {
             return true;
         }
         return false;
@@ -87,10 +95,7 @@ public class FilePathValidateUtil {
      * @return boolean
      */
     private static boolean validateLinuxFileSystemAbsolutePath(String path) {
-        String pattern = "^/([^/].*/{0,1})+";
-        Pattern r = Pattern.compile(pattern);
-        Matcher m = r.matcher(path);
-        if (m.matches()) {
+        if (LINUX_PATH_PATTERN.matcher(path).matches()) {
             return true;
         }
         return false;
