@@ -160,7 +160,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl
                 Long bkCloudId = IpUtils.extractBkCloudId(hostLogContent.getCloudIpv6());
                 String ipv6 = IpUtils.extractIp(hostLogContent.getCloudIpv6());
                 scriptHostLog.setCloudAreaId(bkCloudId);
-                scriptHostLog.setIp(ipv6);
+                scriptHostLog.setIpv6(ipv6);
             }
             scriptHostLog.setLogContent(hostLogContent.getContent());
             return scriptHostLog;
