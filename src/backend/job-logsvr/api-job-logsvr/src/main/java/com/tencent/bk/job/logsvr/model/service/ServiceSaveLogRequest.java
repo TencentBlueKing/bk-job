@@ -25,7 +25,6 @@
 package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -48,13 +47,16 @@ public class ServiceSaveLogRequest {
     private Long stepInstanceId;
 
     /**
-     * ip
-     * tmp: 发布之后可删除
+     * 主机云区域ID:ipv4
      */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容参数,由于IP不再唯一，后续使用hostId参数替换",
-        version = "3.7.x")
-    @ApiModelProperty(value = "ip, 兼容参数, 如果存在hostId那么忽略ip参数")
+    @ApiModelProperty(value = "主机云区域ID:ipv4")
     private String ip;
+
+    /**
+     * 主机云区域ID:ipv6
+     */
+    @ApiModelProperty(value = "主机云区域ID:ipv6")
+    private String ipv6;
 
     /**
      * 主机ID

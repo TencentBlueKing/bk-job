@@ -43,13 +43,16 @@ public interface LogService {
     /**
      * 构造job系统日志
      *
-     * @param hostId               主机ID
+     * @param host                 主机
      * @param content              日志原始内容
      * @param offset               日志偏移 - 字节
      * @param logTimeInMillSeconds 日志时间
      * @return 系统日志
      */
-    ServiceScriptLogDTO buildSystemScriptLog(long hostId, String content, int offset, Long logTimeInMillSeconds);
+    ServiceScriptLogDTO buildSystemScriptLog(HostDTO host,
+                                             String content,
+                                             int offset,
+                                             Long logTimeInMillSeconds);
 
     /**
      * 写脚本执行日志

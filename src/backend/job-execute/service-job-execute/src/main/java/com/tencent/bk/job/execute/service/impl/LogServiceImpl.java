@@ -88,7 +88,7 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public ServiceScriptLogDTO buildSystemScriptLog(long hostId, String content, int offset,
+    public ServiceScriptLogDTO buildSystemScriptLog(HostDTO host, String content, int offset,
                                                     Long logTimeInMillSeconds) {
         String logDateTime;
         if (logTimeInMillSeconds != null) {
@@ -100,7 +100,7 @@ public class LogServiceImpl implements LogService {
         }
         String logContentWithDateTime = "[" + logDateTime + "] " + content + "\n";
         int length = logContentWithDateTime.getBytes(StandardCharsets.UTF_8).length;
-        return new ServiceScriptLogDTO(hostId, offset + length, logContentWithDateTime);
+        return new ServiceScriptLogDTO(host, offset + length, logContentWithDateTime);
     }
 
     @Override
@@ -133,6 +133,8 @@ public class LogServiceImpl implements LogService {
         logDTO.setExecuteCount(executeCount);
         logDTO.setBatch(batch);
         logDTO.setHostId(scriptLog.getHostId());
+        logDTO.setCloudIp(scriptLog.getCloudIp());
+        logDTO.setCloudIpv6(scriptLog.getCloudIpv6());
         logDTO.setScriptLog(scriptLog);
         return logDTO;
     }
@@ -171,18 +173,20 @@ public class LogServiceImpl implements LogService {
                 stepInstanceId, actualExecuteCount, batch, host);
             throw new InternalException(resp.getCode());
         }
-        return convertToScriptIpLogContent(stepInstanceId, executeCount, resp.getData(), agentTask);
+        return convertToScriptHostLogContent(stepInstanceId, executeCount, resp.getData(), agentTask);
     }
 
-    private ScriptHostLogContent convertToScriptIpLogContent(long stepInstanceId, int executeCount,
-                                                             ServiceHostLogDTO logDTO, AgentTaskDTO agentTask) {
+    private ScriptHostLogContent convertToScriptHostLogContent(long stepInstanceId,
+                                                               int executeCount,
+                                                               ServiceHostLogDTO logDTO,
+                                                               AgentTaskDTO agentTask) {
         // 日志是否拉取完成
         boolean isFinished = agentTask.getStatus().isFinished();
         String scriptContent = logDTO != null && logDTO.getScriptLog() != null ?
             logDTO.getScriptLog().getContent() : "";
         Long hostId = logDTO != null ? logDTO.getHostId() : null;
-        String ip = logDTO != null ? logDTO.getIp() : null;
-        String ipv6 = logDTO != null ? logDTO.getIpv6() : null;
+        String ip = logDTO != null ? logDTO.getCloudIp() : null;
+        String ipv6 = logDTO != null ? logDTO.getCloudIpv6() : null;
         return new ScriptHostLogContent(stepInstanceId, executeCount, hostId, ip, ipv6, scriptContent, isFinished);
     }
 
@@ -218,7 +222,7 @@ public class LogServiceImpl implements LogService {
             String scriptContent = logDTO.getScriptLog() != null ?
                 logDTO.getScriptLog().getContent() : "";
             return new ScriptHostLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(), logDTO.getHostId(),
-                logDTO.getIp(), logDTO.getIpv6(), scriptContent, true);
+                logDTO.getCloudIp(), logDTO.getCloudIpv6(), scriptContent, true);
         }).collect(Collectors.toList());
 
     }

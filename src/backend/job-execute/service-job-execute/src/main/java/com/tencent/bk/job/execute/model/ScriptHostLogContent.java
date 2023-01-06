@@ -47,9 +47,13 @@ public class ScriptHostLogContent {
      */
     private Long hostId;
     /**
-     * 主机IPv4
+     * 目标云区域ID:ipv4
      */
-    private String ip;
+    private String cloudIp;
+    /**
+     * 目标云区域ID:ipv6
+     */
+    private String cloudIpv6;
     /**
      * 主机IPv6
      */
@@ -66,14 +70,15 @@ public class ScriptHostLogContent {
     public ScriptHostLogContent(long stepInstanceId,
                                 int executeCount,
                                 Long hostId,
-                                String ip,
-                                String ipv6,
+                                String cloudIp,
+                                String cloudIpv6,
                                 String content,
                                 boolean finished) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.hostId = hostId;
-        this.ip = ip;
+        this.cloudIp = cloudIp;
+        this.cloudIpv6 = cloudIpv6;
         this.content = content;
         this.finished = finished;
     }
@@ -84,6 +89,6 @@ public class ScriptHostLogContent {
      * @return 主机ipv4/ipv6, ipv4 优先
      */
     public String getPrimaryIp() {
-        return StringUtils.isNotEmpty(ip) ? ip : ipv6;
+        return StringUtils.isNotEmpty(cloudIp) ? cloudIp : cloudIpv6;
     }
 }
