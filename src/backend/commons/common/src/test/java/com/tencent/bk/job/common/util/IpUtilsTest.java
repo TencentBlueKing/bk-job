@@ -76,16 +76,16 @@ public class IpUtilsTest {
 
     @Test
     void testExtractIp() {
-        String ip = "0:127.0.0.1";
-        String result = IpUtils.extractIp(ip);
+        String cloudIp = "0:127.0.0.1";
+        String result = IpUtils.extractIp(cloudIp);
         assertThat(result).isEqualTo("127.0.0.1");
 
-        ip = "0:0000:0000:0000:0000:0000:0000:0000:0001";
-        result = IpUtils.extractIp(ip);
+        cloudIp = "0:0000:0000:0000:0000:0000:0000:0000:0001";
+        result = IpUtils.extractIp(cloudIp);
         assertThat(result).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001");
 
-        ip = "127.0.0.1";
-        result = IpUtils.extractIp(ip);
+        cloudIp = "127.0.0.1";
+        result = IpUtils.extractIp(cloudIp);
         assertThat(result).isEqualTo("127.0.0.1");
 
         result = IpUtils.extractIp(null);
@@ -156,12 +156,12 @@ public class IpUtilsTest {
 
     @Test
     void testExtractBkCloudId() {
-        String ip = "0:127.0.0.1";
-        Long bkCloudId = IpUtils.extractBkCloudId(ip);
+        String cloudIp = "0:127.0.0.1";
+        Long bkCloudId = IpUtils.extractBkCloudId(cloudIp);
         assertThat(bkCloudId).isEqualTo(0L);
 
-        ip = "0:0000:0000:0000:0000:0000:0000:0000:0000";
-        bkCloudId = IpUtils.extractBkCloudId(ip);
+        String cloudIpv6 = "0:0000:0000:0000:0000:0000:0000:0000:0000";
+        bkCloudId = IpUtils.extractBkCloudId(cloudIpv6);
         assertThat(bkCloudId).isEqualTo(0L);
     }
 }

@@ -424,7 +424,14 @@ public class IpUtils {
      * @return 云区域ID
      */
     public static Long extractBkCloudId(String cloudIp) {
-        String bkCloudId = cloudIp.substring(0, cloudIp.indexOf(":"));
+        if (cloudIp == null) {
+            throw new IllegalArgumentException("Empty cloudIp");
+        }
+        int idx = cloudIp.indexOf(":");
+        if (idx == -1) {
+            throw new IllegalArgumentException("Invalid cloudIp: " + cloudIp);
+        }
+        String bkCloudId = cloudIp.substring(0, idx);
         return Long.parseLong(bkCloudId);
     }
 }
