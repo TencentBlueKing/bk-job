@@ -182,7 +182,8 @@ public class LogServiceImpl implements LogService {
             logDTO.getScriptLog().getContent() : "";
         Long hostId = logDTO != null ? logDTO.getHostId() : null;
         String ip = logDTO != null ? logDTO.getIp() : null;
-        return new ScriptHostLogContent(stepInstanceId, executeCount, hostId, ip, scriptContent, isFinished);
+        String ipv6 = logDTO != null ? logDTO.getIpv6() : null;
+        return new ScriptHostLogContent(stepInstanceId, executeCount, hostId, ip, ipv6, scriptContent, isFinished);
     }
 
     @Override
@@ -217,7 +218,7 @@ public class LogServiceImpl implements LogService {
             String scriptContent = logDTO.getScriptLog() != null ?
                 logDTO.getScriptLog().getContent() : "";
             return new ScriptHostLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(), logDTO.getHostId(),
-                logDTO.getIp(), scriptContent, true);
+                logDTO.getIp(), logDTO.getIpv6(), scriptContent, true);
         }).collect(Collectors.toList());
 
     }
