@@ -79,6 +79,7 @@ public class FeatureToggle {
                         break;
                     case WeightToggleStrategy.STRATEGY_ID:
                         toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
+                        break;
                     default:
                         log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId, featureId);
                         break;
