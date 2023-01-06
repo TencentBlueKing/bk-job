@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -665,9 +666,13 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>(targetAgentTaskMap.size());
         for (AgentTaskDTO agentTask : targetAgentTaskMap.values()) {
+            HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
             // 日志输出
-            ServiceScriptLogDTO scriptLog = logService.buildSystemScriptLog(agentTask.getHost().getHostId(), errorMsg,
-                agentTask.getScriptLogOffset() + errorMsgLength, now);
+            ServiceScriptLogDTO scriptLog = logService.buildSystemScriptLog(
+                host,
+                errorMsg,
+                agentTask.getScriptLogOffset() + errorMsgLength,
+                now);
             scriptLogs.add(scriptLog);
 
             // AgentTask 结果更新

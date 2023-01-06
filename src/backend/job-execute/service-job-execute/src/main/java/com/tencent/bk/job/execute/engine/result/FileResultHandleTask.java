@@ -929,7 +929,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             hostLog = new ServiceHostLogDTO();
             hostLog.setStepInstanceId(stepInstanceId);
             hostLog.setHostId(hostId);
-            hostLog.setIp(cloudIp);
+            hostLog.setCloudIp(cloudIp);
             hostLog.setBatch(stepInstance.getBatch());
             hostLog.setExecuteCount(stepInstance.getExecuteCount());
             hostLogs.put(hostId, hostLog);

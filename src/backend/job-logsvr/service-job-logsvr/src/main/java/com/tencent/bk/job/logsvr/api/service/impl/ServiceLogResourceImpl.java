@@ -70,7 +70,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
     public InternalResponse<?> saveLog(ServiceSaveLogRequest request) {
         TaskHostLog taskHostLog = convertToTaskHostLog(request.getLogType(), request.getJobCreateDate(),
             request.getStepInstanceId(), request.getExecuteCount(), request.getBatch(), request.getHostId(),
-            request.getIp(), null, request.getScriptLog(), request.getFileTaskLogs());
+            request.getIp(), request.getIpv6(), request.getScriptLog(), request.getFileTaskLogs());
         logService.saveLog(taskHostLog);
         return InternalResponse.buildSuccessResp(null);
     }
@@ -90,8 +90,8 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
                     log.getExecuteCount(),
                     log.getBatch(),
                     log.getHostId(),
-                    log.getIp(),
-                    log.getIpv6(),
+                    log.getCloudIp(),
+                    log.getCloudIpv6(),
                     log.getScriptLog(),
                     log.getFileTaskLogs()))
                 .collect(Collectors.toList());
@@ -150,11 +150,11 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         result.setExecuteCount(taskHostLog.getExecuteCount());
         result.setBatch(taskHostLog.getBatch());
         result.setHostId(taskHostLog.getHostId());
-        result.setIp(taskHostLog.getIp());
-        result.setIpv6(taskHostLog.getIpv6());
+        result.setCloudIp(taskHostLog.getIp());
+        result.setCloudIpv6(taskHostLog.getIpv6());
         if (StringUtils.isNotEmpty(taskHostLog.getScriptContent())) {
-            result.setScriptLog(new ServiceScriptLogDTO(taskHostLog.getHostId(),
-                taskHostLog.getScriptContent()));
+            result.setScriptLog(new ServiceScriptLogDTO(taskHostLog.getHostId(), taskHostLog.getIp(),
+                taskHostLog.getIpv6(), taskHostLog.getScriptContent()));
         }
         if (CollectionUtils.isNotEmpty(taskHostLog.getFileTaskLogs())) {
             result.setFileTaskLogs(taskHostLog.getFileTaskLogs().stream()
@@ -225,7 +225,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         result.setStepInstanceId(stepInstanceId);
         result.setExecuteCount(executeCount);
         result.setBatch(batch);
-        result.setIp(ip);
+        result.setCloudIp(ip);
         if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
             result.setFileTaskLogs(fileTaskLogs.stream()
                 .map(FileTaskLogDoc::toServiceFileTaskLogDTO)
@@ -348,7 +348,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         ipLogsResult.setIpLogs(ipLogs);
         cloudIpAndLogs.forEach((cloudIp, logs) -> {
             ServiceHostLogDTO ipLog = new ServiceHostLogDTO();
-            ipLog.setIp(cloudIp);
+            ipLog.setCloudIp(cloudIp);
             ipLog.setFileTaskLogs(logs);
             ipLogs.add(ipLog);
         });

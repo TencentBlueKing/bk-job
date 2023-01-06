@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -47,10 +46,13 @@ public class ScriptHostLogContent {
      */
     private Long hostId;
     /**
-     * 目标IP
+     * 目标云区域ID:ipv4
      */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续使用hostId替换", version = "3.7.x")
-    private String ip;
+    private String cloudIp;
+    /**
+     * 目标云区域ID:ipv6
+     */
+    private String cloudIpv6;
     /**
      * 日志内容
      */
@@ -60,12 +62,17 @@ public class ScriptHostLogContent {
      */
     private boolean finished;
 
-    public ScriptHostLogContent(long stepInstanceId, int executeCount, Long hostId,
-                                String ip, String content, boolean finished) {
+    public ScriptHostLogContent(long stepInstanceId,
+                                int executeCount,
+                                Long hostId,
+                                String cloudIp,
+                                String cloudIpv6,
+                                String content,
+                                boolean finished) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.hostId = hostId;
-        this.ip = ip;
+        this.cloudIp = cloudIp;
         this.content = content;
         this.finished = finished;
     }

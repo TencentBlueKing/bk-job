@@ -480,7 +480,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         serviceHostLog.setExecuteCount(stepInstance.getExecuteCount());
         serviceHostLog.setBatch(stepInstance.getBatch());
         serviceHostLog.setHostId(host.getHostId());
-        serviceHostLog.setIp(host.getIp());
+        serviceHostLog.setCloudIp(host.getIp());
         serviceHostLog.setFileTaskLogs(buildFileTaskLogs(host, thirdFileSourceTaskLog.getFileTaskLogs()));
         return serviceHostLog;
     }

@@ -341,7 +341,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                                      long currentTime) {
         HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
         if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getErrorCode()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(agentTask.getHost().getHostId(),
+            logs.add(logService.buildSystemScriptLog(host,
                 agentTaskResult.getErrorMsg(), agentTask.getScriptLogOffset(), currentTime));
         } else {
             String content = agentTaskResult.getScreen();
@@ -354,7 +354,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                 offset += bytes;
                 agentTask.setScriptLogOffset(offset);
             }
-            logs.add(new ServiceScriptLogDTO(host.getHostId(), offset, agentTaskResult.getScreen()));
+            logs.add(new ServiceScriptLogDTO(host, offset, agentTaskResult.getScreen()));
         }
         // 刷新日志拉取偏移量
         refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomicTaskId());
@@ -642,8 +642,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         if (StringUtils.isNotEmpty(errorMsg)) {
             List<ServiceScriptLogDTO> scriptLogs = unfinishedAgentIds.stream().map(agentId -> {
                 AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
-                return logService.buildSystemScriptLog(agentTask.getHost().getHostId(), errorMsg,
-                    agentTask.getScriptLogOffset(), endTime);
+                HostDTO host = agentIdHostMap.get(agentId);
+                return logService.buildSystemScriptLog(host, errorMsg, agentTask.getScriptLogOffset(), endTime);
             }).collect(Collectors.toList());
             logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), scriptLogs);

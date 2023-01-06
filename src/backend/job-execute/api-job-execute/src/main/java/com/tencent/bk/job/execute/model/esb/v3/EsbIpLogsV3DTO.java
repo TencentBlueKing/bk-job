@@ -56,7 +56,7 @@ public class EsbIpLogsV3DTO {
      * 脚本任务日志
      */
     @JsonProperty("script_task_logs")
-    private List<EsbScriptIpLogV3DTO> scriptTaskLogs;
+    private List<EsbScriptHostLogV3DTO> scriptTaskLogs;
 
     /**
      * 文件任务日志

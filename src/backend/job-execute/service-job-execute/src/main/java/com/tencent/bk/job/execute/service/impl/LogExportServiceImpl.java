@@ -226,7 +226,7 @@ public class LogExportServiceImpl implements LogExportService {
                                 if (isGetByHost) {
                                     out.println(log);
                                 } else {
-                                    out.println(scriptHostLogContent.getIp() + " | " + log);
+                                    out.println(scriptHostLogContent.getCloudIp() + " | " + log);
                                 }
                             }
                         }
