@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 任务驱逐策略执行器
+ * 任务驱逐策略执行器，用于判定某个任务在当前驱逐策略下是否应当被驱逐，提供任务被驱逐后更新任务相关状态的方法
  */
 @Slf4j
 @Component
@@ -65,13 +65,15 @@ public class TaskEvictPolicyExecutor {
     }
 
     /**
-     * 更新被驱逐的任务的状态为被丢弃状态
+     * 更新被驱逐的任务相关状态为被丢弃状态
      *
      * @param taskInstance 任务实例
+     * @param stepInstance 步骤实例
      */
     public void updateEvictedTaskStatus(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
         long endTime = System.currentTimeMillis();
         Long taskInstanceId = stepInstance.getTaskInstanceId();
+        // 将进行中的被驱逐任务的步骤实例状态更新为“被丢弃”状态
         if (!RunStatusEnum.isFinishedStatus(stepInstance.getStatus())) {
             long totalTime = TaskCostCalculator.calculate(
                 stepInstance.getStartTime(),
@@ -92,6 +94,7 @@ public class TaskEvictPolicyExecutor {
                 stepInstance.getStatus()
             );
         }
+        // 将进行中的被驱逐任务外层状态更新为“被丢弃”状态
         if (!RunStatusEnum.isFinishedStatus(taskInstance.getStatus())) {
             long totalTime = TaskCostCalculator.calculate(
                 taskInstance.getStartTime(),

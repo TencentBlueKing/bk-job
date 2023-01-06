@@ -101,7 +101,8 @@ public class EsbResp<T> {
     }
 
     public static <T> EsbResp<T> buildAuthFailResult(EsbApplyPermissionDTO permission) {
-        EsbResp<T> esbResp = buildCommonFailResp(ErrorCode.BK_PERMISSION_DENIED, null, null);
+        EsbResp<T> esbResp = buildCommonFailResp(ErrorCode.BK_PERMISSION_DENIED,
+                                                    new String[]{JobContextUtil.getUsername()}, null);
         esbResp.setPermission(permission);
         return esbResp;
     }
