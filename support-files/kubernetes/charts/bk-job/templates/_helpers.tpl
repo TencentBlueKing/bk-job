@@ -492,7 +492,7 @@ Return the Job InitContainer WaitForMigration Content
     {{- toYaml .Values.waitForMigration.resources | nindent 4 }}
   args:
   - "job-wr"
-  - {{ printf "%s-migration-%d" (include "common.names.fullname" .) .Release.Revision | quote }}
+  - {{ printf "%s-migration-%d" (include "common.names.fullname" .) .Chart.Version | quote }}
 {{- end -}}
 
 {{/*
