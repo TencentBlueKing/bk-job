@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -38,6 +40,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,9 +89,7 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
         if (CollectionUtils.isEmpty(globalVars)) {
             return resultStepInstanceVariableValuesList;
         }
-        Map<String, VariableValueDTO> globalVarValueMap = new HashMap<>();
-        initGlobalVarMap(globalVars, globalVarValueMap);
-
+        Map<String, VariableValueDTO> globalVarValueMap = initGlobalVarMap(globalVars);
 
         stepInstanceList.forEach(stepInstance -> {
             if (!StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue().equals(stepInstance.getExecuteType())) {
@@ -128,20 +129,18 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
         inputStepInstanceVariableValues.setTaskInstanceId(taskInstanceId);
         inputStepInstanceVariableValues.setStepInstanceId(stepInstanceId);
         if (!variablesAnalyzeResult.isExistAnyVar()) {
+            // 如果不存在任何变量，无需进一步处理
             return inputStepInstanceVariableValues;
         }
 
-        List<HostVariableValuesDTO> namespaceVarValues = new ArrayList<>();
+        // 初始化全局变量
         List<VariableValueDTO> globalVarValues = new ArrayList<>();
-        Map<String, VariableValueDTO> globalVarValueMap = new HashMap<>();
-        Map<String, Map<String, VariableValueDTO>> namespaceVarValueMap = new HashMap<>();
-        inputStepInstanceVariableValues.setNamespaceParams(namespaceVarValues);
-        inputStepInstanceVariableValues.setNamespaceParamsMap(namespaceVarValueMap);
         inputStepInstanceVariableValues.setGlobalParams(globalVarValues);
+        // key: varName value: varValue
+        Map<String, VariableValueDTO> globalVarValueMap = initGlobalVarMap(taskVariables);
         inputStepInstanceVariableValues.setGlobalParamsMap(globalVarValueMap);
 
-        initGlobalVarMap(taskVariables, globalVarValueMap);
-
+        // 如果作业只包含常量，由于变量值不可变，可以直接返回初始全局变量的值
         if (variablesAnalyzeResult.isExistOnlyConstVar()) {
             if (!globalVarValueMap.isEmpty()) {
                 globalVarValueMap.forEach((paramName, param) -> globalVarValues.add(param));
@@ -149,45 +148,75 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
             return inputStepInstanceVariableValues;
         }
 
-        List<StepInstanceVariableValuesDTO> stepInstanceVariableValuesList =
+        // 如果包含可变变量，那么需要获取前面所有步骤的输出变量值来进行处理
+        List<StepInstanceVariableValuesDTO> preStepInstanceVariableValuesList =
             stepInstanceVariableDAO.listSortedPreStepOutputVariableValues(taskInstanceId, stepInstanceId);
-        if (CollectionUtils.isEmpty(stepInstanceVariableValuesList)) {
-            if (!globalVarValueMap.isEmpty()) {
-                globalVarValueMap.forEach((paramName, param) -> globalVarValues.add(param));
-            }
+        if (CollectionUtils.isEmpty(preStepInstanceVariableValuesList)) {
             return inputStepInstanceVariableValues;
         }
 
+        // 按步骤执行先后顺序覆盖更新全局变量值
+        updateGlobalVarValues(preStepInstanceVariableValuesList, globalVarValues, globalVarValueMap);
+
+        // 处理命名空间变量
+        if (variablesAnalyzeResult.isExistNamespaceVar()) {
+            updateNamespaceVarValues(inputStepInstanceVariableValues, preStepInstanceVariableValuesList);
+        }
+
+        return inputStepInstanceVariableValues;
+    }
+
+    private void updateGlobalVarValues(List<StepInstanceVariableValuesDTO> stepInstanceVariableValuesList,
+                                       List<VariableValueDTO> globalVarValues,
+                                       Map<String, VariableValueDTO> globalVarValueMap) {
         stepInstanceVariableValuesList.forEach(stepInstanceVariableValues -> {
             List<VariableValueDTO> stepGlobalParams = stepInstanceVariableValues.getGlobalParams();
             if (CollectionUtils.isNotEmpty(stepGlobalParams)) {
+                // 覆盖全局变量初始值
                 stepGlobalParams.forEach(globalParam -> globalVarValueMap.put(globalParam.getName(), globalParam));
             }
-
-            if (variablesAnalyzeResult.isExistNamespaceVar()) {
-                List<HostVariableValuesDTO> stepNamespaceParams = stepInstanceVariableValues.getNamespaceParams();
-                if (CollectionUtils.isNotEmpty(stepNamespaceParams)) {
-                    stepNamespaceParams.forEach(hostVariableValues -> {
-                        if (CollectionUtils.isEmpty(hostVariableValues.getValues())) {
-                            return;
-                        }
-                        Map<String, VariableValueDTO> hostVariables = namespaceVarValueMap.computeIfAbsent(
-                            hostVariableValues.getIp(), k -> new HashMap<>());
-                        hostVariableValues.getValues().forEach(variable -> hostVariables.put(variable.getName(),
-                            variable));
-                    });
-                }
-            }
         });
-
         if (!globalVarValueMap.isEmpty()) {
             globalVarValueMap.forEach((paramName, param) -> globalVarValues.add(param));
         }
+    }
 
-        if (variablesAnalyzeResult.isExistNamespaceVar()) {
-            namespaceVarValueMap.forEach((ip, param) -> {
+    private void updateNamespaceVarValues(StepInstanceVariableValuesDTO inputStepInstanceVariableValues,
+                                          List<StepInstanceVariableValuesDTO> preStepInstanceVariableValuesList) {
+        if (CollectionUtils.isEmpty(preStepInstanceVariableValuesList)) {
+            return;
+        }
+
+        List<HostVariableValuesDTO> namespaceVarValues = new ArrayList<>();
+        inputStepInstanceVariableValues.setNamespaceParams(namespaceVarValues);
+        Map<HostDTO, Map<String, VariableValueDTO>> namespaceParamsMap = new HashMap<>();
+        inputStepInstanceVariableValues.setNamespaceParamsMap(namespaceParamsMap);
+
+        preStepInstanceVariableValuesList
+            .stream()
+            .filter(stepInstanceVariableValues -> CollectionUtils.isNotEmpty(stepInstanceVariableValues.getNamespaceParams()))
+            .forEach(stepInstanceVariableValues ->
+                stepInstanceVariableValues.getNamespaceParams().forEach(hostVar -> {
+                    HostDTO host = new HostDTO();
+                    host.setHostId(hostVar.getHostId());
+                    if (StringUtils.isNotBlank(hostVar.getCloudIpv4())) {
+                        host.setBkCloudId(IpUtils.extractBkCloudId(hostVar.getCloudIpv4()));
+                        host.setIp(IpUtils.extractIp(hostVar.getCloudIpv4()));
+                    }
+                    if (StringUtils.isNotBlank(hostVar.getCloudIpv6())) {
+                        host.setBkCloudId(IpUtils.extractBkCloudId(hostVar.getCloudIpv6()));
+                        host.setIpv6(IpUtils.extractIp(hostVar.getCloudIpv6()));
+                    }
+                    Map<String, VariableValueDTO> hostVariables = namespaceParamsMap.computeIfAbsent(host,
+                        k -> new HashMap<>());
+                    hostVar.getValues().forEach(variable -> hostVariables.put(variable.getName(), variable));
+                }));
+        if (!namespaceParamsMap.isEmpty()) {
+            namespaceParamsMap.forEach((host, param) -> {
                 HostVariableValuesDTO hostVariableValues = new HostVariableValuesDTO();
-                hostVariableValues.setIp(ip);
+                hostVariableValues.setHostId(host.getHostId());
+                hostVariableValues.setCloudIpv4(host.toCloudIp());
+                hostVariableValues.setCloudIpv6(host.toCloudIpv6());
                 if (param != null && !param.isEmpty()) {
                     List<VariableValueDTO> values = new ArrayList<>();
                     param.forEach((paramName, paramValue) -> values.add(paramValue));
@@ -196,12 +225,10 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
                 namespaceVarValues.add(hostVariableValues);
             });
         }
-
-        return inputStepInstanceVariableValues;
     }
 
-    private void initGlobalVarMap(List<TaskVariableDTO> taskVariables,
-                                  Map<String, VariableValueDTO> globalVarValueMap) {
+    private Map<String, VariableValueDTO> initGlobalVarMap(List<TaskVariableDTO> taskVariables) {
+        Map<String, VariableValueDTO> globalVarValueMap = new HashMap<>();
         taskVariables.forEach(taskVariable -> {
             VariableValueDTO variableValue = new VariableValueDTO();
             variableValue.setName(taskVariable.getName());
@@ -212,5 +239,6 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
                 globalVarValueMap.put(variableValue.getName(), variableValue);
             }
         });
+        return globalVarValueMap;
     }
 }

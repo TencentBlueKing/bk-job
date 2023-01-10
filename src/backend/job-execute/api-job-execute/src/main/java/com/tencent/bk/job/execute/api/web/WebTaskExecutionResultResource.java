@@ -324,6 +324,7 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/variable/{stepInstanceId}/{ip}"})
+    @CompatibleImplementation(name = "ipv6", explain = "兼容IPv6版本之前的使用并保存ip的执行历史数据")
     Response<List<ExecuteVariableVO>> getStepVariableByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -343,6 +344,29 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "ip", name = "ip", required = true)
         @PathVariable("ip")
             String ip
+    );
+
+    @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
+    @GetMapping(value = {"/step-execution-result/step/{stepInstanceId}/host/{hostId}/variables"})
+    Response<List<ExecuteVariableVO>> getStepVariableByHostId(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId,
+        @ApiParam(value = "hostId", name = "hostId", required = true)
+        @PathVariable("hostId")
+            Long hostId
     );
 
     @ApiOperation(value = "获取执行结果分组下的主机列表", produces = "application/json")

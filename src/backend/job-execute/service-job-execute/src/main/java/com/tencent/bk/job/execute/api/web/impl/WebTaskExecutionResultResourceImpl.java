@@ -649,6 +649,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  String scopeId,
                                                                  Long stepInstanceId,
                                                                  String ip) {
+        return getStepVariableByHost(username, appResourceScope, stepInstanceId, HostDTO.fromCloudIp(ip));
+    }
+
+    private Response<List<ExecuteVariableVO>> getStepVariableByHost(String username,
+                                                                    AppResourceScope appResourceScope,
+                                                                    Long stepInstanceId,
+                                                                    HostDTO queryHost) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
             return Response.buildSuccessResp(Collections.emptyList());
@@ -700,9 +707,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 ExecuteVariableVO vo = new ExecuteVariableVO();
                 vo.setName(paramName);
                 String paramValue = (inputStepInstanceValues.getNamespaceParamsMap() != null
-                    && inputStepInstanceValues.getNamespaceParamsMap().get(ip) != null
-                    && inputStepInstanceValues.getNamespaceParamsMap().get(ip).get(paramName) != null)
-                    ? inputStepInstanceValues.getNamespaceParamsMap().get(ip).get(paramName).getValue()
+                    && inputStepInstanceValues.getNamespaceParamsMap().get(queryHost) != null
+                    && inputStepInstanceValues.getNamespaceParamsMap().get(queryHost).get(paramName) != null)
+                    ? inputStepInstanceValues.getNamespaceParamsMap().get(queryHost).get(paramName).getValue()
                     : taskVariablesMap.get(paramName).getValue();
                 vo.setValue(paramValue);
                 vo.setChangeable(1);
@@ -749,6 +756,16 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             vo.setType(varType.getType());
         }
         return vo;
+    }
+
+    @Override
+    public Response<List<ExecuteVariableVO>> getStepVariableByHostId(String username,
+                                                                     AppResourceScope appResourceScope,
+                                                                     String scopeType,
+                                                                     String scopeId,
+                                                                     Long stepInstanceId,
+                                                                     Long hostId) {
+        return getStepVariableByHost(username, appResourceScope, stepInstanceId, HostDTO.fromHostId(hostId));
     }
 
     @Override

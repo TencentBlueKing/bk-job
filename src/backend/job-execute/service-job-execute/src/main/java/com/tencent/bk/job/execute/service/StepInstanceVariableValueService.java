@@ -53,7 +53,7 @@ public interface StepInstanceVariableValueService {
      *
      * @param taskInstanceId 作业实例ID
      * @param stepInstanceId 当前步骤ID
-     * @param taskVariables  全局变量
+     * @param taskVariables  全局变量初始值
      * @return 变量值
      */
     StepInstanceVariableValuesDTO computeInputStepInstanceVariableValues(long taskInstanceId, long stepInstanceId,
