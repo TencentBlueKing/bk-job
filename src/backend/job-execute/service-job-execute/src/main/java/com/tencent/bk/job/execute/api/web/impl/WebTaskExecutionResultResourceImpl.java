@@ -649,13 +649,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  String scopeId,
                                                                  Long stepInstanceId,
                                                                  String ip) {
-        return getStepVariableByHost(username, appResourceScope, stepInstanceId, HostDTO.fromCloudIp(ip));
+        return getStepVariableByHost(username, appResourceScope, stepInstanceId, null, ip);
     }
 
     private Response<List<ExecuteVariableVO>> getStepVariableByHost(String username,
                                                                     AppResourceScope appResourceScope,
                                                                     Long stepInstanceId,
-                                                                    HostDTO queryHost) {
+                                                                    Long hostId,
+                                                                    String ip) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
             return Response.buildSuccessResp(Collections.emptyList());
@@ -703,14 +704,27 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 return Response.buildSuccessResp(taskVariableVOS);
             }
 
+            Map<String, VariableValueDTO> hostVariables = new HashMap<>();
+            if (hostId != null) {
+                inputStepInstanceValues.getNamespaceParamsMap()
+                    .forEach((host, hostVars) -> {
+                        if (host.getHostId() != null && host.getHostId().equals(hostId)) {
+                            hostVars.forEach(hostVariables::put);
+                        }
+                    });
+            } else {
+                inputStepInstanceValues.getNamespaceParamsMap()
+                    .forEach((host, hostVars) -> {
+                        if (host.toCloudIp() != null && host.toCloudIp().equals(ip)) {
+                            hostVars.forEach(hostVariables::put);
+                        }
+                    });
+            }
             namespaceVarNames.forEach(paramName -> {
                 ExecuteVariableVO vo = new ExecuteVariableVO();
                 vo.setName(paramName);
-                String paramValue = (inputStepInstanceValues.getNamespaceParamsMap() != null
-                    && inputStepInstanceValues.getNamespaceParamsMap().get(queryHost) != null
-                    && inputStepInstanceValues.getNamespaceParamsMap().get(queryHost).get(paramName) != null)
-                    ? inputStepInstanceValues.getNamespaceParamsMap().get(queryHost).get(paramName).getValue()
-                    : taskVariablesMap.get(paramName).getValue();
+                String paramValue = hostVariables.get(paramName) != null
+                    ? hostVariables.get(paramName).getValue() : taskVariablesMap.get(paramName).getValue();
                 vo.setValue(paramValue);
                 vo.setChangeable(1);
                 vo.setType(TaskVariableTypeEnum.NAMESPACE.getType());
@@ -765,7 +779,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                      String scopeId,
                                                                      Long stepInstanceId,
                                                                      Long hostId) {
-        return getStepVariableByHost(username, appResourceScope, stepInstanceId, HostDTO.fromHostId(hostId));
+        return getStepVariableByHost(username, appResourceScope, stepInstanceId, hostId, null);
     }
 
     @Override
