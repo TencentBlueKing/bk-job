@@ -131,6 +131,9 @@ spec:
             - name: job-gateway-tls-password
               mountPath: /etc/secrets
               readOnly: true
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -151,4 +154,7 @@ spec:
                 path: keystore.password
               - key: truststore.password
                 path: truststore.password
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
 {{- end }}

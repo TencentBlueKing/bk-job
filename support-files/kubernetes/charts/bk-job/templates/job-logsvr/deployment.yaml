@@ -122,6 +122,9 @@ spec:
             - name: mongodb
               mountPath: /etc/secrets/mongodb
               readOnly: true
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -129,5 +132,8 @@ spec:
         - name: mongodb
           secret:
             secretName: {{ include "job.mongodb.secretName" . }}
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
 
 {{- end }}
