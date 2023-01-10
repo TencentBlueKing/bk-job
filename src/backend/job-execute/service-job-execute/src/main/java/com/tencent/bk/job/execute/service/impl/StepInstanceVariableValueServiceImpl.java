@@ -125,13 +125,13 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
                                                                                 long stepInstanceId,
                                                                                 List<TaskVariableDTO> taskVariables) {
         TaskVariablesAnalyzeResult variablesAnalyzeResult = new TaskVariablesAnalyzeResult(taskVariables);
+        if (!variablesAnalyzeResult.isExistAnyVar()) {
+            // 如果不存在任何变量，无需进一步处理
+            return null;
+        }
         StepInstanceVariableValuesDTO inputStepInstanceVariableValues = new StepInstanceVariableValuesDTO();
         inputStepInstanceVariableValues.setTaskInstanceId(taskInstanceId);
         inputStepInstanceVariableValues.setStepInstanceId(stepInstanceId);
-        if (!variablesAnalyzeResult.isExistAnyVar()) {
-            // 如果不存在任何变量，无需进一步处理
-            return inputStepInstanceVariableValues;
-        }
 
         // 初始化全局变量
         List<VariableValueDTO> globalVarValues = new ArrayList<>();

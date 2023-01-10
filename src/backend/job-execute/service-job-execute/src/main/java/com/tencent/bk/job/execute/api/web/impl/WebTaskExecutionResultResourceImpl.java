@@ -704,32 +704,35 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 return Response.buildSuccessResp(taskVariableVOS);
             }
 
-            Map<String, VariableValueDTO> hostVariables = new HashMap<>();
-            if (hostId != null) {
-                inputStepInstanceValues.getNamespaceParamsMap()
-                    .forEach((host, hostVars) -> {
-                        if (host.getHostId() != null && host.getHostId().equals(hostId)) {
-                            hostVars.forEach(hostVariables::put);
-                        }
-                    });
-            } else {
-                inputStepInstanceValues.getNamespaceParamsMap()
-                    .forEach((host, hostVars) -> {
-                        if (host.toCloudIp() != null && host.toCloudIp().equals(ip)) {
-                            hostVars.forEach(hostVariables::put);
-                        }
-                    });
+            if (inputStepInstanceValues.getNamespaceParamsMap() != null
+                && !inputStepInstanceValues.getNamespaceParamsMap().isEmpty()) {
+                Map<String, VariableValueDTO> hostVariables = new HashMap<>();
+                if (hostId != null) {
+                    inputStepInstanceValues.getNamespaceParamsMap()
+                        .forEach((host, hostVars) -> {
+                            if (host.getHostId() != null && host.getHostId().equals(hostId)) {
+                                hostVars.forEach(hostVariables::put);
+                            }
+                        });
+                } else {
+                    inputStepInstanceValues.getNamespaceParamsMap()
+                        .forEach((host, hostVars) -> {
+                            if (host.toCloudIp() != null && host.toCloudIp().equals(ip)) {
+                                hostVars.forEach(hostVariables::put);
+                            }
+                        });
+                }
+                namespaceVarNames.forEach(paramName -> {
+                    ExecuteVariableVO vo = new ExecuteVariableVO();
+                    vo.setName(paramName);
+                    String paramValue = hostVariables.get(paramName) != null
+                        ? hostVariables.get(paramName).getValue() : taskVariablesMap.get(paramName).getValue();
+                    vo.setValue(paramValue);
+                    vo.setChangeable(1);
+                    vo.setType(TaskVariableTypeEnum.NAMESPACE.getType());
+                    taskVariableVOS.add(vo);
+                });
             }
-            namespaceVarNames.forEach(paramName -> {
-                ExecuteVariableVO vo = new ExecuteVariableVO();
-                vo.setName(paramName);
-                String paramValue = hostVariables.get(paramName) != null
-                    ? hostVariables.get(paramName).getValue() : taskVariablesMap.get(paramName).getValue();
-                vo.setValue(paramValue);
-                vo.setChangeable(1);
-                vo.setType(TaskVariableTypeEnum.NAMESPACE.getType());
-                taskVariableVOS.add(vo);
-            });
 
             List<VariableValueDTO> globalVars = inputStepInstanceValues.getGlobalParams();
             if (globalVars != null) {
