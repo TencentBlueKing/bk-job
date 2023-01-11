@@ -227,7 +227,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @CompatibleImplementation(name = "ipv6", explain = "考虑到历史记录只有ip数据，所以需要同时兼容hostId/ip两种方式",
-        version = "3.7.x")
+        deprecatedVersion = "3.7.x")
     @ApiOperation(value = "获取主机对应的脚本日志内容", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/log-content/{stepInstanceId}/{executeCount}/{ip}",
         "/step-execution-result/log-content/{stepInstanceId}/{executeCount}/host/{hostId}"})
@@ -259,7 +259,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @CompatibleImplementation(name = "ipv6", explain = "考虑到历史记录只有ip数据，所以需要同时兼容hostId/ip两种方式",
-        version = "3.7.x")
+        deprecatedVersion = "3.7.x")
     @ApiOperation(value = "获取文件分发步骤主机对应的日志", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}",
         "/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/host/{hostId}"})
