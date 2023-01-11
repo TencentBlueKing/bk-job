@@ -102,13 +102,13 @@
 
     import I18n from '@/i18n';
 
-    const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN1';
+    const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN2';
     const LIST_ROW_HEIGHT = 40; // 每列高度
 
     const columnList = [
         {
             label: I18n.t('history.IP'),
-            name: 'ip',
+            name: 'ipv4',
             width: 140,
             checked: true,
             disabled: true,
@@ -194,7 +194,7 @@
         },
         data () {
             let allShowColumn = [
-                'ip',
+                'ipv4',
                 'totalTime',
                 'cloudAreaName',
                 'exitCode',

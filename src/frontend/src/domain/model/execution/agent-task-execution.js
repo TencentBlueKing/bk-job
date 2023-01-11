@@ -43,6 +43,7 @@ export default class AgentTaskExecutionDetail extends Model {
         this.exitCode = payload.exitCode;
         this.hostId = payload.hostId;
         this.ip = payload.ip;
+        this.ipv4 = payload.ipv4;
         this.ipv6 = payload.ipv6;
         this.retryCount = payload.retryCount || 0;
         this.startTime = payload.startTime;
