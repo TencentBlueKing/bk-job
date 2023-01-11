@@ -47,16 +47,18 @@ public class AgentTaskExecutionVO {
     @ApiModelProperty("Agent ID")
     private String agentId;
 
-    /**
-     * tmp: 暂时返回云区域+ipv4，发布完成之后仅返回ipv4
-     */
-    @ApiModelProperty("Agent ipv4")
+    @ApiModelProperty("云区域+ipv4，废弃字段，ipv6版本发布后删除")
+    @Deprecated
     private String ip;
 
     @Deprecated
     @CompatibleImplementation(name = "ipv6", explain = "兼容字段，发布完成后可删除",
-        version = "3.7.x")
+        deprecatedVersion = "3.7.x")
+    @ApiModelProperty("废弃字段，ipv6版本发布后删除")
     private String displayIp;
+
+    @ApiModelProperty("Agent ipv4")
+    private String ipv4;
 
     @ApiModelProperty("Agent ipv6")
     private String ipv6;

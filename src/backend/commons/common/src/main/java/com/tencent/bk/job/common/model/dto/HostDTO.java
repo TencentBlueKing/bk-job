@@ -194,13 +194,15 @@ public class HostDTO implements Cloneable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        HostDTO hostDTO = (HostDTO) o;
-        if (hostId != null) {
-            return hostId.equals(hostDTO.getHostId());
+        HostDTO otherHost = (HostDTO) o;
+        if (hostId != null && otherHost.getHostId() != null) {
+            return hostId.equals(otherHost.getHostId());
+        } else if (this.getIp() != null && otherHost.getIp() != null) {
+            // 兼容没有hostId,只有ip的的场景
+            return bkCloudId.equals(otherHost.bkCloudId) &&
+                ip.equals(otherHost.ip);
         } else {
-            // 兼容没有hostId的场景
-            return bkCloudId.equals(hostDTO.bkCloudId) &&
-                ip.equals(hostDTO.ip);
+            return false;
         }
     }
 

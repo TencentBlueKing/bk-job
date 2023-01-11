@@ -45,7 +45,7 @@ public class CcTopologyNodeVO {
     private String instanceName;
     private String objectId;
     private String objectName;
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     private Boolean expanded = true;
     private Boolean lazy = false;
     private List<CcTopologyNodeVO> child;

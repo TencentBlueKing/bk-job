@@ -543,11 +543,11 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         for (Map.Entry<String, Map<String, String>> entry : namespaceParamValues.entrySet()) {
             HostVariableValuesDTO hostVariableValues = new HostVariableValuesDTO();
             List<VariableValueDTO> paramValues = toVariableValuesList(entry.getValue());
-            AgentTaskDTO agentTask = targetAgentTasks.get(entry.getKey());
-            hostVariableValues.setHostId(agentTask.getHostId());
-            hostVariableValues.setAgentId(entry.getKey());
+            HostDTO host = agentIdHostMap.get(entry.getKey());
+            hostVariableValues.setHostId(host.getHostId());
+            hostVariableValues.setCloudIpv4(host.toCloudIp());
+            hostVariableValues.setCloudIpv6(host.toCloudIpv6());
             hostVariableValues.setValues(paramValues);
-            hostVariableValues.setIp(agentTask.getCloudIp());
             hostVariableValuesList.add(hostVariableValues);
         }
         return hostVariableValuesList;

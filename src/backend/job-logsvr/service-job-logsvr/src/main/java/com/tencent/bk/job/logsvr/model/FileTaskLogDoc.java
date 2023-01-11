@@ -71,7 +71,7 @@ public class FileTaskLogDoc {
     /**
      * 云区域+ip - 真实IP。当mode=0时,ip=上传源IP;mode=1时,ip=下载目标IP
      */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，仅用于查询历史数据的时候使用", version = ">3.7.x")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，仅用于查询历史数据的时候使用", deprecatedVersion = ">3.7.x")
     @Deprecated
     @Field(FileTaskLogDocField.IP)
     private String ip;

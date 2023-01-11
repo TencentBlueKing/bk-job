@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -37,20 +39,33 @@ import java.util.List;
 @Data
 public class HostVariableValuesDTO {
     /**
-     * 主机IP
+     * 主机云区域ID:IPv4
      */
-    @CompatibleImplementation(explain = "由于ip不再唯一，使用hostId/agentId替代该参数", version = "3.7.x")
-    private String ip;
+    @JsonProperty("ip")
+    private String cloudIpv4;
+    /**
+     * 主机云区域ID:ipv6
+     */
+    @JsonProperty("ipv6")
+    private String cloudIpv6;
     /**
      * 主机ID
      */
+    @JsonProperty("hostId")
     private Long hostId;
-    /**
-     * bk_agent_id
-     */
-    private String agentId;
     /**
      * 变量值
      */
+    @JsonProperty("values")
     private List<VariableValueDTO> values;
+
+    /**
+     * 获取主机的ip，优先返回ipv4
+     *
+     * @return 主机ipv4/ipv6, ipv4 优先
+     */
+    @JsonIgnore
+    public String getPrimaryCloudIp() {
+        return StringUtils.isNotEmpty(cloudIpv4) ? cloudIpv4 : cloudIpv6;
+    }
 }

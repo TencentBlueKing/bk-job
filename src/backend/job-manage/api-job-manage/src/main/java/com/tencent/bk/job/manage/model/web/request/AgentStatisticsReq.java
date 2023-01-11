@@ -45,23 +45,23 @@ public class AgentStatisticsReq {
 
     @ApiModelProperty(value = "主机列表")
     List<HostIdWithMeta> hostList = new ArrayList<>();
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     @ApiModelProperty(value = "hostId列表")
     List<Long> hostIdList = new ArrayList<>();
 
-    @CompatibleImplementation(explain = "兼容IPv6版本发布过程接口调用", version = "3.8.0")
+    @CompatibleImplementation(explain = "兼容IPv6版本发布过程接口调用", deprecatedVersion = "3.8.0")
     @ApiModelProperty(value = "IP列表")
     List<String> ipList;
 
     @ApiModelProperty(value = "业务拓扑节点列表(传 objectId 与 instanceId ，其余字段置空即可)")
     List<BizTopoNode> nodeList;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     @ApiModelProperty(value = "业务拓扑节点列表(传 objectId 与 instanceId ，其余字段置空即可)")
     List<BizTopoNode> appTopoNodeList;
 
     @ApiModelProperty(value = "动态分组列表")
     List<DynamicGroupIdWithMeta> dynamicGroupList;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     @ApiModelProperty(value = "动态分组Id列表")
     List<String> dynamicGroupIds;
 
@@ -71,7 +71,7 @@ public class AgentStatisticsReq {
             .collect(Collectors.toList());
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setHostIdList(List<Long> hostIdList) {
         this.hostIdList = hostIdList;
         if (hostIdList != null) {
@@ -81,7 +81,7 @@ public class AgentStatisticsReq {
         }
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setAppTopoNodeList(
         List<BizTopoNode> appTopoNodeList) {
         this.appTopoNodeList = appTopoNodeList;
@@ -94,7 +94,7 @@ public class AgentStatisticsReq {
             .collect(Collectors.toList());
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setDynamicGroupIds(List<String> dynamicGroupIds) {
         this.dynamicGroupIds = dynamicGroupIds;
         if (dynamicGroupIds != null) {

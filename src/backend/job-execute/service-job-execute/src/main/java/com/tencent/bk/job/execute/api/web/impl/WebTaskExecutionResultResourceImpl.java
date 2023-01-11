@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.api.web.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -560,9 +561,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
                     agentTaskVO.setHostId(agentTask.getHostId());
                     agentTaskVO.setAgentId(agentTask.getAgentId());
-                    // tmp 发布兼容，发布完成后需要改成 agentTaskVO.setIp(agentTask.getIp());
                     agentTaskVO.setIp(agentTask.getCloudIp());
                     agentTaskVO.setDisplayIp(agentTask.getIp());
+                    agentTaskVO.setIpv4(agentTask.getIp());
                     agentTaskVO.setIpv6(agentTask.getIpv6());
                     agentTaskVO.setEndTime(agentTask.getEndTime());
                     agentTaskVO.setStartTime(agentTask.getStartTime());
@@ -627,18 +628,17 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         return Response.buildSuccessResp(ipScriptLogContentVO);
     }
 
-    private AuthResult authViewStepInstance(String username, AppResourceScope appResourceScope,
-                                            StepInstanceBaseDTO stepInstance) {
+    private void authViewStepInstance(String username, AppResourceScope appResourceScope,
+                                      StepInstanceBaseDTO stepInstance) {
         String operator = stepInstance.getOperator();
         if (username.equals(operator)) {
-            return AuthResult.pass();
+            return;
         }
         AuthResult authResult = executeAuthService.authViewTaskInstance(
             username, appResourceScope, stepInstance.getTaskInstanceId());
         if (!authResult.isPass()) {
-            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
+            throw new PermissionDeniedException(authResult);
         }
-        return authResult;
     }
 
 
@@ -649,90 +649,153 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  String scopeId,
                                                                  Long stepInstanceId,
                                                                  String ip) {
+        return getStepVariableByHost(username, appResourceScope, scopeType, scopeId, stepInstanceId, null, ip);
+    }
+
+    @Override
+    public Response<List<ExecuteVariableVO>> getStepVariableByHost(String username,
+                                                                   AppResourceScope appResourceScope,
+                                                                   String scopeType,
+                                                                   String scopeId,
+                                                                   Long stepInstanceId,
+                                                                   Long hostId,
+                                                                   String ip) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
-            return Response.buildSuccessResp(Collections.emptyList());
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         if (!stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
             || !stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
 
-        AuthResult authResult = authViewStepInstance(username, appResourceScope, stepInstance);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+        authViewStepInstance(username, appResourceScope, stepInstance);
 
+        List<ExecuteVariableVO> taskVariableVOS = getStepVariableByHost(stepInstance, hostId, ip);
+        return Response.buildSuccessResp(taskVariableVOS);
+    }
+
+    private List<ExecuteVariableVO> getStepVariableByHost(StepInstanceBaseDTO stepInstance,
+                                                          Long hostId,
+                                                          String ip) {
         List<TaskVariableDTO> taskVars =
             taskInstanceVariableService.getByTaskInstanceId(stepInstance.getTaskInstanceId());
         if (taskVars == null || taskVars.isEmpty()) {
-            return Response.buildSuccessResp(Collections.emptyList());
+            return Collections.emptyList();
         }
         List<ExecuteVariableVO> taskVariableVOS = new ArrayList<>();
-        List<String> changeableVarNames = new ArrayList<>();
-        List<String> namespaceVarNames = new ArrayList<>();
-        Map<String, TaskVariableDTO> taskVariablesMap = new HashMap<>();
+        List<TaskVariableDTO> changeableVars = new ArrayList<>();
         for (TaskVariableDTO taskVar : taskVars) {
-            taskVariablesMap.put(taskVar.getName(), taskVar);
+            // 主机变量无需返回
             if (taskVar.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
                 continue;
             }
             if (!taskVar.isChangeable()) {
                 taskVariableVOS.add(convertToTaskVariableVO(taskVar));
             } else {
-                changeableVarNames.add(taskVar.getName());
-                if (taskVar.getType() == TaskVariableTypeEnum.NAMESPACE.getType()) {
-                    namespaceVarNames.add(taskVar.getName());
-                }
+                changeableVars.add(taskVar);
             }
         }
 
-        if (!changeableVarNames.isEmpty()) {
-            StepInstanceVariableValuesDTO inputStepInstanceValues = stepInstanceVariableValueService
-                .computeInputStepInstanceVariableValues(stepInstance.getTaskInstanceId(), stepInstanceId, taskVars);
-            if (inputStepInstanceValues == null) {
-                taskVars.stream().filter(var -> !var.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType()) &&
-                    var.isChangeable()).forEach(var -> taskVariableVOS.add(convertToTaskVariableVO(var)));
-                return Response.buildSuccessResp(taskVariableVOS);
-            }
+        if (CollectionUtils.isNotEmpty(changeableVars)) {
+            appendStepChangeableVars(taskVariableVOS, stepInstance, changeableVars, hostId, ip);
+        }
 
-            namespaceVarNames.forEach(paramName -> {
+        return taskVariableVOS;
+    }
+
+    private void appendStepChangeableVars(List<ExecuteVariableVO> taskVariableVOS,
+                                          StepInstanceBaseDTO stepInstance,
+                                          List<TaskVariableDTO> changeableVars,
+                                          Long hostId,
+                                          String ip) {
+        long stepInstanceId = stepInstance.getId();
+
+        StepInstanceVariableValuesDTO inputStepInstanceValues = stepInstanceVariableValueService
+            .computeInputStepInstanceVariableValues(stepInstance.getTaskInstanceId(), stepInstanceId, changeableVars);
+        if (inputStepInstanceValues == null) {
+            changeableVars.stream().filter(var -> !var.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType()) &&
+                var.isChangeable()).forEach(var -> taskVariableVOS.add(convertToTaskVariableVO(var)));
+            return;
+        }
+
+        Map<String, TaskVariableDTO> taskVariablesMap = new HashMap<>();
+        for (TaskVariableDTO taskVar : changeableVars) {
+            taskVariablesMap.put(taskVar.getName(), taskVar);
+        }
+
+        // 命名空间变量
+        appendNamespaceVars(taskVariableVOS, changeableVars, inputStepInstanceValues, taskVariablesMap, hostId, ip);
+
+        // 全局变量(除命名空间变量)
+        appendGlobalChangeableVars(taskVariableVOS, inputStepInstanceValues, taskVariablesMap);
+    }
+
+    private void appendNamespaceVars(List<ExecuteVariableVO> taskVariableVOS,
+                                     List<TaskVariableDTO> changeableVars,
+                                     StepInstanceVariableValuesDTO inputStepInstanceValues,
+                                     Map<String, TaskVariableDTO> taskVariablesMap,
+                                     Long hostId,
+                                     String ip) {
+        Map<String, VariableValueDTO> hostVariables = new HashMap<>();
+        if (inputStepInstanceValues.getNamespaceParamsMap() != null
+            && !inputStepInstanceValues.getNamespaceParamsMap().isEmpty()) {
+            // 命名空间变量的数据，之前的版本不包含hostId,只包含ip；需要兼容hostId/ip查询
+            boolean isFilterByHostId = inputStepInstanceValues.getNamespaceParams().get(0).getHostId() != null;
+            // Map<varName,varValue>
+            if (isFilterByHostId) {
+                inputStepInstanceValues.getNamespaceParamsMap()
+                    .forEach((host, hostVars) -> {
+                        if (host.getHostId() != null && host.getHostId().equals(hostId)) {
+                            hostVars.forEach(hostVariables::put);
+                        }
+                    });
+            } else {
+                // 兼容历史数据，命名空间变量只有ip的场景
+                inputStepInstanceValues.getNamespaceParamsMap()
+                    .forEach((host, hostVars) -> {
+                        if (host.toCloudIp() != null && host.toCloudIp().equals(ip)) {
+                            hostVars.forEach(hostVariables::put);
+                        }
+                    });
+            }
+        }
+        changeableVars
+            .stream()
+            .filter(var -> var.getType().equals(TaskVariableTypeEnum.NAMESPACE.getType()))
+            .forEach(var -> {
                 ExecuteVariableVO vo = new ExecuteVariableVO();
-                vo.setName(paramName);
-                String paramValue = (inputStepInstanceValues.getNamespaceParamsMap() != null
-                    && inputStepInstanceValues.getNamespaceParamsMap().get(ip) != null
-                    && inputStepInstanceValues.getNamespaceParamsMap().get(ip).get(paramName) != null)
-                    ? inputStepInstanceValues.getNamespaceParamsMap().get(ip).get(paramName).getValue()
-                    : taskVariablesMap.get(paramName).getValue();
-                vo.setValue(paramValue);
-                vo.setChangeable(1);
+                String varName = var.getName();
+                vo.setName(varName);
+                String varValue = hostVariables.get(varName) != null
+                    ? hostVariables.get(varName).getValue() : taskVariablesMap.get(varName).getValue();
+                vo.setValue(varValue);
+                vo.setChangeable(Bool.TRUE.intValue());
                 vo.setType(TaskVariableTypeEnum.NAMESPACE.getType());
                 taskVariableVOS.add(vo);
             });
+    }
 
-            List<VariableValueDTO> globalVars = inputStepInstanceValues.getGlobalParams();
-            if (globalVars != null) {
-                for (VariableValueDTO varValue : globalVars) {
-                    if (varValue.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType())) {
-                        // 过滤掉主机变量
-                        continue;
-                    }
-                    TaskVariableDTO taskVariable = taskVariablesMap.get(varValue.getName());
-                    if (taskVariable == null || !taskVariable.isChangeable()) {
-                        // 过滤掉常量
-                        continue;
-                    }
-
-                    ExecuteVariableVO vo = new ExecuteVariableVO();
-                    vo.setName(varValue.getName());
-                    vo.setValue(varValue.getValue());
-                    vo.setChangeable(1);
-                    vo.setType(taskVariable.getType());
-                    taskVariableVOS.add(vo);
+    private void appendGlobalChangeableVars(List<ExecuteVariableVO> taskVariableVOS,
+                                            StepInstanceVariableValuesDTO inputStepInstanceValues,
+                                            Map<String, TaskVariableDTO> taskVariablesMap) {
+        List<VariableValueDTO> globalVars = inputStepInstanceValues.getGlobalParams();
+        if (CollectionUtils.isNotEmpty(globalVars)) {
+            for (VariableValueDTO varValue : globalVars) {
+                TaskVariableDTO taskVariable = taskVariablesMap.get(varValue.getName());
+                if (taskVariable == null || !taskVariable.isChangeable()) {
+                    // 过滤掉常量
+                    continue;
                 }
+
+                ExecuteVariableVO vo = new ExecuteVariableVO();
+                vo.setName(varValue.getName());
+                vo.setValue(varValue.getValue());
+                vo.setChangeable(Bool.TRUE.intValue());
+                vo.setType(taskVariable.getType());
+                taskVariableVOS.add(vo);
             }
         }
-        return Response.buildSuccessResp(taskVariableVOS);
     }
 
     private ExecuteVariableVO convertToTaskVariableVO(TaskVariableDTO taskVariable) {
@@ -880,10 +943,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         if (stepInstance == null) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
-        AuthResult authResult = authViewStepInstance(username, appResourceScope, stepInstance);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+        authViewStepInstance(username, appResourceScope, stepInstance);
     }
 
     @Override

@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.ws.rs.QueryParam;
 import java.util.List;
 
 /**
@@ -226,7 +227,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @CompatibleImplementation(name = "ipv6", explain = "考虑到历史记录只有ip数据，所以需要同时兼容hostId/ip两种方式",
-        version = "3.7.x")
+        deprecatedVersion = "3.7.x")
     @ApiOperation(value = "获取主机对应的脚本日志内容", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/log-content/{stepInstanceId}/{executeCount}/{ip}",
         "/step-execution-result/log-content/{stepInstanceId}/{executeCount}/host/{hostId}"})
@@ -258,7 +259,7 @@ public interface WebTaskExecutionResultResource {
     );
 
     @CompatibleImplementation(name = "ipv6", explain = "考虑到历史记录只有ip数据，所以需要同时兼容hostId/ip两种方式",
-        version = "3.7.x")
+        deprecatedVersion = "3.7.x")
     @ApiOperation(value = "获取文件分发步骤主机对应的日志", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}",
         "/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/host/{hostId}"})
@@ -324,6 +325,8 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/variable/{stepInstanceId}/{ip}"})
+    @CompatibleImplementation(name = "ipv6", explain = "兼容IPv6版本之前的使用并保存ip的执行历史数据，ipv6发布之后可删除")
+    @Deprecated
     Response<List<ExecuteVariableVO>> getStepVariableByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -342,6 +345,32 @@ public interface WebTaskExecutionResultResource {
             Long stepInstanceId,
         @ApiParam(value = "ip", name = "ip", required = true)
         @PathVariable("ip")
+            String ip
+    );
+
+    @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
+    @GetMapping(value = {"/step-execution-result/step/{stepInstanceId}/variables"})
+    Response<List<ExecuteVariableVO>> getStepVariableByHost(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId,
+        @ApiParam(value = "hostId", name = "主机ID")
+        @QueryParam(value = "hostId")
+            Long hostId,
+        @ApiParam(value = "ip", name = "云区域ID:IPv4，为了兼容历史数据的查询保留；如果返回的任务中包含ip，那么需要传入")
+        @QueryParam(value = "ip")
             String ip
     );
 
