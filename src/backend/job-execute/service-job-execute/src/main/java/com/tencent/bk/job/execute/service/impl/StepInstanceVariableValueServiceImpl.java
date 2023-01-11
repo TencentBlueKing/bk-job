@@ -152,6 +152,9 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
         List<StepInstanceVariableValuesDTO> preStepInstanceVariableValuesList =
             stepInstanceVariableDAO.listSortedPreStepOutputVariableValues(taskInstanceId, stepInstanceId);
         if (CollectionUtils.isEmpty(preStepInstanceVariableValuesList)) {
+            if (!globalVarValueMap.isEmpty()) {
+                globalVarValueMap.forEach((paramName, param) -> globalVarValues.add(param));
+            }
             return inputStepInstanceVariableValues;
         }
 

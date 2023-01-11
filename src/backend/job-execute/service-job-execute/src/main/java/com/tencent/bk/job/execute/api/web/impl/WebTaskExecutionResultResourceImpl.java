@@ -686,6 +686,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         List<ExecuteVariableVO> taskVariableVOS = new ArrayList<>();
         List<TaskVariableDTO> changeableVars = new ArrayList<>();
         for (TaskVariableDTO taskVar : taskVars) {
+            // 主机变量无需返回
             if (taskVar.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
                 continue;
             }
