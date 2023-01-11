@@ -13,7 +13,7 @@
             <bk-checkbox-group v-model="tempAllShowColumn">
                 <template v-for="item in columnList">
                     <span
-                        v-if="item.name === 'ip'"
+                        v-if="item.name === 'ipv4'"
                         :key="`ip_${item.name}`"
                         v-bk-tooltips="{
                             content: 'IP 与 IPv6 至少需保留一个',
@@ -32,12 +32,12 @@
                         :key="`ipv6_${item.name}`"
                         v-bk-tooltips="{
                             content: 'IP 与 IPv6 至少需保留一个',
-                            disabled: tempAllShowColumn.includes('ip'),
+                            disabled: tempAllShowColumn.includes('ipv4'),
                         }"
                         class="select-column">
                         <bk-checkbox
                             :checked="item.checked"
-                            :disabled="!tempAllShowColumn.includes('ip')"
+                            :disabled="!tempAllShowColumn.includes('ipv4')"
                             :value="item.name">
                             {{ item.label }}
                         </bk-checkbox>

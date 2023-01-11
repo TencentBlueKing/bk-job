@@ -205,8 +205,13 @@ class TaskExecute extends ModuleBase {
     }
 
     // 获取执行步骤主机对应的变量列表
-    getStepVariables ({ id, ip }) {
-        return Request.get(`${this.path}/step-execution-result/variable/${id}/${ip}`);
+    getStepVariables (params) {
+        // return Request.get(`${this.path}/step-execution-result/variable/${id}/${ip}`);
+        const realParams = { ...params };
+        delete realParams.stepInstanceId;
+        return Request.get(`${this.path}/step-execution-result/step/${params.stepInstanceId}/variables`, {
+            params: realParams,
+        });
     }
 
     // 请求日志打包结果

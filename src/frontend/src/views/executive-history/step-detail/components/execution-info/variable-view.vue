@@ -59,7 +59,7 @@
 </template>
 <script>
     import TaskExecuteService from '@service/task-execute';
-    
+
     export default {
         name: '',
         inheritAttrs: false,
@@ -71,6 +71,9 @@
             },
             ip: {
                 type: String,
+            },
+            host: {
+                type: Object,
             },
         },
         data () {
@@ -96,8 +99,9 @@
                     return;
                 }
                 TaskExecuteService.fetchStepVariables({
-                    id: this.stepInstanceId,
-                    ip: this.ip,
+                    stepInstanceId: this.stepInstanceId,
+                    hostId: this.host.hostId,
+                    ip: `${this.host.cloudAreaId}:${this.host.ipv4}`,
                 }).then((data) => {
                     this.variableList = Object.freeze(data);
                 })

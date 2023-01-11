@@ -53,7 +53,7 @@
                             @click="handleSort(item)">
                             <span>{{ item.label }}</span>
                             <span
-                                v-if="item.name === 'ip'"
+                                v-if="item.name === 'ipv4'"
                                 v-bk-tooltips="$t('history.复制 IP')"
                                 class="copy-ip-btn"
                                 @click="handleCopyIP">
