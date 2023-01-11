@@ -649,14 +649,17 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  String scopeId,
                                                                  Long stepInstanceId,
                                                                  String ip) {
-        return getStepVariableByHost(username, appResourceScope, stepInstanceId, null, ip);
+        return getStepVariableByHost(username, appResourceScope, scopeType, scopeId, stepInstanceId, null, ip);
     }
 
-    private Response<List<ExecuteVariableVO>> getStepVariableByHost(String username,
-                                                                    AppResourceScope appResourceScope,
-                                                                    Long stepInstanceId,
-                                                                    Long hostId,
-                                                                    String ip) {
+    @Override
+    public Response<List<ExecuteVariableVO>> getStepVariableByHost(String username,
+                                                                   AppResourceScope appResourceScope,
+                                                                   String scopeType,
+                                                                   String scopeId,
+                                                                   Long stepInstanceId,
+                                                                   Long hostId,
+                                                                   String ip) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
             return Response.buildSuccessResp(Collections.emptyList());
@@ -706,8 +709,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
             if (inputStepInstanceValues.getNamespaceParamsMap() != null
                 && !inputStepInstanceValues.getNamespaceParamsMap().isEmpty()) {
+                // 命名空间变量的数据，之前的版本不包含hostId,只包含ip；需要兼容hostId/ip查询
+                boolean isFilterByHostId = inputStepInstanceValues.getNamespaceParams().get(0).getHostId() != null;
                 Map<String, VariableValueDTO> hostVariables = new HashMap<>();
-                if (hostId != null) {
+                if (isFilterByHostId) {
                     inputStepInstanceValues.getNamespaceParamsMap()
                         .forEach((host, hostVars) -> {
                             if (host.getHostId() != null && host.getHostId().equals(hostId)) {
@@ -715,6 +720,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                             }
                         });
                 } else {
+                    // 兼容历史数据，命名空间变量只有ip的场景
                     inputStepInstanceValues.getNamespaceParamsMap()
                         .forEach((host, hostVars) -> {
                             if (host.toCloudIp() != null && host.toCloudIp().equals(ip)) {
@@ -773,16 +779,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             vo.setType(varType.getType());
         }
         return vo;
-    }
-
-    @Override
-    public Response<List<ExecuteVariableVO>> getStepVariableByHostId(String username,
-                                                                     AppResourceScope appResourceScope,
-                                                                     String scopeType,
-                                                                     String scopeId,
-                                                                     Long stepInstanceId,
-                                                                     Long hostId) {
-        return getStepVariableByHost(username, appResourceScope, stepInstanceId, hostId, null);
     }
 
     @Override

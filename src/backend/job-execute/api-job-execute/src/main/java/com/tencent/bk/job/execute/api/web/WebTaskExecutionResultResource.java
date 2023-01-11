@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.ws.rs.QueryParam;
 import java.util.List;
 
 /**
@@ -324,7 +325,8 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/variable/{stepInstanceId}/{ip}"})
-    @CompatibleImplementation(name = "ipv6", explain = "兼容IPv6版本之前的使用并保存ip的执行历史数据")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容IPv6版本之前的使用并保存ip的执行历史数据，ipv6发布之后可删除")
+    @Deprecated
     Response<List<ExecuteVariableVO>> getStepVariableByIp(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -347,8 +349,8 @@ public interface WebTaskExecutionResultResource {
     );
 
     @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
-    @GetMapping(value = {"/step-execution-result/step/{stepInstanceId}/host/{hostId}/variables"})
-    Response<List<ExecuteVariableVO>> getStepVariableByHostId(
+    @GetMapping(value = {"/step-execution-result/step/{stepInstanceId}/variables"})
+    Response<List<ExecuteVariableVO>> getStepVariableByHost(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -364,9 +366,12 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
-        @ApiParam(value = "hostId", name = "hostId", required = true)
-        @PathVariable("hostId")
-            Long hostId
+        @ApiParam(value = "hostId", name = "主机ID")
+        @QueryParam(value = "hostId")
+            Long hostId,
+        @ApiParam(value = "ip", name = "云区域ID:IPv4，为了兼容历史数据的查询保留；如果返回的任务中包含ip，那么需要传入")
+        @QueryParam(value = "ip")
+            String ip
     );
 
     @ApiOperation(value = "获取执行结果分组下的主机列表", produces = "application/json")
