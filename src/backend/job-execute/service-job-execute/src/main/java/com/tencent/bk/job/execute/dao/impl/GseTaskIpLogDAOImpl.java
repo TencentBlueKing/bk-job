@@ -52,7 +52,7 @@ import java.util.List;
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 import static org.jooq.impl.DSL.count;
 
-@CompatibleImplementation(name = "rolling_execute", explain = "兼容老版本数据，过1-2个大版本之后删除", version = "3.7.x")
+@CompatibleImplementation(name = "rolling_execute", explain = "兼容老版本数据，过1-2个大版本之后删除", deprecatedVersion = "3.7.x")
 @Repository
 public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
 

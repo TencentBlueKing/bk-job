@@ -164,7 +164,7 @@ public interface AgentTaskService {
      * @param cloudIp        云区域+ip
      * @return Agent任务实际执行成功的executeCount值
      */
-    @CompatibleImplementation(name = "rolling_execution", explain = "兼容历史数据", version = "3.7.x")
+    @CompatibleImplementation(name = "rolling_execution", explain = "兼容历史数据", deprecatedVersion = "3.7.x")
     int getActualSuccessExecuteCount(long stepInstanceId, String cloudIp);
 
     /**

@@ -46,7 +46,7 @@ public class ListHostByBizTopologyNodesReq {
 
     @ApiModelProperty(value = "拓扑节点列表", required = true)
     List<BizTopoNode> nodeList;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     List<BizTopoNode> appTopoNodeList;
 
     @ApiModelProperty(value = "搜索内容（同时对主机IP/IPv6/主机名称/操作系统名称/云区域名称进行模糊搜索）")
@@ -66,7 +66,7 @@ public class ListHostByBizTopologyNodesReq {
 
     @ApiModelProperty(value = "筛选条件：alive：0为Agent异常，1为Agent正常，不传则不筛选")
     Integer alive;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     Integer agentStatus;
 
     @ApiModelProperty(value = "数据起始位置")
@@ -75,13 +75,13 @@ public class ListHostByBizTopologyNodesReq {
     @ApiModelProperty(value = "拉取数量")
     Long pageSize;
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setAppTopoNodeList(List<BizTopoNode> appTopoNodeList) {
         this.appTopoNodeList = appTopoNodeList;
         this.nodeList = appTopoNodeList;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setAgentStatus(Integer agentStatus) {
         this.agentStatus = agentStatus;
         this.alive = agentStatus;

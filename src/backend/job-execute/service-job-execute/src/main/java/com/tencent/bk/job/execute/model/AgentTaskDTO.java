@@ -76,7 +76,7 @@ public class AgentTaskDTO {
      */
     @Deprecated
     @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续AgentTask仅包含hostId,不再存储具体的IP数据",
-        version = "3.7.x")
+        deprecatedVersion = "3.7.x")
     private String cloudIp;
     /**
      * 任务状态

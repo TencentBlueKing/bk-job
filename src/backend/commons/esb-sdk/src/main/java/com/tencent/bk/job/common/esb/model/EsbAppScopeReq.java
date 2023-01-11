@@ -50,7 +50,7 @@ public class EsbAppScopeReq extends EsbJobReq {
     /**
      * 兼容字段,表示cmdb 业务/业务集ID
      */
-    @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", version = "3.6.x")
+    @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", deprecatedVersion = "3.6.x")
     @JsonProperty("bk_biz_id")
     @Min(value = 1L, message = "{validation.constraints.InvalidBkBizId.message}", groups = UseBkBizIdParam.class)
     private Long bizId;

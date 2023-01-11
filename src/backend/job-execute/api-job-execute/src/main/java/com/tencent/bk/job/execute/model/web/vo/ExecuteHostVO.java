@@ -55,7 +55,7 @@ public class ExecuteHostVO {
     @ApiModelProperty("云区域信息")
     private ExecuteCloudAreaInfoVO cloudAreaInfo;
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setCloudAreaInfo(ExecuteCloudAreaInfoVO cloudAreaInfo) {
         this.cloudAreaInfo = cloudAreaInfo;
         if (cloudAreaInfo != null) {
@@ -63,7 +63,7 @@ public class ExecuteHostVO {
         }
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setCloudId(Long cloudId) {
         this.cloudId = cloudId;
         this.cloudAreaInfo = new ExecuteCloudAreaInfoVO(cloudId, null);
