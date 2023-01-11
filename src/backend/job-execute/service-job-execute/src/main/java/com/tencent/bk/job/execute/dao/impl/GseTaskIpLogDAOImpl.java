@@ -72,7 +72,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
                 AgentTaskStatusEnum.SUCCESS.getValue()))
             .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
-            .and(t.IS_TARGET.eq(Bool.TRUE.getValue()))
+            .and(t.IS_TARGET.eq(Bool.TRUE.byteValue()))
             .fetchOne(0, Integer.class);
     }
 
@@ -82,7 +82,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         Result result = CTX.select(t.STATUS, t.TAG, count().as("ip_count")).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
-            .and(t.IS_TARGET.eq(Bool.TRUE.getValue()))
+            .and(t.IS_TARGET.eq(Bool.TRUE.byteValue()))
             .groupBy(t.STATUS, t.TAG)
             .orderBy(t.STATUS.asc())
             .fetch();
@@ -111,7 +111,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             .and(t.EXECUTE_COUNT.eq(executeCount))
             .and(t.STATUS.eq(status))
             .and(t.TAG.eq(tag == null ? "" : tag))
-            .and(t.IS_TARGET.eq(Bool.TRUE.getValue()))
+            .and(t.IS_TARGET.eq(Bool.TRUE.byteValue()))
             .fetch();
 
         List<AgentTaskDTO> agentTasks = new ArrayList<>();
@@ -136,7 +136,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         conditions.add(t.EXECUTE_COUNT.eq(executeCount));
         conditions.add(t.STATUS.eq(status));
         conditions.add(t.TAG.eq(tag == null ? "" : tag));
-        conditions.add(t.IS_TARGET.eq(Bool.TRUE.getValue()));
+        conditions.add(t.IS_TARGET.eq(Bool.TRUE.byteValue()));
 
         SelectConditionStep select = CTX.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.IP, t.STATUS, t.START_TIME,
             t.END_TIME,
@@ -242,7 +242,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         agentTask.setExitCode(record.get(t.EXIT_CODE, Integer.class));
         agentTask.setTag(record.get(t.TAG));
         agentTask.setScriptLogOffset(record.get(t.LOG_OFFSET));
-        boolean isUploadMode = record.get(t.IS_SOURCE) == Bool.TRUE.getValue();
+        boolean isUploadMode = record.get(t.IS_SOURCE) == Bool.TRUE.byteValue();
         agentTask.setFileTaskMode(isUploadMode ? FileTaskModeEnum.UPLOAD : FileTaskModeEnum.DOWNLOAD);
         return agentTask;
     }
