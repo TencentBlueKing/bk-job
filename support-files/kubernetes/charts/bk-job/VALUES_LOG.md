@@ -1,5 +1,5 @@
 # chart values 更新日志
-## 0.4.0-beta.47
+## 0.4.0-rc.63
 1.增加特性开关相关配置
 
 ```shell script
@@ -12,7 +12,7 @@ job:
     # 是否兼容ESB API 的 bk_biz_id 参数
     bkBizIdCompatible:
       enabled: true
-    # 是否对接GSE2.0, 默认使用GSE2.0. 如果需要使用GSE1.0，设置enabled=false
+    # 是否对接GSE2.0。 如果需要对接GSE1.0，设置job.features.gseV2.enabled=false
     gseV2:
       enabled: true
       # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
@@ -27,9 +27,18 @@ job:
 
 ```
 gse:
-  # 是否启用GSE1.0
+  # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true
   enabled: true
 ```
+
+3. 新增GSE API Gateway URL
+
+```
+# 蓝鲸 GSE API Gateway url。格式:{网关访问地址}/{网关环境}，网关访问地址、网关环境的取值见bk-gse网关API文档。
+bkGseApiGatewayUrl: "https://bk-gse.apigw.com/prod"
+```
+
+   
 
 ## 0.3.0-rc.46
 
@@ -77,6 +86,7 @@ waitForDependServices:
 
 ## 0.3.0-rc.37
 1.增加文件网关系统file-worker调度标签相关配置
+
 ```shell script
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
