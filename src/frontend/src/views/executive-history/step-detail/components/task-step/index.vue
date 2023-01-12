@@ -28,7 +28,7 @@
 <template>
     <div
         ref="root"
-        v-bk-clickoutside="handleClosePopover"
+        v-bk-clickoutside="handleClickoutside"
         class="task-execute-bar-step"
         :class="{
             [data.displayStyle]: true,
@@ -60,6 +60,8 @@
     </div>
 </template>
 <script>
+    import { getParentElementByClass } from '@utils/assist';
+
     import ApprovalView from './view/approval';
     import NotStartView from './view/no-start';
     import NormalView from './view/normal';
@@ -119,9 +121,9 @@
             },
             handleShowPopover () {
                 if (activeHandler) {
-                    activeHandler.handleClosePopover();
+                    activeHandler.handleHidePopover();
                 }
-                
+
                 this.isShowPopover = true;
                 activeHandler = this;
                 let offset = 0;
@@ -139,7 +141,7 @@
                     const windowHeight = window.innerHeight;
                     const { height } = $popoverTarget.getBoundingClientRect();
                     const { top, left } = this.$el.getBoundingClientRect();
-                    
+
                     position.left = left;
                     position.top = top + offset;
                     if (top + height + 20 > windowHeight) {
@@ -157,24 +159,22 @@
                     this.popoverPosition = position;
                 });
             },
-            // 人工确认步骤——如果没有确认需要手动关闭
-            // 其它步骤鼠标离开自动关闭
-            // handleHidePopover () {
-                // if (this.data.isApproval && this.data.displayStyle !== 'success') {
-                //     return;
-                // }
-                // this.isShowPopover = false;
-            // },
-            handleClosePopover () {
+
+            handleHidePopover () {
                 this.isShowPopover = false;
             },
+
+            handleClickoutside (event) {
+                if (getParentElementByClass(event.target, 'task-status-bar-step-popover')) {
+                    return;
+                }
+                this.handleHidePopover();
+            },
             destroyePopover () {
-                try {
-                    activeHandler = null;
-                    if (this.$refs.popover.$el && document.body.hasChildNodes(this.$refs.popover.$el)) {
-                        document.body.removeChild(this.$refs.popover.$el);
-                    }
-                } catch {}
+                activeHandler = null;
+                if (this.$refs.popover.$el) {
+                    this.$refs.popover.$el.parentNode.removeChild(this.$refs.popover.$el);
+                }
             },
         },
     };
