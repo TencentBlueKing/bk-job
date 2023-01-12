@@ -45,14 +45,14 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
-          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback  
+          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback;springCloudBusOutput
           bindings:
-            #springCloudBusInput:
-              #destination: springCloudBus
-              #binder: jobCommon
-            #springCloudBusOutput:
-              #destination: springCloudBus
-              #binder: jobCommon
+            springCloudBusInput-in-0:
+              destination: springCloudBus
+              binder: jobCommon
+            springCloudBusOutput-out-0:
+              destination: springCloudBus
+              binder: jobCommon
             handleJobEvent-in-0:
               destination: task
               group: service.job.execute
