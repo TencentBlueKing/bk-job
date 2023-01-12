@@ -4,12 +4,12 @@ spring:
       bindings:
         springCloudBusInput:
           destination: springCloudBus
-          binder: springCloudBus
+          binder: jobCommon
         springCloudBusOutput:
           destination: springCloudBus
-          binder: springCloudBus
+          binder: jobCommon
       binders:
-        springCloudBus:
+        jobCommon:
           type: rabbit
           environment:
             spring:

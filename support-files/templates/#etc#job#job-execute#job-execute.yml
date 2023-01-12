@@ -3,9 +3,9 @@ spring:
     name: job-execute
   cloud:
     stream:
-      defaultBinder: jobExecute
+      defaultBinder: jobCommon
       binders:
-        springCloudBus:
+        jobCommon:
           type: rabbit
           environment:
             spring:
@@ -29,10 +29,10 @@ spring:
       bindings:
         springCloudBusInput:
           destination: springCloudBus
-          binder: springCloudBus
+          binder: jobCommon
         springCloudBusOutput:
           destination: springCloudBus
-          binder: springCloudBus
+          binder: jobCommon
         handleJobEvent-in-0:
           destination: task
           group: service.job.execute
