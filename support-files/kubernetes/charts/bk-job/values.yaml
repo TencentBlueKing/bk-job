@@ -415,7 +415,7 @@ bkGseApiGatewayUrl: "http://bkapi.example.com"
 
 ## 蓝鲸GSE参数配置
 gse:
-  # 是否启用GSE1.0
+  # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true
   enabled: true
   # 已存在的Tls证书Secret名称
   existingTlsSecret: ""
@@ -568,10 +568,10 @@ job:
       # 是否开启文件管理特性，容器化环境默认开启
       enabled: true
     bkBizIdCompatible:
-      # 是否兼容bk_biz_id参数
+      # 是否兼容ESB API 的 bk_biz_id 参数
       enabled: true
     gseV2:
-      # 是否对接GSE2.0, 默认使用GSE2.0. 如果需要使用GSE1.0，设置enabled=false
+      # 是否对接GSE2.0。 如果需要对接GSE1.0，设置job.features.gseV2.enabled=false
       enabled: true
   trace:
     report:
