@@ -27,7 +27,7 @@ esb:
 # 蓝鲸Api Gateway 配置    
 bkApiGateway:
   gse:
-    # 蓝鲸 GSE API Gateway url
+    # 蓝鲸 GSE API Gateway url。格式:{网关访问地址}/{网关环境}，网关访问地址、网关环境的取值见bk-gse网关API文档。
     url: __BK_API_GATEWAY_GSE_URL__
 gse:
   # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true

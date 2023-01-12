@@ -10,7 +10,7 @@ job:
     fileManage: 
       enabled: true
     # 是否兼容ESB API 的 bk_biz_id 参数
-    bkBizIdCompatible
+    bkBizIdCompatible:
       enabled: true
     # 是否对接GSE2.0。 如果需要对接GSE1.0，设置job.features.gseV2.enabled=false
     gseV2:
@@ -34,8 +34,8 @@ gse:
 3. 新增GSE API Gateway URL
 
 ```
-# 蓝鲸 GSE API Gateway url
-bkGseApiGatewayUrl: ""
+# 蓝鲸 GSE API Gateway url。格式:{网关访问地址}/{网关环境}，网关访问地址、网关环境的取值见bk-gse网关API文档。
+bkGseApiGatewayUrl: "https://bk-gse.apigw.com/prod"
 ```
 
    
