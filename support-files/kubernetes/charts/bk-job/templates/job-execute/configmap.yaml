@@ -45,7 +45,7 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
-          source: task;step;gseTask;resultHandleResume;notifyMsg;callback  
+          #source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback  
           bindings:
             springCloudBusInput:
               destination: springCloudBus
@@ -148,7 +148,7 @@ data:
               handleResultHandleResumeEvent-in-0:
                 consumer:
                   maxConcurrency: 10
-              taskResultHandleResume-out-0:
+              resultHandleTaskResume-out-0:
                 consumer:
                   maxConcurrency: 10
               handleNotifyMsg-in-0:
