@@ -1,0 +1,12 @@
+<included>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="com.rabbitmq" level="INFO"/>
+    <logger name="com.mongodb" level="INFO"/>
+    <logger name="com.mysql" level="INFO"/>
+    <logger name="io.netty" level="INFO"/>
+    <logger name="io.kubernetes" level="INFO"/>
+    <logger name="org.apache" level="INFO"/>
+    <logger name="org.jooq" level="INFO"/>
+    <logger name="org.quartz" level="INFO"/>
+    <logger name="redis.clients" level="INFO"/>
+</included>

@@ -121,6 +121,7 @@
             <appender-ref ref="iam-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
+        <include resource="logback-frame-ouput-level.xml"/>
         <root level="INFO" additivity="false">
             <appender-ref ref="async-app-appender"/>
             <appender-ref ref="error-appender"/>
@@ -169,6 +170,7 @@
             <appender-ref ref="iam-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
+        <include resource="logback-frame-ouput-level.xml"/>
         <root level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="async-app-appender"/>
