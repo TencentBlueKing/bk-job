@@ -68,7 +68,7 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 import '@blueking/ip-selector/dist/styles/index.css';
 
 const IpSelector = createIpSelector({
-    version: '6',
+    version: '7',
     panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
     unqiuePanelValue: false,
     nameStyle: 'camelCase',
