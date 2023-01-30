@@ -38,7 +38,6 @@ data:
         url: {{ .Values.bkGseApiGatewayUrl }}
     gse:
       enabled: {{ .Values.gse.enabled }}
-      version: {{ .Values.gse.version }}
       cache:
         apiserver:
           host: {{ .Values.gse.cacheApiServer.host }}

@@ -57,5 +57,5 @@ public @interface CompatibleImplementation {
     /**
      * 兼容实现被废除的版本
      */
-    String version() default "";
+    String deprecatedVersion() default "";
 }

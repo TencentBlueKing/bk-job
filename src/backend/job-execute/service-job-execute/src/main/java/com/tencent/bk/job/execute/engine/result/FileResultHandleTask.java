@@ -238,6 +238,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     @Override
     GseLogBatchPullResult<FileTaskResult> pullGseTaskResultInBatches() {
         GetTransferFileResultRequest request = new GetTransferFileResultRequest();
+        request.setGseV2Task(gseV2Task);
         request.setTaskId(gseTask.getGseTaskId());
 
         if (CollectionUtils.isNotEmpty(this.analyseFinishedSourceAgentIds)
@@ -928,7 +929,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             hostLog = new ServiceHostLogDTO();
             hostLog.setStepInstanceId(stepInstanceId);
             hostLog.setHostId(hostId);
-            hostLog.setIp(cloudIp);
+            hostLog.setCloudIp(cloudIp);
             hostLog.setBatch(stepInstance.getBatch());
             hostLog.setExecuteCount(stepInstance.getExecuteCount());
             hostLogs.put(hostId, hostLog);

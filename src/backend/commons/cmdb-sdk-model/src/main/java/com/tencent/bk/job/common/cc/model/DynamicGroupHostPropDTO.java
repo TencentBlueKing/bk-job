@@ -25,11 +25,7 @@
 package com.tencent.bk.job.common.cc.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -60,26 +56,4 @@ public class DynamicGroupHostPropDTO {
     @JsonProperty("bk_cloud_id")
     private List<CcCloudIdDTO> cloudIdList;
 
-    public String getFinalAgentId() {
-        if (StringUtils.isNotBlank(agentId)) {
-            return agentId;
-        }
-        if (CollectionUtils.isNotEmpty(cloudIdList) && StringUtils.isNotBlank(ip)) {
-            return IpUtils.buildCloudIpListByMultiIp(cloudIdList.get(0).getInstanceId(), ip).get(0);
-        }
-        return null;
-    }
-
-    public ApplicationHostDTO toApplicationHostDTO() {
-        ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
-        applicationHostDTO.setHostId(id);
-        applicationHostDTO.setHostName(name);
-        applicationHostDTO.setIp(ip);
-        applicationHostDTO.setIpv6(ipv6);
-        applicationHostDTO.setAgentId(agentId);
-        if (CollectionUtils.isNotEmpty(cloudIdList)) {
-            applicationHostDTO.setCloudAreaId(cloudIdList.get(0).getInstanceId());
-        }
-        return applicationHostDTO;
-    }
 }

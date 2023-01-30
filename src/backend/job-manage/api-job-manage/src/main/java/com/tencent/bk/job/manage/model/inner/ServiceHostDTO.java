@@ -33,7 +33,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * 主机
@@ -83,14 +82,6 @@ public class ServiceHostDTO {
     @JsonIgnore
     public String getCloudIp() {
         return cloudAreaId + ":" + ip;
-    }
-
-    @JsonIgnore
-    public String getFinalAgentId() {
-        if (StringUtils.isNotBlank(agentId)) {
-            return agentId;
-        }
-        return getCloudIp();
     }
 
     public static ServiceHostDTO fromApplicationHostDTO(ApplicationHostDTO host) {

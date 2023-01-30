@@ -48,9 +48,12 @@ public class TaskEvictPolicyManager {
 
     // 策略更新时间间隔：10s
     private final int POLICY_UPDATE_INTERVAL_MILLS = 10000;
+    // 序列化后的策略字符串
     private String policyJsonStr = null;
+    // 组合策略
     private volatile ComposedTaskEvictPolicy policy = null;
 
+    // Redis操作模板接口
     private final RedisTemplate<String, String> redisTemplate;
 
     @Autowired
@@ -68,24 +71,25 @@ public class TaskEvictPolicyManager {
     public void updatePolicy() {
         String loadedPolicyJsonStr = redisTemplate.opsForValue()
             .get(RedisConstants.KEY_EXECUTE_TASK_EVICT_POLICY);
-        if (StringUtil.isDifferent(policyJsonStr, loadedPolicyJsonStr)) {
-            policyJsonStr = loadedPolicyJsonStr;
-            try {
-                policy = StringUtils.isBlank(loadedPolicyJsonStr) ? null : JsonUtils.fromJson(
-                    loadedPolicyJsonStr, new TypeReference<ComposedTaskEvictPolicy>() {
-                    }
-                );
-                log.info("loaded new policy:{}", loadedPolicyJsonStr);
-            } catch (Exception e) {
-                FormattingTuple message = MessageFormatter.format(
-                    "Fail to parse taskEvictPolicy from {}",
-                    loadedPolicyJsonStr
-                );
-                log.warn(message.getMessage(), e);
-                throw e;
-            }
-        } else {
+        // 策略无任何改变则无须解析更新
+        if (!StringUtil.isDifferent(policyJsonStr, loadedPolicyJsonStr)) {
             log.debug("taskEvictPolicy not change");
+            return;
+        }
+        policyJsonStr = loadedPolicyJsonStr;
+        try {
+            policy = StringUtils.isBlank(loadedPolicyJsonStr) ? null : JsonUtils.fromJson(
+                loadedPolicyJsonStr, new TypeReference<ComposedTaskEvictPolicy>() {
+                }
+            );
+            log.info("loaded new policy:{}", loadedPolicyJsonStr);
+        } catch (Exception e) {
+            FormattingTuple message = MessageFormatter.format(
+                "Fail to parse taskEvictPolicy from {}",
+                loadedPolicyJsonStr
+            );
+            log.warn(message.getMessage(), e);
+            throw e;
         }
     }
 

@@ -203,6 +203,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * GSE任务是否处于终止状态
      */
     private volatile boolean isGseTaskTerminating = false;
+    /**
+     * 是否是GSE V2 TASK
+     */
+    protected boolean gseV2Task;
     // ---------------- task lifecycle properties --------------------
 
 
@@ -238,15 +242,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstance = stepInstance;
+        this.gseV2Task = stepInstance.isTargetGseV2Agent();
         this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
         this.targetAgentTasks = targetAgentTasks;
         this.gseTask = gseTask;
 
-        targetAgentTasks.values().forEach(agentTask -> {
-            this.targetAgentIds.add(agentTask.getAgentId());
-        });
+        targetAgentTasks.values().forEach(agentTask -> this.targetAgentIds.add(agentTask.getAgentId()));
         this.notStartedTargetAgentIds.addAll(targetAgentIds);
 
         this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance,

@@ -63,7 +63,7 @@ public class HostInfoVO {
 
     @ApiModelProperty("主机名称")
     private String hostName;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     private String ipDesc;
 
     // agent状态：-2：未找到，-1：查询失败，0：初始安装，1：启动中，2：运行中，3：有损状态，4：繁忙，5：升级中，6：停止中，7：解除安装
@@ -75,7 +75,7 @@ public class HostInfoVO {
 
     @ApiModelProperty("云区域信息")
     private CloudAreaInfoVO cloudArea;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     private CloudAreaInfoVO cloudAreaInfo;
 
     /**
@@ -83,7 +83,7 @@ public class HostInfoVO {
      */
     @ApiModelProperty("操作系统")
     private String osName;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     private String os;
 
     @ApiModelProperty("系统类型")
@@ -97,7 +97,7 @@ public class HostInfoVO {
     @JsonProperty("cloudVendor")
     private String cloudVendorName;
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public String getHostName() {
         if (hostName != null) {
             return hostName;
@@ -108,13 +108,13 @@ public class HostInfoVO {
         return null;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setHostName(String hostName) {
         this.hostName = hostName;
         this.ipDesc = hostName;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public CloudAreaInfoVO getCloudArea() {
         if (cloudArea != null) {
             return cloudArea;
@@ -125,13 +125,13 @@ public class HostInfoVO {
         return null;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setCloudArea(CloudAreaInfoVO cloudArea) {
         this.cloudArea = cloudArea;
         this.cloudAreaInfo = cloudArea;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public String getOsName() {
         if (osName != null) {
             return osName;
@@ -142,7 +142,7 @@ public class HostInfoVO {
         return null;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setOsName(String osName) {
         this.osName = osName;
         this.os = osName;

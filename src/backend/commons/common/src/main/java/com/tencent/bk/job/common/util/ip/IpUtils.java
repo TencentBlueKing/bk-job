@@ -39,7 +39,6 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -310,41 +309,19 @@ public class IpUtils {
     }
 
     /**
-     * 通过含多个IP的字符串与云区域ID构造多个cloudIp
+     * 提取IP
      *
-     * @param cloudId    云区域ID
-     * @param multiIpStr 含多个IP的字符串
-     * @return cloudIp列表
+     * @param cloudIp bkCloudId:ip
+     * @return ip
      */
-    public static List<String> buildCloudIpListByMultiIp(Long cloudId, String multiIpStr) {
-        if (StringUtils.isBlank(multiIpStr)) {
-            return Collections.emptyList();
-        }
-        if (!multiIpStr.contains(",") && !multiIpStr.contains(":")) {
-            return Collections.singletonList(cloudId + ":" + multiIpStr.trim());
-        }
-        String[] ipArr = multiIpStr.split("[,;]");
-        List<String> cloudIpList = new ArrayList<>(ipArr.length);
-        for (String ip : ipArr) {
-            cloudIpList.add(cloudId + ":" + ip.trim());
-        }
-        return cloudIpList;
-    }
-
-    /**
-     * 移除ip中的云区域ID
-     *
-     * @param ip bkCloudId:ip
-     * @return 移除云区域ID后的ip
-     */
-    public static String removeBkCloudId(String ip) {
-        if (ip == null) {
+    public static String extractIp(String cloudIp) {
+        if (cloudIp == null) {
             return null;
         }
-        if (ip.contains(":")) {
-            return ip.substring(ip.indexOf(":") + 1);
+        if (cloudIp.contains(":")) {
+            return cloudIp.substring(cloudIp.indexOf(":") + 1);
         } else {
-            return ip;
+            return cloudIp;
         }
     }
 
@@ -438,5 +415,23 @@ public class IpUtils {
         }
         String template = "0000";
         return template.substring(0, template.length() - ipv6Seq.length()) + ipv6Seq;
+    }
+
+    /**
+     * 提取云区域ID
+     *
+     * @param cloudIp 云区域ID:IP
+     * @return 云区域ID
+     */
+    public static Long extractBkCloudId(String cloudIp) {
+        if (cloudIp == null) {
+            throw new IllegalArgumentException("Empty cloudIp");
+        }
+        int idx = cloudIp.indexOf(":");
+        if (idx == -1) {
+            throw new IllegalArgumentException("Invalid cloudIp: " + cloudIp);
+        }
+        String bkCloudId = cloudIp.substring(0, idx);
+        return Long.parseLong(bkCloudId);
     }
 }

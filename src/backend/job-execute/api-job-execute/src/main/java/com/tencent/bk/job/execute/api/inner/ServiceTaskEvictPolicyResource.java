@@ -46,9 +46,10 @@ public interface ServiceTaskEvictPolicyResource {
     @GetMapping("/current")
     InternalResponse<ComposedTaskEvictPolicyDTO> getCurrentPolicy();
 
-    @ApiOperation(value = "设置任务驱逐策略，参考值：{\"@type\":\"ComposedTaskEvictPolicy\",\"operator\":\"OR\","
-        + "\"policyList\":[{\"@type\":\"AppIdTaskEvictPolicy\",\"appIdsToEvict\":[2,3]},"
-        + "{\"@type\":\"AppCodeTaskEvictPolicy\",\"appCodesToEvict\":[\"appCode1\",\"appCode2\"]}]}\n",
+    @ApiOperation(value = "设置任务驱逐策略，参考值：{\"@type\":\"ComposedTaskEvictPolicy\",\"operator\":\"OR\"," +
+        "\"policyList\":[{\"@type\":\"TaskInstanceIdEvictPolicy\",\"taskInstanceIdsToEvict\":[1001,1002]}," +
+        "{\"@type\":\"AppIdTaskEvictPolicy\",\"appIdsToEvict\":[2,3]},{\"@type\":\"AppCodeTaskEvictPolicy\"," +
+        "\"appCodesToEvict\":[\"appCode1\",\"appCode2\"]}]}",
         produces = "application/json")
     @PutMapping("/")
     InternalResponse<Boolean> setPolicy(@RequestBody ComposedTaskEvictPolicyDTO policyDTO);

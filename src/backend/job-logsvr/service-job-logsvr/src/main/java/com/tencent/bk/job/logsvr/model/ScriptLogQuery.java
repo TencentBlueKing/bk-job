@@ -44,7 +44,7 @@ public class ScriptLogQuery {
     /**
      * 执行任务的主机ip列表
      */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", version = "3.7.x")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", deprecatedVersion = "3.7.x")
     private List<String> ips;
     /**
      * 执行任务的主机ID列表

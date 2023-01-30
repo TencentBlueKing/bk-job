@@ -2,6 +2,7 @@ package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +10,9 @@ import java.util.List;
 /**
  * GSE - 下发脚本任务请求
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ExecuteScriptRequest {
+public class ExecuteScriptRequest extends GseReq {
     /**
      * 目标Agent
      */

@@ -25,6 +25,8 @@
 package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -45,6 +47,20 @@ public class ServiceScriptLogDTO {
     private Long hostId;
 
     /**
+     * 主机ipv4,格式: 云区域ID:IPv4
+     */
+    @ApiModelProperty("主机ipv4,格式: 云区域ID:IPv4")
+    @JsonProperty("ip")
+    private String cloudIp;
+
+    /**
+     * 主机ipv6,格式: 云区域ID:IPv6
+     */
+    @ApiModelProperty("主机ipv6,格式: 云区域ID:IPv6")
+    @JsonProperty("ipv6")
+    private String cloudIpv6;
+
+    /**
      * 日志偏移 - 字节
      */
     @ApiModelProperty("日志偏移 - 字节")
@@ -56,14 +72,38 @@ public class ServiceScriptLogDTO {
     @ApiModelProperty("日志内容")
     private String content;
 
-    public ServiceScriptLogDTO(Long hostId, Integer offset, String content) {
-        this.hostId = hostId;
+    /**
+     * Constructor
+     *
+     * @param host    主机
+     * @param offset  日志偏移量(byte)
+     * @param content 日志内容
+     */
+    public ServiceScriptLogDTO(HostDTO host,
+                               Integer offset,
+                               String content) {
+        this.hostId = host.getHostId();
+        this.cloudIp = host.toCloudIp();
+        this.cloudIpv6 = host.toCloudIpv6();
         this.offset = offset;
         this.content = content;
     }
 
-    public ServiceScriptLogDTO(Long hostId, String content) {
+    /**
+     * Constructor
+     *
+     * @param hostId  主机hostId
+     * @param cloudIp      主机ipv4,格式: 云区域ID:IPv4
+     * @param cloudIpv6    主机ipv6,格式: 云区域ID:IPv6
+     * @param content 日志内容
+     */
+    public ServiceScriptLogDTO(Long hostId,
+                               String cloudIp,
+                               String cloudIpv6,
+                               String content) {
         this.hostId = hostId;
+        this.cloudIp = cloudIp;
+        this.cloudIpv6 = cloudIpv6;
         this.content = content;
     }
 }

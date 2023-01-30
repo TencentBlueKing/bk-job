@@ -58,7 +58,6 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -340,12 +339,7 @@ public class GseStepEventHandler implements StepEventHandler {
         agentTask.setStatus(status);
         agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
         agentTask.setHostId(host.getHostId());
-        if (StringUtils.isEmpty(host.getAgentId())) {
-            // 兼容老的Agent,没有AgentId,需要使用{bk_cloud_id:ip}的格式作为agentId传给GSE
-            agentTask.setAgentId(host.toCloudIp());
-        } else {
-            agentTask.setAgentId(host.getAgentId());
-        }
+        agentTask.setAgentId(host.getAgentId());
         return agentTask;
     }
 

@@ -31,6 +31,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * 单个文件源的文件任务内容
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

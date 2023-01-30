@@ -85,7 +85,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public boolean existBiz(long bizId) {
         val records = context.selectZero()
             .from(T_APP)
-            .where(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())))
+            .where(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.byteValue())))
             .and(T_APP.BK_SCOPE_TYPE.eq(ResourceScopeTypeEnum.BIZ.getValue()))
             .and(T_APP.BK_SCOPE_ID.eq("" + bizId))
             .limit(1)
@@ -98,7 +98,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         Record record = context.select(ALL_FIELDS)
             .from(T_APP)
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
-            .and(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())))
+            .and(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.byteValue())))
             .fetchOne();
         if (record != null) {
             return extract(record);
@@ -230,7 +230,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             scope == null ? null : scope.getType().getValue(),
             scope == null ? null : scope.getId(),
             applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
-            UByte.valueOf(Bool.FALSE.getValue())
+            UByte.valueOf(Bool.FALSE.byteValue())
         );
         try {
             val record = query.returning(T_APP.APP_ID).fetchOne();
@@ -263,7 +263,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Override
     public int restoreDeletedApp(DSLContext dslContext, long appId) {
         val query = dslContext.update(T_APP)
-            .set(T_APP.IS_DELETED, UByte.valueOf(Bool.FALSE.getValue()))
+            .set(T_APP.IS_DELETED, UByte.valueOf(Bool.FALSE.byteValue()))
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)));
         int affectedNum = query.execute();
         if (log.isDebugEnabled()) {
@@ -288,7 +288,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public Integer countApps() {
         return context.selectCount()
             .from(T_APP)
-            .where(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())))
+            .where(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.byteValue())))
             .fetchOne(0, Integer.class);
     }
 
@@ -306,7 +306,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .from(T_APP)
             .where(T_APP.BK_SCOPE_TYPE.eq(scope.getType().getValue()))
             .and(T_APP.BK_SCOPE_ID.eq(scope.getId()))
-            .and(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.getValue())))
+            .and(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.byteValue())))
             .fetchOne();
         if (record != null) {
             return extract(record);

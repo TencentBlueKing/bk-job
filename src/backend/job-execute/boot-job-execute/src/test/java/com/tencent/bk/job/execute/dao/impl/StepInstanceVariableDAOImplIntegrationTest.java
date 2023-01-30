@@ -69,7 +69,8 @@ class StepInstanceVariableDAOImplIntegrationTest {
         variableValues.setGlobalParams(globalParams);
         List<HostVariableValuesDTO> hostParamValuesList = new ArrayList<>();
         HostVariableValuesDTO hostParamValues = new HostVariableValuesDTO();
-        hostParamValues.setIp("1.1.1.1");
+        hostParamValues.setHostId(1L);
+        hostParamValues.setCloudIpv4("0:1.1.1.1");
         List<VariableValueDTO> namespaceParamValues = new ArrayList<>();
         namespaceParamValues.add(new VariableValueDTO("param11", 2, "value11"));
         namespaceParamValues.add(new VariableValueDTO("param12", 2, "value12"));
@@ -91,7 +92,8 @@ class StepInstanceVariableDAOImplIntegrationTest {
         assertThat(actual.getGlobalParams()).extracting("value").containsOnly("value11", "value12");
 
         assertThat(actual.getNamespaceParams()).hasSize(1);
-        assertThat(actual.getNamespaceParams().get(0).getIp()).isEqualTo("1.1.1.1");
+        assertThat(actual.getNamespaceParams().get(0).getCloudIpv4()).isEqualTo("0:1.1.1.1");
+        assertThat(actual.getNamespaceParams().get(0).getHostId()).isEqualTo(1L);
         assertThat(actual.getNamespaceParams().get(0).getValues()).hasSize(2);
         assertThat(actual.getNamespaceParams().get(0).getValues()).extracting("name")
             .containsOnly("param11", "param12");

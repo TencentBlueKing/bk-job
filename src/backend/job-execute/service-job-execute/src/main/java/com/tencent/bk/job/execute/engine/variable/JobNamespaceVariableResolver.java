@@ -60,12 +60,11 @@ public class JobNamespaceVariableResolver implements VariableResolver {
         Map<String, Map<String, String>> namespaceVarsValues = new HashMap<>();
         List<HostVariableValuesDTO> namespaceValues = stepInputVariables.getNamespaceParams();
         namespaceValues.forEach(namespaceValue -> {
-            String ip = namespaceValue.getIp();
             if (CollectionUtils.isNotEmpty(namespaceValue.getValues())) {
                 namespaceValue.getValues().forEach(variableValue -> {
                     Map<String, String> ipAndValueMap = namespaceVarsValues.computeIfAbsent(variableValue.getName(),
                         k -> new HashMap<>());
-                    ipAndValueMap.put(ip, variableValue.getValue());
+                    ipAndValueMap.put(namespaceValue.getPrimaryCloudIp(), variableValue.getValue());
                 });
 
             }

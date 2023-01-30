@@ -45,7 +45,6 @@ import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
@@ -84,8 +83,6 @@ public class ResultHandleResumeListener {
 
     private final StorageSystemConfig storageSystemConfig;
 
-    private final AgentService agentService;
-
     private final LogService logService;
 
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
@@ -109,7 +106,6 @@ public class ResultHandleResumeListener {
                                       TaskInstanceVariableService taskInstanceVariableService,
                                       GseTaskService gseTaskService,
                                       StorageSystemConfig storageSystemConfig,
-                                      AgentService agentService,
                                       LogService logService,
                                       StepInstanceVariableValueService stepInstanceVariableValueService,
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
@@ -124,7 +120,6 @@ public class ResultHandleResumeListener {
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.gseTaskService = gseTaskService;
         this.storageSystemConfig = storageSystemConfig;
-        this.agentService = agentService;
         this.logService = logService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -211,7 +206,6 @@ public class ResultHandleResumeListener {
                                 GseTaskDTO gseTask,
                                 String requestId) {
         Set<JobFile> sendFiles = JobSrcFileUtils.parseSrcFiles(stepInstance,
-            agentService.getLocalAgentHost(),
             storageSystemConfig.getJobStorageRootPath());
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
         Map<JobFile, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(

@@ -22,44 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model.service;
+package com.tencent.bk.job.execute.engine.evict;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.inner.TaskInstanceIdEvictPolicyDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * 文件任务执行日志查询请求
+ * 驱逐策略：根据任务实例ID将任务驱逐出执行引擎
  */
 @Data
-@ApiModel("文件任务执行日志查询请求")
-public class ServiceFileLogQueryRequest {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class TaskInstanceIdEvictPolicy extends TaskInstanceIdEvictPolicyDTO implements ITaskEvictPolicy {
 
-    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
-    private String jobCreateDate;
+    private Set<Long> taskInstanceIdSetToEvict;
 
-    @ApiModelProperty(value = "步骤实例ID", required = true)
-    private Long stepInstanceId;
+    public TaskInstanceIdEvictPolicy(List<Long> taskInstanceIdsToEvict) {
+        super(taskInstanceIdsToEvict);
+        // 使用查找速度为O(1)的Set
+        taskInstanceIdSetToEvict = new HashSet<>(taskInstanceIdsToEvict);
+    }
 
-    @ApiModelProperty(value = "执行次数", required = true)
-    private Integer executeCount;
-
-    @ApiModelProperty(value = "滚动执行批次")
-    private Integer batch;
-
-    @ApiModelProperty("主机ID列表")
-    private List<Long> hostIds;
-
-    @ApiModelProperty("IP列表;如果hostIds参数不为空，那么忽略ips参数")
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", deprecatedVersion = "3.7.x")
-    private List<String> ips;
-
-    /**
-     * @see com.tencent.bk.job.logsvr.consts.FileTaskModeEnum
-     */
-    @ApiModelProperty("分发模式,0:upload,1:download")
-    private Integer mode;
+    @Override
+    public boolean needToEvict(TaskInstanceDTO taskInstance) {
+        Long taskInstanceId = taskInstance.getId();
+        return taskInstanceIdSetToEvict.contains(taskInstanceId);
+    }
 }

@@ -30,6 +30,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * 根据创建任务使用的AppCode来驱逐任务的策略实体
+ */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)

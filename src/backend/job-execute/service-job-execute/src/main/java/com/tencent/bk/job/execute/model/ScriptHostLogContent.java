@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 脚本日志内容
@@ -47,10 +47,17 @@ public class ScriptHostLogContent {
      */
     private Long hostId;
     /**
-     * 目标IP
+     * 目标云区域ID:ipv4
      */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续使用hostId替换", version = "3.7.x")
-    private String ip;
+    private String cloudIp;
+    /**
+     * 目标云区域ID:ipv6
+     */
+    private String cloudIpv6;
+    /**
+     * 主机IPv6
+     */
+    private String ipv6;
     /**
      * 日志内容
      */
@@ -60,13 +67,28 @@ public class ScriptHostLogContent {
      */
     private boolean finished;
 
-    public ScriptHostLogContent(long stepInstanceId, int executeCount, Long hostId,
-                                String ip, String content, boolean finished) {
+    public ScriptHostLogContent(long stepInstanceId,
+                                int executeCount,
+                                Long hostId,
+                                String cloudIp,
+                                String cloudIpv6,
+                                String content,
+                                boolean finished) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.hostId = hostId;
-        this.ip = ip;
+        this.cloudIp = cloudIp;
+        this.cloudIpv6 = cloudIpv6;
         this.content = content;
         this.finished = finished;
+    }
+
+    /**
+     * 获取主机的ip，优先返回ipv4
+     *
+     * @return 主机ipv4/ipv6, ipv4 优先
+     */
+    public String getPrimaryIp() {
+        return StringUtils.isNotEmpty(cloudIp) ? cloudIp : cloudIpv6;
     }
 }

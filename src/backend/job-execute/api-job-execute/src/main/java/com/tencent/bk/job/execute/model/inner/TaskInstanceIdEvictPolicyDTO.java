@@ -22,29 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * IP对应的脚本执行日志
+ * 根据任务实例Id来驱逐任务的策略实体
  */
 @Data
-public class EsbScriptIpLogV3DTO {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class TaskInstanceIdEvictPolicyDTO extends TaskEvictPolicyDTO {
 
-    /**
-     * 云区域ID
-     */
-    @JsonProperty("bk_cloud_id")
-    private Long cloudAreaId;
+    public static final String classType = "TaskInstanceIdEvictPolicy";
 
-    @JsonProperty("ip")
-    private String ip;
+    protected List<Long> taskInstanceIdsToEvict;
 
-    /**
-     * 脚本任务日志内容
-     */
-    @JsonProperty("log_content")
-    private String logContent;
+    public TaskInstanceIdEvictPolicyDTO(List<Long> taskInstanceIdsToEvict) {
+        this.taskInstanceIdsToEvict = taskInstanceIdsToEvict;
+    }
+
 }

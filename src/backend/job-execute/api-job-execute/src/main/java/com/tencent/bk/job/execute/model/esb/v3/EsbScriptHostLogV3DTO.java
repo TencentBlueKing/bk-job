@@ -22,44 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model.service;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * 文件任务执行日志查询请求
+ * 主机对应的脚本执行日志
  */
 @Data
-@ApiModel("文件任务执行日志查询请求")
-public class ServiceFileLogQueryRequest {
-
-    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
-    private String jobCreateDate;
-
-    @ApiModelProperty(value = "步骤实例ID", required = true)
-    private Long stepInstanceId;
-
-    @ApiModelProperty(value = "执行次数", required = true)
-    private Integer executeCount;
-
-    @ApiModelProperty(value = "滚动执行批次")
-    private Integer batch;
-
-    @ApiModelProperty("主机ID列表")
-    private List<Long> hostIds;
-
-    @ApiModelProperty("IP列表;如果hostIds参数不为空，那么忽略ips参数")
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", deprecatedVersion = "3.7.x")
-    private List<String> ips;
+public class EsbScriptHostLogV3DTO {
 
     /**
-     * @see com.tencent.bk.job.logsvr.consts.FileTaskModeEnum
+     * 主机ID
      */
-    @ApiModelProperty("分发模式,0:upload,1:download")
-    private Integer mode;
+    @JsonProperty("host_id")
+    private Long hostId;
+
+    /**
+     * 云区域ID
+     */
+    @JsonProperty("bk_cloud_id")
+    private Long cloudAreaId;
+
+    /**
+     * ipv4
+     */
+    @JsonProperty("ip")
+    private String ip;
+
+    /**
+     * ipv6
+     */
+    @JsonProperty("ipv6")
+    private String ipv6;
+
+    /**
+     * 脚本任务日志内容
+     */
+    @JsonProperty("log_content")
+    private String logContent;
 }

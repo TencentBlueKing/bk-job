@@ -2,6 +2,7 @@ package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,7 +12,8 @@ import java.util.List;
  * GSE - 查询脚本任务的执行结果请求
  */
 @Data
-public class GetExecuteScriptResultRequest {
+@EqualsAndHashCode(callSuper = true)
+public class GetExecuteScriptResultRequest extends GseReq {
     /**
      * GSE 任务ID
      */
@@ -56,7 +58,7 @@ public class GetExecuteScriptResultRequest {
     public void addAgentTaskQuery(String agentId, Integer atomicTaskId, int offset) {
         AgentTask agentTask = new AgentTask();
         agentTask.setAgentId(agentId);
-        AtomicTask atomicTask = new AtomicTask();;
+        AtomicTask atomicTask = new AtomicTask();
         atomicTask.setAtomicTaskId(atomicTaskId);
         atomicTask.setOffset(offset);
         agentTask.setAtomicTasks(Collections.singletonList(atomicTask));

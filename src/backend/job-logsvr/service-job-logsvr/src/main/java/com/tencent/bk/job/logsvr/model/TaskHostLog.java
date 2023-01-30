@@ -46,11 +46,11 @@ public class TaskHostLog {
      */
     private Long stepInstanceId;
     /**
-     * 执行任务的主机ipv4
+     * 主机ipv4,格式: 云区域ID:IPv4
      */
     private String ip;
     /**
-     * 执行任务的主机ipv6
+     * 主机ipv6,格式: 云区域ID:IPv6
      */
     private String ipv6;
     /**
@@ -91,6 +91,7 @@ public class TaskHostLog {
             .add("stepInstanceId=" + stepInstanceId)
             .add("hostId='" + hostId + "'")
             .add("ip='" + ip + "'")
+            .add("ipv6='" + ipv6 + "'")
             .add("executeCount=" + executeCount)
             .add("batch=" + batch)
             .add("scriptContentLength=" + (StringUtils.isEmpty(scriptContent) ? 0 : scriptContent.length()))
