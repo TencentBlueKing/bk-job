@@ -107,12 +107,11 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             checkResultList.sort(Comparator.comparingInt(ScriptCheckResultItemDTO::getLine));
 
         } catch (Exception e) {
-            // 脚本检查非强制，如果检查过程中抛出异常不应该影响业务的使用
             String errorMsg = MessageFormatter.format(
                 "Check script caught exception! scriptType: {}, content: {}",
                 scriptType, content).getMessage();
             log.error(errorMsg, e);
-            return Collections.emptyList();
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
         return checkResultList;
     }

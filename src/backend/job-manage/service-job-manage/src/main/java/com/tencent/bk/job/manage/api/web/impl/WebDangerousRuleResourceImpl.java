@@ -24,9 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.manage.api.web.WebDangerousRuleResource;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
@@ -55,20 +53,7 @@ public class WebDangerousRuleResourceImpl implements WebDangerousRuleResource {
 
     @Override
     public Response<Boolean> addOrUpdateDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
-        ValidateResult validateResult = checkAddOrUpdateDangerousRuleReq(req);
-        if (!validateResult.isPass()) {
-            throw new InvalidParamException(validateResult);
-        }
         return Response.buildSuccessResp(dangerousRuleService.addOrUpdateDangerousRule(username, req));
-    }
-
-    private ValidateResult checkAddOrUpdateDangerousRuleReq(AddOrUpdateDangerousRuleReq req) {
-//        if (req.getId() == null || req.getId() == -1) {
-//            // 新增
-//        } else {
-//
-//        }
-        return ValidateResult.pass();
     }
 
     @Override
