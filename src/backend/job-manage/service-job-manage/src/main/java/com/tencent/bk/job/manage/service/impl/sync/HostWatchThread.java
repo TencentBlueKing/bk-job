@@ -42,6 +42,7 @@ import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
@@ -244,19 +245,24 @@ public class HostWatchThread extends Thread {
 
     private void watchInLoop(long startTime) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-        ResourceWatchResult<HostEventDetail> hostWatchResult;
         while (hostWatchFlag.get()) {
-            if (cursor == null) {
-                log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
-                hostWatchResult = bizCmdbClient.getHostEvents(startTime, null);
-            } else {
-                hostWatchResult = bizCmdbClient.getHostEvents(null, cursor);
-            }
-            log.info("hostWatchResult={}", JsonUtils.toJson(hostWatchResult));
-            cursor = handleHostWatchResult(hostWatchResult);
+            watchHostEvents(startTime, bizCmdbClient);
             // 1s/watch一次
             ThreadUtils.sleep(1000);
         }
+    }
+
+    @NewSpan("watchHostEvents")
+    private void watchHostEvents(long startTime, IBizCmdbClient bizCmdbClient) {
+        ResourceWatchResult<HostEventDetail> hostWatchResult;
+        if (cursor == null) {
+            log.info("Start watch from startTime:{}", TimeUtil.formatTime(startTime * 1000));
+            hostWatchResult = bizCmdbClient.getHostEvents(startTime, null);
+        } else {
+            hostWatchResult = bizCmdbClient.getHostEvents(null, cursor);
+        }
+        log.info("hostWatchResult={}", JsonUtils.toJson(hostWatchResult));
+        cursor = handleHostWatchResult(hostWatchResult);
     }
 
     private void waitUtilHostWatchFlagSet() {

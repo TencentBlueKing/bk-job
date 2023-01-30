@@ -35,9 +35,9 @@ import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.util.StopWatch;
 
 import java.util.concurrent.BlockingQueue;
@@ -45,26 +45,24 @@ import java.util.concurrent.BlockingQueue;
 @Slf4j
 public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDetail> {
 
-    private final DSLContext dslContext;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
     private final HostCache hostCache;
 
     public HostRelationEventsHandler(BlockingQueue<ResourceEvent<HostRelationEventDetail>> queue,
-                                     DSLContext dslContext,
                                      ApplicationService applicationService,
                                      ApplicationHostDAO applicationHostDAO,
                                      HostTopoDAO hostTopoDAO,
                                      HostCache hostCache) {
         super(queue);
-        this.dslContext = dslContext;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
     }
 
+    @NewSpan("handleHostRelationEvent")
     @Override
     void handleEvent(ResourceEvent<HostRelationEventDetail> event) {
         handleOneEvent(event);

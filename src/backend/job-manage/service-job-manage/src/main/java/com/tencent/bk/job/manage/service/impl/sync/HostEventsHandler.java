@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.cloud.sleuth.annotation.NewSpan;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -62,6 +63,7 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
         this.hostCache = hostCache;
     }
 
+    @NewSpan("handleHostEvent")
     @Override
     void handleEvent(ResourceEvent<HostEventDetail> event) {
         handleOneEventRelatedToApp(event);

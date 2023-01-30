@@ -42,7 +42,7 @@ import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
+import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
@@ -71,7 +71,6 @@ public class HostRelationWatchThread extends Thread {
         }
     }
 
-    private final DSLContext dslContext;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
@@ -86,13 +85,11 @@ public class HostRelationWatchThread extends Thread {
         "-job-running-machine";
     private String cursor = null;
 
-    public HostRelationWatchThread(DSLContext dslContext,
-                                   ApplicationService applicationService,
+    public HostRelationWatchThread(ApplicationService applicationService,
                                    ApplicationHostDAO applicationHostDAO,
                                    HostTopoDAO hostTopoDAO,
                                    RedisTemplate<String, String> redisTemplate,
                                    HostCache hostCache) {
-        this.dslContext = dslContext;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
@@ -106,7 +103,6 @@ public class HostRelationWatchThread extends Thread {
     private HostRelationEventsHandler buildHostRelationEventsHandler() {
         return new HostRelationEventsHandler(
             appHostRelationEventQueue,
-            dslContext,
             applicationService,
             applicationHostDAO,
             hostTopoDAO,
@@ -219,18 +215,23 @@ public class HostRelationWatchThread extends Thread {
 
     private void watchInLoop(long startTime) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-        ResourceWatchResult<HostRelationEventDetail> hostRelationWatchResult;
         while (hostRelationWatchFlag.get()) {
-            if (cursor == null) {
-                hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(startTime, null);
-            } else {
-                hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(null, cursor);
-            }
-            log.info("hostRelationWatchResult={}", JsonUtils.toJson(hostRelationWatchResult));
-            cursor = handleHostRelationWatchResult(hostRelationWatchResult);
+            watchHostRelationEvents(startTime, bizCmdbClient);
             // 1s/watch一次
             ThreadUtils.sleep(1000);
         }
+    }
+
+    @NewSpan("watchHostRelationEvents")
+    private void watchHostRelationEvents(long startTime, IBizCmdbClient bizCmdbClient) {
+        ResourceWatchResult<HostRelationEventDetail> hostRelationWatchResult;
+        if (cursor == null) {
+            hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(startTime, null);
+        } else {
+            hostRelationWatchResult = bizCmdbClient.getHostRelationEvents(null, cursor);
+        }
+        log.info("hostRelationWatchResult={}", JsonUtils.toJson(hostRelationWatchResult));
+        cursor = handleHostRelationWatchResult(hostRelationWatchResult);
     }
 
     private void waitUtilHostRelationWatchFlagSet() {

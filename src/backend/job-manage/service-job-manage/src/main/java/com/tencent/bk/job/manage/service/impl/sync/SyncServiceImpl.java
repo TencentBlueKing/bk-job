@@ -42,7 +42,6 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
@@ -90,7 +89,6 @@ public class SyncServiceImpl implements SyncService {
         });
     }
 
-    private final DSLContext dslContext;
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
@@ -122,8 +120,7 @@ public class SyncServiceImpl implements SyncService {
     private final BizSetRelationEventWatcher bizSetRelationEventWatcher;
 
     @Autowired
-    public SyncServiceImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
-                           BizSyncService bizSyncService,
+    public SyncServiceImpl(BizSyncService bizSyncService,
                            BizSetSyncService bizSetSyncService,
                            HostSyncService hostSyncService,
                            AgentStatusSyncService agentStatusSyncService,
@@ -141,7 +138,6 @@ public class SyncServiceImpl implements SyncService {
                            @Qualifier("syncAppExecutor") ThreadPoolExecutor syncAppExecutor,
                            @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
                            @Qualifier("syncAgentStatusExecutor") ThreadPoolExecutor syncAgentStatusExecutor) {
-        this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
@@ -213,7 +209,6 @@ public class SyncServiceImpl implements SyncService {
 
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
-            dslContext,
             applicationService,
             applicationHostDAO,
             hostTopoDAO,
