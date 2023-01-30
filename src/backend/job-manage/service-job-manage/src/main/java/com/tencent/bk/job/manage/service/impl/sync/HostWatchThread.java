@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -73,8 +74,9 @@ public class HostWatchThread extends Thread {
     private final RedisTemplate<String, String> redisTemplate;
     private final HostCache hostCache;
     private final String REDIS_KEY_RESOURCE_WATCH_HOST_JOB_RUNNING_MACHINE = "resource-watch-host-job-running-machine";
-    private final HostEventsHandler eventsHandler;
-    private final BlockingQueue<ResourceEvent<HostEventDetail>> appHostEventQueue = new LinkedBlockingQueue<>(10000);
+    private final int eventsHandlerNum;
+    private final List<HostEventsHandler> eventsHandlers = new ArrayList<>();
+    private final List<BlockingQueue<ResourceEvent<HostEventDetail>>> hostEventQueues = new ArrayList<>();
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private String cursor = null;
 
@@ -82,20 +84,38 @@ public class HostWatchThread extends Thread {
                            ApplicationHostDAO applicationHostDAO,
                            QueryAgentStatusClient queryAgentStatusClient,
                            RedisTemplate<String, String> redisTemplate,
-                           HostCache hostCache) {
+                           HostCache hostCache,
+                           int eventsHandlerNum) {
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.redisTemplate = redisTemplate;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostWatchThread-" + instanceNum.getAndIncrement());
-        this.eventsHandler = buildHostEventsHandler();
-        this.eventsHandler.setName("[" + eventsHandler.getId() + "]-HostEventsHandler");
+        this.eventsHandlerNum = eventsHandlerNum;
+        initHostEventQueues();
+        initHostEventsHandlers();
     }
 
-    private HostEventsHandler buildHostEventsHandler() {
+    private void initHostEventQueues() {
+        int hostEventQueueCapacity = 10000;
+        for (int i = 0; i < eventsHandlerNum; i++) {
+            BlockingQueue<ResourceEvent<HostEventDetail>> queue = new LinkedBlockingQueue<>(hostEventQueueCapacity);
+            hostEventQueues.add(queue);
+        }
+    }
+
+    private void initHostEventsHandlers() {
+        for (int i = 0; i < eventsHandlerNum; i++) {
+            HostEventsHandler eventsHandler = buildHostEventsHandler(hostEventQueues.get(i));
+            eventsHandler.setName("[" + eventsHandler.getId() + "]-HostEventsHandler-" + i);
+            eventsHandlers.add(eventsHandler);
+        }
+    }
+
+    private HostEventsHandler buildHostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue) {
         return new HostEventsHandler(
-            appHostEventQueue,
+            hostEventQueue,
             applicationService,
             applicationHostDAO,
             queryAgentStatusClient,
@@ -104,17 +124,26 @@ public class HostWatchThread extends Thread {
     }
 
     private void init() {
-        eventsHandler.start();
+        for (HostEventsHandler eventsHandler : eventsHandlers) {
+            eventsHandler.start();
+        }
     }
 
     public void setWatchFlag(boolean value) {
         hostWatchFlag.set(value);
     }
 
+    private HostEventsHandler chooseHandler(Long hostId) {
+        // 保证同一主机的多个事件被分配到同一个Handler
+        int index = (int) (hostId % eventsHandlerNum);
+        return eventsHandlers.get(index);
+    }
+
     private void dispatchEvent(ResourceEvent<HostEventDetail> event) {
         ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
         Long hostId = hostInfoDTO.getHostId();
         ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
+        HostEventsHandler eventsHandler = chooseHandler(hostId);
         eventsHandler.commitEvent(oldHostInfoDTO == null ? null : oldHostInfoDTO.getBizId(), event);
     }
 

@@ -32,30 +32,25 @@ import java.util.concurrent.BlockingQueue;
 @Slf4j
 public abstract class EventsHandler<T> extends Thread {
 
+    protected boolean enabled = true;
     BlockingQueue<ResourceEvent<T>> queue;
-    boolean idle;
-    Long appId = null;
+    Long bizId = null;
 
     public EventsHandler(BlockingQueue<ResourceEvent<T>> queue) {
         this.queue = queue;
     }
 
-    public boolean isIdle() {
-        return idle;
+    public Long getBizId() {
+        return bizId;
     }
 
-    public Long getAppId() {
-        return appId;
-    }
-
-    public void commitEvent(Long appId, ResourceEvent<T> event) {
+    public void commitEvent(Long bizId, ResourceEvent<T> event) {
         try {
             boolean result = this.queue.add(event);
             if (!result) {
                 log.warn("Fail to commitEvent:{}", event);
             } else {
-                this.idle = false;
-                this.appId = appId;
+                this.bizId = bizId;
             }
         } catch (Exception e) {
             log.warn("Fail to commitEvent:" + event, e);
@@ -66,7 +61,7 @@ public abstract class EventsHandler<T> extends Thread {
 
     @Override
     public void run() {
-        while (true) {
+        while (enabled) {
             ResourceEvent<T> event = null;
             try {
                 event = queue.take();
@@ -77,8 +72,7 @@ public abstract class EventsHandler<T> extends Thread {
                 log.warn("Fail to handleOneEvent:" + event, t);
             } finally {
                 if (queue.size() == 0) {
-                    this.idle = true;
-                    this.appId = null;
+                    this.bizId = null;
                 }
             }
         }

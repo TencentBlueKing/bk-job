@@ -206,7 +206,8 @@ public class SyncServiceImpl implements SyncService {
             applicationHostDAO,
             queryAgentStatusClient,
             redisTemplate,
-            hostCache
+            hostCache,
+            jobManageConfig.getHostEventHandlerNum()
         );
         hostWatchThread.start();
 
