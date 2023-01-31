@@ -45,14 +45,8 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
-          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback;springCloudBusOutput
+          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback
           bindings:
-            springCloudBusInput-in-0:
-              destination: springCloudBus
-              binder: jobCommon
-            springCloudBusOutput-out-0:
-              destination: springCloudBus
-              binder: jobCommon
             handleJobEvent-in-0:
               destination: task
               group: service.job.execute
@@ -164,7 +158,7 @@ data:
                 consumer:
                   maxConcurrency: 10
         function:
-          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg
+          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
       datasource:
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
