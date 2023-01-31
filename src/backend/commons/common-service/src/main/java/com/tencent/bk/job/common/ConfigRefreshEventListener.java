@@ -2,10 +2,12 @@ package com.tencent.bk.job.common;
 
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
 import java.util.StringJoiner;
 
 @Component
@@ -25,7 +27,7 @@ public class ConfigRefreshEventListener {
         if (log.isInfoEnabled()) {
             log.info("Handle EnvironmentChangeEvent, event: {}", printEnvironmentChangeEvent(event));
         }
-        reloadFeatureToggle();
+        reloadFeatureToggleIfChanged(event.getKeys());
     }
 
     private String printEnvironmentChangeEvent(EnvironmentChangeEvent event) {
@@ -40,9 +42,16 @@ public class ConfigRefreshEventListener {
     /**
      * 重载特型开关配置
      */
-    private void reloadFeatureToggle() {
-        log.info("Reload feature toggle start ..");
-        FeatureToggle.getInstance().reload();
-        log.info("Reload feature toggle successfully");
+    private void reloadFeatureToggleIfChanged(Set<String> changedKeys) {
+        if (CollectionUtils.isEmpty(changedKeys)) {
+            return;
+        }
+        boolean isFeatureToggleConfigChanged =
+            changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."));
+        if (isFeatureToggleConfigChanged) {
+            log.info("Reload feature toggle start ..");
+            FeatureToggle.getInstance().reload();
+            log.info("Reload feature toggle successfully");
+        }
     }
 }

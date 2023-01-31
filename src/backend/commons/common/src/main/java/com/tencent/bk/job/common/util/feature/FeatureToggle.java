@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 特性开关
@@ -42,7 +42,7 @@ public class FeatureToggle {
     /**
      * key: featureId; value: Feature
      */
-    private final Map<String, Feature> features = new ConcurrentHashMap<>();
+    private volatile Map<String, Feature> features = new HashMap<>();
 
     private static class FeatureToggleHolder {
         private static final FeatureToggle INSTANCE = new FeatureToggle();
@@ -64,6 +64,7 @@ public class FeatureToggle {
             return;
         }
 
+        Map<String, Feature> tmpFeatures = new HashMap<>();
         featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
             Feature feature = new Feature();
             feature.setId(featureId);
@@ -88,8 +89,10 @@ public class FeatureToggle {
                     feature.setStrategy(toggleStrategy);
                 }
             }
-            features.put(featureId, feature);
+            tmpFeatures.put(featureId, feature);
         });
+        // 使用新的配置完全替换老的配置
+        this.features = tmpFeatures;
         log.info("Load feature toggle config done! features: {}", JsonUtils.toJson(features));
     }
 
