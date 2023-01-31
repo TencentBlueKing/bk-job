@@ -9,8 +9,11 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Tracer;
@@ -32,10 +35,11 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
     @Autowired
     public BizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
                                       Tracer tracer,
+                                      CmdbEventSampler cmdbEventSampler,
                                       ApplicationService applicationService,
                                       BizSetService bizSetService,
                                       BizSetCmdbClient bizSetCmdbClient) {
-        super("bizSetRelation", redisTemplate, tracer);
+        super("bizSetRelation", redisTemplate, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
@@ -81,6 +85,11 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
                 log.info("No need to handle event: {}", event);
                 break;
         }
+    }
+
+    @Override
+    protected Tags getEventMetricTags() {
+        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_BIZ_SET_RELATION);
     }
 
     @Override
