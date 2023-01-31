@@ -1,13 +1,7 @@
 spring:
   cloud:
     stream:
-      bindings:
-        springCloudBusInput:
-          destination: springCloudBus
-          binder: jobCommon
-        springCloudBusOutput:
-          destination: springCloudBus
-          binder: jobCommon
+      defaultBinder: jobCommon
       binders:
         jobCommon:
           type: rabbit

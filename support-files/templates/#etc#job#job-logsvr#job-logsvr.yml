@@ -8,13 +8,7 @@ spring:
       uri: __BK_JOB_LOGSVR_MONGODB_URI__
   cloud:
     stream:
-      bindings:
-        springCloudBusInput:
-          destination: springCloudBus
-          binder: jobCommon
-        springCloudBusOutput:
-          destination: springCloudBus
-          binder: jobCommon
+      defaultBinder: jobCommon
       binders:
         jobCommon:
           type: rabbit

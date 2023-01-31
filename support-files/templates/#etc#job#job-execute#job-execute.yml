@@ -27,12 +27,6 @@ spring:
                 virtual-host: __BK_JOB_RABBITMQ_VHOST__
       source: task;step;gseTask;resultHandleResume;notifyMsg;callback      
       bindings:
-        springCloudBusInput:
-          destination: springCloudBus
-          binder: jobCommon
-        springCloudBusOutput:
-          destination: springCloudBus
-          binder: jobCommon
         handleJobEvent-in-0:
           destination: task
           group: service.job.execute
@@ -144,7 +138,7 @@ spring:
             consumer:
               maxConcurrency: 10
     function:
-      definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg
+      definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
   datasource:
     job-execute:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
