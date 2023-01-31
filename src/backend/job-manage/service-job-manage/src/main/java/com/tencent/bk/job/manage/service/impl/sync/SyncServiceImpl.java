@@ -38,6 +38,7 @@ import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.manager.host.HostCache;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
@@ -94,6 +95,7 @@ public class SyncServiceImpl implements SyncService {
      * 日志调用链tracer
      */
     private final Tracer tracer;
+    private final CmdbEventSampler cmdbEventSampler;
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
@@ -126,6 +128,7 @@ public class SyncServiceImpl implements SyncService {
 
     @Autowired
     public SyncServiceImpl(Tracer tracer,
+                           CmdbEventSampler cmdbEventSampler,
                            BizSyncService bizSyncService,
                            BizSetSyncService bizSetSyncService,
                            HostSyncService hostSyncService,
@@ -145,6 +148,7 @@ public class SyncServiceImpl implements SyncService {
                            @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
                            @Qualifier("syncAgentStatusExecutor") ThreadPoolExecutor syncAgentStatusExecutor) {
         this.tracer = tracer;
+        this.cmdbEventSampler = cmdbEventSampler;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
@@ -206,6 +210,7 @@ public class SyncServiceImpl implements SyncService {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
             tracer,
+            cmdbEventSampler,
             applicationService,
             applicationHostDAO,
             queryAgentStatusClient,
@@ -218,6 +223,7 @@ public class SyncServiceImpl implements SyncService {
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
             tracer,
+            cmdbEventSampler,
             applicationService,
             applicationHostDAO,
             hostTopoDAO,

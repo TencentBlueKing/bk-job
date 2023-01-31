@@ -40,7 +40,11 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.sleuth.Span;
@@ -75,6 +79,7 @@ public class HostWatchThread extends Thread {
      * 日志调用链tracer
      */
     private final Tracer tracer;
+    private final CmdbEventSampler cmdbEventSampler;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final QueryAgentStatusClient queryAgentStatusClient;
@@ -88,6 +93,7 @@ public class HostWatchThread extends Thread {
     private String cursor = null;
 
     public HostWatchThread(Tracer tracer,
+                           CmdbEventSampler cmdbEventSampler,
                            ApplicationService applicationService,
                            ApplicationHostDAO applicationHostDAO,
                            QueryAgentStatusClient queryAgentStatusClient,
@@ -95,6 +101,7 @@ public class HostWatchThread extends Thread {
                            HostCache hostCache,
                            int eventsHandlerNum) {
         this.tracer = tracer;
+        this.cmdbEventSampler = cmdbEventSampler;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
@@ -116,15 +123,27 @@ public class HostWatchThread extends Thread {
 
     private void initHostEventsHandlers() {
         for (int i = 0; i < eventsHandlerNum; i++) {
-            HostEventsHandler eventsHandler = buildHostEventsHandler(hostEventQueues.get(i));
-            eventsHandler.setName("[" + eventsHandler.getId() + "]-HostEventsHandler-" + i);
+            BlockingQueue<ResourceEvent<HostEventDetail>> eventQueue = hostEventQueues.get(i);
+            String handlerName = "HostEventsHandler-" + i;
+            cmdbEventSampler.registerEventQueueToGauge(eventQueue, buildHostEventHandlerTags(handlerName));
+            HostEventsHandler eventsHandler = buildHostEventsHandler(eventQueue);
+            String threadName = "[" + eventsHandler.getId() + "]-" + handlerName;
+            eventsHandler.setName(threadName);
             eventsHandlers.add(eventsHandler);
         }
+    }
+
+    private Iterable<Tag> buildHostEventHandlerTags(String handlerName) {
+        return Tags.of(
+            MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST,
+            MetricsConstants.TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME, handlerName
+        );
     }
 
     private HostEventsHandler buildHostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue) {
         return new HostEventsHandler(
             tracer,
+            cmdbEventSampler,
             hostEventQueue,
             applicationService,
             applicationHostDAO,
@@ -173,6 +192,7 @@ public class HostWatchThread extends Thread {
             } else {
                 log.info("events.size==0");
             }
+            tryToRecordHostEvents(events.size());
         } else {
             // 只有一个无实际意义的事件，用于换取bk_cursor
             if (events != null && events.size() > 0) {
@@ -183,6 +203,18 @@ public class HostWatchThread extends Thread {
             }
         }
         return cursor;
+    }
+
+    private void tryToRecordHostEvents(int eventNum) {
+        try {
+            cmdbEventSampler.recordWatchedEvents(eventNum, buildHostEventMetricTags());
+        } catch (Throwable t) {
+            log.warn("Fail to recordHostEvents", t);
+        }
+    }
+
+    private Iterable<Tag> buildHostEventMetricTags() {
+        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST);
     }
 
     @SuppressWarnings("InfiniteLoopStatement")
@@ -257,15 +289,15 @@ public class HostWatchThread extends Thread {
 
     private void watchInLoop(long startTime) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-        Span span = SpanUtil.buildNewSpan(this.tracer, "watchHostEvents");
-        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-            while (hostWatchFlag.get()) {
+        while (hostWatchFlag.get()) {
+            Span span = SpanUtil.buildNewSpan(this.tracer, "watchHostEvents");
+            try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 watchHostEvents(startTime, bizCmdbClient);
+            } finally {
+                span.end();
                 // 1s/watch一次
                 ThreadUtils.sleep(1000);
             }
-        } finally {
-            span.end();
         }
     }
 

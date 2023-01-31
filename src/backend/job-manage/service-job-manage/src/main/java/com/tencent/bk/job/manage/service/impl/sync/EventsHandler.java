@@ -26,6 +26,9 @@ package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.metrics.MetricsConstants;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
@@ -39,13 +42,17 @@ public abstract class EventsHandler<T> extends Thread {
      * 日志调用链tracer
      */
     private final Tracer tracer;
+    private final CmdbEventSampler cmdbEventSampler;
     protected boolean enabled = true;
     BlockingQueue<ResourceEvent<T>> queue;
     Long bizId = null;
 
-    public EventsHandler(BlockingQueue<ResourceEvent<T>> queue, Tracer tracer) {
+    public EventsHandler(BlockingQueue<ResourceEvent<T>> queue,
+                         Tracer tracer,
+                         CmdbEventSampler cmdbEventSampler) {
         this.queue = queue;
         this.tracer = tracer;
+        this.cmdbEventSampler = cmdbEventSampler;
     }
 
     public Long getBizId() {
@@ -67,22 +74,37 @@ public abstract class EventsHandler<T> extends Thread {
 
     abstract void handleEvent(ResourceEvent<T> event);
 
+    abstract Tags getEventHandleExtraTags();
+
     abstract String getSpanName();
 
     void handleEventWithTrace(ResourceEvent<T> event) {
+        String eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_SUCCESS;
         Span span = buildSpan();
         try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
             handleEvent(event);
         } catch (Exception e) {
             span.error(e);
+            eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_FAILED;
             throw e;
         } finally {
             span.end();
+            long timeConsuming = System.currentTimeMillis() - event.getCreateTime();
+            cmdbEventSampler.recordEventHandleTimeConsuming(timeConsuming, buildEventHandleTimeTags(eventHandleResult));
         }
     }
 
     private Span buildSpan() {
         return SpanUtil.buildNewSpan(this.tracer, getSpanName());
+    }
+
+    private Tags buildEventHandleTimeTags(String eventHandleResult) {
+        Tags tags = Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_HANDLE_RESULT, eventHandleResult);
+        Tags extraTags = getEventHandleExtraTags();
+        if (extraTags != null) {
+            tags = Tags.concat(tags, extraTags);
+        }
+        return tags;
     }
 
     @Override

@@ -32,11 +32,12 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.helpers.FormattingTuple;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
@@ -51,12 +52,13 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
     private final HostCache hostCache;
 
     public HostRelationEventsHandler(Tracer tracer,
+                                     CmdbEventSampler cmdbEventSampler,
                                      BlockingQueue<ResourceEvent<HostRelationEventDetail>> queue,
                                      ApplicationService applicationService,
                                      ApplicationHostDAO applicationHostDAO,
                                      HostTopoDAO hostTopoDAO,
                                      HostCache hostCache) {
-        super(queue, tracer);
+        super(queue, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
@@ -69,33 +71,28 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
     }
 
     @Override
+    Tags getEventHandleExtraTags() {
+        return Tags.of(
+            MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE,
+            MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST_RELATION
+        );
+    }
+
+    @Override
     String getSpanName() {
         return "handleHostRelationEvent";
     }
 
     private void handleOneEvent(ResourceEvent<HostRelationEventDetail> event) {
         log.info("start to handle host relation event:{}", JsonUtils.toJson(event));
-        HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        Long appId = hostTopoDTO.getBizId();
-        try {
-            StopWatch watch = new StopWatch();
-            watch.start("handleOneEventIndeed");
-            handleOneEventIndeed(event);
-            watch.stop();
-            if (watch.getTotalTimeMillis() > 3000) {
-                log.warn("PERF:SLOW:handle hostRelationEvent:" + watch.prettyPrint());
-            } else {
-                log.debug("handle hostRelationEvent:" + watch.prettyPrint());
-            }
-        } catch (Throwable t) {
-            FormattingTuple msg = MessageFormatter.format(
-                "Fail to handle hostRelationEvent of appId {}, event:{}",
-                new String[]{
-                    appId.toString(),
-                    event.toString()
-                }
-            );
-            log.error(msg.getMessage(), t);
+        StopWatch watch = new StopWatch();
+        watch.start("handleOneEventIndeed");
+        handleOneEventIndeed(event);
+        watch.stop();
+        if (watch.getTotalTimeMillis() > 3000) {
+            log.warn("PERF:SLOW:handle hostRelationEvent:" + watch.prettyPrint());
+        } else {
+            log.debug("handle hostRelationEvent:" + watch.prettyPrint());
         }
     }
 

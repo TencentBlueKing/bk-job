@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +78,7 @@ public class HostRelationWatchThread extends Thread {
      * 日志调用链tracer
      */
     private final Tracer tracer;
+    private final CmdbEventSampler cmdbEventSampler;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
@@ -92,12 +94,14 @@ public class HostRelationWatchThread extends Thread {
     private String cursor = null;
 
     public HostRelationWatchThread(Tracer tracer,
+                                   CmdbEventSampler cmdbEventSampler,
                                    ApplicationService applicationService,
                                    ApplicationHostDAO applicationHostDAO,
                                    HostTopoDAO hostTopoDAO,
                                    RedisTemplate<String, String> redisTemplate,
                                    HostCache hostCache) {
         this.tracer = tracer;
+        this.cmdbEventSampler = cmdbEventSampler;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
@@ -111,6 +115,7 @@ public class HostRelationWatchThread extends Thread {
     private HostRelationEventsHandler buildHostRelationEventsHandler() {
         return new HostRelationEventsHandler(
             tracer,
+            cmdbEventSampler,
             appHostRelationEventQueue,
             applicationService,
             applicationHostDAO,
@@ -227,15 +232,15 @@ public class HostRelationWatchThread extends Thread {
 
     private void watchInLoop(long startTime) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-        Span span = SpanUtil.buildNewSpan(this.tracer, "watchHostRelationEvents");
-        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-            while (hostRelationWatchFlag.get()) {
+        while (hostRelationWatchFlag.get()) {
+            Span span = SpanUtil.buildNewSpan(this.tracer, "watchHostRelationEvents");
+            try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 watchHostRelationEvents(startTime, bizCmdbClient);
+            } finally {
+                span.end();
                 // 1s/watch一次
                 ThreadUtils.sleep(1000);
             }
-        } finally {
-            span.end();
         }
     }
 

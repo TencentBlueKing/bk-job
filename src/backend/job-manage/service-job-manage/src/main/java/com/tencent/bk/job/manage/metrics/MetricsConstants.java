@@ -34,6 +34,12 @@ public class MetricsConstants {
     public static final String NAME_CMDB_QUERY_QUEUE_SIZE = "job.cmdb.query.queue.size";
     public static final String NAME_CMDB_RESOURCE_LIMIT = "job.cmdb.resource.limit";
     public static final String NAME_CMDB_RESOURCE_RATE = "job.cmdb.resource.rate";
+    // 监听到的CMDB事件数量
+    public static final String NAME_CMDB_EVENT_WATCHED_COUNT = "job.cmdb.event.watched.count";
+    // CMDB事件从被监听到被处理完成耗时
+    public static final String NAME_CMDB_EVENT_HANDLE_TIME = "job.cmdb.event.handle.time";
+    // CMDB事件队列中的事件数量
+    public static final String NAME_CMDB_EVENT_QUEUE_SIZE = "job.cmdb.event.queue.size";
     public static final String NAME_SYNC_APP_EXECUTOR_POOL_SIZE = "job.sync.app.executor.pool.size";
     public static final String NAME_SYNC_APP_EXECUTOR_QUEUE_SIZE = "job.sync.app.executor.queue.size";
     public static final String NAME_SYNC_HOST_EXECUTOR_POOL_SIZE = "job.sync.host.executor.pool.size";
@@ -72,6 +78,9 @@ public class MetricsConstants {
     public static final String TAG_KEY_APP_ID = "appId";
     public static final String TAG_KEY_MSG_TYPE = "msgType";
     public static final String TAG_KEY_SEND_STATUS = "sendStatus";
+    public static final String TAG_KEY_CMDB_EVENT_TYPE = "type";
+    public static final String TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME = "name";
+    public static final String TAG_KEY_CMDB_EVENT_HANDLE_RESULT = "handleResult";
 
 
     // tag value
@@ -92,4 +101,12 @@ public class MetricsConstants {
     public static final String TAG_VALUE_SEND_STATUS_SUCCESS = "success";
     // 消息通知发送失败
     public static final String TAG_VALUE_SEND_STATUS_FAILED = "failed";
+    // CMDB事件类型：主机
+    public static final String TAG_VALUE_CMDB_EVENT_TYPE_HOST = "host";
+    // CMDB事件类型：主机关系
+    public static final String TAG_VALUE_CMDB_EVENT_TYPE_HOST_RELATION = "hostRelation";
+    // CMDB事件处理结果：成功
+    public static final String TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_SUCCESS = "success";
+    // CMDB事件处理结果：失败
+    public static final String TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_FAILED = "failed";
 }

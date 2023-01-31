@@ -34,11 +34,12 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.helpers.FormattingTuple;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.BlockingQueue;
@@ -52,12 +53,13 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
     private final HostCache hostCache;
 
     HostEventsHandler(Tracer tracer,
+                      CmdbEventSampler cmdbEventSampler,
                       BlockingQueue<ResourceEvent<HostEventDetail>> queue,
                       ApplicationService applicationService,
                       ApplicationHostDAO applicationHostDAO,
                       QueryAgentStatusClient queryAgentStatusClient,
                       HostCache hostCache) {
-        super(queue, tracer);
+        super(queue, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
@@ -70,19 +72,20 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
     }
 
     @Override
+    Tags getEventHandleExtraTags() {
+        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST);
+    }
+
+    @Override
     String getSpanName() {
         return "handleHostEvent";
     }
 
     private void handleOneEventRelatedToApp(ResourceEvent<HostEventDetail> event) {
-        try {
-            log.info("start to handle host event:{}", JsonUtils.toJson(event));
-            handleOneEventIndeed(event);
-        } catch (Throwable t) {
-            FormattingTuple msg = MessageFormatter.format("Fail to handle hostEvent:{}", event);
-            log.error(msg.getMessage(), t);
-        }
+        log.info("start to handle host event:{}", JsonUtils.toJson(event));
+        handleOneEventIndeed(event);
     }
+
 
     private void handleOneEventIndeed(ResourceEvent<HostEventDetail> event) {
         String eventType = event.getEventType();
