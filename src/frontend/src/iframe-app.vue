@@ -78,7 +78,7 @@
     };
 </script>
 <style lang="postcss" scoped>
-    @import "@/css/mixins/scroll";
+    @import url("@/css/mixins/scroll");
 
     .iframe-navigation-container {
         .container-header {
