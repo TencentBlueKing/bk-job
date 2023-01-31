@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.metrics;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
@@ -56,11 +57,10 @@ public class CmdbEventSampler {
      * @param tags     标签
      */
     public void recordWatchedEvents(int eventNum, Iterable<Tag> tags) {
-        meterRegistry.more().counter(
-            MetricsConstants.NAME_CMDB_EVENT_WATCHED_COUNT,
-            tags,
-            eventNum
-        );
+        Counter.builder(MetricsConstants.NAME_CMDB_EVENT_WATCHED_COUNT)
+            .tags(tags)
+            .register(meterRegistry)
+            .increment(eventNum);
     }
 
     /**
@@ -74,7 +74,7 @@ public class CmdbEventSampler {
             .description("CMDB Event Handle Time(From watched to handled)")
             .tags(tags)
             .publishPercentileHistogram(true)
-            .minimumExpectedValue(Duration.ofMillis(100))
+            .minimumExpectedValue(Duration.ofMillis(10))
             .maximumExpectedValue(Duration.ofMinutes(5L))
             .register(meterRegistry)
             .record(timeConsumingMillis, TimeUnit.MILLISECONDS);
