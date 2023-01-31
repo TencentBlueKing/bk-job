@@ -45,7 +45,7 @@ public class VariableResolveUtils {
             return null;
         }
         StringJoiner joiner = new StringJoiner(",");
-        hosts.forEach(host -> joiner.add(host.toCloudIp()));
+        hosts.forEach(host -> joiner.add(host.getBkCloudId() + ":" + host.getPrimaryIp()));
         return joiner.toString();
     }
 }

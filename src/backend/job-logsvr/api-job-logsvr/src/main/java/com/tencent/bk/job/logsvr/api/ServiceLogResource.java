@@ -83,7 +83,7 @@ public interface ServiceLogResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", version = "3.7.x")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", deprecatedVersion = "3.7.x")
     @ApiOperation("根据目标服务器IP获取脚本任务对应的执行日志")
     @GetMapping(value = {"/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
     InternalResponse<ServiceHostLogDTO> getScriptHostLogByIp(
@@ -127,7 +127,7 @@ public interface ServiceLogResource {
         @RequestBody ServiceScriptLogQueryRequest query
     );
 
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", version = "3.7.x")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", deprecatedVersion = "3.7.x")
     @Deprecated
     @ApiOperation("按照IP获取文件任务对应的执行日志")
     @GetMapping(value = {"/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})

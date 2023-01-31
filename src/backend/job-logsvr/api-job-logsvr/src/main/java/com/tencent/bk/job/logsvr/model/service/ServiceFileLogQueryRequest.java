@@ -54,7 +54,7 @@ public class ServiceFileLogQueryRequest {
     private List<Long> hostIds;
 
     @ApiModelProperty("IP列表;如果hostIds参数不为空，那么忽略ips参数")
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", version = "3.7.x")
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", deprecatedVersion = "3.7.x")
     private List<String> ips;
 
     /**

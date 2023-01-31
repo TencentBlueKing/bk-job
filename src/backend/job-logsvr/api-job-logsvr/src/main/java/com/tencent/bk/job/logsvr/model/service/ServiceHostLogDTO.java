@@ -56,16 +56,18 @@ public class ServiceHostLogDTO {
     private Integer batch;
 
     /**
-     * ipv4
+     * 云区域ID:ipv4
      */
     @ApiModelProperty(value = "云区域ID:ipv4")
-    private String ip;
+    @JsonProperty("ip")
+    private String cloudIp;
 
     /**
-     * ipv6
+     * 云区域ID:ipv6
      */
     @ApiModelProperty(value = "云区域ID:ipv6")
-    private String ipv6;
+    @JsonProperty("ipv6")
+    private String cloudIpv6;
 
     /**
      * 主机ID

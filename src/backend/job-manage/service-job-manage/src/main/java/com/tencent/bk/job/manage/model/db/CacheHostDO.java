@@ -87,7 +87,7 @@ public class CacheHostDO {
     /**
      * 主机Agent是否存活
      */
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     private Boolean gseAgentAlive;
 
     /**

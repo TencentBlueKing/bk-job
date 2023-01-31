@@ -82,6 +82,10 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
      * GSE 任务唯一名称
      */
     protected String gseTaskUniqueName;
+    /**
+     * 是否是GSE V2 Task
+     */
+    protected boolean gseV2Task;
 
 
     public AbstractGseTaskCommand(AgentService agentService,
@@ -101,6 +105,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.gseClient = gseClient;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
+        this.gseV2Task = stepInstance.isTargetGseV2Agent();
         this.gseTask = gseTask;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstanceId = gseTask.getStepInstanceId();

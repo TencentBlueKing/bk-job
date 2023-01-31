@@ -28,10 +28,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
- * IP对应的脚本执行日志
+ * 主机对应的脚本执行日志
  */
 @Data
-public class EsbScriptIpLogV3DTO {
+public class EsbScriptHostLogV3DTO {
+
+    /**
+     * 主机ID
+     */
+    @JsonProperty("host_id")
+    private Long hostId;
 
     /**
      * 云区域ID
@@ -39,8 +45,17 @@ public class EsbScriptIpLogV3DTO {
     @JsonProperty("bk_cloud_id")
     private Long cloudAreaId;
 
+    /**
+     * ipv4
+     */
     @JsonProperty("ip")
     private String ip;
+
+    /**
+     * ipv6
+     */
+    @JsonProperty("ipv6")
+    private String ipv6;
 
     /**
      * 脚本任务日志内容

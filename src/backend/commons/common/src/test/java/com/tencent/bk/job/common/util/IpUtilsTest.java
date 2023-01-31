@@ -75,20 +75,20 @@ public class IpUtilsTest {
     }
 
     @Test
-    void testRemoveBkCloudId() {
-        String ip = "0:127.0.0.1";
-        String result = IpUtils.removeBkCloudId(ip);
+    void testExtractIp() {
+        String cloudIp = "0:127.0.0.1";
+        String result = IpUtils.extractIp(cloudIp);
         assertThat(result).isEqualTo("127.0.0.1");
 
-        ip = "0:0000:0000:0000:0000:0000:0000:0000:0001";
-        result = IpUtils.removeBkCloudId(ip);
+        cloudIp = "0:0000:0000:0000:0000:0000:0000:0000:0001";
+        result = IpUtils.extractIp(cloudIp);
         assertThat(result).isEqualTo("0000:0000:0000:0000:0000:0000:0000:0001");
 
-        ip = "127.0.0.1";
-        result = IpUtils.removeBkCloudId(ip);
+        cloudIp = "127.0.0.1";
+        result = IpUtils.extractIp(cloudIp);
         assertThat(result).isEqualTo("127.0.0.1");
 
-        result = IpUtils.removeBkCloudId(null);
+        result = IpUtils.extractIp(null);
         assertThat(result).isNull();
     }
 
@@ -152,5 +152,16 @@ public class IpUtilsTest {
         // 兼容IPv4地址的用例
         assertThat(IpUtils.getFullIpv6ByCompressedOne("::FFFF:192.168.0.1"))
             .isEqualTo("0000:0000:0000:0000:0000:0000:FFFF:192.168.0.1");
+    }
+
+    @Test
+    void testExtractBkCloudId() {
+        String cloudIp = "0:127.0.0.1";
+        Long bkCloudId = IpUtils.extractBkCloudId(cloudIp);
+        assertThat(bkCloudId).isEqualTo(0L);
+
+        String cloudIpv6 = "0:0000:0000:0000:0000:0000:0000:0000:0000";
+        bkCloudId = IpUtils.extractBkCloudId(cloudIpv6);
+        assertThat(bkCloudId).isEqualTo(0L);
     }
 }

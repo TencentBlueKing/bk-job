@@ -169,8 +169,7 @@
                         const analysisList = [];
                         const analysisMap = {};
                         data.forEach((item) => {
-                            const formatLink = link => link.replace(/(?=( href))/g, ' target="_blank"');
-                            let description = _.trim(formatLink(marked(item.description)), '\n');
+                            let description = _.trim(marked.parse(item.description), '\n');
                             if (dialogTitleMap[item.analysisTaskCode]) {
                                 description = description.replace(/(?=<\/p>$)/, `<span data-id="${item.id}" class="action-list">${I18n.t('home.查看列表')}</span>`);
                             }

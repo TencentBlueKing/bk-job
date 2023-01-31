@@ -50,7 +50,7 @@ public class WhiteIPRecordCreateUpdateReq {
     @ApiModelProperty(value = "兼容字段，请勿再使用：云区域ID")
     private Long cloudAreaId;
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     @ApiModelProperty(value = "兼容字段，请勿再使用：IPs(换行分隔)")
     private String ipStr;
 

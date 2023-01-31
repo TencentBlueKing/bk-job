@@ -32,7 +32,8 @@
         :class="{
             [data.displayStyle]: true,
             'not-start': data.isNotStart,
-        }">
+        }"
+        @click.stop="">
         <div class="confirm-wraper">
             <div class="step-name">
                 {{ data.name }}

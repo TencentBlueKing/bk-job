@@ -42,7 +42,7 @@
                     <item-factory
                         field="name"
                         :form-data="formData"
-                        :label="$t('execution.脚本名称')"
+                        :label="$t('execution.任务名称')"
                         name="scriptName"
                         :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
                         @on-change="handleChange" />

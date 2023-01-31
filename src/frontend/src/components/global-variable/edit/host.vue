@@ -47,44 +47,26 @@
                 </bk-button>
             </div>
             <ip-selector
-                :origianl-value="originalHostNodeInfo"
+                :original-value="originalHostNodeInfo"
                 :show-dialog="isShowChooseIp"
                 show-view
                 :value="hostNodeInfo"
                 @change="handleChange"
                 @close-dialog="handleCloseIpSelector" />
-            <!-- <server-panel
-                v-show="isNotEmpty"
-                ref="choostIP"
-                class="host-value-panel"
-                :host-node-info="hostNodeInfo"
-                detail-fullscreen
-                :editable="!readonly"
-                @on-change="handleChange" /> -->
             <p
                 v-if="isError"
                 class="variable-error">
                 {{ $t('该变量的值必填') }}
             </p>
         </div>
-        <!-- <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="hostNodeInfo"
-            @on-change="handleChange" /> -->
     </div>
 </template>
 <script>
     import _ from 'lodash';
 
     import TaskHostNodeModel from '@model/task-host-node';
-    // import ChooseIp from '@components/choose-ip';
-    // import ServerPanel from '@components/choose-ip/server-panel';
 
     export default {
-        // components: {
-        //     ChooseIp,
-        //     ServerPanel,
-        // },
         props: {
             data: {
                 type: Object,

@@ -233,6 +233,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
 
     private ScriptTaskResult pullGseTaskResult(List<String> agentIds) {
         GetExecuteScriptResultRequest request = new GetExecuteScriptResultRequest();
+        request.setGseV2Task(gseV2Task);
         request.setTaskId(gseTask.getGseTaskId());
         agentIds.forEach(agentId -> {
             LogPullProgress progress = logPullProgressMap.get(agentId);
@@ -340,7 +341,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                                      long currentTime) {
         HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
         if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getErrorCode()) == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(agentTask.getHost().getHostId(),
+            logs.add(logService.buildSystemScriptLog(host,
                 agentTaskResult.getErrorMsg(), agentTask.getScriptLogOffset(), currentTime));
         } else {
             String content = agentTaskResult.getScreen();
@@ -353,7 +354,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                 offset += bytes;
                 agentTask.setScriptLogOffset(offset);
             }
-            logs.add(new ServiceScriptLogDTO(host.getHostId(), offset, agentTaskResult.getScreen()));
+            logs.add(new ServiceScriptLogDTO(host, offset, agentTaskResult.getScreen()));
         }
         // 刷新日志拉取偏移量
         refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomicTaskId());
@@ -542,11 +543,11 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         for (Map.Entry<String, Map<String, String>> entry : namespaceParamValues.entrySet()) {
             HostVariableValuesDTO hostVariableValues = new HostVariableValuesDTO();
             List<VariableValueDTO> paramValues = toVariableValuesList(entry.getValue());
-            AgentTaskDTO agentTask = targetAgentTasks.get(entry.getKey());
-            hostVariableValues.setHostId(agentTask.getHostId());
-            hostVariableValues.setAgentId(entry.getKey());
+            HostDTO host = agentIdHostMap.get(entry.getKey());
+            hostVariableValues.setHostId(host.getHostId());
+            hostVariableValues.setCloudIpv4(host.toCloudIp());
+            hostVariableValues.setCloudIpv6(host.toCloudIpv6());
             hostVariableValues.setValues(paramValues);
-            hostVariableValues.setIp(agentTask.getCloudIp());
             hostVariableValuesList.add(hostVariableValues);
         }
         return hostVariableValuesList;
@@ -641,8 +642,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         if (StringUtils.isNotEmpty(errorMsg)) {
             List<ServiceScriptLogDTO> scriptLogs = unfinishedAgentIds.stream().map(agentId -> {
                 AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
-                return logService.buildSystemScriptLog(agentTask.getHost().getHostId(), errorMsg,
-                    agentTask.getScriptLogOffset(), endTime);
+                HostDTO host = agentIdHostMap.get(agentId);
+                return logService.buildSystemScriptLog(host, errorMsg, agentTask.getScriptLogOffset(), endTime);
             }).collect(Collectors.toList());
             logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), scriptLogs);

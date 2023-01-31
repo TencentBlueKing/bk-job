@@ -103,10 +103,10 @@
                 if (this.list.length < 1) {
                     return '';
                 }
-                return marked(this.list[this.activeIndex].content);
+                return marked.parse(this.list[this.activeIndex].content);
             },
         },
-        
+
         created () {
             this.fetchData();
             // 对比版本号，每次版本更新自动显示版本日志
@@ -446,10 +446,10 @@
                 white-space: normal;
 
                 &::before {
-                    display: inline-block;
+                    float: left;
                     width: 6px;
                     height: 6px;
-                    margin-right: 9px;
+                    margin-top: calc(0.9em - 5px);
                     margin-left: -15px;
                     background: #000;
                     border-radius: 50%;

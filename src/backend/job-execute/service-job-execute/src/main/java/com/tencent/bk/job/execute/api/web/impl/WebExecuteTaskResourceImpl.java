@@ -487,7 +487,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return stepInstance;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容IP，发布完成之后使用hostId，不再使用IP", version = "3.6.x")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容IP，发布完成之后使用hostId，不再使用IP", deprecatedVersion = "3.6.x")
     private ServersDTO convertToServersDTO(ExecuteTargetVO target) {
         if (target == null || target.getHostNodeInfo() == null) {
             return null;

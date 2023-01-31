@@ -38,7 +38,7 @@ public enum Bool {
             return FALSE;
         }
         for (Bool boolEnum : values()) {
-            if (boolEnum.getValue() == value) {
+            if (boolEnum.byteValue() == value) {
                 return boolEnum;
             }
         }
@@ -53,10 +53,14 @@ public enum Bool {
         if (value == null) {
             return false;
         }
-        return value.equals(Bool.TRUE.getValue());
+        return value.equals(Bool.TRUE.byteValue());
     }
 
-    public byte getValue() {
+    public byte byteValue() {
+        return this.value;
+    }
+
+    public int intValue() {
         return this.value;
     }
 }

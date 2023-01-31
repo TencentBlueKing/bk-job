@@ -247,7 +247,7 @@ export default {
         变量: 'Variable',
         '变量被删除，请重新设置': 'Variable has been deleted, try to reset another one.',
         去设置: 'Go To',
-        '还差一步「 设置执行方案」，即可执行作业': 'One step away from "Set Job Plan" to complete Job configuration.',
+        '还差一步「 设置执行方案」，即可执行作业': 'You can run the Job after completing "Set Job Plan"',
         设置方案: 'Set Job Plan',
         返回作业列表: 'Back To List',
         作业创建成功: 'Successful',

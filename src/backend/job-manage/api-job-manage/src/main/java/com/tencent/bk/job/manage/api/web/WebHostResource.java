@@ -77,7 +77,7 @@ import java.util.List;
 public interface WebHostResource {
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取业务下的机器列表", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/host"})
     Response<PageData<HostInfoVO>> listAppHost(
@@ -108,7 +108,7 @@ public interface WebHostResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取业务拓扑列表", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology"})
     Response<CcTopologyNodeVO> listAppTopologyTree(
@@ -127,7 +127,7 @@ public interface WebHostResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取业务拓扑主机列表", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology/host"})
     Response<CcTopologyNodeVO> listAppTopologyHostTree(
@@ -146,7 +146,7 @@ public interface WebHostResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取业务拓扑树（含各节点主机数）", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostCount"})
     Response<CcTopologyNodeVO> listAppTopologyHostCountTree(
@@ -166,7 +166,7 @@ public interface WebHostResource {
 
     @Deprecated
     @CompatibleImplementation(
-        explain = "仅用作IPv6上线发布过程中的兼容，后续切换为listHostIdByBizTopologyNodes", version = "3.7.0")
+        explain = "仅用作IPv6上线发布过程中的兼容，后续切换为listHostIdByBizTopologyNodes", deprecatedVersion = "3.7.0")
     @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]"
         , produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/IPs/nodes"})
@@ -189,7 +189,7 @@ public interface WebHostResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取节点详情", produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/detail"})
     Response<List<BizTopoNode>> getNodeDetail(
@@ -211,7 +211,7 @@ public interface WebHostResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "根据模块获取机器列表", produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/node"})
     Response<List<NodeInfoVO>> listHostByNode(
@@ -233,7 +233,7 @@ public interface WebHostResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取业务动态分组主机列表")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}"})
     Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(
@@ -255,7 +255,7 @@ public interface WebHostResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取业务动态分组信息(不含主机)")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}/detailWithoutHosts"})
     Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(
@@ -277,7 +277,7 @@ public interface WebHostResource {
     );
 
     @Deprecated
-    @CompatibleImplementation(name = "ipv6", version = "3.8.0", explain = "仅用于发布期间兼容")
+    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
     @ApiOperation(value = "获取节点拓扑路径", produces = "application/json")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/queryPath"})
     Response<List<List<CcTopologyNodeVO>>> queryNodePath(
@@ -507,7 +507,7 @@ public interface WebHostResource {
     );
 
     // 标准接口9
-    @CompatibleImplementation(explain = "旧的/ip/check仅用于发布过程兼容", version = "3.7.0")
+    @CompatibleImplementation(explain = "旧的/ip/check仅用于发布过程兼容", deprecatedVersion = "3.7.0")
     @ApiOperation(value = "根据用户选择/输入的主机信息获取真实存在的机器信息")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/ip/check", "/scope/{scopeType}/{scopeId}/host/check"})
     Response<List<HostInfoVO>> checkHosts(

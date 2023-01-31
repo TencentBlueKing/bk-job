@@ -48,47 +48,47 @@ public class ExecuteServersVO {
     @ApiModelProperty("静态 IP 列表")
     @JsonProperty("hostList")
     private List<ExecuteHostVO> hostList;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     @JsonProperty("ipList")
     private List<ExecuteHostVO> ipList;
 
     @ApiModelProperty("拓扑节点")
     @JsonProperty("nodeList")
     private List<ExecuteTopoNodeVO> nodeList;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     @JsonProperty("topoNodeList")
     private List<ExecuteTopoNodeVO> topoNodeList;
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本修改为具体类型", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本修改为具体类型", deprecatedVersion = "3.8.0")
     @ApiModelProperty("动态分组 ID")
     @JsonProperty("dynamicGroupList")
     private List<Object> dynamicGroupList;
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setIpList(List<ExecuteHostVO> ipList) {
         this.ipList = ipList;
         this.hostList = ipList;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setHostList(List<ExecuteHostVO> hostList) {
         this.hostList = hostList;
         this.ipList = hostList;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setNodeList(List<ExecuteTopoNodeVO> nodeList) {
         this.nodeList = nodeList;
         this.topoNodeList = nodeList;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     public void setTopoNodeList(List<ExecuteTopoNodeVO> topoNodeList) {
         this.topoNodeList = topoNodeList;
         this.nodeList = topoNodeList;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", version = "3.8.0")
+    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", deprecatedVersion = "3.8.0")
     @JsonIgnore
     public List<String> getDynamicGroupIdList() {
         if (CollectionUtils.isEmpty(dynamicGroupList)) {
