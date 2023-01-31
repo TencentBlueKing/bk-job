@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
@@ -89,6 +90,10 @@ public class SyncServiceImpl implements SyncService {
         });
     }
 
+    /**
+     * 日志调用链tracer
+     */
+    private final Tracer tracer;
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
@@ -120,7 +125,8 @@ public class SyncServiceImpl implements SyncService {
     private final BizSetRelationEventWatcher bizSetRelationEventWatcher;
 
     @Autowired
-    public SyncServiceImpl(BizSyncService bizSyncService,
+    public SyncServiceImpl(Tracer tracer,
+                           BizSyncService bizSyncService,
                            BizSetSyncService bizSetSyncService,
                            HostSyncService hostSyncService,
                            AgentStatusSyncService agentStatusSyncService,
@@ -138,6 +144,7 @@ public class SyncServiceImpl implements SyncService {
                            @Qualifier("syncAppExecutor") ThreadPoolExecutor syncAppExecutor,
                            @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
                            @Qualifier("syncAgentStatusExecutor") ThreadPoolExecutor syncAgentStatusExecutor) {
+        this.tracer = tracer;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
@@ -198,6 +205,7 @@ public class SyncServiceImpl implements SyncService {
     private void watchHostEvent() {
         // 开一个常驻线程监听主机资源变动事件
         hostWatchThread = new HostWatchThread(
+            tracer,
             applicationService,
             applicationHostDAO,
             queryAgentStatusClient,
@@ -209,6 +217,7 @@ public class SyncServiceImpl implements SyncService {
 
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationWatchThread = new HostRelationWatchThread(
+            tracer,
             applicationService,
             applicationHostDAO,
             hostTopoDAO,

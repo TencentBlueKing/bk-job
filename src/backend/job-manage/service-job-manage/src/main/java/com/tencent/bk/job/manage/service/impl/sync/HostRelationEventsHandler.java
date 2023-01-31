@@ -37,7 +37,7 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
-import org.springframework.cloud.sleuth.annotation.NewSpan;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
 import java.util.concurrent.BlockingQueue;
@@ -50,22 +50,27 @@ public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDe
     private final HostTopoDAO hostTopoDAO;
     private final HostCache hostCache;
 
-    public HostRelationEventsHandler(BlockingQueue<ResourceEvent<HostRelationEventDetail>> queue,
+    public HostRelationEventsHandler(Tracer tracer,
+                                     BlockingQueue<ResourceEvent<HostRelationEventDetail>> queue,
                                      ApplicationService applicationService,
                                      ApplicationHostDAO applicationHostDAO,
                                      HostTopoDAO hostTopoDAO,
                                      HostCache hostCache) {
-        super(queue);
+        super(queue, tracer);
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
     }
 
-    @NewSpan("handleHostRelationEvent")
     @Override
     void handleEvent(ResourceEvent<HostRelationEventDetail> event) {
         handleOneEvent(event);
+    }
+
+    @Override
+    String getSpanName() {
+        return "handleHostRelationEvent";
     }
 
     private void handleOneEvent(ResourceEvent<HostRelationEventDetail> event) {

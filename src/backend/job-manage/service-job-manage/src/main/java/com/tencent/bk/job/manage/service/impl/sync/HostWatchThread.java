@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
+import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -42,7 +43,8 @@ import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cloud.sleuth.annotation.NewSpan;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StopWatch;
 
@@ -69,6 +71,10 @@ public class HostWatchThread extends Thread {
         }
     }
 
+    /**
+     * 日志调用链tracer
+     */
+    private final Tracer tracer;
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final QueryAgentStatusClient queryAgentStatusClient;
@@ -81,12 +87,14 @@ public class HostWatchThread extends Thread {
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private String cursor = null;
 
-    public HostWatchThread(ApplicationService applicationService,
+    public HostWatchThread(Tracer tracer,
+                           ApplicationService applicationService,
                            ApplicationHostDAO applicationHostDAO,
                            QueryAgentStatusClient queryAgentStatusClient,
                            RedisTemplate<String, String> redisTemplate,
                            HostCache hostCache,
                            int eventsHandlerNum) {
+        this.tracer = tracer;
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
@@ -116,6 +124,7 @@ public class HostWatchThread extends Thread {
 
     private HostEventsHandler buildHostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue) {
         return new HostEventsHandler(
+            tracer,
             hostEventQueue,
             applicationService,
             applicationHostDAO,
@@ -184,7 +193,8 @@ public class HostWatchThread extends Thread {
         while (true) {
             // 从10分钟前开始watch
             long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-            try {
+            Span span = SpanUtil.buildNewSpan(this.tracer, "hostWatchOuterLoop");
+            try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 if (!getRedisLockOrWait100ms()) {
                     continue;
                 }
@@ -213,7 +223,9 @@ public class HostWatchThread extends Thread {
                 }
             } catch (Throwable t) {
                 log.error("HostWatchThread quit unexpectedly", t);
+                span.error(t);
             } finally {
+                span.end();
                 waitUtilHostWatchFlagSet();
             }
         }
@@ -245,14 +257,18 @@ public class HostWatchThread extends Thread {
 
     private void watchInLoop(long startTime) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-        while (hostWatchFlag.get()) {
-            watchHostEvents(startTime, bizCmdbClient);
-            // 1s/watch一次
-            ThreadUtils.sleep(1000);
+        Span span = SpanUtil.buildNewSpan(this.tracer, "watchHostEvents");
+        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+            while (hostWatchFlag.get()) {
+                watchHostEvents(startTime, bizCmdbClient);
+                // 1s/watch一次
+                ThreadUtils.sleep(1000);
+            }
+        } finally {
+            span.end();
         }
     }
 
-    @NewSpan("watchHostEvents")
     private void watchHostEvents(long startTime, IBizCmdbClient bizCmdbClient) {
         ResourceWatchResult<HostEventDetail> hostWatchResult;
         if (cursor == null) {

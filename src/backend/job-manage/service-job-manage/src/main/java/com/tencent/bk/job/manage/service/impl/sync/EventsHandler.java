@@ -25,19 +25,27 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
 public abstract class EventsHandler<T> extends Thread {
 
+    /**
+     * 日志调用链tracer
+     */
+    private final Tracer tracer;
     protected boolean enabled = true;
     BlockingQueue<ResourceEvent<T>> queue;
     Long bizId = null;
 
-    public EventsHandler(BlockingQueue<ResourceEvent<T>> queue) {
+    public EventsHandler(BlockingQueue<ResourceEvent<T>> queue, Tracer tracer) {
         this.queue = queue;
+        this.tracer = tracer;
     }
 
     public Long getBizId() {
@@ -59,13 +67,31 @@ public abstract class EventsHandler<T> extends Thread {
 
     abstract void handleEvent(ResourceEvent<T> event);
 
+    abstract String getSpanName();
+
+    void handleEventWithTrace(ResourceEvent<T> event) {
+        Span span = buildSpan();
+        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+            handleEvent(event);
+        } catch (Exception e) {
+            span.error(e);
+            throw e;
+        } finally {
+            span.end();
+        }
+    }
+
+    private Span buildSpan() {
+        return SpanUtil.buildNewSpan(this.tracer, getSpanName());
+    }
+
     @Override
     public void run() {
         while (enabled) {
             ResourceEvent<T> event = null;
             try {
                 event = queue.take();
-                handleEvent(event);
+                handleEventWithTrace(event);
             } catch (InterruptedException e) {
                 log.warn("queue.take interrupted", e);
             } catch (Throwable t) {

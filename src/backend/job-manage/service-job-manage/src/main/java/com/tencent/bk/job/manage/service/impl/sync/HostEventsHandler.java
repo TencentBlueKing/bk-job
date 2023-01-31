@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
-import org.springframework.cloud.sleuth.annotation.NewSpan;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -51,22 +51,27 @@ public class HostEventsHandler extends EventsHandler<HostEventDetail> {
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final HostCache hostCache;
 
-    HostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> queue,
+    HostEventsHandler(Tracer tracer,
+                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,
                       ApplicationService applicationService,
                       ApplicationHostDAO applicationHostDAO,
                       QueryAgentStatusClient queryAgentStatusClient,
                       HostCache hostCache) {
-        super(queue);
+        super(queue, tracer);
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
         this.queryAgentStatusClient = queryAgentStatusClient;
         this.hostCache = hostCache;
     }
 
-    @NewSpan("handleHostEvent")
     @Override
     void handleEvent(ResourceEvent<HostEventDetail> event) {
         handleOneEventRelatedToApp(event);
+    }
+
+    @Override
+    String getSpanName() {
+        return "handleHostEvent";
     }
 
     private void handleOneEventRelatedToApp(ResourceEvent<HostEventDetail> event) {
