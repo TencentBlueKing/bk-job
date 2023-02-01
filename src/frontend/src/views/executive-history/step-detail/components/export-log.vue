@@ -27,7 +27,6 @@
 
 <template>
     <div
-        ref="download"
         v-bk-tooltips="{
             content: $t('history.分发文件步骤不支持日志导出'),
             disabled: !isFile,
@@ -36,7 +35,11 @@
         }"
         class="step-execute-log-export"
         @click="handleShow">
-        <div>{{ $t('history.导出日志') }}</div>
+        <div
+            ref="download"
+            style="padding: 0 15px;">
+            {{ $t('history.导出日志') }}
+        </div>
         <div
             v-if="isShowThumProcess"
             class="thum-precess-bar"
@@ -89,8 +92,10 @@
                 <div
                     v-if="packageStatus === 4"
                     class="package-result-tips">
-                    <!-- eslint-disable-next-line max-len -->
-                    <span>{{ $t('history.日志压缩包已准备就绪，') }}{{ $t('history.是否') }}<a @click="handleDownload">{{ $t('history.直接下载') }}</a></span>
+                    <span>
+                        <span>{{ $t('history.日志压缩包已准备就绪，') }}{{ $t('history.是否') }}</span>
+                        <a @click="handleDownload">{{ $t('history.直接下载') }}</a>
+                    </span>
                     <bk-button
                         style="margin-top: -5px; margin-left: auto;"
                         theme="primary"
@@ -322,7 +327,6 @@
     .step-execute-log-export {
         position: relative;
         height: 32px;
-        padding: 0 15px;
         margin-left: 10px;
         font-size: 14px;
         line-height: 32px;

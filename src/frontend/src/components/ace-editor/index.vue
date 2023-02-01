@@ -190,13 +190,13 @@
         SQL: 'sql',
     };
     const LOCAL_STORAGE_KEY = 'ace_editor_history';
-    
+
     const HTMLEncode = (value) => {
         const temp = document.createElement('textarea');
         temp.value = value;
         return temp.value;
     };
-    
+
     export default {
         name: 'AceEditor',
         components: {
@@ -411,6 +411,7 @@
         },
         beforeDestroy () {
             this.handleExitFullScreen();
+            this.$store.commit('setScriptCheckError', null);
         },
         mounted () {
             this.initEditor();
@@ -449,7 +450,7 @@
                         return result;
                     }, {});
                     this.defaultScriptMap = Object.assign({}, DefaultScript, customScriptMap);
-                        
+
                     // 只读或有传入值默认脚本使用prop.value
                     // 其它情况使用脚本编辑器提供的默认值
                     this.content = this.readonly || this.value
@@ -486,7 +487,7 @@
                 editor.setShowPrintMargin(false);
                 editor.$blockScrolling = Infinity;
                 editor.setReadOnly(this.readonly);
-                
+
                 editor.on('change', () => {
                     this.content = editor.getValue();
                     const content = Base64.encode(this.content);
@@ -508,12 +509,12 @@
                 });
                 // 先保存 editor 在设置 value
                 this.editor = editor;
-                
+
                 this.$once('hook:beforeDestroy', () => {
                     editor.destroy();
                     editor.container.remove();
                 });
-                
+
                 this.watchEditAction();
 
                 const $handler = document.querySelector(`#${this.selfId}`);
@@ -605,7 +606,7 @@
                 if (target.type !== 'textarea') {
                     return;
                 }
-                
+
                 if ([
                     'Escape',
                     'Meta',

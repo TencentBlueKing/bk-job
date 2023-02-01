@@ -102,7 +102,7 @@
 
     import I18n from '@/i18n';
 
-    const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN2';
+    const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN3';
     const LIST_ROW_HEIGHT = 40; // 每列高度
 
     const columnList = [
@@ -195,6 +195,7 @@
         data () {
             let allShowColumn = [
                 'ipv4',
+                'ipv6',
                 'totalTime',
                 'cloudAreaName',
                 'exitCode',
