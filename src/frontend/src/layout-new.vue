@@ -235,10 +235,6 @@
     </site-frame>
 </template>
 <script>
-    import {
-        reactive,
-        toRefs,
-    } from '@vue/composition-api';
     import QueryGlobalSettingService from '@service/query-global-setting';
     import SiteFrame from '@components/site-frame';
     import JbMenu from '@components/jb-menu';
@@ -257,10 +253,9 @@
             JbItemGroup,
             AppSelect,
         },
-        setup () {
+        data () {
             const navigationDefatulOpen = localStorage.getItem(TOGGLE_CACHE) !== null;
-
-            const state = reactive({
+            return {
                 routerGroup: 'business',
                 isFrameSideFixed: navigationDefatulOpen,
                 isSideExpand: false,
@@ -268,66 +263,6 @@
                 showSubMenu: false,
                 routerTitle: '',
                 ENABLE_FEATURE_FILE_MANAGE: false,
-            });
-            
-            const methods = {
-                /**
-                 * @desc 返回首页
-                 */
-                handleBackHome () {
-                    this.$router.push({
-                        name: 'home',
-                    });
-                },
-                /**
-                 * @desc 侧导航展开收起
-                 */
-                handleSideFixedChnage () {
-                    state.isFrameSideFixed = !state.isFrameSideFixed;
-                    if (state.isFrameSideFixed) {
-                        localStorage.setItem(TOGGLE_CACHE, state.isFrameSideFixed);
-                    } else {
-                        localStorage.removeItem(TOGGLE_CACHE);
-                    }
-                },
-                handleSideExpandChange (sideExpand) {
-                    state.isSideExpand = sideExpand;
-                },
-                handleGroupChange (group) {
-                    state.routerGroup = group;
-                },
-                /**
-                 * @desc 跳转路由
-                 * @param {String} routerName 跳转的路由名
-                 */
-                handleRouterChange (routerName) {
-                    if (this.routerName === routerName) {
-                        return;
-                    }
-                    this.routerName = routerName;
-                    this.$router.push({
-                        name: routerName,
-                    });
-                },
-            };
-            /**
-             * @desc 获取是否是admin用户
-             */
-            QueryGlobalSettingService.fetchAdminIdentity()
-                .then((isAdmin) => {
-                    state.isAdmin = isAdmin;
-                });
-            /**
-             * @desc 获取系统基本配置
-             */
-            QueryGlobalSettingService.fetchJobConfig()
-                .then((data) => {
-                    state.ENABLE_FEATURE_FILE_MANAGE = data.ENABLE_FEATURE_FILE_MANAGE;
-                });
-            
-            return {
-                ...toRefs(state),
-                ...methods,
             };
         },
         watch: {
@@ -352,6 +287,62 @@
                     }
                 },
                 immediate: true,
+            },
+        },
+        created () {
+            /**
+             * @desc 获取是否是admin用户
+             */
+            QueryGlobalSettingService.fetchAdminIdentity()
+                .then((isAdmin) => {
+                    this.isAdmin = isAdmin;
+                });
+            /**
+             * @desc 获取系统基本配置
+             */
+            QueryGlobalSettingService.fetchJobConfig()
+                .then((data) => {
+                    this.ENABLE_FEATURE_FILE_MANAGE = data.ENABLE_FEATURE_FILE_MANAGE;
+                });
+        },
+        methods: {
+            /**
+                 * @desc 返回首页
+                 */
+            handleBackHome () {
+                this.$router.push({
+                    name: 'home',
+                });
+            },
+            /**
+             * @desc 侧导航展开收起
+             */
+            handleSideFixedChnage () {
+                this.isFrameSideFixed = !this.isFrameSideFixed;
+                if (this.isFrameSideFixed) {
+                    localStorage.setItem(TOGGLE_CACHE, this.isFrameSideFixed);
+                } else {
+                    localStorage.removeItem(TOGGLE_CACHE);
+                }
+            },
+            handleSideExpandChange (sideExpand) {
+                this.isSideExpand = sideExpand;
+            },
+            handleGroupChange (group) {
+                this.routerGroup = group;
+            },
+            /**
+             * @desc 跳转路由
+             * @param {String} routerName 跳转的路由名
+             */
+            handleRouterChange (routerName) {
+                if (this.routerName === routerName) {
+                    return;
+                }
+                this.routerName = routerName;
+                this.$router.push({
+                    name: routerName,
+                });
             },
         },
     };
