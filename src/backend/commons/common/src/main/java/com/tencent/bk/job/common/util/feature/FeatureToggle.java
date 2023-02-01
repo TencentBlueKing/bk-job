@@ -27,6 +27,9 @@ package com.tencent.bk.job.common.util.feature;
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.ToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.WeightToggleStrategy;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 

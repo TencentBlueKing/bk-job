@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 import java.util.StringJoiner;
 
+/**
+ * 配置刷新监听
+ */
 @Component
 @Slf4j
 public class ConfigRefreshEventListener {
