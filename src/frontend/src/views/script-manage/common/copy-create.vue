@@ -295,21 +295,8 @@
                     return;
                 }
                 this.isSubmiting = true;
-                Promise.all([
-                    // 验证表单
-                    this.$refs.form.validate(),
-                    // 脚本高危语句检测
-                    ScriptManageService.getScriptValidation({
-                        content: this.formData.content,
-                        scriptType: this.formData.type,
-                    }).then((data) => {
-                        // 高危语句报错状态需要全局保存
-                        const dangerousContent = _.find(data, _ => _.isDangerous);
-                        this.$store.commit('setScriptCheckError', dangerousContent);
-                        return true;
-                    }),
-                ])
-                    .then(scriptErrorConfirm)
+                this.$refs.form.validate()
+                    .then(() => scriptErrorConfirm())
                     .then(() => {
                         this.scriptManageServiceHandler.scriptUpdate({
                             ...this.formData,

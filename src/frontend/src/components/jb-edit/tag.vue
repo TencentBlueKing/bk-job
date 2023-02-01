@@ -155,20 +155,20 @@
                 document.body.removeEventListener('click', this.hideEdit);
             });
         },
-        
+
         methods: {
             /**
              * @desc 触发标签修改操作
              */
             triggerRemote () {
                 this.isEditing = false;
-                
+
                 if (isEqual(this.memoValue, this.localValue)) {
                     return;
                 }
-                
+
                 this.isLoading = true;
-                
+
                 this.remoteHander({
                     [this.field]: this.localValue.map(({ id }) => ({ id })),
                 }).then(() => {
@@ -187,17 +187,16 @@
              */
             hideEdit (event) {
                 if (!this.isEditing) return;
-                if (event.path && event.path.length > 0) {
-                    // eslint-disable-next-line no-plusplus
-                    for (let i = 0; i < event.path.length; i++) {
-                        const target = event.path[i];
-                        if (/tippy-popper/.test(target.className)
-                            || /job-tag-create-dialog/.test(target.className)) {
-                            return;
-                        }
+                const eventPath = event.composedPath();
+                // eslint-disable-next-line no-plusplus
+                for (let i = 0; i < eventPath.length; i++) {
+                    const target = eventPath[i];
+                    if (/tippy-popper/.test(target.className)
+                        || /job-tag-create-dialog/.test(target.className)) {
+                        return;
                     }
                 }
-                
+
                 this.triggerRemote();
             },
             /**
