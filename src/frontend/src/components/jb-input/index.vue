@@ -26,125 +26,125 @@
 -->
 
 <template>
-    <div
-        ref="jbInput"
-        class="jb-input">
-        <bk-input
-            ref="input"
-            :value="localValue"
-            v-bind="$attrs"
-            @blur="handleBlur"
-            @input="handleInput"
-            @keyup="handleKeyup" />
-        <span
-            v-if="maxlength > 0"
-            ref="number"
-            class="values-number">
-            {{ inputLength }}/{{ maxlength }}
-        </span>
-    </div>
+  <div
+    ref="jbInput"
+    class="jb-input">
+    <bk-input
+      ref="input"
+      :value="localValue"
+      v-bind="$attrs"
+      @blur="handleBlur"
+      @input="handleInput"
+      @keyup="handleKeyup" />
+    <span
+      v-if="maxlength > 0"
+      ref="number"
+      class="values-number">
+      {{ inputLength }}/{{ maxlength }}
+    </span>
+  </div>
 </template>
 <script>
-    export default {
-        name: '',
-        model: {
-            prop: 'value',
-            event: 'input',
+  export default {
+    name: '',
+    model: {
+      prop: 'value',
+      event: 'input',
+    },
+    props: {
+      value: {
+        type: [String, Number],
+        default: '',
+      },
+      maxlength: {
+        type: Number,
+        default: 0,
+      },
+      enterTrigger: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        inputLength: 0,
+        localValue: '',
+      };
+    },
+    watch: {
+      value: {
+        handler (value) {
+          this.localValue = value;
+          this.inputLength = value.length;
         },
-        props: {
-            value: {
-                type: [String, Number],
-                default: '',
-            },
-            maxlength: {
-                type: Number,
-                default: 0,
-            },
-            enterTrigger: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        data () {
-            return {
-                inputLength: 0,
-                localValue: '',
-            };
-        },
-        watch: {
-            value: {
-                handler (value) {
-                    this.localValue = value;
-                    this.inputLength = value.length;
-                },
-                immediate: true,
-            },
-            inputLength () {
-                this.init();
-            },
-        },
-        mounted () {
-            this.timer = '';
-            this.inputHander = this.$refs.jbInput.querySelector('.bk-form-input');
-            this.init();
-        },
-        methods: {
-            init () {
-                if (!this.$refs.number || this.maxlength < 1) {
-                    return;
-                }
-                this.$nextTick(() => {
-                    const numberText = this.$refs.number.outerText;
-                    this.inputHander.style.paddingRight = `${numberText.length - 1}em`;
-                });
-            },
-            handleBlur () {
-                setTimeout(() => {
-                    this.$refs.input && this.$refs.input.setCurValue(this.localValue);
-                });
-            },
-            handleKeyup (value, event) {
-                if (event.isComposing || !this.enterTrigger) {
-                    // 跳过输入法复合事件
-                    return;
-                }
-                // 输入框的值被清空直接触发搜索
-                // enter键开始搜索
-                if ((value === '' && value !== this.value)
-                    || event.keyCode === 13) {
-                    setTimeout(() => {
-                        this.$emit('submit', this.inputHander.value);
-                    });
-                }
-            },
-            handleInput (str) {
-                let value = str.trim();
-                if (this.maxlength > 0 && value.length > this.maxlength) {
-                    value = value.slice(0, this.maxlength);
-                    this.$nextTick(() => {
-                        this.inputHander.value = value;
-                        this.$refs.input.setCurValue(value);
-                    });
-                }
-                this.inputLength = value.length;
-                this.localValue = value;
-                this.$emit('input', value);
-                this.$emit('change', value);
-            },
-        },
-    };
+        immediate: true,
+      },
+      inputLength () {
+        this.init();
+      },
+    },
+    mounted () {
+      this.timer = '';
+      this.inputHander = this.$refs.jbInput.querySelector('.bk-form-input');
+      this.init();
+    },
+    methods: {
+      init () {
+        if (!this.$refs.number || this.maxlength < 1) {
+          return;
+        }
+        this.$nextTick(() => {
+          const numberText = this.$refs.number.outerText;
+          this.inputHander.style.paddingRight = `${numberText.length - 1}em`;
+        });
+      },
+      handleBlur () {
+        setTimeout(() => {
+          this.$refs.input && this.$refs.input.setCurValue(this.localValue);
+        });
+      },
+      handleKeyup (value, event) {
+        if (event.isComposing || !this.enterTrigger) {
+          // 跳过输入法复合事件
+          return;
+        }
+        // 输入框的值被清空直接触发搜索
+        // enter键开始搜索
+        if ((value === '' && value !== this.value)
+          || event.keyCode === 13) {
+          setTimeout(() => {
+            this.$emit('submit', this.inputHander.value);
+          });
+        }
+      },
+      handleInput (str) {
+        let value = str.trim();
+        if (this.maxlength > 0 && value.length > this.maxlength) {
+          value = value.slice(0, this.maxlength);
+          this.$nextTick(() => {
+            this.inputHander.value = value;
+            this.$refs.input.setCurValue(value);
+          });
+        }
+        this.inputLength = value.length;
+        this.localValue = value;
+        this.$emit('input', value);
+        this.$emit('change', value);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
-    .jb-input {
-        position: relative;
+  .jb-input {
+    position: relative;
 
-        .values-number {
-            position: absolute;
-            top: 9px;
-            right: 9px;
-            font-size: 12px;
-            line-height: 1em;
-            color: #979ba5;
-        }
+    .values-number {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      font-size: 12px;
+      line-height: 1em;
+      color: #979ba5;
     }
+  }
 </style>

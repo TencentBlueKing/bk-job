@@ -26,123 +26,123 @@
 -->
 
 <template>
-    <div style="padding: 20px;">
-        <content-loader
-            :height="716"
-            :width="maxWidth"
-            v-bind="$attrs">
-            <rect
-                height="20"
-                rx="2"
-                width="274"
-                x="0"
-                y="0" />
-            <rect
-                height="21.5454545"
-                rx="2"
-                width="237"
-                x="329"
-                y="31.2272727" />
-            <rect
-                height="20"
-                rx="2"
-                width="60"
-                x="329"
-                y="116" />
-            <rect
-                height="20"
-                rx="2"
-                width="60"
-                x="329"
-                y="189" />
-            <rect
-                height="20"
-                rx="2"
-                width="120"
-                x="409"
-                y="466" />
-            <rect
-                height="20"
-                rx="2"
-                width="274"
-                x="0"
-                y="42" />
-            <rect
-                height="20"
-                rx="2"
-                width="274"
-                x="0"
-                y="83" />
-            <rect
-                height="20"
-                rx="2"
-                width="274"
-                x="0"
-                y="124" />
-            <rect
-                height="50"
-                rx="2"
-                width="160"
-                x="409"
-                y="100" />
-            <rect
-                height="42"
-                rx="2"
-                width="500"
-                x="409"
-                y="180" />
-            <rect
-                height="42"
-                rx="2"
-                width="500"
-                x="409"
-                y="232" />
-            <rect
-                height="42"
-                rx="2"
-                width="500"
-                x="409"
-                y="284" />
-            <rect
-                height="42"
-                rx="2"
-                width="500"
-                x="409"
-                y="336" />
-            <rect
-                height="42"
-                rx="2"
-                width="500"
-                x="409"
-                y="388" />
-            <rect
-                height="50"
-                rx="2"
-                width="160"
-                x="579"
-                y="100" />
-            <rect
-                height="50"
-                rx="2"
-                width="160"
-                x="749"
-                y="100" />
-        </content-loader>
-    </div>
+  <div style="padding: 20px;">
+    <content-loader
+      :height="716"
+      :width="maxWidth"
+      v-bind="$attrs">
+      <rect
+        height="20"
+        rx="2"
+        width="274"
+        x="0"
+        y="0" />
+      <rect
+        height="21.5454545"
+        rx="2"
+        width="237"
+        x="329"
+        y="31.2272727" />
+      <rect
+        height="20"
+        rx="2"
+        width="60"
+        x="329"
+        y="116" />
+      <rect
+        height="20"
+        rx="2"
+        width="60"
+        x="329"
+        y="189" />
+      <rect
+        height="20"
+        rx="2"
+        width="120"
+        x="409"
+        y="466" />
+      <rect
+        height="20"
+        rx="2"
+        width="274"
+        x="0"
+        y="42" />
+      <rect
+        height="20"
+        rx="2"
+        width="274"
+        x="0"
+        y="83" />
+      <rect
+        height="20"
+        rx="2"
+        width="274"
+        x="0"
+        y="124" />
+      <rect
+        height="50"
+        rx="2"
+        width="160"
+        x="409"
+        y="100" />
+      <rect
+        height="42"
+        rx="2"
+        width="500"
+        x="409"
+        y="180" />
+      <rect
+        height="42"
+        rx="2"
+        width="500"
+        x="409"
+        y="232" />
+      <rect
+        height="42"
+        rx="2"
+        width="500"
+        x="409"
+        y="284" />
+      <rect
+        height="42"
+        rx="2"
+        width="500"
+        x="409"
+        y="336" />
+      <rect
+        height="42"
+        rx="2"
+        width="500"
+        x="409"
+        y="388" />
+      <rect
+        height="50"
+        rx="2"
+        width="160"
+        x="579"
+        y="100" />
+      <rect
+        height="50"
+        rx="2"
+        width="160"
+        x="749"
+        y="100" />
+    </content-loader>
+  </div>
 </template>
 <script>
-    import {
-        ContentLoader,
-    } from 'vue-content-loader';
-    export default {
-        components: {
-            ContentLoader,
-        },
-        props: {
-            maxWidth: {
-                type: Number,
-                required: true,
-            },
-        },
-    };
+  import {
+    ContentLoader,
+  } from 'vue-content-loader';
+  export default {
+    components: {
+      ContentLoader,
+    },
+    props: {
+      maxWidth: {
+        type: Number,
+        required: true,
+      },
+    },
+  };
 </script>

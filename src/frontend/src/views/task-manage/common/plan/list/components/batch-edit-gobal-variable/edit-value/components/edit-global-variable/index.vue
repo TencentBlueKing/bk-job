@@ -26,82 +26,82 @@
 -->
 
 <template>
-    <comoponent
-        :is="com"
-        class="global-variable-batch-edit-render"
-        :data="data"
-        v-bind="$attrs"
-        v-on="$listeners" />
+  <comoponent
+    :is="com"
+    class="global-variable-batch-edit-render"
+    :data="data"
+    v-bind="$attrs"
+    v-on="$listeners" />
 </template>
 <script>
-    import GlobalVariableModel from '@model/task/global-variable';
+  import GlobalVariableModel from '@model/task/global-variable';
 
-    import HostType from './host';
-    import PasswordType from './password';
-    import TextType from './text';
+  import HostType from './host';
+  import PasswordType from './password';
+  import TextType from './text';
 
-    export default {
-        name: '',
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-        },
-        data () {
-            return {};
-        },
-        computed: {
-            com () {
-                const comMap = {
-                    [GlobalVariableModel.TYPE_STRING]: TextType,
-                    [GlobalVariableModel.TYPE_NAMESPACE]: TextType,
-                    [GlobalVariableModel.TYPE_PASSWORD]: PasswordType,
-                    [GlobalVariableModel.TYPE_RELATE_ARRAY]: TextType,
-                    [GlobalVariableModel.TYPE_INDEX_ARRAY]: TextType,
-                    [GlobalVariableModel.TYPE_HOST]: HostType,
-                };
-                return comMap[this.data.type];
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {};
+    },
+    computed: {
+      com () {
+        const comMap = {
+          [GlobalVariableModel.TYPE_STRING]: TextType,
+          [GlobalVariableModel.TYPE_NAMESPACE]: TextType,
+          [GlobalVariableModel.TYPE_PASSWORD]: PasswordType,
+          [GlobalVariableModel.TYPE_RELATE_ARRAY]: TextType,
+          [GlobalVariableModel.TYPE_INDEX_ARRAY]: TextType,
+          [GlobalVariableModel.TYPE_HOST]: HostType,
+        };
+        return comMap[this.data.type];
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
-    .global-variable-batch-edit-render {
-        margin-bottom: 20px;
+  .global-variable-batch-edit-render {
+    margin-bottom: 20px;
 
-        &:last-child {
-            margin-bottom: 0;
-        }
-
-        &:hover {
-            .remove-flag {
-                display: inline;
-            }
-        }
-
-        .name {
-            position: relative;
-            margin-bottom: 10px;
-            font-size: 14px;
-            line-height: 19px;
-            color: #63656e;
-        }
-
-        .remove-flag {
-            position: absolute;
-            top: 0;
-            left: 5px;
-            display: none;
-            padding: 0 10px;
-            font-size: 14px;
-            color: #c4c6cc;
-            cursor: pointer;
-            transform: translateX(-100%);
-
-            &:hover {
-                color: #ea3636;
-            }
-        }
+    &:last-child {
+      margin-bottom: 0;
     }
+
+    &:hover {
+      .remove-flag {
+        display: inline;
+      }
+    }
+
+    .name {
+      position: relative;
+      margin-bottom: 10px;
+      font-size: 14px;
+      line-height: 19px;
+      color: #63656e;
+    }
+
+    .remove-flag {
+      position: absolute;
+      top: 0;
+      left: 5px;
+      display: none;
+      padding: 0 10px;
+      font-size: 14px;
+      color: #c4c6cc;
+      cursor: pointer;
+      transform: translateX(-100%);
+
+      &:hover {
+        color: #ea3636;
+      }
+    }
+  }
 </style>

@@ -29,11 +29,11 @@ import DangerousRecordModel from '@model/dangerous-record';
 import dangerousRecord from '../source/dangerous-record';
 
 export default {
-    recordList (params, payload) {
-        return dangerousRecord.getDangerousRecordList(params, payload)
-            .then(({ data }) => ({
-                ...data,
-                data: (data.data || []).map(item => Object.freeze(new DangerousRecordModel(item))),
-            }));
-    },
+  recordList (params, payload) {
+    return dangerousRecord.getDangerousRecordList(params, payload)
+      .then(({ data }) => ({
+        ...data,
+        data: (data.data || []).map(item => Object.freeze(new DangerousRecordModel(item))),
+      }));
+  },
 };

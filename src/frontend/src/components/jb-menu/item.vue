@@ -26,63 +26,63 @@
 -->
 
 <template>
-    <div
-        v-test="{ type: 'navigation', value: index }"
-        :class="classes"
-        @click="handleClick">
-        <slot />
-    </div>
+  <div
+    v-test="{ type: 'navigation', value: index }"
+    :class="classes"
+    @click="handleClick">
+    <slot />
+  </div>
 </template>
 <script>
-    import { leaveConfirm } from '@utils/assist';
+  import { leaveConfirm } from '@utils/assist';
 
-    export default {
-        name: 'JbMenuItem',
-        inject: ['jbMenu'],
-        props: {
-            index: {
-                type: String,
-                required: true,
-            },
+  export default {
+    name: 'JbMenuItem',
+    inject: ['jbMenu'],
+    props: {
+      index: {
+        type: String,
+        required: true,
+      },
+    },
+    data () {
+      return {};
+    },
+    computed: {
+      active () {
+        return this.index === this.jbMenu.activeIndex;
+      },
+      classes () {
+        return {
+          'jb-menu-item': true,
+          active: this.index === this.jbMenu.activeIndex,
+          flod: this.jbMenu.flod,
+        };
+      },
+    },
+    watch: {
+      $route: {
+        handler  (route) {
+          route.matched.forEach((currentMatch) => {
+            if (currentMatch.name === this.index) {
+              this.jbMenu.activeIndex = this.index;
+            }
+          });
         },
-        data () {
-            return {};
-        },
-        computed: {
-            active () {
-                return this.index === this.jbMenu.activeIndex;
-            },
-            classes () {
-                return {
-                    'jb-menu-item': true,
-                    active: this.index === this.jbMenu.activeIndex,
-                    flod: this.jbMenu.flod,
-                };
-            },
-        },
-        watch: {
-            $route: {
-                handler  (route) {
-                    route.matched.forEach((currentMatch) => {
-                        if (currentMatch.name === this.index) {
-                            this.jbMenu.activeIndex = this.index;
-                        }
-                    });
-                },
-                immediate: true,
-            },
-        },
-        mounted () {
-            this.jbMenu.addItem(this);
-        },
-        methods: {
-            handleClick () {
-                leaveConfirm()
-                    .then(() => {
-                        this.jbMenu.$emit('item-click', this);
-                        this.$emit('click', this);
-                    });
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    mounted () {
+      this.jbMenu.addItem(this);
+    },
+    methods: {
+      handleClick () {
+        leaveConfirm()
+          .then(() => {
+            this.jbMenu.$emit('item-click', this);
+            this.$emit('click', this);
+          });
+      },
+    },
+  };
 </script>

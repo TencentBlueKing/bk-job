@@ -26,54 +26,54 @@
 -->
 
 <template>
-    <div>
-        <div class="name">
-            <span>{{ data.name }}</span>
-            <span
-                class="remove-flag"
-                @click="handleRemove">
-                <Icon type="reduce-fill" />
-            </span>
-        </div>
-        <bk-input
-            v-bk-tooltips="descPopover"
-            type="password"
-            :value="value"
-            @change="handleChange" />
+  <div>
+    <div class="name">
+      <span>{{ data.name }}</span>
+      <span
+        class="remove-flag"
+        @click="handleRemove">
+        <icon type="reduce-fill" />
+      </span>
     </div>
+    <bk-input
+      v-bk-tooltips="descPopover"
+      type="password"
+      :value="value"
+      @change="handleChange" />
+  </div>
 </template>
 <script>
-    export default {
-        name: '',
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-            value: {
-                type: String,
-            },
-        },
-        computed: {
-            descPopover () {
-                return {
-                    theme: 'light',
-                    extCls: 'variable-desc-tippy',
-                    trigger: 'click mouseenter',
-                    placement: 'left',
-                    hideOnClick: false,
-                    content: this.data.description,
-                    disabled: !this.data.description,
-                };
-            },
-        },
-        methods: {
-            handleRemove () {
-                this.$emit('on-remove');
-            },
-            handleChange (value) {
-                this.$emit('on-change', value);
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+      value: {
+        type: String,
+      },
+    },
+    computed: {
+      descPopover () {
+        return {
+          theme: 'light',
+          extCls: 'variable-desc-tippy',
+          trigger: 'click mouseenter',
+          placement: 'left',
+          hideOnClick: false,
+          content: this.data.description,
+          disabled: !this.data.description,
+        };
+      },
+    },
+    methods: {
+      handleRemove () {
+        this.$emit('on-remove');
+      },
+      handleChange (value) {
+        this.$emit('on-change', value);
+      },
+    },
+  };
 </script>

@@ -26,73 +26,73 @@
 -->
 
 <template>
-    <div v-if="isShowNotify">
-        <jb-form-item>
-            <bk-checkbox v-model="isFinishBeforeNotify">
-                {{ $t('cron.结束前通知') }}
-            </bk-checkbox>
-        </jb-form-item>
-        <render-info-detail
-            v-if="isFinishBeforeNotify"
-            class="notify-wraper"
-            left="55">
-            <execute-notify
-                v-bind="$attrs"
-                :form-data="formData"
-                :notify-offset-label="$t('cron.结束前')"
-                v-on="$listeners" />
-        </render-info-detail>
-    </div>
+  <div v-if="isShowNotify">
+    <jb-form-item>
+      <bk-checkbox v-model="isFinishBeforeNotify">
+        {{ $t('cron.结束前通知') }}
+      </bk-checkbox>
+    </jb-form-item>
+    <render-info-detail
+      v-if="isFinishBeforeNotify"
+      class="notify-wraper"
+      left="55">
+      <execute-notify
+        v-bind="$attrs"
+        :form-data="formData"
+        :notify-offset-label="$t('cron.结束前')"
+        v-on="$listeners" />
+    </render-info-detail>
+  </div>
 </template>
 <script>
-    import RenderInfoDetail from '../../render-info-detail';
-    import ExecuteNotify from '../execute-notify';
+  import RenderInfoDetail from '../../render-info-detail';
+  import ExecuteNotify from '../execute-notify';
 
-    export default {
-        name: '',
-        components: {
-            RenderInfoDetail,
-            ExecuteNotify,
+  export default {
+    name: '',
+    components: {
+      RenderInfoDetail,
+      ExecuteNotify,
+    },
+    props: {
+      formData: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isFinishBeforeNotify: false,
+      };
+    },
+    computed: {
+      isShowNotify () {
+        if (!this.formData.endTime) {
+          return false;
+        }
+        if (this.isFinishBeforeNotify) {
+          return true;
+        }
+        return true;
+      },
+    },
+    watch: {
+      formData: {
+        handler (formData) {
+          if (this.formData.notifyOffset
+            || this.formData.notifyChannel.length > 0
+            || this.formData.notifyUser.roleList.length > 0
+            || this.formData.notifyUser.userList.length > 0) {
+            this.isFinishBeforeNotify = true;
+          }
         },
-        props: {
-            formData: {
-                type: Object,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isFinishBeforeNotify: false,
-            };
-        },
-        computed: {
-            isShowNotify () {
-                if (!this.formData.endTime) {
-                    return false;
-                }
-                if (this.isFinishBeforeNotify) {
-                    return true;
-                }
-                return true;
-            },
-        },
-        watch: {
-            formData: {
-                handler (formData) {
-                    if (this.formData.notifyOffset
-                        || this.formData.notifyChannel.length > 0
-                        || this.formData.notifyUser.roleList.length > 0
-                        || this.formData.notifyUser.userList.length > 0) {
-                        this.isFinishBeforeNotify = true;
-                    }
-                },
-                immediate: true,
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+  };
 </script>
 <style lang="postcss">
-    .notify-wraper {
-        margin-top: -20px !important;
-    }
+  .notify-wraper {
+    margin-top: -20px !important;
+  }
 </style>

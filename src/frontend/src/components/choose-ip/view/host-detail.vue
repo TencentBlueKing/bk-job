@@ -26,107 +26,107 @@
 -->
 
 <template>
-    <div
-        ref="hostDetail"
-        class="choose-ip-host-detail">
-        <sideslider-box
-            :value="show"
-            @change="handleClose">
-            <div slot="title">
-                {{ data.name }}
-            </div>
-            <div slot="desc">
-                <statistics-text
-                    slot="desc"
-                    :data="data" />
-                <action-extend
-                    copyable
-                    :list="list" />
-            </div>
-            <host-table :list="list" />
-        </sideslider-box>
-    </div>
+  <div
+    ref="hostDetail"
+    class="choose-ip-host-detail">
+    <sideslider-box
+      :value="show"
+      @change="handleClose">
+      <div slot="title">
+        {{ data.name }}
+      </div>
+      <div slot="desc">
+        <statistics-text
+          slot="desc"
+          :data="data" />
+        <action-extend
+          copyable
+          :list="list" />
+      </div>
+      <host-table :list="list" />
+    </sideslider-box>
+  </div>
 </template>
 <script>
-    import ActionExtend from '../components/action-extend';
-    import HostTable from '../components/host-table';
-    import SidesliderBox from '../components/sideslider-box';
-    import StatisticsText from '../components/statistics-text';
-    import {
-        sortHost,
-    } from '../components/utils';
+  import ActionExtend from '../components/action-extend';
+  import HostTable from '../components/host-table';
+  import SidesliderBox from '../components/sideslider-box';
+  import StatisticsText from '../components/statistics-text';
+  import {
+    sortHost,
+  } from '../components/utils';
 
-    export default {
-        name: 'HostDetail',
-        components: {
-            ActionExtend,
-            SidesliderBox,
-            StatisticsText,
-            HostTable,
+  export default {
+    name: 'HostDetail',
+    components: {
+      ActionExtend,
+      SidesliderBox,
+      StatisticsText,
+      HostTable,
+    },
+    model: {
+      prop: 'show',
+      event: 'input',
+    },
+    props: {
+      append: {
+        type: Function,
+        required: true,
+      },
+      show: {
+        type: Boolean,
+        default: false,
+      },
+      data: {
+        type: Object,
+        default: () => ({
+          host: [],
+        }),
+      },
+    },
+    data () {
+      return {
+        list: [],
+      };
+    },
+    watch: {
+      data: {
+        handler (data) {
+          if (!data.host) {
+            this.list = [];
+            return;
+          }
+          this.list = Object.freeze(sortHost(data.host));
         },
-        model: {
-            prop: 'show',
-            event: 'input',
-        },
-        props: {
-            append: {
-                type: Function,
-                required: true,
-            },
-            show: {
-                type: Boolean,
-                default: false,
-            },
-            data: {
-                type: Object,
-                default: () => ({
-                    host: [],
-                }),
-            },
-        },
-        data () {
-            return {
-                list: [],
-            };
-        },
-        watch: {
-            data: {
-                handler (data) {
-                    if (!data.host) {
-                        this.list = [];
-                        return;
-                    }
-                    this.list = Object.freeze(sortHost(data.host));
-                },
-                immediate: true,
-            },
-        },
-        mounted () {
-            this.append().appendChild(this.$refs.hostDetail);
-            this.$once('hook:beforeDestroy', () => {
-                const $target = this.append();
-                if (this.append()) {
-                    $target.removeChild(this.$refs.hostDetail);
-                }
-            });
-        },
-        methods: {
-            handleClose () {
-                this.currentPage = 1;
-                this.$emit('input', false);
-                this.$emit('change', false);
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    mounted () {
+      this.append().appendChild(this.$refs.hostDetail);
+      this.$once('hook:beforeDestroy', () => {
+        const $target = this.append();
+        if (this.append()) {
+          $target.removeChild(this.$refs.hostDetail);
+        }
+      });
+    },
+    methods: {
+      handleClose () {
+        this.currentPage = 1;
+        this.$emit('input', false);
+        this.$emit('change', false);
+      },
+    },
+  };
 </script>
 <style lang="postcss">
-    .choose-ip-host-detail {
-        .choose-ip-host-table {
-            tr {
-                td {
-                    border-bottom: 1px solid #e7e8ed !important;
-                }
-            }
+  .choose-ip-host-detail {
+    .choose-ip-host-table {
+      tr {
+        td {
+          border-bottom: 1px solid #e7e8ed !important;
         }
+      }
     }
+  }
 </style>

@@ -24,9 +24,9 @@
 */
 
 export default class HostNodeInfo {
-    constructor (payload = {}) {
-        this.hostList = payload.hostList || [];
-        this.nodeList = payload.nodeList || [];
-        this.dynamicGroupList = payload.dynamicGroupList || [];
-    }
+  constructor (payload = {}) {
+    this.hostList = payload.hostList || [];
+    this.nodeList = payload.nodeList || [];
+    this.dynamicGroupList = payload.dynamicGroupList || [];
+  }
 }
