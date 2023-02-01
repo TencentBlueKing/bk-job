@@ -90,7 +90,7 @@
     "postcss-loader": "^7.0.1",
     "postcss-mixins": "^9.0.2",
     "postcss-nested": "6.0.0",
-    "postcss-preset-env": "8.0.1",
+    "postcss-preset-env": "7.8.3",
     "postcss-property-lookup": "^3.0.0",
     "postcss-syntax": "^0.36.2",
     "postcss-url": "^10.1.3",
