@@ -101,6 +101,8 @@ public class MetricsConstants {
     public static final String TAG_VALUE_SEND_STATUS_SUCCESS = "success";
     // 消息通知发送失败
     public static final String TAG_VALUE_SEND_STATUS_FAILED = "failed";
+    // CMDB事件类型：业务
+    public static final String TAG_VALUE_CMDB_EVENT_TYPE_BIZ = "biz";
     // CMDB事件类型：业务集
     public static final String TAG_VALUE_CMDB_EVENT_TYPE_BIZ_SET = "bizSet";
     // CMDB事件类型：业务集关系

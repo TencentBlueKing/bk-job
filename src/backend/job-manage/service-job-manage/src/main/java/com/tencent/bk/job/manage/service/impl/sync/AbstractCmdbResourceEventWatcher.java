@@ -44,6 +44,11 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
      */
     protected final String watcherResourceName;
 
+    /**
+     * 监听事件前是否已执行初始化操作
+     */
+    private boolean initedBeforeWatch = false;
+
     public AbstractCmdbResourceEventWatcher(String watcherResourceName,
                                             RedisTemplate<String, String> redisTemplate,
                                             Tracer tracer,
@@ -73,6 +78,9 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
 
                 // 获取任务锁之后通过心跳线程维持锁的占有
                 redisKeyHeartBeatThread = startRedisKeyHeartBeatThread();
+
+                // 事件处理前的初始化
+                tryToInitBeforeWatch();
 
                 // 监听并处理事件
                 watchAndHandleEvent();
@@ -199,6 +207,20 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
             log.warn("Fail to recordEvents", t);
         }
     }
+
+    private void tryToInitBeforeWatch() {
+        if (!initedBeforeWatch) {
+            initBeforeWatch();
+            initedBeforeWatch = true;
+        }
+    }
+
+    /**
+     * 线程启动后的初始化操作
+     */
+    protected void initBeforeWatch() {
+    }
+
 
     /**
      * 事件监听开关

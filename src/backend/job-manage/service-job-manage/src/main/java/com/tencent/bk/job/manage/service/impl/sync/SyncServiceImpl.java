@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -34,18 +33,13 @@ import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
-import com.tencent.bk.job.manage.manager.host.HostCache;
-import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
@@ -91,16 +85,8 @@ public class SyncServiceImpl implements SyncService {
         });
     }
 
-    /**
-     * 日志调用链tracer
-     */
-    private final Tracer tracer;
-    private final CmdbEventSampler cmdbEventSampler;
     private final ApplicationDAO applicationDAO;
-    private final ApplicationHostDAO applicationHostDAO;
-    private final HostTopoDAO hostTopoDAO;
     private final ApplicationService applicationService;
-    private final QueryAgentStatusClient queryAgentStatusClient;
     private final ThreadPoolExecutor syncAppExecutor;
     private final ThreadPoolExecutor syncHostExecutor;
     private final ThreadPoolExecutor syncAgentStatusExecutor;
@@ -114,46 +100,37 @@ public class SyncServiceImpl implements SyncService {
     private volatile boolean enableSyncApp;
     private volatile boolean enableSyncHost;
     private volatile boolean enableSyncAgentStatus;
-    private BizWatchThread bizWatchThread = null;
-    private HostWatchThread hostWatchThread = null;
-    private HostRelationWatchThread hostRelationWatchThread = null;
+    private final BizEventWatcher bizEventWatcher;
+    private final HostEventWatcher hostEventWatcher;
+    private final HostRelationEventWatcher hostRelationEventWatcher;
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
     private final HostSyncService hostSyncService;
     private final AgentStatusSyncService agentStatusSyncService;
-    private final HostCache hostCache;
     private final BizSetEventWatcher bizSetEventWatcher;
     private final BizSetRelationEventWatcher bizSetRelationEventWatcher;
 
     @Autowired
-    public SyncServiceImpl(Tracer tracer,
-                           CmdbEventSampler cmdbEventSampler,
-                           BizSyncService bizSyncService,
+    public SyncServiceImpl(BizSyncService bizSyncService,
                            BizSetSyncService bizSetSyncService,
                            HostSyncService hostSyncService,
                            AgentStatusSyncService agentStatusSyncService,
                            ApplicationDAO applicationDAO,
-                           ApplicationHostDAO applicationHostDAO,
-                           HostTopoDAO hostTopoDAO,
                            ApplicationService applicationService,
-                           QueryAgentStatusClient queryAgentStatusClient,
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           HostCache hostCache,
+                           BizEventWatcher bizEventWatcher,
                            BizSetEventWatcher bizSetEventWatcher,
                            BizSetRelationEventWatcher bizSetRelationEventWatcher,
+                           HostEventWatcher hostEventWatcher,
+                           HostRelationEventWatcher hostRelationEventWatcher,
                            @Qualifier("syncAppExecutor") ThreadPoolExecutor syncAppExecutor,
                            @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
                            @Qualifier("syncAgentStatusExecutor") ThreadPoolExecutor syncAgentStatusExecutor) {
-        this.tracer = tracer;
-        this.cmdbEventSampler = cmdbEventSampler;
         this.applicationDAO = applicationDAO;
-        this.applicationHostDAO = applicationHostDAO;
-        this.hostTopoDAO = hostTopoDAO;
         this.applicationService = applicationService;
-        this.queryAgentStatusClient = queryAgentStatusClient;
         this.jobManageConfig = jobManageConfig;
         this.redisTemplate = redisTemplate;
         this.enableSyncApp = jobManageConfig.isEnableSyncApp();
@@ -164,9 +141,11 @@ public class SyncServiceImpl implements SyncService {
         this.bizSetSyncService = bizSetSyncService;
         this.hostSyncService = hostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
-        this.hostCache = hostCache;
+        this.bizEventWatcher = bizEventWatcher;
         this.bizSetEventWatcher = bizSetEventWatcher;
         this.bizSetRelationEventWatcher = bizSetRelationEventWatcher;
+        this.hostEventWatcher = hostEventWatcher;
+        this.hostRelationEventWatcher = hostRelationEventWatcher;
         // 同步业务的线程池配置
         this.syncAppExecutor = syncAppExecutor;
         // 同步主机的线程池配置
@@ -199,8 +178,7 @@ public class SyncServiceImpl implements SyncService {
      */
     private void watchBizEvent() {
         // 开一个常驻线程监听业务资源变动事件
-        bizWatchThread = new BizWatchThread(applicationService, redisTemplate);
-        bizWatchThread.start();
+        bizEventWatcher.start();
     }
 
     /**
@@ -208,29 +186,9 @@ public class SyncServiceImpl implements SyncService {
      */
     private void watchHostEvent() {
         // 开一个常驻线程监听主机资源变动事件
-        hostWatchThread = new HostWatchThread(
-            tracer,
-            cmdbEventSampler,
-            applicationService,
-            applicationHostDAO,
-            queryAgentStatusClient,
-            redisTemplate,
-            hostCache,
-            jobManageConfig.getHostEventHandlerNum()
-        );
-        hostWatchThread.start();
-
+        hostEventWatcher.start();
         // 开一个常驻线程监听主机关系资源变动事件
-        hostRelationWatchThread = new HostRelationWatchThread(
-            tracer,
-            cmdbEventSampler,
-            applicationService,
-            applicationHostDAO,
-            hostTopoDAO,
-            redisTemplate,
-            hostCache
-        );
-        hostRelationWatchThread.start();
+        hostRelationEventWatcher.start();
     }
 
     /**
@@ -471,48 +429,32 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public Boolean enableBizWatch() {
-        if (bizWatchThread != null) {
-            log.info("appWatch enabled by op");
-            bizWatchThread.setWatchFlag(true);
-            return true;
-        } else {
-            return false;
-        }
+        log.info("appWatch enabled by op");
+        bizEventWatcher.setWatchFlag(true);
+        return true;
     }
 
     @Override
     public Boolean disableBizWatch() {
-        if (bizWatchThread != null) {
-            log.info("appWatch disabled by op");
-            bizWatchThread.setWatchFlag(false);
-            return true;
-        } else {
-            return false;
-        }
+        log.info("appWatch disabled by op");
+        bizEventWatcher.setWatchFlag(false);
+        return true;
     }
 
     @Override
     public Boolean enableHostWatch() {
-        if (hostWatchThread != null && hostRelationWatchThread != null) {
-            log.info("hostWatch enabled by op");
-            hostWatchThread.setWatchFlag(true);
-            hostRelationWatchThread.setWatchFlag(true);
-            return true;
-        } else {
-            return false;
-        }
+        log.info("hostWatch enabled by op");
+        hostEventWatcher.setWatchFlag(true);
+        hostRelationEventWatcher.setWatchFlag(true);
+        return true;
     }
 
     @Override
     public Boolean disableHostWatch() {
-        if (hostWatchThread != null && hostRelationWatchThread != null) {
-            log.info("hostWatch disabled by op");
-            hostWatchThread.setWatchFlag(false);
-            hostRelationWatchThread.setWatchFlag(false);
-            return true;
-        } else {
-            return false;
-        }
+        log.info("hostWatch disabled by op");
+        hostEventWatcher.setWatchFlag(false);
+        hostRelationEventWatcher.setWatchFlag(false);
+        return true;
     }
 
     @Override
