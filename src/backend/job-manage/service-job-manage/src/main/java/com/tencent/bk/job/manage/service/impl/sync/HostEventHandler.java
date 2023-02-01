@@ -45,20 +45,20 @@ import org.springframework.cloud.sleuth.Tracer;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
-public class HostEventsHandler extends EventsHandler<HostEventDetail> {
+public class HostEventHandler extends EventsHandler<HostEventDetail> {
 
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final HostCache hostCache;
 
-    HostEventsHandler(Tracer tracer,
-                      CmdbEventSampler cmdbEventSampler,
-                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,
-                      ApplicationService applicationService,
-                      ApplicationHostDAO applicationHostDAO,
-                      QueryAgentStatusClient queryAgentStatusClient,
-                      HostCache hostCache) {
+    HostEventHandler(Tracer tracer,
+                     CmdbEventSampler cmdbEventSampler,
+                     BlockingQueue<ResourceEvent<HostEventDetail>> queue,
+                     ApplicationService applicationService,
+                     ApplicationHostDAO applicationHostDAO,
+                     QueryAgentStatusClient queryAgentStatusClient,
+                     HostCache hostCache) {
         super(queue, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;

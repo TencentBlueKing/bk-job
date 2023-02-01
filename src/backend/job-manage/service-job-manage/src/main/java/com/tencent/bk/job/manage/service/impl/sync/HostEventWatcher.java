@@ -67,7 +67,7 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
 
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private final int eventsHandlerNum;
-    private final List<HostEventsHandler> eventsHandlers = new ArrayList<>();
+    private final List<HostEventHandler> eventsHandlers = new ArrayList<>();
     private final List<BlockingQueue<ResourceEvent<HostEventDetail>>> hostEventQueues = new ArrayList<>();
 
     @Autowired
@@ -94,8 +94,8 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     @Override
     protected void initBeforeWatch() {
         initHostEventQueues();
-        initHostEventsHandlers();
-        for (HostEventsHandler eventsHandler : eventsHandlers) {
+        initHostEventHandlers();
+        for (HostEventHandler eventsHandler : eventsHandlers) {
             eventsHandler.start();
         }
     }
@@ -139,12 +139,12 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
         }
     }
 
-    private void initHostEventsHandlers() {
+    private void initHostEventHandlers() {
         for (int i = 0; i < eventsHandlerNum; i++) {
             BlockingQueue<ResourceEvent<HostEventDetail>> eventQueue = hostEventQueues.get(i);
-            String handlerName = "HostEventsHandler-" + i;
+            String handlerName = "HostEventHandler-" + i;
             cmdbEventSampler.registerEventQueueToGauge(eventQueue, buildHostEventHandlerTags(handlerName));
-            HostEventsHandler eventsHandler = buildHostEventsHandler(eventQueue);
+            HostEventHandler eventsHandler = buildHostEventHandler(eventQueue);
             String threadName = "[" + eventsHandler.getId() + "]-" + handlerName;
             eventsHandler.setName(threadName);
             eventsHandlers.add(eventsHandler);
@@ -158,8 +158,8 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
         );
     }
 
-    private HostEventsHandler buildHostEventsHandler(BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue) {
-        return new HostEventsHandler(
+    private HostEventHandler buildHostEventHandler(BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue) {
+        return new HostEventHandler(
             tracer,
             cmdbEventSampler,
             hostEventQueue,
@@ -170,7 +170,7 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
         );
     }
 
-    private HostEventsHandler chooseHandler(Long hostId) {
+    private HostEventHandler chooseHandler(Long hostId) {
         // 保证同一主机的多个事件被分配到同一个Handler
         int index = (int) (hostId % eventsHandlerNum);
         return eventsHandlers.get(index);
@@ -180,7 +180,7 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
         ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
         Long hostId = hostInfoDTO.getHostId();
         ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
-        HostEventsHandler eventsHandler = chooseHandler(hostId);
+        HostEventHandler eventsHandler = chooseHandler(hostId);
         eventsHandler.commitEvent(oldHostInfoDTO == null ? null : oldHostInfoDTO.getBizId(), event);
     }
 }

@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +65,8 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
     private final HostTopoDAO hostTopoDAO;
     private final HostCache hostCache;
 
-    private final HostRelationEventsHandler eventsHandler;
-    private final BlockingQueue<ResourceEvent<HostRelationEventDetail>> appHostRelationEventQueue =
+    private final HostRelationEventHandler eventsHandler;
+    private final BlockingQueue<ResourceEvent<HostRelationEventDetail>> eventQueue =
         new LinkedBlockingQueue<>(10000);
 
     private final AtomicBoolean hostRelationWatchFlag = new AtomicBoolean(true);
@@ -88,15 +89,15 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
-        this.eventsHandler = buildHostRelationEventsHandler();
-        this.eventsHandler.setName("[" + eventsHandler.getId() + "]-HostRelationEventsHandler");
+        this.eventsHandler = buildHostRelationEventHandler();
+        this.eventsHandler.setName("[" + eventsHandler.getId() + "]-HostRelationEventHandler");
     }
 
-    private HostRelationEventsHandler buildHostRelationEventsHandler() {
-        return new HostRelationEventsHandler(
+    private HostRelationEventHandler buildHostRelationEventHandler() {
+        return new HostRelationEventHandler(
             tracer,
             cmdbEventSampler,
-            appHostRelationEventQueue,
+            eventQueue,
             applicationService,
             applicationHostDAO,
             hostTopoDAO,
@@ -134,7 +135,19 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
 
     @Override
     protected void initBeforeWatch() {
+        String handlerName = "HostRelationEventHandler";
+        cmdbEventSampler.registerEventQueueToGauge(
+            eventQueue,
+            buildHostRelationEventHandlerTags(handlerName)
+        );
         eventsHandler.start();
+    }
+
+    private Iterable<Tag> buildHostRelationEventHandlerTags(String handlerName) {
+        return Tags.of(
+            MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST_RELATION,
+            MetricsConstants.TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME, handlerName
+        );
     }
 
     public void setWatchFlag(boolean value) {

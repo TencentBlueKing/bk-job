@@ -44,20 +44,20 @@ import org.springframework.util.StopWatch;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
-public class HostRelationEventsHandler extends EventsHandler<HostRelationEventDetail> {
+public class HostRelationEventHandler extends EventsHandler<HostRelationEventDetail> {
 
     private final ApplicationService applicationService;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
     private final HostCache hostCache;
 
-    public HostRelationEventsHandler(Tracer tracer,
-                                     CmdbEventSampler cmdbEventSampler,
-                                     BlockingQueue<ResourceEvent<HostRelationEventDetail>> queue,
-                                     ApplicationService applicationService,
-                                     ApplicationHostDAO applicationHostDAO,
-                                     HostTopoDAO hostTopoDAO,
-                                     HostCache hostCache) {
+    public HostRelationEventHandler(Tracer tracer,
+                                    CmdbEventSampler cmdbEventSampler,
+                                    BlockingQueue<ResourceEvent<HostRelationEventDetail>> queue,
+                                    ApplicationService applicationService,
+                                    ApplicationHostDAO applicationHostDAO,
+                                    HostTopoDAO hostTopoDAO,
+                                    HostCache hostCache) {
         super(queue, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.applicationHostDAO = applicationHostDAO;
