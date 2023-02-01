@@ -56,7 +56,7 @@ export const getScrollParent = (node) => {
     if (node === null) {
         return null;
     }
-   
+
     if (node.scrollHeight > node.clientHeight) {
         return node;
     }
@@ -86,4 +86,15 @@ export const scrollTopSmooth = function (target, destScrollTop) {
         }
     };
     step();
+};
+
+export const getParentByClass = (node, className) => {
+    let parentNode = node;
+    while (parentNode) {
+        if (parentNode.classList && parentNode.classList.contains(className)) {
+            return parentNode;
+        }
+        ({ parentNode } = parentNode);
+    }
+    return parentNode;
 };
