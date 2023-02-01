@@ -182,7 +182,7 @@
                         resolve();
                     }
                 });
-                
+
                 const allPromise = this.rules.map(rule => checkValidator(rule, this.newVal));
                 this.isValidatoring = true;
                 return Promise.all(allPromise).finally(() => {
@@ -264,16 +264,15 @@
              * @param {Object} event dom 事件
              */
             handleHideEdit (event) {
+                const eventPath = event.composedPath();
                 if (this.isValidatoring || this.error) {
                     return;
                 }
-                if (event.path && event.path.length > 0) {
-                    // eslint-disable-next-line no-plusplus
-                    for (let i = 0; i < event.path.length; i++) {
-                        const target = event.path[i];
-                        if (target.className === 'jb-edit-input') {
-                            return;
-                        }
+                // eslint-disable-next-line no-plusplus
+                for (let i = 0; i < eventPath.length; i++) {
+                    const target = eventPath[i];
+                    if (target.className === 'jb-edit-input') {
+                        return;
                     }
                 }
                 this.isEditing = false;
