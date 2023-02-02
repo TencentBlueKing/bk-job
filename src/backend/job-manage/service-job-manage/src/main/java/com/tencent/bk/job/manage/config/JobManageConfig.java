@@ -77,6 +77,9 @@ public class JobManageConfig {
     @Value("${job.manage.sync.resource.watch.enabled:true}")
     private boolean enableResourceWatch;
 
+    @Value("${job.manage.sync.hostEvent.handlerNum:3}")
+    private int hostEventHandlerNum;
+
     @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 

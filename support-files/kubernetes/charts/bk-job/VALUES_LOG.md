@@ -38,7 +38,30 @@ gse:
 bkGseApiGatewayUrl: "https://bk-gse.apigw.com/prod"
 ```
 
-   
+
+## 0.3.1-rc.7
+1.manageConfig现有配置项下增加CMDB资源同步与事件监听相关配置子项
+```shell script
+## job-manage作业管理配置
+manageConfig:
+  # CMDB资源（业务、业务集、主机等）同步与事件监听相关配置
+  sync:
+    app:
+      # 是否开启业务同步
+      enabled: true
+    host:
+      # 是否开启主机同步
+      enabled: true
+    resource:
+      watch:
+        # 是否开启业务、主机等事件监听
+        enabled: true
+    hostEvent:
+      # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
+      # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
+      handlerNum: 3
+```
+
 
 ## 0.3.0-rc.46
 
