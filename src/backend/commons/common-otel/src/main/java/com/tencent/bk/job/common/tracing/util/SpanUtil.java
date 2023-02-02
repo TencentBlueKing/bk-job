@@ -22,26 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.tracing.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 
-@Data
-public class ResourceEvent<T> {
-
-    @JsonProperty("bk_event_type")
-    private String eventType;
-
-    @JsonProperty("bk_resource")
-    private String resource;
-
-    @JsonProperty("bk_detail")
-    private T detail;
-
-    @JsonProperty("bk_cursor")
-    private String cursor;
-
-    // 事件被创建的时间，仅用于计算事件处理耗时
-    transient private long createTime = System.currentTimeMillis();
+public class SpanUtil {
+    /**
+     * 在当前线程创建新的Span
+     *
+     * @param tracer   分布式追踪器
+     * @param spanName Span名称
+     * @return Span对象
+     */
+    public static Span buildNewSpan(Tracer tracer, String spanName) {
+        return tracer.nextSpan().name(spanName);
+    }
 }

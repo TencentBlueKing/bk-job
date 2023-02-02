@@ -64,12 +64,14 @@ data:
       manage:
         sync:
           app:
-            enabled: true
+            enabled: {{ .Values.manageConfig.sync.app.enabled }}
           host:
-            enabled: true
+            enabled: {{ .Values.manageConfig.sync.host.enabled }}
           resource:
             watch:
-              enabled: true
+              enabled: {{ .Values.manageConfig.sync.resource.watch.enabled }}
+          hostEvent:
+            handlerNum: {{ .Values.manageConfig.sync.hostEvent.handlerNum }}
     notify:
       default:
         channels:
