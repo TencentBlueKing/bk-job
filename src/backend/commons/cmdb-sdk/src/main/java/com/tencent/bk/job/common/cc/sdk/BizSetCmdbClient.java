@@ -45,7 +45,7 @@ import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -102,11 +102,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
                 });
             if (!resp.getResult()) {
-                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
+                throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
             return resp.getData().getCount();
         } catch (Exception e) {
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+            throw new InternalCmdbException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
     }
 
@@ -153,11 +153,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
                 });
             if (!resp.getResult() || resp.getData() == null) {
-                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
+                throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
             return resp.getData().getBizSetList();
         } catch (Exception e) {
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+            throw new InternalCmdbException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
     }
 
@@ -183,11 +183,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {
                 });
             if (!resp.getResult()) {
-                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
+                throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
             return resp.getData().getCount();
         } catch (Exception e) {
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+            throw new InternalCmdbException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
     }
 
@@ -226,11 +226,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {
                 });
             if (!resp.getResult() || resp.getData() == null) {
-                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
+                throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
             return resp.getData().getBizList();
         } catch (Exception e) {
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+            throw new InternalCmdbException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
     }
 
@@ -266,11 +266,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
                 },
                 HttpHelperFactory.getLongRetryableHttpHelper());
             if (!resp.getResult()) {
-                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
+                throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
             return resp.getData();
         } catch (Exception e) {
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+            throw new InternalCmdbException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
     }
 
@@ -290,11 +290,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
                 },
                 HttpHelperFactory.getLongRetryableHttpHelper());
             if (!resp.getResult()) {
-                throw new InternalException(ErrorCode.CMDB_API_DATA_ERROR, null);
+                throw new InternalCmdbException(ErrorCode.CMDB_API_DATA_ERROR, null);
             }
             return resp.getData();
         } catch (Exception e) {
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+            throw new InternalCmdbException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
         }
     }
 

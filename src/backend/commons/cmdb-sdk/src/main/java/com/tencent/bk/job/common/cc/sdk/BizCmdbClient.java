@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
@@ -82,6 +83,7 @@ import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
+import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -235,8 +237,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     public InstanceTopologyDTO getCachedBizInstCompleteTopology(long bizId) {
         try {
             return bizInstCompleteTopologyCache.get(bizId);
-        } catch (ExecutionException e) {
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+        } catch (ExecutionException | UncheckedExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else {
+                throw new InternalException(e, ErrorCode.INTERNAL_ERROR, null);
+            }
         }
     }
 
@@ -340,7 +347,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
             status = "error";
-            throw new InternalException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
+            throw new InternalCmdbException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
@@ -730,7 +737,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             SearchAppResult data = esbResp.getData();
             if (data == null) {
                 appList.clear();
-                throw new InternalException("Data is null", ErrorCode.CMDB_API_DATA_ERROR);
+                throw new InternalCmdbException("Data is null", ErrorCode.CMDB_API_DATA_ERROR);
             }
             List<BusinessInfoDTO> businessInfos = data.getInfo();
             if (businessInfos != null && !businessInfos.isEmpty()) {
@@ -770,11 +777,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             });
         SearchAppResult data = esbResp.getData();
         if (data == null) {
-            throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
+            throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
         List<BusinessInfoDTO> businessInfos = data.getInfo();
         if (businessInfos == null || businessInfos.isEmpty()) {
-            throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
+            throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
         return convertToAppInfo(businessInfos.get(0));
     }

@@ -30,7 +30,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InternalCmsiException;
+import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.model.error.ErrorType;
@@ -115,7 +116,7 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         } catch (Exception e) {
             String errorMsg = "Get " + API_GET_USER_LIST + " error";
             log.error(errorMsg, e);
-            throw new InternalException(errorMsg, e, ErrorCode.USER_MANAGE_API_ACCESS_ERROR);
+            throw new InternalUserManageException(errorMsg, e, ErrorCode.USER_MANAGE_API_ACCESS_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
@@ -166,6 +167,10 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
                 }
             );
             return esbResp.getData();
+        } catch (Exception e) {
+            String errorMsg = "Get " + API_GET_NOTIFY_CHANNEL_LIST + " error";
+            log.error(errorMsg, e);
+            throw new InternalCmsiException(errorMsg, e, ErrorCode.CMSI_MSG_CHANNEL_DATA_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
