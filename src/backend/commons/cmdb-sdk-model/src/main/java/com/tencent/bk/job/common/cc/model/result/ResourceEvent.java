@@ -43,5 +43,5 @@ public class ResourceEvent<T> {
     private String cursor;
 
     // 事件被创建的时间，仅用于计算事件处理耗时
-    transient private long createTime = System.currentTimeMillis();
+    private transient long createTime = System.currentTimeMillis();
 }
