@@ -26,7 +26,7 @@ package com.tencent.bk.job.upgrader.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InternalIamException;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonMapper;
@@ -83,7 +83,7 @@ public class IamClient extends AbstractIamClient {
             }
             if (StringUtils.isBlank(respStr)) {
                 log.error("fail:response is blank|method={}|uri={}|reqStr={}", method, uri, reqStr);
-                throw new InternalException("response is blank", ErrorCode.IAM_API_DATA_ERROR);
+                throw new InternalIamException("response is blank", ErrorCode.IAM_API_DATA_ERROR);
             } else {
                 log.debug("success|method={}|uri={}|reqStr={}|respStr={}", method, uri, reqStr, respStr);
             }
@@ -92,7 +92,7 @@ public class IamClient extends AbstractIamClient {
             if (iamResp == null) {
                 log.error("fail:iamResp is null after parse|method={}|uri={}|reqStr={}|respStr={}", method, uri,
                     reqStr, respStr);
-                throw new InternalException("iamResp is null after parse", ErrorCode.IAM_API_DATA_ERROR);
+                throw new InternalIamException("iamResp is null after parse", ErrorCode.IAM_API_DATA_ERROR);
             } else if (iamResp.getCode() != RESULT_OK) {
                 log.error(
                     "fail:iamResp code!=0|iamResp.code={}|iamResp" +
@@ -101,7 +101,7 @@ public class IamClient extends AbstractIamClient {
                     , iamResp.getMessage()
                     , method, uri, reqStr, respStr
                 );
-                throw new InternalException("iamResp code!=0", ErrorCode.IAM_API_DATA_ERROR);
+                throw new InternalIamException("iamResp code!=0", ErrorCode.IAM_API_DATA_ERROR);
             }
             if (iamResp.getData() == null) {
                 log.warn(
@@ -116,7 +116,7 @@ public class IamClient extends AbstractIamClient {
         } catch (Throwable e) {
             String errorMsg = "Fail to request IAM data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
-            throw new InternalException("Fail to request IAM data", e, ErrorCode.IAM_API_DATA_ERROR);
+            throw new InternalIamException("Fail to request IAM data", e, ErrorCode.IAM_API_DATA_ERROR);
         }
     }
 
