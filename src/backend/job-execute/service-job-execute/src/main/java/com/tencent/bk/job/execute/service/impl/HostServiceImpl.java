@@ -211,16 +211,16 @@ public class HostServiceImpl implements HostService {
             List<CcCloudIdDTO> hostCloudIdList = hostProp.getCloudIdList();
             if (hostCloudIdList == null || hostCloudIdList.isEmpty()) {
                 log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
-                    "hostIp={}", appId, groupId, hostProp.getIp());
+                    "hostIp={}", appId, groupId, hostProp.getInnerIp());
                 continue;
             }
             CcCloudIdDTO hostCloudId = hostCloudIdList.get(0);
             if (hostCloudId == null) {
                 log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
-                    "hostIp={}", appId, groupId, hostProp.getIp());
+                    "hostIp={}", appId, groupId, hostProp.getInnerIp());
                 continue;
             }
-            HostDTO ip = new HostDTO(hostCloudId.getInstanceId(), hostProp.getIp());
+            HostDTO ip = new HostDTO(hostCloudId.getInstanceId(), hostProp.getFirstIp());
             ips.add(ip);
         }
         log.info("Get hosts by groupId, appId={}, groupId={}, hosts={}", appId, groupId, ips);
