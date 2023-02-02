@@ -410,6 +410,10 @@ bkIamApiUrl: "http://bkiam-api.example.com"
 bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
 bkNodemanUrl: "http://nodeman.example.com"
+# 文档中心 url
+bkDocsCenterUrl: "https://bk.tencent.com/docs"
+# 问题反馈 url
+bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
 
 ## 蓝鲸GSE参数配置
 gse:
