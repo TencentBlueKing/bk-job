@@ -50,4 +50,13 @@ public class IpUtilsTest {
         String ip = IpUtils.revertIpFromLongStr(ipLongStr);
         assertThat(ip).isEqualTo("127.0.0.1");
     }
+
+    @Test
+    void testGetFirstIpFromMultiIp() {
+        assertThat(IpUtils.getFirstIpFromMultiIp(null, ",")).isNull();
+        assertThat(IpUtils.getFirstIpFromMultiIp("", ",")).isEqualTo("");
+        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1", ",")).isEqualTo("192.168.1.1");
+        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1,", ",")).isEqualTo("192.168.1.1");
+        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1,192.168.1.2", ",")).isEqualTo("192.168.1.1");
+    }
 }
