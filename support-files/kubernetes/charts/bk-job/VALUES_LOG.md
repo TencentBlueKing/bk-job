@@ -1,5 +1,14 @@
 # chart values 更新日志
 
+## 0.2.2-rc.7
+1.增加文档中心与问题反馈URL配置项
+```shell script
+# 文档中心 url
+bkDocsCenterUrl: "https://bk.tencent.com/docs"
+# 问题反馈 url
+bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
+```
+
 ## 0.2.2-rc.1
 1.增加权限中心系统ID配置：
 ```shell script
