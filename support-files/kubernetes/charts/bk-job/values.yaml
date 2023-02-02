@@ -789,6 +789,22 @@ manageConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # CMDB资源（业务、业务集、主机等）同步与事件监听相关配置
+  sync:
+    app:
+      # 是否开启业务同步
+      enabled: true
+    host:
+      # 是否开启主机同步
+      enabled: true
+    resource:
+      watch:
+        # 是否开启业务、主机等事件监听
+        enabled: true
+    hostEvent:
+      # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
+      # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
+      handlerNum: 3
 
 
 ## job-execute执行引擎配置

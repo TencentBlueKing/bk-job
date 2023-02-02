@@ -79,6 +79,10 @@ job:
       resource:
         watch:
           enabled: true
+      hostEvent:
+        # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
+        # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
+        handlerNum: 3
 notify:
   default:
     channels:
