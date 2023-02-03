@@ -724,7 +724,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ApplicationHostDTO ipInfo = new ApplicationHostDTO();
         ipInfo.setHostId(hostInfo.getHostId());
         // 部分从cmdb同步过来的资源没有ip，需要过滤掉
-        if (StringUtils.isBlank(hostInfo.getIp())) {
+        if (StringUtils.isBlank(hostInfo.getInnerIp())) {
             return null;
         }
 
@@ -740,10 +740,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             return null;
         }
 
+        ipInfo.setDisplayIp(hostInfo.getInnerIp());
+
         if (queryAgentStatusClient != null) {
-            ipInfo.setIp(queryAgentStatusClient.getHostIpByAgentStatus(hostInfo.getIp(), hostInfo.getCloudId()));
+            ipInfo.setIp(queryAgentStatusClient.getHostIpByAgentStatus(hostInfo.getInnerIp(), hostInfo.getCloudId()));
         } else {
-            ipInfo.setIp(hostInfo.getIp());
+            ipInfo.setIp(hostInfo.getFirstIp());
         }
         ipInfo.setBizId(bizId);
         ipInfo.setIpDesc(hostInfo.getHostName());
@@ -866,13 +868,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 log.warn(
                     "host(id={},ip={}) does not have cloud area, ignore",
                     ccHostInfo.getHostId(),
-                    ccHostInfo.getIp()
+                    ccHostInfo.getInnerIp()
                 );
-            } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
+            } else if (StringUtils.isBlank(ccHostInfo.getInnerIp())) {
                 log.warn(
                     "host(id={},ip={}) ip invalid, ignore",
                     ccHostInfo.getHostId(),
-                    ccHostInfo.getIp()
+                    ccHostInfo.getInnerIp()
                 );
             } else {
                 ccGroupHostList.add(convertToCcHost(ccHostInfo));
@@ -926,7 +928,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         CcGroupHostPropDTO ccGroupHostPropDTO = new CcGroupHostPropDTO();
         ccGroupHostPropDTO.setId(ccHostInfo.getHostId());
         ccGroupHostPropDTO.setName(ccHostInfo.getHostName());
-        ccGroupHostPropDTO.setIp(ccHostInfo.getIp());
+        ccGroupHostPropDTO.setInnerIp(ccHostInfo.getInnerIp());
         CcCloudIdDTO ccCloudIdDTO = new CcCloudIdDTO();
         // 仅使用CloudId其余属性未用到，暂不设置
         ccCloudIdDTO.setInstanceId(ccHostInfo.getCloudId());
