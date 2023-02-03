@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.iam.http;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalIamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
@@ -58,6 +60,8 @@ public class IamHttpClientServiceImpl implements HttpClientService {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.get(buildUrl(uri), buildAuthHeader());
+        } catch (Exception e) {
+            throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
@@ -71,7 +75,7 @@ public class IamHttpClientServiceImpl implements HttpClientService {
             return httpHelper.post(buildUrl(uri), DEFAULT_CHARSET, JsonUtils.toJson(body), buildAuthHeader());
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
-            return null;
+            throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
@@ -85,7 +89,7 @@ public class IamHttpClientServiceImpl implements HttpClientService {
             return httpHelper.put(buildUrl(uri), DEFAULT_CHARSET, JsonUtils.toJson(body), buildAuthHeader());
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
-            return null;
+            throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
@@ -97,6 +101,8 @@ public class IamHttpClientServiceImpl implements HttpClientService {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.delete(buildUrl(uri), buildAuthHeader());
+        } catch (Exception e) {
+            throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
