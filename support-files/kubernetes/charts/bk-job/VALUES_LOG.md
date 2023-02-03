@@ -1,5 +1,5 @@
 # chart values 更新日志
-## 0.4.0-rc.63
+## 0.4.0
 1.增加特性开关相关配置
 
 ```shell script
@@ -38,6 +38,41 @@ gse:
 bkGseApiGatewayUrl: "https://bk-gse.apigw.com/prod"
 ```
 
+4. 新增job-k8s-config-watcher 配置，用于监听 Job 配置文件的变化并发送事件给涉及的微服务
+```
+## job-k8s-config-watcher 配置
+k8sConfigWatcherConfig:
+  image:
+    registry: hub.bktencent.com
+    repository: springcloud/spring-cloud-kubernetes-configuration-watcher
+    tag: "3.0.0"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  hostAliases: []
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi 
+```
    
 
 ## 0.3.0-rc.46

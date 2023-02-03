@@ -43,7 +43,7 @@ public class ConfigRefreshEventListener {
 
 
     /**
-     * 重载特型开关配置
+     * 重载特性开关配置
      */
     private void reloadFeatureToggleIfChanged(Set<String> changedKeys) {
         if (CollectionUtils.isEmpty(changedKeys)) {
