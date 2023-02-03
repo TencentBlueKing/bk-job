@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.common.cc.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.Data;
 
 import java.util.List;
@@ -44,9 +46,15 @@ public class CcGroupHostPropDTO {
     @JsonProperty("bk_host_name")
     private String name;
 
+    // 可能为多IP
     @JsonProperty("bk_host_innerip")
-    private String ip;
+    private String innerIp;
 
     @JsonProperty("bk_cloud_id")
     private List<CcCloudIdDTO> cloudIdList;
+
+    @JsonIgnore
+    public String getFirstIp() {
+        return IpUtils.getFirstIpFromMultiIp(innerIp, ",");
+    }
 }
