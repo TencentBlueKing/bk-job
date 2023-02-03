@@ -57,7 +57,7 @@
             <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
-    </appender>1
+    </appender>
     <appender name="error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${ERROR_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
