@@ -69,7 +69,7 @@ dependencies {
 
 apply plugin: 'org.springframework.boot'
 springBoot {
-    mainClass = "com.tencent.bk.job.gateway.JobGatewayBootApplication"
+    getMainClass().set("com.tencent.bk.job.gateway.JobGatewayBootApplication")
     buildInfo()
 }
 test {
