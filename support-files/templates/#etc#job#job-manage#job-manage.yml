@@ -66,9 +66,6 @@ bk:
   feedback:
     # 首页右上角问题反馈链接
     root:
-  helper:
-    # 首页底部联系BK助手的跳转URL（可为企业微信URL）
-    url: wxwork://message?uin=8444252571319680
 job:
   manage:
     sync:

@@ -53,9 +53,6 @@ public class JobManageConfig {
     @Value("${job.web.url:}")
     private String jobWebUrl;
 
-    @Value("${bk.helper.url:}")
-    private String bkHelperUrl;
-
     @Value("${bk.doc.root:}")
     private String bkDocRoot;
 

@@ -412,6 +412,10 @@ bkRepoUrl: "http://bkrepo.example.com"
 bkNodemanUrl: "http://nodeman.example.com"
 # 蓝鲸 GSE API Gateway url
 bkGseApiGatewayUrl: "http://bkapi.example.com"
+# 文档中心 url
+bkDocsCenterUrl: "https://bk.tencent.com/docs"
+# 问题反馈 url
+bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
 
 ## 蓝鲸GSE参数配置
 gse:

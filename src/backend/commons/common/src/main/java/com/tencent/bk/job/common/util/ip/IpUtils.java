@@ -434,4 +434,21 @@ public class IpUtils {
         String bkCloudId = cloudIp.substring(0, idx);
         return Long.parseLong(bkCloudId);
     }
+
+    /**
+     * 从含有多个IP的字符串中获取首个IP，若multiIp不含有任何IP则直接返回multiIp本身
+     *
+     * @param multiIp   多IP字符串
+     * @param separator 分隔符
+     * @return 首个IP
+     */
+    public static String getFirstIpFromMultiIp(String multiIp, String separator) {
+        if (StringUtils.isBlank(multiIp)) {
+            return multiIp;
+        }
+        if (multiIp.contains(separator)) {
+            return multiIp.split(separator)[0];
+        }
+        return multiIp;
+    }
 }
