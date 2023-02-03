@@ -30,9 +30,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.oas.annotations.EnableOpenApi;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -41,7 +41,7 @@ import java.util.HashSet;
  * @date 2019/09/19
  */
 @Configuration
-@EnableSwagger2
+@EnableOpenApi
 @Profile({"dev", "test", "local"})
 public class SwaggerConfig {
 
@@ -54,7 +54,7 @@ public class SwaggerConfig {
 
     @Bean
     public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
+        return new Docket(DocumentationType.OAS_30)
             .host(jobManageConfig.getSwaggerUrl() + "/job-manage")
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()

@@ -36,8 +36,7 @@ dependencies {
     api project(':commons:common')
     api project(":commons:common-i18n")
     api project(":commons:common-consul")
-    implementation 'io.springfox:springfox-swagger2'
-    implementation 'io.springfox:springfox-swagger-ui'
+    implementation 'io.springfox:springfox-boot-starter'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

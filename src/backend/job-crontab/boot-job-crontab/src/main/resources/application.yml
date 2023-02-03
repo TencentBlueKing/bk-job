@@ -1,6 +1,9 @@
 spring:
   profiles:
     active: prod
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 ribbon:
   ServerListRefreshInterval: 3000

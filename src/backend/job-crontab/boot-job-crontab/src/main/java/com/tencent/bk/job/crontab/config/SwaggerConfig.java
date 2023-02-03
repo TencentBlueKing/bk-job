@@ -30,9 +30,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.oas.annotations.EnableOpenApi;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -41,7 +41,7 @@ import java.util.HashSet;
  * @date 2019/09/19
  */
 @Configuration
-@EnableSwagger2
+@EnableOpenApi
 @Profile({"dev", "test", "local"})
 public class SwaggerConfig {
 
@@ -54,11 +54,43 @@ public class SwaggerConfig {
 
     @Bean
     public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
+        return new Docket(DocumentationType.OAS_30)
             .host(bkConfig.getSwaggerUrl() + "/job-crontab")
             .protocols(new HashSet<>(Arrays.asList("http", "https"))).select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.crontab.api"))
             .paths(PathSelectors.any())
             .build();
     }
+
+//    /**
+//     * 增加如下配置可解决Spring Boot 6.x 与Swagger 3.0.0 不兼容问题
+//     **/
+//    @Bean
+//    public WebMvcEndpointHandlerMapping webEndpointServletHandlerMapping(WebEndpointsSupplier webEndpointsSupplier,
+//                                                                         ServletEndpointsSupplier servletEndpointsSupplier,
+//                                                                         ControllerEndpointsSupplier controllerEndpointsSupplier,
+//                                                                         EndpointMediaTypes endpointMediaTypes,
+//                                                                         CorsEndpointProperties corsProperties,
+//                                                                         WebEndpointProperties webEndpointProperties,
+//                                                                         Environment environment) {
+//        List<ExposableEndpoint<?>> allEndpoints = new ArrayList<>();
+//        Collection<ExposableWebEndpoint> webEndpoints = webEndpointsSupplier.getEndpoints();
+//        allEndpoints.addAll(webEndpoints);
+//        allEndpoints.addAll(servletEndpointsSupplier.getEndpoints());
+//        allEndpoints.addAll(controllerEndpointsSupplier.getEndpoints());
+//        String basePath = webEndpointProperties.getBasePath();
+//        EndpointMapping endpointMapping = new EndpointMapping(basePath);
+//        boolean shouldRegisterLinksMapping = this.shouldRegisterLinksMapping(webEndpointProperties, environment,
+//            basePath);
+//        return new WebMvcEndpointHandlerMapping(endpointMapping, webEndpoints, endpointMediaTypes,
+//            corsProperties.toCorsConfiguration(), new EndpointLinksResolver(allEndpoints, basePath),
+//            shouldRegisterLinksMapping, null);
+//    }
+//
+//    private boolean shouldRegisterLinksMapping(WebEndpointProperties webEndpointProperties,
+//                                               Environment environment,
+//                                               String basePath) {
+//        return webEndpointProperties.getDiscovery().isEnabled()
+//            && (StringUtils.hasText(basePath) || ManagementPortType.get(environment).equals(ManagementPortType.DIFFERENT));
+//    }
 }

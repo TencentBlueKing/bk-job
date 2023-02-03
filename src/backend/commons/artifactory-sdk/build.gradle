@@ -26,7 +26,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation 'io.springfox:springfox-swagger2'
+//    implementation 'io.springfox:springfox-boot-starter'
     api 'org.apache.commons:commons-lang3'
     implementation "org.springframework:spring-jdbc"
     implementation 'org.springframework:spring-web'

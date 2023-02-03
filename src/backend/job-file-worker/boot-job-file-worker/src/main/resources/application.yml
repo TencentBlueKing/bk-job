@@ -5,6 +5,9 @@ spring:
     multipart:
       max-file-size: 5GB
       max-request-size: 5GB
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 management:
   endpoints:

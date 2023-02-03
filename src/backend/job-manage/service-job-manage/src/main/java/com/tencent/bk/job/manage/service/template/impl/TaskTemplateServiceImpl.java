@@ -70,6 +70,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,13 +97,22 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final TemplateStatusUpdateService templateStatusUpdateService;
     private final TaskFavoriteService taskFavoriteService;
     private final CronJobService cronJobService;
+    private TaskPlanService taskPlanService;
+    private ScriptService scriptService;
 
     @Autowired
-    private TaskPlanService taskPlanService;
+    @Lazy
+    public void setTaskPlanService(TaskPlanService taskPlanService) {
+        this.taskPlanService = taskPlanService;
+    }
+
     @Autowired
-    private ScriptService scriptService;
-    @Autowired
-    private TaskTemplateService taskTemplateService;
+    @Lazy
+    public void setScriptService(ScriptService scriptService) {
+        this.scriptService = scriptService;
+    }
+
+
 
     @Autowired
     public TaskTemplateServiceImpl(
@@ -122,7 +132,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         this.cronJobService = cronJobService;
     }
 
-    private static void setUpdateFlag(TaskTemplateInfoDTO templateInfo) {
+    private void setUpdateFlag(TaskTemplateInfoDTO templateInfo) {
         if (templateInfo != null && CollectionUtils.isNotEmpty(templateInfo.getStepList())) {
             int scriptScript = 0;
             for (TaskStepDTO taskStep : templateInfo.getStepList()) {
@@ -223,7 +233,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     private void setAdditionalAttributesForTemplates(Long appId, PageData<TaskTemplateInfoDTO> templatePageData) {
         if (CollectionUtils.isNotEmpty(templatePageData.getData())) {
-            templatePageData.getData().forEach(TaskTemplateServiceImpl::setUpdateFlag);
+            templatePageData.getData().forEach(this::setUpdateFlag);
         }
 
         setTags(appId, templatePageData.getData());
@@ -295,7 +305,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 throw new AbortedException(ErrorCode.TEMPLATE_LOCK_ACQUIRE_FAILED);
             }
             // 保存新增的标签并获取tagId
-            taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
+            createNewTagForTemplateIfNotExist(taskTemplateInfo);
 
             // 获取引用的非线上脚本
             Map<String, Long> outdatedScriptMap = getOutdatedScriptMap(taskTemplateInfo.getStepList());
@@ -327,7 +337,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             Long templateId;
             if (isCreate) {
                 taskTemplateInfo.setCreateTime(DateUtils.currentTimeSeconds());
-                templateId = taskTemplateService.insertNewTemplate(taskTemplateInfo);
+                templateId = insertNewTemplate(taskTemplateInfo);
                 taskTemplateInfo.setId(templateId);
             } else {
                 boolean bumpVersion = templateHasChange(taskTemplateInfo);
@@ -340,7 +350,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             updateTemplateTags(taskTemplateInfo);
 
             // 写步骤
-            taskTemplateService.processTemplateStep(taskTemplateInfo);
+            processTemplateStep(taskTemplateInfo);
 
             // 更新作业模板首尾步骤
             // Process first and last step id
@@ -384,7 +394,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     private boolean templateHasChange(TaskTemplateInfoDTO taskTemplateInfo) {
         TaskTemplateInfoDTO originTaskTemplateInfo =
-            taskTemplateService.getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+            getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
         if (originTaskTemplateInfo == null) {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
@@ -595,7 +605,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         if (taskTemplateByName != null) {
             throw new AlreadyExistsException(ErrorCode.TEMPLATE_NAME_EXIST);
         }
-        taskTemplateService.createNewTagForTemplateIfNotExist(taskTemplateInfo);
+        createNewTagForTemplateIfNotExist(taskTemplateInfo);
 
         if (createTime != null && createTime > 0) {
             taskTemplateInfo.setCreateTime(createTime);
@@ -620,11 +630,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         // process template id
         Long templateId;
         if (taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0) {
-            templateId = taskTemplateService.insertNewTemplate(taskTemplateInfo);
+            templateId = insertNewTemplate(taskTemplateInfo);
             taskTemplateInfo.setId(templateId);
         } else {
             taskTemplateInfo.setStatus(TaskTemplateStatusEnum.NEW);
-            if (taskTemplateService.checkTemplateId(taskTemplateInfo.getId())) {
+            if (checkTemplateId(taskTemplateInfo.getId())) {
                 if (insertNewTemplateWithTemplateId(taskTemplateInfo)) {
                     templateId = taskTemplateInfo.getId();
                 } else {
@@ -637,7 +647,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
         updateTemplateTags(taskTemplateInfo);
 
-        taskTemplateService.processTemplateStep(taskTemplateInfo);
+        processTemplateStep(taskTemplateInfo);
 
         // Process first and last step id
         TaskTemplateInfoDTO updateStepIdReq = generateUpdateStepIdReq(taskTemplateInfo);
@@ -869,9 +879,5 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
         }
         return outdatedScriptMap;
-    }
-
-    public void setScriptService(ScriptService scriptService) {
-        this.scriptService = scriptService;
     }
 }

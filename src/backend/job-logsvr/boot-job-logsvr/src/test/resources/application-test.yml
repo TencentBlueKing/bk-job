@@ -2,6 +2,14 @@ spring:
   data:
     mongodb:
       uri: ${job.logsvr.mongodb.uri}
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   cloud:
     config:
       enabled: false
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.4.0

@@ -4,6 +4,9 @@ spring:
       charset: UTF-8
       enabled: true
       force: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   datasource:
     job-execute:
       driver-class-name: org.h2.Driver
