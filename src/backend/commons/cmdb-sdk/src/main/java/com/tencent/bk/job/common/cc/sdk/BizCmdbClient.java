@@ -689,7 +689,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             log.warn("Host does not have cloud area id!|{}", ccHostInfo);
             return null;
         }
-        hostDTO.setIp(ccHostInfo.getIp());
+        hostDTO.setDisplayIp(ccHostInfo.getInnerIp());
+        hostDTO.setIp(ccHostInfo.getFirstIp());
         hostDTO.setIpv6(ccHostInfo.getIpv6());
         hostDTO.setAgentId(ccHostInfo.getAgentId());
         hostDTO.setBizId(bizId);
@@ -809,7 +810,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 log.warn(
                     "host(id={},ip={}) does not have cloud area, ignore",
                     ccHostInfo.getHostId(),
-                    ccHostInfo.getIp()
+                    ccHostInfo.getInnerIp()
                 );
             } else if (ccHostInfo.getHostId() == null) {
                 log.warn("{} hostId is invalid, ignore", ccHostInfo);
@@ -865,7 +866,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         DynamicGroupHostPropDTO dynamicGroupHostPropDTO = new DynamicGroupHostPropDTO();
         dynamicGroupHostPropDTO.setId(ccHostInfo.getHostId());
         dynamicGroupHostPropDTO.setName(ccHostInfo.getHostName());
-        dynamicGroupHostPropDTO.setIp(ccHostInfo.getIp());
+        dynamicGroupHostPropDTO.setInnerIp(ccHostInfo.getInnerIp());
         dynamicGroupHostPropDTO.setIpv6(ccHostInfo.getIpv6());
         dynamicGroupHostPropDTO.setAgentId(ccHostInfo.getAgentId());
         CcCloudIdDTO ccCloudIdDTO = new CcCloudIdDTO();
