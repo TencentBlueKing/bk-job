@@ -69,7 +69,7 @@ ext {
     set("springBootVersion", "2.6.13")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2021.0.5")
-    set('springCloudOtelVersion', "1.1.0")
+    set('springCloudOtelVersion', "1.1.1")
     set('swaggerVersion', "3.0.0")
     set('junitVersion', "5.5.2")
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
@@ -111,7 +111,7 @@ ext {
     set('bcprovVersion', "1.64")
     set('reflectionsVersion', "0.9.12")
     set('cronUtilsVersion', "9.1.6")
-    set('otelJdbcVersion', "1.9.2-alpha")
+    set('otelJdbcVersion', "1.22.0-alpha")
     set('commonsValidatorVersion', "1.6")
     set('okHttpVersion', "4.9.0")
     set('jcommanderVersion', "1.71")
