@@ -27,4 +27,5 @@ dependencies {
         exclude group: 'org.springframework.cloud', module: 'spring-cloud-sleuth-brave'
     }
     api 'org.springframework.cloud:spring-cloud-sleuth-otel-autoconfigure'
+    api "io.opentelemetry.instrumentation:opentelemetry-jdbc"
 }
