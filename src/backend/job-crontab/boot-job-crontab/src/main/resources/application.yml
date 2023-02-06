@@ -4,6 +4,50 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  quartz:
+    # 使用数据库存储
+    job-store-type: jdbc
+    jdbc:
+      # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
+      initialize-schema: never
+    properties:
+      org:
+        quartz:
+          dataSource:
+            myDS:
+              URL: ${job.crontab.db.url}
+              connectionTestQuery: SELECT 1
+              driver: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
+              idleTimeout: 0
+              maxConnections: 30
+              maximumPoolSize: 10
+              password: ${job.crontab.db.password}
+              provider: hikaricp
+              user: ${job.crontab.db.user}
+              validationTimeout: 5000
+          jobStore:
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            clusterCheckinInterval: 20000
+            dataSource: myDS
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: true
+            selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
+            tablePrefix: QRTZ_
+            useProperties: true
+          plugin:
+            shutdownhook:
+              class: org.quartz.plugins.management.ShutdownHookPlugin
+              cleanShutdown: true
+            triggHistory:
+              class: org.quartz.plugins.history.LoggingJobHistoryPlugin
+          scheduler:
+            batchTriggerAcquisitionMaxCount: 50
+            instanceId: AUTO
+            instanceName: Job_Crontab_Quartz_Scheduler
+            skipUpdateCheck: true
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 50
 
 ribbon:
   ServerListRefreshInterval: 3000
