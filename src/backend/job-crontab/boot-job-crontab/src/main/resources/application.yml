@@ -13,18 +13,6 @@ spring:
     properties:
       org:
         quartz:
-          dataSource:
-            myDS:
-              URL: ${job.crontab.db.url}
-              connectionTestQuery: SELECT 1
-              driver: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
-              idleTimeout: 0
-              maxConnections: 30
-              maximumPoolSize: 10
-              password: ${job.crontab.db.password}
-              provider: hikaricp
-              user: ${job.crontab.db.user}
-              validationTimeout: 5000
           jobStore:
             class: org.quartz.impl.jdbcjobstore.JobStoreTX
             clusterCheckinInterval: 20000
