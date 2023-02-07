@@ -60,7 +60,7 @@ dependencies {
 
 apply plugin: 'org.springframework.boot'
 springBoot {
-    mainClass = "com.tencent.bk.job.config.JobConfigBootApplication"
+    getMainClass().set("com.tencent.bk.job.config.JobConfigBootApplication")
     buildInfo()
 }
 apply from: "$rootDir/task_job_package.gradle"

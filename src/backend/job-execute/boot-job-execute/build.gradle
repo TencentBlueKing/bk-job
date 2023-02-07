@@ -34,8 +34,6 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
-    // Fix RoutingFunction SpEL evaluation
-    implementation 'org.springframework.cloud:spring-cloud-function-context:3.1.7'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.prometheus:simpleclient_pushgateway'
     implementation 'io.micrometer:micrometer-registry-prometheus'
@@ -44,7 +42,7 @@ dependencies {
     testImplementation("com.h2database:h2")
 }
 springBoot {
-    mainClass = "com.tencent.bk.job.execute.JobExecuteBootApplication"
+    getMainClass().set("com.tencent.bk.job.execute.JobExecuteBootApplication")
     buildInfo()
 }
 task renameArtifacts(type: Copy) {
