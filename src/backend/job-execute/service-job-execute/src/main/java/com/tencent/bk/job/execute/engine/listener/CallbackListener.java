@@ -56,7 +56,7 @@ public class CallbackListener {
             try {
                 new URL(callbackUrl);
             } catch (MalformedURLException var5) {
-                log.error("Callback fail, bad url: {}", callbackUrl);
+                log.warn("Callback fail, bad url: {}", callbackUrl);
                 return;
             }
             callbackDTO.setCallbackUrl(null);
