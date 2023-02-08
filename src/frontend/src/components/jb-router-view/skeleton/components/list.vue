@@ -26,100 +26,100 @@
 -->
 
 <template>
-    <content-loader
-        :height="716"
-        :width="maxWidth"
-        v-bind="$attrs">
-        <rect
-            height="32"
-            rx="2"
-            ry="2"
-            width="120"
-            x="0"
-            y="0" />
-        <rect
-            height="32"
-            rx="2"
-            ry="2"
-            width="500"
-            :x="leftBlockPosition"
-            y="0" />
-        <rect
-            height="24"
-            rx="2"
-            ry="2"
-            :width="maxWidth"
-            x="0"
-            y="62" />
-        <rect
-            height="24"
-            rx="2"
-            ry="2"
-            :width="maxWidth"
-            x="0"
-            y="105" />
-        <rect
-            height="24"
-            rx="2"
-            ry="2"
-            :width="maxWidth"
-            x="0"
-            y="148" />
-        <rect
-            height="24"
-            rx="2"
-            ry="2"
-            :width="maxWidth"
-            x="0"
-            y="190" />
-        <rect
-            height="24"
-            rx="2"
-            ry="2"
-            :width="maxWidth"
-            x="0"
-            y="230" />
-        <rect
-            height="24"
-            rx="2"
-            ry="2"
-            :width="maxWidth"
-            x="0"
-            y="273" />
-        <rect
-            height="24"
-            rx="2"
-            ry="2"
-            :width="maxWidth"
-            x="0"
-            y="315" />
-        <rect
-            height="24"
-            rx="2"
-            ry="2"
-            :width="maxWidth"
-            x="0"
-            y="358" />
-    </content-loader>
+  <content-loader
+    :height="716"
+    :width="maxWidth"
+    v-bind="$attrs">
+    <rect
+      height="32"
+      rx="2"
+      ry="2"
+      width="120"
+      x="0"
+      y="0" />
+    <rect
+      height="32"
+      rx="2"
+      ry="2"
+      width="500"
+      :x="leftBlockPosition"
+      y="0" />
+    <rect
+      height="24"
+      rx="2"
+      ry="2"
+      :width="maxWidth"
+      x="0"
+      y="62" />
+    <rect
+      height="24"
+      rx="2"
+      ry="2"
+      :width="maxWidth"
+      x="0"
+      y="105" />
+    <rect
+      height="24"
+      rx="2"
+      ry="2"
+      :width="maxWidth"
+      x="0"
+      y="148" />
+    <rect
+      height="24"
+      rx="2"
+      ry="2"
+      :width="maxWidth"
+      x="0"
+      y="190" />
+    <rect
+      height="24"
+      rx="2"
+      ry="2"
+      :width="maxWidth"
+      x="0"
+      y="230" />
+    <rect
+      height="24"
+      rx="2"
+      ry="2"
+      :width="maxWidth"
+      x="0"
+      y="273" />
+    <rect
+      height="24"
+      rx="2"
+      ry="2"
+      :width="maxWidth"
+      x="0"
+      y="315" />
+    <rect
+      height="24"
+      rx="2"
+      ry="2"
+      :width="maxWidth"
+      x="0"
+      y="358" />
+  </content-loader>
 </template>
 <script>
-    import {
-        ContentLoader,
-    } from 'vue-content-loader';
-    export default {
-        components: {
-            ContentLoader,
-        },
-        props: {
-            maxWidth: {
-                type: Number,
-                required: true,
-            },
-        },
-        computed: {
-            leftBlockPosition () {
-                return this.maxWidth - 420;
-            },
-        },
-    };
+  import {
+    ContentLoader,
+  } from 'vue-content-loader';
+  export default {
+    components: {
+      ContentLoader,
+    },
+    props: {
+      maxWidth: {
+        type: Number,
+        required: true,
+      },
+    },
+    computed: {
+      leftBlockPosition () {
+        return this.maxWidth - 420;
+      },
+    },
+  };
 </script>

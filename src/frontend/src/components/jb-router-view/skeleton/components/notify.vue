@@ -26,111 +26,111 @@
 -->
 
 <template>
-    <div>
-        <content-loader
-            :height="439"
-            :width="maxWidth"
-            v-bind="$attrs">
-            <rect
-                height="20"
-                rx="2"
-                width="116"
-                x="0"
-                y="0" />
-            <rect
-                height="20"
-                rx="2"
-                width="58"
-                x="58"
-                y="70" />
-            <rect
-                height="20"
-                rx="2"
-                width="92"
-                x="138"
-                y="70" />
-            <rect
-                height="20"
-                rx="2"
-                width="92"
-                x="138"
-                y="119" />
-            <rect
-                height="20"
-                rx="2"
-                width="92"
-                x="138"
-                y="160" />
-            <rect
-                height="20"
-                rx="2"
-                width="601"
-                x="255"
-                y="160" />
-            <rect
-                height="20"
-                rx="2"
-                width="716"
-                x="140"
-                y="228" />
-            <rect
-                height="20"
-                rx="2"
-                width="716"
-                x="140"
-                y="269" />
-            <rect
-                height="20"
-                rx="2"
-                width="716"
-                x="140"
-                y="310" />
-            <rect
-                height="20"
-                rx="2"
-                width="716"
-                x="140"
-                y="351" />
-            <rect
-                height="20"
-                rx="2"
-                width="92"
-                x="255"
-                y="119" />
-            <rect
-                height="20"
-                rx="2"
-                width="92"
-                x="371"
-                y="119" />
-            <rect
-                height="20"
-                rx="2"
-                width="92"
-                x="255"
-                y="70" />
-            <rect
-                height="20"
-                rx="2"
-                width="58"
-                x="58"
-                y="119" />
-        </content-loader>
-    </div>
+  <div>
+    <content-loader
+      :height="439"
+      :width="maxWidth"
+      v-bind="$attrs">
+      <rect
+        height="20"
+        rx="2"
+        width="116"
+        x="0"
+        y="0" />
+      <rect
+        height="20"
+        rx="2"
+        width="58"
+        x="58"
+        y="70" />
+      <rect
+        height="20"
+        rx="2"
+        width="92"
+        x="138"
+        y="70" />
+      <rect
+        height="20"
+        rx="2"
+        width="92"
+        x="138"
+        y="119" />
+      <rect
+        height="20"
+        rx="2"
+        width="92"
+        x="138"
+        y="160" />
+      <rect
+        height="20"
+        rx="2"
+        width="601"
+        x="255"
+        y="160" />
+      <rect
+        height="20"
+        rx="2"
+        width="716"
+        x="140"
+        y="228" />
+      <rect
+        height="20"
+        rx="2"
+        width="716"
+        x="140"
+        y="269" />
+      <rect
+        height="20"
+        rx="2"
+        width="716"
+        x="140"
+        y="310" />
+      <rect
+        height="20"
+        rx="2"
+        width="716"
+        x="140"
+        y="351" />
+      <rect
+        height="20"
+        rx="2"
+        width="92"
+        x="255"
+        y="119" />
+      <rect
+        height="20"
+        rx="2"
+        width="92"
+        x="371"
+        y="119" />
+      <rect
+        height="20"
+        rx="2"
+        width="92"
+        x="255"
+        y="70" />
+      <rect
+        height="20"
+        rx="2"
+        width="58"
+        x="58"
+        y="119" />
+    </content-loader>
+  </div>
 </template>
 <script>
-    import {
-        ContentLoader,
-    } from 'vue-content-loader';
-    export default {
-        components: {
-            ContentLoader,
-        },
-        props: {
-            maxWidth: {
-                type: Number,
-                required: true,
-            },
-        },
-    };
+  import {
+    ContentLoader,
+  } from 'vue-content-loader';
+  export default {
+    components: {
+      ContentLoader,
+    },
+    props: {
+      maxWidth: {
+        type: Number,
+        required: true,
+      },
+    },
+  };
 </script>

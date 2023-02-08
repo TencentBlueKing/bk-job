@@ -26,16 +26,16 @@
 -->
 
 <template>
-    <div />
+  <div />
 </template>
 <script>
-    export default {
-        name: '',
+  export default {
+    name: '',
 
-        data () {
-            return {};
-        },
+    data () {
+      return {};
+    },
 
-        methods: {},
-    };
+    methods: {},
+  };
 </script>

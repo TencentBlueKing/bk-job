@@ -68,79 +68,79 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 import '@blueking/ip-selector/dist/styles/index.css';
 
 const IpSelector = createIpSelector({
-    version: '7',
-    panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
-    unqiuePanelValue: false,
-    nameStyle: 'camelCase',
-    // hostTableCustomColumnList: [
-    //     {
-    //         key: 'a1',
-    //         label: '测试列一',
-    //         index: 3,
-    //         field: 'a1',
-    //         width: '100px',
-    //         renderHead: h => h('span', '测试列一header'),
-    //         renderCell: h => h('span', 'render a1'),
-    //     },
-    //     {
-    //         key: 'A2',
-    //         label: '测试列二',
-    //         field: 'A2',
-    //         index: 4,
-    //         width: '100px',
-    //         renderHead: h => h('span', '测试列二header'),
-    //         renderCell: h => h('span', 'render test1'),
-    //     },
-    // ],
-    // hostTableRenderColumnList: ['ip', 'alive', 'osName', 'ipv6', 'cloudArea'],
-    // hostMemuExtends: [
-    //     {
-    //         name: '复制更多一',
-    //         action: () => {
-    //             console.log('复制更多一');
-    //         },
-    //     },
-    //     {
-    //         name: '复制更多二',
-    //         action: () => {
-    //             console.log('复制更多二');
-    //         },
-    //     },
-    // ],
-    fetchTopologyHostCount: HostManageService.fetchTopologyWithCount,
-    fetchTopologyHostsNodes: HostManageService.fetchTopologyHost,
-    fetchTopologyHostIdsNodes: HostManageService.fetchTopogyHostIdList,
-    fetchHostsDetails: HostManageService.fetchHostInfoByHostId,
-    fetchHostCheck: HostManageService.fetchInputParseHostList,
-    fetchNodesQueryPath: HostManageService.fetchNodePath,
-    fetchHostAgentStatisticsNodes: HostManageService.fetchBatchNodeAgentStatistics,
-    fetchDynamicGroups: HostManageService.fetchDynamicGroup,
-    fetchHostsDynamicGroup: HostManageService.fetchDynamicGroupHost,
-    fetchHostAgentStatisticsDynamicGroups: HostManageService.fetchBatchGroupAgentStatistics,
-    fetchCustomSettings: CustomSettingsService.fetchAll,
-    updateCustomSettings: CustomSettingsService.update,
-    fetchConfig: () => QueryGlobalSettingService.fetchRelatedSystemUrls()
-        .then(data => ({
-            // eslint-disable-next-line max-len
-            bk_cmdb_dynamic_group_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
-            // eslint-disable-next-line max-len
-            bk_cmdb_static_topo_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
-        })),
+  version: '7',
+  panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
+  unqiuePanelValue: false,
+  nameStyle: 'camelCase',
+  // hostTableCustomColumnList: [
+  //     {
+  //         key: 'a1',
+  //         label: '测试列一',
+  //         index: 3,
+  //         field: 'a1',
+  //         width: '100px',
+  //         renderHead: h => h('span', '测试列一header'),
+  //         renderCell: h => h('span', 'render a1'),
+  //     },
+  //     {
+  //         key: 'A2',
+  //         label: '测试列二',
+  //         field: 'A2',
+  //         index: 4,
+  //         width: '100px',
+  //         renderHead: h => h('span', '测试列二header'),
+  //         renderCell: h => h('span', 'render test1'),
+  //     },
+  // ],
+  // hostTableRenderColumnList: ['ip', 'alive', 'osName', 'ipv6', 'cloudArea'],
+  // hostMemuExtends: [
+  //     {
+  //         name: '复制更多一',
+  //         action: () => {
+  //             console.log('复制更多一');
+  //         },
+  //     },
+  //     {
+  //         name: '复制更多二',
+  //         action: () => {
+  //             console.log('复制更多二');
+  //         },
+  //     },
+  // ],
+  fetchTopologyHostCount: HostManageService.fetchTopologyWithCount,
+  fetchTopologyHostsNodes: HostManageService.fetchTopologyHost,
+  fetchTopologyHostIdsNodes: HostManageService.fetchTopogyHostIdList,
+  fetchHostsDetails: HostManageService.fetchHostInfoByHostId,
+  fetchHostCheck: HostManageService.fetchInputParseHostList,
+  fetchNodesQueryPath: HostManageService.fetchNodePath,
+  fetchHostAgentStatisticsNodes: HostManageService.fetchBatchNodeAgentStatistics,
+  fetchDynamicGroups: HostManageService.fetchDynamicGroup,
+  fetchHostsDynamicGroup: HostManageService.fetchDynamicGroupHost,
+  fetchHostAgentStatisticsDynamicGroups: HostManageService.fetchBatchGroupAgentStatistics,
+  fetchCustomSettings: CustomSettingsService.fetchAll,
+  updateCustomSettings: CustomSettingsService.update,
+  fetchConfig: () => QueryGlobalSettingService.fetchRelatedSystemUrls()
+    .then(data => ({
+      // eslint-disable-next-line max-len
+      bk_cmdb_dynamic_group_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+      // eslint-disable-next-line max-len
+      bk_cmdb_static_topo_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+    })),
 });
 
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {
-    color: '#3A84FF',
-    failedColor: 'red',
-    height: '2px',
-    inverse: false,
-    transition: {
-        speed: '0.1s',
-        opacity: '0.6s',
-        termination: 100,
-    },
-    position: 'absolute',
-    autoFinish: false,
+  color: '#3A84FF',
+  failedColor: 'red',
+  height: '2px',
+  inverse: false,
+  transition: {
+    speed: '0.1s',
+    opacity: '0.6s',
+    termination: 100,
+  },
+  position: 'absolute',
+  autoFinish: false,
 });
 
 Vue.component('AuthRouterLink', AuthRouterLink);
@@ -175,9 +175,9 @@ Vue.use(TippyTips);
 Vue.use(Test);
 
 marked.use({
-    renderer: {
-        link (link, title, text) {
-            return `<a href="${link}" target="_blank">${text}</a>`;
-        },
+  renderer: {
+    link (link, title, text) {
+      return `<a href="${link}" target="_blank">${text}</a>`;
     },
+  },
 });

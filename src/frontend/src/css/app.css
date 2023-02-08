@@ -1,67 +1,68 @@
-@import "./bk-patch.css";
+@import url("./bk-patch.css");
 
 @keyframes rotate-loading {
-    0% {
-        transform: rotateZ(0);
-    }
+  0% {
+    transform: rotateZ(0);
+  }
 
-    100% {
-        transform: rotateZ(360deg);
-    }
+  100% {
+    transform: rotateZ(360deg);
+  }
 }
 
 .full-width {
-    width: 100%;
+  width: 100%;
 }
 
 .disable {
-    color: #c4c6cc;
-    user-select: none;
+  color: #c4c6cc;
+  user-select: none;
 }
 
 .center-content {
-    display: flex;
-    background-color: #fff;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  background-color: #fff;
+  justify-content: center;
+  align-items: center;
 }
 
 .control-append-group {
-    .group-append {
-        background: #f5f7fa;
-    }
+  .group-append {
+    background: #f5f7fa;
+  }
 }
 
 *[tabindex] {
-    outline: none;
+  outline: none;
 }
 
 .w120 {
-    width: 120px;
+  width: 120px;
 }
 
 .number {
-    padding: 0 4px;
+  padding: 0 4px;
 }
 
 .strong {
-    font-weight: bold;
-    color: #3a84ff;
+  font-weight: bold;
+  color: #3a84ff;
 }
 
 .error {
-    color: #ea3636;
+  color: #ea3636;
 }
 
 .rotate-loading {
-    color: #3a84ff;
-    animation: rotate-loading 1s linear infinite;
+  color: #3a84ff;
+  animation: rotate-loading 1s linear infinite;
 }
 
 .tips {
-    border-bottom: 1px dashed #c4c6cc;
+  border-bottom: 1px dashed #c4c6cc;
 }
 
+/* stylelint-disable selector-class-pattern */
 .__cov-progress {
-    z-index: 1000 !important;
+  z-index: 1000 !important;
 }

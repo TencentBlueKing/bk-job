@@ -9,12 +9,12 @@
     "dev-external": "webpack serve --https --hot --env development --env mode=external --config ./webpack.config.js",
     "build": "webpack --env --config ./webpack.config.js",
     "lint:js": "eslint --fix --ext .js,.vue ./src",
-    "lint:style": "stylelint --fix **/**/*.{css,vue}"
+    "lint:style": "stylelint --fix ./src/**/*.{vue,css} --custom-syntax"
   },
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@blueking/ip-selector": "0.0.1-beta.60",
+    "@blueking/ip-selector": "0.0.1-beta.62",
     "@blueking/paas-login": "0.0.11",
     "@blueking/user-selector": "^1.0.7",
     "@vue/composition-api": "^1.5.0",
@@ -90,7 +90,7 @@
     "postcss-loader": "^7.0.1",
     "postcss-mixins": "^9.0.2",
     "postcss-nested": "6.0.0",
-    "postcss-preset-env": "8.0.1",
+    "postcss-preset-env": "7.8.3",
     "postcss-property-lookup": "^3.0.0",
     "postcss-syntax": "^0.36.2",
     "postcss-url": "^10.1.3",

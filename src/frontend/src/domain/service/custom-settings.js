@@ -26,16 +26,16 @@
 import CustomSettingsSource from '../source/custom-settings';
 
 export default {
-    fetchAll (params) {
-        return CustomSettingsSource.getAll(params)
-            .then(({ data }) => data);
-    },
-    update (params) {
-        return CustomSettingsSource.update(params)
-            .then(({ data }) => data);
-    },
-    remove () {
-        return CustomSettingsSource.remove()
-            .then(({ data }) => data);
-    },
+  fetchAll (params) {
+    return CustomSettingsSource.getAll(params)
+      .then(({ data }) => data);
+  },
+  update (params) {
+    return CustomSettingsSource.update(params)
+      .then(({ data }) => data);
+  },
+  remove () {
+    return CustomSettingsSource.remove()
+      .then(({ data }) => data);
+  },
 };
