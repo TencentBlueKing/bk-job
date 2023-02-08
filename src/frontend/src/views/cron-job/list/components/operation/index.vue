@@ -69,7 +69,7 @@
               :options="dateOptions"
               :placeholder="$t('cron.选择日期时间')"
               style="width: 100%;"
-              :transfer="true"
+              transfer
               type="datetime" />
           </render-info-detail>
           <render-info-detail
@@ -160,6 +160,7 @@
               :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
               ref="usedVariable"
               :data="variable"
+              :show-view-diff="isEditMode"
               :type="variable.type"
               value-width="100%" />
             <toggle-display
@@ -172,6 +173,7 @@
                   :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
                   ref="unusedVariable"
                   :data="variable"
+                  :show-view-diff="isEditMode"
                   :type="variable.type"
                   value-width="100%" />
               </div>
@@ -232,7 +234,7 @@
     taskTemplateId: 0,
     variableValue: [], // 变量信息
   });
- 
+
   export default {
     name: '',
     components: {
@@ -249,17 +251,11 @@
         type: Object,
         default: () => ({}),
       },
-      id: {
-        type: [
-          String,
-          Number,
-        ],
-        default: '',
-      },
     },
     data () {
       this.rules = {};
       return {
+        isEditMode: false,
         isLoading: false,
         isTemplateLoading: false,
         isPlanLoading: false,
@@ -358,6 +354,7 @@
 
       if (this.data.id) {
         // 编辑状态
+        this.isEditMode = true;
 
         this.formData.id = this.data.id;
         this.formData.name = this.data.name;
@@ -367,7 +364,7 @@
         this.fetchTemplatePlanList();
       } else {
         // 新建(指定指定执行方案)
-
+        this.isEditMode = false;
         // 通过url指定作业模板和执行方案的定时任务任务
         // 执行方案id 必须是 templateId 同时存在时才有效
         const { templateId, planId } = this.$route.query;
@@ -415,7 +412,7 @@
         ],
       });
     },
-        
+
     methods: {
       /**
        * @desc 定时任务详情
@@ -674,7 +671,7 @@
                 // 新建
                 this.messageSuccess(I18n.t('cron.定时任务创建成功(默认关闭，请手动开启)'));
               }
-                            
+
               this.$emit('on-change');
             });
           });

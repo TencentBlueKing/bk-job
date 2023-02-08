@@ -310,7 +310,6 @@
       :width="960">
       <task-operation
         v-if="showOperation"
-        :id="editTaskId"
         :data="cronJobDetailInfo"
         @on-change="handleCronChange" />
     </jb-sideslider>
@@ -387,7 +386,6 @@
         searchParams: [],
         cronData: {},
         loading: false,
-        editTaskId: '',
         cronJobDetailInfo: {},
         currentOperate: 'create',
         historyRecordDialogTitle: '',
@@ -552,11 +550,11 @@
           this.handleCreate();
           return;
         }
-            
+
         if (!name && !cronJobId) {
           return;
         }
-            
+
         const unWatch = this.$watch(() => this.$refs.list.isLoading, (isLoading) => {
           if (!isLoading) {
             if (mode === 'detail') {
@@ -576,7 +574,7 @@
                 }
               });
             }
-                    
+
             unWatch();
           }
         });

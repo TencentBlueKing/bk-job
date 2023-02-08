@@ -50,6 +50,7 @@
         :original-value="originalHostNodeInfo"
         :show-dialog="isShowChooseIp"
         show-view
+        :show-view-diff="showViewDiff"
         :value="hostNodeInfo"
         @change="handleChange"
         @close-dialog="handleCloseIpSelector" />
@@ -61,6 +62,7 @@
     </div>
   </div>
 </template>
+
 <script>
   import _ from 'lodash';
 
@@ -73,6 +75,10 @@
         required: true,
       },
       readonly: {
+        type: Boolean,
+        default: false,
+      },
+      showViewDiff: {
         type: Boolean,
         default: false,
       },

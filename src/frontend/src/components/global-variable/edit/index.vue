@@ -91,7 +91,7 @@
         if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
           return 'div';
         }
-                
+
         return comMap[this.type];
       },
       boxClasses () {
