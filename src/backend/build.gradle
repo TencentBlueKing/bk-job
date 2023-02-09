@@ -75,7 +75,7 @@ ext {
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
     set('lombokVersion', "1.18.10")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-    set('jacksonVersion', "2.11.0")
+    set('jacksonVersion', "2.13.4")
     set('jaxrsVersion', "2.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
     set('logbackVersion', "1.2.10")
@@ -266,6 +266,7 @@ subprojects {
                 entry "jackson-databind"
                 entry "jackson-annotations"
             }
+            dependency "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
             dependencySet(group: 'ch.qos.logback', version: "$logbackVersion") {
                 entry "logback-core"
                 entry "logback-classic"
