@@ -96,8 +96,7 @@
           format="side-by-side"
           :language="language"
           :new-content="newContent"
-          :old-content="oldContent"
-          theme="dark" />
+          :old-content="oldContent" />
       </scroll-faker>
     </div>
     <i

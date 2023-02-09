@@ -65,13 +65,14 @@ import TippyTips from '@components/tippy-tips';
 import createIpSelector from '@blueking/ip-selector';
 
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
-import '@blueking/ip-selector/dist/styles/index.css';
+import '@blueking/ip-selector/dist/styles/vue2.6.x.css';
 
 const IpSelector = createIpSelector({
   version: '7',
   panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
   unqiuePanelValue: false,
   nameStyle: 'camelCase',
+  hostTableDefaultSelectAllMode: true,
   // hostTableCustomColumnList: [
   //     {
   //         key: 'a1',

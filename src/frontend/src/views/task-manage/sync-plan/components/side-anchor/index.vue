@@ -46,7 +46,7 @@
           @mouseenter="handleShowTips(item.name, `variable_${item.id}_${item.name}`)"
           @mouseleave="handleShowTips('', '')">
           <div class="anchor-text">
-            {{ item.name }}
+            <span>{{ item.name }}</span>
           </div>
         </div>
         <div class="item-title">
@@ -64,7 +64,7 @@
           @mouseenter="handleShowTips(item.name, `step_${item.id}`)"
           @mouseleave="handleShowTips('', '')">
           <div class="anchor-text">
-            {{ item.name }}
+            <span>{{ item.name }}</span>
           </div>
         </div>
       </div>
@@ -205,6 +205,7 @@
     .item {
       position: relative;
       display: flex;
+      height: 26px;
       padding-left: 26px;
       cursor: pointer;
       transition: all 0.3s linear;
