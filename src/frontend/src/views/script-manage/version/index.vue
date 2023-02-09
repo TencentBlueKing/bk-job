@@ -89,7 +89,7 @@
               :label="$t('script.版本号.colHead')"
               prop="version"
               show-overflow-tooltip
-              :sortable="true">
+              sortable>
               <template slot-scope="{ row }">
                 <a @click="handleShowDetail(row)">{{ row.version || '--' }}</a>
               </template>
@@ -133,7 +133,7 @@
               align="left"
               :label="$t('script.更新时间')"
               prop="lastModifyTime"
-              :sortable="true"
+              sortable
               width="200" />
             <bk-table-column
               v-if="allColumnMap.statusDesc"
@@ -141,7 +141,7 @@
               align="left"
               :label="$t('script.状态')"
               prop="statusDesc"
-              :sortable="true"
+              sortable
               width="120">
               <template slot-scope="{ row }">
                 <span v-html="row.statusHtml" />

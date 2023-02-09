@@ -54,7 +54,7 @@
             format="side-by-side"
             :new-content="newCode"
             :old-content="oldCode"
-            theme="dark" />
+            theme="light" />
         </scroll-faker>
       </div>
       <icon
@@ -94,7 +94,7 @@
       const dataSourceParent = findParent(this, 'SyncPlanStep2');
       const currentPlanStep = findStep(dataSourceParent.planStepList, currentStep.data.realId);
       const currentTemplateStep = findStep(dataSourceParent.templateStepList, currentStep.data.realId);
-            
+
       Promise.all([
         this.fetchContent(currentPlanStep),
         this.fetchContent(currentTemplateStep),
@@ -138,60 +138,66 @@
   };
 </script>
 <style lang='postcss'>
-  .sync-plan-script-content {
+.sync-plan-script-content {
+  display: flex;
+  align-items: center;
+  height: 24px;
+
+  .script-content-detail {
+    padding: 4px 5px;
+    font-size: 17px;
+    color: #3a84ff;
+    cursor: pointer;
+  }
+}
+
+.script-diff-dialog {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+  padding: 0 40px;
+  background: #fff;
+
+  .d2h-file-wrapper {
+    border: none;
+  }
+
+  .content-title {
     display: flex;
     align-items: center;
-    height: 24px;
+    height: 40px;
+    line-height: 40px;
 
-    .script-content-detail {
-      padding: 4px 5px;
-      font-size: 17px;
-      color: #3a84ff;
-      cursor: pointer;
+    .content-old,
+    .content-new {
+      flex: 1;
     }
   }
 
-  .script-diff-dialog {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 9999;
-    padding: 0 40px;
-    background: #fff;
+  .content-wraper {
+    height: calc(100vh - 40px);
+    line-height: initial;
+  }
 
-    .content-title {
-      display: flex;
-      align-items: center;
-      height: 40px;
-      line-height: 40px;
+  .content-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 26px;
+    height: 26px;
+    font-size: 22px;
+    line-height: 26px;
+    color: #979ba5;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 50%;
 
-      .content-old,
-      .content-new {
-        flex: 1;
-      }
-    }
-
-    .content-wraper {
-      height: calc(100vh - 40px);
-      line-height: initial;
-      background: #1d1d1d;
-    }
-
-    .content-close {
-      position: absolute;
-      top: 0;
-      right: 0;
-      padding: 5px;
-      font-size: 30px;
-      color: #1d1d1d;
-      cursor: pointer;
-      transition: all 0.15s;
-
-      &:hover {
-        transform: rotateZ(90deg);
-      }
+    &:hover {
+      background-color: #f0f1f5;
     }
   }
+}
 </style>
