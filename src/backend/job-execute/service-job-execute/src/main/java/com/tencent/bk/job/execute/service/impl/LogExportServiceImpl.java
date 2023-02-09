@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
@@ -182,25 +181,20 @@ public class LogExportServiceImpl implements LogExportService {
         return key;
     }
 
-    private void doPackage(LogExportJobInfoDTO exportJobInfo, long stepInstanceId, Long hostId,
-                           String ip, int executeCount, String logFileDir, String logFileName) {
+    private void doPackage(LogExportJobInfoDTO exportJobInfo,
+                           long stepInstanceId,
+                           Long hostId,
+                           String cloudIp,
+                           int executeCount,
+                           String logFileDir,
+                           String logFileName) {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(ip);
+        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(cloudIp);
         File logFile = new File(logFileDir + logFileName);
 
         StopWatch watch = new StopWatch("exportJobLog");
-        watch.start("listJobIps");
-        List<AgentTaskDTO> gseAgentTasks = new ArrayList<>();
-        if (isGetByHost) {
-            HostDTO host = HostDTO.fromHostIdAndCloudIp(hostId, ip);
-            AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, null,
-                host);
-            if (agentTask != null) {
-                gseAgentTasks.add(agentTask);
-            }
-        } else {
-            gseAgentTasks = scriptAgentTaskService.listAgentTasks(stepInstanceId, executeCount, null);
-        }
+        watch.start("getGseAgentTasks");
+        List<AgentTaskDTO> gseAgentTasks = getGseAgentTasks(stepInstance, executeCount, hostId, cloudIp);
         watch.stop();
 
         if (gseAgentTasks == null || gseAgentTasks.isEmpty()) {
@@ -209,42 +203,100 @@ public class LogExportServiceImpl implements LogExportService {
             return;
         }
 
-        Collection<LogBatchQuery> querys = buildLogBatchQuery(stepInstanceId, gseAgentTasks);
+        watch.start("getLogContentAndWriteToFile");
+        if (!getLogContentAndWriteToFile(stepInstance, gseAgentTasks, logFile, isGetByHost, exportJobInfo)) {
+            log.warn("Fail to getLogContentAndWriteToFile");
+            return;
+        }
+        watch.stop();
 
-        watch.start("getLogContent");
+        watch.start("zipLogFileAndSaveToBackend");
+        zipLogFileAndSaveToBackend(logFile, exportJobInfo, logFileName);
+        watch.stop();
+
+        if (watch.getTotalTimeMillis() > 10000L) {
+            log.info("Export job execution log is slow, cost: {}", watch.prettyPrint());
+        }
+    }
+
+    /**
+     * 根据hostId或CloudIP获取日志记录信息，hostId与CloudIP均为空则获取所有目标机器日志记录信息
+     *
+     * @param stepInstance 步骤实例
+     * @param executeCount 重试次数
+     * @param hostId       要获取日志记录的主机ID
+     * @param cloudIp      要获取日志记录的CloudIP
+     * @return 日志记录信息列表
+     */
+    private List<AgentTaskDTO> getGseAgentTasks(StepInstanceBaseDTO stepInstance,
+                                                int executeCount,
+                                                Long hostId,
+                                                String cloudIp) {
+        List<AgentTaskDTO> gseAgentTasks = new ArrayList<>();
+        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(cloudIp);
+        if (isGetByHost) {
+            HostDTO host = HostDTO.fromHostIdAndCloudIp(hostId, cloudIp);
+            AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, null,
+                host);
+            if (agentTask != null) {
+                gseAgentTasks.add(agentTask);
+            }
+        } else {
+            gseAgentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
+        }
+        return gseAgentTasks;
+    }
+
+    private boolean getLogContentAndWriteToFile(StepInstanceBaseDTO stepInstance,
+                                                List<AgentTaskDTO> gseAgentTasks,
+                                                File logFile,
+                                                boolean isGetByHost,
+                                                LogExportJobInfoDTO exportJobInfo) {
+        Collection<LogBatchQuery> querys = buildLogBatchQuery(stepInstance.getId(), gseAgentTasks);
+
         String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
         try (PrintWriter out = new PrintWriter(logFile, "UTF-8")) {
             for (LogBatchQuery query : querys) {
                 for (List<HostDTO> hosts : query.getHostBatches()) {
-                    List<ScriptHostLogContent> scriptHostLogContentList =
-                        logService.batchGetScriptHostLogContent(jobCreateDate, stepInstanceId, query.getExecuteCount(),
-                            null, hosts);
-                    for (ScriptHostLogContent scriptHostLogContent : scriptHostLogContentList) {
-                        if (scriptHostLogContent != null && StringUtils.isNotEmpty(scriptHostLogContent.getContent())) {
-                            String[] logList = scriptHostLogContent.getContent().split("\n");
-                            for (String log : logList) {
-                                if (isGetByHost) {
-                                    out.println(log);
-                                } else {
-                                    out.println(scriptHostLogContent.getIp() + " | " + log);
-                                }
-                            }
-                        }
-
-                    }
+                    writeOneBatchIpLogs(out, jobCreateDate, stepInstance, query, hosts, isGetByHost);
                 }
             }
             out.flush();
+            return true;
         } catch (Exception e) {
             log.warn("Export execution log fail", e);
             FileUtils.deleteQuietly(logFile);
             markJobFailed(exportJobInfo);
-            return;
+            return false;
         }
-        watch.stop();
+    }
 
-        watch.start("zipLogFile");
+    private void writeOneBatchIpLogs(PrintWriter out,
+                                     String jobCreateDate,
+                                     StepInstanceBaseDTO stepInstance,
+                                     LogBatchQuery query,
+                                     List<HostDTO> hosts,
+                                     boolean isGetByHost) {
+        List<ScriptHostLogContent> scriptHostLogContentList =
+            logService.batchGetScriptHostLogContent(jobCreateDate, stepInstance.getId(),
+                query.getExecuteCount(),
+                null, hosts);
+        for (ScriptHostLogContent scriptHostLogContent : scriptHostLogContentList) {
+            if (scriptHostLogContent != null && StringUtils.isNotEmpty(scriptHostLogContent.getContent())) {
+                String[] logList = scriptHostLogContent.getContent().split("\n");
+                for (String log : logList) {
+                    if (isGetByHost) {
+                        out.println(log);
+                    } else {
+                        out.println(scriptHostLogContent.getIp() + " | " + log);
+                    }
+                }
+            }
+        }
+    }
+
+    private void zipLogFileAndSaveToBackend(File logFile, LogExportJobInfoDTO exportJobInfo, String logFileName) {
         try {
             File zipFile = ZipUtil.zip(logFile.getAbsolutePath());
             if (zipFile == null) {
@@ -255,39 +307,38 @@ public class LogExportServiceImpl implements LogExportService {
                 FileUtils.deleteQuietly(logFile);
             }
             long zipFileLength = zipFile.length();
-            // 将zip文件上传至制品库
-            if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(logExportConfig.getStorageBackend())) {
-                try {
-                    artifactoryClient.uploadGenericFile(
-                        artifactoryConfig.getArtifactoryJobProject(),
-                        logExportConfig.getLogExportRepo(),
-                        zipFile.getName(),
-                        zipFile
-                    );
-                    FileUtils.deleteQuietly(zipFile);
-                } catch (Exception e) {
-                    String msg = MessageFormatter.format(
-                        "Fail to upload {} to artifactory",
-                        zipFile.getAbsolutePath()
-                    ).getMessage();
-                    log.error(msg, e);
-                    markJobFailed(exportJobInfo);
-                    return;
-                }
-            }
+            uploadZipFileToArtifactoryIfNeeded(zipFile, exportJobInfo);
             exportJobInfo.setStatus(LogExportStatusEnum.SUCCESS);
             exportJobInfo.setZipFileName(logFileName + ".zip");
             exportJobInfo.setFileSize(zipFileLength);
             saveExportInfo(exportJobInfo);
         } catch (Exception e) {
-            log.warn("Zip log file fail, fileName={}", logFile.getName());
+            log.warn("zipLogFileAndSaveToBackend fail, fileName={}", logFile.getName());
             markJobFailed(exportJobInfo);
+        }
+    }
+
+    private void uploadZipFileToArtifactoryIfNeeded(File zipFile, LogExportJobInfoDTO exportJobInfo) {
+        if (!JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(logExportConfig.getStorageBackend())) {
             return;
         }
-        watch.stop();
-
-        if (watch.getTotalTimeMillis() > 10000L) {
-            log.info("Export job execution log is slow, cost: {}", watch.prettyPrint());
+        // 将zip文件上传至制品库
+        try {
+            artifactoryClient.uploadGenericFile(
+                artifactoryConfig.getArtifactoryJobProject(),
+                logExportConfig.getLogExportRepo(),
+                zipFile.getName(),
+                zipFile
+            );
+            FileUtils.deleteQuietly(zipFile);
+        } catch (Exception e) {
+            String msg = MessageFormatter.format(
+                "Fail to upload {} to artifactory",
+                zipFile.getAbsolutePath()
+            ).getMessage();
+            log.error(msg, e);
+            markJobFailed(exportJobInfo);
+            throw e;
         }
     }
 
