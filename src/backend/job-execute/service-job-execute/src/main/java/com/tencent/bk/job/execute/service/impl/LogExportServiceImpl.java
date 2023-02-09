@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.trace.executors.TraceableExecutorService;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
@@ -253,6 +254,7 @@ public class LogExportServiceImpl implements LogExportService {
             } else {
                 FileUtils.deleteQuietly(logFile);
             }
+            long zipFileLength = zipFile.length();
             // 将zip文件上传至制品库
             if (JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(logExportConfig.getStorageBackend())) {
                 try {
@@ -275,7 +277,7 @@ public class LogExportServiceImpl implements LogExportService {
             }
             exportJobInfo.setStatus(LogExportStatusEnum.SUCCESS);
             exportJobInfo.setZipFileName(logFileName + ".zip");
-            exportJobInfo.setFileSize(zipFile.length());
+            exportJobInfo.setFileSize(zipFileLength);
             saveExportInfo(exportJobInfo);
         } catch (Exception e) {
             log.warn("Zip log file fail, fileName={}", logFile.getName());
