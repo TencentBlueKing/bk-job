@@ -13,15 +13,15 @@ spring:
     properties:
       org:
         quartz:
-          jobStore:
-            class: org.quartz.impl.jdbcjobstore.JobStoreTX
-            clusterCheckinInterval: 20000
-            dataSource: myDS
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-            isClustered: true
-            selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
-            tablePrefix: QRTZ_
-            useProperties: true
+#          jobStore:
+#            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+#            clusterCheckinInterval: 20000
+#            dataSource: myDS
+#            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+#            isClustered: true
+#            selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
+#            tablePrefix: QRTZ_
+#            useProperties: true
           plugin:
             shutdownhook:
               class: org.quartz.plugins.management.ShutdownHookPlugin
