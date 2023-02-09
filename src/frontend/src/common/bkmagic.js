@@ -95,7 +95,7 @@ export const loginDialog = (url) => {
     }
     pathname += 'plain/';
     res += pathname;
-        
+
     if (search) {
       res += `?${search}`;
     }
@@ -104,7 +104,7 @@ export const loginDialog = (url) => {
     }
     return res;
   };
-    
+
   const loginUrl = generatorLoginUrl(url);
 
   if (loginInstance) {
