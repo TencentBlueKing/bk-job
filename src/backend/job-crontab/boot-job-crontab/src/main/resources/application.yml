@@ -30,8 +30,10 @@ spring:
               class: org.quartz.plugins.history.LoggingJobHistoryPlugin
           scheduler:
             batchTriggerAcquisitionMaxCount: 50
+            # 调度器名称
+            schedulerName: quartz-scheduler
             # 调度器实例名称
-            instanceName: Job_Crontab_Quartz_Scheduler
+            instanceName: quartz-scheduler
             # 调度器实例编号自动生成
             instanceId: AUTO
             skipUpdateCheck: true
