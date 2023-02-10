@@ -22,26 +22,69 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab;
+package com.tencent.bk.job.crontab.config;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import com.tencent.bk.job.crontab.config.JobQuartzProperties;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Profile;
 
 /**
- * @date 2019/09/20
+ * Job 扩展的quartz配置
  */
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
-@EnableFeignClients
-@EnableConfigurationProperties({FeatureToggleConfig.class, JobQuartzProperties.class})
-public class JobCrontabBootApplication {
+@Data
+@Profile({"prod", "dev"})
+@ConfigurationProperties(prefix = "spring.quartz")
+public class JobQuartzProperties {
+    /**
+     * 线程池配置
+     */
+    private ThreadPool threadPool = new ThreadPool();
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobCrontabBootApplication.class, args);
+    /**
+     * Scheduler 配置
+     */
+    private Scheduler scheduler = new Scheduler();
+
+    public JobQuartzProperties() {
+
     }
 
+    @Data
+    public static class ThreadPool {
+        private String threadNamePrefix;
+
+        private int threadPriority = 5;
+
+        private boolean daemon = false;
+
+        private String threadGroupName;
+
+        private int corePoolSize = 10;
+
+        private int maxPoolSize = Integer.MAX_VALUE;
+
+        private int keepAliveSeconds = 60;
+
+        private int queueCapacity = Integer.MAX_VALUE;
+
+        private boolean allowCoreThreadTimeOut = false;
+
+        private boolean waitForTasksToCompleteOnShutdown = false;
+
+        private int awaitTerminationSeconds = 0;
+    }
+
+    @Data
+    public static class Scheduler {
+
+        private String schedulerName;
+
+        private String applicationContextSchedulerContextKey = "applicationContext";
+
+        private boolean overwriteExistingJobs = true;
+
+        private boolean autoStartup = true;
+
+        private int startupDelay = 5;
+    }
 }
