@@ -60,6 +60,11 @@ spring:
         max-wait: 1ms
       shutdown-timeout: 100ms
   quartz:
+    # 使用数据库存储
+    job-store-type: jdbc
+    jdbc:
+      # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
+      initialize-schema: never
     thread-pool:
       thread-name-prefix: QuartzThreadPoolTaskExecutor-
       thread-priority: 5
@@ -73,7 +78,6 @@ spring:
       waitfor-tasks-tocomplete-onshutdown: true
       await-termination-seconds: 900
     scheduler:
-      config-location: classpath:quartz.properties
       scheduler-name: quartz-scheduler
       application-context-scheduler-contextkey: applicationContext
       overwrite-existing-jobs: true
@@ -82,10 +86,27 @@ spring:
     properties:
       org:
         quartz:
+          jobStore:
+            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+            clusterCheckinInterval: 20000
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: true
+            selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
+            tablePrefix: QRTZ_
+            useProperties: true
+          plugin:
+            shutdownhook:
+              class: org.quartz.plugins.management.ShutdownHookPlugin
+              cleanShutdown: true
+            triggHistory:
+              class: org.quartz.plugins.history.LoggingJobHistoryPlugin
           scheduler:
-            batchTriggerAcquisitionMaxCount: 150
-          threadPool:
-            threadCount: 150
+            # 调度器实例名称
+            instanceName: quartz-scheduler
+            # 调度器实例编号自动生成
+            instanceId: AUTO
+            skipUpdateCheck: true
+            batchTriggerAcquisitionMaxCount: 50
 ribbon:
   ReadTimeout: 120000
   ConnectTimeout: 10000

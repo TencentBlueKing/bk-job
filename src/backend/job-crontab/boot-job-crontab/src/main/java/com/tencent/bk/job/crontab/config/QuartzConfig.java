@@ -36,7 +36,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * Quartz 设置
  */
 @Configuration
-@Profile({"prod", "dev"})
+@Profile("!test")
 public class QuartzConfig {
 
     private final JobQuartzProperties jobQuartzProperties;

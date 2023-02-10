@@ -27,12 +27,13 @@ package com.tencent.bk.job.crontab.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Job 扩展的quartz配置
+ * Job 扩展的 quartz 配置
  */
 @Data
-@Profile({"prod", "dev"})
+@Profile("!test")
 @ConfigurationProperties(prefix = "spring.quartz")
 public class JobQuartzProperties {
     /**
@@ -49,6 +50,10 @@ public class JobQuartzProperties {
 
     }
 
+    /**
+     * 执行定时任务的线程池配置，配置参考 ThreadPoolTaskExecutor
+     * @see ThreadPoolTaskExecutor
+     */
     @Data
     public static class ThreadPool {
         private String threadNamePrefix;
