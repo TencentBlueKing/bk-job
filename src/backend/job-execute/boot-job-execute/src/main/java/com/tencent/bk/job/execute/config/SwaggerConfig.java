@@ -56,6 +56,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
             .host(config.getSwaggerUrl() + "/job-execute")
+            .pathMapping("/job-execute")
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.execute.api"))

@@ -53,6 +53,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
             .host(bkConfig.getSwaggerUrl() + "/job-gateway")
+            .pathMapping("/job-gateway")
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.gateway.api"))
