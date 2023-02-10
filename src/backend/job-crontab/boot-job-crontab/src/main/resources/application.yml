@@ -13,15 +13,15 @@ spring:
     properties:
       org:
         quartz:
-#          jobStore:
-#            class: org.quartz.impl.jdbcjobstore.JobStoreTX
-#            clusterCheckinInterval: 20000
-#            dataSource: myDS
-#            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-#            isClustered: true
-#            selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
-#            tablePrefix: QRTZ_
-#            useProperties: true
+          jobStore:
+            # In new spring use LocalDataSourceJobStore https://github.com/spring-projects/spring-framework/issues/27709
+            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+            clusterCheckinInterval: 20000
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: true
+            selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
+            tablePrefix: QRTZ_
+            useProperties: true
           plugin:
             shutdownhook:
               class: org.quartz.plugins.management.ShutdownHookPlugin
@@ -30,8 +30,10 @@ spring:
               class: org.quartz.plugins.history.LoggingJobHistoryPlugin
           scheduler:
             batchTriggerAcquisitionMaxCount: 50
-            instanceId: AUTO
+            # 调度器实例名称
             instanceName: Job_Crontab_Quartz_Scheduler
+            # 调度器实例编号自动生成
+            instanceId: AUTO
             skipUpdateCheck: true
           threadPool:
             class: org.quartz.simpl.SimpleThreadPool
