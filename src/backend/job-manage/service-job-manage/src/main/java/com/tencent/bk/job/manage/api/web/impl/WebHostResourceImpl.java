@@ -655,7 +655,6 @@ public class WebHostResourceImpl implements WebHostResource {
         }
         List<String> dynamicGroupIdList = agentStatisticsReq.getDynamicGroupIds();
         if (CollectionUtils.isNotEmpty(dynamicGroupIdList)) {
-            long bizId = Long.parseLong(scopeId);
             List<ApplicationHostDTO> hostsByDynamicGroup = new ArrayList<>();
             for (String id : dynamicGroupIdList) {
                 hostsByDynamicGroup.addAll(bizDynamicGroupHostService.listHostByDynamicGroup(appResourceScope, id));
