@@ -55,8 +55,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
-            .host(jobManageConfig.getSwaggerUrl() + "/job-manage")
-            .pathMapping("/job-manage")
+            .host(jobManageConfig.getSwaggerUrl())
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.manage.api"))

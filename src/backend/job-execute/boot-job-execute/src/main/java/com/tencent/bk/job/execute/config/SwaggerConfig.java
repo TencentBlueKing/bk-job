@@ -55,7 +55,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
-            .host(config.getSwaggerUrl() + "/job-execute")
+            .host(config.getSwaggerUrl())
             .pathMapping("/job-execute")
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()

@@ -52,8 +52,7 @@ public class SwaggerConfig {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
-            .host(bkConfig.getSwaggerUrl() + "/job-file-gateway")
-            .pathMapping("/job-file-gateway")
+            .host(bkConfig.getSwaggerUrl())
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.file_gateway.api"))
