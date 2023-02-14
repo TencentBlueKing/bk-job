@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <contextName>logback</contextName>
+
+    <property name="APP_NAME" value="${APP_NAME:-job-crontab}"/>
+    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-crontab}"/>
+    <property name="APP_LOG_NAME" value="crontab.log"/>
+    <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
+
+    <include resource="logback-default.xml"/>
+
+</configuration>

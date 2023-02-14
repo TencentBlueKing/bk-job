@@ -1,6 +1,0 @@
-<included>
-    <property name="APP_NAME" value="${APP_NAME:-job-analysis}"/>
-    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-analysis}"/>
-    <property name="APP_LOG_NAME" value="analysis.log"/>
-</included>
