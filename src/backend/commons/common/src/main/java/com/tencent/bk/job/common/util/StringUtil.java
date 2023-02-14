@@ -43,9 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * @Description 字符串处理工具类
- * @Date 2020/3/6
- * @Version 1.0
+ * 字符串处理工具类
  */
 @Slf4j
 public class StringUtil {

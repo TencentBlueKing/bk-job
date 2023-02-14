@@ -84,8 +84,10 @@ public abstract class AbstractBkApiClient {
             error = true;
             throw e;
         } finally {
-            log.info("Post url {}| error={}| params={}| time={}| resp={}", url, error,
-                JsonUtils.toJsonWithoutSkippedFields(body), (System.currentTimeMillis() - start), responseBody);
+            if (log.isDebugEnabled()) {
+                log.debug("Post url {}| error={}| params={}| time={}| resp={}", url, error,
+                    JsonUtils.toJsonWithoutSkippedFields(body), (System.currentTimeMillis() - start), responseBody);
+            }
         }
     }
 
@@ -124,7 +126,9 @@ public abstract class AbstractBkApiClient {
                 log.error(errorMsg);
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             } else {
-                log.debug("Success|method={}|uri={}|reqStr={}|respStr={}", "POST", uri, reqBody, respStr);
+                if (log.isDebugEnabled()) {
+                    log.debug("Success|method={}|uri={}|reqStr={}|respStr={}", "POST", uri, reqBody, respStr);
+                }
             }
             EsbResp<R> esbResp = JsonUtils.fromJson(respStr, typeReference);
             if (esbResp == null) {
