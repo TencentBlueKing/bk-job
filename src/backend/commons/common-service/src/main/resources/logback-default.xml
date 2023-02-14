@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <included>
     <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
