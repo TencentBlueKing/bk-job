@@ -28,20 +28,20 @@
 import AppManageSource from '../source/app-manage';
 
 export default {
-    fetchAppList () {
-        return AppManageSource.getWholeAppList()
-            .then(({ data }) => Object.freeze(data.data));
-    },
-    fetchWholeAppList () {
-        return AppManageSource.getWholeAppList()
-            .then(({ data }) => Object.freeze(data));
-    },
-    favorApp (params) {
-        return AppManageSource.updateFavorApp(params)
-            .then(({ data }) => data);
-    },
-    cancelFavorApp (params) {
-        return AppManageSource.updateCancelFavorApp(params)
-            .then(({ data }) => data);
-    },
+  fetchAppList () {
+    return AppManageSource.getWholeAppList()
+      .then(({ data }) => Object.freeze(data.data));
+  },
+  fetchWholeAppList () {
+    return AppManageSource.getWholeAppList()
+      .then(({ data }) => Object.freeze(data));
+  },
+  favorApp (params) {
+    return AppManageSource.updateFavorApp(params)
+      .then(({ data }) => data);
+  },
+  cancelFavorApp (params) {
+    return AppManageSource.updateCancelFavorApp(params)
+      .then(({ data }) => data);
+  },
 };

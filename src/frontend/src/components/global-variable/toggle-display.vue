@@ -26,73 +26,73 @@
 -->
 
 <template>
-    <div class="toggle-display">
-        <div
-            class="action"
-            :class="{
-                open: isOpen,
-            }"
-            @click="handleToggle">
-            <div v-show="isOpen">
-                <Icon
-                    class="toggle-arrow"
-                    type="angle-double-up" />
-                <span>{{ $t('收起未引用的变量') }} ({{ count }})</span>
-            </div>
-            <div v-show="!isOpen">
-                <Icon
-                    class="toggle-arrow"
-                    type="angle-double-down" />
-                <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
-            </div>
-        </div>
-        <div v-if="isOpen">
-            <slot />
-        </div>
+  <div class="toggle-display">
+    <div
+      class="action"
+      :class="{
+        open: isOpen,
+      }"
+      @click="handleToggle">
+      <div v-show="isOpen">
+        <icon
+          class="toggle-arrow"
+          type="angle-double-up" />
+        <span>{{ $t('收起未引用的变量') }} ({{ count }})</span>
+      </div>
+      <div v-show="!isOpen">
+        <icon
+          class="toggle-arrow"
+          type="angle-double-down" />
+        <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
+      </div>
     </div>
+    <div v-if="isOpen">
+      <slot />
+    </div>
+  </div>
 </template>
 <script>
-    export default {
-        name: 'GlobalVariableToggleDisplay',
-        props: {
-            count: {
-                type: Number,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isOpen: false,
-            };
-        },
-        methods: {
-            handleToggle () {
-                this.isOpen = !this.isOpen;
-            },
-        },
-    };
+  export default {
+    name: 'GlobalVariableToggleDisplay',
+    props: {
+      count: {
+        type: Number,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isOpen: false,
+      };
+    },
+    methods: {
+      handleToggle () {
+        this.isOpen = !this.isOpen;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
-    .toggle-display {
-        .action {
-            display: flex;
-            align-items: center;
-            height: 32px;
-            font-size: 14px;
-            color: #3a84ff;
-            cursor: pointer;
-            border-radius: 2px;
-            user-select: none;
+  .toggle-display {
+    .action {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      font-size: 14px;
+      color: #3a84ff;
+      cursor: pointer;
+      border-radius: 2px;
+      user-select: none;
 
-            &.open {
-                padding-left: 8px;
-                background: #e1ecff;
-            }
-        }
-
-        .toggle-arrow {
-            margin-right: 3px;
-            font-size: 12px;
-        }
+      &.open {
+        padding-left: 8px;
+        background: #e1ecff;
+      }
     }
+
+    .toggle-arrow {
+      margin-right: 3px;
+      font-size: 12px;
+    }
+  }
 </style>

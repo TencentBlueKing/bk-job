@@ -29,14 +29,14 @@
  * @returns { String }
  */
 export const encodeRegexp = (paramStr) => {
-    const regexpKeyword = [
-        '\\', '.', '*', '-', '{', '}', '[', ']', '^', '(', ')', '$', '+', '?', '|',
-    ];
-    const res = regexpKeyword.reduce(
-        (result, charItem) => result.replace(new RegExp(`\\${charItem}`, 'g'), `\\${charItem}`),
-        paramStr,
-    );
-    return res;
+  const regexpKeyword = [
+    '\\', '.', '*', '-', '{', '}', '[', ']', '^', '(', ')', '$', '+', '?', '|',
+  ];
+  const res = regexpKeyword.reduce(
+    (result, charItem) => result.replace(new RegExp(`\\${charItem}`, 'g'), `\\${charItem}`),
+    paramStr,
+  );
+  return res;
 };
 
 /**
@@ -45,9 +45,9 @@ export const encodeRegexp = (paramStr) => {
  * @returns { String }
  */
 export const encodeMult = (text) => {
-    const temp = document.createElement('textarea');
-    temp.value = text;
-    return temp.value;
+  const temp = document.createElement('textarea');
+  temp.value = text;
+  return temp.value;
 };
 
 /**
@@ -56,5 +56,5 @@ export const encodeMult = (text) => {
  * @returns { String }
  */
 export const escapeHTML = str => str.replace(/&/g, '&#38;').replace(/"/g, '&#34;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&#60;');
+  .replace(/'/g, '&#39;')
+  .replace(/</g, '&#60;');

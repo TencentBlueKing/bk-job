@@ -31,24 +31,24 @@ import distroFile from './modules/distro-file';
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
-    state: {
-        scriptCheckError: null,
-    },
-    getters: {
+  state: {
+    scriptCheckError: null,
+  },
+  getters: {
         
+  },
+  mutations: {
+    setScriptCheckError (state, value) {
+      state.scriptCheckError = value;
     },
-    mutations: {
-        setScriptCheckError (state, value) {
-            state.scriptCheckError = value;
-        },
-    },
-    actions: {
+  },
+  actions: {
         
-    },
-    // 模块
-    modules: {
-        distroFile,
-    },
+  },
+  // 模块
+  modules: {
+    distroFile,
+  },
 });
 
 export default store;

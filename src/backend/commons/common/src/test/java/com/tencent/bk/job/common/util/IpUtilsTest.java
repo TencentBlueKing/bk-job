@@ -164,4 +164,13 @@ public class IpUtilsTest {
         bkCloudId = IpUtils.extractBkCloudId(cloudIpv6);
         assertThat(bkCloudId).isEqualTo(0L);
     }
+
+    @Test
+    void testGetFirstIpFromMultiIp() {
+        assertThat(IpUtils.getFirstIpFromMultiIp(null, ",")).isNull();
+        assertThat(IpUtils.getFirstIpFromMultiIp("", ",")).isEqualTo("");
+        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1", ",")).isEqualTo("192.168.1.1");
+        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1,", ",")).isEqualTo("192.168.1.1");
+        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1,192.168.1.2", ",")).isEqualTo("192.168.1.1");
+    }
 }

@@ -26,90 +26,90 @@
 -->
 
 <template>
-    <jb-form
-        ref="form"
-        form-type="vertical"
-        :model="formData"
-        :rules="rules">
-        <jb-form-item
-            :label="$t('ticket.用户名')"
-            property="value1"
-            required>
-            <bk-input v-model="formData.value1" />
-        </jb-form-item>
-        <jb-form-item
-            :label="$t('ticket.密码')"
-            property="value2"
-            required>
-            <bk-input
-                v-model="formData.value2"
-                type="password" />
-        </jb-form-item>
-        <jb-form-item :label="$t('ticket.描述')">
-            <bk-input
-                v-model="formData.description"
-                maxlength="100"
-                type="textarea" />
-        </jb-form-item>
-    </jb-form>
+  <jb-form
+    ref="form"
+    form-type="vertical"
+    :model="formData"
+    :rules="rules">
+    <jb-form-item
+      :label="$t('ticket.用户名')"
+      property="value1"
+      required>
+      <bk-input v-model="formData.value1" />
+    </jb-form-item>
+    <jb-form-item
+      :label="$t('ticket.密码')"
+      property="value2"
+      required>
+      <bk-input
+        v-model="formData.value2"
+        type="password" />
+    </jb-form-item>
+    <jb-form-item :label="$t('ticket.描述')">
+      <bk-input
+        v-model="formData.description"
+        maxlength="100"
+        type="textarea" />
+    </jb-form-item>
+  </jb-form>
 </template>
 
 <script>
-    import I18n from '@/i18n';
+  import I18n from '@/i18n';
 
-    export default {
-        name: 'UsernamePassword',
-        props: {
-            data: {
-                type: Object,
-                defaule: () => ({}),
-            },
-            type: {
-                type: String,
-                default: '',
-            },
+  export default {
+    name: 'UsernamePassword',
+    props: {
+      data: {
+        type: Object,
+        defaule: () => ({}),
+      },
+      type: {
+        type: String,
+        default: '',
+      },
+    },
+    data () {
+      return {
+        formData: {
+          value1: this.data.value1,
+          value2: this.data.value2,
+          description: this.data.description,
         },
-        data () {
-            return {
-                formData: {
-                    value1: this.data.value1,
-                    value2: this.data.value2,
-                    description: this.data.description,
-                },
-            };
-        },
-        created () {
-            if (this.type !== 'USERNAME_PASSWORD') {
-                this.formData.value1 = '';
-                this.formData.value2 = '';
-            }
-            this.rules = {
-                value1: [
-                    {
-                        required: true,
-                        message: I18n.t('ticket.密码必填'),
-                        trigger: 'blur',
-                    },
-                ],
-                value2: [
-                    {
-                        required: true,
-                        message: I18n.t('ticket.用户名必填'),
-                        trigger: 'blur',
-                    },
-                ],
-            };
-        },
-        methods: {
-            /**
-             * @desc 校验表单
-             *
-             * 校验成功传递表单数据到父组件
-             */
-            getData () {
-                return this.$refs.form.validate()
-                    .then(validator => this.formData, validator => Promise.reject(validator.content));
-            },
-        },
-    };
+      };
+    },
+    created () {
+      if (this.type !== 'USERNAME_PASSWORD') {
+        this.formData.value1 = '';
+        this.formData.value2 = '';
+      }
+      this.rules = {
+        value1: [
+          {
+            required: true,
+            message: I18n.t('ticket.密码必填'),
+            trigger: 'blur',
+          },
+        ],
+        value2: [
+          {
+            required: true,
+            message: I18n.t('ticket.用户名必填'),
+            trigger: 'blur',
+          },
+        ],
+      };
+    },
+    methods: {
+      /**
+       * @desc 校验表单
+       *
+       * 校验成功传递表单数据到父组件
+       */
+      getData () {
+        return this.$refs.form.validate()
+          .then(validator => this.formData, validator => Promise.reject(validator.content));
+      },
+    },
+  };
 </script>

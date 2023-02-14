@@ -29,16 +29,16 @@
  * @returns { Array } 被使用的全局变量
  */
 export const findUsedVariable = (stepList) => {
-    const variableSet = new Set();
-    stepList.forEach((step) => {
-        step.refVariables.forEach((variableName) => {
-            variableSet.add(variableName);
-        });
+  const variableSet = new Set();
+  stepList.forEach((step) => {
+    step.refVariables.forEach((variableName) => {
+      variableSet.add(variableName);
     });
+  });
     
-    return [
-        ...variableSet,
-    ];
+  return [
+    ...variableSet,
+  ];
 };
 
 /**
@@ -47,14 +47,14 @@ export const findUsedVariable = (stepList) => {
  * @returns { Boolean }
  */
 export const checkPublicScript = (route) => {
-    const { meta } = route;
-    if (!meta) {
-        return false;
-    }
-    if (meta.public) {
-        return true;
-    }
+  const { meta } = route;
+  if (!meta) {
     return false;
+  }
+  if (meta.public) {
+    return true;
+  }
+  return false;
 };
 
 /**
@@ -64,70 +64,70 @@ export const checkPublicScript = (route) => {
  * @returns { Boolean }
  */
 export const compareHost = (preHost, nextHost) => {
-    // 全都使用了主机变量
-    if (nextHost.variable && nextHost.variable === preHost.variable) {
-        return true;
-    }
-    // 服务文件主机手动添加
-    // 目标服务器主机使用主机变量
-    if (nextHost.variable) {
-        return false;
-    }
-    // 全都手动添加对比值
-    const {
-        hostList: preIPList,
-        nodeList: preNodeList,
-        dynamicGroupList: preGroupList,
-    } = preHost.hostNodeInfo;
-    const {
-        hostList: nextIPList,
-        nodeList: nextNodeList,
-        dynamicGroupList: nextGroupList,
-    } = nextHost.hostNodeInfo;
-    // 对比主机
-    if (preIPList.length !== nextIPList.length) {
-        return false;
-    }
-    const preIPMap = preIPList.reduce((result, host) => {
-        result[host.hostId] = true;
-        return result;
-    }, {});
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < nextIPList.length; i++) {
-        if (!preIPMap[nextIPList[i].hostId]) {
-            return false;
-        }
-    }
-    // 对比节点
-    if (preNodeList.length !== nextNodeList.length) {
-        return false;
-    }
-    const genNodeKey = node => `#${node.id}#${node.type}`;
-    const taretNodeMap = preNodeList.reduce((result, node) => {
-        result[genNodeKey(node)] = true;
-        return result;
-    }, {});
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < nextNodeList.length; i++) {
-        if (!taretNodeMap[genNodeKey(nextNodeList[i])]) {
-            return false;
-        }
-    }
-    // 对比分组
-    if (preGroupList.length !== nextGroupList.length) {
-        return false;
-    }
-    const preGroupMap = preGroupList.reduce((result, groupId) => {
-        result[groupId] = true;
-        return result;
-    }, {});
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < nextGroupList.length; i++) {
-        if (!preGroupMap[nextGroupList[i]]) {
-            return false;
-        }
-    }
+  // 全都使用了主机变量
+  if (nextHost.variable && nextHost.variable === preHost.variable) {
     return true;
+  }
+  // 服务文件主机手动添加
+  // 目标服务器主机使用主机变量
+  if (nextHost.variable) {
+    return false;
+  }
+  // 全都手动添加对比值
+  const {
+    hostList: preIPList,
+    nodeList: preNodeList,
+    dynamicGroupList: preGroupList,
+  } = preHost.hostNodeInfo;
+  const {
+    hostList: nextIPList,
+    nodeList: nextNodeList,
+    dynamicGroupList: nextGroupList,
+  } = nextHost.hostNodeInfo;
+    // 对比主机
+  if (preIPList.length !== nextIPList.length) {
+    return false;
+  }
+  const preIPMap = preIPList.reduce((result, host) => {
+    result[host.hostId] = true;
+    return result;
+  }, {});
+    // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < nextIPList.length; i++) {
+    if (!preIPMap[nextIPList[i].hostId]) {
+      return false;
+    }
+  }
+  // 对比节点
+  if (preNodeList.length !== nextNodeList.length) {
+    return false;
+  }
+  const genNodeKey = node => `#${node.id}#${node.type}`;
+  const taretNodeMap = preNodeList.reduce((result, node) => {
+    result[genNodeKey(node)] = true;
+    return result;
+  }, {});
+    // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < nextNodeList.length; i++) {
+    if (!taretNodeMap[genNodeKey(nextNodeList[i])]) {
+      return false;
+    }
+  }
+  // 对比分组
+  if (preGroupList.length !== nextGroupList.length) {
+    return false;
+  }
+  const preGroupMap = preGroupList.reduce((result, groupId) => {
+    result[groupId] = true;
+    return result;
+  }, {});
+    // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < nextGroupList.length; i++) {
+    if (!preGroupMap[nextGroupList[i]]) {
+      return false;
+    }
+  }
+  return true;
 };
 
 /**
@@ -136,40 +136,40 @@ export const compareHost = (preHost, nextHost) => {
  * @returns { Boolean }
  */
 export const detectionSourceFileDupLocation = (fileSourceList) => {
-    const fileLocationMap = {};
-    const pathReg = /([^/]+\/?)\*?$/;
-    // 路径中以 * 结尾表示分发所有文件，可能和分发具体文件冲突
-    let hasDirAllFile = false;
-    let hasFile = false;
+  const fileLocationMap = {};
+  const pathReg = /([^/]+\/?)\*?$/;
+  // 路径中以 * 结尾表示分发所有文件，可能和分发具体文件冲突
+  let hasDirAllFile = false;
+  let hasFile = false;
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < fileSourceList.length; i++) {
+    const currentFileSource = fileSourceList[i];
     // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < fileSourceList.length; i++) {
-        const currentFileSource = fileSourceList[i];
-        // eslint-disable-next-line no-plusplus
-        for (let j = 0; j < currentFileSource.fileLocation.length; j++) {
-            const currentFileLocation = currentFileSource.fileLocation[j];
-            // 分发所有文件
-            if (/\*$/.test(currentFileLocation)) {
-                hasDirAllFile = true;
-                if (hasFile) {
-                    return true;
-                }
-                continue;
-            }
-            // 分发具体的文件
-            if (!/(\/|(\/\*))$/.test(currentFileLocation)) {
-                hasFile = true;
-                if (hasDirAllFile) {
-                    return true;
-                }
-            }
-            const pathMatch = currentFileLocation.match(pathReg);
-            if (pathMatch) {
-                if (fileLocationMap[pathMatch[1]]) {
-                    return true;
-                }
-                fileLocationMap[pathMatch[1]] = 1;
-            }
+    for (let j = 0; j < currentFileSource.fileLocation.length; j++) {
+      const currentFileLocation = currentFileSource.fileLocation[j];
+      // 分发所有文件
+      if (/\*$/.test(currentFileLocation)) {
+        hasDirAllFile = true;
+        if (hasFile) {
+          return true;
         }
+        continue;
+      }
+      // 分发具体的文件
+      if (!/(\/|(\/\*))$/.test(currentFileLocation)) {
+        hasFile = true;
+        if (hasDirAllFile) {
+          return true;
+        }
+      }
+      const pathMatch = currentFileLocation.match(pathReg);
+      if (pathMatch) {
+        if (fileLocationMap[pathMatch[1]]) {
+          return true;
+        }
+        fileLocationMap[pathMatch[1]] = 1;
+      }
     }
-    return false;
+  }
+  return false;
 };

@@ -26,98 +26,98 @@
 -->
 
 <template>
-    <div>
-        <content-loader
-            :height="476"
-            :width="maxWidth"
-            v-bind="$attrs">
-            <rect
-                height="96"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="0" />
-            <rect
-                height="32"
-                rx="2"
-                width="88"
-                x="0"
-                y="108" />
-            <rect
-                height="32"
-                rx="2"
-                width="480"
-                :x="position"
-                y="108" />
-            <rect
-                height="22"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="160" />
-            <rect
-                height="22"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="202" />
-            <rect
-                height="22"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="244" />
-            <rect
-                height="22"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="286" />
-            <rect
-                height="22"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="328" />
-            <rect
-                height="22"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="370" />
-            <rect
-                height="22"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="412" />
-            <rect
-                height="22"
-                rx="2"
-                :width="maxWidth"
-                x="0"
-                y="454" />
-        </content-loader>
-    </div>
+  <div>
+    <content-loader
+      :height="476"
+      :width="maxWidth"
+      v-bind="$attrs">
+      <rect
+        height="96"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="0" />
+      <rect
+        height="32"
+        rx="2"
+        width="88"
+        x="0"
+        y="108" />
+      <rect
+        height="32"
+        rx="2"
+        width="480"
+        :x="position"
+        y="108" />
+      <rect
+        height="22"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="160" />
+      <rect
+        height="22"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="202" />
+      <rect
+        height="22"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="244" />
+      <rect
+        height="22"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="286" />
+      <rect
+        height="22"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="328" />
+      <rect
+        height="22"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="370" />
+      <rect
+        height="22"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="412" />
+      <rect
+        height="22"
+        rx="2"
+        :width="maxWidth"
+        x="0"
+        y="454" />
+    </content-loader>
+  </div>
 </template>
 <script>
-    import {
-        ContentLoader,
-    } from 'vue-content-loader';
-    export default {
-        components: {
-            ContentLoader,
-        },
-        props: {
-            maxWidth: {
-                type: Number,
-                required: true,
-            },
-        },
-        computed: {
-            position () {
-                return Math.abs(this.maxWidth - 480);
-            },
-        },
-    };
+  import {
+    ContentLoader,
+  } from 'vue-content-loader';
+  export default {
+    components: {
+      ContentLoader,
+    },
+    props: {
+      maxWidth: {
+        type: Number,
+        required: true,
+      },
+    },
+    computed: {
+      position () {
+        return Math.abs(this.maxWidth - 480);
+      },
+    },
+  };
 </script>

@@ -26,80 +26,80 @@
 -->
 
 <template>
-    <detail-layout
-        class="detail-layout-wrapper"
-        mode="see">
-        <detail-item :label="$t('template.步骤类型：')">
-            {{ stepTypeText }}
-        </detail-item>
-        <detail-item :label="$t('template.步骤名称：')">
-            {{ data.name }}
-        </detail-item>
-        <component
-            :is="stepCom"
-            ref="stepCom"
-            :data="data"
-            :variable="variable">
-            <slot />
-        </component>
-    </detail-layout>
+  <detail-layout
+    class="detail-layout-wrapper"
+    mode="see">
+    <detail-item :label="$t('template.步骤类型：')">
+      {{ stepTypeText }}
+    </detail-item>
+    <detail-item :label="$t('template.步骤名称：')">
+      {{ data.name }}
+    </detail-item>
+    <component
+      :is="stepCom"
+      ref="stepCom"
+      :data="data"
+      :variable="variable">
+      <slot />
+    </component>
+  </detail-layout>
 </template>
 <script>
-    import DetailLayout from '@components/detail-layout';
-    import DetailItem from '@components/detail-layout/item';
+  import DetailLayout from '@components/detail-layout';
+  import DetailItem from '@components/detail-layout/item';
 
-    import StepApproval from './approval';
-    import StepDistroFile from './distro-file';
-    import StepExecScript from './exec-script';
+  import StepApproval from './approval';
+  import StepDistroFile from './distro-file';
+  import StepExecScript from './exec-script';
 
-    import I18n from '@/i18n';
+  import I18n from '@/i18n';
 
-    const STEP_TYPE_LIST = {
-        1: I18n.t('template.执行脚本'),
-        2: I18n.t('template.分发文件'),
-        3: I18n.t('template.人工确认'),
-    };
+  const STEP_TYPE_LIST = {
+    1: I18n.t('template.执行脚本'),
+    2: I18n.t('template.分发文件'),
+    3: I18n.t('template.人工确认'),
+  };
 
-    export default {
-        components: {
-            StepDistroFile,
-            StepExecScript,
-            StepApproval,
-            DetailLayout,
-            DetailItem,
-        },
-        props: {
-            variable: {
-                type: Array,
-                default: () => [],
-            },
-            data: {
-                type: Object,
-                default: () => ({}),
-            },
-        },
-        computed: {
-            stepTypeText () {
-                return STEP_TYPE_LIST[this.data.type];
-            },
-            stepCom () {
-                const taskStepMap = {
-                    1: StepExecScript,
-                    2: StepDistroFile,
-                    3: StepApproval,
-                };
-                if (!Object.prototype.hasOwnProperty.call(taskStepMap, this.data.type)) {
-                    return 'div';
-                }
-                return taskStepMap[this.data.type];
-            },
-        },
-    };
+  export default {
+    components: {
+      StepDistroFile,
+      StepExecScript,
+      StepApproval,
+      DetailLayout,
+      DetailItem,
+    },
+    props: {
+      variable: {
+        type: Array,
+        default: () => [],
+      },
+      data: {
+        type: Object,
+        default: () => ({}),
+      },
+    },
+    computed: {
+      stepTypeText () {
+        return STEP_TYPE_LIST[this.data.type];
+      },
+      stepCom () {
+        const taskStepMap = {
+          1: StepExecScript,
+          2: StepDistroFile,
+          3: StepApproval,
+        };
+        if (!Object.prototype.hasOwnProperty.call(taskStepMap, this.data.type)) {
+          return 'div';
+        }
+        return taskStepMap[this.data.type];
+      },
+    },
+  };
 </script>
 <style lang="postcss" scoped>
-    .detail-layout-wrapper {
-        .detail-item {
-            margin-bottom: 0;
-        }
+  .detail-layout-wrapper {
+    .detail-item {
+      margin-bottom: 0;
     }
+  }
 </style>

@@ -26,60 +26,60 @@
 -->
 
 <template>
-    <div class="toggle-display">
-        <div v-show="isOpen">
-            <slot />
-        </div>
-        <bk-form-item
-            label=" "
-            style="margin-top: -10px;">
-            <div
-                class="action"
-                @click="handleToggle">
-                <template v-if="isOpen">
-                    <Icon
-                        class="toggle-arrow"
-                        type="angle-double-up" />
-                    <span>{{ $t('template.收起更多设置') }}</span>
-                </template>
-                <template v-else>
-                    <Icon
-                        class="toggle-arrow"
-                        type="angle-double-down" />
-                    <span>{{ $t('template.展开更多设置') }}</span>
-                </template>
-            </div>
-        </bk-form-item>
+  <div class="toggle-display">
+    <div v-show="isOpen">
+      <slot />
     </div>
+    <bk-form-item
+      label=" "
+      style="margin-top: -10px;">
+      <div
+        class="action"
+        @click="handleToggle">
+        <template v-if="isOpen">
+          <icon
+            class="toggle-arrow"
+            type="angle-double-up" />
+          <span>{{ $t('template.收起更多设置') }}</span>
+        </template>
+        <template v-else>
+          <icon
+            class="toggle-arrow"
+            type="angle-double-down" />
+          <span>{{ $t('template.展开更多设置') }}</span>
+        </template>
+      </div>
+    </bk-form-item>
+  </div>
 </template>
 <script>
-    export default {
-        name: 'ToggleDisplay',
-        data () {
-            return {
-                isOpen: false,
-            };
-        },
-        methods: {
-            handleToggle () {
-                this.isOpen = !this.isOpen;
-            },
-        },
-    };
+  export default {
+    name: 'ToggleDisplay',
+    data () {
+      return {
+        isOpen: false,
+      };
+    },
+    methods: {
+      handleToggle () {
+        this.isOpen = !this.isOpen;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
-    .toggle-display {
-        .action {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            color: #3a84ff;
-            cursor: pointer;
-        }
-
-        .toggle-arrow {
-            margin-right: 3px;
-            font-size: 12px;
-        }
+  .toggle-display {
+    .action {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: #3a84ff;
+      cursor: pointer;
     }
+
+    .toggle-arrow {
+      margin-right: 3px;
+      font-size: 12px;
+    }
+  }
 </style>

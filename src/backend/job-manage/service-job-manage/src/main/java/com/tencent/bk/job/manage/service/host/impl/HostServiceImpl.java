@@ -506,7 +506,7 @@ public class HostServiceImpl implements HostService {
             List<String> cloudIpList = new ArrayList<>();
             for (DynamicGroupHostPropDTO groupHostProp : dynamicGroupHostProps) {
                 if (CollectionUtils.isNotEmpty(groupHostProp.getCloudIdList())) {
-                    cloudIpList.add(groupHostProp.getCloudIdList().get(0).getInstanceId() + ":" + groupHostProp.getIp());
+                    cloudIpList.add(groupHostProp.getCloudIdList().get(0).getInstanceId() + ":" + groupHostProp.getFirstIp());
                 } else {
                     log.warn("Wrong host info! No cloud area!|{}", groupHostProp);
                 }

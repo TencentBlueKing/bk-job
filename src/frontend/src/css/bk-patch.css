@@ -1,222 +1,222 @@
-@import "@/css/mixins/scroll";
+@import url("@/css/mixins/scroll");
 
 /**
     覆盖导航样式
  */
 .navigation-bar {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .navigation-bar-container {
-    width: 100%;
-    max-width: 100%;
+  width: 100%;
+  max-width: 100%;
 }
 
 /**
     覆盖 bk-form-control 样式
  */
 .bk-form-control {
-    letter-spacing: 0;
+  letter-spacing: 0;
 }
 
 /**
     覆盖table样式
  */
 .bk-table {
-    &.bk-table-scrollable-y .bk-table-body-wrapper {
-        @mixin scroller;
+  &.bk-table-scrollable-y .bk-table-body-wrapper {
+    @mixin scroller;
+  }
+
+  &.bk-table-scrollable-x .bk-table-body-wrapper {
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+  }
+
+  .cell {
+    font-size: 13px;
+
+    [type="button"] ~ [type="button"] {
+      margin-left: 10px;
     }
 
-    &.bk-table-scrollable-x .bk-table-body-wrapper {
-        &::-webkit-scrollbar {
-            height: 6px;
-        }
+    .bk-button-text {
+      font-size: 13px;
+    }
+  }
+
+  th {
+    &.is-leaf {
+      border-color: #e4e5eb;
     }
 
-    .cell {
-        font-size: 13px;
-
-        [type="button"] ~ [type="button"] {
-            margin-left: 10px;
-        }
-
-        .bk-button-text {
-            font-size: 13px;
-        }
+    & > .cell {
+      height: 41px;
+      font-weight: normal;
+      line-height: 41px;
+      color: #313238;
     }
 
-    th {
-        &.is-leaf {
-            border-color: #e4e5eb;
-        }
-
-        & > .cell {
-            height: 41px;
-            font-weight: normal;
-            line-height: 41px;
-            color: #313238;
-        }
-
-        .bk-table-caret-wrapper {
-            flex: 0 0 10px;
-            margin-left: 5px;
-        }
+    .bk-table-caret-wrapper {
+      flex: 0 0 10px;
+      margin-left: 5px;
     }
+  }
 
-    td {
-        &.is-last {
-            .cell {
-                display: flex;
-                align-items: center;
-            }
-        }
+  td {
+    &.is-last {
+      .cell {
+        display: flex;
+        align-items: center;
+      }
     }
+  }
 
-    tr {
-        &.bk-table-row {
-            &.hover-row {
-                & > td {
-                    background-color: #f0f1f5;
-                }
-            }
+  tr {
+    &.bk-table-row {
+      &.hover-row {
+        & > td {
+          background-color: #f0f1f5;
         }
+      }
     }
+  }
 }
 
 .bk-table-fixed,
 .bk-table-fixed-right {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .bk-table-fixed-right {
-    bottom: 63px !important;
+  bottom: 63px !important;
 }
 
 .bk-table-setting-popover-content-theme.tippy-tooltip {
-    padding: 15px 0 0 !important;
+  padding: 15px 0 0 !important;
 }
 
 /**
     覆盖分页器样式
  */
 .bk-page .bk-page-total-small {
-    line-height: 24px !important;
+  line-height: 24px !important;
 }
 
 .bk-textarea-wrapper {
-    border: none;
+  border: none;
 
-    .bk-form-textarea {
-        padding-bottom: 26px !important;
-        margin-bottom: 0 !important;
-        border: 1px solid #c4c6cc;
-        border-radius: 2px;
-    }
+  .bk-form-textarea {
+    padding-bottom: 26px !important;
+    margin-bottom: 0 !important;
+    border: 1px solid #c4c6cc;
+    border-radius: 2px;
+  }
 }
 
 .bk-form-input,
 .bk-form-password,
 .bk-form-select,
 .bk-form-textarea {
-    &:focus {
-        background-color: #fff !important;
-        border: 1px solid #3a84ff !important;
-    }
+  &:focus {
+    background-color: #fff !important;
+    border: 1px solid #3a84ff !important;
+  }
 
-    &.only-bottom-border {
-        border-top-color: transparent !important;
-        border-right-color: transparent !important;
-        border-left-color: transparent !important;
-    }
+  &.only-bottom-border {
+    border-top-color: transparent !important;
+    border-right-color: transparent !important;
+    border-left-color: transparent !important;
+  }
 }
 
 /**
     覆盖 select 样式
  */
 .bk-select .bk-select-name {
-    padding-right: 20px;
+  padding-right: 20px;
 }
 
 .bk-options .bk-option-content {
-    padding: 0 10px;
+  padding: 0 10px;
 }
 
 .bk-select-dropdown-content {
-    .bk-options {
-        .bk-option-content {
-            .bk-option-content-default {
-                padding: 0;
+  .bk-options {
+    .bk-option-content {
+      .bk-option-content-default {
+        padding: 0;
 
-                .bk-option-name {
-                    width: 100%;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-            }
+        .bk-option-name {
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
+      }
     }
+  }
 }
 
 /**
     覆盖 dialog 样式
  */
 .bk-dialog-wrapper {
-    text-align: center;
+  text-align: center;
 
-    &::after {
-        display: inline-block;
-        width: 1px;
-        height: 100%;
-        vertical-align: middle;
-        content: "";
+  &::after {
+    display: inline-block;
+    width: 1px;
+    height: 100%;
+    vertical-align: middle;
+    content: "";
+  }
+
+  .bk-dialog {
+    top: unset;
+    display: inline-block;
+    margin: unset;
+    text-align: initial;
+    vertical-align: middle;
+
+    &.bk-dialog-fullscreen {
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
     }
 
-    .bk-dialog {
-        top: unset;
-        display: inline-block;
-        margin: unset;
-        text-align: initial;
-        vertical-align: middle;
-
-        &.bk-dialog-fullscreen {
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-        }
-
-        &.bk-info-box {
-            .bk-dialog-content-drag {
-                position: relative;
-            }
-        }
+    &.bk-info-box {
+      .bk-dialog-content-drag {
+        position: relative;
+      }
     }
+  }
 
-    .header-on-left {
-        padding-bottom: 0 !important;
-    }
+  .header-on-left {
+    padding-bottom: 0 !important;
+  }
 
-    .bk-dialog-content {
-        width: 100%;
-    }
+  .bk-dialog-content {
+    width: 100%;
+  }
 }
 
 /**
     覆盖 big-tree 样式
  */
 .bk-big-tree-node.has-link-line.is-leaf {
-    .node-checkbox {
-        margin-left: 4px;
-    }
+  .node-checkbox {
+    margin-left: 4px;
+  }
 }
 
 /**
     覆盖 sideslider 样式
  */
 .bk-sideslider-title {
-    font-weight: normal;
+  font-weight: normal;
 }
 
 /**
@@ -224,77 +224,77 @@
  */
 .bk-loading,
 .bk-loading-box {
-    z-index: 100 !important;
+  z-index: 100 !important;
 }
 
 /**
     覆盖 tooltip 样式
  */
 .tippy-tooltip {
-    z-index: 1;
+  z-index: 1;
 
-    .tippy-arrow {
-        width: 0;
-        height: 0;
-    }
+  .tippy-arrow {
+    width: 0;
+    height: 0;
+  }
 
-    .tippy-content {
-        padding: 0;
-    }
+  .tippy-content {
+    padding: 0;
+  }
 }
 
 .bk-diff {
-    .hljs-comment {
-        color: #c4c6dd;
-    }
+  .hljs-comment {
+    color: #c4c6dd;
+  }
 
-    &.dark {
-        .hljs-comment {
-            color: #63656e;
-        }
+  &.dark {
+    .hljs-comment {
+      color: #63656e;
     }
+  }
 }
 
 /**
     覆盖 bk-radio-button 样式
  */
 .bk-form-radio-button {
-    font-size: 0;
+  font-size: 0;
 
-    &.disabled {
-        box-shadow: none;
+  &.disabled {
+    box-shadow: none;
 
-        &:first-child {
-            .bk-radio-button-text {
-                border-left: 1px solid currentcolor !important;
-            }
-        }
-    }
-
-    &:nth-child(n + 2) {
-        margin-left: -1px !important;
-    }
-
-    .bk-radio-button-input:disabled + .bk-radio-button-text {
-        position: relative;
-        z-index: 0;
-        color: #dcdee5;
-        background: #fafbfd;
+    &:first-child {
+      .bk-radio-button-text {
         border-left: 1px solid currentcolor !important;
+      }
     }
+  }
 
-    .bk-radio-button-input:checked + .bk-radio-button-text {
-        position: relative;
-        z-index: 3;
-        color: #3a84ff;
-        background: #e1ecff;
-        border-left: 1px solid currentcolor !important;
-    }
+  &:nth-child(n + 2) {
+    margin-left: -1px !important;
+  }
+
+  .bk-radio-button-input:disabled + .bk-radio-button-text {
+    position: relative;
+    z-index: 0;
+    color: #dcdee5;
+    background: #fafbfd;
+    border-left: 1px solid currentcolor !important;
+  }
+
+  .bk-radio-button-input:checked + .bk-radio-button-text {
+    position: relative;
+    z-index: 3;
+    color: #3a84ff;
+    background: #e1ecff;
+    border-left: 1px solid currentcolor !important;
+  }
 }
 
 /**
     覆盖 bk-button 样式
  */
 .bk-button-text {
-    line-height: 22px;
+  line-height: 22px;
 }

@@ -26,106 +26,106 @@
 -->
 
 <template>
-    <jb-form
-        ref="varNamespaceForm"
-        :model="formData"
-        :rules="rules">
-        <jb-form-item
-            :label="$t('template.变量名称')"
-            :property="'name'"
-            required>
-            <jb-input
-                v-model="formData.name"
-                :maxlength="30"
-                :placeholder="$t('template.变量名仅支持大小写英文字母或下划线 [必填]')" />
-        </jb-form-item>
-        <jb-form-item
-            :desc="$t('template.仅作用于创建执行方案时的初始变量值，后续更改不会同步到执行方案')"
-            :label="$t('template.初始值')"
-            property="defaultValue">
-            <bk-input
-                v-model="formData.defaultValue"
-                :placeholder="$t('template.请输入变量的初始值 [可选]')" />
-        </jb-form-item>
-        <jb-form-item :label="$t('template.变量描述')">
-            <bk-input
-                v-model="formData.description"
-                maxlength="100"
-                :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息 [可选]')"
-                type="textarea" />
-        </jb-form-item>
-        <jb-form-item style="margin-bottom: 0;">
-            <bk-checkbox
-                v-model="formData.required"
-                :false-value="0"
-                :true-value="1">
-                {{ $t('template.执行时必填') }}
-            </bk-checkbox>
-        </jb-form-item>
-    </jb-form>
+  <jb-form
+    ref="varNamespaceForm"
+    :model="formData"
+    :rules="rules">
+    <jb-form-item
+      :label="$t('template.变量名称')"
+      property="name"
+      required>
+      <jb-input
+        v-model="formData.name"
+        :maxlength="30"
+        :placeholder="$t('template.变量名仅支持大小写英文字母或下划线 [必填]')" />
+    </jb-form-item>
+    <jb-form-item
+      :desc="$t('template.仅作用于创建执行方案时的初始变量值，后续更改不会同步到执行方案')"
+      :label="$t('template.初始值')"
+      property="defaultValue">
+      <bk-input
+        v-model="formData.defaultValue"
+        :placeholder="$t('template.请输入变量的初始值 [可选]')" />
+    </jb-form-item>
+    <jb-form-item :label="$t('template.变量描述')">
+      <bk-input
+        v-model="formData.description"
+        maxlength="100"
+        :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息 [可选]')"
+        type="textarea" />
+    </jb-form-item>
+    <jb-form-item style="margin-bottom: 0;">
+      <bk-checkbox
+        v-model="formData.required"
+        :false-value="0"
+        :true-value="1">
+        {{ $t('template.执行时必填') }}
+      </bk-checkbox>
+    </jb-form-item>
+  </jb-form>
 </template>
 <script>
-    import {
-        globalVariableNameRule,
-    } from '@utils/validator';
+  import {
+    globalVariableNameRule,
+  } from '@utils/validator';
 
-    import JbInput from '@components/jb-input';
+  import JbInput from '@components/jb-input';
 
-    import I18n from '@/i18n';
+  import I18n from '@/i18n';
 
-    export default {
-        name: 'VarNamespace',
-        components: {
-            JbInput,
+  export default {
+    name: 'VarNamespace',
+    components: {
+      JbInput,
+    },
+    props: {
+      variable: {
+        type: Array,
+        default () {
+          return [];
         },
-        props: {
-            variable: {
-                type: Array,
-                default () {
-                    return [];
-                },
-            },
-            data: {
-                type: Object,
-                default: () => ({}),
-            },
-        },
-        data () {
-            return {
-                formData: { ...this.data },
-            };
-        },
-        created () {
-            this.rules = {
-                name: [
-                    {
-                        required: true,
-                        message: I18n.t('template.变量名称必填'),
-                        trigger: 'blur',
-                    },
-                    {
-                        validator: globalVariableNameRule.validator,
-                        message: globalVariableNameRule.message,
-                        trigger: 'blur',
-                    },
-                    {
-                        validator: val => !this.variable.some(item => item.name === val),
-                        message: I18n.t('template.变量名称已存在，请重新输入'),
-                        trigger: 'blur',
-                    },
-                ],
-            };
-        },
-        methods: {
-            submit () {
-                return this.$refs.varNamespaceForm.validate()
-                    .then(() => {
-                        this.$emit('on-change', {
-                            ...this.formData,
-                            type: 2,
-                        });
-                    }, validator => Promise.reject(validator.content));
-            },
-        },
-    };
+      },
+      data: {
+        type: Object,
+        default: () => ({}),
+      },
+    },
+    data () {
+      return {
+        formData: { ...this.data },
+      };
+    },
+    created () {
+      this.rules = {
+        name: [
+          {
+            required: true,
+            message: I18n.t('template.变量名称必填'),
+            trigger: 'blur',
+          },
+          {
+            validator: globalVariableNameRule.validator,
+            message: globalVariableNameRule.message,
+            trigger: 'blur',
+          },
+          {
+            validator: val => !this.variable.some(item => item.name === val),
+            message: I18n.t('template.变量名称已存在，请重新输入'),
+            trigger: 'blur',
+          },
+        ],
+      };
+    },
+    methods: {
+      submit () {
+        return this.$refs.varNamespaceForm.validate()
+          .then(() => {
+            this.$emit('on-change', {
+              ...this.formData,
+              type: 2,
+            });
+          }, validator => Promise.reject(validator.content));
+      },
+    },
+  };
 </script>

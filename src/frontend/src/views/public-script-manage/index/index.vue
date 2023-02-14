@@ -26,5 +26,5 @@
 -->
 
 <template>
-    <jb-router-view />
+  <jb-router-view />
 </template>

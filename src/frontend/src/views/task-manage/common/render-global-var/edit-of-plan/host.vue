@@ -26,152 +26,152 @@
 -->
 
 <template>
-    <jb-form
-        ref="varHostForm"
-        :model="formData">
-        <jb-form-item :label="$t('template.变量名称')">
-            <bk-input
-                v-model="formData.name"
-                disabled />
-        </jb-form-item>
-        <jb-form-item :label="$t('template.变量值')">
-            <section>
-                <bk-button @click="handleShowChooseIp">
-                    <Icon type="plus" />
-                    {{ $t('template.选择主机') }}
-                </bk-button>
-                <bk-button
-                    v-if="isShowClear"
-                    style="margin-left: 10px;"
-                    @click="handleClear">
-                    {{ $t('template.清空') }}
-                </bk-button>
-            </section>
-            <ip-selector
-                :original-value="originalHostNodeInfo"
-                :show-dialog="isShowChooseIp"
-                show-view
-                :value="formData.defaultTargetValue.hostNodeInfo"
-                @change="handleHostChange"
-                @close-dialog="handleCloseIPSelector" />
-            <!-- <server-panel
+  <jb-form
+    ref="varHostForm"
+    :model="formData">
+    <jb-form-item :label="$t('template.变量名称')">
+      <bk-input
+        v-model="formData.name"
+        disabled />
+    </jb-form-item>
+    <jb-form-item :label="$t('template.变量值')">
+      <section>
+        <bk-button @click="handleShowChooseIp">
+          <icon type="plus" />
+          {{ $t('template.选择主机') }}
+        </bk-button>
+        <bk-button
+          v-if="isShowClear"
+          style="margin-left: 10px;"
+          @click="handleClear">
+          {{ $t('template.清空') }}
+        </bk-button>
+      </section>
+      <ip-selector
+        :original-value="originalHostNodeInfo"
+        :show-dialog="isShowChooseIp"
+        show-view
+        :value="formData.defaultTargetValue.hostNodeInfo"
+        @change="handleHostChange"
+        @close-dialog="handleCloseIPSelector" />
+      <!-- <server-panel
                 class="view-server-panel"
                 :host-node-info="formData.defaultTargetValue.hostNodeInfo"
                 editable
                 detail-fullscreen
                 @on-change="handleHostChange" /> -->
-        </jb-form-item>
-        <jb-form-item :label="$t('template.变量描述')">
-            <bk-input
-                v-model="formData.description"
-                disabled
-                maxlength="100"
-                :row="5"
-                type="textarea" />
-        </jb-form-item>
-        <jb-form-item>
-            <bk-checkbox
-                v-model="formData.required"
-                disabled
-                :false-value="0"
-                :true-value="1">
-                {{ $t('template.执行时必填') }}
-            </bk-checkbox>
-        </jb-form-item>
-        <!-- <choose-ip
+    </jb-form-item>
+    <jb-form-item :label="$t('template.变量描述')">
+      <bk-input
+        v-model="formData.description"
+        disabled
+        maxlength="100"
+        :row="5"
+        type="textarea" />
+    </jb-form-item>
+    <jb-form-item>
+      <bk-checkbox
+        v-model="formData.required"
+        disabled
+        :false-value="0"
+        :true-value="1">
+        {{ $t('template.执行时必填') }}
+      </bk-checkbox>
+    </jb-form-item>
+    <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="formData.defaultTargetValue.hostNodeInfo"
             @on-change="handleHostChange" /> -->
-    </jb-form>
+  </jb-form>
 </template>
 <script>
-    import _ from 'lodash';
+  import _ from 'lodash';
 
-    import TaskGlobalVariableModel from '@model/task/global-variable';
-    import TaskHostNodeModel from '@model/task-host-node';
-    // import ChooseIp from '@components/choose-ip';
-    // import ServerPanel from '@components/choose-ip/server-panel';
+  import TaskGlobalVariableModel from '@model/task/global-variable';
+  import TaskHostNodeModel from '@model/task-host-node';
+  // import ChooseIp from '@components/choose-ip';
+  // import ServerPanel from '@components/choose-ip/server-panel';
 
-    const getDefaultData = () => ({
-        id: 0,
-        delete: 0,
-        // 变量名
-        name: '',
-        // 执行目标信息
-        defaultTargetValue: {
-            hostNodeInfo: {},
-            variable: '',
-        },
-        // 变量描述
-        description: '',
-        // 必填 0-非必填 1-必填
-        required: 0,
-    });
+  const getDefaultData = () => ({
+    id: 0,
+    delete: 0,
+    // 变量名
+    name: '',
+    // 执行目标信息
+    defaultTargetValue: {
+      hostNodeInfo: {},
+      variable: '',
+    },
+    // 变量描述
+    description: '',
+    // 必填 0-非必填 1-必填
+    required: 0,
+  });
 
-    export default {
-        name: 'VarHost',
-        components: {
-            // ChooseIp,
-            // ServerPanel,
+  export default {
+    name: 'VarHost',
+    components: {
+      // ChooseIp,
+      // ServerPanel,
+    },
+    props: {
+      data: {
+        type: Object,
+        default: () => ({}),
+      },
+    },
+    data () {
+      return {
+        formData: {},
+        isShowChooseIp: false,
+      };
+    },
+    computed: {
+      isShowClear () {
+        return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
+      },
+    },
+    watch: {
+      data: {
+        handler (data) {
+          this.formData = new TaskGlobalVariableModel(data);
         },
-        props: {
-            data: {
-                type: Object,
-                default: () => ({}),
-            },
-        },
-        data () {
-            return {
-                formData: {},
-                isShowChooseIp: false,
-            };
-        },
-        computed: {
-            isShowClear () {
-                return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
-            },
-        },
-        watch: {
-            data: {
-                handler (data) {
-                    this.formData = new TaskGlobalVariableModel(data);
-                },
-                immediate: true,
-            },
-        },
-        created () {
-            this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
-        },
-        methods: {
-            handleHostChange (hostNodeInfo) {
-                this.formData.defaultTargetValue.hostNodeInfo = Object.freeze(hostNodeInfo);
-            },
-            handleShowChooseIp () {
-                this.isShowChooseIp = true;
-            },
-            handleCloseIPSelector () {
-                this.isShowChooseIp = false;
-            },
+        immediate: true,
+      },
+    },
+    created () {
+      this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
+    },
+    methods: {
+      handleHostChange (hostNodeInfo) {
+        this.formData.defaultTargetValue.hostNodeInfo = Object.freeze(hostNodeInfo);
+      },
+      handleShowChooseIp () {
+        this.isShowChooseIp = true;
+      },
+      handleCloseIPSelector () {
+        this.isShowChooseIp = false;
+      },
 
-            handleClear () {
-                const { hostNodeInfo } = new TaskHostNodeModel({});
-                this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
-            },
-            submit () {
-                return Promise.resolve({
-                    ...this.formData,
-                    type: TaskGlobalVariableModel.TYPE_HOST,
-                });
-            },
+      handleClear () {
+        const { hostNodeInfo } = new TaskHostNodeModel({});
+        this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
+      },
+      submit () {
+        return Promise.resolve({
+          ...this.formData,
+          type: TaskGlobalVariableModel.TYPE_HOST,
+        });
+      },
 
-            reset () {
-                this.formData = new TaskGlobalVariableModel(getDefaultData);
-            },
-        },
-    };
+      reset () {
+        this.formData = new TaskGlobalVariableModel(getDefaultData);
+      },
+    },
+  };
 </script>
 <style lang="postcss" scoped>
-    .view-server-panel {
-        margin-top: 10px;
-    }
+  .view-server-panel {
+    margin-top: 10px;
+  }
 </style>

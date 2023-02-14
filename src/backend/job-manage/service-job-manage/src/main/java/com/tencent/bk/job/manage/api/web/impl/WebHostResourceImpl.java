@@ -606,9 +606,15 @@ public class WebHostResourceImpl implements WebHostResource {
             .map(HostIdWithMeta::getHostId)
             .collect(Collectors.toList());
         List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(appResourceScope, hostIds);
+        // 排序：Agent异常机器在前，Agent正常机器在后
         List<HostInfoVO> hostInfoVOList = hostList.parallelStream()
+            .filter(hostDTO -> !hostDTO.getGseAgentAlive())
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());
+        hostInfoVOList.addAll(hostList.parallelStream()
+            .filter(ApplicationHostDTO::getGseAgentAlive)
+            .map(ApplicationHostDTO::toVO)
+            .collect(Collectors.toList()));
         return Response.buildSuccessResp(hostInfoVOList);
     }
 
@@ -649,7 +655,6 @@ public class WebHostResourceImpl implements WebHostResource {
         }
         List<String> dynamicGroupIdList = agentStatisticsReq.getDynamicGroupIds();
         if (CollectionUtils.isNotEmpty(dynamicGroupIdList)) {
-            long bizId = Long.parseLong(scopeId);
             List<ApplicationHostDTO> hostsByDynamicGroup = new ArrayList<>();
             for (String id : dynamicGroupIdList) {
                 hostsByDynamicGroup.addAll(bizDynamicGroupHostService.listHostByDynamicGroup(appResourceScope, id));

@@ -24,68 +24,68 @@
 */
 
 import {
-    prettyDateTimeFormat,
+  prettyDateTimeFormat,
 } from '@utils/assist';
 
 import I18n from '@/i18n';
 
 export default class DangerousRecord {
-    static scriptTypeMap = {
-        1: 'Shell',
-        2: 'Bat',
-        3: 'Perl',
-        4: 'Python',
-        5: 'Powershell',
-        6: 'Sql',
-    };
+  static scriptTypeMap = {
+    1: 'Shell',
+    2: 'Bat',
+    3: 'Perl',
+    4: 'Python',
+    5: 'Powershell',
+    6: 'Sql',
+  };
 
-    static actionMap = {
-        1: `${I18n.t('detectRecords.扫描')}`,
-        2: `${I18n.t('detectRecords.拦截')}`,
-    };
+  static actionMap = {
+    1: `${I18n.t('detectRecords.扫描')}`,
+    2: `${I18n.t('detectRecords.拦截')}`,
+  };
 
-    static startupModeMap = {
-        1: 'Web',
-        2: 'API',
-        3: 'Cron',
-    };
+  static startupModeMap = {
+    1: 'Web',
+    2: 'API',
+    3: 'Cron',
+  };
 
-    constructor (payload) {
-        this.action = payload.action;
-        this.scopeType = payload.scopeType;
-        this.scopeId = payload.scopeId;
-        this.scopeName = payload.scopeName;
-        this.checkResultItems = payload.checkResultItems;
-        this.client = payload.client;
-        this.createTime = payload.createTime;
-        this.id = payload.id;
-        this.operator = payload.operator;
-        this.ruleExpression = payload.ruleExpression;
-        this.ruleId = payload.ruleId;
-        this.scriptContent = payload.scriptContent;
-        this.scriptLanguage = payload.scriptLanguage;
-        this.startupMode = payload.startupMode;
+  constructor (payload) {
+    this.action = payload.action;
+    this.scopeType = payload.scopeType;
+    this.scopeId = payload.scopeId;
+    this.scopeName = payload.scopeName;
+    this.checkResultItems = payload.checkResultItems;
+    this.client = payload.client;
+    this.createTime = payload.createTime;
+    this.id = payload.id;
+    this.operator = payload.operator;
+    this.ruleExpression = payload.ruleExpression;
+    this.ruleId = payload.ruleId;
+    this.scriptContent = payload.scriptContent;
+    this.scriptLanguage = payload.scriptLanguage;
+    this.startupMode = payload.startupMode;
+  }
+
+  get getSctiptTypeHtml () {
+    return DangerousRecord.scriptTypeMap[this.scriptLanguage];
+  }
+
+  get getActionHtml () {
+    let styles = 'display: inline-block; padding: 0 5px; line-height: 16px; font-size: 12px;';
+    if (this.action === 1) {
+      styles += 'background: #f0f1f5; color: #979ba5';
+    } else {
+      styles += 'background: #ffebeb; color: #ea3636';
     }
+    return `<span style="${styles}">${DangerousRecord.actionMap[this.action]}<span>`;
+  }
 
-    get getSctiptTypeHtml () {
-        return DangerousRecord.scriptTypeMap[this.scriptLanguage];
-    }
+  get getCreatTimes () {
+    return prettyDateTimeFormat(this.createTime);
+  }
 
-    get getActionHtml () {
-        let styles = 'display: inline-block; padding: 0 5px; line-height: 16px; font-size: 12px;';
-        if (this.action === 1) {
-            styles += 'background: #f0f1f5; color: #979ba5';
-        } else {
-            styles += 'background: #ffebeb; color: #ea3636';
-        }
-        return `<span style="${styles}">${DangerousRecord.actionMap[this.action]}<span>`;
-    }
-
-    get getCreatTimes () {
-        return prettyDateTimeFormat(this.createTime);
-    }
-
-    get getStartupModeHtml () {
-        return DangerousRecord.startupModeMap[this.startupMode];
-    }
+  get getStartupModeHtml () {
+    return DangerousRecord.startupModeMap[this.startupMode];
+  }
 }
