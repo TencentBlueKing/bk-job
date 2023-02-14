@@ -2,8 +2,6 @@
 <configuration scan="true" scanPeriod="30 seconds">
     <contextName>logback</contextName>
 
-    <include resource="logback-default.xml"/>
-
     <property name="APP_NAME" value="${APP_NAME:-job-execute}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
     <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-execute}"/>
@@ -11,6 +9,8 @@
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="SCHEDULE_LOG_FILE" value="${APP_LOG_DIR}/schedule.log"/>
     <property name="TASK_MONITOR_LOG_FILE" value="${APP_LOG_DIR}/monitor_task.log"/>
+
+    <include resource="logback-default.xml"/>
 
     <appender name="schedule-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${SCHEDULE_LOG_FILE}</file>

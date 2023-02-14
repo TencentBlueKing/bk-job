@@ -1,3 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Default job logback configuration provided for import
+-->
 <included>
     <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
@@ -11,8 +16,6 @@
     <property name="IAM_LOG_FILE" value="${APP_LOG_DIR}/iam.log"/>
     <property name="GSE_LOG_FILE" value="${APP_LOG_DIR}/gse.log"/>
     <property name="CMDB_LOG_FILE" value="${APP_LOG_DIR}/cmdb.log"/>
-
-    <contextName>logback</contextName>
 
     <appender name="app-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${APP_LOG_FILE}</file>
