@@ -11,13 +11,15 @@ spring:
   sleuth:
     otel:
       exporter:
-        enabled: __BK_JOB_TRACE_REPORT_ENABLED__
+        # 是否上报trace数据至蓝鲸监控APM
+        enabled: false
         otlp:
           endpoint: __BK_JOB_TRACE_REPORT_PUSH_URL__
       resource:
         bkDataToken: __BK_JOB_TRACE_REPORT_SECURE_KEY__
       config:
-        traceIdRatioBased: __BK_JOB_TRACE_REPORT_RATIO__
+        # trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
+        traceIdRatioBased: 0.1
 app:
   code: __BK_JOB_APP_CODE__
   secret: __BK_JOB_APP_SECRET__
