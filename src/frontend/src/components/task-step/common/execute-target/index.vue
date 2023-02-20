@@ -89,23 +89,40 @@
           </compose-form-item>
         </template>
         <template v-if="isShowServerAction">
-          <bk-dropdown-menu>
+          <dropdown-menu>
             <bk-button
-              slot="dropdown-trigger"
               class="mr10"
               type="primary">
-              <span>{{ $t('复制IP') }}</span>
+              <span>{{ $t('复制 IP') }}</span>
               <icon
                 class="action-flag"
                 type="down-small" />
             </bk-button>
-            <ul
-              slot="dropdown-content"
-              class="bk-dropdown-list">
-              <li><a @click="handleCopyAll">{{ $t('全部IP') }}</a></li>
-              <li><a @click="handleCopyFail">{{ $t('异常IP') }}</a></li>
-            </ul>
-          </bk-dropdown-menu>
+            <template slot="menu">
+              <dropdown-menu-group>
+                <span>{{ $t('所有 IP') }}</span>
+                <template slot="action">
+                  <dropdown-menu-item @click="handleCopyIPv4">
+                    IPv4
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="handleCopyIPv6">
+                    IPv6
+                  </dropdown-menu-item>
+                </template>
+              </dropdown-menu-group>
+              <dropdown-menu-group>
+                <span>{{ $t('异常 IP') }}</span>
+                <template slot="action">
+                  <dropdown-menu-item @click="handleCopyAbnormalIPv4">
+                    IPv4
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="handleCopyAbnormalIPv6">
+                    IPv6
+                  </dropdown-menu-item>
+                </template>
+              </dropdown-menu-group>
+            </template>
+          </dropdown-menu>
           <bk-button
             class="mr10"
             @click="handleClearAll">
@@ -117,6 +134,7 @@
             {{ $t('刷新状态') }}
           </bk-button>
         </template>
+
         <bk-input
           v-if="isShowHostSearchInput"
           class="ip-search"
@@ -125,16 +143,6 @@
           :value="searchText"
           @change="handleHostSearch" />
       </div>
-
-      <!-- <server-panel
-                    v-show="isShowServerPanel"
-                    ref="serverPanel"
-                    class="view-server-panel"
-                    :host-node-info="localHost"
-                    :search-mode="Boolean(searchText)"
-                    :search-data="searchData"
-                    editable
-                    @on-change="handleHostChange" /> -->
       <ip-selector
         ref="ipSelector"
         :show-dialog="isShowChooseIp"
@@ -144,10 +152,6 @@
         @change="handleHostChange"
         @close-dialog="handleCloseIpSelector" />
     </jb-form-item>
-    <!-- <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="localHost"
-            @on-change="handleHostChange" /> -->
   </div>
 </template>
 <script>
@@ -159,15 +163,18 @@
 
   import ComposeFormItem from '@components/compose-form-item';
 
+  import DropdownMenu from './components/dropdown-menu';
+  import DropdownMenuGroup from './components/dropdown-menu/group';
+  import DropdownMenuItem from './components/dropdown-menu/item';
+
   import I18n from '@/i18n';
-  // import ChooseIp from '@components/choose-ip';
-  // import ServerPanel from '@components/choose-ip/server-panel';
 
   export default {
     components: {
       ComposeFormItem,
-      // ChooseIp,
-      // ServerPanel,
+      DropdownMenu,
+      DropdownMenuGroup,
+      DropdownMenuItem,
     },
     inheritAttrs: false,
     props: {
@@ -362,29 +369,41 @@
       handleCloseIpSelector () {
         this.isShowChooseIp = false;
       },
-      /**
-       * @desc 复制所有主机
-       */
-      handleCopyAll () {
-        const allIP = this.$refs.ipSelector.getHostIpList();
+      handleCopyIPv4 () {
+        const allIP = this.$refs.ipSelector.getHostIpv4List();
         if (allIP.length < 1) {
-          this.messageWarn(I18n.t('你还未选择主机'));
+          this.messageWarn(I18n.t('没有可复制的 IPv4'));
           return;
         }
 
         execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
       },
-      /**
-       * @desc 复制所有异常主机
-       */
-      handleCopyFail () {
-        const abnormalHostIpList = this.$refs.ipSelector.getAbnormalHostIpList();
-        if (abnormalHostIpList.length < 1) {
-          this.messageWarn(I18n.t('暂无异常主机'));
+      handleCopyIPv6 () {
+        const allIP = this.$refs.ipSelector.getHostIpv6List();
+        if (allIP.length < 1) {
+          this.messageWarn(I18n.t('没有可复制的 IPv6'));
           return;
         }
 
-        execCopy(abnormalHostIpList.join('\n'), `${I18n.t('复制成功')}（${abnormalHostIpList.length}${I18n.t('个IP')}）`);
+        execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
+      },
+      handleCopyAbnormalIPv4 () {
+        const allIP = this.$refs.ipSelector.getAbnormalHostIpv4List();
+        if (allIP.length < 1) {
+          this.messageWarn(I18n.t('没有可复制的异常 IPv4'));
+          return;
+        }
+
+        execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
+      },
+      handleCopyAbnormalIPv6 () {
+        const allIP = this.$refs.ipSelector.getAbnormalHostIpv6List();
+        if (allIP.length < 1) {
+          this.messageWarn(I18n.t('没有可复制的异常 IPv6'));
+          return;
+        }
+
+        execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
       },
       /**
        * @desc 复制所有主机数据
@@ -405,7 +424,6 @@
        */
       handleHostSearch (search) {
         this.searchText = _.trim(search);
-        // this.searchData = Object.freeze(this.$refs.serverPanel.getAllHost(search));
       },
     },
   };
