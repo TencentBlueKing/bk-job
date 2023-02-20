@@ -41,12 +41,12 @@
         <div
           class="action-item"
           @click="handleCopyAll">
-          {{ $t('复制全部IP') }}
+          {{ $t('复制所有 IP') }}
         </div>
         <div
           class="action-item"
           @click="handleCopyFail">
-          {{ $t('复制异常IP') }}
+          {{ $t('复制异常 IP') }}
         </div>
       </template>
       <slot />
