@@ -36,6 +36,8 @@ dependencies {
     api 'org.springframework.cloud:spring-cloud-starter-openfeign'
     api 'org.springframework.cloud:spring-cloud-starter-sleuth'
     api 'org.springframework.cloud:spring-cloud-loadbalancer'
+    api 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+    api 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
     if (k8s) {
         println("Compile with kubernetes mode")
         api project(":commons:common-k8s")

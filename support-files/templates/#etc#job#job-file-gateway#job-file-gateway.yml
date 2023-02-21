@@ -1,6 +1,20 @@
 spring:
   application:
     name: job-file-gateway
+  cloud:
+    stream:
+      defaultBinder: jobCommon
+      binders:
+        jobCommon:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: __BK_JOB_RABBITMQ_HOST__
+                port: __BK_JOB_RABBITMQ_PORT__
+                username: __BK_JOB_RABBITMQ_USERNAME__
+                password: __BK_JOB_RABBITMQ_PASSWORD__
+                virtual-host: __BK_JOB_RABBITMQ_VHOST__
   datasource:
     job-file-gateway:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver

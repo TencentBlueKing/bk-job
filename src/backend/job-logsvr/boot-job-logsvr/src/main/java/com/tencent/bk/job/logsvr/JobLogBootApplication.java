@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.logsvr;
 
+import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
@@ -33,6 +35,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  */
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job")
 @EnableFeignClients
+@EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobLogBootApplication {
     public static void main(String[] args) {
         SpringApplication.run(JobLogBootApplication.class, args);

@@ -1,4 +1,6 @@
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.util.feature.strategy;
+
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 
 import java.util.Map;
 

@@ -26,20 +26,16 @@ package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
-import com.tencent.bk.job.execute.engine.message.StepProcessor;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
 /**
  * 执行引擎事件处理-步骤
  */
 @Component
-@EnableBinding({StepProcessor.class})
 @Slf4j
 public class StepListener {
     private final TaskInstanceService taskInstanceService;
@@ -60,7 +56,6 @@ public class StepListener {
      *
      * @param stepEvent 步骤执行相关的事件
      */
-    @StreamListener(StepProcessor.INPUT)
     public void handleEvent(StepEvent stepEvent) {
         log.info("Handle step event: {}", stepEvent);
         long stepInstanceId = stepEvent.getStepInstanceId();

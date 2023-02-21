@@ -68,10 +68,6 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
             StepActionEnum action = StepActionEnum.valueOf(stepEvent.getAction());
-            if (action == null) {
-                log.error("Invalid step action: {}, ignore step event!", stepEvent.getAction());
-                return;
-            }
 
             switch (action) {
                 case START:

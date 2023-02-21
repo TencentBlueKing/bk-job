@@ -364,7 +364,7 @@ public class NotifyServiceImpl implements NotifyService {
         taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.FAIL.getStatus());
         taskNotifyDTO.setStepName(stepInstance.getName());
         setResourceInfo(taskInstance, stepInstance, taskNotifyDTO);
-        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+        taskExecuteMQEventDispatcher.dispatchNotifyMsg(taskNotifyDTO);
     }
 
     @Override
@@ -374,7 +374,7 @@ public class NotifyServiceImpl implements NotifyService {
         taskNotifyDTO.setResourceExecuteStatus(ExecuteStatusEnum.SUCCESS.getStatus());
         taskNotifyDTO.setCost(taskInstance.getTotalTime());
         setResourceInfo(taskInstance, stepInstance, taskNotifyDTO);
-        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+        taskExecuteMQEventDispatcher.dispatchNotifyMsg(taskNotifyDTO);
     }
 
     @Override
@@ -398,7 +398,7 @@ public class NotifyServiceImpl implements NotifyService {
         taskNotifyDTO.setResourceId(String.valueOf(taskInstance.getTaskId()));
         taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
         taskNotifyDTO.setOperator(stepInstance.getOperator());
-        taskExecuteMQEventDispatcher.asyncSendNotifyMsg(taskNotifyDTO);
+        taskExecuteMQEventDispatcher.dispatchNotifyMsg(taskNotifyDTO);
     }
 
 

@@ -13,6 +13,24 @@ metadata:
 data:
   application.yaml: |-
     spring:
+      cloud:
+        stream:
+          defaultBinder: jobCommon
+          binders:
+            jobCommon:
+              type: rabbit
+              environment:
+                spring:
+                  rabbitmq:
+                    host: {{ include "job.rabbitmq.host" . }}
+                    port: {{ include "job.rabbitmq.port" . }}
+                    username: {{ include "job.rabbitmq.username" . }}
+                    {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+                    password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+                    {{- else -}}
+                    password: ${rabbitmq-password}
+                    {{- end }}
+                    virtual-host: {{ include "job.rabbitmq.vhost" . }}
       datasource:
         job-crontab:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -29,16 +47,6 @@ data:
           idle-timeout: 600000
           poolName: "job-crontab"
           validationTimeout: 5000
-      rabbitmq:
-        host: {{ include "job.rabbitmq.host" . }}
-        port: {{ include "job.rabbitmq.port" . }}
-        username: {{ include "job.rabbitmq.username" . }}
-        {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
-        password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
-        {{- else -}}
-        password: ${rabbitmq-password}
-        {{- end }}
-        virtual-host: {{ include "job.rabbitmq.vhost" . }}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0

@@ -15,6 +15,19 @@ spring:
         #key-store-password:
         #certificate-path:
         #certificate-password:
+    stream:
+      defaultBinder: jobCommon      
+      binders:
+        jobCommon:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: __BK_JOB_RABBITMQ_HOST__
+                port: __BK_JOB_RABBITMQ_PORT__
+                username: __BK_JOB_RABBITMQ_USERNAME__
+                password: __BK_JOB_RABBITMQ_PASSWORD__
+                virtual-host: __BK_JOB_RABBITMQ_VHOST__
   security:
     user:
       name: __BK_JOB_SECURITY_USERNAME__

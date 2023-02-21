@@ -13,7 +13,6 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
   annotations:
-  {{ include "annotations.sha256sum.configmap" ( dict "service" "job-logsvr" "context" . ) | nindent 4 }}
   {{- if .Values.commonAnnotations }}
   {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
@@ -32,6 +31,8 @@ spec:
         app.kubernetes.io/component: "job-logsvr"
         {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
         {{ include "job.labelKeys.imageTag" . }}: {{ .Values.logsvrConfig.image.tag | quote }}
+      annotations:
+        {{ include "annotations.sha256sum.configmap" ( dict "service" "job-logsvr" "context" . ) | nindent 8 }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
@@ -79,6 +80,8 @@ spec:
               value: {{ include "common.names.fullname" . }}-logsvr
             - name: JOB_COMMON_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-common
+            - name: JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common-refreshable
             - name: spring_cloud_kubernetes_secrets_paths
               value: /etc/secrets
             - name: KUBERNETES_NAMESPACE
@@ -119,6 +122,9 @@ spec:
             - name: mongodb
               mountPath: /etc/secrets/mongodb
               readOnly: true
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -126,5 +132,8 @@ spec:
         - name: mongodb
           secret:
             secretName: {{ include "job.mongodb.secretName" . }}
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
 
 {{- end }}

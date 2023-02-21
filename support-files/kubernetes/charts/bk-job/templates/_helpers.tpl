@@ -130,6 +130,13 @@ Return the proper job-migration image name
 {{- end -}}
 
 {{/*
+Return the proper job-config-watcher image name
+*/}}
+{{- define "job-config-watcher.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.k8sConfigWatcherConfig.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "job.imagePullSecrets" -}}
@@ -354,6 +361,17 @@ Return the RabbitMQ secret name
 {{- end -}}
 
 {{/*
+Return the RabbitMQ password key
+*/}}
+{{- define "job.rabbitmq.passwordKey" -}}
+{{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+{{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+{{- else -}}
+${rabbitmq-password}
+{{- end }}
+{{- end -}}
+
+{{/*
 Return the RabbitMQ vhost
 */}}
 {{- define "job.rabbitmq.vhost" -}}
@@ -363,6 +381,7 @@ Return the RabbitMQ vhost
     {{- default "job" (printf "%s" .Values.externalRabbitMQ.vhost) -}}
 {{- end -}}
 {{- end -}}
+
 
 {{/*
 Fully qualified app name for MongoDB
@@ -473,7 +492,7 @@ Return the Job InitContainer WaitForMigration Content
     {{- toYaml .Values.waitForMigration.resources | nindent 4 }}
   args:
   - "job-wr"
-  - {{ printf "%s-migration-%d" (include "common.names.fullname" .) .Release.Revision | quote }}
+  - {{ printf "%s-migration-%s" (include "common.names.fullname" .) .Chart.Version | quote }}
 {{- end -}}
 
 {{/*

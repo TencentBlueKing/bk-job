@@ -15,121 +15,150 @@ data:
     spring:
       cloud:
         stream:
+          defaultBinder: jobCommon
+          binders:
+            jobCommon:
+              type: rabbit
+              environment:
+                spring:
+                  rabbitmq:
+                    host: {{ include "job.rabbitmq.host" . }}
+                    port: {{ include "job.rabbitmq.port" . }}
+                    username: {{ include "job.rabbitmq.username" . }}
+                    {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+                    password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+                    {{- else -}}
+                    password: ${rabbitmq-password}
+                    {{- end }}
+                    virtual-host: {{ include "job.rabbitmq.vhost" . }}
+            jobExecute:
+              type: rabbit
+              environment:
+                spring:
+                  rabbitmq:
+                    host: {{ include "job.rabbitmq.host" . }}
+                    port: {{ include "job.rabbitmq.port" . }}
+                    username: {{ include "job.rabbitmq.username" . }}
+                    {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+                    password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+                    {{- else -}}
+                    password: ${rabbitmq-password}
+                    {{- end }}
+                    virtual-host: {{ include "job.rabbitmq.vhost" . }}
+          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback
           bindings:
-            taskInput:
+            handleJobEvent-in-0:
               destination: task
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            taskOutput:
+            task-out-0:
               destination: task
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            stepInput:
+            handleStepEvent-in-0:
               destination: step
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            stepOutput:
+            step-out-0:
               destination: step
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            gseTaskInput:
+            handleGseTaskEvent-in-0:
               destination: gse.task
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 10
-            gseTaskOutput:
+            gseTask-out-0:
               destination: gse.task
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 10
-            taskResultHandleResumeInput:
+            handleResultHandleResumeEvent-in-0:
               destination: result.handle.task.resume
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            taskResultHandleResumeOutput:
+            resultHandleTaskResume-out-0:
               destination: result.handle.task.resume
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            notifyMsgInput:
+            handleNotifyMsg-in-0:
               destination: notify.msg
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            notifyMsgOutput:
+            notifyMsg-out-0:
               destination: notify.msg
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            callbackInput:
+            handleCallbackMsg-in-0:
               destination: task.callback
               group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
-            callbackOutput:
+            callback-out-0:
               destination: task.callback
               group: service.job.execute
-              consumer:
-                concurrency: 5
-            taskStatisticsInput:
-              destination: statistics.task
-              group: service.job.execute
-              consumer:
-                concurrency: 5
-            taskStatisticsOutput:
-              destination: statistics.task
-              group: service.job.execute
+              binder: jobExecute
               consumer:
                 concurrency: 5
           rabbit:
             bindings:
-              taskInput:
+              handleJobEvent-in-0:
                 consumer:
                   maxConcurrency: 10
-              taskOutput:
+              task-out-0:
                 consumer:
                   maxConcurrency: 10
-              stepInput:
+              handleStepEvent-in-0:
                 consumer:
                   maxConcurrency: 10
-              stepOutput:
+              step-out-0:
                 consumer:
                   maxConcurrency: 10
-              gseTaskInput:
+              handleGseTaskEvent-in-0:
                 consumer:
                   maxConcurrency: 20
-              gseTaskOutput:
+              gseTask-out-0:
                 consumer:
                   maxConcurrency: 20
-              taskResultHandleResumeInput:
+              handleResultHandleResumeEvent-in-0:
                 consumer:
                   maxConcurrency: 10
-              taskResultHandleResumeOutput:
+              resultHandleTaskResume-out-0:
                 consumer:
                   maxConcurrency: 10
-              notifyMsgInput:
+              handleNotifyMsg-in-0:
                 consumer:
                   maxConcurrency: 10
-              notifyMsgOutput:
+              notifyMsg-out-0:
                 consumer:
                   maxConcurrency: 10
-              callbackInput:
+              handleCallbackMsg-in-0:
                 consumer:
                   maxConcurrency: 10
-              callbackOutput:
+              callback-out-0:
                 consumer:
                   maxConcurrency: 10
-              taskStatisticsInput:
-                consumer:
-                  maxConcurrency: 10
-              taskStatisticsOutput:
-                consumer:
-                  maxConcurrency: 10
+        function:
+          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
       datasource:
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -146,16 +175,6 @@ data:
           idle-timeout: 600000
           poolName: "job-execute"
           validationTimeout: 5000
-      rabbitmq:
-        host: {{ include "job.rabbitmq.host" . }}
-        port: {{ include "job.rabbitmq.port" . }}
-        username: {{ include "job.rabbitmq.username" . }}
-        {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
-        password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
-        {{- else -}}
-        password: ${rabbitmq-password}
-        {{- end }}
-        virtual-host: {{ include "job.rabbitmq.vhost" . }}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0

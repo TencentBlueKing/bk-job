@@ -31,7 +31,6 @@ import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.message.TaskResultHandleResumeProcessor;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -56,8 +55,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -70,7 +67,6 @@ import java.util.UUID;
  * 执行引擎事件处理-任务恢复
  */
 @Component
-@EnableBinding({TaskResultHandleResumeProcessor.class})
 @Slf4j
 public class ResultHandleResumeListener {
     private final TaskInstanceService taskInstanceService;
@@ -135,7 +131,6 @@ public class ResultHandleResumeListener {
     /**
      * 恢复被中断的作业结果处理任务
      */
-    @StreamListener(TaskResultHandleResumeProcessor.INPUT)
     public void handleEvent(ResultHandleTaskResumeEvent event) {
         log.info("Receive gse task result handle task resume event: {}", event);
         GseTaskDTO gseTask = gseTaskService.getGseTask(event.getGseTaskId());

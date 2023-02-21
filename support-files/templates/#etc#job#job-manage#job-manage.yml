@@ -1,6 +1,20 @@
 spring:
   application:
     name: job-manage
+  cloud:
+    stream:
+      defaultBinder: jobCommon
+      binders:
+        jobCommon:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: __BK_JOB_RABBITMQ_HOST__
+                port: __BK_JOB_RABBITMQ_PORT__
+                username: __BK_JOB_RABBITMQ_USERNAME__
+                password: __BK_JOB_RABBITMQ_PASSWORD__
+                virtual-host: __BK_JOB_RABBITMQ_VHOST__
   datasource:
     job-manage:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
@@ -13,13 +27,6 @@ spring:
       idle-timeout: 600000
       poolName: "job-manage"
       validationTimeout: 5000
-
-  rabbitmq:
-    host: __BK_JOB_MANAGE_RABBITMQ_HOST__
-    port: __BK_JOB_MANAGE_RABBITMQ_PORT__
-    username: __BK_JOB_MANAGE_RABBITMQ_USERNAME__
-    password: __BK_JOB_MANAGE_RABBITMQ_PASSWORD__
-    virtual-host: __BK_JOB_MANAGE_RABBITMQ_VHOST__
   redis:
     {# 社区版默认配置 -#}
     {% if job_edition != "ee" -%}

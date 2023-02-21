@@ -1,0 +1,105 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-config-watcher
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-config-watcher"
+    {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  annotations:
+  {{- if .Values.commonAnnotations }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: job-config-watcher
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: job-config-watcher
+        {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+    spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.k8sConfigWatcherConfig.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.k8sConfigWatcherConfig.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.k8sConfigWatcherConfig.podAffinityPreset "component" "job-config-watcher" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.k8sConfigWatcherConfig.podAntiAffinityPreset "component" "job-config-watcher" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.k8sConfigWatcherConfig.nodeAffinityPreset.type "key" .Values.k8sConfigWatcherConfig.nodeAffinityPreset.key "values" .Values.k8sConfigWatcherConfig.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.k8sConfigWatcherConfig.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.k8sConfigWatcherConfig.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.k8sConfigWatcherConfig.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.k8sConfigWatcherConfig.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      {{- if .Values.k8sConfigWatcherConfig.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.k8sConfigWatcherConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: "job-config-watcher"
+          image: {{ include "job-config-watcher.image" . }}
+          imagePullPolicy: {{ .Values.k8sConfigWatcherConfig.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8888
+              protocol: TCP
+          env:
+            - name: spring.profiles.active
+              value: bus-amqp
+            - name: logging.level.org.springframework.cloud.kubernetes
+              value: DEBUG
+            - name: spring.rabbitmq.host
+              value: {{ include "job.rabbitmq.host" . }}
+            - name: spring.rabbitmq.port
+              value: {{ include "job.rabbitmq.port" . | quote }}
+            - name: spring.rabbitmq.username
+              value: {{ include "job.rabbitmq.username" . }}
+            - name: spring.rabbitmq.password
+              value: {{ include "job.rabbitmq.passwordKey" . }}
+            - name: spring.rabbitmq.virtual-host
+              value: {{ include "job.rabbitmq.vhost" . }}
+            - name: spring_cloud_kubernetes_secrets_paths
+              value: /etc/secrets
+            - name: spring.cloud.kubernetes.configuration.watcher.refreshDelay
+            - value: 1000
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 200  
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 200
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+            successThreshold: 1
+          resources:
+            {{- toYaml .Values.k8sConfigWatcherConfig.resources | nindent 12 }}
+          volumeMounts:
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
+      volumes:
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
+
