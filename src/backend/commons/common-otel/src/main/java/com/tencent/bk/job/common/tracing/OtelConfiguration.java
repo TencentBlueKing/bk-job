@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 /**
  * Otel 配置
  *
- * <p>在跑测试用例启动是，会启动spring容器，会多次初始化OtelConfiguration。由于OtelConfiguration.otel()->OtelConfiguration.otel()
+ * <p>在跑测试用例启动时，会启动spring容器，会多次初始化OtelConfiguration。由于OtelConfiguration.otel()->OtelConfiguration.otel()
  * .buildAndRegisterGlobal()-> GlobalOpenTelemetry.set多次调用，从而抛出异常"Failed to instantiate [io
  * .opentelemetry.api.OpenTelemetry]: Factory method 'otel' threw exception; nested exception is java.lang
  * .IllegalStateException: GlobalOpenTelemetry.set has already been called. GlobalOpenTelemetry.set must be called

@@ -1,5 +1,4 @@
 com.rabbitmq
-com.google.code.findbugs
 com.netflix.archaius
 org.aspectj
 org.aspectj
