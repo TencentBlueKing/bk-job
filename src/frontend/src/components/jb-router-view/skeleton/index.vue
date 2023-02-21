@@ -26,117 +26,117 @@
 -->
 
 <template>
-    <transition name="skeleton">
-        <div
-            v-if="visiable"
-            ref="wraper"
-            class="jb-view-skeleton">
-            <component
-                :is="realCom"
-                :max-width="width"
-                primary-color="#EBECF3"
-                secondary-color="#F6F7FB"
-                :speed="2" />
-        </div>
-    </transition>
+  <transition name="skeleton">
+    <div
+      v-if="visiable"
+      ref="wraper"
+      class="jb-view-skeleton">
+      <component
+        :is="realCom"
+        :max-width="width"
+        primary-color="#EBECF3"
+        secondary-color="#F6F7FB"
+        :speed="2" />
+    </div>
+  </transition>
 </template>
 <script>
-    import Dashboard from './components/dashboard';
-    import ExecutePlan from './components/execute-plan';
-    import GlobalSetUp from './components/global-set-up';
-    import HistoryStep from './components/history-step';
-    import List from './components/list';
-    import Notify from './components/notify';
-    import ScriptVersion from './components/script-version';
-    import SetVariable from './components/set-variable';
-    import TaskDetail from './components/task-detail';
-    import TaskExecutiveDetail from './components/task-execute-detail';
-    import TaskList from './components/task-list';
-    import TaskStepDetail from './components/task-step-detail';
+  import Dashboard from './components/dashboard';
+  import ExecutePlan from './components/execute-plan';
+  import GlobalSetUp from './components/global-set-up';
+  import HistoryStep from './components/history-step';
+  import List from './components/list';
+  import Notify from './components/notify';
+  import ScriptVersion from './components/script-version';
+  import SetVariable from './components/set-variable';
+  import TaskDetail from './components/task-detail';
+  import TaskExecutiveDetail from './components/task-execute-detail';
+  import TaskList from './components/task-list';
+  import TaskStepDetail from './components/task-step-detail';
 
-    const comMap = {
-        list: List,
-        taskList: TaskList,
-        taskDetail: TaskDetail,
-        taskExecutiveDetail: TaskExecutiveDetail,
-        taskStepExecutiveDetail: TaskStepDetail,
-        historyStep: HistoryStep,
-        setVariable: SetVariable,
-        executePlan: ExecutePlan,
-        notify: Notify,
-        globalSetUp: GlobalSetUp,
-        dashboard: Dashboard,
-        scriptVersion: ScriptVersion,
-    };
+  const comMap = {
+    list: List,
+    taskList: TaskList,
+    taskDetail: TaskDetail,
+    taskExecutiveDetail: TaskExecutiveDetail,
+    taskStepExecutiveDetail: TaskStepDetail,
+    historyStep: HistoryStep,
+    setVariable: SetVariable,
+    executePlan: ExecutePlan,
+    notify: Notify,
+    globalSetUp: GlobalSetUp,
+    dashboard: Dashboard,
+    scriptVersion: ScriptVersion,
+  };
 
-    export default {
-        name: '',
-        props: {
-            type: String,
-            visiable: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        data () {
-            return {
-                width: 0,
-            };
-        },
-        computed: {
-            realCom () {
-                if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
-                    return 'div';
-                }
-                return comMap[this.type];
-            },
-        },
-        mounted () {
-            this.init();
-            window.addEventListener('resize', this.init);
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('resize', this.init);
-            });
-        },
-        methods: {
-            init () {
-                if (!this.$refs.wraper) {
-                    return;
-                }
-                this.width = this.$refs.wraper.getBoundingClientRect().width;
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      type: String,
+      visiable: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        width: 0,
+      };
+    },
+    computed: {
+      realCom () {
+        if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
+          return 'div';
+        }
+        return comMap[this.type];
+      },
+    },
+    mounted () {
+      this.init();
+      window.addEventListener('resize', this.init);
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('resize', this.init);
+      });
+    },
+    methods: {
+      init () {
+        if (!this.$refs.wraper) {
+          return;
+        }
+        this.width = this.$refs.wraper.getBoundingClientRect().width;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
-    .viewport-full {
-        .jb-view-skeleton {
-            padding: 0;
-        }
-    }
-
+  .viewport-full {
     .jb-view-skeleton {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 20px;
-        left: 0;
-        z-index: 1001;
-        width: 100%;
-        min-height: calc(100vh - 104px);
-        padding: 20px 24px 0;
-        overflow: hidden;
-        background: #f5f7fa;
-        opacity: 100%;
-        visibility: visible;
+      padding: 0;
     }
+  }
 
-    .skeleton-leave-active {
-        transition: visibility 0.7s linear, opacity 0.5s linear;
-    }
+  .jb-view-skeleton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 20px;
+    left: 0;
+    z-index: 1001;
+    width: 100%;
+    min-height: calc(100vh - 104px);
+    padding: 20px 24px 0;
+    overflow: hidden;
+    background: #f5f7fa;
+    opacity: 100%;
+    visibility: visible;
+  }
 
-    .skeleton-leave-to {
-        opacity: 0%;
-        visibility: hidden;
-    }
+  .skeleton-leave-active {
+    transition: visibility 0.7s linear, opacity 0.5s linear;
+  }
+
+  .skeleton-leave-to {
+    opacity: 0%;
+    visibility: hidden;
+  }
 </style>

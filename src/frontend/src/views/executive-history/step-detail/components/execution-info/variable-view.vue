@@ -26,124 +26,124 @@
 -->
 
 <template>
-    <div
-        v-bkloading="{ isLoading: isLoading, opacity: .1 }"
-        class="step-execute-variable-view">
-        <scroll-faker theme="dark">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 250px;">
-                            {{ $t('history.变量名称') }}
-                        </th>
-                        <th style="width: 90px;">
-                            {{ $t('history.变量类型') }}
-                        </th>
-                        <th>{{ $t('history.变量值') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="(item, index) in variableList"
-                        :key="index">
-                        <td>{{ item.name }}</td>
-                        <td>{{ item.typeText }}</td>
-                        <td class="variable-value">
-                            {{ item.value }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </scroll-faker>
-    </div>
+  <div
+    v-bkloading="{ isLoading: isLoading, opacity: .1 }"
+    class="step-execute-variable-view">
+    <scroll-faker theme="dark">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 250px;">
+              {{ $t('history.变量名称') }}
+            </th>
+            <th style="width: 90px;">
+              {{ $t('history.变量类型') }}
+            </th>
+            <th>{{ $t('history.变量值') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(item, index) in variableList"
+            :key="index">
+            <td>{{ item.name }}</td>
+            <td>{{ item.typeText }}</td>
+            <td class="variable-value">
+              {{ item.value }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </scroll-faker>
+  </div>
 </template>
 <script>
-    import TaskExecuteService from '@service/task-execute';
+  import TaskExecuteService from '@service/task-execute';
 
-    export default {
-        name: '',
-        inheritAttrs: false,
-        props: {
-            name: String,
-            stepInstanceId: {
-                type: Number,
-                required: true,
-            },
-            ip: {
-                type: String,
-            },
-            host: {
-                type: Object,
-            },
+  export default {
+    name: '',
+    inheritAttrs: false,
+    props: {
+      name: String,
+      stepInstanceId: {
+        type: Number,
+        required: true,
+      },
+      ip: {
+        type: String,
+      },
+      host: {
+        type: Object,
+      },
+    },
+    data () {
+      return {
+        isLoading: true,
+        variableList: [],
+      };
+    },
+    watch: {
+      name: {
+        handler () {
+          this.isLoading = true;
+          this.fetchStepVariables();
         },
-        data () {
-            return {
-                isLoading: true,
-                variableList: [],
-            };
-        },
-        watch: {
-            name: {
-                handler () {
-                    this.isLoading = true;
-                    this.fetchStepVariables();
-                },
-                immediate: true,
-            },
-        },
-        methods: {
-            // 步骤使用的变量
-            fetchStepVariables () {
-                if (!this.ip) {
-                    this.isLoading = false;
-                    return;
-                }
-                TaskExecuteService.fetchStepVariables({
-                    stepInstanceId: this.stepInstanceId,
-                    hostId: this.host.hostId,
-                    ip: `${this.host.cloudAreaId}:${this.host.ipv4}`,
-                }).then((data) => {
-                    this.variableList = Object.freeze(data);
-                })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    methods: {
+      // 步骤使用的变量
+      fetchStepVariables () {
+        if (!this.ip) {
+          this.isLoading = false;
+          return;
+        }
+        TaskExecuteService.fetchStepVariables({
+          stepInstanceId: this.stepInstanceId,
+          hostId: this.host.hostId,
+          ip: `${this.host.cloudAreaId}:${this.host.ipv4}`,
+        }).then((data) => {
+          this.variableList = Object.freeze(data);
+        })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
-    .step-execute-variable-view {
-        height: 100%;
-        padding: 0 20px;
-        font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
-        color: #c4c6cc;
+  .step-execute-variable-view {
+    height: 100%;
+    padding: 0 20px;
+    font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+    color: #c4c6cc;
 
-        table {
-            width: 100%;
-        }
-
-        th,
-        td {
-            height: 40px;
-            padding-right: 10px;
-            padding-left: 10px;
-            text-align: left;
-            border-bottom: 1px solid #3b3c42;
-        }
-
-        th {
-            font-weight: normal;
-            color: #ccc;
-        }
-
-        td {
-            color: #979ba5;
-            white-space: pre-line;
-
-            &.variable-value {
-                word-break: break-word;
-            }
-        }
+    table {
+      width: 100%;
     }
+
+    th,
+    td {
+      height: 40px;
+      padding-right: 10px;
+      padding-left: 10px;
+      text-align: left;
+      border-bottom: 1px solid #3b3c42;
+    }
+
+    th {
+      font-weight: normal;
+      color: #ccc;
+    }
+
+    td {
+      color: #979ba5;
+      white-space: pre-line;
+
+      &.variable-value {
+        word-break: break-word;
+      }
+    }
+  }
 </style>

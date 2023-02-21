@@ -26,19 +26,19 @@
 -->
 
 <template>
-    <div
-        v-show="show"
-        class="bk-exception bk-exception-center">
-        <img :src="image">
-        <template v-if="$slots.message">
-            <slot name="message" />
-        </template>
-        <template v-else>
-            <h2 class="exception-text">
-                {{ message }}
-            </h2>
-        </template>
-    </div>
+  <div
+    v-show="show"
+    class="bk-exception bk-exception-center">
+    <img :src="image">
+    <template v-if="$slots.message">
+      <slot name="message" />
+    </template>
+    <template v-else>
+      <h2 class="exception-text">
+        {{ message }}
+      </h2>
+    </template>
+  </div>
 </template>
 
 <script>
@@ -51,62 +51,62 @@
      *  @example1 <app-exception type="404"></app-exception>
      */
 
-    export default {
-        name: 'AppException',
-        props: {
-            type: {
-                type: String,
-                default: '404',
-            },
-            delay: {
-                type: Number,
-                default: 0,
-            },
-            text: {
-                type: String,
-                default: '',
-            },
-        },
-        data () {
-            let message = '';
-            let image = '';
+  export default {
+    name: 'AppException',
+    props: {
+      type: {
+        type: String,
+        default: '404',
+      },
+      delay: {
+        type: Number,
+        default: 0,
+      },
+      text: {
+        type: String,
+        default: '',
+      },
+    },
+    data () {
+      let message = '';
+      let image = '';
 
-            switch (this.type) {
-                case '403':
-                    image = '/static/images/403.png';
-                    message = 'Sorry，您的权限不足！';
-                    break;
+      switch (this.type) {
+      case '403':
+        image = '/static/images/403.png';
+        message = 'Sorry，您的权限不足！';
+        break;
 
-                case '404':
-                    image = '/static/images/404.png';
-                    message = '页面找不到了！';
-                    break;
+      case '404':
+        image = '/static/images/404.png';
+        message = '页面找不到了！';
+        break;
 
-                case '500':
-                    image = '/static/images/500.png';
-                    message = '服务器维护中，请稍后重试!';
-                    break;
+      case '500':
+        image = '/static/images/500.png';
+        message = '服务器维护中，请稍后重试!';
+        break;
 
-                case 'building':
-                    image = '/static/images/building.png';
-                    message = '功能正在建设中···';
-                    break;
-            }
+      case 'building':
+        image = '/static/images/building.png';
+        message = '功能正在建设中···';
+        break;
+      }
 
-            if (this.text) {
-                message = this.text;
-            }
+      if (this.text) {
+        message = this.text;
+      }
 
-            return {
-                show: false,
-                message,
-                image,
-            };
-        },
-        created () {
-            setTimeout(() => {
-                this.show = true;
-            }, this.delay);
-        },
-    };
+      return {
+        show: false,
+        message,
+        image,
+      };
+    },
+    created () {
+      setTimeout(() => {
+        this.show = true;
+      }, this.delay);
+    },
+  };
 </script>

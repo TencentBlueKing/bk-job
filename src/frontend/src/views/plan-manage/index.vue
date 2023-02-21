@@ -26,16 +26,16 @@
 -->
 
 <template>
-    <jb-router-view :key="$router.path" />
+  <jb-router-view :key="$router.path" />
 </template>
 <script>
-    import Local from '@views/task-manage/local';
+  import Local from '@views/task-manage/local';
 
-    import {
-        loadLanguage,
-    } from '@/i18n';
+  import {
+    loadLanguage,
+  } from '@/i18n';
 
-    loadLanguage(Local);
+  loadLanguage(Local);
 
-    export default {};
+  export default {};
 </script>

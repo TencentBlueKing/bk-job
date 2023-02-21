@@ -1,8 +1,8 @@
 # chart values 更新日志
-## 0.4.0-rc.63
+## 0.4.0
 1.增加特性开关相关配置
 
-```shell script
+```yaml
 ## job-file-gateway文件网关服务配置
 job:
   features:
@@ -25,7 +25,7 @@ job:
 
 2. 新增GSE1.0 控制开关
 
-```
+```yaml
 gse:
   # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true
   enabled: true
@@ -33,18 +33,76 @@ gse:
 
 3. 新增GSE API Gateway URL
 
-```
+```yaml
 # 蓝鲸 GSE API Gateway url。格式:{网关访问地址}/{网关环境}，网关访问地址、网关环境的取值见bk-gse网关API文档。
 bkGseApiGatewayUrl: "https://bk-gse.apigw.com/prod"
 ```
 
-   
+4. 新增job-k8s-config-watcher 配置，用于监听 Job 配置文件的变化并发送事件给涉及的微服务
+
+```yaml
+## job-k8s-config-watcher 配置
+k8sConfigWatcherConfig:
+  image:
+    registry: hub.bktencent.com
+    repository: springcloud/spring-cloud-kubernetes-configuration-watcher
+    tag: "3.0.0"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  hostAliases: []
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi 
+```
+
+## 0.3.1-rc.7
+1.manageConfig现有配置项下增加CMDB资源同步与事件监听相关配置子项
+```yaml
+## job-manage作业管理配置
+manageConfig:
+  # CMDB资源（业务、业务集、主机等）同步与事件监听相关配置
+  sync:
+    app:
+      # 是否开启业务同步
+      enabled: true
+    host:
+      # 是否开启主机同步
+      enabled: true
+    resource:
+      watch:
+        # 是否开启业务、主机等事件监听
+        enabled: true
+    hostEvent:
+      # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
+      # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
+      handlerNum: 3
+```
 
 ## 0.3.0-rc.46
 
 1.增加服务启动顺序控制相关配置
 
-```shell script
+```yaml
 ## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
 waitForDependServices:
   image:
@@ -87,7 +145,7 @@ waitForDependServices:
 ## 0.3.0-rc.37
 1.增加文件网关系统file-worker调度标签相关配置
 
-```shell script
+```yaml
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
   # 用于确定调度范围的worker标签
@@ -104,7 +162,7 @@ fileWorkerConfig:
 
 ## 0.3.0-rc.31
 1.增加Trace及数据上报至APM相关配置
-```shell script
+```yaml
 ## Trace配置
 job:
   trace:
@@ -119,16 +177,25 @@ job:
       ratio: 0.1
 ```
 2.fileWorker对应的Service端口默认值设置为与pod端口一致，避免混淆
-```shell script
+```yaml
 ## job-file-worker文件源接入点配置
 fileWorkerConfig:
   service:
     port: 19810
 ```
 
+## 0.2.2-rc.7
+1.增加文档中心与问题反馈URL配置项
+```yaml
+# 文档中心 url
+bkDocsCenterUrl: "https://bk.tencent.com/docs"
+# 问题反馈 url
+bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
+```
+
 ## 0.2.2-rc.1
 1.增加权限中心系统ID配置：
-```shell script
+```yaml
 ## 权限中心配置
 iam:
   # 作业平台注册到IAM的系统ID
@@ -137,14 +204,14 @@ iam:
 
 ## 0.1.53
 1.增加CMDB供应商配置：
-```shell script
+```yaml
 ## 对接蓝鲸CMDB参数配置
 cmdb:
   # 供应商，默认为0
   supplierAccount: 0
 ```
 2.增加各模块是否启用开关配置：
-```shell script
+```yaml
 ## job-gateway网关配置
 gatewayConfig:
   # 模块是否启用，默认启用
@@ -193,7 +260,7 @@ migration:
 1.更新微服务默认镜像版本；
 2.更新k8s-wait-for默认镜像版本；  
 **3.增加登录配置**  
-```shell script
+```yaml
 ## 登录配置
 login:
   ## 自定义登录配置

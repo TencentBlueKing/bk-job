@@ -26,174 +26,174 @@
 -->
 
 <template>
-    <div
-        ref="container"
-        v-bkloading="{ isLoading }"
-        class="favor-task-box">
-        <template v-if="!isLoading">
-            <bk-table
-                v-if="favorList.length > 0"
-                :data="favorList"
-                :height="height">
-                <bk-table-column
-                    :label="$t('home.作业模板名称')"
-                    prop="name"
-                    show-overflow-tooltip>
-                    <template slot-scope="{ row }">
-                        <auth-router-link
-                            auth="job_template/view"
-                            class="task-name-text"
-                            :permission="row.canView"
-                            :resource-id="row.id"
-                            :to="{
-                                name: 'templateDetail',
-                                params: {
-                                    id: row.id,
-                                },
-                            }">
-                            {{ row.name }}
-                        </auth-router-link>
-                    </template>
-                </bk-table-column>
-                <bk-table-column
-                    :label="$t('home.状态')"
-                    prop="status"
-                    width="100">
-                    {{ $t('home.已上线') }}
-                </bk-table-column>
-                <bk-table-column
-                    :label="$t('home.更新人')"
-                    prop="lastModifyUser"
-                    width="180" />
-                <bk-table-column
-                    :label="$t('home.更新时间')"
-                    prop="lastModifyTime"
-                    width="180" />
-                <bk-table-column
-                    class-name="task-action"
-                    :label="$t('home.操作')"
-                    width="200">
-                    <template slot-scope="{ row }">
-                        <auth-router-link
-                            auth="job_template/view"
-                            :permission="row.canView"
-                            :resource-id="row.id"
-                            :to="{
-                                name: 'viewPlan',
-                                params: {
-                                    templateId: row.id,
-                                },
-                            }">
-                            {{ $t('home.执行方案') }}
-                        </auth-router-link>
-                        <auth-router-link
-                            auth="job_template/debug"
-                            :permission="row.canDebug"
-                            :resource-id="row.id"
-                            :to="{
-                                name: 'debugPlan',
-                                params: {
-                                    id: row.id,
-                                },
-                            }">
-                            {{ $t('home.调试') }}
-                        </auth-router-link>
-                        <auth-router-link
-                            auth="job_template/edit"
-                            :permission="row.canEdit"
-                            :resource-id="row.id"
-                            :to="{
-                                name: 'templateEdit',
-                                params: {
-                                    id: row.id,
-                                },
-                            }">
-                            {{ $t('home.编辑') }}
-                        </auth-router-link>
-                    </template>
-                </bk-table-column>
-            </bk-table>
-            <div
-                v-else
-                class="list-empty">
-                <img
-                    class="empty-flag"
-                    src="/static/images/favor-task-empty.png">
-                <div style="margin-top: 12px; font-size: 14px; color: #63656e;">
-                    {{ $t('home.暂无收藏的作业') }}
-                </div>
-                <div style="margin-top: 10px; font-size: 12px; color: #979ba5;">
-                    {{ $t('home.将鼠标悬浮到作业模板行，点击收藏图标') }}
-                </div>
-            </div>
-        </template>
-    </div>
+  <div
+    ref="container"
+    v-bkloading="{ isLoading }"
+    class="favor-task-box">
+    <template v-if="!isLoading">
+      <bk-table
+        v-if="favorList.length > 0"
+        :data="favorList"
+        :height="height">
+        <bk-table-column
+          :label="$t('home.作业模板名称')"
+          prop="name"
+          show-overflow-tooltip>
+          <template slot-scope="{ row }">
+            <auth-router-link
+              auth="job_template/view"
+              class="task-name-text"
+              :permission="row.canView"
+              :resource-id="row.id"
+              :to="{
+                name: 'templateDetail',
+                params: {
+                  id: row.id,
+                },
+              }">
+              {{ row.name }}
+            </auth-router-link>
+          </template>
+        </bk-table-column>
+        <bk-table-column
+          :label="$t('home.状态')"
+          prop="status"
+          width="100">
+          {{ $t('home.已上线') }}
+        </bk-table-column>
+        <bk-table-column
+          :label="$t('home.更新人')"
+          prop="lastModifyUser"
+          width="180" />
+        <bk-table-column
+          :label="$t('home.更新时间')"
+          prop="lastModifyTime"
+          width="180" />
+        <bk-table-column
+          class-name="task-action"
+          :label="$t('home.操作')"
+          width="200">
+          <template slot-scope="{ row }">
+            <auth-router-link
+              auth="job_template/view"
+              :permission="row.canView"
+              :resource-id="row.id"
+              :to="{
+                name: 'viewPlan',
+                params: {
+                  templateId: row.id,
+                },
+              }">
+              {{ $t('home.执行方案') }}
+            </auth-router-link>
+            <auth-router-link
+              auth="job_template/debug"
+              :permission="row.canDebug"
+              :resource-id="row.id"
+              :to="{
+                name: 'debugPlan',
+                params: {
+                  id: row.id,
+                },
+              }">
+              {{ $t('home.调试') }}
+            </auth-router-link>
+            <auth-router-link
+              auth="job_template/edit"
+              :permission="row.canEdit"
+              :resource-id="row.id"
+              :to="{
+                name: 'templateEdit',
+                params: {
+                  id: row.id,
+                },
+              }">
+              {{ $t('home.编辑') }}
+            </auth-router-link>
+          </template>
+        </bk-table-column>
+      </bk-table>
+      <div
+        v-else
+        class="list-empty">
+        <img
+          class="empty-flag"
+          src="/static/images/favor-task-empty.png">
+        <div style="margin-top: 12px; font-size: 14px; color: #63656e;">
+          {{ $t('home.暂无收藏的作业') }}
+        </div>
+        <div style="margin-top: 10px; font-size: 12px; color: #979ba5;">
+          {{ $t('home.将鼠标悬浮到作业模板行，点击收藏图标') }}
+        </div>
+      </div>
+    </template>
+  </div>
 </template>
 <script>
-    import HomeService from '@service/home';
+  import HomeService from '@service/home';
 
-    export default {
-        data () {
-            return {
-                isLoading: true,
-                height: undefined,
-                favorList: [],
-            };
-        },
-        created () {
-            this.fetchMyFavorList();
-        },
-        mounted () {
-            this.init();
-            window.addEventListener('resize', this.init);
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('resize', this.init);
-            });
-        },
-        methods: {
-            fetchMyFavorList () {
-                HomeService.fetchMyFavorList()
-                    .then((data) => {
-                        this.favorList = Object.freeze(data);
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            init () {
-                const { height } = this.$refs.container.getBoundingClientRect();
-                this.height = height;
-            },
-        },
-    };
+  export default {
+    data () {
+      return {
+        isLoading: true,
+        height: undefined,
+        favorList: [],
+      };
+    },
+    created () {
+      this.fetchMyFavorList();
+    },
+    mounted () {
+      this.init();
+      window.addEventListener('resize', this.init);
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('resize', this.init);
+      });
+    },
+    methods: {
+      fetchMyFavorList () {
+        HomeService.fetchMyFavorList()
+          .then((data) => {
+            this.favorList = Object.freeze(data);
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      init () {
+        const { height } = this.$refs.container.getBoundingClientRect();
+        this.height = height;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .favor-task-box {
-        height: calc(100vh - 484px);
+      height: calc(100vh - 484px);
 
-        .task-action {
-            .cell {
-                & > * {
-                    margin-right: 10px;
-                }
-            }
+      .task-action {
+        .cell {
+          & > * {
+            margin-right: 10px;
+          }
         }
+      }
 
-        .list-empty {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            margin: 0 auto;
-            text-align: center;
+      .list-empty {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        margin: 0 auto;
+        text-align: center;
 
-            .empty-flag {
-                width: auto;
-                height: 50%;
-                max-height: 240px;
-                margin-top: -40px;
-            }
+        .empty-flag {
+          width: auto;
+          height: 50%;
+          max-height: 240px;
+          margin-top: -40px;
         }
+      }
     }
 </style>

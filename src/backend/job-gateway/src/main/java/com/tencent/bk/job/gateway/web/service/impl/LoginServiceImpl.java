@@ -27,6 +27,7 @@ package com.tencent.bk.job.gateway.web.service.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
@@ -104,9 +105,14 @@ public class LoginServiceImpl implements LoginService {
         try {
             Optional<BkUserDTO> userDto = onlineUserCache.get(bkToken);
             return userDto.orElse(null);
-        } catch (ExecutionException e) {
+        } catch (ExecutionException | UncheckedExecutionException e) {
             log.warn("Error occur when get user from paas!");
-            throw new InternalException("Query userinfo from paas fail", e, ErrorCode.USER_MANAGE_API_ACCESS_ERROR);
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else {
+                throw new InternalException("Query userinfo from paas fail", e, ErrorCode.INTERNAL_ERROR);
+            }
         }
     }
 

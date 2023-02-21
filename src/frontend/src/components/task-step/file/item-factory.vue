@@ -26,57 +26,57 @@
 -->
 
 <template>
-    <component
-        :is="itemCom"
-        v-bind="$attrs"
-        v-on="$listeners" />
+  <component
+    :is="itemCom"
+    v-bind="$attrs"
+    v-on="$listeners" />
 </template>
 <script>
-    import ErrorHandle from '../common/error-handle';
-    import StepName from '../common/name';
-    import Rolling from '../common/rolling';
-    import Timeout from '../common/timeout';
+  import ErrorHandle from '../common/error-handle';
+  import StepName from '../common/name';
+  import Rolling from '../common/rolling';
+  import Timeout from '../common/timeout';
 
-    import ExecuteAccount from './strategy/execute-account';
-    import SourceFileOfExecution from './strategy/source-file-of-execution';
-    import SourceFileOfTemplate from './strategy/source-file-of-template';
-    import SpeedLimit from './strategy/speed-limit';
-    import TargetPath from './strategy/target-path';
-    import TargetServerOfExecution from './strategy/target-server-of-execution';
-    import TargetServerOfTemplate from './strategy/target-server-of-template';
-    import TransferMode from './strategy/transfer-mode';
+  import ExecuteAccount from './strategy/execute-account';
+  import SourceFileOfExecution from './strategy/source-file-of-execution';
+  import SourceFileOfTemplate from './strategy/source-file-of-template';
+  import SpeedLimit from './strategy/speed-limit';
+  import TargetPath from './strategy/target-path';
+  import TargetServerOfExecution from './strategy/target-server-of-execution';
+  import TargetServerOfTemplate from './strategy/target-server-of-template';
+  import TransferMode from './strategy/transfer-mode';
 
-    const comMap = {
-        stepName: StepName,
-        sourceFileOfExecution: SourceFileOfExecution,
-        sourceFileOfTemplate: SourceFileOfTemplate,
-        targetPath: TargetPath,
-        errorHandle: ErrorHandle,
-        transferMode: TransferMode,
-        executeAccount: ExecuteAccount,
-        targetServerOfTemplate: TargetServerOfTemplate,
-        targetServerOfExecution: TargetServerOfExecution,
-        timeout: Timeout,
-        speedLimit: SpeedLimit,
-        rolling: Rolling,
-    };
+  const comMap = {
+    stepName: StepName,
+    sourceFileOfExecution: SourceFileOfExecution,
+    sourceFileOfTemplate: SourceFileOfTemplate,
+    targetPath: TargetPath,
+    errorHandle: ErrorHandle,
+    transferMode: TransferMode,
+    executeAccount: ExecuteAccount,
+    targetServerOfTemplate: TargetServerOfTemplate,
+    targetServerOfExecution: TargetServerOfExecution,
+    timeout: Timeout,
+    speedLimit: SpeedLimit,
+    rolling: Rolling,
+  };
 
-    export default {
-        name: 'ExecuteFileItemFactory',
-        inheritAttrs: false,
-        props: {
-            name: {
-                type: String,
-                default: '',
-            },
-        },
-        computed: {
-            itemCom () {
-                if (!Object.prototype.hasOwnProperty.call(comMap, this.name)) {
-                    return 'div';
-                }
-                return comMap[this.name];
-            },
-        },
-    };
+  export default {
+    name: 'ExecuteFileItemFactory',
+    inheritAttrs: false,
+    props: {
+      name: {
+        type: String,
+        default: '',
+      },
+    },
+    computed: {
+      itemCom () {
+        if (!Object.prototype.hasOwnProperty.call(comMap, this.name)) {
+          return 'div';
+        }
+        return comMap[this.name];
+      },
+    },
+  };
 </script>

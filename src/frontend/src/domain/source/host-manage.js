@@ -28,141 +28,141 @@ import Request from '@utils/request';
 import ModuleBase from './module-base';
 
 class HostManage extends ModuleBase {
-    constructor () {
-        super();
-        this.module = 'job-manage/web';
-    }
+  constructor () {
+    super();
+    this.module = 'job-manage/web';
+  }
 
-    // 获取动态分组
-    getAllDynamicGroup (params = {}) {
-        return Request.post(`${this.path}/dynamicGroups`, {
-            params,
-            cache: 2000,
-        });
-    }
+  // 获取动态分组
+  getAllDynamicGroup (params = {}) {
+    return Request.post(`${this.path}/dynamicGroups`, {
+      params,
+      cache: 2000,
+    });
+  }
 
-    // 获取动态分组主机列表
-    getHostByDynamicGroupId ({ id }) {
-        return Request.get(`${this.path}/dynamicGroup/${id}`);
-    }
+  // 获取动态分组主机列表
+  getHostByDynamicGroupId ({ id }) {
+    return Request.get(`${this.path}/dynamicGroup/${id}`);
+  }
 
-    // 根据节点id获取机器列表
-    getHostByNode (params) {
-        return Request.post(`${this.path}/host/node`, {
-            params,
-        });
-    }
+  // 根据节点id获取机器列表
+  getHostByNode (params) {
+    return Request.post(`${this.path}/host/node`, {
+      params,
+    });
+  }
 
-    // 获取节点详情
-    getNodeInfo (params = {}) {
-        return Request.post(`${this.path}/node/detail`, {
-            params,
-        });
-    }
+  // 获取节点详情
+  getNodeInfo (params = {}) {
+    return Request.post(`${this.path}/node/detail`, {
+      params,
+    });
+  }
 
-    // 获取节点拓扑路径
-    getNodePath (params = {}) {
-        return Request.post(`${this.path}/nodes/queryPath`, {
-            params,
-        });
-    }
+  // 获取节点拓扑路径
+  getNodePath (params = {}) {
+    return Request.post(`${this.path}/nodes/queryPath`, {
+      params,
+    });
+  }
 
-    // 根据输入 IP 获取机器信息
-    getHostByHost (params) {
-        return Request.post(`${this.path}/host/check`, {
-            params,
-        });
-    }
+  // 根据输入 IP 获取机器信息
+  getHostByHost (params) {
+    return Request.post(`${this.path}/host/check`, {
+      params,
+    });
+  }
 
-    // 获取业务拓扑列表
-    getAllTopology () {
-        return Request.get(`${this.path}/topology`, {
-            cache: 2000,
-        });
-    }
+  // 获取业务拓扑列表
+  getAllTopology () {
+    return Request.get(`${this.path}/topology`, {
+      cache: 2000,
+    });
+  }
 
-    // 获取业务拓扑列表（含各节点主机数）
-    getAllTopologyWithCount () {
-        return Request.post(`${this.path}/topology/hostCount`, {
-            cache: 2000,
-        });
-    }
+  // 获取业务拓扑列表（含各节点主机数）
+  getAllTopologyWithCount () {
+    return Request.post(`${this.path}/topology/hostCount`, {
+      cache: 2000,
+    });
+  }
 
-    // 获取业务拓扑主机列表（包含主机）
-    getAllTopologyWithHost () {
-        return Request.get(`${this.path}/topology/host`, {
-            cache: 2000,
-        });
-    }
+  // 获取业务拓扑主机列表（包含主机）
+  getAllTopologyWithHost () {
+    return Request.get(`${this.path}/topology/host`, {
+      cache: 2000,
+    });
+  }
 
-    // IP选择器根据拓扑节点集合获取机器列表(支持分页)
-    getTopologyHost (params = {}) {
-        return Request.post(`${this.path}/topology/hosts/nodes`, {
-            params,
-        });
-    }
+  // IP选择器根据拓扑节点集合获取机器列表(支持分页)
+  getTopologyHost (params = {}) {
+    return Request.post(`${this.path}/topology/hosts/nodes`, {
+      params,
+    });
+  }
 
-    // IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]
-    getTopologyNodeAllHostId (params = {}) {
-        return Request.post(`${this.path}/topology/hostIds/nodes`, {
-            params,
-        });
-    }
+  // IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]
+  getTopologyNodeAllHostId (params = {}) {
+    return Request.post(`${this.path}/topology/hostIds/nodes`, {
+      params,
+    });
+  }
 
-    // IP选择器根据拓扑节点获取其子节点（仅获取一级，childs为空）
-    getChildOfNode (params) {
-        return Request.post(`${this.path}/topology/nodes/children`, {
-            params,
-        });
-    }
+  // IP选择器根据拓扑节点获取其子节点（仅获取一级，childs为空）
+  getChildOfNode (params) {
+    return Request.post(`${this.path}/topology/nodes/children`, {
+      params,
+    });
+  }
 
-    // 根据主机、拓扑节点、分组获取主机统计信息
-    getHostStatistics (params = {}) {
-        return Request.post(`${this.path}/host/statistics`, {
-            params,
-        });
-    }
+  // 根据主机、拓扑节点、分组获取主机统计信息
+  getHostStatistics (params = {}) {
+    return Request.post(`${this.path}/host/statistics`, {
+      params,
+    });
+  }
 
-    // 获取多个节点下的主机统计信息
-    getBatchNodeAgentStatistics (params = {}) {
-        return Request.post(`${this.path}/host/agentStatistics/nodes`, {
-            params,
-        });
-    }
+  // 获取多个节点下的主机统计信息
+  getBatchNodeAgentStatistics (params = {}) {
+    return Request.post(`${this.path}/host/agentStatistics/nodes`, {
+      params,
+    });
+  }
 
-    // 分页查询某个动态分组下的主机列表
-    getDynamicGroupHost (params = {}) {
-        return Request.post(`${this.path}/hosts/dynamicGroup`, {
-            params,
-        });
-    }
+  // 分页查询某个动态分组下的主机列表
+  getDynamicGroupHost (params = {}) {
+    return Request.post(`${this.path}/hosts/dynamicGroup`, {
+      params,
+    });
+  }
 
-    // 通过分组ID获取多个动态分组的详情信息
-    getBatchGroupInfo (params = {}) {
-        return Request.post(`${this.path}/hosts/dynamicGroup`, {
-            params,
-        });
-    }
+  // 通过分组ID获取多个动态分组的详情信息
+  getBatchGroupInfo (params = {}) {
+    return Request.post(`${this.path}/hosts/dynamicGroup`, {
+      params,
+    });
+  }
 
-    // 获取多个动态分组下的主机Agent状态统计信息
-    getBatchGroupAgentStatistics (params = {}) {
-        return Request.post(`${this.path}/host/agentStatistics/dynamicGroups`, {
-            params,
-        });
-    }
+  // 获取多个动态分组下的主机Agent状态统计信息
+  getBatchGroupAgentStatistics (params = {}) {
+    return Request.post(`${this.path}/host/agentStatistics/dynamicGroups`, {
+      params,
+    });
+  }
 
-    getInputParseHostList (params = {}) {
-        return Request.post(`${this.path}/host/check`, {
-            params,
-        });
-    }
+  getInputParseHostList (params = {}) {
+    return Request.post(`${this.path}/host/check`, {
+      params,
+    });
+  }
 
-    // 根据hostId批量查询主机详情信息
-    getHostInfoByHostId (params = {}) {
-        return Request.post(`${this.path}/hosts/details`, {
-            params,
-        });
-    }
+  // 根据hostId批量查询主机详情信息
+  getHostInfoByHostId (params = {}) {
+    return Request.post(`${this.path}/hosts/details`, {
+      params,
+    });
+  }
 }
 
 export default new HostManage();
