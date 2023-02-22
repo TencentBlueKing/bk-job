@@ -34,10 +34,7 @@ ext {
 version "${jobConfigVersion}"
 dependencies {
     api project(':commons:common')
-    api project(":commons:common-i18n")
     api project(":commons:common-consul")
-    implementation 'io.springfox:springfox-swagger2'
-    implementation 'io.springfox:springfox-swagger-ui'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -61,4 +58,9 @@ springBoot {
     getMainClass().set("com.tencent.bk.job.config.JobConfigBootApplication")
     buildInfo()
 }
+
+configurations {
+    all*.exclude module : 'springfox-boot-starter'
+}
+
 apply from: "$rootDir/task_job_package.gradle"

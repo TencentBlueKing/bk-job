@@ -24,27 +24,72 @@
 
 package com.tencent.bk.job.crontab.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-@Slf4j
-@Configuration
-public class ExecutorConfiguration {
+/**
+ * Job 扩展的 quartz 配置
+ */
+@Data
+@Profile("!test")
+@ConfigurationProperties(prefix = "spring.quartz")
+public class JobQuartzProperties {
+    /**
+     * 线程池配置
+     */
+    private ThreadPool threadPool = new ThreadPool();
 
-    @Bean
-    public ThreadPoolTaskExecutor quartzTaskExecutor(QuartzProperties quartzProperties) {
-        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setCorePoolSize(quartzProperties.getThreadPool().getCorePoolSize());
-        threadPoolTaskExecutor.setMaxPoolSize(quartzProperties.getThreadPool().getMaxPoolSize());
-        threadPoolTaskExecutor.setQueueCapacity(quartzProperties.getThreadPool().getQueueCapacity());
-        threadPoolTaskExecutor.setKeepAliveSeconds(quartzProperties.getThreadPool().getKeepAliveSeconds());
-        threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(
-            quartzProperties.getThreadPool().isWaitForTasksToCompleteOnShutdown());
-        threadPoolTaskExecutor.setAwaitTerminationSeconds(
-            quartzProperties.getThreadPool().getAwaitTerminationSeconds());
+    /**
+     * Scheduler 配置
+     */
+    private Scheduler scheduler = new Scheduler();
 
-        return threadPoolTaskExecutor;
+    public JobQuartzProperties() {
+
+    }
+
+    /**
+     * 执行定时任务的线程池配置，配置参考 ThreadPoolTaskExecutor
+     * @see ThreadPoolTaskExecutor
+     */
+    @Data
+    public static class ThreadPool {
+        private String threadNamePrefix;
+
+        private int threadPriority = 5;
+
+        private boolean daemon = false;
+
+        private String threadGroupName;
+
+        private int corePoolSize = 10;
+
+        private int maxPoolSize = Integer.MAX_VALUE;
+
+        private int keepAliveSeconds = 60;
+
+        private int queueCapacity = Integer.MAX_VALUE;
+
+        private boolean allowCoreThreadTimeOut = false;
+
+        private boolean waitForTasksToCompleteOnShutdown = false;
+
+        private int awaitTerminationSeconds = 0;
+    }
+
+    @Data
+    public static class Scheduler {
+
+        private String schedulerName;
+
+        private String applicationContextSchedulerContextKey = "applicationContext";
+
+        private boolean overwriteExistingJobs = true;
+
+        private boolean autoStartup = true;
+
+        private int startupDelay = 5;
     }
 }

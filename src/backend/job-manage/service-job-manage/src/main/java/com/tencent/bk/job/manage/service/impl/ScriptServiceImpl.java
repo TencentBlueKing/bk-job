@@ -75,6 +75,7 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,6 +111,11 @@ public class ScriptServiceImpl implements ScriptService {
     private final DSLContext dslContext;
     private TaskTemplateService taskTemplateService;
 
+    @Autowired
+    @Lazy
+    public void setTaskTemplateService(TaskTemplateService taskTemplateService) {
+        this.taskTemplateService = taskTemplateService;
+    }
 
     @Autowired
     public ScriptServiceImpl(
@@ -118,7 +124,6 @@ public class ScriptServiceImpl implements ScriptService {
         TagService tagService,
         ScriptRelateTaskPlanDAO scriptRelateTaskPlanDAO,
         ScriptCitedTaskTemplateDAO scriptCitedTaskTemplateDAO,
-        TaskTemplateService taskTemplateService,
         ScriptRelateJobTemplateDAO scriptRelateJobTemplateDAO,
         @Qualifier("TaskTemplateScriptStepDAOImpl") TaskScriptStepDAO taskScriptStepDAO,
         TaskTemplateDAO taskTemplateDAO,
@@ -130,7 +135,6 @@ public class ScriptServiceImpl implements ScriptService {
         this.tagService = tagService;
         this.scriptRelateTaskPlanDAO = scriptRelateTaskPlanDAO;
         this.scriptCitedTaskTemplateDAO = scriptCitedTaskTemplateDAO;
-        this.taskTemplateService = taskTemplateService;
         this.scriptRelateJobTemplateDAO = scriptRelateJobTemplateDAO;
         this.taskScriptStepDAO = taskScriptStepDAO;
         this.taskTemplateDAO = taskTemplateDAO;
@@ -1028,10 +1032,6 @@ public class ScriptServiceImpl implements ScriptService {
         List<String> scriptIdList = scriptDAO.listAppScriptIds(appId);
         // 2.查询被引用的脚本数量
         return taskScriptStepDAO.countScriptCitedByStepsByScriptIds(appId, scriptIdList);
-    }
-
-    public void setTaskTemplateService(TaskTemplateService taskTemplateService) {
-        this.taskTemplateService = taskTemplateService;
     }
 
     @Override

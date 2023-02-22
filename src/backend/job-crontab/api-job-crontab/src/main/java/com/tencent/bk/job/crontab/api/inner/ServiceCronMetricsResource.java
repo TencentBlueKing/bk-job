@@ -30,18 +30,16 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-crontab:Service:Metrics"})
-@RequestMapping("/service/metrics")
 @RestController
 @EsbAPI
 public interface ServiceCronMetricsResource {
 
     @ApiOperation(value = "定时任务总量", produces = "application/json")
-    @GetMapping("/count")
+    @GetMapping("/service/metrics/count")
     InternalResponse<Integer> countCronJob(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)

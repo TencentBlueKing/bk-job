@@ -9,6 +9,9 @@ spring:
       name: ${job.security.actuator.user.name}
       password: ${job.security.actuator.user.password}
       roles: ENDPOINT_ADMIN
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 job:
   security:
     service:

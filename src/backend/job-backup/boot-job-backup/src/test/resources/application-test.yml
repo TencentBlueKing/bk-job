@@ -1,4 +1,7 @@
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   cloud:
     refresh:
       extra-refreshable: javax.sql.DataSource

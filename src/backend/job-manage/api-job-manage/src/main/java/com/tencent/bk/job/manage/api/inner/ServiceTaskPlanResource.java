@@ -38,64 +38,62 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @Api(tags = {"job-manage:service:Task_Plan_Management"})
-@RequestMapping("/service")
 @RestController
 @InternalAPI
 public interface ServiceTaskPlanResource {
 
     @ApiOperation(value = "根据执行方案ID获取执行方案信息", produces = "application/json")
-    @GetMapping("/app/{appId}/plan/planId/{planId}/basic")
+    @GetMapping("/service/app/{appId}/plan/planId/{planId}/basic")
     InternalResponse<ServiceTaskPlanDTO> getPlanBasicInfoById(
         @ApiParam(value = "业务ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
     @ApiOperation(value = "根据执行方案ID获取执行方案信息", produces = "application/json")
-    @GetMapping("/plan/{planId}/planName")
+    @GetMapping("/service/plan/{planId}/planName")
     InternalResponse<String> getPlanName(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
     @ApiOperation(value = "根据执行方案全局变量name获取id", produces = "application/json")
-    @GetMapping("/plan/{planId}/globalVar/getIdByName/{globalVarName}")
+    @GetMapping("/service/plan/{planId}/globalVar/getIdByName/{globalVarName}")
     InternalResponse<Long> getGlobalVarIdByName(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量名称", required = true) @PathVariable("globalVarName") String globalVarName
     );
 
     @ApiOperation(value = "根据执行方案全局变量name获取实例", produces = "application/json")
-    @GetMapping("/plan/{planId}/globalVar/name/{globalVarName}")
+    @GetMapping("/service/plan/{planId}/globalVar/name/{globalVarName}")
     InternalResponse<ServiceTaskVariableDTO> getGlobalVarByName(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量名称", required = true) @PathVariable("globalVarName") String globalVarName
     );
 
     @ApiOperation(value = "根据执行方案全局变量id获取name", produces = "application/json")
-    @GetMapping("/plan/{planId}/globalVar/getNameById/{globalVarId}")
+    @GetMapping("/service/plan/{planId}/globalVar/getNameById/{globalVarId}")
     InternalResponse<String> getGlobalVarNameById(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId
     );
 
     @ApiOperation(value = "根据执行方案全局变量id获取实例", produces = "application/json")
-    @GetMapping("/plan/{planId}/globalVar/id/{globalVarId}")
+    @GetMapping("/service/plan/{planId}/globalVar/id/{globalVarId}")
     InternalResponse<ServiceTaskVariableDTO> getGlobalVarById(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @ApiParam(value = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId
     );
 
     @ApiOperation(value = "根据执行方案ID获取执行方案业务Id", produces = "application/json")
-    @GetMapping("/plan/{planId}/planAppId")
+    @GetMapping("/service/plan/{planId}/planAppId")
     InternalResponse<Long> getPlanAppId(
         @ApiParam(value = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
     @ApiOperation(value = "根据执行方案ID获取执行方案信息", produces = "application/json")
-    @GetMapping("/app/{appId}/plan/planId/{planId}")
+    @GetMapping("/service/app/{appId}/plan/planId/{planId}")
     InternalResponse<ServiceTaskPlanDTO> getPlanById(
         @ApiParam(value = "业务ID", required = true)
         @PathVariable("appId") Long appId,
@@ -105,7 +103,7 @@ public interface ServiceTaskPlanResource {
         @RequestParam(value = "includeDisabledSteps", required = false, defaultValue = "false")
             Boolean includeDisabledSteps);
 
-    @PutMapping("/app/{appId}/plan/{templateId}/{planId}/createPlanWithId")
+    @PutMapping("/service/app/{appId}/plan/{templateId}/{planId}/createPlanWithId")
     InternalResponse<Long> createPlanWithIdForMigration(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
@@ -115,7 +113,7 @@ public interface ServiceTaskPlanResource {
         @ApiParam(value = "修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
         @ApiParam(value = "最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser);
 
-    @GetMapping("/app/{appId}/plan/check")
+    @GetMapping("/service/app/{appId}/plan/check")
     InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID") @RequestParam("templateId") Long templateId,
@@ -123,7 +121,7 @@ public interface ServiceTaskPlanResource {
         @ApiParam(value = "执行方案名称", required = true) @RequestParam("planName") String name);
 
     @ApiOperation(value = "导入执行方案", produces = "application/json")
-    @PutMapping("/app/{appId}/plan/{templateId}/savePlanForImport")
+    @PutMapping("/service/app/{appId}/plan/{templateId}/savePlanForImport")
     InternalResponse<Long> savePlanForImport(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
@@ -131,7 +129,7 @@ public interface ServiceTaskPlanResource {
         @ApiParam(value = "创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
         @ApiParam(value = "执行方案信息", required = true) @RequestBody TaskPlanVO planInfo);
 
-    @GetMapping("/app/{appId}/plan/{templateId}/{planId}/variable")
+    @GetMapping("/service/app/{appId}/plan/{templateId}/{planId}/variable")
     InternalResponse<List<ServiceTaskVariableDTO>> getPlanVariable(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
@@ -139,14 +137,14 @@ public interface ServiceTaskPlanResource {
         @ApiParam(value = "执行方案 ID") @PathVariable("planId") Long planId);
 
     @ApiOperation(value = "获取执行方案基本信息列表", produces = "application/json")
-    @GetMapping("/{templateId}")
+    @GetMapping("/service/{templateId}")
     InternalResponse<List<ServiceTaskPlanDTO>> listPlans(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID", required = true) @PathVariable(value = "templateId") Long templateId);
 
     @ApiOperation(value = "获取模板对应的执行方案Id", produces = "application/json")
-    @GetMapping("/plan/planIds/template/{templateId}")
+    @GetMapping("/service/plan/planIds/template/{templateId}")
     InternalResponse<List<Long>> listPlanIds(
         @ApiParam(value = "模版 ID", required = true) @PathVariable(value = "templateId") Long templateId);
 }

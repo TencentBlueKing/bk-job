@@ -30,19 +30,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.oas.annotations.EnableOpenApi;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
 /**
- * @date 2019/09/19
+ * Swagger 配置
  */
 @Configuration
-@EnableSwagger2
-@Profile({"dev", "test", "local"})
+@EnableOpenApi
+@Profile({"dev", "local"})
 public class SwaggerConfig {
 
     private final BkConfig bkConfig;
@@ -54,8 +54,9 @@ public class SwaggerConfig {
 
     @Bean
     public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
-            .host(bkConfig.getSwaggerUrl() + "/job-crontab")
+        return new Docket(DocumentationType.OAS_30)
+            .host(bkConfig.getSwaggerUrl())
+            .pathMapping("job-crontab")
             .protocols(new HashSet<>(Arrays.asList("http", "https"))).select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.crontab.api"))
             .paths(PathSelectors.any())

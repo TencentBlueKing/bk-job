@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.ScopedSpan;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
@@ -67,7 +68,8 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
     @Override
     protected void executeInternal(JobExecutionContext context) {
         scheduleMeasureService.recordCronScheduleDelay(name(), context);
-        JobContextUtil.setRequestId(tracer.currentSpan().context().traceId());
+        ScopedSpan span = tracer.startScopedSpan("executeCronJob");
+        JobContextUtil.setRequestId(span.context().traceId());
         String executeId = JobContextUtil.getRequestId();
         try {
             if (log.isDebugEnabled()) {
@@ -87,6 +89,7 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
             log.error("fail to executeInternal", e);
         } finally {
             LockUtils.releaseDistributedLock(getLockKey(context), executeId);
+            span.end();
         }
     }
 
