@@ -16,7 +16,9 @@ Default job logback configuration provided for import
     <property name="IAM_LOG_FILE" value="${APP_LOG_DIR}/iam.log"/>
     <property name="GSE_LOG_FILE" value="${APP_LOG_DIR}/gse.log"/>
     <property name="CMDB_LOG_FILE" value="${APP_LOG_DIR}/cmdb.log"/>
+    <property name="PAAS_LOG_FILE" value="${APP_LOG_DIR}/paas.log"/>
 
+    <!-- 程序主日志 -->
     <appender name="app-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${APP_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -34,11 +36,13 @@ Default job logback configuration provided for import
         <queueSize>10240</queueSize>
         <appender-ref ref="app-appender"/>
     </appender>
+
+    <!-- job OpenApi 日志 -->
     <appender name="openapi-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${OPEN_API_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${OPEN_API_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
-            <maxFileSize>2GB</maxFileSize>
+            <maxFileSize>1GB</maxFileSize>
             <maxHistory>7</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
         </rollingPolicy>
@@ -47,6 +51,12 @@ Default job logback configuration provided for import
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+    <appender name="async-openapi-appender" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>10240</queueSize>
+        <appender-ref ref="openapi-appender"/>
+    </appender>
+
+    <!-- GSE 日志 -->
     <appender name="gse-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${GSE_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -60,19 +70,27 @@ Default job logback configuration provided for import
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+    <appender name="async-gse-appender" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>10240</queueSize>
+        <appender-ref ref="gse-appender"/>
+    </appender>
+
+    <!-- IAM 日志 -->
     <appender name="iam-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${IAM_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${IAM_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>168</maxHistory>
-            <totalSizeCap>100GB</totalSizeCap>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+
+    <!-- CMDB 日志 -->
     <appender name="cmdb-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${CMDB_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -86,6 +104,27 @@ Default job logback configuration provided for import
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+    <appender name="async-cmdb-appender" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>10240</queueSize>
+        <appender-ref ref="cmdb-appender"/>
+    </appender>
+
+    <!-- PAAS 日志 -->
+    <appender name="paas-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${PAAS_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${PAAS_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ERROR 日志 -->
     <appender name="error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${ERROR_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -105,6 +144,7 @@ Default job logback configuration provided for import
         </filter>
     </appender>
 
+    <!-- 标准输出 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
@@ -124,19 +164,27 @@ Default job logback configuration provided for import
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="DEBUG" additivity="false">
-            <appender-ref ref="openapi-appender"/>
+            <appender-ref ref="async-openapi-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.gse" level="DEBUG" additivity="false">
-            <appender-ref ref="gse-appender"/>
+            <appender-ref ref="async-gse-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
             <appender-ref ref="iam-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
+        <logger name="com.tencent.bk.job.common.iam" level="DEBUG" additivity="false">
+            <appender-ref ref="iam-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
         <logger name="com.tencent.bk.job.common.cc" level="DEBUG" additivity="false">
-            <appender-ref ref="cmdb-appender"/>
+            <appender-ref ref="async-cmdb-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.paas" level="DEBUG" additivity="false">
+            <appender-ref ref="paas-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <root level="INFO" additivity="false">
@@ -150,19 +198,27 @@ Default job logback configuration provided for import
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="INFO" additivity="false">
-            <appender-ref ref="openapi-appender"/>
+            <appender-ref ref="async-openapi-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.gse" level="INFO" additivity="false">
-            <appender-ref ref="gse-appender"/>
+            <appender-ref ref="async-gse-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="INFO" additivity="false">
             <appender-ref ref="iam-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
+        <logger name="com.tencent.bk.job.common.iam" level="INFO" additivity="false">
+            <appender-ref ref="iam-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
         <logger name="com.tencent.bk.job.common.cc" level="INFO" additivity="false">
-            <appender-ref ref="cmdb-appender"/>
+            <appender-ref ref="async-cmdb-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.paas" level="INFO" additivity="false">
+            <appender-ref ref="paas-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <root level="INFO">
@@ -178,12 +234,12 @@ Default job logback configuration provided for import
         </logger>
         <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="esb-job-appender"/>
+            <appender-ref ref="async-openapi-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.gse" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="gse-appender"/>
+            <appender-ref ref="async-gse-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="DEBUG" additivity="false">
@@ -191,9 +247,19 @@ Default job logback configuration provided for import
             <appender-ref ref="iam-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
+        <logger name="com.tencent.bk.job.common.iam" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="iam-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
         <logger name="com.tencent.bk.job.common.cc" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="cmdb-appender"/>
+            <appender-ref ref="async-cmdb-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.paas" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="paas-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <root level="INFO" additivity="false">
@@ -210,12 +276,12 @@ Default job logback configuration provided for import
         </logger>
         <logger name="com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="esb-job-appender"/>
+            <appender-ref ref="async-openapi-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.gse" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="gse-appender"/>
+            <appender-ref ref="async-gse-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="com.tencent.bk.sdk.iam" level="INFO" additivity="false">
@@ -223,9 +289,19 @@ Default job logback configuration provided for import
             <appender-ref ref="iam-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
+        <logger name="com.tencent.bk.job.common.iam" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="iam-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
         <logger name="com.tencent.bk.job.common.cc" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="cmdb-appender"/>
+            <appender-ref ref="async-cmdb-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.paas" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="paas-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <root level="INFO">
