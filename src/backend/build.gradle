@@ -90,6 +90,8 @@ ext {
     // https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
     set('apacheCommonsPoolVersion', "2.8.0")
     set('apacheCommonsCodecVersion', "1.14")
+    set('apacheCuratorFrameworkVersion', "5.4.0")
+    set('apacheCuratorRecipesVersion', "5.4.0")
     set('dozerVersion', "5.5.1")
     set('commonsCollectionsVersion', "3.2.2")
     set('jedisVersion', "3.0.1")
@@ -217,6 +219,8 @@ subprojects {
             dependency "io.springfox:springfox-swagger-ui:$swaggerVersion"
             dependency "org.apache.commons:commons-collections4:$apacheCommonsCollectionVersion"
             dependency "org.apache.commons:commons-pool2:$apacheCommonsPoolVersion"
+            dependency "org.apache.curator:curator-framework:$apacheCuratorFrameworkVersion"
+            dependency "org.apache.curator:curator-recipes:$apacheCuratorRecipesVersion"
             dependency "net.sf.dozer:dozer:$dozerVersion"
             dependency "commons-collections:commons-collections:$commonsCollectionsVersion"
             dependency "org.jedis:jedis:$jedisVersion"
