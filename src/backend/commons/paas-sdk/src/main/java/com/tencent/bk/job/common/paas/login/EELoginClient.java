@@ -25,9 +25,11 @@
 package com.tencent.bk.job.common.paas.login;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
+import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.EsbUserDto;
@@ -80,6 +82,10 @@ public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient 
                 }
             );
             return convertToBkUserDTO(esbResp.getData());
+        } catch (Exception e) {
+            String errorMsg = "Get " + API_GET_USER_INFO + " error";
+            log.error(errorMsg, e);
+            throw new InternalUserManageException(errorMsg, e, ErrorCode.USER_MANAGE_API_ACCESS_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }

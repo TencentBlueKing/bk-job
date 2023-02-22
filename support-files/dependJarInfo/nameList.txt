@@ -1,5 +1,4 @@
 amqp-client
-annotations
 archaius-core
 aspectjrt
 aspectjweaver

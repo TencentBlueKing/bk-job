@@ -26,64 +26,64 @@
 -->
 
 <template>
-    <div class="toggle-display">
-        <div
-            class="action"
-            @click="handleToggle">
-            <template v-if="isOpen">
-                <Icon
-                    class="toggle-arrow"
-                    type="angle-double-up" />
-                <span>{{ $t('收起未引用的变量') }} ({{ count }})</span>
-            </template>
-            <template v-else>
-                <Icon
-                    class="toggle-arrow"
-                    type="angle-double-down" />
-                <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
-            </template>
-        </div>
-        <div v-show="isOpen">
-            <slot />
-        </div>
+  <div class="toggle-display">
+    <div
+      class="action"
+      @click="handleToggle">
+      <template v-if="isOpen">
+        <icon
+          class="toggle-arrow"
+          type="angle-double-up" />
+        <span>{{ $t('收起未引用的变量') }} ({{ count }})</span>
+      </template>
+      <template v-else>
+        <icon
+          class="toggle-arrow"
+          type="angle-double-down" />
+        <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
+      </template>
     </div>
+    <div v-show="isOpen">
+      <slot />
+    </div>
+  </div>
 </template>
 <script>
-    export default {
-        name: 'ToggleDisplay',
-        props: {
-            count: {
-                type: Number,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isOpen: false,
-            };
-        },
-        methods: {
-            handleToggle () {
-                this.isOpen = !this.isOpen;
-            },
-        },
-    };
+  export default {
+    name: 'ToggleDisplay',
+    props: {
+      count: {
+        type: Number,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isOpen: false,
+      };
+    },
+    methods: {
+      handleToggle () {
+        this.isOpen = !this.isOpen;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
-    .toggle-display {
-        .action {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            line-height: 19px;
-            color: #3a84ff;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .toggle-arrow {
-            margin-right: 3px;
-            font-size: 12px;
-        }
+  .toggle-display {
+    .action {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      line-height: 19px;
+      color: #3a84ff;
+      cursor: pointer;
+      user-select: none;
     }
+
+    .toggle-arrow {
+      margin-right: 3px;
+      font-size: 12px;
+    }
+  }
 </style>

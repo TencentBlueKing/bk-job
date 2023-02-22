@@ -26,125 +26,125 @@
 -->
 
 <template>
-    <jb-form-item
-        ref="item"
-        :label="$t('脚本内容')"
-        :property="contentField"
-        required
-        :rules="rules">
-        <ace-editor
-            ref="aceEditor"
-            v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
-            :constants="scriptVariables"
-            :lang="lang"
-            :readonly="isReadonly"
-            :readonly-tips="$t('引用的脚本不支持编辑')"
-            :value="formData[contentField]"
-            @change="handleChange"
-            @on-mode-change="handleTypeChange" />
-    </jb-form-item>
+  <jb-form-item
+    ref="item"
+    :label="$t('脚本内容')"
+    :property="contentField"
+    required
+    :rules="rules">
+    <ace-editor
+      ref="aceEditor"
+      v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
+      :constants="scriptVariables"
+      :lang="lang"
+      :readonly="isReadonly"
+      :readonly-tips="$t('引用的脚本不支持编辑')"
+      :value="formData[contentField]"
+      @change="handleChange"
+      @on-mode-change="handleTypeChange" />
+  </jb-form-item>
 </template>
 <script>
-    import _ from 'lodash';
+  import _ from 'lodash';
 
-    import ScriptManageService from '@service/script-manage';
+  import ScriptManageService from '@service/script-manage';
 
-    import TaskStepModel from '@model/task/task-step';
+  import TaskStepModel from '@model/task/task-step';
 
-    import AceEditor from '@components/ace-editor';
+  import AceEditor from '@components/ace-editor';
 
-    import I18n from '@/i18n';
-    import {
-        formatScriptTypeValue,
-    } from '@/utils/assist';
+  import I18n from '@/i18n';
+  import {
+    formatScriptTypeValue,
+  } from '@/utils/assist';
 
-    export default {
-        components: {
-            AceEditor,
-        },
-        props: {
-            contentField: {
-                type: String,
-                required: true,
-            },
-            scriptSourceField: {
-                type: String,
-                required: true,
-            },
-            languageField: {
-                type: String,
-                required: true,
-            },
-            formData: {
-                type: Object,
-                default: () => ({}),
-            },
-            scriptVariables: {
-                type: Array,
-                default: () => [],
-            },
-        },
-        data () {
-            return {
-                lang: 'Shell',
-                isReadonly: false,
-            };
-        },
-        computed: {
-            isContentLoading () {
-                return this.formData.isScriptContentLoading;
-            },
-        },
-        watch: {
-            formData: {
-                handler (newData) {
-                    this.isReadonly = newData[this.scriptSourceField] !== TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL;
-                    this.lang = formatScriptTypeValue(newData[this.languageField]);
+  export default {
+    components: {
+      AceEditor,
+    },
+    props: {
+      contentField: {
+        type: String,
+        required: true,
+      },
+      scriptSourceField: {
+        type: String,
+        required: true,
+      },
+      languageField: {
+        type: String,
+        required: true,
+      },
+      formData: {
+        type: Object,
+        default: () => ({}),
+      },
+      scriptVariables: {
+        type: Array,
+        default: () => [],
+      },
+    },
+    data () {
+      return {
+        lang: 'Shell',
+        isReadonly: false,
+      };
+    },
+    computed: {
+      isContentLoading () {
+        return this.formData.isScriptContentLoading;
+      },
+    },
+    watch: {
+      formData: {
+        handler (newData) {
+          this.isReadonly = newData[this.scriptSourceField] !== TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL;
+          this.lang = formatScriptTypeValue(newData[this.languageField]);
 
-                    const rules = [
-                        {
-                            validator: value => ScriptManageService.getScriptValidation({
-                                content: value,
-                                scriptType: newData[this.languageField],
-                            }).then((data) => {
-                                // 高危语句报错状态需要全局保存
-                                const dangerousContent = _.find(data, _ => _.isDangerous);
-                                this.$store.commit('setScriptCheckError', dangerousContent);
-                                return true;
-                            }),
-                            message: I18n.t('脚本内容检测失败'),
-                            trigger: 'blur',
-                        },
-                    ];
+          const rules = [
+            {
+              validator: value => ScriptManageService.getScriptValidation({
+                content: value,
+                scriptType: newData[this.languageField],
+              }).then((data) => {
+                // 高危语句报错状态需要全局保存
+                const dangerousContent = _.find(data, _ => _.isDangerous);
+                this.$store.commit('setScriptCheckError', dangerousContent);
+                return true;
+              }),
+              message: I18n.t('脚本内容检测失败'),
+              trigger: 'blur',
+            },
+          ];
                     
-                    if (!this.isReadonly) {
-                        rules.unshift({
-                            required: true,
-                            message: I18n.t('脚本内容必填'),
-                            trigger: 'change',
-                        });
-                    }
-                    this.rules = rules;
-                },
-                deep: true,
-                immediate: true,
-            },
-            'formData.content' (value) {
-                if (value) {
-                    this.$refs.item.clearValidator();
-                }
-            },
+          if (!this.isReadonly) {
+            rules.unshift({
+              required: true,
+              message: I18n.t('脚本内容必填'),
+              trigger: 'change',
+            });
+          }
+          this.rules = rules;
         },
-        created () {
-            this.rules = [];
-        },
-        methods: {
-            handleTypeChange (lang) {
-                this.$emit('on-change', this.languageField, formatScriptTypeValue(lang));
-            },
-            handleChange (value) {
-                this.$emit('on-change', this.contentField, value);
-            },
-        },
-    };
+        deep: true,
+        immediate: true,
+      },
+      'formData.content' (value) {
+        if (value) {
+          this.$refs.item.clearValidator();
+        }
+      },
+    },
+    created () {
+      this.rules = [];
+    },
+    methods: {
+      handleTypeChange (lang) {
+        this.$emit('on-change', this.languageField, formatScriptTypeValue(lang));
+      },
+      handleChange (value) {
+        this.$emit('on-change', this.contentField, value);
+      },
+    },
+  };
 </script>

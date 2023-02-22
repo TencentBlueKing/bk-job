@@ -26,132 +26,132 @@
 -->
 
 <template>
-    <div
-        v-bkloading="{ isLoading }"
-        class="job-execute-record">
-        <template v-if="!isLoading">
-            <bk-table
-                v-if="data.length > 0"
-                :data="data">
-                <bk-table-column
-                    :label="$t('history.时间')"
-                    prop="createTime"
-                    width="180" />
-                <bk-table-column
-                    :label="$t('history.操作人')"
-                    prop="operator"
-                    width="120" />
-                <bk-table-column
-                    :label="$t('history.操作')"
-                    prop="operationName"
-                    width="120" />
-                <bk-table-column
-                    class-name="step-name"
-                    :label="$t('history.步骤')"
-                    prop="stepName"
-                    show-overflow-tooltip />
-                <bk-table-column :label="$t('history.详情')">
-                    <template slot-scope="{ row }">
-                        <template v-if="row.detailEnable">
-                            <span v-if="chekcIsCurrentUrl(row)">
-                                ({{ $t('history.当前正在显示的内容') }})
-                            </span>
-                            <bk-button
-                                v-else
-                                text
-                                theme="primary"
-                                @click="handleView(row)">
-                                {{ row.detail }}
-                            </bk-button>
-                        </template>
-                        <div v-else>
-                            {{ row.detail }}
-                        </div>
-                    </template>
-                </bk-table-column>
-            </bk-table>
-            <empty
+  <div
+    v-bkloading="{ isLoading }"
+    class="job-execute-record">
+    <template v-if="!isLoading">
+      <bk-table
+        v-if="data.length > 0"
+        :data="data">
+        <bk-table-column
+          :label="$t('history.时间')"
+          prop="createTime"
+          width="180" />
+        <bk-table-column
+          :label="$t('history.操作人')"
+          prop="operator"
+          width="120" />
+        <bk-table-column
+          :label="$t('history.操作')"
+          prop="operationName"
+          width="120" />
+        <bk-table-column
+          class-name="step-name"
+          :label="$t('history.步骤')"
+          prop="stepName"
+          show-overflow-tooltip />
+        <bk-table-column :label="$t('history.详情')">
+          <template slot-scope="{ row }">
+            <template v-if="row.detailEnable">
+              <span v-if="chekcIsCurrentUrl(row)">
+                ({{ $t('history.当前正在显示的内容') }})
+              </span>
+              <bk-button
                 v-else
-                class="empty" />
-        </template>
-    </div>
+                text
+                theme="primary"
+                @click="handleView(row)">
+                {{ row.detail }}
+              </bk-button>
+            </template>
+            <div v-else>
+              {{ row.detail }}
+            </div>
+          </template>
+        </bk-table-column>
+      </bk-table>
+      <empty
+        v-else
+        class="empty" />
+    </template>
+  </div>
 </template>
 <script>
-    import TaskExecuteService from '@service/task-execute';
+  import TaskExecuteService from '@service/task-execute';
 
-    import Empty from '@components/empty';
+  import Empty from '@components/empty';
 
-    export default {
-        name: '',
-        components: {
-            Empty,
-        },
-        props: {
-            id: {
-                type: [Number, String],
-                default: 0,
-            },
-            from: {
-                type: String,
-                default: '',
-            },
-        },
-        data () {
-            return {
-                isLoading: true,
-                data: [],
-            };
-        },
-        created () {
-            this.fetchTaskOperationLog();
-        },
-        methods: {
-            fetchTaskOperationLog (id) {
-                this.$request(TaskExecuteService.fetchTaskOperationLog({
-                    id: this.id,
-                }), () => {
-                    this.isLoading = true;
-                }).then((data) => {
-                    this.data = data;
-                })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            chekcIsCurrentUrl (data) {
-                const urlSearch = new URLSearchParams(window.location.search);
-                const stepInstanceId = urlSearch.get('stepInstanceId');
-                const retryCount = urlSearch.get('retryCount');
+  export default {
+    name: '',
+    components: {
+      Empty,
+    },
+    props: {
+      id: {
+        type: [Number, String],
+        default: 0,
+      },
+      from: {
+        type: String,
+        default: '',
+      },
+    },
+    data () {
+      return {
+        isLoading: true,
+        data: [],
+      };
+    },
+    created () {
+      this.fetchTaskOperationLog();
+    },
+    methods: {
+      fetchTaskOperationLog (id) {
+        this.$request(TaskExecuteService.fetchTaskOperationLog({
+          id: this.id,
+        }), () => {
+          this.isLoading = true;
+        }).then((data) => {
+          this.data = data;
+        })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      chekcIsCurrentUrl (data) {
+        const urlSearch = new URLSearchParams(window.location.search);
+        const stepInstanceId = urlSearch.get('stepInstanceId');
+        const retryCount = urlSearch.get('retryCount');
                 
-                return parseInt(stepInstanceId, 10) === data.stepInstanceId
-                    && parseInt(retryCount, 10) === data.retry;
-            },
-            handleView (payload) {
-                const routerInfo = {
-                    name: 'historyStep',
-                    params: {
-                        taskInstanceId: payload.taskInstanceId,
-                    },
-                    query: {
-                        stepInstanceId: payload.stepInstanceId,
-                        batch: payload.batch,
-                        retryCount: payload.retry,
-                        from: this.from || this.$route.query.from,
-                    },
-                };
+        return parseInt(stepInstanceId, 10) === data.stepInstanceId
+          && parseInt(retryCount, 10) === data.retry;
+      },
+      handleView (payload) {
+        const routerInfo = {
+          name: 'historyStep',
+          params: {
+            taskInstanceId: payload.taskInstanceId,
+          },
+          query: {
+            stepInstanceId: payload.stepInstanceId,
+            batch: payload.batch,
+            retryCount: payload.retry,
+            from: this.from || this.$route.query.from,
+          },
+        };
                 
-                this.$emit('on-change');
-                this.$router.push(routerInfo);
-            },
-        },
-    };
+        this.$emit('on-change');
+        this.$router.push(routerInfo);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
-    .job-execute-record {
-        min-height: calc(100vh - 120px);
+  .job-execute-record {
+    min-height: calc(100vh - 120px);
 
-        .empty {
-            padding-top: 80px;
-        }
+    .empty {
+      padding-top: 80px;
     }
+  }
 </style>

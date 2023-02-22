@@ -26,54 +26,54 @@
 -->
 
 <template>
-    <lower-component>
-        <div>
-            <div
-                v-bk-tooltips.bottom="$t('history.步骤内容')"
-                class="action-btn"
-                @click="handleShowStepDetail">
-                <Icon type="detail-line" />
-            </div>
-            <jb-sideslider
-                :is-show.sync="isShow"
-                :quick-close="true"
-                :show-footer="false"
-                :title="$t('history.查看步骤内容')"
-                :width="960">
-                <step-detail-view
-                    :id="stepInstanceId"
-                    :task-id="taskInstanceId" />
-            </jb-sideslider>
-        </div>
-    </lower-component>
+  <lower-component>
+    <div>
+      <div
+        v-bk-tooltips.bottom="$t('history.步骤内容')"
+        class="action-btn"
+        @click="handleShowStepDetail">
+        <icon type="detail-line" />
+      </div>
+      <jb-sideslider
+        :is-show.sync="isShow"
+        :quick-close="true"
+        :show-footer="false"
+        :title="$t('history.查看步骤内容')"
+        :width="960">
+        <step-detail-view
+          :id="stepInstanceId"
+          :task-id="taskInstanceId" />
+      </jb-sideslider>
+    </div>
+  </lower-component>
 </template>
 <script>
-    import StepDetailView from '../../common/step-detail-view';
+  import StepDetailView from '../../common/step-detail-view';
 
-    export default {
-        name: '',
-        components: {
-            StepDetailView,
-        },
-        props: {
-            taskInstanceId: {
-                type: Number,
-                required: true,
-            },
-            stepInstanceId: {
-                type: Number,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isShow: false,
-            };
-        },
-        methods: {
-            handleShowStepDetail () {
-                this.isShow = true;
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      StepDetailView,
+    },
+    props: {
+      taskInstanceId: {
+        type: Number,
+        required: true,
+      },
+      stepInstanceId: {
+        type: Number,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isShow: false,
+      };
+    },
+    methods: {
+      handleShowStepDetail () {
+        this.isShow = true;
+      },
+    },
+  };
 </script>

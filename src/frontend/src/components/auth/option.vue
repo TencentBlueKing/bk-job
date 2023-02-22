@@ -26,57 +26,57 @@
 -->
 
 <template>
-    <bk-option
-        v-bind="$attrs"
-        :name="name"
-        v-on="$listeners">
-        <auth-component
-            :auth="auth"
-            :permission="permission"
-            :resource-id="resourceId"
-            :scope-id="scopeId"
-            :scope-type="scopeType">
-            <slot>
-                {{ name }}
-            </slot>
-            <div
-                slot="forbid"
-                class="jb-select-option-permission">
-                <slot>
-                    {{ name }}
-                </slot>
-            </div>
-        </auth-component>
-    </bk-option>
+  <bk-option
+    v-bind="$attrs"
+    :name="name"
+    v-on="$listeners">
+    <auth-component
+      :auth="auth"
+      :permission="permission"
+      :resource-id="resourceId"
+      :scope-id="scopeId"
+      :scope-type="scopeType">
+      <slot>
+        {{ name }}
+      </slot>
+      <div
+        slot="forbid"
+        class="jb-select-option-permission">
+        <slot>
+          {{ name }}
+        </slot>
+      </div>
+    </auth-component>
+  </bk-option>
 </template>
 <script>
-    export default {
-        name: '',
-        inheritAttrs: false,
-        props: {
-            permission: {
-                type: [Boolean, String],
-                default: '',
-            },
-            auth: {
-                type: String,
-                required: true,
-            },
-            resourceId: {
-                type: [Number, String],
-            },
-            scopeType: String,
-            scopeId: String,
-            name: {
-                type: [Number, String],
-            },
-        },
-    };
+  export default {
+    name: '',
+    inheritAttrs: false,
+    props: {
+      permission: {
+        type: [Boolean, String],
+        default: '',
+      },
+      auth: {
+        type: String,
+        required: true,
+      },
+      resourceId: {
+        type: [Number, String],
+      },
+      scopeType: String,
+      scopeId: String,
+      name: {
+        type: [Number, String],
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
-    .jb-select-option-permission {
-        &.permission {
-            color: #c4c6cc;
-        }
+  .jb-select-option-permission {
+    &.permission {
+      color: #c4c6cc;
     }
+  }
 </style>

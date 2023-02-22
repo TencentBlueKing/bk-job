@@ -38,11 +38,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 /**
- * @date 2019/09/19
+ * Swagger 配置
  */
 @Configuration
 @EnableOpenApi
-@Profile({"dev", "test", "local"})
+@Profile({"dev", "local"})
 public class SwaggerConfig {
 
     private final JobExecuteConfig config;

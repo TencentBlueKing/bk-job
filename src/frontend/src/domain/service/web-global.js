@@ -27,12 +27,12 @@
 import WebGlobalSource from '../source/web-global';
 
 export default {
-    fetchVersionLog () {
-        return WebGlobalSource.getVersionLog()
-            .then(({ data }) => Object.freeze(data));
-    },
-    fetchVersionENLog () {
-        return WebGlobalSource.getVersionENLog()
-            .then(({ data }) => Object.freeze(data));
-    },
+  fetchVersionLog () {
+    return WebGlobalSource.getVersionLog()
+      .then(({ data }) => Object.freeze(data));
+  },
+  fetchVersionENLog () {
+    return WebGlobalSource.getVersionENLog()
+      .then(({ data }) => Object.freeze(data));
+  },
 };
