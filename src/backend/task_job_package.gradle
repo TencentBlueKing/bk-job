@@ -54,7 +54,6 @@ task postProcessRelease(type: GenCompleteDependJarListAndRemoveInfectedJarsTask)
     completeJarListsRootPath = "../../support-files/dependJarLists"
 
     remove "amqp-client-.*jar"
-    remove "annotations-2.0.0.jar"
     remove "aspectjrt-.*jar"
     remove "aspectjweaver-.*jar"
     remove "bcpkix-jdk15on-.*jar"

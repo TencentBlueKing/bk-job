@@ -57,8 +57,6 @@ public class JsonMapper {
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-        // 支持java.time.LocalDateTime
-//        mapper.registerModule(new JavaTimeModule());
         mapper.findAndRegisterModules();
     }
 

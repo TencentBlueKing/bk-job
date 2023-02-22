@@ -28,29 +28,29 @@ import Model from '@model/model';
 import I18n from '@/i18n';
 
 export default class WhiteIp extends Model {
-    constructor (payload) {
-        super();
-        this.actionScopeList = payload.actionScopeList;
-        this.scopeList = payload.scopeList || [];
-        this.allScope = Boolean(payload.allScope);
-        this.createTime = payload.createTime;
-        this.creator = payload.creator;
-        this.id = payload.id;
-        this.hostList = payload.hostList || [];
-        this.lastModifier = payload.lastModifier;
-        this.lastModifyTime = payload.lastModifyTime;
-        this.remark = payload.remark;
-        this.canManage = payload.canManage;
-    }
+  constructor (payload) {
+    super();
+    this.actionScopeList = payload.actionScopeList;
+    this.scopeList = payload.scopeList || [];
+    this.allScope = Boolean(payload.allScope);
+    this.createTime = payload.createTime;
+    this.creator = payload.creator;
+    this.id = payload.id;
+    this.hostList = payload.hostList || [];
+    this.lastModifier = payload.lastModifier;
+    this.lastModifyTime = payload.lastModifyTime;
+    this.remark = payload.remark;
+    this.canManage = payload.canManage;
+  }
 
-    get scopeText () {
-        return this.actionScopeList.map(item => item.name).join('，');
-    }
+  get scopeText () {
+    return this.actionScopeList.map(item => item.name).join('，');
+  }
 
-    get appText () {
-        if (this.scopeList.length < 1) {
-            return I18n.t('全业务');
-        }
-        return this.scopeList.map(_ => _.name).join('，');
+  get appText () {
+    if (this.scopeList.length < 1) {
+      return I18n.t('全业务');
     }
+    return this.scopeList.map(_ => _.name).join('，');
+  }
 }

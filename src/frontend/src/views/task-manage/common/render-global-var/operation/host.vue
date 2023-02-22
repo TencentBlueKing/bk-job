@@ -26,186 +26,186 @@
 -->
 
 <template>
-    <div>
-        <jb-form
-            ref="varHostForm"
-            :model="formData"
-            :rules="rules">
-            <jb-form-item
-                :label="$t('template.变量名称')"
-                :property="'name'"
-                required>
-                <jb-input
-                    v-model="formData.name"
-                    :maxlength="30"
-                    :placeholder="$t('template.变量名仅支持大小写英文字母或下划线 [必填]')" />
-            </jb-form-item>
-            <jb-form-item
-                ref="defaultTargetValue"
-                :desc="$t('template.仅作用于创建执行方案时的初始变量值，后续更改不会同步到执行方案')"
-                :label="$t('template.初始值')"
-                property="defaultTargetValue">
-                <div>
-                    <bk-button
-                        class="mr10"
-                        @click="handleOpenChooseIp">
-                        <Icon type="plus" />
-                        {{ $t('template.选择主机') }}
-                    </bk-button>
-                    <bk-button
-                        v-if="isShowClear"
-                        @click="handleClearDefault">
-                        {{ $t('template.清空') }}
-                    </bk-button>
-                </div>
-                <!-- <server-panel
+  <div>
+    <jb-form
+      ref="varHostForm"
+      :model="formData"
+      :rules="rules">
+      <jb-form-item
+        :label="$t('template.变量名称')"
+        property="name"
+        required>
+        <jb-input
+          v-model="formData.name"
+          :maxlength="30"
+          :placeholder="$t('template.变量名仅支持大小写英文字母或下划线 [必填]')" />
+      </jb-form-item>
+      <jb-form-item
+        ref="defaultTargetValue"
+        :desc="$t('template.仅作用于创建执行方案时的初始变量值，后续更改不会同步到执行方案')"
+        :label="$t('template.初始值')"
+        property="defaultTargetValue">
+        <div>
+          <bk-button
+            class="mr10"
+            @click="handleOpenChooseIp">
+            <icon type="plus" />
+            {{ $t('template.选择主机') }}
+          </bk-button>
+          <bk-button
+            v-if="isShowClear"
+            @click="handleClearDefault">
+            {{ $t('template.清空') }}
+          </bk-button>
+        </div>
+        <!-- <server-panel
                     v-if="isShowClear"
                     class="view-server-panel"
                     :host-node-info="formData.defaultTargetValue.hostNodeInfo"
                     editable
                     detail-fullscreen
                     @on-change="handleHostChange" /> -->
-                <ip-selector
-                    :original-value="originalHostNodeInfo"
-                    :show-dialog="isShowChooseIp"
-                    show-view
-                    :value="formData.defaultTargetValue.hostNodeInfo"
-                    @change="handleHostChange"
-                    @close-dialog="handleCloseIPSelector" />
-            </jb-form-item>
-            <jb-form-item :label="$t('template.变量描述')">
-                <bk-input
-                    v-model="formData.description"
-                    maxlength="100"
-                    :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息 [可选]')"
-                    type="textarea" />
-            </jb-form-item>
-            <jb-form-item style="margin-bottom: 0;">
-                <bk-checkbox
-                    v-model="formData.required"
-                    :false-value="0"
-                    :true-value="1">
-                    {{ $t('template.执行时必填') }}
-                </bk-checkbox>
-            </jb-form-item>
-        </jb-form>
-        <!-- <choose-ip
+        <ip-selector
+          :original-value="originalHostNodeInfo"
+          :show-dialog="isShowChooseIp"
+          show-view
+          :value="formData.defaultTargetValue.hostNodeInfo"
+          @change="handleHostChange"
+          @close-dialog="handleCloseIPSelector" />
+      </jb-form-item>
+      <jb-form-item :label="$t('template.变量描述')">
+        <bk-input
+          v-model="formData.description"
+          maxlength="100"
+          :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息 [可选]')"
+          type="textarea" />
+      </jb-form-item>
+      <jb-form-item style="margin-bottom: 0;">
+        <bk-checkbox
+          v-model="formData.required"
+          :false-value="0"
+          :true-value="1">
+          {{ $t('template.执行时必填') }}
+        </bk-checkbox>
+      </jb-form-item>
+    </jb-form>
+    <!-- <choose-ip
             v-model="isShowChooseIp"
             :host-node-info="formData.defaultTargetValue.hostNodeInfo"
             @on-change="handleHostChange" /> -->
-    </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
+  import _ from 'lodash';
 
-    import TaskGlobalVariableModel from '@model/task/global-variable';
-    import TaskHostNodeModel from '@model/task-host-node';
+  import TaskGlobalVariableModel from '@model/task/global-variable';
+  import TaskHostNodeModel from '@model/task-host-node';
 
-    import {
-        globalVariableNameRule,
-    } from '@utils/validator';
+  import {
+    globalVariableNameRule,
+  } from '@utils/validator';
 
-    import JbInput from '@components/jb-input';
+  import JbInput from '@components/jb-input';
 
-    import I18n from '@/i18n';
-    // import ChooseIp from '@components/choose-ip';
-    // import ServerPanel from '@components/choose-ip/server-panel';
+  import I18n from '@/i18n';
+  // import ChooseIp from '@components/choose-ip';
+  // import ServerPanel from '@components/choose-ip/server-panel';
 
-    export default {
-        name: 'VarHost',
-        components: {
-            JbInput,
-            // ChooseIp,
-            // ServerPanel,
-        },
-        props: {
-            variable: {
-                type: Array,
-                default: () => [],
-            },
-            data: {
-                type: Object,
-                default: () => ({}),
-            },
-        },
-        data () {
-            return {
-                formData: { ...this.data },
-                isShowChooseIp: false,
-            };
-        },
-        computed: {
-            /**
-             * @desc 显示清空按钮
-             * @returns { Boolean }
-             */
-            isShowClear () {
-                return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
-            },
-        },
-        created () {
-            this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
-            this.rules = {
-                name: [
-                    {
-                        required: true,
-                        message: I18n.t('template.变量名称必填'),
-                        trigger: 'blur',
-                    },
-                    {
-                        validator: globalVariableNameRule.validator,
-                        message: globalVariableNameRule.message,
-                        trigger: 'blur',
-                    },
-                    {
-                        validator: val => !this.variable.some(item => item.name === val),
-                        message: I18n.t('template.变量名称已存在，请重新输入'),
-                        trigger: 'blur',
-                    },
-                ],
-            };
-        },
-        methods: {
-            /**
-             * @desc 编辑主机信息
-             * @param { hostNodeInfo } 主机信息
-             */
-            handleHostChange (hostNodeInfo) {
-                this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
-            },
-            /**
-             * @desc 显示 IP 选择器
-             */
-            handleOpenChooseIp () {
-                this.isShowChooseIp = true;
-            },
-            handleCloseIPSelector () {
-                this.isShowChooseIp = false;
-            },
-            /**
-             * @desc 清空主机信息
-             */
-            handleClearDefault () {
-                const { hostNodeInfo } = new TaskHostNodeModel({});
-                this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
-            },
-            /**
-             * @desc 保存变量
-             */
-            submit () {
-                return this.$refs.varHostForm.validate()
-                    .then(() => {
-                        this.$emit('on-change', {
-                            ...this.formData,
-                            type: TaskGlobalVariableModel.TYPE_HOST,
-                        });
-                    }, validator => Promise.reject(validator.content));
-            },
-        },
-    };
+  export default {
+    name: 'VarHost',
+    components: {
+      JbInput,
+      // ChooseIp,
+      // ServerPanel,
+    },
+    props: {
+      variable: {
+        type: Array,
+        default: () => [],
+      },
+      data: {
+        type: Object,
+        default: () => ({}),
+      },
+    },
+    data () {
+      return {
+        formData: { ...this.data },
+        isShowChooseIp: false,
+      };
+    },
+    computed: {
+      /**
+       * @desc 显示清空按钮
+       * @returns { Boolean }
+       */
+      isShowClear () {
+        return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
+      },
+    },
+    created () {
+      this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
+      this.rules = {
+        name: [
+          {
+            required: true,
+            message: I18n.t('template.变量名称必填'),
+            trigger: 'blur',
+          },
+          {
+            validator: globalVariableNameRule.validator,
+            message: globalVariableNameRule.message,
+            trigger: 'blur',
+          },
+          {
+            validator: val => !this.variable.some(item => item.name === val),
+            message: I18n.t('template.变量名称已存在，请重新输入'),
+            trigger: 'blur',
+          },
+        ],
+      };
+    },
+    methods: {
+      /**
+       * @desc 编辑主机信息
+       * @param { hostNodeInfo } 主机信息
+       */
+      handleHostChange (hostNodeInfo) {
+        this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
+      },
+      /**
+       * @desc 显示 IP 选择器
+       */
+      handleOpenChooseIp () {
+        this.isShowChooseIp = true;
+      },
+      handleCloseIPSelector () {
+        this.isShowChooseIp = false;
+      },
+      /**
+       * @desc 清空主机信息
+       */
+      handleClearDefault () {
+        const { hostNodeInfo } = new TaskHostNodeModel({});
+        this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
+      },
+      /**
+       * @desc 保存变量
+       */
+      submit () {
+        return this.$refs.varHostForm.validate()
+          .then(() => {
+            this.$emit('on-change', {
+              ...this.formData,
+              type: TaskGlobalVariableModel.TYPE_HOST,
+            });
+          }, validator => Promise.reject(validator.content));
+      },
+    },
+  };
 </script>
 <style lang="postcss" scoped>
-    .view-server-panel {
-        margin-top: 10px;
-    }
+  .view-server-panel {
+    margin-top: 10px;
+  }
 </style>

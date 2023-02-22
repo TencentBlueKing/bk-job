@@ -44,25 +44,25 @@ export const parseIdInfo = id => id.match(/^#([^#]+)#(.+)$/).slice(1);
  * @returns { Boolean }
  */
 export const bigTreeTransformTopologyOfTopology = (target, level = 0) => {
-    if (!target || target.length < 1) {
-        return [];
-    }
+  if (!target || target.length < 1) {
+    return [];
+  }
                 
-    return target.map((item) => {
-        const { instanceId, instanceName, child, objectId, count } = item;
+  return target.map((item) => {
+    const { instanceId, instanceName, child, objectId, count } = item;
         
-        const children = bigTreeTransformTopologyOfTopology(child, level + 1);
+    const children = bigTreeTransformTopologyOfTopology(child, level + 1);
 
-        return Object.freeze({
-            id: `#${objectId}#${instanceId}`,
-            name: instanceName,
-            level,
-            children,
-            payload: {
-                count,
-            },
-        });
+    return Object.freeze({
+      id: `#${objectId}#${instanceId}`,
+      name: instanceName,
+      level,
+      children,
+      payload: {
+        count,
+      },
     });
+  });
 };
 
 /**
@@ -72,26 +72,26 @@ export const bigTreeTransformTopologyOfTopology = (target, level = 0) => {
  * @returns { Array }
  */
 export const filterTopology = (topologyTreeData, showEmpty = true) => {
-    if (!topologyTreeData || topologyTreeData.length < 1) {
-        return [];
+  if (!topologyTreeData || topologyTreeData.length < 1) {
+    return [];
+  }
+  if (showEmpty) {
+    return topologyTreeData;
+  }
+  return topologyTreeData.reduce((result, item) => {
+    if (item.level === 0) {
+      result.push({
+        ...item,
+        children: filterTopology(item.children, showEmpty),
+      });
+    } else if (item.level > 0 && item.payload.count > 0) {
+      result.push({
+        ...item,
+        children: filterTopology(item.children, showEmpty),
+      });
     }
-    if (showEmpty) {
-        return topologyTreeData;
-    }
-    return topologyTreeData.reduce((result, item) => {
-        if (item.level === 0) {
-            result.push({
-                ...item,
-                children: filterTopology(item.children, showEmpty),
-            });
-        } else if (item.level > 0 && item.payload.count > 0) {
-            result.push({
-                ...item,
-                children: filterTopology(item.children, showEmpty),
-            });
-        }
-        return result;
-    }, []);
+    return result;
+  }, []);
 };
 
 /**
@@ -100,23 +100,23 @@ export const filterTopology = (topologyTreeData, showEmpty = true) => {
  * @returns { Boolean }
  */
 export const statisticsHost = (list) => {
-    // 主机的唯一标记是ip + 云区域
-    const total = list.length;
-    let fail = 0;
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < total; i++) {
-        const { alive } = list[i];
-        if (alive !== 1) {
-            // eslint-disable-next-line no-plusplus
-            fail++;
-        }
+  // 主机的唯一标记是ip + 云区域
+  const total = list.length;
+  let fail = 0;
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < total; i++) {
+    const { alive } = list[i];
+    if (alive !== 1) {
+      // eslint-disable-next-line no-plusplus
+      fail++;
     }
-    const success = total - fail;
-    return {
-        total,
-        success,
-        fail,
-    };
+  }
+  const success = total - fail;
+  return {
+    total,
+    success,
+    fail,
+  };
 };
 
 /**
@@ -125,14 +125,14 @@ export const statisticsHost = (list) => {
  * @returns { Array }
  */
 export const findAllChildNodeId = (node) => {
-    const childs = [];
-    if (node.children) {
-        node.children.forEach((curNode) => {
-            childs.push(curNode.id);
-            childs.push(...findAllChildNodeId(curNode));
-        });
-    }
-    return childs;
+  const childs = [];
+  if (node.children) {
+    node.children.forEach((curNode) => {
+      childs.push(curNode.id);
+      childs.push(...findAllChildNodeId(curNode));
+    });
+  }
+  return childs;
 };
 
 /**
@@ -142,43 +142,43 @@ export const findAllChildNodeId = (node) => {
  * @returns { Boolean }
  */
 export const mergeInputHost = (first, second) => {
-    const result = [...first];
-    const firstHostIdMap = first.reduce((result, ipInfo) => {
-        result[ipInfo.hostId] = true;
-        return result;
-    }, {});
-    second.forEach((ipInfo) => {
-        if (!firstHostIdMap[ipInfo.hostId]) {
-            result.push(ipInfo);
-        }
-    });
-    
+  const result = [...first];
+  const firstHostIdMap = first.reduce((result, ipInfo) => {
+    result[ipInfo.hostId] = true;
     return result;
+  }, {});
+  second.forEach((ipInfo) => {
+    if (!firstHostIdMap[ipInfo.hostId]) {
+      result.push(ipInfo);
+    }
+  });
+    
+  return result;
 };
 
 export const mergeTopologyHost = (target, preList, lastList) => {
-    const preHostIdMap = preList.reduce((result, ipInfo) => {
-        result[ipInfo.hostId] = true;
-        return result;
-    }, {});
-
-    const result = [];
-    const resultMemo = {};
-    // 删除 target 中 preList 相关的数据
-    target.forEach((ipInfo) => {
-        if (!preHostIdMap[ipInfo.hostId]) {
-            result.push(ipInfo);
-            resultMemo[ipInfo.hostId] = true;
-        }
-    });
-    // 追加 lastList 数据
-    lastList.forEach((ipInfo) => {
-        if (!resultMemo[ipInfo.hostId]) {
-            result.push(ipInfo);
-        }
-    });
-    
+  const preHostIdMap = preList.reduce((result, ipInfo) => {
+    result[ipInfo.hostId] = true;
     return result;
+  }, {});
+
+  const result = [];
+  const resultMemo = {};
+  // 删除 target 中 preList 相关的数据
+  target.forEach((ipInfo) => {
+    if (!preHostIdMap[ipInfo.hostId]) {
+      result.push(ipInfo);
+      resultMemo[ipInfo.hostId] = true;
+    }
+  });
+  // 追加 lastList 数据
+  lastList.forEach((ipInfo) => {
+    if (!resultMemo[ipInfo.hostId]) {
+      result.push(ipInfo);
+    }
+  });
+    
+  return result;
 };
 
 /**
@@ -187,14 +187,14 @@ export const mergeTopologyHost = (target, preList, lastList) => {
  * @param { Function } calllback
  */
 export const resetTree = (topoList, calllback) => {
-    if (!topoList || topoList.length < 1) {
-        return;
-    }
+  if (!topoList || topoList.length < 1) {
+    return;
+  }
 
-    topoList.forEach((curNode) => {
-        calllback(curNode);
-        resetTree(curNode.children, calllback);
-    });
+  topoList.forEach((curNode) => {
+    calllback(curNode);
+    resetTree(curNode.children, calllback);
+  });
 };
 
 /**
@@ -203,57 +203,57 @@ export const resetTree = (topoList, calllback) => {
  * @returns { Array }
  */
 export const sortHost = (hostList) => {
-    const hostMap = {};
-    hostList.forEach((item) => {
-        const currentIp = item.ip;
-        if (!hostMap[currentIp]) {
-            hostMap[currentIp] = 1;
-        } else {
-            hostMap[currentIp] += 1;
-        }
-    });
+  const hostMap = {};
+  hostList.forEach((item) => {
+    const currentIp = item.ip;
+    if (!hostMap[currentIp]) {
+      hostMap[currentIp] = 1;
+    } else {
+      hostMap[currentIp] += 1;
+    }
+  });
 
-    // map以ip做为key因为在同一个分组里面需要根据ip排序
-    const repeatMap = {};
-    const uniqueFailMap = {};
-    const uniqueNormalMap = {};
-    hostList.forEach((currentHostInfo) => {
-        const repeat = hostMap[currentHostInfo.ip] > 1;
-        const realHost = Object.assign({
-            repeat,
-        }, currentHostInfo);
-        // 对主机进行分组
-        const currentIp = currentHostInfo.ip;
-        if (repeat) {
-            // 重复ip为一组，对应值为数组（多个主机有相同的ip）
-            if (!repeatMap[currentIp]) {
-                repeatMap[currentIp] = [];
-            }
-            repeatMap[currentIp].push(realHost);
-        } else {
-            if (realHost.alive) {
-                // 正常非重复主机为一组
-                uniqueNormalMap[currentIp] = realHost;
-            } else {
-                // 异常非重复主机为一组
-                uniqueFailMap[currentIp] = realHost;
-            }
-        }
-    });
-    const result = [];
+  // map以ip做为key因为在同一个分组里面需要根据ip排序
+  const repeatMap = {};
+  const uniqueFailMap = {};
+  const uniqueNormalMap = {};
+  hostList.forEach((currentHostInfo) => {
+    const repeat = hostMap[currentHostInfo.ip] > 1;
+    const realHost = Object.assign({
+      repeat,
+    }, currentHostInfo);
+    // 对主机进行分组
+    const currentIp = currentHostInfo.ip;
+    if (repeat) {
+      // 重复ip为一组，对应值为数组（多个主机有相同的ip）
+      if (!repeatMap[currentIp]) {
+        repeatMap[currentIp] = [];
+      }
+      repeatMap[currentIp].push(realHost);
+    } else {
+      if (realHost.alive) {
+        // 正常非重复主机为一组
+        uniqueNormalMap[currentIp] = realHost;
+      } else {
+        // 异常非重复主机为一组
+        uniqueFailMap[currentIp] = realHost;
+      }
+    }
+  });
+  const result = [];
 
-    Object.keys(repeatMap).forEach((ip) => {
-        const currentRepeatList = repeatMap[ip].sort((pre, next) => pre.alive - next.alive);
-        result.push(...currentRepeatList);
-    });
+  Object.keys(repeatMap).forEach((ip) => {
+    const currentRepeatList = repeatMap[ip].sort((pre, next) => pre.alive - next.alive);
+    result.push(...currentRepeatList);
+  });
 
-    Object.values(uniqueFailMap).forEach((value) => {
-        result.push(value);
-    });
+  Object.values(uniqueFailMap).forEach((value) => {
+    result.push(value);
+  });
 
-    Object.values(uniqueNormalMap).forEach((value) => {
-        result.push(value);
-    });
+  Object.values(uniqueNormalMap).forEach((value) => {
+    result.push(value);
+  });
     
-    return result;
+  return result;
 };

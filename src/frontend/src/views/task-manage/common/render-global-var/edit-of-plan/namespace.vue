@@ -26,90 +26,90 @@
 -->
 
 <template>
-    <jb-form
-        ref="varNamespaceForm"
-        :model="formData">
-        <jb-form-item :label="$t('template.变量名称')">
-            <bk-input
-                v-model="formData.name"
-                disabled />
-        </jb-form-item>
-        <jb-form-item :label="$t('template.变量值')">
-            <bk-input
-                v-model="formData.defaultValue"
-                :native-attributes="{ autofocus: 'autofocus' }" />
-        </jb-form-item>
-        <jb-form-item :label="$t('template.变量描述')">
-            <bk-input
-                v-model="formData.description"
-                disabled
-                maxlength="100"
-                :row="5"
-                type="textarea" />
-        </jb-form-item>
-        <jb-form-item>
-            <bk-checkbox
-                v-model="formData.required"
-                disabled
-                :false-value="0"
-                :true-value="1">
-                {{ $t('template.执行时必填') }}
-            </bk-checkbox>
-        </jb-form-item>
-    </jb-form>
+  <jb-form
+    ref="varNamespaceForm"
+    :model="formData">
+    <jb-form-item :label="$t('template.变量名称')">
+      <bk-input
+        v-model="formData.name"
+        disabled />
+    </jb-form-item>
+    <jb-form-item :label="$t('template.变量值')">
+      <bk-input
+        v-model="formData.defaultValue"
+        :native-attributes="{ autofocus: 'autofocus' }" />
+    </jb-form-item>
+    <jb-form-item :label="$t('template.变量描述')">
+      <bk-input
+        v-model="formData.description"
+        disabled
+        maxlength="100"
+        :row="5"
+        type="textarea" />
+    </jb-form-item>
+    <jb-form-item>
+      <bk-checkbox
+        v-model="formData.required"
+        disabled
+        :false-value="0"
+        :true-value="1">
+        {{ $t('template.执行时必填') }}
+      </bk-checkbox>
+    </jb-form-item>
+  </jb-form>
 </template>
 <script>
-    const getDefaultData = () => ({
-        id: 0,
-        delete: 0,
-        // 变量名
-        name: '',
-        // 默认值
-        defaultValue: '',
-        // 变量描述
-        description: '',
-        // 必填 0-非必填 1-必填
-        required: 0,
-    });
-    export default {
-        name: 'VarNamespace',
-        props: {
-            data: {
-                type: Object,
-                default () {
-                    return {};
-                },
-            },
+  const getDefaultData = () => ({
+    id: 0,
+    delete: 0,
+    // 变量名
+    name: '',
+    // 默认值
+    defaultValue: '',
+    // 变量描述
+    description: '',
+    // 必填 0-非必填 1-必填
+    required: 0,
+  });
+  export default {
+    name: 'VarNamespace',
+    props: {
+      data: {
+        type: Object,
+        default () {
+          return {};
         },
-        data () {
-            return {
-                formData: getDefaultData(),
-            };
+      },
+    },
+    data () {
+      return {
+        formData: getDefaultData(),
+      };
+    },
+    watch: {
+      data: {
+        handler (value) {
+          if (Object.keys(value).length) {
+            const { name, defaultValue, description, required, id } = value;
+            const del = value.delete;
+            this.formData = { name, defaultValue, description, required, id };
+            this.formData.delete = del;
+          }
         },
-        watch: {
-            data: {
-                handler (value) {
-                    if (Object.keys(value).length) {
-                        const { name, defaultValue, description, required, id } = value;
-                        const del = value.delete;
-                        this.formData = { name, defaultValue, description, required, id };
-                        this.formData.delete = del;
-                    }
-                },
-                immediate: true,
-            },
-        },
-        methods: {
-            submit () {
-                return Promise.resolve({
-                    ...this.formData,
-                    type: 2,
-                });
-            },
+        immediate: true,
+      },
+    },
+    methods: {
+      submit () {
+        return Promise.resolve({
+          ...this.formData,
+          type: 2,
+        });
+      },
 
-            reset () {
-                this.formData = getDefaultData();
-            },
-        },
-    };
+      reset () {
+        this.formData = getDefaultData();
+      },
+    },
+  };
 </script>

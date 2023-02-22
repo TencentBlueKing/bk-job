@@ -26,115 +26,115 @@
 -->
 
 <template>
-    <div style="width: 546px; padding-top: 27px; margin: 0 auto;">
-        <content-loader
-            :height="392"
-            :width="546"
-            v-bind="$attrs">
-            <rect
-                id="矩形"
-                height="14"
-                rx="2"
-                width="51"
-                x="0"
-                y="0" />
-            <rect
-                id="矩形备份"
-                height="20"
-                rx="2"
-                width="240"
-                x="0"
-                y="28" />
-            <rect
-                id="矩形备份-5"
-                height="20"
-                rx="2"
-                width="205"
-                x="0"
-                y="132" />
-            <rect
-                id="矩形"
-                height="580"
-                rx="2"
-                width="1101"
-                x="220"
-                y="132" />
-            <rect
-                id="矩形备份-6"
-                height="20"
-                rx="2"
-                width="205"
-                x="0"
-                y="172" />
-            <rect
-                id="矩形备份-7"
-                height="20"
-                rx="2"
-                width="205"
-                x="0"
-                y="212" />
-            <rect
-                id="矩形备份-8"
-                height="20"
-                rx="2"
-                width="205"
-                x="0"
-                y="252" />
-            <rect
-                id="矩形备份-9"
-                height="20"
-                rx="2"
-                width="205"
-                x="0"
-                y="292" />
-            <rect
-                id="矩形备份-2"
-                height="20"
-                rx="2"
-                width="90"
-                x="17"
-                y="83" />
-            <rect
-                id="矩形备份-3"
-                height="20"
-                rx="2"
-                width="90"
-                x="143"
-                y="83" />
-            <rect
-                id="矩形备份-4"
-                height="20"
-                rx="2"
-                width="90"
-                x="269"
-                y="83" />
-        </content-loader>
-    </div>
+  <div style="width: 546px; padding-top: 27px; margin: 0 auto;">
+    <content-loader
+      :height="392"
+      :width="546"
+      v-bind="$attrs">
+      <rect
+        id="矩形"
+        height="14"
+        rx="2"
+        width="51"
+        x="0"
+        y="0" />
+      <rect
+        id="矩形备份"
+        height="20"
+        rx="2"
+        width="240"
+        x="0"
+        y="28" />
+      <rect
+        id="矩形备份-5"
+        height="20"
+        rx="2"
+        width="205"
+        x="0"
+        y="132" />
+      <rect
+        id="矩形"
+        height="580"
+        rx="2"
+        width="1101"
+        x="220"
+        y="132" />
+      <rect
+        id="矩形备份-6"
+        height="20"
+        rx="2"
+        width="205"
+        x="0"
+        y="172" />
+      <rect
+        id="矩形备份-7"
+        height="20"
+        rx="2"
+        width="205"
+        x="0"
+        y="212" />
+      <rect
+        id="矩形备份-8"
+        height="20"
+        rx="2"
+        width="205"
+        x="0"
+        y="252" />
+      <rect
+        id="矩形备份-9"
+        height="20"
+        rx="2"
+        width="205"
+        x="0"
+        y="292" />
+      <rect
+        id="矩形备份-2"
+        height="20"
+        rx="2"
+        width="90"
+        x="17"
+        y="83" />
+      <rect
+        id="矩形备份-3"
+        height="20"
+        rx="2"
+        width="90"
+        x="143"
+        y="83" />
+      <rect
+        id="矩形备份-4"
+        height="20"
+        rx="2"
+        width="90"
+        x="269"
+        y="83" />
+    </content-loader>
+  </div>
 </template>
 <script>
-    import {
-        ContentLoader,
-    } from 'vue-content-loader';
-    export default {
-        components: {
-            ContentLoader,
-        },
-        props: {
-            maxWidth: {
-                type: Number,
-                required: true,
-            },
-        },
-        computed: {
-            xPosition1 () {
-                return this.maxWidth - 100;
-            },
-            xPosition2 () {
-                return this.maxWidth - 590;
-            },
-            blockWidth () {
-                return Math.abs(this.maxWidth - 279);
-            },
-        },
-    };
+  import {
+    ContentLoader,
+  } from 'vue-content-loader';
+  export default {
+    components: {
+      ContentLoader,
+    },
+    props: {
+      maxWidth: {
+        type: Number,
+        required: true,
+      },
+    },
+    computed: {
+      xPosition1 () {
+        return this.maxWidth - 100;
+      },
+      xPosition2 () {
+        return this.maxWidth - 590;
+      },
+      blockWidth () {
+        return Math.abs(this.maxWidth - 279);
+      },
+    },
+  };
 </script>

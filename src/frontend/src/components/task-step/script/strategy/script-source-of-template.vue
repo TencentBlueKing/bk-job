@@ -26,498 +26,498 @@
 -->
 
 <template>
-    <div class="script-source-of-template">
-        <jb-form-item
-            class="script-source-item"
-            :label="$t('脚本来源')"
-            required>
-            <bk-radio-group
-                :value="sourceType"
-                @change="handleScriptSourceChange">
-                <bk-radio-button value="local">
-                    {{ $t('手工录入') }}
-                </bk-radio-button>
-                <bk-radio-button value="refer">
-                    {{ $t('脚本引用') }}
-                </bk-radio-button>
-            </bk-radio-group>
-        </jb-form-item>
-        <jb-form-item
-            v-show="isScriptRefer"
-            ref="scriptId"
-            :label="$t('脚本引用')"
-            property="scriptId"
-            required
-            :rules="rules">
-            <div class="refer-script-item">
-                <compose-form-item
-                    class="form-item-content"
-                    type="select">
-                    <bk-select
-                        :clearable="false"
-                        style="width: 120px;"
-                        :value="referType"
-                        @change="handleReferScriptTypeChange">
-                        <bk-option
-                            :id="2"
-                            :name="$t('业务脚本')">
-                            {{ $t('业务脚本') }}
-                        </bk-option>
-                        <bk-option
-                            :id="3"
-                            :name="$t('公共脚本')">
-                            {{ $t('公共脚本') }}
-                        </bk-option>
-                    </bk-select>
-                    <bk-select
-                        ref="scriptSelect"
-                        :clearable="false"
-                        :placeholder="$t('选择引用脚本')"
-                        searchable
-                        style="width: 375px;"
-                        :value="formData[scriptVersionIdField]"
-                        @change="handleScriptVersionIdChange">
-                        <component
-                            :is="scriptGroupComponent"
-                            v-for="(group, index) in scriptListDisplay"
-                            :key="index"
-                            :name="index === 0 ? $t('当前脚本') : $t('其它脚本')">
-                            <auth-option
-                                v-for="(option, itemIndex) in group"
-                                :id="option.scriptVersionId"
-                                :key="`${option.scriptVersionId}_${itemIndex}`"
-                                :auth="authView"
-                                :name="option.name"
-                                :permission="option.canView"
-                                :resource-id="option.id" />
-                        </component>
-                        <template slot="extension">
-                            <auth-component :auth="authCreate">
-                                <div
-                                    style="cursor: pointer;"
-                                    @click="handleGoCreate">
-                                    <i class="bk-icon icon-plus-circle mr10" />{{ newBtnText }}
-                                </div>
-                                <div slot="forbid">
-                                    <i class="bk-icon icon-plus-circle mr10" />{{ newBtnText }}
-                                </div>
-                            </auth-component>
-                        </template>
-                    </bk-select>
-                </compose-form-item>
-                <Icon
-                    v-if="formData[scriptStatusField]"
-                    class="update-flag"
-                    :tippy-tips="$t('引用脚本待更新')"
-                    type="script-update" />
+  <div class="script-source-of-template">
+    <jb-form-item
+      class="script-source-item"
+      :label="$t('脚本来源')"
+      required>
+      <bk-radio-group
+        :value="sourceType"
+        @change="handleScriptSourceChange">
+        <bk-radio-button value="local">
+          {{ $t('手工录入') }}
+        </bk-radio-button>
+        <bk-radio-button value="refer">
+          {{ $t('脚本引用') }}
+        </bk-radio-button>
+      </bk-radio-group>
+    </jb-form-item>
+    <jb-form-item
+      v-show="isScriptRefer"
+      ref="scriptId"
+      :label="$t('脚本引用')"
+      property="scriptId"
+      required
+      :rules="rules">
+      <div class="refer-script-item">
+        <compose-form-item
+          class="form-item-content"
+          type="select">
+          <bk-select
+            :clearable="false"
+            style="width: 120px;"
+            :value="referType"
+            @change="handleReferScriptTypeChange">
+            <bk-option
+              :id="2"
+              :name="$t('业务脚本')">
+              {{ $t('业务脚本') }}
+            </bk-option>
+            <bk-option
+              :id="3"
+              :name="$t('公共脚本')">
+              {{ $t('公共脚本') }}
+            </bk-option>
+          </bk-select>
+          <bk-select
+            ref="scriptSelect"
+            :clearable="false"
+            :placeholder="$t('选择引用脚本')"
+            searchable
+            style="width: 375px;"
+            :value="formData[scriptVersionIdField]"
+            @change="handleScriptVersionIdChange">
+            <component
+              :is="scriptGroupComponent"
+              v-for="(group, index) in scriptListDisplay"
+              :key="index"
+              :name="index === 0 ? $t('当前脚本') : $t('其它脚本')">
+              <auth-option
+                v-for="(option, itemIndex) in group"
+                :id="option.scriptVersionId"
+                :key="`${option.scriptVersionId}_${itemIndex}`"
+                :auth="authView"
+                :name="option.name"
+                :permission="option.canView"
+                :resource-id="option.id" />
+            </component>
+            <template slot="extension">
+              <auth-component :auth="authCreate">
                 <div
-                    v-if="formData[scriptVersionIdField]"
-                    class="refer-script-detail"
-                    :tippy-tips="$t('脚本详情')"
-                    @click="handleGoScriptDetail">
-                    <Icon type="jump" />
+                  style="cursor: pointer;"
+                  @click="handleGoCreate">
+                  <i class="bk-icon icon-plus-circle mr10" />{{ newBtnText }}
                 </div>
-            </div>
-        </jb-form-item>
-    </div>
+                <div slot="forbid">
+                  <i class="bk-icon icon-plus-circle mr10" />{{ newBtnText }}
+                </div>
+              </auth-component>
+            </template>
+          </bk-select>
+        </compose-form-item>
+        <icon
+          v-if="formData[scriptStatusField]"
+          class="update-flag"
+          :tippy-tips="$t('引用脚本待更新')"
+          type="script-update" />
+        <div
+          v-if="formData[scriptVersionIdField]"
+          class="refer-script-detail"
+          :tippy-tips="$t('脚本详情')"
+          @click="handleGoScriptDetail">
+          <icon type="jump" />
+        </div>
+      </div>
+    </jb-form-item>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
+  import _ from 'lodash';
 
-    import PublicScriptManageService from '@service/public-script-manage';
-    import ScriptManageService from '@service/script-manage';
+  import PublicScriptManageService from '@service/public-script-manage';
+  import ScriptManageService from '@service/script-manage';
 
-    import TaskStepModel from '@model/task/task-step';
+  import TaskStepModel from '@model/task/task-step';
 
-    import ComposeFormItem from '@components/compose-form-item';
+  import ComposeFormItem from '@components/compose-form-item';
 
-    import I18n from '@/i18n';
+  import I18n from '@/i18n';
 
-    export default {
-        components: {
-            ComposeFormItem,
-        },
-        props: {
-            // 脚本来源字段名
-            scriptSourceField: {
-                type: String,
-                required: true,
-            },
-            // 脚本id字段名
-            scriptIdField: {
-                type: String,
-                required: true,
-            },
-            // 脚本版本id字段名
-            scriptVersionIdField: {
-                type: String,
-            },
-            // 脚本内容字段名
-            contentField: {
-                type: String,
-                required: true,
-            },
-            languageField: {
-                type: String,
-                required: true,
-            },
-            // 脚本语言字段名
-            scriptStatusField: {
-                type: String,
-                required: true,
-            },
-            formData: {
-                type: Object,
-                default: () => ({}),
-            },
-        },
-        data () {
-            return {
-                defaultScript: {},
-                scriptGroup: [],
-                publicScriptGroup: [],
-                sourceType: 'local',
-                referType: 2,
-            };
-        },
-        computed: {
-            /**
-             * @desc 使用脚本资源需要的权限
-             */
-            authView () {
-                return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
-                    ? 'script/view'
-                    : 'public_script/view';
-            },
-            /**
-             * @desc 脚本新建的权限
-             * @returns { String }
-             */
-            authCreate () {
-                return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
-                    ? 'script/create'
-                    : 'public_script/create';
-            },
-            /**
-             * @desc 脚本下拉列表显示格式
-             * @returns { String }
-             */
-            scriptGroupComponent () {
-                if (this.scriptListDisplay.length > 1) {
-                    return 'bk-option-group';
-                }
-                return 'div';
-            },
-            /**
-             * @desc 引用脚本类型
-             * @returns { Boolean }
-             */
-            isScriptRefer () {
-                return this.sourceType === 'refer';
-            },
-            /**
-             * @desc 脚本列表
-             * @returns { Array }
-             */
-            scriptListDisplay () {
-                const scriptSource = this.formData[this.scriptSourceField];
+  export default {
+    components: {
+      ComposeFormItem,
+    },
+    props: {
+      // 脚本来源字段名
+      scriptSourceField: {
+        type: String,
+        required: true,
+      },
+      // 脚本id字段名
+      scriptIdField: {
+        type: String,
+        required: true,
+      },
+      // 脚本版本id字段名
+      scriptVersionIdField: {
+        type: String,
+      },
+      // 脚本内容字段名
+      contentField: {
+        type: String,
+        required: true,
+      },
+      languageField: {
+        type: String,
+        required: true,
+      },
+      // 脚本语言字段名
+      scriptStatusField: {
+        type: String,
+        required: true,
+      },
+      formData: {
+        type: Object,
+        default: () => ({}),
+      },
+    },
+    data () {
+      return {
+        defaultScript: {},
+        scriptGroup: [],
+        publicScriptGroup: [],
+        sourceType: 'local',
+        referType: 2,
+      };
+    },
+    computed: {
+      /**
+       * @desc 使用脚本资源需要的权限
+       */
+      authView () {
+        return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
+          ? 'script/view'
+          : 'public_script/view';
+      },
+      /**
+       * @desc 脚本新建的权限
+       * @returns { String }
+       */
+      authCreate () {
+        return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
+          ? 'script/create'
+          : 'public_script/create';
+      },
+      /**
+       * @desc 脚本下拉列表显示格式
+       * @returns { String }
+       */
+      scriptGroupComponent () {
+        if (this.scriptListDisplay.length > 1) {
+          return 'bk-option-group';
+        }
+        return 'div';
+      },
+      /**
+       * @desc 引用脚本类型
+       * @returns { Boolean }
+       */
+      isScriptRefer () {
+        return this.sourceType === 'refer';
+      },
+      /**
+       * @desc 脚本列表
+       * @returns { Array }
+       */
+      scriptListDisplay () {
+        const scriptSource = this.formData[this.scriptSourceField];
                 
-                if (scriptSource === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS) {
-                    return this.scriptGroup;
-                }
-                if (scriptSource === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC) {
-                    return this.publicScriptGroup;
-                }
-                return [];
-            },
-            /**
-             * @desc 按钮的文本
-             * @returns { String }
-             */
-            newBtnText () {
-                return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
-                    ? I18n.t('新建业务脚本')
-                    : I18n.t('新建公共脚本');
-            },
-            /**
-             * @desc 表单想验证规则
-             * @returns { Array }
-             *
-             * 引用类型的脚本时 scriptId 不能为空
-             */
-            rules () {
-                if (this.isScriptRefer) {
-                    return [{
-                        required: true,
-                        message: I18n.t('请选择引用脚本'),
-                        trigger: 'blur',
-                    }];
-                }
-                return [];
-            },
+        if (scriptSource === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS) {
+          return this.scriptGroup;
+        }
+        if (scriptSource === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC) {
+          return this.publicScriptGroup;
+        }
+        return [];
+      },
+      /**
+       * @desc 按钮的文本
+       * @returns { String }
+       */
+      newBtnText () {
+        return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
+          ? I18n.t('新建业务脚本')
+          : I18n.t('新建公共脚本');
+      },
+      /**
+       * @desc 表单想验证规则
+       * @returns { Array }
+       *
+       * 引用类型的脚本时 scriptId 不能为空
+       */
+      rules () {
+        if (this.isScriptRefer) {
+          return [{
+            required: true,
+            message: I18n.t('请选择引用脚本'),
+            trigger: 'blur',
+          }];
+        }
+        return [];
+      },
+    },
+    watch: {
+      formData: {
+        handler () {
+          this.initScriptSource();
         },
-        watch: {
-            formData: {
-                handler () {
-                    this.initScriptSource();
-                },
-                immediate: true,
-            },
-            'formData.scriptId' (value) {
-                if (value) {
-                    this.$refs.scriptId.clearValidator();
-                }
-            },
-            // 需要同步的脚本默认展开脚本列表
-            scriptListDisplay () {
-                if (this.scriptListDisplay.length > 1 && !this.hasShowScriptSelect) {
-                    setTimeout(() => {
-                        this.hasShowScriptSelect = true;
-                        this.$refs.scriptSelect.$el.querySelector('.bk-select-name').click();
-                    }, 30);
-                }
-            },
-        },
-        created () {
-            this.scriptListMemo = [];
-            this.publicScriptListMemo = [];
-            this.initScriptContent();
-            this.fetchScriptList();
-            this.fetchPublicScriptList();
+        immediate: true,
+      },
+      'formData.scriptId' (value) {
+        if (value) {
+          this.$refs.scriptId.clearValidator();
+        }
+      },
+      // 需要同步的脚本默认展开脚本列表
+      scriptListDisplay () {
+        if (this.scriptListDisplay.length > 1 && !this.hasShowScriptSelect) {
+          setTimeout(() => {
+            this.hasShowScriptSelect = true;
+            this.$refs.scriptSelect.$el.querySelector('.bk-select-name').click();
+          }, 30);
+        }
+      },
+    },
+    created () {
+      this.scriptListMemo = [];
+      this.publicScriptListMemo = [];
+      this.initScriptContent();
+      this.fetchScriptList();
+      this.fetchPublicScriptList();
 
-            this.hasShowScriptSelect = false;
-        },
-        methods: {
-            /**
-             * @desc 获取业务脚本列表
-             */
-            fetchScriptList () {
-                ScriptManageService.getOnlineScriptList()
-                    .then((data) => {
-                        this.scriptGroup = [data];
-                        this.scriptListMemo = data;
-                        this.composeGroup();
-                    });
-            },
-            /**
-             * @desc 获公共脚本列表
-             */
-            fetchPublicScriptList () {
-                PublicScriptManageService.getOnlineScriptList()
-                    .then((data) => {
-                        this.publicScriptGroup = [data];
-                        this.publicScriptListMemo = data;
-                        this.composeGroup();
-                    });
-            },
-            /**
-             * @desc 获取指定的脚本版本数据
-             * @param {Object} params 脚本数据
-             */
-            fetchScriptVersionDetail (params) {
-                return ScriptManageService.versionDetail(params);
-            },
-            /**
-             * @desc 初始化脚本来源
-             */
-            initScriptSource () {
-                if (this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL) {
-                    this.sourceType = 'local';
-                    return;
-                }
-                this.sourceType = 'refer';
-                // 如果是引用脚本，还需初始化引用类型
-                this.referType = this.formData[this.scriptSourceField];
-            },
-            /**
-             * @desc 初始化脚本内容
-             */
-            initScriptContent () {
-                // 有默认的脚本版本，获取对应版本的脚本内容
-                if (!this.formData[this.scriptIdField] && !this.formData[this.scriptVersionIdField]) {
-                    return;
-                }
-                this.$emit('on-reset', {
-                    isScriptContentLoading: true,
-                });
-                this.fetchScriptVersionDetail({
-                    id: this.formData[this.scriptVersionIdField],
-                }).then((script) => {
-                    const { content, publicScript } = script;
-                    const scriptSource = publicScript
-                        ? TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
-                        : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS;
-                    this.defaultScript = script;
-                    this.composeGroup();
-                    this.$emit('on-reset', {
-                        [this.contentField]: content,
-                        [this.scriptSourceField]: scriptSource,
-                    });
-                })
-                    .finally(() => {
-                        this.$emit('on-reset', {
-                            isScriptContentLoading: false,
-                        });
-                    });
-            },
-            /**
-             * @desc 脚本版本有更新时需要将最新的脚本版本组合到脚本列表中
-             */
-            composeGroup () {
-                if (!this.defaultScript.id) {
-                    return;
-                }
-                const { publicScript } = this.defaultScript;
-                const targetList = publicScript
-                    ? _.cloneDeep(this.publicScriptListMemo)
-                    : _.cloneDeep(this.scriptListMemo);
-                if (targetList.length < 1) {
-                    return;
-                }
-                if (!this.formData[this.scriptStatusField]) {
-                    this.scriptGroup = Object.freeze([this.scriptListMemo]);
-                    this.publicScriptGroup = Object.freeze([this.publicScriptListMemo]);
-                    return;
-                }
-                const currentScriptList = [];
-                const oldVersionScript = {
-                    ...this.defaultScript,
-                    name: `${this.defaultScript.name}（${I18n.t('当前版本')}）`,
-                };
-                currentScriptList.push(oldVersionScript);
-                const [newVersionScript] = _.remove(targetList, item => item.id === oldVersionScript.id);
-                if (newVersionScript) {
-                    newVersionScript.name = `${newVersionScript.name}（${I18n.t('新版本')}）`;
-                    currentScriptList.unshift(newVersionScript);
-                }
+      this.hasShowScriptSelect = false;
+    },
+    methods: {
+      /**
+       * @desc 获取业务脚本列表
+       */
+      fetchScriptList () {
+        ScriptManageService.getOnlineScriptList()
+          .then((data) => {
+            this.scriptGroup = [data];
+            this.scriptListMemo = data;
+            this.composeGroup();
+          });
+      },
+      /**
+       * @desc 获公共脚本列表
+       */
+      fetchPublicScriptList () {
+        PublicScriptManageService.getOnlineScriptList()
+          .then((data) => {
+            this.publicScriptGroup = [data];
+            this.publicScriptListMemo = data;
+            this.composeGroup();
+          });
+      },
+      /**
+       * @desc 获取指定的脚本版本数据
+       * @param {Object} params 脚本数据
+       */
+      fetchScriptVersionDetail (params) {
+        return ScriptManageService.versionDetail(params);
+      },
+      /**
+       * @desc 初始化脚本来源
+       */
+      initScriptSource () {
+        if (this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL) {
+          this.sourceType = 'local';
+          return;
+        }
+        this.sourceType = 'refer';
+        // 如果是引用脚本，还需初始化引用类型
+        this.referType = this.formData[this.scriptSourceField];
+      },
+      /**
+       * @desc 初始化脚本内容
+       */
+      initScriptContent () {
+        // 有默认的脚本版本，获取对应版本的脚本内容
+        if (!this.formData[this.scriptIdField] && !this.formData[this.scriptVersionIdField]) {
+          return;
+        }
+        this.$emit('on-reset', {
+          isScriptContentLoading: true,
+        });
+        this.fetchScriptVersionDetail({
+          id: this.formData[this.scriptVersionIdField],
+        }).then((script) => {
+          const { content, publicScript } = script;
+          const scriptSource = publicScript
+            ? TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
+            : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS;
+          this.defaultScript = script;
+          this.composeGroup();
+          this.$emit('on-reset', {
+            [this.contentField]: content,
+            [this.scriptSourceField]: scriptSource,
+          });
+        })
+          .finally(() => {
+            this.$emit('on-reset', {
+              isScriptContentLoading: false,
+            });
+          });
+      },
+      /**
+       * @desc 脚本版本有更新时需要将最新的脚本版本组合到脚本列表中
+       */
+      composeGroup () {
+        if (!this.defaultScript.id) {
+          return;
+        }
+        const { publicScript } = this.defaultScript;
+        const targetList = publicScript
+          ? _.cloneDeep(this.publicScriptListMemo)
+          : _.cloneDeep(this.scriptListMemo);
+        if (targetList.length < 1) {
+          return;
+        }
+        if (!this.formData[this.scriptStatusField]) {
+          this.scriptGroup = Object.freeze([this.scriptListMemo]);
+          this.publicScriptGroup = Object.freeze([this.publicScriptListMemo]);
+          return;
+        }
+        const currentScriptList = [];
+        const oldVersionScript = {
+          ...this.defaultScript,
+          name: `${this.defaultScript.name}（${I18n.t('当前版本')}）`,
+        };
+        currentScriptList.push(oldVersionScript);
+        const [newVersionScript] = _.remove(targetList, item => item.id === oldVersionScript.id);
+        if (newVersionScript) {
+          newVersionScript.name = `${newVersionScript.name}（${I18n.t('新版本')}）`;
+          currentScriptList.unshift(newVersionScript);
+        }
                 
-                if (publicScript) {
-                    this.scriptGroup = Object.freeze([this.scriptListMemo]);
-                    this.publicScriptGroup = Object.freeze([currentScriptList, targetList]);
-                } else {
-                    this.scriptGroup = Object.freeze([currentScriptList, targetList]);
-                    this.publicScriptGroup = Object.freeze([this.publicScriptListMemo]);
-                }
-            },
-            /**
-             * @desc 更新脚本来源
-             * @param {String} source 脚本来源
-             */
-            handleScriptSourceChange (source) {
-                // 脚本来源改变重置脚本相关的信息
-                const scriptSource = source === 'local'
-                    ? TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL
-                    : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS;
-                this.$emit('on-reset', {
-                    [this.scriptIdField]: '',
-                    [this.scriptVersionIdField]: '',
-                    [this.scriptSourceField]: scriptSource,
-                });
-            },
-            /**
-             * @desc 更新脚本引用来源类型
-             * @param {String} scriptSource 脚本引用来源类型
-             */
-            handleReferScriptTypeChange (scriptSource) {
-                this.$emit('on-reset', {
-                    [this.scriptSourceField]: scriptSource,
-                    [this.scriptIdField]: '',
-                    [this.scriptVersionIdField]: '',
-                });
-            },
-            /**
-             * @desc 更新脚本引用版本
-             * @param {String} scriptVersionId 脚本引用来源类型
-             */
-            handleScriptVersionIdChange (scriptVersionId) {
-                if (!scriptVersionId) {
-                    return;
-                }
-                this.$emit('on-reset', {
-                    isScriptContentLoading: true,
-                });
-                this.fetchScriptVersionDetail({
-                    id: scriptVersionId,
-                }).then(({ id, type, content }) => {
-                    this.$emit('on-reset', {
-                        [this.scriptIdField]: id,
-                        [this.contentField]: content,
-                        [this.languageField]: type,
-                        [this.scriptVersionIdField]: scriptVersionId,
-                        [this.scriptStatusField]: 0,
-                        isScriptContentLoading: false,
-                    });
-                })
-                    .finally(() => {
-                        this.$emit('on-reset', {
-                            isScriptContentLoading: false,
-                        });
-                    });
-            },
-            /**
-             * @desc 跳转到选择的脚本版本详情
-             */
-            handleGoScriptDetail () {
-                const routerName = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
-                    ? 'publicScriptVersion'
-                    : 'scriptVersion';
+        if (publicScript) {
+          this.scriptGroup = Object.freeze([this.scriptListMemo]);
+          this.publicScriptGroup = Object.freeze([currentScriptList, targetList]);
+        } else {
+          this.scriptGroup = Object.freeze([currentScriptList, targetList]);
+          this.publicScriptGroup = Object.freeze([this.publicScriptListMemo]);
+        }
+      },
+      /**
+       * @desc 更新脚本来源
+       * @param {String} source 脚本来源
+       */
+      handleScriptSourceChange (source) {
+        // 脚本来源改变重置脚本相关的信息
+        const scriptSource = source === 'local'
+          ? TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL
+          : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS;
+        this.$emit('on-reset', {
+          [this.scriptIdField]: '',
+          [this.scriptVersionIdField]: '',
+          [this.scriptSourceField]: scriptSource,
+        });
+      },
+      /**
+       * @desc 更新脚本引用来源类型
+       * @param {String} scriptSource 脚本引用来源类型
+       */
+      handleReferScriptTypeChange (scriptSource) {
+        this.$emit('on-reset', {
+          [this.scriptSourceField]: scriptSource,
+          [this.scriptIdField]: '',
+          [this.scriptVersionIdField]: '',
+        });
+      },
+      /**
+       * @desc 更新脚本引用版本
+       * @param {String} scriptVersionId 脚本引用来源类型
+       */
+      handleScriptVersionIdChange (scriptVersionId) {
+        if (!scriptVersionId) {
+          return;
+        }
+        this.$emit('on-reset', {
+          isScriptContentLoading: true,
+        });
+        this.fetchScriptVersionDetail({
+          id: scriptVersionId,
+        }).then(({ id, type, content }) => {
+          this.$emit('on-reset', {
+            [this.scriptIdField]: id,
+            [this.contentField]: content,
+            [this.languageField]: type,
+            [this.scriptVersionIdField]: scriptVersionId,
+            [this.scriptStatusField]: 0,
+            isScriptContentLoading: false,
+          });
+        })
+          .finally(() => {
+            this.$emit('on-reset', {
+              isScriptContentLoading: false,
+            });
+          });
+      },
+      /**
+       * @desc 跳转到选择的脚本版本详情
+       */
+      handleGoScriptDetail () {
+        const routerName = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
+          ? 'publicScriptVersion'
+          : 'scriptVersion';
 
-                const router = this.$router.resolve({
-                    name: routerName,
-                    params: {
-                        id: this.formData[this.scriptIdField],
-                    },
-                    query: {
-                        scriptVersionId: this.formData[this.scriptVersionIdField],
-                    },
-                });
-                window.open(router.href);
-            },
-            /**
-             * @desc 跳转新建脚本页面
-             */
-            handleGoCreate () {
-                const routerName = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
-                    ? 'createPublicScript'
-                    : 'createScript';
+        const router = this.$router.resolve({
+          name: routerName,
+          params: {
+            id: this.formData[this.scriptIdField],
+          },
+          query: {
+            scriptVersionId: this.formData[this.scriptVersionIdField],
+          },
+        });
+        window.open(router.href);
+      },
+      /**
+       * @desc 跳转新建脚本页面
+       */
+      handleGoCreate () {
+        const routerName = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
+          ? 'createPublicScript'
+          : 'createScript';
 
-                const { href } = this.$router.resolve({
-                    name: routerName,
-                });
+        const { href } = this.$router.resolve({
+          name: routerName,
+        });
                 
-                window.open(href);
-            },
-        },
-    };
+        window.open(href);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
-    .script-source-of-template {
-        .script-source-item {
-            .bk-radio-button-text {
-                width: 120px;
-                text-align: center;
-            }
-        }
-
-        .update-flag {
-            margin-left: 4px;
-            color: #ff5656;
-        }
-
-        .refer-script-item {
-            position: relative;
-            display: flex;
-            align-items: center;
-
-            .refer-script-detail {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-left: 4px;
-                font-size: 16px;
-                color: #3a84ff;
-                cursor: pointer;
-            }
-        }
+  .script-source-of-template {
+    .script-source-item {
+      .bk-radio-button-text {
+        width: 120px;
+        text-align: center;
+      }
     }
+
+    .update-flag {
+      margin-left: 4px;
+      color: #ff5656;
+    }
+
+    .refer-script-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .refer-script-detail {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 4px;
+        font-size: 16px;
+        color: #3a84ff;
+        cursor: pointer;
+      }
+    }
+  }
 </style>

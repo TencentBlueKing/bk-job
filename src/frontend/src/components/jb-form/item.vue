@@ -26,60 +26,60 @@
 -->
 
 <template>
-    <bk-form-item
-        ref="bkFormItem"
-        class="jb-form-item"
-        :class="classes"
-        :error-display-type="errorDisplayType"
-        :label="label"
-        v-bind="$attrs"
-        v-on="$listeners">
-        <slot />
-    </bk-form-item>
+  <bk-form-item
+    ref="bkFormItem"
+    class="jb-form-item"
+    :class="classes"
+    :error-display-type="errorDisplayType"
+    :label="label"
+    v-bind="$attrs"
+    v-on="$listeners">
+    <slot />
+  </bk-form-item>
 </template>
 <script>
-    export default {
-        name: 'JbFormItem',
-        inheritAttrs: false,
-        props: {
-            label: {
-                type: String,
-                default: '',
-            },
-            errorDisplayType: {
-                type: String,
-                default: 'normal',
-            },
-        },
+  export default {
+    name: 'JbFormItem',
+    inheritAttrs: false,
+    props: {
+      label: {
+        type: String,
+        default: '',
+      },
+      errorDisplayType: {
+        type: String,
+        default: 'normal',
+      },
+    },
 
-        computed: {
-            classes () {
-                const classes = {
-                    'label-miss': !this.label,
-                };
-                return classes;
-            },
-        },
+    computed: {
+      classes () {
+        const classes = {
+          'label-miss': !this.label,
+        };
+        return classes;
+      },
+    },
 
-        methods: {
-            clearValidator () {
-                this.$refs.bkFormItem.clearValidator();
-            },
-        },
-    };
+    methods: {
+      clearValidator () {
+        this.$refs.bkFormItem.clearValidator();
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
-    .jb-form-item {
-        &.label-miss {
-            .bk-label {
-                height: 0;
-                min-height: 0;
-                font-size: 0;
-            }
-        }
-
-        .jb-form-item-content {
-            flex: 1;
-        }
+  .jb-form-item {
+    &.label-miss {
+      .bk-label {
+        height: 0;
+        min-height: 0;
+        font-size: 0;
+      }
     }
+
+    .jb-form-item-content {
+      flex: 1;
+    }
+  }
 </style>

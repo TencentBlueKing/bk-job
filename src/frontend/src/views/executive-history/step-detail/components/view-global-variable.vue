@@ -26,49 +26,49 @@
 -->
 
 <template>
-    <lower-component>
-        <div>
-            <div
-                v-bk-tooltips.bottom="$t('history.全局变量')"
-                class="action-btn"
-                @click="handleShowGlobalVariable">
-                <Icon type="global-var-line" />
-            </div>
-            <jb-sideslider
-                :is-show.sync="isShow"
-                :quick-close="true"
-                :show-footer="false"
-                :title="$t('history.全局变量')"
-                :width="960">
-                <global-variable :id="taskInstanceId" />
-            </jb-sideslider>
-        </div>
-    </lower-component>
+  <lower-component>
+    <div>
+      <div
+        v-bk-tooltips.bottom="$t('history.全局变量')"
+        class="action-btn"
+        @click="handleShowGlobalVariable">
+        <icon type="global-var-line" />
+      </div>
+      <jb-sideslider
+        :is-show.sync="isShow"
+        :quick-close="true"
+        :show-footer="false"
+        :title="$t('history.全局变量')"
+        :width="960">
+        <global-variable :id="taskInstanceId" />
+      </jb-sideslider>
+    </div>
+  </lower-component>
 </template>
 <script>
-    import GlobalVariable from '../../common/global-variable';
+  import GlobalVariable from '../../common/global-variable';
 
-    export default {
-        name: '',
-        components: {
-            GlobalVariable,
-        },
-        props: {
-            taskInstanceId: {
-                type: Number,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isShow: false,
-            };
-        },
+  export default {
+    name: '',
+    components: {
+      GlobalVariable,
+    },
+    props: {
+      taskInstanceId: {
+        type: Number,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isShow: false,
+      };
+    },
 
-        methods: {
-            handleShowGlobalVariable () {
-                this.isShow = true;
-            },
-        },
-    };
+    methods: {
+      handleShowGlobalVariable () {
+        this.isShow = true;
+      },
+    },
+  };
 </script>

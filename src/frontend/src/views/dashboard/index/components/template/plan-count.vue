@@ -26,108 +26,108 @@
 -->
 
 <template>
-    <card-layout
-        class="plan-count-dashboard"
-        :title="$t('dashboard.执行方案量')">
-        <render-trend
-            :date="date"
-            metric="TASK_PLAN_COUNT" />
-        <div slot="extend">
-            <Icon
-                v-bk-tooltips="$t('dashboard.查看趋势图')"
-                type="line-chart-line"
-                @click="handleShowTrend" />
-            <Icon
-                v-bk-tooltips="$t('dashboard.查看列表')"
-                type="table-line"
-                @click="handleShowList" />
+  <card-layout
+    class="plan-count-dashboard"
+    :title="$t('dashboard.执行方案量')">
+    <render-trend
+      :date="date"
+      metric="TASK_PLAN_COUNT" />
+    <div slot="extend">
+      <icon
+        v-bk-tooltips="$t('dashboard.查看趋势图')"
+        type="line-chart-line"
+        @click="handleShowTrend" />
+      <icon
+        v-bk-tooltips="$t('dashboard.查看列表')"
+        type="table-line"
+        @click="handleShowList" />
+    </div>
+    <trend-dialog
+      v-model="isShowTrend"
+      :date="date"
+      metric="TASK_PLAN_COUNT"
+      :name="$t('dashboard.执行方案量')"
+      :title="$t('dashboard.执行方案量趋势图')" />
+    <lower-component
+      :custom="isShowList"
+      level="custom">
+      <jb-dialog
+        v-model="isShowList"
+        header-position="left"
+        :show-footer="false"
+        :title="$t('dashboard.执行方案量列表')"
+        :width="520">
+        <div
+          v-bkloading="{ isLoading: isListLoading, opacity: 0.8 }"
+          style="margin-top: 12px;">
+          <bk-table
+            :data="listData"
+            :max-height="420">
+            <bk-table-column
+              key="scopeName"
+              align="left"
+              :label="$t('dashboard.业务名')"
+              prop="scopeName" />
+            <bk-table-column
+              key="value"
+              align="left"
+              :label="$t('dashboard.执行方案量')"
+              prop="value" />
+            <bk-table-column
+              key="ratio"
+              align="left"
+              :label="$t('dashboard.占比')"
+              prop="ratio" />
+          </bk-table>
         </div>
-        <trend-dialog
-            v-model="isShowTrend"
-            :date="date"
-            metric="TASK_PLAN_COUNT"
-            :name="$t('dashboard.执行方案量')"
-            :title="$t('dashboard.执行方案量趋势图')" />
-        <lower-component
-            :custom="isShowList"
-            level="custom">
-            <jb-dialog
-                v-model="isShowList"
-                header-position="left"
-                :show-footer="false"
-                :title="$t('dashboard.执行方案量列表')"
-                :width="520">
-                <div
-                    v-bkloading="{ isLoading: isListLoading, opacity: 0.8 }"
-                    style="margin-top: 12px;">
-                    <bk-table
-                        :data="listData"
-                        :max-height="420">
-                        <bk-table-column
-                            key="scopeName"
-                            align="left"
-                            :label="$t('dashboard.业务名')"
-                            prop="scopeName" />
-                        <bk-table-column
-                            key="value"
-                            align="left"
-                            :label="$t('dashboard.执行方案量')"
-                            prop="value" />
-                        <bk-table-column
-                            key="ratio"
-                            align="left"
-                            :label="$t('dashboard.占比')"
-                            prop="ratio" />
-                    </bk-table>
-                </div>
-            </jb-dialog>
-        </lower-component>
-    </card-layout>
+      </jb-dialog>
+    </lower-component>
+  </card-layout>
 </template>
 <script>
-    import StatisticsService from '@service/statistics';
+  import StatisticsService from '@service/statistics';
 
-    import CardLayout from '../card-layout';
-    import RenderTrend from '../common/render-trend';
-    import TrendDialog from '../common/trend-dialog';
+  import CardLayout from '../card-layout';
+  import RenderTrend from '../common/render-trend';
+  import TrendDialog from '../common/trend-dialog';
 
-    export default {
-        name: '',
-        components: {
-            CardLayout,
-            RenderTrend,
-            TrendDialog,
-        },
-        props: {
-            date: {
-                type: String,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isListLoading: false,
-                listData: [],
-                isShowTrend: false,
-                isShowList: false,
-            };
-        },
-        methods: {
-            handleShowTrend () {
-                this.isShowTrend = true;
-            },
-            handleShowList () {
-                this.isShowList = true;
-                this.isListLoading = true;
-                StatisticsService.fetchListByPerAppMetrics({
-                    metric: 'TASK_PLAN_COUNT',
-                }).then((data) => {
-                    this.listData = Object.freeze(data);
-                })
-                    .finally(() => {
-                        this.isListLoading = false;
-                    });
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      CardLayout,
+      RenderTrend,
+      TrendDialog,
+    },
+    props: {
+      date: {
+        type: String,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isListLoading: false,
+        listData: [],
+        isShowTrend: false,
+        isShowList: false,
+      };
+    },
+    methods: {
+      handleShowTrend () {
+        this.isShowTrend = true;
+      },
+      handleShowList () {
+        this.isShowList = true;
+        this.isListLoading = true;
+        StatisticsService.fetchListByPerAppMetrics({
+          metric: 'TASK_PLAN_COUNT',
+        }).then((data) => {
+          this.listData = Object.freeze(data);
+        })
+          .finally(() => {
+            this.isListLoading = false;
+          });
+      },
+    },
+  };
 </script>

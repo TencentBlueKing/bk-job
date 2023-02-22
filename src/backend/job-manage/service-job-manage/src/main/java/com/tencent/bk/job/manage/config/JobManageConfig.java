@@ -53,9 +53,6 @@ public class JobManageConfig {
     @Value("${job.web.url:}")
     private String jobWebUrl;
 
-    @Value("${bk.helper.url:}")
-    private String bkHelperUrl;
-
     @Value("${bk.doc.root:}")
     private String bkDocRoot;
 
@@ -76,6 +73,9 @@ public class JobManageConfig {
 
     @Value("${job.manage.sync.resource.watch.enabled:true}")
     private boolean enableResourceWatch;
+
+    @Value("${job.manage.sync.hostEvent.handlerNum:3}")
+    private int hostEventHandlerNum;
 
     @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;

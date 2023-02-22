@@ -26,65 +26,65 @@
 -->
 
 <template>
-    <jb-form-item
-        :label="$t('执行账号')"
-        :property="field"
-        required
-        :rules="rules">
-        <account-select
-            class="form-item-content"
-            :type="accountType"
-            :value="formData[field]"
-            @change="handleChange" />
-    </jb-form-item>
+  <jb-form-item
+    :label="$t('执行账号')"
+    :property="field"
+    required
+    :rules="rules">
+    <account-select
+      class="form-item-content"
+      :type="accountType"
+      :value="formData[field]"
+      @change="handleChange" />
+  </jb-form-item>
 </template>
 <script>
-    import {
-        formatScriptTypeValue,
-    } from '@utils/assist';
+  import {
+    formatScriptTypeValue,
+  } from '@utils/assist';
 
-    import AccountSelect from '@components/account-select';
+  import AccountSelect from '@components/account-select';
 
-    import I18n from '@/i18n';
+  import I18n from '@/i18n';
 
-    export default {
-        components: {
-            AccountSelect,
+  export default {
+    components: {
+      AccountSelect,
+    },
+    props: {
+      field: {
+        type: String,
+        required: true,
+      },
+      scriptLanguageField: {
+        type: String,
+      },
+      formData: {
+        type: Object,
+        required: true,
+      },
+    },
+    computed: {
+      accountType () {
+        if (formatScriptTypeValue(this.formData[this.scriptLanguageField]) === 'SQL') {
+          return 'db';
+        }
+        return 'system';
+      },
+    },
+    created () {
+      this.rules = [
+        {
+          required: true,
+          message: I18n.t('执行账号必填'),
+          trigger: 'blur',
         },
-        props: {
-            field: {
-                type: String,
-                required: true,
-            },
-            scriptLanguageField: {
-                type: String,
-            },
-            formData: {
-                type: Object,
-                required: true,
-            },
-        },
-        computed: {
-            accountType () {
-                if (formatScriptTypeValue(this.formData[this.scriptLanguageField]) === 'SQL') {
-                    return 'db';
-                }
-                return 'system';
-            },
-        },
-        created () {
-            this.rules = [
-                {
-                    required: true,
-                    message: I18n.t('执行账号必填'),
-                    trigger: 'blur',
-                },
-            ];
-        },
-        methods: {
-            handleChange (value) {
-                this.$emit('on-change', this.field, value);
-            },
-        },
-    };
+      ];
+    },
+    methods: {
+      handleChange (value) {
+        this.$emit('on-change', this.field, value);
+      },
+    },
+  };
 </script>

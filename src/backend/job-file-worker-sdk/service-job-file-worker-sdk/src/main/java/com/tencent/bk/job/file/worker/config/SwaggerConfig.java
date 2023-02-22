@@ -37,9 +37,12 @@ import springfox.documentation.spring.web.plugins.Docket;
 import java.util.Arrays;
 import java.util.HashSet;
 
+/**
+ * Swagger 配置
+ */
 @Configuration
 @EnableOpenApi
-@Profile({"dev", "test", "local"})
+@Profile({"dev", "local"})
 public class SwaggerConfig {
 
     private final WorkerConfig workerConfig;

@@ -26,65 +26,65 @@
 import I18n from '@/i18n';
 
 export default class TaskHostNode {
-    static isHostNodeInfoEmpty (hostNodeInfo) {
-        const {
-            dynamicGroupList,
-            hostList,
-            nodeList,
-        } = hostNodeInfo;
-        return dynamicGroupList.length < 1
+  static isHostNodeInfoEmpty (hostNodeInfo) {
+    const {
+      dynamicGroupList,
+      hostList,
+      nodeList,
+    } = hostNodeInfo;
+    return dynamicGroupList.length < 1
             && hostList.length < 1
             && nodeList.length < 1;
-    }
+  }
     
-    constructor (payload = {}) {
-        this.variable = payload.variable || '';
-        this.hostNodeInfo = this.initHostNodeInfo(payload.hostNodeInfo || {});
-    }
+  constructor (payload = {}) {
+    this.variable = payload.variable || '';
+    this.hostNodeInfo = this.initHostNodeInfo(payload.hostNodeInfo || {});
+  }
     
-    get isEmpty () {
-        const {
-            dynamicGroupList,
-            hostList,
-            nodeList,
-        } = this.hostNodeInfo;
+  get isEmpty () {
+    const {
+      dynamicGroupList,
+      hostList,
+      nodeList,
+    } = this.hostNodeInfo;
 
-        return !this.variable
+    return !this.variable
             && dynamicGroupList.length < 1
             && hostList.length < 1
             && nodeList.length < 1;
-    }
+  }
 
-    get text () {
-        const {
-            dynamicGroupList,
-            hostList,
-            nodeList,
-        } = this.hostNodeInfo;
-        const strs = [];
-        if (hostList.length > 0) {
-            strs.push(`${hostList.length} ${I18n.t('台主机.result')}`);
-        }
-        if (nodeList.length > 0) {
-            strs.push(`${nodeList.length} ${I18n.t('个节点.result')}`);
-        }
-        if (dynamicGroupList.length > 0) {
-            strs.push(`${dynamicGroupList.length} ${I18n.t('个分组.result')}`);
-        }
-        return strs.length > 0 ? strs.join('，') : '--';
+  get text () {
+    const {
+      dynamicGroupList,
+      hostList,
+      nodeList,
+    } = this.hostNodeInfo;
+    const strs = [];
+    if (hostList.length > 0) {
+      strs.push(`${hostList.length} ${I18n.t('台主机.result')}`);
     }
-
-    initHostNodeInfo (hostNodeInfo) {
-        const {
-            hostList,
-            dynamicGroupList,
-            nodeList,
-        } = hostNodeInfo;
-
-        return Object.freeze({
-            hostList: hostList || [],
-            dynamicGroupList: dynamicGroupList || [],
-            nodeList: nodeList || [],
-        });
+    if (nodeList.length > 0) {
+      strs.push(`${nodeList.length} ${I18n.t('个节点.result')}`);
     }
+    if (dynamicGroupList.length > 0) {
+      strs.push(`${dynamicGroupList.length} ${I18n.t('个分组.result')}`);
+    }
+    return strs.length > 0 ? strs.join('，') : '--';
+  }
+
+  initHostNodeInfo (hostNodeInfo) {
+    const {
+      hostList,
+      dynamicGroupList,
+      nodeList,
+    } = hostNodeInfo;
+
+    return Object.freeze({
+      hostList: hostList || [],
+      dynamicGroupList: dynamicGroupList || [],
+      nodeList: nodeList || [],
+    });
+  }
 }

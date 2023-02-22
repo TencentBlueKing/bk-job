@@ -26,45 +26,45 @@
 -->
 
 <template>
-    <div class="render-script-content">
-        <ace-editor
-            :custom-enable="false"
-            :lang="lang"
-            :options="[lang]"
-            readonly
-            :value="scriptContent" />
-    </div>
+  <div class="render-script-content">
+    <ace-editor
+      :custom-enable="false"
+      :lang="lang"
+      :options="[lang]"
+      readonly
+      :value="scriptContent" />
+  </div>
 </template>
 
 <script>
-    import AceEditor from '@components/ace-editor';
+  import AceEditor from '@components/ace-editor';
 
-    import { formatScriptTypeValue } from '@/utils/assist';
+  import { formatScriptTypeValue } from '@/utils/assist';
 
-    export default {
-        components: {
-            AceEditor,
+  export default {
+    components: {
+      AceEditor,
+    },
+    props: {
+      data: {
+        type: Object,
+        require: true,
+      },
+    },
+    data () {
+      return {
+        lang: '',
+        scriptContent: '',
+      };
+    },
+    watch: {
+      data: {
+        handler (data) {
+          this.scriptContent = data.scriptContent;
+          this.lang = formatScriptTypeValue(data.scriptLanguage);
         },
-        props: {
-            data: {
-                type: Object,
-                require: true,
-            },
-        },
-        data () {
-            return {
-                lang: '',
-                scriptContent: '',
-            };
-        },
-        watch: {
-            data: {
-                handler (data) {
-                    this.scriptContent = data.scriptContent;
-                    this.lang = formatScriptTypeValue(data.scriptLanguage);
-                },
-                immediate: true,
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+  };
 </script>

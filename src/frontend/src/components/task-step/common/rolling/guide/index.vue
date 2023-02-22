@@ -26,174 +26,174 @@
 -->
 
 <template>
-    <div class="rolling-expr-guides">
-        <div
-            class="content"
-            v-html="contentHtml" />
-        <div
-            class="close-btn"
-            @click="handleClose">
-            <Icon type="close" />
-        </div>
+  <div class="rolling-expr-guides">
+    <div
+      class="content"
+      v-html="contentHtml" />
+    <div
+      class="close-btn"
+      @click="handleClose">
+      <icon type="close" />
     </div>
+  </div>
 </template>
 <script>
-    import exprEN from './expr.en.md';
-    import expr from './expr.md';
+  import exprEN from './expr.en.md';
+  import expr from './expr.md';
 
-    import 'highlight.js/styles/googlecode.css';
+  import 'highlight.js/styles/googlecode.css';
 
-    export default {
-        name: '',
-        data () {
-            return {
-            };
-        },
-        computed: {
-            contentHtml () {
-                return this.$i18n.locale === 'zh-CN' ? expr : exprEN;
-            },
-        },
-        methods: {
-            handleClose () {
-                this.$emit('on-close');
-            },
-        },
-    };
+  export default {
+    name: '',
+    data () {
+      return {
+      };
+    },
+    computed: {
+      contentHtml () {
+        return this.$i18n.locale === 'zh-CN' ? expr : exprEN;
+      },
+    },
+    methods: {
+      handleClose () {
+        this.$emit('on-close');
+      },
+    },
+  };
 </script>
 <style lang="postcss">
-    .rolling-expr-guides {
-        position: relative;
-        padding-bottom: 62px;
-        background: #fff;
+  .rolling-expr-guides {
+    position: relative;
+    padding-bottom: 62px;
+    background: #fff;
 
-        .content {
-            padding: 15px 20px;
-            overflow: hidden;
-            line-height: 18px;
-            color: #63656e;
+    .content {
+      padding: 15px 20px;
+      overflow: hidden;
+      line-height: 18px;
+      color: #63656e;
 
-            h1,
-            h2,
-            h3,
-            h4,
-            h5,
-            h6 {
-                font-weight: normal;
-                color: #313238;
-            }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-weight: normal;
+        color: #313238;
+      }
 
-            h1 {
-                font-size: 16px;
-            }
+      h1 {
+        font-size: 16px;
+      }
 
-            h3 {
-                margin-top: 24px;
-                font-size: 12px;
-            }
+      h3 {
+        margin-top: 24px;
+        font-size: 12px;
+      }
 
-            p {
-                margin-top: 6px;
-            }
+      p {
+        margin-top: 6px;
+      }
 
-            code {
-                padding: 0 4px;
-                font-size: 12px;
-                color: #ea3636;
-                white-space: nowrap;
-                background: #fffafa;
-                border: 1px solid #ffecec;
-                border-radius: 2px;
-            }
+      code {
+        padding: 0 4px;
+        font-size: 12px;
+        color: #ea3636;
+        white-space: nowrap;
+        background: #fffafa;
+        border: 1px solid #ffecec;
+        border-radius: 2px;
+      }
 
-            pre {
-                code {
-                    display: block;
-                    width: 100%;
-                    padding: 8px 12px;
-                    margin-top: 10px;
-                    overflow-x: auto;
-                    line-height: 24px;
-                    color: #6a9a7b;
-                    text-align: left;
-                    white-space: pre;
-                    background: #f5f6fa;
-                    border: none;
-                }
-            }
-
-            ul {
-                line-height: 24px;
-
-                & > li {
-                    position: relative;
-                    padding-left: 11px;
-                    color: #313238;
-
-                    &::before {
-                        position: absolute;
-                        top: 9px;
-                        left: 0;
-                        width: 5px;
-                        height: 5px;
-                        margin-right: 6px;
-                        vertical-align: middle;
-                        background: #979ba5;
-                        border-radius: 50%;
-                        content: "";
-                    }
-
-                    &:nth-child(n+2) {
-                        margin-top: 20px;
-                    }
-                }
-
-                ul > li {
-                    &::before {
-                        position: absolute;
-                        top: 9px;
-                        left: 0;
-                        width: 5px;
-                        height: 5px;
-                        margin-right: 6px;
-                        vertical-align: middle;
-                        background: #fff;
-                        border: 1px solid #979ba5;
-                        border-radius: 50%;
-                        content: "";
-                    }
-
-                    &:nth-child(n+2) {
-                        margin-top: 0;
-                    }
-                }
-            }
-
-            ol {
-                color: #63656e;
-            }
-
-            li {
-                margin-top: 6px;
-            }
+      pre {
+        code {
+          display: block;
+          width: 100%;
+          padding: 8px 12px;
+          margin-top: 10px;
+          overflow-x: auto;
+          line-height: 24px;
+          color: #6a9a7b;
+          text-align: left;
+          white-space: pre;
+          background: #f5f6fa;
+          border: none;
         }
+      }
 
-        .close-btn {
+      ul {
+        line-height: 24px;
+
+        & > li {
+          position: relative;
+          padding-left: 11px;
+          color: #313238;
+
+          &::before {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 26px;
-            height: 26px;
-            font-size: 18px;
-            line-height: 26px;
-            color: #979ba5;
-            text-align: center;
-            cursor: pointer;
+            top: 9px;
+            left: 0;
+            width: 5px;
+            height: 5px;
+            margin-right: 6px;
+            vertical-align: middle;
+            background: #979ba5;
             border-radius: 50%;
+            content: "";
+          }
 
-            &:hover {
-                background-color: #dcdee5;
-            }
+          &:nth-child(n+2) {
+            margin-top: 20px;
+          }
         }
+
+        ul > li {
+          &::before {
+            position: absolute;
+            top: 9px;
+            left: 0;
+            width: 5px;
+            height: 5px;
+            margin-right: 6px;
+            vertical-align: middle;
+            background: #fff;
+            border: 1px solid #979ba5;
+            border-radius: 50%;
+            content: "";
+          }
+
+          &:nth-child(n+2) {
+            margin-top: 0;
+          }
+        }
+      }
+
+      ol {
+        color: #63656e;
+      }
+
+      li {
+        margin-top: 6px;
+      }
     }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 26px;
+      height: 26px;
+      font-size: 18px;
+      line-height: 26px;
+      color: #979ba5;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 50%;
+
+      &:hover {
+        background-color: #dcdee5;
+      }
+    }
+  }
 </style>

@@ -26,8 +26,8 @@
 import _ from 'lodash';
 
 import {
-    buildURLParams,
-    downloadUrl,
+  buildURLParams,
+  downloadUrl,
 } from '@utils/assist';
 
 import Cache from './lib/cache';
@@ -36,19 +36,19 @@ import Request from './lib/request';
 const request = new Request(Cache);
 
 export default new Proxy(request, {
-    get (target, key) {
-        return (url, config = {}) => {
-            if (key === 'download') {
-                // eslint-disable-next-line  max-len
-                downloadUrl(`${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/${_.trim(url, '/')}?${buildURLParams(config.params)}`);
-                return Promise.resolve();
-            }
-            return target.request({
-                host: window.PROJECT_CONFIG.AJAX_URL_PREFIX,
-                url,
-                method: key,
-                ...config,
-            });
-        };
-    },
+  get (target, key) {
+    return (url, config = {}) => {
+      if (key === 'download') {
+        // eslint-disable-next-line  max-len
+        downloadUrl(`${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/${_.trim(url, '/')}?${buildURLParams(config.params)}`);
+        return Promise.resolve();
+      }
+      return target.request({
+        host: window.PROJECT_CONFIG.AJAX_URL_PREFIX,
+        url,
+        method: key,
+        ...config,
+      });
+    };
+  },
 });
