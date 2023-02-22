@@ -44,7 +44,9 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Gradle Build
         working-directory: src/backend
-        run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://maven.aliyun.com/nexus/content/groups/public/"
+        # run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://maven.aliyun.com/nexus/content/groups/public/"
+        run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://mirrors.cloud.tencent.com/nexus/repository/maven-public/"
+
   buildEE:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -72,4 +74,5 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Gradle Build
         working-directory: src/backend
-        run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://maven.aliyun.com/nexus/content/groups/public/" -Pjob.edition=ee -Pjob.package.type=release
+        # run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://maven.aliyun.com/nexus/content/groups/public/" -Pjob.edition=ee -Pjob.package.type=release
+        run: ./gradlew clean build -DmysqlURL=127.0.0.1:3306 -DmysqlUser=root -DmysqlPasswd=root -DmavenRepoUrl="https://mirrors.cloud.tencent.com/nexus/repository/maven-public/" -Pjob.edition=ee -Pjob.package.type=release
