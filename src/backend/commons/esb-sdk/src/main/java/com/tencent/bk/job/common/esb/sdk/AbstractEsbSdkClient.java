@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.methods.HttpGet;
@@ -80,7 +79,7 @@ public abstract class AbstractEsbSdkClient {
                                           String uri,
                                           EsbReq reqBody,
                                           TypeReference<EsbResp<R>> typeReference,
-                                          CustomizedLogStrategy logStrategy) {
+                                          BkApiLogStrategy logStrategy) {
         return getEsbRespByReq(method, uri, reqBody, typeReference, null, logStrategy);
     }
 
@@ -96,21 +95,23 @@ public abstract class AbstractEsbSdkClient {
                                           EsbReq reqBody,
                                           TypeReference<EsbResp<R>> typeReference,
                                           ExtHttpHelper httpHelper,
-                                          CustomizedLogStrategy logStrategy) {
+                                          BkApiLogStrategy logStrategy) {
         String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
         long startTime = System.currentTimeMillis();
-        EsbApiContext<R> apiContext = new EsbApiContext<>(method, uri, reqBody, null, null, 0, null);
+        BkApiContext<? extends EsbReq, R> apiContext
+            = new BkApiContext<>(method, uri, reqBody, null, null, 0, false);
 
         if (logStrategy != null) {
             logStrategy.logReq(log, apiContext);
         } else {
             if (log.isInfoEnabled()) {
-                log.info("[AbstractEsbSdkClient] method={}|uri={}|reqStr={}", method, uri, reqStr);
+                log.info("[AbstractEsbSdkClient] Request|method={}|uri={}|reqStr={}", method, uri, reqStr);
             }
         }
 
         try {
             requestEsbApi(apiContext, typeReference, httpHelper);
+            apiContext.setSuccess(true);
             return apiContext.getResp();
         } finally {
             apiContext.setCostTime(System.currentTimeMillis() - startTime);
@@ -118,15 +119,15 @@ public abstract class AbstractEsbSdkClient {
                 logStrategy.logResp(log, apiContext);
             } else {
                 if (log.isInfoEnabled()) {
-                    log.info("[AbstractEsbSdkClient] method={}|uri={}|success={}|costTime={}|resp={}|",
-                        method, uri, apiContext.getException() == null, apiContext.getCostTime(),
+                    log.info("[AbstractEsbSdkClient] Response|method={}|uri={}|success={}|costTime={}|resp={}|",
+                        method, uri, apiContext.isSuccess(), apiContext.getCostTime(),
                         apiContext.getOriginResp());
                 }
             }
         }
     }
 
-    private <R> void requestEsbApi(EsbApiContext<R> apiContext,
+    private <R> void requestEsbApi(BkApiContext<? extends EsbReq, R> apiContext,
                                    TypeReference<EsbResp<R>> typeReference,
                                    ExtHttpHelper httpHelper) {
         String method = apiContext.getMethod();
@@ -150,29 +151,30 @@ public abstract class AbstractEsbSdkClient {
 
             esbResp = JSON_MAPPER.fromJson(respStr, typeReference);
             apiContext.setResp(esbResp);
-            if (esbResp == null) {
-                String errorMsg = "[AbstractEsbSdkClient] " + method + " " + uri
-                    + ", error: Response is blank after parse";
-                log.error(errorMsg);
-                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
-            } else if (!esbResp.getResult()) {
+            if (!esbResp.getResult()) {
                 log.warn(
                     "[AbstractEsbSdkClient] fail:esbResp code!=0|esbResp.requestId={}|esbResp.code={}|esbResp" +
                         ".message={}|method={}|uri={}|reqStr={}|respStr={}",
                     esbResp.getRequestId(),
                     esbResp.getCode(),
                     esbResp.getMessage(),
-                    method, uri, reqStr, respStr
+                    method,
+                    uri,
+                    reqStr,
+                    respStr
                 );
             }
             if (esbResp.getData() == null) {
                 log.warn(
                     "[AbstractEsbSdkClient] warn:esbResp.getData() == null|esbResp.requestId={}|esbResp" +
-                        ".code={}|esbResp.message={}|method={}|uri={}|reqStr={}|respStr={}"
-                    , esbResp.getRequestId()
-                    , esbResp.getCode()
-                    , esbResp.getMessage()
-                    , method, uri, reqStr, respStr
+                        ".code={}|esbResp.message={}|method={}|uri={}|reqStr={}|respStr={}",
+                    esbResp.getRequestId(),
+                    esbResp.getCode(),
+                    esbResp.getMessage(),
+                    method,
+                    uri,
+                    reqStr,
+                    respStr
                 );
             }
         } catch (Throwable e) {
@@ -181,7 +183,7 @@ public abstract class AbstractEsbSdkClient {
                 + "|reqStr=" + reqStr
                 + "|respStr=" + respStr;
             log.error(errorMsg, e);
-            apiContext.setException(e);
+            apiContext.setSuccess(false);
             throw new InternalException("Fail to request esb api", e, ErrorCode.API_ERROR);
         }
     }
@@ -309,86 +311,5 @@ public abstract class AbstractEsbSdkClient {
 
     protected <T extends EsbReq> String buildPostBody(T params) {
         return JsonUtils.toJson(params);
-    }
-
-    /**
-     * 自定义日志输出策略
-     */
-    public interface CustomizedLogStrategy {
-        /**
-         * 打印请求
-         *
-         * @param log     logger
-         * @param context ESB API 调用上下文
-         * @param <T>     响应对象
-         */
-        default <T> void logReq(Logger log, EsbApiContext<T> context) {
-            if (log.isInfoEnabled()) {
-                log.info("[AbstractEsbSdkClient] method={}|uri={}|reqStr={}", context.getMethod(),
-                    context.getUri(), JsonUtils.toJsonWithoutSkippedFields(context.getReq()));
-            }
-        }
-
-        /**
-         * 打印响应
-         *
-         * @param log     logger
-         * @param context ESB API 调用上下文
-         * @param <T>     响应对象
-         */
-        default <T> void logResp(Logger log, EsbApiContext<T> context) {
-            if (log.isInfoEnabled()) {
-                log.info("[AbstractEsbSdkClient] method={}|uri={}|success={}|costTime={}|resp={}|",
-                    context.getMethod(), context.getUri(), context.getException() == null,
-                    context.getCostTime(), context.getOriginResp());
-            }
-        }
-    }
-
-    /**
-     * ESB API 调用上下文
-     *
-     * @param <T> 响应对象
-     */
-    @Data
-    public static class EsbApiContext<T> {
-        /**
-         * HTTP 请求方法
-         */
-        private String method;
-        private String uri;
-        private EsbReq req;
-        /**
-         * 原始的 API 响应
-         */
-        private String originResp;
-        /**
-         * 反序列化之后的 API 响应
-         */
-        private EsbResp<T> resp;
-        /**
-         * API 调用耗时
-         */
-        private long costTime;
-        /**
-         * API 调用异常
-         */
-        private Throwable exception;
-
-        public EsbApiContext(String method,
-                             String uri,
-                             EsbReq req,
-                             String originResp,
-                             EsbResp<T> resp,
-                             long costTime,
-                             Throwable exception) {
-            this.method = method;
-            this.uri = uri;
-            this.req = req;
-            this.originResp = originResp;
-            this.resp = resp;
-            this.costTime = costTime;
-            this.exception = exception;
-        }
     }
 }

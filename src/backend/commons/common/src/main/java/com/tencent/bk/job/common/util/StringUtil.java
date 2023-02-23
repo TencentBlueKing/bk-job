@@ -333,4 +333,25 @@ public class StringUtil {
         }
         return false;
     }
+
+    /**
+     * 返回限定长度的字符
+     *
+     * @param str       字符串
+     * @param maxLength 最大长度(字符)
+     * @return 限定长度的字符
+     */
+    public static String substring(String str, int maxLength) {
+        if (str == null) {
+            return null;
+        }
+        if (maxLength <= 0) {
+            return "";
+        }
+        if (str.length() <= maxLength) {
+            return str;
+        } else {
+            return str.substring(0, maxLength);
+        }
+    }
 }

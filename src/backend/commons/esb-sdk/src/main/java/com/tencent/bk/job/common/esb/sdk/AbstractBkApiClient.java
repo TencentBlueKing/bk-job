@@ -32,17 +32,18 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 
 /**
- * 蓝鲸API调用客户端 - for BK API GATEWAY
+ * 蓝鲸API调用客户端 - for BK API Gateway
  */
-@Slf4j
 public abstract class AbstractBkApiClient {
-
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String bkApiGatewayUrl;
     private final String appSecret;
     private final String appCode;
@@ -56,39 +57,21 @@ public abstract class AbstractBkApiClient {
         this.appSecret = appSecret;
     }
 
-    protected <T> String doPostAndGetRespStr(String uri, T body) {
-        return doPostAndGetRespStr(uri, body, null);
-    }
-
-    protected <T> String doPostAndGetRespStr(String uri, T body, ExtHttpHelper httpHelper) {
+    private <T> String doPostAndGetRespStr(String uri, T body, ExtHttpHelper httpHelper) {
 
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
         }
-        boolean error = false;
-        long start = System.currentTimeMillis();
-        String responseBody = null;
+        String responseBody;
         String url;
         if (!bkApiGatewayUrl.endsWith("/") && !uri.startsWith("/")) {
             url = bkApiGatewayUrl + "/" + uri;
         } else {
             url = bkApiGatewayUrl + uri;
         }
-        try {
-            Header[] header = buildBkApiRequestHeaders();
-            responseBody = httpHelper.post(url, "UTF-8", buildPostBody(body), header);
-            return responseBody;
-        } catch (Exception e) {
-            log.error("Post url {}| params={}| exception={}", url, JsonUtils.toJsonWithoutSkippedFields(body),
-                e.getMessage());
-            error = true;
-            throw e;
-        } finally {
-            if (log.isDebugEnabled()) {
-                log.debug("Post url {}| error={}| params={}| time={}| resp={}", url, error,
-                    JsonUtils.toJsonWithoutSkippedFields(body), (System.currentTimeMillis() - start), responseBody);
-            }
-        }
+        Header[] header = buildBkApiRequestHeaders();
+        responseBody = httpHelper.post(url, "UTF-8", buildPostBody(body), header);
+        return responseBody;
     }
 
     private Header[] buildBkApiRequestHeaders() {
@@ -111,46 +94,125 @@ public abstract class AbstractBkApiClient {
     public <T, R> EsbResp<R> doHttpPost(String uri,
                                         T reqBody,
                                         TypeReference<EsbResp<R>> typeReference) {
-        return doHttpPost(uri, reqBody, typeReference, null);
+        return doHttpPost(uri, reqBody, typeReference, null, null);
+    }
+
+    public <T, R> EsbResp<R> doHttpPost(String uri,
+                                        T reqBody,
+                                        TypeReference<EsbResp<R>> typeReference,
+                                        ExtHttpHelper httpHelper,
+                                        BkApiLogStrategy logStrategy) {
+        String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
+        long startTime = System.currentTimeMillis();
+        BkApiContext<T, R> apiContext
+            = new BkApiContext<>(HttpMethod.POST.name(), uri, reqBody, null, null, 0, false);
+
+        if (logStrategy != null) {
+            logStrategy.logReq(log, apiContext);
+        } else {
+            if (log.isInfoEnabled()) {
+                log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}", HttpMethod.POST.name(), uri,
+                    reqStr);
+            }
+        }
+
+        try {
+            requestApiAndWrapResponse(HttpMethod.POST, apiContext, typeReference, httpHelper);
+            apiContext.setSuccess(true);
+            return apiContext.getResp();
+        } finally {
+            apiContext.setCostTime(System.currentTimeMillis() - startTime);
+            if (logStrategy != null) {
+                logStrategy.logResp(log, apiContext);
+            } else {
+                if (log.isInfoEnabled()) {
+                    log.info("[AbstractBkApiClient] Response|method={}|uri={}|success={}|costTime={}|resp={}|",
+                        HttpMethod.POST.name(), uri, apiContext.isSuccess(), apiContext.getCostTime(),
+                        apiContext.getOriginResp());
+                }
+            }
+        }
+    }
+
+    private <T, R> void requestApiAndWrapResponse(HttpMethod httpMethod,
+                                                  BkApiContext<T, R> apiContext,
+                                                  TypeReference<EsbResp<R>> typeReference,
+                                                  ExtHttpHelper httpHelper) {
+        String uri = apiContext.getUri();
+        T reqBody = apiContext.getReq();
+        String reqStr = JsonUtils.toJsonWithoutSkippedFields(apiContext.getReq());
+        EsbResp<R> esbResp;
+        String respStr = null;
+        try {
+            respStr = requestApi(httpMethod, uri, reqBody, httpHelper);
+            apiContext.setOriginResp(respStr);
+
+            if (StringUtils.isBlank(respStr)) {
+                String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
+                    + uri + ", error: " + "Response is blank";
+                log.error(errorMsg);
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
+            }
+
+            esbResp = JsonUtils.fromJson(respStr, typeReference);
+            apiContext.setResp(esbResp);
+            if (!esbResp.isSuccess()) {
+                log.warn(
+                    "[AbstractBkApiClient] fail:response code!=0" +
+                        "|requestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
+                    esbResp.getRequestId(),
+                    esbResp.getCode(),
+                    esbResp.getMessage(),
+                    httpMethod.name(),
+                    uri,
+                    reqStr,
+                    respStr
+                );
+            }
+            if (esbResp.getData() == null) {
+                log.warn(
+                    "[AbstractBkApiClient] warn: response data is null" +
+                        "|requestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
+                    esbResp.getRequestId(),
+                    esbResp.getCode(),
+                    esbResp.getMessage(),
+                    httpMethod.name(),
+                    uri,
+                    reqStr,
+                    respStr
+                );
+            }
+        } catch (Throwable e) {
+            String errorMsg = "Fail to request api|method=" + httpMethod.name()
+                + "|uri=" + uri
+                + "|reqStr=" + reqStr
+                + "|respStr=" + respStr;
+            log.error(errorMsg, e);
+            throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
+        }
+    }
+
+    private <T> String requestApi(HttpMethod httpMethod,
+                                  String uri,
+                                  T reqBody,
+                                  ExtHttpHelper httpHelper) {
+        String respStr = null;
+        switch (httpMethod) {
+            case POST:
+                respStr = doPostAndGetRespStr(uri, reqBody, httpHelper);
+                break;
+            default:
+                log.warn("Unimplemented http method: {}", httpMethod.name());
+                break;
+        }
+        return respStr;
     }
 
     public <T, R> EsbResp<R> doHttpPost(String uri,
                                         T reqBody,
                                         TypeReference<EsbResp<R>> typeReference,
                                         ExtHttpHelper httpHelper) {
-        String respStr = null;
-        try {
-            respStr = doPostAndGetRespStr(uri, reqBody, httpHelper);
-            if (StringUtils.isBlank(respStr)) {
-                String errorMsg = "Post " + uri + ", error: " + "Response is blank";
-                log.error(errorMsg);
-                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Success|method={}|uri={}|reqStr={}|respStr={}", "POST", uri, reqBody, respStr);
-                }
-            }
-            EsbResp<R> esbResp = JsonUtils.fromJson(respStr, typeReference);
-            if (esbResp == null) {
-                String errorMsg = "Post " + uri + ", error: " + "Response is blank after parse";
-                log.error(errorMsg);
-                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
-            }
-
-            if (esbResp.getData() == null) {
-                log.warn(
-                    "Request bk api resp data is null|code: {}, message: {}, method: {}, uri: {}, req: {}, resp: {}",
-                    esbResp.getCode(), esbResp.getMessage(), "Post", uri, reqBody, respStr
-                );
-            }
-            return esbResp;
-        } catch (Throwable e) {
-            String errorMsg = "Fail to request api|method=" + "POST"
-                + "|uri=" + uri
-                + "|reqStr=" + reqBody
-                + "|respStr=" + respStr;
-            log.error(errorMsg, e);
-            throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
-        }
+        return doHttpPost(uri, reqBody, typeReference, httpHelper, null);
     }
+
 }
