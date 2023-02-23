@@ -33,12 +33,13 @@ import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.tencent.bk.job.common.constant.HttpHeader.HDR_BK_LANG;
 import static com.tencent.bk.job.common.constant.HttpHeader.HDR_CONTENT_TYPE;
@@ -54,8 +55,8 @@ import static com.tencent.bk.job.common.constant.HttpHeader.HDR_CONTENT_TYPE;
  * @see AbstractEsbSdkClient makeBaseReqByWeb （当前登录用户触发的行为）
  * @see AbstractEsbSdkClient makeBaseReq （由后台任务调用的行为）
  */
-@Slf4j
 public abstract class AbstractEsbSdkClient {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.nonDefaultMapper();
     public static final String BK_LANG_EN = "en";
@@ -177,8 +178,10 @@ public abstract class AbstractEsbSdkClient {
             error = true;
             throw e;
         } finally {
-            log.info("Get url {}| error={}| params={}| time={}| resp={}", esbHostUrl + uri, error,
-                JsonUtils.toJsonWithoutSkippedFields(params), (System.currentTimeMillis() - start), responseBody);
+            if (log.isDebugEnabled()) {
+                log.debug("Get url {}| error={}| params={}| time={}| resp={}", esbHostUrl + uri, error,
+                    JsonUtils.toJsonWithoutSkippedFields(params), (System.currentTimeMillis() - start), responseBody);
+            }
         }
     }
 
@@ -219,8 +222,10 @@ public abstract class AbstractEsbSdkClient {
             error = true;
             throw e;
         } finally {
-            log.info("Post url {}| error={}| params={}| time={}| resp={}", uri, error,
-                JsonUtils.toJsonWithoutSkippedFields(params), (System.currentTimeMillis() - start), responseBody);
+            if (log.isDebugEnabled()) {
+                log.debug("Post url {}| error={}| params={}| time={}| resp={}", uri, error,
+                    JsonUtils.toJsonWithoutSkippedFields(params), (System.currentTimeMillis() - start), responseBody);
+            }
         }
     }
 
