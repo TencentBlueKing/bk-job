@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.methods.HttpGet;
@@ -45,15 +46,7 @@ import static com.tencent.bk.job.common.constant.HttpHeader.HDR_BK_LANG;
 import static com.tencent.bk.job.common.constant.HttpHeader.HDR_CONTENT_TYPE;
 
 /**
- * 所有ESB-API-SDK的抽象类 注意所有接口都有bkToken和userName参数，两个参数用途需要规范 bkToken用于web系统引发的接口调用
- * 是由当前登录用户触发的行为，一概要求传递bkToken
- * userName用于后台任务执行由系统触发，传递userName，此时没有用户登录态也就没有bkToken 如果bkToken不为空，则优先以bkToken为准
- * <p>
- * 构建请求参数请用
- *
- * @date 2019/11/11
- * @see AbstractEsbSdkClient makeBaseReqByWeb （当前登录用户触发的行为）
- * @see AbstractEsbSdkClient makeBaseReq （由后台任务调用的行为）
+ * ESB API 调用基础实现
  */
 public abstract class AbstractEsbSdkClient {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -83,8 +76,125 @@ public abstract class AbstractEsbSdkClient {
         this.useEsbTestEnv = useEsbTestEnv;
     }
 
+    public <R> EsbResp<R> getEsbRespByReq(String method,
+                                          String uri,
+                                          EsbReq reqBody,
+                                          TypeReference<EsbResp<R>> typeReference,
+                                          CustomizedLogStrategy logStrategy) {
+        return getEsbRespByReq(method, uri, reqBody, typeReference, null, logStrategy);
+    }
 
-    public <T extends EsbReq> T makeBaseReqByWeb(Class<T> reqClass, String bkToken) {
+    public <R> EsbResp<R> getEsbRespByReq(String method,
+                                          String uri,
+                                          EsbReq reqBody,
+                                          TypeReference<EsbResp<R>> typeReference) {
+        return getEsbRespByReq(method, uri, reqBody, typeReference, null, null);
+    }
+
+    public <R> EsbResp<R> getEsbRespByReq(String method,
+                                          String uri,
+                                          EsbReq reqBody,
+                                          TypeReference<EsbResp<R>> typeReference,
+                                          ExtHttpHelper httpHelper,
+                                          CustomizedLogStrategy logStrategy) {
+        String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
+        long startTime = System.currentTimeMillis();
+        EsbApiContext<R> apiContext = new EsbApiContext<>(method, uri, reqBody, null, null, 0, null);
+
+        if (logStrategy != null) {
+            logStrategy.logReq(log, apiContext);
+        } else {
+            if (log.isInfoEnabled()) {
+                log.info("[AbstractEsbSdkClient] method={}|uri={}|reqStr={}", method, uri, reqStr);
+            }
+        }
+
+        try {
+            requestEsbApi(apiContext, typeReference, httpHelper);
+            return apiContext.getResp();
+        } finally {
+            apiContext.setCostTime(System.currentTimeMillis() - startTime);
+            if (logStrategy != null) {
+                logStrategy.logResp(log, apiContext);
+            } else {
+                if (log.isInfoEnabled()) {
+                    log.info("[AbstractEsbSdkClient] method={}|uri={}|success={}|costTime={}|resp={}|",
+                        method, uri, apiContext.getException() == null, apiContext.getCostTime(),
+                        apiContext.getOriginResp());
+                }
+            }
+        }
+    }
+
+    private <R> void requestEsbApi(EsbApiContext<R> apiContext,
+                                   TypeReference<EsbResp<R>> typeReference,
+                                   ExtHttpHelper httpHelper) {
+        String method = apiContext.getMethod();
+        String uri = apiContext.getUri();
+        EsbReq reqBody = apiContext.getReq();
+        String reqStr = JsonUtils.toJsonWithoutSkippedFields(apiContext.getReq());
+        EsbResp<R> esbResp;
+        String respStr = null;
+        try {
+            if (method.equals(HttpGet.METHOD_NAME)) {
+                respStr = doHttpGet(uri, reqBody, httpHelper);
+            } else if (method.equals(HttpPost.METHOD_NAME)) {
+                respStr = doHttpPost(uri, reqBody, httpHelper);
+            }
+            apiContext.setOriginResp(respStr);
+            if (StringUtils.isBlank(respStr)) {
+                String errorMsg = "[AbstractEsbSdkClient] " + method + " " + uri + ", error: " + "Response is blank";
+                log.error(errorMsg);
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
+            }
+
+            esbResp = JSON_MAPPER.fromJson(respStr, typeReference);
+            apiContext.setResp(esbResp);
+            if (esbResp == null) {
+                String errorMsg = "[AbstractEsbSdkClient] " + method + " " + uri
+                    + ", error: Response is blank after parse";
+                log.error(errorMsg);
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
+            } else if (!esbResp.getResult()) {
+                log.warn(
+                    "[AbstractEsbSdkClient] fail:esbResp code!=0|esbResp.requestId={}|esbResp.code={}|esbResp" +
+                        ".message={}|method={}|uri={}|reqStr={}|respStr={}",
+                    esbResp.getRequestId(),
+                    esbResp.getCode(),
+                    esbResp.getMessage(),
+                    method, uri, reqStr, respStr
+                );
+            }
+            if (esbResp.getData() == null) {
+                log.warn(
+                    "[AbstractEsbSdkClient] warn:esbResp.getData() == null|esbResp.requestId={}|esbResp" +
+                        ".code={}|esbResp.message={}|method={}|uri={}|reqStr={}|respStr={}"
+                    , esbResp.getRequestId()
+                    , esbResp.getCode()
+                    , esbResp.getMessage()
+                    , method, uri, reqStr, respStr
+                );
+            }
+        } catch (Throwable e) {
+            String errorMsg = "[AbstractEsbSdkClient] Fail to request ESB api|method=" + method
+                + "|uri=" + uri
+                + "|reqStr=" + reqStr
+                + "|respStr=" + respStr;
+            log.error(errorMsg, e);
+            apiContext.setException(e);
+            throw new InternalException("Fail to request esb api", e, ErrorCode.API_ERROR);
+        }
+    }
+
+    public <R> EsbResp<R> getEsbRespByReq(String method,
+                                          String uri,
+                                          EsbReq reqBody,
+                                          TypeReference<EsbResp<R>> typeReference,
+                                          ExtHttpHelper httpHelper) {
+        return getEsbRespByReq(method, uri, reqBody, typeReference, httpHelper, null);
+    }
+
+    protected <T extends EsbReq> T makeBaseReqByWeb(Class<T> reqClass, String bkToken) {
         return makeBaseReqByWeb(reqClass, bkToken, "", "");
     }
 
@@ -92,13 +202,13 @@ public abstract class AbstractEsbSdkClient {
      * 生成通过Web界面发过来的生成SDK调用请求构造协议基础参数
      *
      * @param reqClass 要构建返回的协议Req类
-     * @param bkToken  Cookie
+     * @param bkToken  bkToken
      * @param userName 用户id
      * @param owner    开发商code-如果没有传入null
-     * @return 如果指定的协议请求Req类有问题，请返回null
+     * @return EsbReq
      */
-    public <T extends EsbReq> T makeBaseReqByWeb(Class<T> reqClass, String bkToken, String userName, String owner) {
-        T esbReq = null;
+    protected <T extends EsbReq> T makeBaseReqByWeb(Class<T> reqClass, String bkToken, String userName, String owner) {
+        T esbReq;
         try {
             esbReq = reqClass.newInstance();
             esbReq.setBkToken(bkToken);
@@ -111,7 +221,8 @@ public abstract class AbstractEsbSdkClient {
                 esbReq.setBkSupplierAccount(owner);
             }
         } catch (InstantiationException | IllegalAccessException e) {
-            log.error("makeWebReq fail", e);
+            log.error("[AbstractEsbSdkClient] makeWebReq fail", e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
         return esbReq;
     }
@@ -122,10 +233,10 @@ public abstract class AbstractEsbSdkClient {
      * @param reqClass 要构建返回的协议Req类
      * @param userName 用户id
      * @param owner    开发商code-如果没有传入null
-     * @return 如果指定的协议请求Req类有问题，请返回null
+     * @return EsbReq
      */
-    public <T extends EsbReq> T makeBaseReq(Class<T> reqClass, String userName, String owner) {
-        T esbReq = null;
+    protected <T extends EsbReq> T makeBaseReq(Class<T> reqClass, String userName, String owner) {
+        T esbReq;
         try {
             esbReq = reqClass.newInstance();
             esbReq.setUserName(userName);
@@ -137,159 +248,147 @@ public abstract class AbstractEsbSdkClient {
                 esbReq.setBkSupplierAccount(owner);
             }
         } catch (InstantiationException | IllegalAccessException e) {
-            log.error("makeWebReq fail", e);
+            log.error("[AbstractEsbSdkClient] makeWebReq fail", e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
         return esbReq;
     }
 
-    public String doHttpGet(String uri, EsbReq params) {
-        return doHttpGet(uri, params, defaultHttpHelper);
-    }
-
-    public String doHttpGet(String uri, EsbReq params, ExtHttpHelper httpHelper) {
+    private String doHttpGet(String uri, EsbReq params, ExtHttpHelper httpHelper) {
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
         }
-        boolean error = false;
-        long start = System.currentTimeMillis();
-        String responseBody = null;
+        String responseBody;
         String url;
-        try {
-            if (!esbHostUrl.endsWith("/") && !uri.startsWith("/")) {
-                url = esbHostUrl + "/" + uri + params.toUrlParams();
-            } else {
-                url = esbHostUrl + uri + params.toUrlParams();
-            }
-            Header[] header;
-            if (useEsbTestEnv) {
-                header = new Header[2];
-                header[0] = new BasicHeader(HDR_BK_LANG, lang);
-                header[1] = new BasicHeader("x-use-test-env", "1");
-            } else {
-                header = new Header[1];
-                header[0] = new BasicHeader(HDR_BK_LANG, lang);
-            }
-            responseBody = httpHelper.get(url, header);
-            return responseBody;
-        } catch (Throwable e) {
-            log.error("Get url {}| params={}| exception={}", esbHostUrl + uri,
-                JsonUtils.toJsonWithoutSkippedFields(params),
-                e.getMessage());
-            error = true;
-            throw e;
-        } finally {
-            if (log.isDebugEnabled()) {
-                log.debug("Get url {}| error={}| params={}| time={}| resp={}", esbHostUrl + uri, error,
-                    JsonUtils.toJsonWithoutSkippedFields(params), (System.currentTimeMillis() - start), responseBody);
-            }
+        if (!esbHostUrl.endsWith("/") && !uri.startsWith("/")) {
+            url = esbHostUrl + "/" + uri + params.toUrlParams();
+        } else {
+            url = esbHostUrl + uri + params.toUrlParams();
         }
+        Header[] header;
+        if (useEsbTestEnv) {
+            header = new Header[2];
+            header[0] = new BasicHeader(HDR_BK_LANG, lang);
+            header[1] = new BasicHeader("x-use-test-env", "1");
+        } else {
+            header = new Header[1];
+            header[0] = new BasicHeader(HDR_BK_LANG, lang);
+        }
+        responseBody = httpHelper.get(url, header);
+        return responseBody;
     }
 
-    protected <T extends EsbReq> String doHttpPost(
-        String uri,
-        T params,
-        ExtHttpHelper httpHelper) {
+    private <T extends EsbReq> String doHttpPost(String uri,
+                                                 T params,
+                                                 ExtHttpHelper httpHelper) {
 
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
         }
-        boolean error = false;
-        long start = System.currentTimeMillis();
-        String responseBody = null;
-        try {
-            String url;
-            if (!esbHostUrl.endsWith("/") && !uri.startsWith("/")) {
-                url = esbHostUrl + "/" + uri;
-            } else {
-                url = esbHostUrl + uri;
-            }
-            Header[] header;
-            if (useEsbTestEnv) {
-                header = new Header[3];
-                header[0] = new BasicHeader(HDR_BK_LANG, lang);
-                header[1] = new BasicHeader(HDR_CONTENT_TYPE, "application/json");
-                header[2] = new BasicHeader("x-use-test-env", "1");
-            } else {
-                header = new Header[2];
-                header[0] = new BasicHeader(HDR_BK_LANG, lang);
-                header[1] = new BasicHeader(HDR_CONTENT_TYPE, "application/json");
-            }
-            responseBody = httpHelper.post(url, "UTF-8", buildPostBody(params), header);
-            return responseBody;
-        } catch (Exception e) {
-            log.error("Post url {}| params={}| exception={}", uri, JsonUtils.toJsonWithoutSkippedFields(params),
-                e.getMessage());
-            error = true;
-            throw e;
-        } finally {
-            if (log.isDebugEnabled()) {
-                log.debug("Post url {}| error={}| params={}| time={}| resp={}", uri, error,
-                    JsonUtils.toJsonWithoutSkippedFields(params), (System.currentTimeMillis() - start), responseBody);
-            }
+        String responseBody;
+        String url;
+        if (!esbHostUrl.endsWith("/") && !uri.startsWith("/")) {
+            url = esbHostUrl + "/" + uri;
+        } else {
+            url = esbHostUrl + uri;
         }
+        Header[] header;
+        if (useEsbTestEnv) {
+            header = new Header[3];
+            header[0] = new BasicHeader(HDR_BK_LANG, lang);
+            header[1] = new BasicHeader(HDR_CONTENT_TYPE, "application/json");
+            header[2] = new BasicHeader("x-use-test-env", "1");
+        } else {
+            header = new Header[2];
+            header[0] = new BasicHeader(HDR_BK_LANG, lang);
+            header[1] = new BasicHeader(HDR_CONTENT_TYPE, "application/json");
+        }
+        responseBody = httpHelper.post(url, "UTF-8", buildPostBody(params), header);
+        return responseBody;
     }
 
     protected <T extends EsbReq> String buildPostBody(T params) {
         return JsonUtils.toJson(params);
     }
 
+    /**
+     * 自定义日志输出策略
+     */
+    public interface CustomizedLogStrategy {
+        /**
+         * 打印请求
+         *
+         * @param log     logger
+         * @param context ESB API 调用上下文
+         * @param <T>     响应对象
+         */
+        default <T> void logReq(Logger log, EsbApiContext<T> context) {
+            if (log.isInfoEnabled()) {
+                log.info("[AbstractEsbSdkClient] method={}|uri={}|reqStr={}", context.getMethod(),
+                    context.getUri(), JsonUtils.toJsonWithoutSkippedFields(context.getReq()));
+            }
+        }
 
-    public <R> EsbResp<R> getEsbRespByReq(String method, String uri, EsbReq reqBody,
-                                          TypeReference<EsbResp<R>> typeReference) {
-        return getEsbRespByReq(method, uri, reqBody, typeReference, null);
+        /**
+         * 打印响应
+         *
+         * @param log     logger
+         * @param context ESB API 调用上下文
+         * @param <T>     响应对象
+         */
+        default <T> void logResp(Logger log, EsbApiContext<T> context) {
+            if (log.isInfoEnabled()) {
+                log.info("[AbstractEsbSdkClient] method={}|uri={}|success={}|costTime={}|resp={}|",
+                    context.getMethod(), context.getUri(), context.getException() == null,
+                    context.getCostTime(), context.getOriginResp());
+            }
+        }
     }
 
-    public <R> EsbResp<R> getEsbRespByReq(String method, String uri, EsbReq reqBody,
-                                          TypeReference<EsbResp<R>> typeReference,
-                                          ExtHttpHelper httpHelper) {
-        String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
-        String respStr = null;
-        try {
-            if (method.equals(HttpGet.METHOD_NAME)) {
-                respStr = doHttpGet(uri, reqBody, httpHelper);
-            } else if (method.equals(HttpPost.METHOD_NAME)) {
-                respStr = doHttpPost(uri, reqBody, httpHelper);
-            }
-            if (StringUtils.isBlank(respStr)) {
-                String errorMsg = method + " " + uri + ", error: " + "Response is blank";
-                log.error(errorMsg);
-                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
-            } else {
-                log.debug("success|method={}|uri={}|reqStr={}|respStr={}", method, uri, reqStr, respStr);
-            }
-            EsbResp<R> esbResp = JSON_MAPPER.fromJson(respStr, typeReference);
-            if (esbResp == null) {
-                String errorMsg = method + " " + uri + ", error: " + "Response is blank after parse";
-                log.error(errorMsg);
-                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
-            } else if (!esbResp.getResult()) {
-                log.warn(
-                    "fail:esbResp code!=0|esbResp.requestId={}|esbResp.code={}|esbResp" +
-                        ".message={}|method={}|uri={}|reqStr={}|respStr={}",
-                    esbResp.getRequestId(),
-                    esbResp.getCode(),
-                    esbResp.getMessage(),
-                    method, uri, reqStr, respStr
-                );
-            }
-            if (esbResp.getData() == null) {
-                log.warn(
-                    "warn:esbResp.getData() == null|esbResp.requestId={}|esbResp.code={}|esbResp" +
-                        ".message={}|method={}|uri={}|reqStr={}|respStr={}"
-                    , esbResp.getRequestId()
-                    , esbResp.getCode()
-                    , esbResp.getMessage()
-                    , method, uri, reqStr, respStr
-                );
-            }
-            return esbResp;
-        } catch (Throwable e) {
-            String errorMsg = "Fail to request ESB data|method=" + method
-                + "|uri=" + uri
-                + "|reqStr=" + reqStr
-                + "|respStr=" + respStr;
-            log.error(errorMsg, e);
-            throw new InternalException("Fail to request esb api", e, ErrorCode.API_ERROR);
+    /**
+     * ESB API 调用上下文
+     *
+     * @param <T> 响应对象
+     */
+    @Data
+    public static class EsbApiContext<T> {
+        /**
+         * HTTP 请求方法
+         */
+        private String method;
+        private String uri;
+        private EsbReq req;
+        /**
+         * 原始的 API 响应
+         */
+        private String originResp;
+        /**
+         * 反序列化之后的 API 响应
+         */
+        private EsbResp<T> resp;
+        /**
+         * API 调用耗时
+         */
+        private long costTime;
+        /**
+         * API 调用异常
+         */
+        private Throwable exception;
+
+        public EsbApiContext(String method,
+                             String uri,
+                             EsbReq req,
+                             String originResp,
+                             EsbResp<T> resp,
+                             long costTime,
+                             Throwable exception) {
+            this.method = method;
+            this.uri = uri;
+            this.req = req;
+            this.originResp = originResp;
+            this.resp = resp;
+            this.costTime = costTime;
+            this.exception = exception;
         }
     }
 }
