@@ -6,8 +6,11 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +31,11 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
     @Autowired
     public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
                               Tracer tracer,
+                              CmdbEventSampler cmdbEventSampler,
                               ApplicationService applicationService,
                               BizSetService bizSetService,
                               BizSetCmdbClient bizSetCmdbClient) {
-        super("bizSet", redisTemplate, tracer);
+        super("bizSet", redisTemplate, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
@@ -94,6 +98,11 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
         }
     }
 
+    @Override
+    protected Tags getEventMetricTags() {
+        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_BIZ_SET);
+    }
+
     private void updateBizSetProps(ApplicationDTO originApp, ApplicationDTO updateApp) {
         originApp.setName(updateApp.getName());
         originApp.setBkSupplierAccount(updateApp.getBkSupplierAccount());
@@ -105,8 +114,7 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
     protected boolean isWatchingEnabled() {
         boolean isBizSetMigratedToCMDB = bizSetService.isBizSetMigratedToCMDB();
         if (!isBizSetMigratedToCMDB) {
-            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}",
-                isBizSetMigratedToCMDB);
+            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}", isBizSetMigratedToCMDB);
         }
         return isBizSetMigratedToCMDB;
     }

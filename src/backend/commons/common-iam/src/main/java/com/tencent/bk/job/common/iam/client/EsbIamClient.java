@@ -25,9 +25,11 @@
 package com.tencent.bk.job.common.iam.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
+import com.tencent.bk.job.common.exception.InternalIamException;
 import com.tencent.bk.job.common.iam.dto.AuthByPathReq;
 import com.tencent.bk.job.common.iam.dto.BatchAuthByPathReq;
 import com.tencent.bk.job.common.iam.dto.EsbIamAction;
@@ -179,6 +181,8 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return getEsbRespByReq(method, uri, reqBody, typeReference);
+        } catch (Exception e) {
+            throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }

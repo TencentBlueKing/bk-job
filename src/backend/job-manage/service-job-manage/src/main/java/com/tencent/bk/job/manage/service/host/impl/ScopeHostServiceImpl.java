@@ -38,6 +38,7 @@ import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -45,6 +46,7 @@ import org.springframework.util.StopWatch;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 资源范围下的主机服务
@@ -235,7 +237,9 @@ public class ScopeHostServiceImpl implements ScopeHostService {
 
         List<String> searchContents = null;
         if (searchContent != null) {
-            searchContents = StringUtil.splitByNormalSeparator(searchContent);
+            searchContents = StringUtil.splitByNormalSeparator(searchContent.trim()).stream()
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
         }
 
         //获取所有云区域，找出名称符合条件的所有CloudAreaId
