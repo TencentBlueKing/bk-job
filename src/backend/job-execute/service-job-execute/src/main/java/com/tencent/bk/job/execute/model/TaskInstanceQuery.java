@@ -52,6 +52,7 @@ public class TaskInstanceQuery {
     private Long minTotalTimeMills;
     private Long maxTotalTimeMills;
     private String ip;
+    private String ipv6;
 
     public List<Integer> getStartupModeValues() {
         if (CollectionUtils.isNotEmpty(startupModes)) {

@@ -34,8 +34,7 @@ import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
@@ -48,16 +47,16 @@ import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.FileLogPieceDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ThirdFileSourceTaskLogDTO;
 import com.tencent.bk.job.file_gateway.service.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileSourceTaskService;
 import com.tencent.bk.job.file_gateway.service.context.TaskContext;
 import com.tencent.bk.job.file_gateway.service.context.impl.DefaultTaskContext;
 import com.tencent.bk.job.file_gateway.service.listener.FileTaskStatusChangeListener;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
-import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +69,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -84,8 +84,8 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final FileSourceDAO fileSourceDAO;
     private final DispatchService dispatchService;
     private final FileSourceTaskReqGenService fileSourceTaskReqGenService;
-    private final RedisTemplate redisTemplate;
-    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final RedisTemplate<Object, Object> redisTemplate;
+    private final JobHttpClient jobHttpClient;
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
     @Autowired
@@ -93,8 +93,9 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                                      FileTaskDAO fileTaskDAO, FileWorkerDAO fileworkerDAO,
                                      FileSourceDAO fileSourceDAO, DispatchService dispatchService,
                                      FileSourceTaskReqGenService fileSourceTaskReqGenService,
-                                     RedisTemplate redisTemplate,
-                                     FileTaskStatusChangeListener fileTaskStatusChangeListener) {
+                                     RedisTemplate<Object, Object> redisTemplate,
+                                     FileTaskStatusChangeListener fileTaskStatusChangeListener,
+                                     JobHttpClient jobHttpClient) {
         this.dslContext = dslContext;
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
@@ -103,6 +104,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         this.dispatchService = dispatchService;
         this.fileSourceTaskReqGenService = fileSourceTaskReqGenService;
         this.redisTemplate = redisTemplate;
+        this.jobHttpClient = jobHttpClient;
         addFileTaskStatusChangeListener(fileTaskStatusChangeListener);
     }
 
@@ -165,11 +167,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             // 分发文件任务
             HttpReq req = fileSourceTaskReqGenService.genDownloadFilesReq(appId, fileWorkerDTO, fileSourceDTO,
                 fileSourceTaskDTO);
-            String respStr = null;
-            log.info(String.format("url=%s,body=%s,headers=%s", req.getUrl(), req.getBody(),
-                JsonUtils.toJson(req.getHeaders())));
-            respStr = httpHelper.post(req.getUrl(), req.getBody(), req.getHeaders());
-            log.info(String.format("respStr=%s", respStr));
+            postHttpReq(req);
         } catch (Exception e) {
             log.error("Fail to dispatch FileSourceTask={}", JsonUtils.toJson(fileSourceTaskDTO), e);
             // 更新任务状态为启动失败
@@ -185,15 +183,18 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             fileWorkerDTO.getCloudAreaId(), fileWorkerDTO.getInnerIp());
     }
 
-    private void writeLog(FileSourceTaskDTO fileSourceTaskDTO, FileWorkerDTO fileWorkerDTO, String filePath,
-                          String downloadPath, Long fileSize, String speed, Integer progress, String content) {
+    private void writeLog(FileSourceTaskDTO fileSourceTaskDTO,
+                          FileWorkerDTO fileWorkerDTO,
+                          String filePath,
+                          Long fileSize,
+                          String speed,
+                          Integer progress,
+                          String content) {
         String taskId = fileSourceTaskDTO.getId();
         String fileSizeStr = FileSizeUtil.getFileSizeStr(fileSize);
-        ServiceHostLogDTO serviceHostLogDTO = new ServiceHostLogDTO();
-        serviceHostLogDTO.setStepInstanceId(fileSourceTaskDTO.getStepInstanceId());
-        serviceHostLogDTO.setExecuteCount(fileSourceTaskDTO.getExecuteCount());
+        ThirdFileSourceTaskLogDTO thirdFileSourceTaskLog = new ThirdFileSourceTaskLogDTO();
         String sourceIp = fileWorkerDTO.getCloudAreaId().toString() + ":" + fileWorkerDTO.getInnerIp();
-        serviceHostLogDTO.setIp(sourceIp);
+        thirdFileSourceTaskLog.setIp(sourceIp);
         // 追加文件源名称
         // 日志定位坐标：（文件源，文件路径），需要区分不同文件源下相同文件路径的日志
         FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(dslContext, fileSourceTaskDTO.getFileSourceId());
@@ -202,21 +203,20 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 ArrayUtil.toArray("fileSourceId:" + fileSourceTaskDTO.getFileSourceId()));
         }
         String filePathWithSourceAlias = PathUtil.joinFilePath(fileSourceDTO.getAlias(), filePath);
-        List<ServiceFileTaskLogDTO> fileTaskLogs = new ArrayList<>();
-        ServiceFileTaskLogDTO serviceFileTaskLogDTO = new ServiceFileTaskLogDTO();
-        serviceFileTaskLogDTO.setMode(0);
-        serviceFileTaskLogDTO.setContent("FileName: " + filePathWithSourceAlias + " FileSize: " + fileSizeStr + " " +
+        List<FileLogPieceDTO> fileLogPieceList = new ArrayList<>();
+        FileLogPieceDTO fileLogPiece = new FileLogPieceDTO();
+        fileLogPiece.setContent("FileName: " + filePathWithSourceAlias + " FileSize: " + fileSizeStr + " " +
             "Speed: " + speed + " Progress: " + progress + "%" + " Detail: " + content);
-        serviceFileTaskLogDTO.setDisplaySrcFile(filePathWithSourceAlias);
-        serviceFileTaskLogDTO.setProcess("" + progress + "%");
-        serviceFileTaskLogDTO.setSize(fileSizeStr);
-        serviceFileTaskLogDTO.setSrcIp(sourceIp);
-        serviceFileTaskLogDTO.setStatus(FileDistStatusEnum.PULLING.getValue());
-        serviceFileTaskLogDTO.setStatusDesc(FileDistStatusEnum.PULLING.getName());
-        fileTaskLogs.add(serviceFileTaskLogDTO);
-        serviceHostLogDTO.setFileTaskLogs(fileTaskLogs);
+        fileLogPiece.setDisplaySrcFile(filePathWithSourceAlias);
+        fileLogPiece.setProcess("" + progress + "%");
+        fileLogPiece.setSize(fileSizeStr);
+        fileLogPiece.setSrcIp(sourceIp);
+        fileLogPiece.setStatus(FileDistStatusEnum.PULLING.getValue());
+        fileLogPiece.setStatusDesc(FileDistStatusEnum.PULLING.getName());
+        fileLogPieceList.add(fileLogPiece);
+        thirdFileSourceTaskLog.setFileTaskLogs(fileLogPieceList);
         // 写入Redis
-        redisTemplate.opsForList().rightPush(PREFIX_REDIS_TASK_LOG + taskId, serviceHostLogDTO);
+        redisTemplate.opsForList().rightPush(PREFIX_REDIS_TASK_LOG + taskId, thirdFileSourceTaskLog);
         // 一小时后过期
         redisTemplate.expireAt(PREFIX_REDIS_TASK_LOG + taskId, new Date(System.currentTimeMillis() + 3600 * 1000));
     }
@@ -249,7 +249,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             log.error("Cannot find fileSourceTaskDTO by taskId {} filePath {}", taskId, filePath);
             return null;
         }
-        FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(dslContext, fileSourceTaskDTO.getFileWorkerId());
+        FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(fileSourceTaskDTO.getFileWorkerId());
         if (status == TaskStatusEnum.RUNNING) {
             // 已处于结束态的任务不再接受状态更新
             if (!fileTaskDTO.isDone()) {
@@ -285,7 +285,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 TaskStatusEnum.valueOf(fileTaskDTO.getStatus()), status);
         }
         // 进度上报
-        writeLog(fileSourceTaskDTO, fileWorkerDTO, filePath, downloadPath, fileSize, speed, progress, content);
+        writeLog(fileSourceTaskDTO, fileWorkerDTO, filePath, fileSize, speed, progress, content);
         return taskId;
     }
 
@@ -299,7 +299,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         if (fileSourceTaskDTO == null) {
             throw new RuntimeException("FileSourceTask not exist, fileTaskId=" + taskId);
         }
-        FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(dslContext, fileSourceTaskDTO.getFileWorkerId());
+        FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(fileSourceTaskDTO.getFileWorkerId());
         FileSourceTaskStatusDTO fileSourceTaskStatusDTO = new FileSourceTaskStatusDTO();
         fileSourceTaskStatusDTO.setTaskId(taskId);
         fileSourceTaskStatusDTO.setStatus(fileSourceTaskDTO.getStatus());
@@ -340,8 +340,12 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             logEnd = logSize;
         }
         log.debug("logStart={},logEnd={}", logStart, logEnd);
-        List<ServiceHostLogDTO> logDTOList = redisTemplate.opsForList().range(PREFIX_REDIS_TASK_LOG + taskId, logStart,
+        List<ThirdFileSourceTaskLogDTO> logDTOList = null;
+        List<Object> logObjList = redisTemplate.opsForList().range(PREFIX_REDIS_TASK_LOG + taskId, logStart,
             logEnd);
+        if (logObjList != null) {
+            logDTOList = logObjList.stream().map(obj -> (ThirdFileSourceTaskLogDTO) obj).collect(Collectors.toList());
+        }
         log.debug("logDTOList={}", logDTOList);
         fileSourceTaskStatusDTO.setLogList(logDTOList);
         fileSourceTaskStatusDTO.setLogEnd(logSize <= logEnd);
@@ -358,6 +362,23 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         return stopTasksWithCommand(taskIdList, TaskCommandEnum.STOP_QUIETLY);
     }
 
+    private void addTaskIdToWorkerTaskMap(Map<FileWorkerDTO, List<String>> workerTaskMap,
+                                          FileWorkerDTO fileWorkerDTO,
+                                          String taskId) {
+        List<String> workerTaskIdList;
+        if (workerTaskMap.containsKey(fileWorkerDTO)) {
+            workerTaskIdList = workerTaskMap.get(fileWorkerDTO);
+        } else {
+            workerTaskIdList = new ArrayList<>();
+            workerTaskMap.put(fileWorkerDTO, workerTaskIdList);
+        }
+        workerTaskIdList.add(taskId);
+    }
+
+    private String postHttpReq(HttpReq req) {
+        return jobHttpClient.post(req);
+    }
+
     private Integer stopTasksWithCommand(List<String> taskIdList, TaskCommandEnum command) {
         // 将taskId按照FileWorker分组
         Map<FileWorkerDTO, List<String>> workerTaskMap = new HashMap<>();
@@ -367,20 +388,12 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 // 任务已达终止态/已被清理
                 continue;
             }
-            FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(dslContext,
-                fileSourceTaskDTO.getFileWorkerId());
+            FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(fileSourceTaskDTO.getFileWorkerId());
             if (fileWorkerDTO == null || fileWorkerDTO.getOnlineStatus().intValue() == 0) {
                 // FileWorker已丢失/下线
                 continue;
             }
-            List<String> workerTaskIdList = null;
-            if (workerTaskMap.containsKey(fileWorkerDTO)) {
-                workerTaskIdList = workerTaskMap.get(fileWorkerDTO);
-            } else {
-                workerTaskIdList = new ArrayList<>();
-                workerTaskMap.put(fileWorkerDTO, workerTaskIdList);
-            }
-            workerTaskIdList.add(taskId);
+            addTaskIdToWorkerTaskMap(workerTaskMap, fileWorkerDTO, taskId);
         }
         int allCount = 0;
         // 逐个Worker停止任务
@@ -389,11 +402,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             List<String> taskIds = entry.getValue();
             try {
                 HttpReq req = fileSourceTaskReqGenService.genStopTasksReq(worker, taskIds, command);
-                String respStr = null;
-                log.info(String.format("url=%s,body=%s,headers=%s", req.getUrl(), req.getBody(),
-                    JsonUtils.toJson(req.getHeaders())));
-                respStr = httpHelper.post(req.getUrl(), req.getBody(), req.getHeaders());
-                log.info(String.format("respStr=%s", respStr));
+                String respStr = postHttpReq(req);
                 Integer count = parseInteger(respStr);
                 allCount += count;
             } catch (Exception e) {
@@ -419,20 +428,12 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 // 任务已被清理
                 continue;
             }
-            FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(dslContext,
-                fileSourceTaskDTO.getFileWorkerId());
+            FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(fileSourceTaskDTO.getFileWorkerId());
             if (fileWorkerDTO == null || fileWorkerDTO.getOnlineStatus().intValue() == 0) {
                 // FileWorker已丢失/下线
                 continue;
             }
-            List<String> workerTaskIdList = null;
-            if (workerTaskMap.containsKey(fileWorkerDTO)) {
-                workerTaskIdList = workerTaskMap.get(fileWorkerDTO);
-            } else {
-                workerTaskIdList = new ArrayList<>();
-                workerTaskMap.put(fileWorkerDTO, workerTaskIdList);
-            }
-            workerTaskIdList.add(taskId);
+            addTaskIdToWorkerTaskMap(workerTaskMap, fileWorkerDTO, taskId);
             targetTaskIdList.add(taskId);
         }
         fileSourceTaskDAO.updateFileClearStatus(dslContext, targetTaskIdList, true);
@@ -443,11 +444,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             List<String> taskIds = entry.getValue();
             try {
                 HttpReq req = fileSourceTaskReqGenService.genClearTaskFilesReq(worker, taskIds);
-                String respStr = null;
-                log.info(String.format("url=%s,body=%s,headers=%s", req.getUrl(), req.getBody(),
-                    JsonUtils.toJson(req.getHeaders())));
-                respStr = httpHelper.post(req.getUrl(), req.getBody(), req.getHeaders());
-                log.info(String.format("respStr=%s", respStr));
+                String respStr = postHttpReq(req);
                 Integer count = parseInteger(respStr);
                 allCount += count;
             } catch (Exception e) {
@@ -473,7 +470,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     private Integer parseInteger(String respStr) {
-        Response<Integer> resp = null;
+        Response<Integer> resp;
         try {
             resp = JsonUtils.fromJson(respStr, new TypeReference<Response<Integer>>() {
             });

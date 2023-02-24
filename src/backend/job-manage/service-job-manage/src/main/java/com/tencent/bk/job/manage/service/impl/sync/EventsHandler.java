@@ -25,37 +25,47 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import com.tencent.bk.job.common.tracing.util.SpanUtil;
+import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.metrics.MetricsConstants;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
 public abstract class EventsHandler<T> extends Thread {
 
+    /**
+     * 日志调用链tracer
+     */
+    private final Tracer tracer;
+    private final CmdbEventSampler cmdbEventSampler;
+    protected boolean enabled = true;
     BlockingQueue<ResourceEvent<T>> queue;
-    boolean idle;
-    Long appId = null;
+    Long bizId = null;
 
-    public EventsHandler(BlockingQueue<ResourceEvent<T>> queue) {
+    public EventsHandler(BlockingQueue<ResourceEvent<T>> queue,
+                         Tracer tracer,
+                         CmdbEventSampler cmdbEventSampler) {
         this.queue = queue;
+        this.tracer = tracer;
+        this.cmdbEventSampler = cmdbEventSampler;
     }
 
-    public boolean isIdle() {
-        return idle;
+    public Long getBizId() {
+        return bizId;
     }
 
-    public Long getAppId() {
-        return appId;
-    }
-
-    public void commitEvent(Long appId, ResourceEvent<T> event) {
+    public void commitEvent(Long bizId, ResourceEvent<T> event) {
         try {
             boolean result = this.queue.add(event);
             if (!result) {
                 log.warn("Fail to commitEvent:{}", event);
             } else {
-                this.idle = false;
-                this.appId = appId;
+                this.bizId = bizId;
             }
         } catch (Exception e) {
             log.warn("Fail to commitEvent:" + event, e);
@@ -64,21 +74,53 @@ public abstract class EventsHandler<T> extends Thread {
 
     abstract void handleEvent(ResourceEvent<T> event);
 
+    abstract Tags getEventHandleExtraTags();
+
+    abstract String getSpanName();
+
+    void handleEventWithTrace(ResourceEvent<T> event) {
+        String eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_SUCCESS;
+        Span span = buildSpan();
+        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+            handleEvent(event);
+        } catch (Exception e) {
+            span.error(e);
+            eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_FAILED;
+            throw e;
+        } finally {
+            span.end();
+            long timeConsuming = System.currentTimeMillis() - event.getCreateTime();
+            cmdbEventSampler.recordEventHandleTimeConsuming(timeConsuming, buildEventHandleTimeTags(eventHandleResult));
+        }
+    }
+
+    private Span buildSpan() {
+        return SpanUtil.buildNewSpan(this.tracer, getSpanName());
+    }
+
+    private Tags buildEventHandleTimeTags(String eventHandleResult) {
+        Tags tags = Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_HANDLE_RESULT, eventHandleResult);
+        Tags extraTags = getEventHandleExtraTags();
+        if (extraTags != null) {
+            tags = Tags.concat(tags, extraTags);
+        }
+        return tags;
+    }
+
     @Override
     public void run() {
-        while (true) {
+        while (enabled) {
             ResourceEvent<T> event = null;
             try {
                 event = queue.take();
-                handleEvent(event);
+                handleEventWithTrace(event);
             } catch (InterruptedException e) {
                 log.warn("queue.take interrupted", e);
             } catch (Throwable t) {
                 log.warn("Fail to handleOneEvent:" + event, t);
             } finally {
                 if (queue.size() == 0) {
-                    this.idle = true;
-                    this.appId = null;
+                    this.bizId = null;
                 }
             }
         }

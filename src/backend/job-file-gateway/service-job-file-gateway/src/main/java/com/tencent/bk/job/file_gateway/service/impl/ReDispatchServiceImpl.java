@@ -106,7 +106,8 @@ public class ReDispatchServiceImpl implements ReDispatchService {
         log.debug("worker {} apply to reDispatch tasks:{}, initDelayMills={}, intervalMills={}", workerId, taskIdList
             , initDelayMills, intervalMills);
         // 1.立即下线Worker
-        fileWorkerService.offLine(workerId);
+        int affectedWorkerNum = fileWorkerService.offLine(workerId);
+        log.info("{} worker state changed to offline", affectedWorkerNum);
         // 2.任务延时重调度
         for (String taskId : taskIdList) {
             if (reDispatchThreadNum.get() >= MAX_THREAD_NUM_REDISPATCH) {

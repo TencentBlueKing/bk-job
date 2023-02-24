@@ -91,6 +91,8 @@ ext {
     // https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
     set('apacheCommonsPoolVersion', "2.8.0")
     set('apacheCommonsCodecVersion', "1.14")
+    set('apacheCuratorFrameworkVersion', "5.4.0")
+    set('apacheCuratorRecipesVersion', "5.4.0")
     set('dozerVersion', "5.5.1")
     set('commonsCollectionsVersion', "3.2.2")
     set('jedisVersion', "3.0.1")
@@ -113,6 +115,8 @@ ext {
     set('reflectionsVersion', "0.9.12")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.9.2-alpha")
+    set('commonsValidatorVersion', "1.6")
+    set('jcommanderVersion', "1.71")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersoin:" + bkjobVersion
@@ -120,6 +124,9 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersoin:" + bkjobVersion
     }
+    // Fix Spring Cloud Function Spel表达式注入漏洞(CVE-2022-22963)
+    // Fix Spring Cloud Function 拒绝服务漏洞(CVE-2022-22979)
+    set('spring-cloud-function.version', "3.2.8")
 }
 
 group "com.tencent.bk.job"
@@ -224,6 +231,8 @@ subprojects {
             dependency "io.springfox:springfox-swagger-ui:$swaggerVersion"
             dependency "org.apache.commons:commons-collections4:$apacheCommonsCollectionVersion"
             dependency "org.apache.commons:commons-pool2:$apacheCommonsPoolVersion"
+            dependency "org.apache.curator:curator-framework:$apacheCuratorFrameworkVersion"
+            dependency "org.apache.curator:curator-recipes:$apacheCuratorRecipesVersion"
             dependency "net.sf.dozer:dozer:$dozerVersion"
             dependency "commons-collections:commons-collections:$commonsCollectionsVersion"
             dependency "org.jedis:jedis:$jedisVersion"
@@ -248,6 +257,7 @@ subprojects {
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
             dependency "com.cronutils:cron-utils:$cronUtilsVersion"
+            dependency "commons-validator:commons-validator:$commonsValidatorVersion"
             dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
                 entry "jooq"
@@ -269,6 +279,7 @@ subprojects {
             dependencySet(group: 'org.hibernate.validator', version: "$hibernateValidatorVersion") {
                 entry "hibernate-validator"
             }
+            dependency "com.beust:jcommander:$jcommanderVersion"
         }
     }
     configurations {

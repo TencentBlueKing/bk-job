@@ -890,101 +890,140 @@ public class FileResultHandleTask extends AbstractResultHandleTask<api_map_rsp> 
      */
     private void parseExecutionLog(CopyFileRsp copyFileRsp, Map<Long, ServiceHostLogDTO> executionLogs) {
         GSEFileTaskResult taskResult = copyFileRsp.getGseFileTaskResult();
-        if (null != taskResult) {
-            Integer mode = taskResult.getMode();
-            boolean isDownloadResult = isDownloadResult(mode);
-            GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(copyFileRsp.getFinalErrorCode());
-            String key = taskResult.getTaskId();
-            Integer process = processMap.computeIfAbsent(key, k -> -1);
-            if (errorCode == GSECode.AtomicErrorCode.RUNNING && process.equals(taskResult.getProcess())) {
-                return;
-            }
-            processMap.put(key, taskResult.getProcess());
-
-            StringBuilder logContent = new StringBuilder();
-
-            String filePath = isDownloadResult ? taskResult.getStandardDestFilePath() :
-                taskResult.getStandardSourceFilePath();
-            String displayFilePath = buildDisplayFilePath(isDownloadResult, filePath);
-            if (filePath.endsWith("/") || filePath.endsWith("\\")) {
-                // 传输的是目录，目录名以‘/’或‘\’结束
-                logContent.append("Directory: ");
-            } else {
-                logContent.append("FileName: ");
-            }
-            logContent.append(displayFilePath);
-
-            String fileSize = "--";
-            String speed = "";
-            String processText = "";
-
-            if (taskResult.getSize() != null && taskResult.getSize() > 0) {
-                // 兼容GSE不返回size的情况
-                fileSize = GseUtils.tranByteReadable(taskResult.getSize());
-                logContent.append(" FileSize: ").append(fileSize);
-            }
-            if (taskResult.getSpeed() != null) {
-                speed = formatSpeed(taskResult.getSpeed()) + " KB/s";
-                logContent.append(" Speed: ").append(speed);
-            }
-            if (taskResult.getProcess() != null) {
-                processText = taskResult.getProcess() + "%";
-                logContent.append(" Progress: ").append(processText);
-            }
-            if (StringUtils.isNotEmpty(taskResult.getStatusDesc())) {
-                logContent.append(" StatusDesc: ").append(taskResult.getStatusDesc());
-            }
-            if (StringUtils.isNotBlank(copyFileRsp.getFinalErrorMsg())) {
-                logContent.append(" Detail: ").append(copyFileRsp.getFinalErrorMsg());
-            }
-            String logContentStr = logContent.toString();
-
-            FileDistStatusEnum status = parseFileTaskStatus(copyFileRsp, isDownloadResult);
-
-            if (isDownloadResult) {
-                HostDTO sourceHost = agentIdHostMap.get(taskResult.getSourceAgentId());
-                HostDTO targetHost = agentIdHostMap.get(taskResult.getDestAgentId());
-                addFileTaskLog(executionLogs,
-                    new ServiceFileTaskLogDTO(
-                        FileDistModeEnum.DOWNLOAD.getValue(),
-                        targetHost.getHostId(),
-                        targetHost.toCloudIp(),
-                        taskResult.getStandardDestFilePath(),
-                        sourceHost.getHostId(),
-                        sourceHost.toCloudIp(),
-                        sourceHost.getDisplayIp(),
-                        taskResult.getStandardSourceFilePath(),
-                        taskResult.getStandardSourceFilePath() == null ? null :
-                            sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()),
-                        fileSize,
-                        status.getValue(),
-                        status.getName(),
-                        speed,
-                        processText,
-                        logContentStr)
-                );
-            } else {
-                HostDTO sourceHost = agentIdHostMap.get(taskResult.getSourceAgentId());
-                addFileTaskLog(executionLogs,
-                    new ServiceFileTaskLogDTO(
-                        FileDistModeEnum.UPLOAD.getValue(),
-                        null,
-                        null,
-                        null,
-                        sourceHost.getHostId(),
-                        sourceHost.toCloudIp(),
-                        sourceHost.getDisplayIp(),
-                        filePath,
-                        displayFilePath,
-                        fileSize,
-                        status.getValue(),
-                        status.getName(),
-                        speed,
-                        processText,
-                        logContentStr)
-                );
-            }
+        if (null == taskResult) {
+            log.warn("gseFileTaskResult is null, please check field [content] of GSE resp");
+            return;
         }
+        Integer mode = taskResult.getMode();
+        boolean isDownloadResult = isDownloadResult(mode);
+        GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(copyFileRsp.getFinalErrorCode());
+        String key = taskResult.getTaskId();
+        Integer process = processMap.computeIfAbsent(key, k -> -1);
+        if (errorCode == GSECode.AtomicErrorCode.RUNNING && process.equals(taskResult.getProcess())) {
+            return;
+        }
+        processMap.put(key, taskResult.getProcess());
+
+        StringBuilder logContent = new StringBuilder();
+
+        String filePath = isDownloadResult ? taskResult.getStandardDestFilePath() :
+            taskResult.getStandardSourceFilePath();
+        String displayFilePath = buildDisplayFilePath(isDownloadResult, filePath);
+        if (filePath.endsWith("/") || filePath.endsWith("\\")) {
+            // 传输的是目录，目录名以‘/’或‘\’结束
+            logContent.append("Directory: ");
+        } else {
+            logContent.append("FileName: ");
+        }
+        logContent.append(displayFilePath);
+
+        String fileSize = "--";
+        String speed = "";
+        String processText = "";
+
+        if (taskResult.getSize() != null && taskResult.getSize() > 0) {
+            // 兼容GSE不返回size的情况
+            fileSize = GseUtils.tranByteReadable(taskResult.getSize());
+            logContent.append(" FileSize: ").append(fileSize);
+        }
+        if (taskResult.getSpeed() != null) {
+            speed = formatSpeed(taskResult.getSpeed()) + " KB/s";
+            logContent.append(" Speed: ").append(speed);
+        }
+        if (taskResult.getProcess() != null) {
+            processText = taskResult.getProcess() + "%";
+            logContent.append(" Progress: ").append(processText);
+        }
+        if (StringUtils.isNotEmpty(taskResult.getStatusDesc())) {
+            logContent.append(" StatusDesc: ").append(taskResult.getStatusDesc());
+        }
+        if (StringUtils.isNotBlank(copyFileRsp.getFinalErrorMsg())) {
+            logContent.append(" Detail: ").append(copyFileRsp.getFinalErrorMsg());
+        }
+        String logContentStr = logContent.toString();
+
+        FileDistStatusEnum status = parseFileTaskStatus(copyFileRsp, isDownloadResult);
+
+        HostDTO sourceHost = agentIdHostMap.get(taskResult.getSourceAgentId());
+        if (isDownloadResult) {
+            HostDTO targetHost = agentIdHostMap.get(taskResult.getDestAgentId());
+            ServiceFileTaskLogDTO downloadLog = initFileTaskLog(fileSize, status, speed, processText, logContentStr);
+            fillDownloadFileTaskLog(downloadLog, sourceHost, targetHost, taskResult);
+            addFileTaskLog(executionLogs, downloadLog);
+        } else {
+            ServiceFileTaskLogDTO uploadLog = initFileTaskLog(fileSize, status, speed, processText, logContentStr);
+            fillUploadFileTaskLog(uploadLog, sourceHost, filePath, displayFilePath);
+            addFileTaskLog(executionLogs, uploadLog);
+        }
+    }
+
+    /**
+     * 根据部分字段构造初始文件任务日志对象
+     *
+     * @param fileSize      文件大小
+     * @param status        任务状态
+     * @param speed         传输速度
+     * @param processText   进度信息
+     * @param logContentStr 详细日志内容
+     * @return 文件任务日志对象
+     */
+    private ServiceFileTaskLogDTO initFileTaskLog(String fileSize,
+                                                  FileDistStatusEnum status,
+                                                  String speed,
+                                                  String processText,
+                                                  String logContentStr) {
+        ServiceFileTaskLogDTO fileTaskLog = new ServiceFileTaskLogDTO();
+        fileTaskLog.setSize(fileSize);
+        fileTaskLog.setStatus(status.getValue());
+        fileTaskLog.setStatusDesc(status.getName());
+        fileTaskLog.setSpeed(speed);
+        fileTaskLog.setProcess(processText);
+        fileTaskLog.setContent(logContentStr);
+        return fileTaskLog;
+    }
+
+    /**
+     * 为下载类型的文件任务日志填充源、目标等相关信息
+     *
+     * @param fileTaskLog 文件任务日志对象
+     * @param sourceHost  源主机
+     * @param targetHost  目标主机
+     * @param taskResult  任务执行结果
+     */
+    private void fillDownloadFileTaskLog(ServiceFileTaskLogDTO fileTaskLog,
+                                         HostDTO sourceHost,
+                                         HostDTO targetHost,
+                                         GSEFileTaskResult taskResult) {
+        fileTaskLog.setMode(FileDistModeEnum.DOWNLOAD.getValue());
+        fileTaskLog.setDestHostId(targetHost.getHostId());
+        fileTaskLog.setDestIp(targetHost.toCloudIp());
+        fileTaskLog.setDestFile(taskResult.getStandardDestFilePath());
+        fileTaskLog.setSrcHostId(sourceHost.getHostId());
+        fileTaskLog.setSrcIp(sourceHost.toCloudIp());
+        fileTaskLog.setDisplaySrcIp(sourceHost.getDisplayIp());
+        fileTaskLog.setSrcFile(taskResult.getStandardSourceFilePath());
+        fileTaskLog.setDisplaySrcFile(taskResult.getStandardSourceFilePath() == null ? null :
+            sourceFileDisplayMap.get(taskResult.getStandardSourceFilePath()));
+    }
+
+    /**
+     * 为上传类型的文件任务日志填充源相关信息
+     *
+     * @param fileTaskLog        文件任务日志对象
+     * @param sourceHost         源主机
+     * @param srcFilePath        源文件路径
+     * @param displaySrcFilePath 用于展示的源文件路径
+     */
+    private void fillUploadFileTaskLog(ServiceFileTaskLogDTO fileTaskLog,
+                                       HostDTO sourceHost,
+                                       String srcFilePath,
+                                       String displaySrcFilePath) {
+        fileTaskLog.setMode(FileDistModeEnum.UPLOAD.getValue());
+        fileTaskLog.setSrcHostId(sourceHost.getHostId());
+        fileTaskLog.setSrcIp(sourceHost.toCloudIp());
+        fileTaskLog.setDisplaySrcIp(sourceHost.getDisplayIp());
+        fileTaskLog.setSrcFile(srcFilePath);
+        fileTaskLog.setDisplaySrcFile(displaySrcFilePath);
     }
 
     private String buildDisplayFilePath(boolean isDownloadResult, String originFilePath) {

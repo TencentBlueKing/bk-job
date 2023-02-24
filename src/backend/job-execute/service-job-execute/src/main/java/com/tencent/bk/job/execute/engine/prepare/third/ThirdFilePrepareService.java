@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.prepare.third;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
@@ -50,13 +49,13 @@ import com.tencent.bk.job.file_gateway.model.req.inner.FileSourceBatchDownloadTa
 import com.tencent.bk.job.file_gateway.model.req.inner.FileSourceTaskContent;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskInfoDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +63,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * 第三方源文件准备服务，用于在分发前控制第三方源文件的准备
+ */
 @Slf4j
 @Primary
 @Component
@@ -76,7 +78,8 @@ public class ThirdFilePrepareService {
     private final HostService hostService;
     private final LogService logService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    private final Map<Long, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
+    // 记录第三方文件准备任务信息，用于在需要时查找并终止任务
+    private final Map<String, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
     public ThirdFilePrepareService(ResultHandleManager resultHandleManager,
@@ -97,6 +100,12 @@ public class ThirdFilePrepareService {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
     }
 
+    /**
+     * 将文件源文件下载任务的信息设置到分发源文件数据中
+     *
+     * @param taskInfoDTO   文件源文件下载任务信息
+     * @param fileSourceDTO 分发源文件数据
+     */
     private void setTaskInfoIntoThirdFileSource(TaskInfoDTO taskInfoDTO, FileSourceDTO fileSourceDTO) {
         String fileSourceTaskId = taskInfoDTO.getTaskId();
         if (fileSourceDTO.getServers() == null) {
@@ -108,17 +117,18 @@ public class ThirdFilePrepareService {
         fileSourceDTO.getServers().setIpList(hostDTOList);
         fileSourceDTO.setFileSourceTaskId(fileSourceTaskId);
         fileSourceDTO.getFiles().forEach(fileDetailDTO -> {
-            // 第二次处理，加上文件源名称的文件路径
-            fileDetailDTO.setThirdFilePathWithFileSourceName(PathUtil.joinFilePath(taskInfoDTO.getFileSourceName(),
-                fileDetailDTO.getThirdFilePath()));
+            // 含文件源名称的文件路径
+            fileDetailDTO.setThirdFilePathWithFileSourceName(
+                PathUtil.joinFilePath(taskInfoDTO.getFileSourceName(), fileDetailDTO.getThirdFilePath())
+            );
         });
     }
 
     /**
      * 将任务信息设置到步骤的文件源信息及统计数据中去
      *
-     * @param batchTaskInfoDTO
-     * @param thirdFileSourceList
+     * @param batchTaskInfoDTO    文件源批量任务信息
+     * @param thirdFileSourceList 第三方文件源列表
      */
     private void setBatchTaskInfoIntoThirdFileSource(BatchTaskInfoDTO batchTaskInfoDTO,
                                                      List<FileSourceDTO> thirdFileSourceList) {
@@ -133,46 +143,12 @@ public class ThirdFilePrepareService {
         }
     }
 
-    public void retryPrepareFile(
-        Long stepInstanceId,
-        ThirdFilePrepareTaskResultHandler resultHandler
-    ) {
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
-        int executeType = stepInstance.getExecuteType();
-        // 当前仅有文件分发类步骤需要重试第三方文件源拉取
-        if (TaskStepTypeEnum.FILE.getValue() != executeType) {
-            return;
-        }
-        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-        Pair<List<FileSourceDTO>, List<FileSourceTaskContent>> thirdFileSource = parseThirdFileSource(fileSourceList);
-        List<FileSourceDTO> thirdFileSourceList = thirdFileSource.getLeft();
-        List<FileSourceTaskContent> fileSourceTaskList = thirdFileSource.getRight();
-        if (thirdFileSourceList.isEmpty()) {
-            return;
-        }
-        // 直接重新下载
-        BatchTaskInfoDTO batchTaskInfoDTO = startFileSourceDownloadTask(stepInstance.getOperator(),
-            stepInstance.getAppId(), stepInstance.getId(), stepInstance.getExecuteCount(), fileSourceTaskList);
-        setBatchTaskInfoIntoThirdFileSource(batchTaskInfoDTO, thirdFileSourceList);
-        log.debug("new batchFileSourceTask: {}", batchTaskInfoDTO.getBatchTaskId());
-
-        // 更新文件源任务状态
-        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
-        // 异步处理文件下载任务
-        ThirdFilePrepareTask pullingResultTask = asyncWatchThirdFilePulling(
-            stepInstance,
-            fileSourceList,
-            batchTaskInfoDTO.getBatchTaskId(),
-            true,
-            resultHandler
-        );
-        // 重试先同步处理
-        while (!pullingResultTask.isReadyForNext()) {
-            ThreadUtils.sleep(100);
-        }
-        log.debug("continue to retry...");
-    }
-
+    /**
+     * 解析第三方文件源数据
+     *
+     * @param fileSourceList 文件源列表
+     * @return Pair<第三方文件源列表, 文件源文件任务列表>
+     */
     private Pair<List<FileSourceDTO>, List<FileSourceTaskContent>> parseThirdFileSource(
         List<FileSourceDTO> fileSourceList
     ) {
@@ -180,70 +156,74 @@ public class ThirdFilePrepareService {
         List<FileSourceTaskContent> fileSourceTaskList = new ArrayList<>();
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             if (fileSourceDTO == null) {
-                log.warn("fileSourceDTO is null");
+                log.warn("FileSourceDTO is null, continue");
                 continue;
             }
             Integer fileSourceId = fileSourceDTO.getFileSourceId();
-            if (fileSourceId != null && fileSourceId > 0) {
-                List<FileDetailDTO> files = fileSourceDTO.getFiles();
-                if (files == null) {
-                    log.warn("files is null");
-                    continue;
-                }
-                for (FileDetailDTO file : files) {
-                    if (file != null && StringUtils.isBlank(file.getThirdFilePath())) {
-                        // 第一次处理，不含文件源名称的文件路径
-                        file.setThirdFilePath(file.getFilePath());
-                    }
-                }
-                // 第三方COS等文件源的文件任务处理
-                List<String> filePaths =
-                    files.parallelStream().map(FileDetailDTO::getThirdFilePath).collect(Collectors.toList());
-                fileSourceTaskList.add(new FileSourceTaskContent(fileSourceId, filePaths));
-                thirdFileSourceList.add(fileSourceDTO);
+            if (fileSourceId == null || fileSourceId <= 0) {
+                log.warn("Invalid fileSourceId({}), continue", fileSourceId);
+                continue;
             }
+            List<FileDetailDTO> files = fileSourceDTO.getFiles();
+            if (CollectionUtils.isEmpty(files)) {
+                log.warn("Files is null or empty, continue");
+                continue;
+            }
+            for (FileDetailDTO file : files) {
+                if (file != null && StringUtils.isBlank(file.getThirdFilePath())) {
+                    // 不含文件源名称的文件源文件路径
+                    file.setThirdFilePath(file.getFilePath());
+                }
+            }
+            // 收集第三方文件源文件路径
+            List<String> filePaths = files.parallelStream()
+                .map(FileDetailDTO::getThirdFilePath)
+                .collect(Collectors.toList());
+            // 收集文件源文件任务
+            fileSourceTaskList.add(new FileSourceTaskContent(fileSourceId, filePaths));
+            // 收集文件源信息
+            thirdFileSourceList.add(fileSourceDTO);
         }
         return Pair.of(thirdFileSourceList, fileSourceTaskList);
     }
 
-    public ThirdFilePrepareTask prepareThirdFileAsync(
+    public void prepareThirdFileAsync(
         StepInstanceDTO stepInstance,
         ThirdFilePrepareTaskResultHandler resultHandler
     ) {
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-        // 准备第三方源文件
+        // 解析第三方源文件，收集任务数据
         Pair<List<FileSourceDTO>, List<FileSourceTaskContent>> thirdFileSource = parseThirdFileSource(fileSourceList);
         List<FileSourceDTO> thirdFileSourceList = thirdFileSource.getLeft();
         List<FileSourceTaskContent> fileSourceTaskList = thirdFileSource.getRight();
-        if (thirdFileSourceList == null || thirdFileSourceList.isEmpty()) {
-            // TODO-Rolling
-            taskExecuteMQEventDispatcher.dispatchGseTaskEvent(
-                GseTaskEvent.startGseTask(stepInstance.getId(), stepInstance.getExecuteCount(),
-                    stepInstance.getBatch(), null, null));
-            return null;
+        if (CollectionUtils.isEmpty(thirdFileSourceList)) {
+            continueStepAtOnce(stepInstance);
+            return;
         }
-        log.debug("Start FileSourceBatchTask: {}", fileSourceTaskList);
-        BatchTaskInfoDTO batchTaskInfoDTO = startFileSourceDownloadTask(stepInstance.getOperator(),
-            stepInstance.getAppId(), stepInstance.getId(), stepInstance.getExecuteCount(), fileSourceTaskList);
-        setBatchTaskInfoIntoThirdFileSource(batchTaskInfoDTO, thirdFileSourceList);
-        log.debug("fileSourceList={}", fileSourceList);
-        log.info(
-            "stepInstanceId={},batchTaskId:{},taskInfoList={}",
+        log.debug("[{}]: Start FileSourceBatchTask: {}", stepInstance.getUniqueKey(), fileSourceTaskList);
+        // 启动下载任务
+        BatchTaskInfoDTO batchTaskInfoDTO = startFileSourceDownloadTask(
+            stepInstance.getOperator(),
+            stepInstance.getAppId(),
             stepInstance.getId(),
+            stepInstance.getExecuteCount(),
+            fileSourceTaskList
+        );
+        log.info(
+            "[{}]: fileSourceDownloadTask started, batchTaskId:{},taskInfoList={}",
+            stepInstance.getUniqueKey(),
             batchTaskInfoDTO.getBatchTaskId(),
             batchTaskInfoDTO.getTaskInfoList()
         );
+        // 填充任务信息到分发源文件数据
+        setBatchTaskInfoIntoThirdFileSource(batchTaskInfoDTO, thirdFileSourceList);
+        log.debug("[{}]: fileSourceList={}", stepInstance.getUniqueKey(), fileSourceList);
         // 放进文件源下载任务进度表中
-        FileSourceTaskLogDTO fileSourceTaskLogDTO = new FileSourceTaskLogDTO();
-        fileSourceTaskLogDTO.setStepInstanceId(stepInstance.getId());
-        fileSourceTaskLogDTO.setExecuteCount(stepInstance.getExecuteCount());
-        fileSourceTaskLogDTO.setFileSourceBatchTaskId(batchTaskInfoDTO.getBatchTaskId());
-        fileSourceTaskLogDTO.setStatus(TaskStatusEnum.INIT.getStatus().intValue());
-        fileSourceTaskLogDTO.setStartTime(System.currentTimeMillis());
+        FileSourceTaskLogDTO fileSourceTaskLogDTO = buildInitFileSourceTaskLog(stepInstance, batchTaskInfoDTO);
         fileSourceTaskLogDAO.saveFileSourceTaskLog(fileSourceTaskLogDTO);
         // 更新文件源任务状态
         taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
-        // 异步处理文件下载任务
+        // 异步轮询文件下载任务
         ThirdFilePrepareTask task = asyncWatchThirdFilePulling(
             stepInstance,
             fileSourceList,
@@ -251,12 +231,46 @@ public class ThirdFilePrepareService {
             false,
             resultHandler
         );
-        taskMap.put(stepInstance.getId(), task);
-        return task;
+        taskMap.put(stepInstance.getUniqueKey(), task);
     }
 
-    public void stopPrepareThirdFileAsync(long stepInstanceId) {
-        ThirdFilePrepareTask task = taskMap.get(stepInstanceId);
+    /**
+     * 立即继续步骤
+     *
+     * @param stepInstance 步骤实例
+     */
+    private void continueStepAtOnce(StepInstanceDTO stepInstance) {
+        taskExecuteMQEventDispatcher.dispatchGseTaskEvent(
+            GseTaskEvent.startGseTask(
+                stepInstance.getId(),
+                stepInstance.getExecuteCount(),
+                stepInstance.getBatch(),
+                null,
+                null
+            )
+        );
+    }
+
+    /**
+     * 构建文件源文件拉取任务的初始日志
+     *
+     * @param stepInstance     步骤实例
+     * @param batchTaskInfoDTO 文件源文件拉取任务信息
+     * @return 文件源任务日志
+     */
+    private FileSourceTaskLogDTO buildInitFileSourceTaskLog(StepInstanceDTO stepInstance,
+                                                            BatchTaskInfoDTO batchTaskInfoDTO) {
+        FileSourceTaskLogDTO fileSourceTaskLogDTO = new FileSourceTaskLogDTO();
+        fileSourceTaskLogDTO.setStepInstanceId(stepInstance.getId());
+        fileSourceTaskLogDTO.setExecuteCount(stepInstance.getExecuteCount());
+        fileSourceTaskLogDTO.setFileSourceBatchTaskId(batchTaskInfoDTO.getBatchTaskId());
+        fileSourceTaskLogDTO.setStatus(TaskStatusEnum.INIT.getStatus().intValue());
+        fileSourceTaskLogDTO.setStartTime(System.currentTimeMillis());
+        return fileSourceTaskLogDTO;
+    }
+
+    public void stopPrepareThirdFileAsync(StepInstanceDTO stepInstance) {
+        ThirdFilePrepareTask task = taskMap.get(stepInstance.getUniqueKey());
         if (task != null) {
             task.stopThirdFilePulling();
         }
@@ -266,33 +280,66 @@ public class ThirdFilePrepareService {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         // 找出所有第三方文件源的TaskId进行清理
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+        List<String> fileSourceTaskIdList = findFileSourceTaskIds(stepInstanceId, fileSourceList);
+        log.info("FileSourceTaskIds to be cleared:{}", fileSourceTaskIdList);
+        if (CollectionUtils.isEmpty(fileSourceTaskIdList)) {
+            return;
+        }
+        try {
+            // 调用file-gateway接口通知清理临时文件
+            clearTaskFiles(fileSourceTaskIdList);
+        } catch (Throwable t) {
+            log.error("Fail to clearTaskFiles, fileSourceTaskIdList={}", fileSourceTaskIdList, t);
+        }
+    }
+
+    /**
+     * 从源文件数据中找到所有的第三方文件源文件下载任务ID
+     *
+     * @param stepInstanceId 步骤Id
+     * @param fileSourceList 源文件数据列表
+     * @return 所有的第三方文件源文件下载任务ID
+     */
+    private List<String> findFileSourceTaskIds(long stepInstanceId, List<FileSourceDTO> fileSourceList) {
         List<String> fileSourceTaskIdList = new ArrayList<>();
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             Integer fileSourceId = fileSourceDTO.getFileSourceId();
             String fileSourceTaskId = fileSourceDTO.getFileSourceTaskId();
-            if (fileSourceId != null && fileSourceId > 0) {
-                if (StringUtils.isBlank(fileSourceTaskId)) {
-                    log.warn("no fileSourceTask executed for fileSourceId:{}, stepInstanceId:{}", fileSourceId,
-                        stepInstanceId);
-                } else {
-                    fileSourceTaskIdList.add(fileSourceTaskId);
-                }
+            if (fileSourceId == null || fileSourceId <= 0) {
+                continue;
+            }
+            if (StringUtils.isBlank(fileSourceTaskId)) {
+                log.warn(
+                    "no fileSourceTask executed for fileSourceId:{}, stepInstanceId:{}",
+                    fileSourceId,
+                    stepInstanceId
+                );
+            } else {
+                fileSourceTaskIdList.add(fileSourceTaskId);
             }
         }
-        log.debug("FileSourceTaskIds to be cleared:{}", fileSourceTaskIdList);
-        if (!fileSourceTaskIdList.isEmpty()) {
-            try {
-                clearTaskFiles(fileSourceTaskIdList);
-            } catch (Throwable t) {
-                log.error("Fail to clearTaskFiles, fileSourceTaskIdList={}", fileSourceTaskIdList, t);
-            }
-        }
+        return fileSourceTaskIdList;
     }
 
+    /**
+     * 调用file-gateway接口通知清理某些任务产生的临时文件
+     *
+     * @param taskIdList 任务Id列表
+     */
     private void clearTaskFiles(List<String> taskIdList) {
         fileSourceTaskResource.clearTaskFiles(new ClearTaskFilesReq(taskIdList));
     }
 
+    /**
+     * 异步监控第三方文件拉取过程
+     *
+     * @param stepInstance   步骤实例
+     * @param fileSourceList 源文件数据列表
+     * @param batchTaskId    第三方文件拉取任务ID
+     * @param isForRetry     是否为步骤重试
+     * @param resultHandler  结果处理器
+     * @return 第三方源文件准备任务
+     */
     private ThirdFilePrepareTask asyncWatchThirdFilePulling(
         StepInstanceDTO stepInstance,
         List<FileSourceDTO> fileSourceList,
@@ -306,15 +353,29 @@ public class ThirdFilePrepareService {
                 fileSourceList,
                 batchTaskId,
                 isForRetry,
-                new RecordableThirdFilePrepareTaskResultHandler(stepInstance.getId(), resultHandler)
+                new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler)
             );
-        batchResultHandleTask.initDependentService(fileSourceTaskResource, taskInstanceService, accountService,
-            hostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogDAO);
+        batchResultHandleTask.initDependentService(
+            fileSourceTaskResource, taskInstanceService, accountService,
+            hostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogDAO
+        );
         resultHandleManager.handleDeliveredTask(batchResultHandleTask);
         return batchResultHandleTask;
     }
 
-    private BatchTaskInfoDTO startFileSourceDownloadTask(String username, Long appId, Long stepInstanceId,
+    /**
+     * 开始第三方源文件下载任务
+     *
+     * @param username           操作者用户名
+     * @param appId              Job业务ID
+     * @param stepInstanceId     步骤实例ID
+     * @param executeCount       重试次数
+     * @param fileSourceTaskList 第三方文件源任务列表
+     * @return 任务信息
+     */
+    private BatchTaskInfoDTO startFileSourceDownloadTask(String username,
+                                                         Long appId,
+                                                         Long stepInstanceId,
                                                          Integer executeCount,
                                                          List<FileSourceTaskContent> fileSourceTaskList) {
         FileSourceBatchDownloadTaskReq req = new FileSourceBatchDownloadTaskReq();
@@ -322,44 +383,50 @@ public class ThirdFilePrepareService {
         req.setStepInstanceId(stepInstanceId);
         req.setExecuteCount(executeCount);
         req.setFileSourceTaskList(fileSourceTaskList);
-        InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(username,
-            req);
-        log.debug("resp={}", resp);
+        InternalResponse<BatchTaskInfoDTO> resp = fileSourceTaskResource.startFileSourceBatchDownloadTask(
+            username,
+            req
+        );
         if (resp.isSuccess()) {
+            log.debug("startFileSourceBatchDownloadTask, req={}, resp={}", req, resp);
             return resp.getData();
         } else {
+            log.warn("Fail to startFileSourceBatchDownloadTask, req={}, resp={}", req, resp);
             throw new InternalException(resp.getErrorMsg(), resp.getCode());
         }
     }
 
+    /**
+     * 可记录的第三方源文件准备任务结果处理器
+     */
     class RecordableThirdFilePrepareTaskResultHandler implements ThirdFilePrepareTaskResultHandler {
 
-        long stepInstanceId;
+        StepInstanceDTO stepInstance;
         ThirdFilePrepareTaskResultHandler resultHandler;
 
         public RecordableThirdFilePrepareTaskResultHandler(
-            long stepInstanceId,
+            StepInstanceDTO stepInstance,
             ThirdFilePrepareTaskResultHandler resultHandler
         ) {
-            this.stepInstanceId = stepInstanceId;
+            this.stepInstance = stepInstance;
             this.resultHandler = resultHandler;
         }
 
         @Override
         public void onSuccess(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onSuccess(taskContext);
         }
 
         @Override
         public void onStopped(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onStopped(taskContext);
         }
 
         @Override
         public void onFailed(JobTaskContext taskContext) {
-            taskMap.remove(stepInstanceId);
+            taskMap.remove(stepInstance.getUniqueKey());
             resultHandler.onFailed(taskContext);
         }
     }

@@ -309,6 +309,8 @@ public class ErrorCode {
     public static final int ID_AND_CODE_AT_LEAST_ONE = 1260016;
     // 文件源[id={0}]不在业务/业务集下
     public static final int FILE_SOURCE_ID_NOT_IN_BIZ = 1260017;
+    // 接入点响应异常，详情：{0}
+    public static final int FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON = 1260018;
 
     // 文件网关 end
     // 文件代理 start
@@ -330,9 +332,9 @@ public class ErrorCode {
 
     // ==================================== 系统级错误 ================================================//
     // ======== 系统错误-权限错误 ==================//
-    // 用户权限不足
+    // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
     public static final int PERMISSION_DENIED = 1238001;
-    // 蓝鲸统一权限错误码
+    // 蓝鲸统一权限错误码，用户({0})权限不足，请前往权限中心确认并申请补充后重试
     public static final int BK_PERMISSION_DENIED = 9900403;
 
     // ========= 系统错误-请求 ====================//
@@ -413,7 +415,7 @@ public class ErrorCode {
     // 制品库中找不到节点:{0}，请到制品库核实
     public static final int CAN_NOT_FIND_NODE_IN_ARTIFACTORY = 1214002;
 
-    // IAM接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
+    // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
 
     // 第三方API请求错误

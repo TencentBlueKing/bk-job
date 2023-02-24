@@ -140,7 +140,7 @@
             handleSubmit () {
                 this.$refs.form.validate()
                     .then(() => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.handleCancel();
                         this.$emit('on-change', this.formData.templateId);
                     });

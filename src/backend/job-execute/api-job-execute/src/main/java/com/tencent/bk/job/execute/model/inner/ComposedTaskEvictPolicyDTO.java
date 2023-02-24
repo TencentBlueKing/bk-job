@@ -32,6 +32,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * 任务驱逐组合策略实体
+ */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
@@ -39,11 +42,14 @@ public class ComposedTaskEvictPolicyDTO extends TaskEvictPolicyDTO {
 
     public static final String classType = "ComposedTaskEvictPolicy";
 
+    // 策略组合操作符，支持AND/OR
     public enum ComposeOperator {
         AND, OR
     }
 
+    // 策略组合操作符
     protected ComposeOperator operator = null;
+    // 子策略列表
     protected List<TaskEvictPolicyDTO> policyList = new ArrayList<>();
 
     public ComposedTaskEvictPolicyDTO(ComposeOperator operator, TaskEvictPolicyDTO... policyList) {

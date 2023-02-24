@@ -30,8 +30,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
@@ -54,18 +53,20 @@ public class FileServiceImpl implements FileService {
     private final FileSourceService fileSourceService;
     private final DispatchService dispatchService;
     private final FileSourceReqGenService fileSourceReqGenService;
-    private final ExtHttpHelper fileWorkerHttpHelper;
+    private final JobHttpClient jobHttpClient;
 
     @Autowired
-    public FileServiceImpl(FileSourceService fileSourceService, DispatchService dispatchService,
-                           FileSourceReqGenService fileSourceReqGenService) {
+    public FileServiceImpl(FileSourceService fileSourceService,
+                           DispatchService dispatchService,
+                           FileSourceReqGenService fileSourceReqGenService,
+                           JobHttpClient jobHttpClient) {
         this.fileSourceService = fileSourceService;
         this.dispatchService = dispatchService;
         this.fileSourceReqGenService = fileSourceReqGenService;
-        this.fileWorkerHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
+        this.jobHttpClient = jobHttpClient;
     }
 
-    private FileWorkerDTO getFileWorker(Long appId, FileSourceDTO fileSourceDTO) {
+    private FileWorkerDTO getFileWorker(FileSourceDTO fileSourceDTO) {
         if (fileSourceDTO == null) {
             throw new InternalException(ErrorCode.FILE_SOURCE_NOT_EXIST);
         }
@@ -75,20 +76,16 @@ public class FileServiceImpl implements FileService {
     @Override
     public boolean isFileAvailable(String username, Long appId, Integer fileSourceId) {
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(appId, fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
         log.info("choose file worker:" + fileWorkerDTO);
         // 访问文件Worker接口，拿到available状态信息
-        HttpReq fileAvailableReq = fileSourceReqGenService.genFileAvailableReq(appId, fileWorkerDTO, fileSourceDTO);
-        String respStr = null;
-        log.info(String.format("url=%s,body=%s,headers=%s", fileAvailableReq.getUrl(), fileAvailableReq.getBody(),
-            JsonUtils.toJson(fileAvailableReq.getHeaders())));
+        HttpReq req = fileSourceReqGenService.genFileAvailableReq(appId, fileWorkerDTO, fileSourceDTO);
+        String respStr;
         try {
-            respStr = fileWorkerHttpHelper.post(fileAvailableReq.getUrl(), fileAvailableReq.getBody(),
-                fileAvailableReq.getHeaders());
-            log.info(String.format("respStr=%s", respStr));
+            respStr = jobHttpClient.post(req);
             Response<Boolean> resp = JsonUtils.fromJson(respStr,
                 new TypeReference<Response<Boolean>>() {
                 });
@@ -105,26 +102,23 @@ public class FileServiceImpl implements FileService {
         if (name == null) name = "";
         final String finalName = name;
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(appId, fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
         log.info("choose file worker:" + fileWorkerDTO);
         // 访问文件Worker接口，拿到FileNode信息
-        HttpReq listFileNodeReq = fileSourceReqGenService.genListFileNodeReq(appId, path, finalName, start, pageSize,
+        HttpReq req = fileSourceReqGenService.genListFileNodeReq(appId, path, finalName, start, pageSize,
             fileWorkerDTO, fileSourceDTO);
-        String respStr = null;
-        log.info(String.format("url=%s,body=%s,headers=%s", listFileNodeReq.getUrl(), listFileNodeReq.getBody(),
-            JsonUtils.toJson(listFileNodeReq.getHeaders())));
+        String respStr;
         try {
-            respStr = fileWorkerHttpHelper.post(listFileNodeReq.getUrl(), listFileNodeReq.getBody(),
-                listFileNodeReq.getHeaders());
+            respStr = jobHttpClient.post(req);
         } catch (Exception e) {
             log.error("Fail to request remote worker:", e);
             throw new InternalException(ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_LIST_FILE_NODE,
                 new String[]{e.getMessage()});
         }
-        log.info(String.format("respStr=%s", respStr));
+        log.info("respStr={}", respStr);
         FileNodesDTO fileNodesDTO = parseFileNodesDTO(respStr);
         FileNodesVO fileNodesVO = FileNodesDTO.toFileNodesVO(fileNodesDTO);
         fileNodesVO.setFileSourceInfo(FileSourceDTO.toSimpleFileSourceVO(fileSourceDTO));
@@ -134,18 +128,16 @@ public class FileServiceImpl implements FileService {
     @Override
     public Boolean executeAction(String username, Long appId, Integer fileSourceId, ExecuteActionReq executeActionReq) {
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(appId, fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
         log.info("choose file worker:" + fileWorkerDTO);
         HttpReq req = fileSourceReqGenService.genExecuteActionReq(appId, executeActionReq.getActionCode(),
             executeActionReq.getParams(), fileWorkerDTO, fileSourceDTO);
-        String respStr = null;
-        log.info(String.format("url=%s,body=%s,headers=%s", req.getUrl(), req.getBody(),
-            JsonUtils.toJson(req.getHeaders())));
+        String respStr;
         try {
-            respStr = fileWorkerHttpHelper.post(req.getUrl(), req.getBody(), req.getHeaders());
+            respStr = jobHttpClient.post(req);
             Response<Boolean> resp = JsonUtils.fromJson(respStr, new TypeReference<Response<Boolean>>() {
             });
             if (resp.isSuccess()) {
@@ -165,7 +157,7 @@ public class FileServiceImpl implements FileService {
     }
 
     private FileNodesDTO parseFileNodesDTO(String respStr) {
-        Response<FileNodesDTO> resp = null;
+        Response<FileNodesDTO> resp;
         try {
             resp = JsonUtils.fromJson(respStr, new TypeReference<Response<FileNodesDTO>>() {
             });

@@ -41,4 +41,7 @@ public class ResourceEvent<T> {
 
     @JsonProperty("bk_cursor")
     private String cursor;
+
+    // 事件被创建的时间，仅用于计算事件处理耗时
+    private transient long createTime = System.currentTimeMillis();
 }

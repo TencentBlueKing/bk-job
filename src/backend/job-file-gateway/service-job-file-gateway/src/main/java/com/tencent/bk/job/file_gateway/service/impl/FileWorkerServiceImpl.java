@@ -26,15 +26,18 @@ package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.file_gateway.config.FileGatewayConfig;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
+import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerTagDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceMetaData;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import com.tencent.bk.job.file_gateway.service.FileWorkerService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,16 +50,23 @@ import java.util.List;
 @Service
 public class FileWorkerServiceImpl implements FileWorkerService {
 
-    private DSLContext dslContext;
-    private FileWorkerDAO fileWorkerDAO;
-    private FileSourceTypeDAO fileSourceTypeDAO;
+    private final DSLContext dslContext;
+    private final FileWorkerDAO fileWorkerDAO;
+    private final FileSourceTypeDAO fileSourceTypeDAO;
+    private final FileWorkerTagDAO fileWorkerTagDAO;
+    private final FileGatewayConfig fileGatewayConfig;
 
     @Autowired
-    public FileWorkerServiceImpl(DSLContext dslContext, FileWorkerDAO fileWorkerDAO,
-                                 FileSourceTypeDAO fileSourceTypeDAO) {
+    public FileWorkerServiceImpl(DSLContext dslContext,
+                                 FileWorkerDAO fileWorkerDAO,
+                                 FileSourceTypeDAO fileSourceTypeDAO,
+                                 FileWorkerTagDAO fileWorkerTagDAO,
+                                 FileGatewayConfig fileGatewayConfig) {
         this.dslContext = dslContext;
         this.fileWorkerDAO = fileWorkerDAO;
         this.fileSourceTypeDAO = fileSourceTypeDAO;
+        this.fileWorkerTagDAO = fileWorkerTagDAO;
+        this.fileGatewayConfig = fileGatewayConfig;
     }
 
     @Override
@@ -72,18 +82,12 @@ public class FileWorkerServiceImpl implements FileWorkerService {
             }
         }
         if (!fileWorkerDAO.existsFileWorker(
-            dslContext,
             fileWorkerDTO.getAccessHost(),
             fileWorkerDTO.getAccessPort())
         ) {
-            id = fileWorkerDAO.insertFileWorker(dslContext, fileWorkerDTO);
+            id = saveFileWorker(fileWorkerDTO);
         } else {
-            FileWorkerDTO oldFileWorkerDTO = fileWorkerDAO.getFileWorker(
-                dslContext, fileWorkerDTO.getAccessHost(), fileWorkerDTO.getAccessPort()
-            );
-            id = oldFileWorkerDTO.getId();
-            fileWorkerDTO.setId(id);
-            fileWorkerDAO.updateFileWorker(dslContext, fileWorkerDTO);
+            id = updateFileWorker(fileWorkerDTO);
         }
         log.debug("file worker id={}", id);
         if (fileWorkerConfig != null) {
@@ -106,11 +110,25 @@ public class FileWorkerServiceImpl implements FileWorkerService {
         return id;
     }
 
+    private Long saveFileWorker(FileWorkerDTO fileWorkerDTO) {
+        return fileWorkerDAO.insertFileWorker(fileWorkerDTO);
+    }
+
+    private Long updateFileWorker(FileWorkerDTO fileWorkerDTO) {
+        FileWorkerDTO oldFileWorkerDTO = fileWorkerDAO.getFileWorker(
+            fileWorkerDTO.getAccessHost(), fileWorkerDTO.getAccessPort()
+        );
+        Long workerId = oldFileWorkerDTO.getId();
+        fileWorkerDTO.setId(workerId);
+        fileWorkerDAO.updateFileWorker(fileWorkerDTO);
+        return workerId;
+    }
+
     @Override
     public int offLine(Long workerId) {
-        FileWorkerDTO fileWorkerDTO = fileWorkerDAO.getFileWorkerById(dslContext, workerId);
+        FileWorkerDTO fileWorkerDTO = fileWorkerDAO.getFileWorkerById(workerId);
         fileWorkerDTO.setOnlineStatus((byte) 0);
-        return fileWorkerDAO.updateFileWorker(dslContext, fileWorkerDTO);
+        return fileWorkerDAO.updateFileWorker(fileWorkerDTO);
     }
 
     private Integer getLatency(FileWorkerDTO fileWorkerDTO) {
@@ -120,14 +138,29 @@ public class FileWorkerServiceImpl implements FileWorkerService {
 
     @Override
     public List<FileWorkerDTO> listFileWorker(String username, Long appId, WorkerSelectScopeEnum workerSelectScope) {
+        WorkerIdsCondition workerIdsCondition = getIncludedAndExcludedWorkerIds();
         List<FileWorkerDTO> fileWorkerDTOList = new ArrayList<>();
         if (workerSelectScope == WorkerSelectScopeEnum.PUBLIC) {
-            fileWorkerDTOList = fileWorkerDAO.listPublicFileWorkers(dslContext);
+            fileWorkerDTOList = fileWorkerDAO.listPublicFileWorkers(
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
         } else if (workerSelectScope == WorkerSelectScopeEnum.APP) {
-            fileWorkerDTOList = fileWorkerDAO.listFileWorkers(dslContext, appId);
+            fileWorkerDTOList = fileWorkerDAO.listFileWorkers(
+                appId,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
         } else {
-            List<FileWorkerDTO> publicFileWorkerDTOList = fileWorkerDAO.listPublicFileWorkers(dslContext);
-            List<FileWorkerDTO> appFileWorkerDTOList = fileWorkerDAO.listFileWorkers(dslContext, appId);
+            List<FileWorkerDTO> publicFileWorkerDTOList = fileWorkerDAO.listPublicFileWorkers(
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
+            List<FileWorkerDTO> appFileWorkerDTOList = fileWorkerDAO.listFileWorkers(
+                appId,
+                workerIdsCondition.getIncludedWorkerIds(),
+                workerIdsCondition.getExcludedWorkerIds()
+            );
             for (FileWorkerDTO fileWorkerDTO : publicFileWorkerDTOList) {
                 if (!fileWorkerDTOList.contains(fileWorkerDTO)) {
                     fileWorkerDTOList.add(fileWorkerDTO);
@@ -139,14 +172,27 @@ public class FileWorkerServiceImpl implements FileWorkerService {
                 }
             }
         }
-        fileWorkerDTOList.forEach(fileWorkerDTO -> {
-            fileWorkerDTO.setLatency(getLatency(fileWorkerDTO));
-        });
+        fileWorkerDTOList.forEach(fileWorkerDTO -> fileWorkerDTO.setLatency(getLatency(fileWorkerDTO)));
         return fileWorkerDTOList;
     }
 
     @Override
     public FileWorkerDTO getFileWorker(String accessHost, Integer accessPort) {
-        return fileWorkerDAO.getFileWorker(dslContext, accessHost, accessPort);
+        return fileWorkerDAO.getFileWorker(accessHost, accessPort);
+    }
+
+    @Override
+    public WorkerIdsCondition getIncludedAndExcludedWorkerIds() {
+        List<Long> includedWorkerIds = null;
+        List<Long> excludedWorkerIds = null;
+        List<String> whiteTags = fileGatewayConfig.getWorkerTagWhiteList();
+        List<String> blackTags = fileGatewayConfig.getWorkerTagBlackList();
+        if (CollectionUtils.isNotEmpty(whiteTags)) {
+            includedWorkerIds = fileWorkerTagDAO.listWorkerIdByTag(whiteTags);
+        }
+        if (CollectionUtils.isNotEmpty(blackTags)) {
+            excludedWorkerIds = fileWorkerTagDAO.listWorkerIdByTag(blackTags);
+        }
+        return new WorkerIdsCondition(includedWorkerIds, excludedWorkerIds);
     }
 }

@@ -98,7 +98,7 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
             defaultTable.LAST_MODIFY_USER,
             defaultTable.LAST_MODIFY_TIME
         ).values(
-            (Integer) null,
+            null,
             fileSourceDTO.getAppId(),
             fileSourceDTO.getCode(),
             fileSourceDTO.getAlias(),
@@ -121,7 +121,9 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
 
         var sql = insertFileSourceQuery.getSQL(ParamType.INLINED);
         try {
-            Integer fileSourceId = insertFileSourceQuery.fetchOne().getId();
+            val record = insertFileSourceQuery.fetchOne();
+            assert record != null;
+            Integer fileSourceId = record.getId();
             saveFileSourceShareInfo(dslContext, fileSourceId, fileSourceDTO);
             return fileSourceId;
         } catch (Exception e) {
@@ -179,6 +181,11 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
                     }
                     sql = insertFileSourceShareQuery.getSQL(ParamType.INLINED);
                     int[] results = batchQuery.execute();
+                    int affectedRowNum = 0;
+                    for (int result : results) {
+                        affectedRowNum += result;
+                    }
+                    log.info("{} file_source_share records inserted", affectedRowNum);
                 }
             }
         } catch (Exception e) {
@@ -189,27 +196,54 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
 
     @Override
     public int updateFileSource(DSLContext dslContext, FileSourceDTO fileSourceDTO) {
-        val query = dslContext.update(defaultTable)
-            .set(defaultTable.APP_ID, fileSourceDTO.getAppId())
-            .set(defaultTable.CODE, fileSourceDTO.getCode())
-            .set(defaultTable.ALIAS, fileSourceDTO.getAlias())
-            .set(defaultTable.TYPE, fileSourceDTO.getFileSourceType().getCode())
-            .set(defaultTable.CUSTOM_INFO, JsonUtils.toJson(fileSourceDTO.getFileSourceInfoMap()))
-            .set(defaultTable.PUBLIC, fileSourceDTO.getPublicFlag())
-            .set(defaultTable.SHARE_TO_ALL_APP, fileSourceDTO.getShareToAllApp())
-            .set(defaultTable.CREDENTIAL_ID, fileSourceDTO.getCredentialId())
-            .set(defaultTable.FILE_PREFIX, fileSourceDTO.getFilePrefix())
-            .set(defaultTable.WORKER_SELECT_SCOPE, fileSourceDTO.getWorkerSelectScope())
-            .set(defaultTable.WORKER_SELECT_MODE, fileSourceDTO.getWorkerSelectMode())
-            .set(defaultTable.WORKER_ID, fileSourceDTO.getWorkerId())
-            .set(defaultTable.ENABLE, fileSourceDTO.getEnable())
-            .set(defaultTable.LAST_MODIFY_USER, fileSourceDTO.getLastModifyUser())
-            .set(defaultTable.LAST_MODIFY_TIME, System.currentTimeMillis())
-            .where(defaultTable.ID.eq(fileSourceDTO.getId()));
-        val sql = query.getSQL(ParamType.INLINED);
+        val query = dslContext.update(defaultTable);
+        var updateSetStep = query.set(defaultTable.APP_ID, fileSourceDTO.getAppId());
+        updateSetStep = updateSetStep.set(defaultTable.CODE, fileSourceDTO.getCode());
+        if (StringUtils.isNotBlank(fileSourceDTO.getAlias())) {
+            updateSetStep = updateSetStep.set(defaultTable.ALIAS, fileSourceDTO.getAlias());
+        }
+        if (fileSourceDTO.getFileSourceType() != null) {
+            updateSetStep = updateSetStep.set(defaultTable.TYPE, fileSourceDTO.getFileSourceType().getCode());
+        }
+        if (fileSourceDTO.getFileSourceInfoMap() != null) {
+            updateSetStep = updateSetStep.set(
+                defaultTable.CUSTOM_INFO,
+                JsonUtils.toJson(fileSourceDTO.getFileSourceInfoMap())
+            );
+        }
+        if (fileSourceDTO.getPublicFlag() != null) {
+            updateSetStep = updateSetStep.set(defaultTable.PUBLIC, fileSourceDTO.getPublicFlag());
+        }
+        if (fileSourceDTO.getShareToAllApp() != null) {
+            updateSetStep = updateSetStep.set(defaultTable.SHARE_TO_ALL_APP, fileSourceDTO.getShareToAllApp());
+        }
+        if (StringUtils.isNotBlank(fileSourceDTO.getCredentialId())) {
+            updateSetStep = updateSetStep.set(defaultTable.CREDENTIAL_ID, fileSourceDTO.getCredentialId());
+        }
+        if (fileSourceDTO.getFilePrefix() != null) {
+            updateSetStep = updateSetStep.set(defaultTable.FILE_PREFIX, fileSourceDTO.getFilePrefix());
+        }
+        if (StringUtils.isNotBlank(fileSourceDTO.getWorkerSelectScope())) {
+            updateSetStep = updateSetStep.set(defaultTable.WORKER_SELECT_SCOPE, fileSourceDTO.getWorkerSelectScope());
+        }
+        if (StringUtils.isNotBlank(fileSourceDTO.getWorkerSelectMode())) {
+            updateSetStep = updateSetStep.set(defaultTable.WORKER_SELECT_MODE, fileSourceDTO.getWorkerSelectMode());
+        }
+        if (fileSourceDTO.getWorkerId() != null) {
+            updateSetStep = updateSetStep.set(defaultTable.WORKER_ID, fileSourceDTO.getWorkerId());
+        }
+        if (fileSourceDTO.getEnable() != null) {
+            updateSetStep = updateSetStep.set(defaultTable.ENABLE, fileSourceDTO.getEnable());
+        }
+        if (StringUtils.isNotBlank(fileSourceDTO.getLastModifyUser())) {
+            updateSetStep = updateSetStep.set(defaultTable.LAST_MODIFY_USER, fileSourceDTO.getLastModifyUser());
+        }
+        updateSetStep = updateSetStep.set(defaultTable.LAST_MODIFY_TIME, System.currentTimeMillis());
+        val finalStep = updateSetStep.where(defaultTable.ID.eq(fileSourceDTO.getId()));
+        val sql = finalStep.getSQL(ParamType.INLINED);
         try {
             saveFileSourceShareInfo(dslContext, fileSourceDTO.getId(), fileSourceDTO);
-            return query.execute();
+            return finalStep.execute();
         } catch (Exception e) {
             log.error(sql);
             throw e;

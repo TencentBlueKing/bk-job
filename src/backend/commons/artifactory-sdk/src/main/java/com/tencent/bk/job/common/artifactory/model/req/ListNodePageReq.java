@@ -28,24 +28,24 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class ListNodePageReq extends ArtifactoryReq {
     // 必传，项目Id
-    String projectId;
+    private String projectId;
     // 必传，仓库名称
-    String repoName;
+    private String repoName;
     // 必传，完整路径
-    String fullPath;
+    private String fullPath;
     // 非必传，页码
-    int pageNumber = 1;
+    private int pageNumber = 1;
     // 非必传，页面大小
-    int pageSize = 20;
+    private int pageSize = 20;
     // 非必传，是否包含目录
-    Boolean includeFolder = true;
+    private Boolean includeFolder = true;
     // 非必传，是否包含元数据
-    Boolean includeMetadata = false;
+    private Boolean includeMetadata = false;
     // 非必传，是否查询子目录节点
-    Boolean deep = false;
+    private Boolean deep = false;
     // 非必传，是否排序输出结果
-    Boolean sort = true;
+    private Boolean sort = true;
 }

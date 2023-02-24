@@ -40,6 +40,8 @@ public class HeartBeatReq {
     Long id;
     @ApiModelProperty(value = "名称")
     String name;
+    @ApiModelProperty(value = "标签列表")
+    List<String> tagList;
     @ApiModelProperty(value = "业务ID", required = true)
     Long appId;
     @ApiModelProperty(value = "密钥", required = true)

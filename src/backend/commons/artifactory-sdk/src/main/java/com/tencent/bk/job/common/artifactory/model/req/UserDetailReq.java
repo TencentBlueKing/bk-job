@@ -29,9 +29,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class UserDetailReq extends ArtifactoryReq {
     // 必传，用户Id
     @JsonProperty("uid")
-    String userId;
+    private String userId;
 }

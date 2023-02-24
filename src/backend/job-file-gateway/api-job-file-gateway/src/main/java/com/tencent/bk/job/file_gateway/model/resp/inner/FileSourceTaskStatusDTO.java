@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.inner;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,10 +49,24 @@ public class FileSourceTaskStatusDTO {
      * 文件源文件路径->文件在机器上的真实路径
      */
     Map<String, String> filePathMap;
-    List<ServiceHostLogDTO> logList;
+    List<ThirdFileSourceTaskLogDTO> logList;
     Boolean logEnd;
 
     public boolean isDone() {
         return TaskStatusEnum.isDone(status);
+    }
+
+    /**
+     * 通过一些关键字段描述对象，通常用于日志打印忽略非关键字段
+     *
+     * @return 描述信息
+     */
+    @JsonIgnore
+    public String getSimpleDesc() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("taskId", taskId);
+        map.put("status", status);
+        map.put("message", message);
+        return JsonUtils.toJson(map);
     }
 }

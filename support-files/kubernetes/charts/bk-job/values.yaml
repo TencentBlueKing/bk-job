@@ -410,6 +410,10 @@ bkIamApiUrl: "http://bkiam-api.example.com"
 bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
 bkNodemanUrl: "http://nodeman.example.com"
+# 文档中心 url
+bkDocsCenterUrl: "https://bk.tencent.com/docs"
+# 问题反馈 url
+bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
 
 ## 蓝鲸GSE参数配置
 gse:
@@ -664,6 +668,7 @@ gatewayConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -752,6 +757,7 @@ manageConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -787,6 +793,22 @@ manageConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # CMDB资源（业务、业务集、主机等）同步与事件监听相关配置
+  sync:
+    app:
+      # 是否开启业务同步
+      enabled: true
+    host:
+      # 是否开启主机同步
+      enabled: true
+    resource:
+      watch:
+        # 是否开启业务、主机等事件监听
+        enabled: true
+    hostEvent:
+      # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
+      # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
+      handlerNum: 3
 
 
 ## job-execute执行引擎配置
@@ -810,6 +832,7 @@ executeConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 2Gi
     requests:
       cpu: 250m
@@ -861,6 +884,7 @@ crontabConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -921,6 +945,7 @@ logsvrConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -976,6 +1001,7 @@ backupConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1026,6 +1052,7 @@ analysisConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1076,6 +1103,7 @@ fileGatewayConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 1024m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1111,6 +1139,12 @@ fileGatewayConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 用于确定调度范围的worker标签
+  workerTags:
+    # 能够调度的worker标签白名单，逗号分隔
+    white: "k8s"
+    # 不能调度的worker标签黑名单，逗号分隔
+    black: ""
 
 ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1126,6 +1160,7 @@ fileWorkerConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1164,6 +1199,8 @@ fileWorkerConfig:
   instanceName: job-file-worker-public-1
   # 版本号
   version: 0.0.1
+  # 标签，逗号分隔
+  tags: "k8s"
   # 安全凭据
   token: "testToken"
   # 所属业务Id
@@ -1199,6 +1236,7 @@ frontendConfig:
   hostAliases: []
   resources:
     limits:
+      cpu: 900m
       memory: 1Gi
     requests:
       cpu: 125m
@@ -1256,6 +1294,11 @@ migration:
     tag: "{{APP_VERSION}}"
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  # 迁移任务资源限制
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
 ## migration的init任务配置
 migrationInit:
@@ -1268,6 +1311,10 @@ migrationInit:
     tag: 1.34.0
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
 ## 其他服务Pod等待migration完成的init任务配置
 waitForMigration:
@@ -1280,3 +1327,45 @@ waitForMigration:
     tag: v1.5.1
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
+waitForDependServices:
+  image:
+    # 镜像拉取仓库根地址
+    registry: "hub.bktencent.com"
+    # 镜像拉取仓库组织与镜像名称
+    repository: "blueking/job-tools-k8s-startup-controller"
+    # 镜像标签
+    tag: "{{APP_VERSION}}"
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+  # 是否开启服务启动顺序控制，不开启则所有服务并行启动，默认不开启
+  enabled: false
+  # 服务间的依赖关系定义，多个依赖关系用逗号分隔
+  # 例如：(A:B,C),(B:D)表示服务A必须在服务B与服务C启动完成后才启动，服务B必须在服务D启动完成后才启动
+  # 全量服务名称：job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,job-file-worker-headless,
+  #            bk-job-gateway,job-logsvr,job-manage,bk-job-frontend
+  # 说明：bk-job-gateway与bk-job-frontend为对其他产品暴露的服务，因此有bk-前缀，job-file-worker-headless为无头服务，因此有-headless后缀
+  dependencies: (job-execute:job-manage,job-logsvr),(bk-job-frontend:job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,bk-job-gateway,job-manage)
+  # 依赖服务的Pod启动完成后需要拥有的label（label与value中请勿包含英文逗号/括号）
+  expectPodLabels:
+    # 所有依赖服务都必须拥有的label，多个label间用英文逗号分隔
+    # 格式：label1=value1,label2=value2,...
+    common: "bk.job.image/tag={{APP_VERSION}}"
+    # 为每个依赖服务单独定义的必须拥有的label，多个服务间用英文括号及英文逗号分隔
+    # 格式：(job-manage:label1=value1,label2=value2),(job-execute:label3=value3),(...)
+    service: ""
+  # 日志级别：默认INFO，可选DEBUG/WARN/ERROR
+  logLevel: "INFO"
+  # 资源要求与限制
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi

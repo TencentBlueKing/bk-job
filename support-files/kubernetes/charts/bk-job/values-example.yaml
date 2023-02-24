@@ -1,0 +1,4 @@
+## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
+waitForDependServices:
+  # 是否开启服务启动顺序控制，不开启则所有服务并行启动，默认不开启，此处开启用于渲染模板时将使用的镜像渲染出
+  enabled: true

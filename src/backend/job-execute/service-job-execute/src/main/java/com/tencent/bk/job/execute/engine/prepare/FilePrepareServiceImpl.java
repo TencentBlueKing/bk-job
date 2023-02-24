@@ -87,32 +87,32 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         thirdFilePrepareService.clearPreparedTmpFile(stepInstanceId);
     }
 
-    private void startPrepareLocalFileTask(long stepInstanceId,
+    private void startPrepareLocalFileTask(StepInstanceDTO stepInstance,
                                            List<FileSourceDTO> fileSourceList,
                                            List<FilePrepareTaskResult> resultList,
                                            CountDownLatch latch
     ) {
         localFilePrepareService.prepareLocalFilesAsync(
-            stepInstanceId,
+            stepInstance,
             fileSourceList,
             new LocalFilePrepareTaskResultHandler() {
                 @Override
                 public void onSuccess(JobTaskContext taskContext) {
-                    log.info("stepInstanceId={},LocalFilePrepareTask success", stepInstanceId);
+                    log.info("[{}]:LocalFilePrepareTask success", stepInstance.getUniqueKey());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onStopped(JobTaskContext taskContext) {
-                    log.info("stepInstanceId={},LocalFilePrepareTask stopped", stepInstanceId);
+                    log.info("[{}]:LocalFilePrepareTask stopped", stepInstance.getUniqueKey());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.warn("stepInstanceId={},LocalFilePrepareTask failed", stepInstanceId);
+                    log.warn("[{}]:LocalFilePrepareTask failed", stepInstance.getUniqueKey());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
@@ -129,21 +129,21 @@ public class FilePrepareServiceImpl implements FilePrepareService {
 
                 @Override
                 public void onSuccess(JobTaskContext taskContext) {
-                    log.info("stepInstanceId={},ThirdFilePrepareTask success", stepInstance.getId());
+                    log.info("[{}]: ThirdFilePrepareTask success", stepInstance.getUniqueKey());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onStopped(JobTaskContext taskContext) {
-                    log.info("stepInstanceId={},ThirdFilePrepareTask stopped", stepInstance.getId());
+                    log.info("[{}]: ThirdFilePrepareTask stopped", stepInstance.getUniqueKey());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
                     latch.countDown();
                 }
 
                 @Override
                 public void onFailed(JobTaskContext taskContext) {
-                    log.warn("stepInstanceId={},ThirdFilePrepareTask failed", stepInstance.getId());
+                    log.warn("[{}]: ThirdFilePrepareTask failed", stepInstance.getUniqueKey());
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
@@ -153,27 +153,41 @@ public class FilePrepareServiceImpl implements FilePrepareService {
 
     @Override
     public void prepareFileForGseTask(StepInstanceDTO stepInstance) {
-        log.info("Begin to prepare source files for step, stepInstanceId: {}", stepInstance.getId());
+        log.info("Begin to prepare source files for step, stepInstance: {}", stepInstance.getUniqueKey());
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         if (CollectionUtils.isEmpty(fileSourceList)) {
-            log.error("FileSource is empty, stepInstanceId: {}", stepInstance.getId());
+            log.error("FileSource is empty, stepInstance: {}", stepInstance.getUniqueKey());
             return;
         }
         int taskCount = 0;
         boolean hasLocalFile = hasLocalFile(fileSourceList);
         boolean hasThirdFile = hasThirdFile(fileSourceList);
-        if (hasLocalFile) taskCount += 1;
-        if (hasThirdFile) taskCount += 1;
+        List<String> prepareFileTypeList = new ArrayList<>();
+        if (hasLocalFile) {
+            taskCount += 1;
+            prepareFileTypeList.add("localFile");
+        }
+        if (hasThirdFile) {
+            taskCount += 1;
+            prepareFileTypeList.add("thirdFile");
+        }
         if (taskCount == 0) {
             // 没有需要准备文件的本地文件/第三方源文件
-            log.error("FileSource no need to prepare, stepInstanceId: {}", stepInstance.getId());
+            log.warn("[{}]: no fileSource need to prepare", stepInstance.getUniqueKey());
             return;
+        } else {
+            log.info(
+                "[{}]:{} kinds of file need to be prepared:{}",
+                stepInstance.getUniqueKey(),
+                prepareFileTypeList.size(),
+                prepareFileTypeList
+            );
         }
         CountDownLatch latch = new CountDownLatch(taskCount);
         final List<FilePrepareTaskResult> resultList = Collections.synchronizedList(new ArrayList<>(taskCount));
         if (hasLocalFile) {
             // 启动异步准备本地文件任务
-            startPrepareLocalFileTask(stepInstance.getId(), fileSourceList, resultList, latch);
+            startPrepareLocalFileTask(stepInstance, fileSourceList, resultList, latch);
         }
         if (hasThirdFile) {
             // 启动异步准备第三方源文件任务
@@ -183,21 +197,21 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         FilePrepareTaskResultHandler filePrepareTaskResultHandler = new FilePrepareTaskResultHandler() {
             @Override
             public void onFinished(StepInstanceDTO stepInstance, List<FilePrepareTaskResult> resultList) {
-                log.info("stepInstanceId={},prepareTask finished", stepInstance.getId());
+                log.info("[{}]: prepareTask finished", stepInstance.getUniqueKey());
                 handleFinalTaskResult(resultList, stepInstance);
             }
 
             @Override
             public void onTimeout(StepInstanceDTO stepInstance) {
-                log.info("stepInstanceId={},prepareTask timeout", stepInstance.getId());
+                log.info("[{}]: prepareTask timeout", stepInstance.getUniqueKey());
                 onFailed(stepInstance, null);
             }
 
             @Override
             public void onException(StepInstanceDTO stepInstance, Throwable t) {
                 FormattingTuple msg = MessageFormatter.format(
-                    "stepInstanceId={},prepareTask exception",
-                    stepInstance.getId()
+                    "[{}]: prepareTask exception",
+                    stepInstance.getUniqueKey()
                 );
                 log.error(msg.getMessage(), t);
                 onFailed(stepInstance, null);
@@ -234,9 +248,9 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     }
 
     @Override
-    public void stopPrepareFile(long stepInstanceId) {
-        localFilePrepareService.stopPrepareLocalFilesAsync(stepInstanceId);
-        thirdFilePrepareService.stopPrepareThirdFileAsync(stepInstanceId);
+    public void stopPrepareFile(StepInstanceDTO stepInstance) {
+        localFilePrepareService.stopPrepareLocalFilesAsync(stepInstance);
+        thirdFilePrepareService.stopPrepareThirdFileAsync(stepInstance);
     }
 
     private FilePrepareTaskResult combineTaskResult(List<FilePrepareTaskResult> resultList) {

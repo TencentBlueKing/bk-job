@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.validator.routines.InetAddressValidator;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -93,6 +94,26 @@ public class IpUtils {
         }
         Matcher matcher = IP_PATTERN.matcher(ipStr);
         return matcher.matches();
+    }
+
+    /**
+     * 验证ipv6格式
+     *
+     * @param ipv6Str ipv6字符串
+     */
+    public static boolean checkIpv6(String ipv6Str) {
+        InetAddressValidator validator = InetAddressValidator.getInstance();
+        return validator.isValidInet6Address(ipv6Str);
+    }
+
+    /**
+     * 验证ipv4格式
+     *
+     * @param ipv4Str ipv4字符串
+     */
+    public static boolean checkIpv4(String ipv4Str) {
+        InetAddressValidator validator = InetAddressValidator.getInstance();
+        return validator.isValidInet4Address(ipv4Str);
     }
 
     /**
@@ -226,5 +247,22 @@ public class IpUtils {
             ip = "no available ip";
         }
         return ip;
+    }
+
+    /**
+     * 从含有多个IP的字符串中获取首个IP，若multiIp不含有任何IP则直接返回multiIp本身
+     *
+     * @param multiIp   多IP字符串
+     * @param separator 分隔符
+     * @return 首个IP
+     */
+    public static String getFirstIpFromMultiIp(String multiIp, String separator) {
+        if (StringUtils.isBlank(multiIp)) {
+            return multiIp;
+        }
+        if (multiIp.contains(separator)) {
+            return multiIp.split(separator)[0];
+        }
+        return multiIp;
     }
 }

@@ -58,7 +58,7 @@
                     required>
                     <bk-input :value="formData.version" readonly />
                 </jb-form-item>
-                <jb-form-item :label="$t('script.版本日志')">
+                <jb-form-item :label="$t('script.版本日志.label')">
                     <bk-input
                         v-model="formData.versionDesc"
                         type="textarea"
@@ -263,7 +263,7 @@
                             ...this.formData,
                             scriptVersionId: this.scriptInfo.scriptVersionId,
                         }).then(() => {
-                            window.changeConfirm = false;
+                            window.changeFlag = false;
                             this.$emit('on-edit', {
                                 scriptVersionId: this.scriptInfo.scriptVersionId,
                             });

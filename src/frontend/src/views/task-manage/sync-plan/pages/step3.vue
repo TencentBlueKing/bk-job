@@ -164,7 +164,7 @@
             handleEnableChange (id, enable) {
                 const timeTask = this.timeTaskList.find(item => item.id === id);
                 timeTask.enable = enable;
-                window.changeConfirm = true;
+                window.changeFlag = true;
             },
             /**
              * @desc 更新定时任务的开启状态
@@ -174,7 +174,7 @@
                 const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
                 timeTask.variableValue = variableValue;
                 timeTask.hasConfirm = true;
-                window.changeConfirm = true;
+                window.changeFlag = true;
             },
             /**
              * @desc 更新定时任务同步的确认状态
@@ -183,7 +183,7 @@
             handleUpdateConfirm (comfirm) {
                 const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
                 timeTask.hasConfirm = comfirm;
-                window.changeConfirm = true;
+                window.changeFlag = true;
             },
             /**
              * @desc 提交定时任务的确认操作
@@ -204,7 +204,7 @@
                     this.messageError(I18n.t('template.执行方案同步失败'));
                 })
                     .then(() => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.messageSuccess(I18n.t('template.同步成功'), () => {
                             this.$router.push({
                                 name: 'viewPlan',

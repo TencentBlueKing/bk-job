@@ -26,75 +26,88 @@
 -->
 
 <template>
-    <div class="jb-diff-layout"
+    <div
+        class="jb-diff-layout"
         :style="{
             'z-index': zIndex,
         }">
         <div class="header">
-            <div class="title">{{ title }}</div>
+            <div class="title">
+                {{ title }}
+            </div>
             <div class="diff-info">
-                <div class="diff-del" @click="handleViewDel">
+                <div
+                    class="diff-del"
+                    @click="handleViewDel">
                     <span class="before" />
                     <span class="after" />
                     <span>{{ $t('删除') }}（{{ del }}）</span>
                 </div>
-                <div class="diff-change" @click="handleViewChange">
+                <div
+                    class="diff-change"
+                    @click="handleViewChange">
                     <span class="before" />
                     <span class="after" />
                     <span>{{ $t('变换') }}（{{ change }}）</span>
                 </div>
-                <div class="diff-ins" @click="handleViewIns">
+                <div
+                    class="diff-ins"
+                    @click="handleViewIns">
                     <span class="before" />
                     <span class="after" />
                     <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
                 </div>
             </div>
         </div>
-        <div class="version-select-layout">
-            <div class="version-left">
-                <bk-select
-                    class="version-selector"
-                    :clearable="false"
-                    v-model="oldVersion">
-                    <bk-option
-                        v-for="item in data"
-                        :key="item.scriptVersionId"
-                        :id="item.scriptVersionId"
-                        :name="item.version"
-                        :disabled="item.scriptVersionId === oldVersion" />
-                </bk-select>
+        <div style="padding: 0 16px;">
+            <div class="version-select-layout">
+                <div class="version-left">
+                    <bk-select
+                        v-model="oldVersion"
+                        class="version-selector"
+                        :clearable="false">
+                        <bk-option
+                            v-for="item in data"
+                            :id="item.scriptVersionId"
+                            :key="item.scriptVersionId"
+                            :disabled="item.scriptVersionId === oldVersion"
+                            :name="item.version" />
+                    </bk-select>
+                </div>
+                <div class="version-right">
+                    <bk-select
+                        v-model="newVersion"
+                        class="version-selector"
+                        :clearable="false">
+                        <bk-option
+                            v-for="item in data"
+                            :id="item.scriptVersionId"
+                            :key="item.scriptVersionId"
+                            :disabled="item.scriptVersionId === newVersion"
+                            :name="item.version" />
+                    </bk-select>
+                </div>
             </div>
-            <div class="version-right">
-                <bk-select
-                    class="version-selector"
-                    :clearable="false"
-                    v-model="newVersion">
-                    <bk-option
-                        v-for="item in data"
-                        :key="item.scriptVersionId"
-                        :id="item.scriptVersionId"
-                        :name="item.version"
-                        :disabled="item.scriptVersionId === newVersion" />
-                </bk-select>
-            </div>
+            <scroll-faker class="content-wraper">
+                <jb-diff
+                    ref="diff"
+                    class="diff-details"
+                    :context="Infinity"
+                    format="side-by-side"
+                    :language="language"
+                    :new-content="newContent"
+                    :old-content="oldContent"
+                    theme="dark" />
+            </scroll-faker>
         </div>
-        <scroll-faker class="content-wraper">
-            <jb-diff
-                class="diff-details"
-                format="side-by-side"
-                theme="dark"
-                ref="diff"
-                :language="language"
-                :context="Infinity"
-                :old-content="oldContent"
-                :new-content="newContent" />
-        </scroll-faker>
-        <i class="bk-icon icon-close" @click="handleClose" />
+        <i
+            class="bk-icon icon-close"
+            @click="handleClose" />
     </div>
 </template>
 <script>
-    import _ from 'lodash';
     import { Base64 } from 'js-base64';
+    import _ from 'lodash';
 
     export default {
         props: {
@@ -201,7 +214,7 @@
                             this.ins += 1;
                         }
                     });
-                    
+
                     const $dels = $newTarget.querySelectorAll('td.d2h-code-side-linenumber.d2h-code-side-emptyplaceholder');
                     this.delElements = $dels;
                     this.del = $dels.length;
@@ -290,22 +303,23 @@
         right: 0;
         bottom: 0;
         left: 0;
-        padding: 0 40px;
-        background-color: #fafbfd;
+        padding: 8px 24px;
+        background-color: #fff;
 
         .header {
             display: flex;
-            height: 40px;
             align-items: center;
+            padding-right: 16px;
 
             .title {
-                font-size: 14px;
+                font-size: 20px;
+                line-height: 28px;
                 color: #313238;
             }
 
             .diff-info {
                 display: flex;
-                margin-right: 114px;
+                margin-top: 15px;
                 margin-left: auto;
                 font-size: 12px;
                 line-height: 1em;
@@ -371,15 +385,15 @@
 
         .version-select-layout {
             display: flex;
-            height: 51px;
-            margin: 6px 0 0;
-            background: #2f3033;
+            height: 48px;
+            margin-top: 18px;
+            background: #eaebf0;
             border-radius: 2px 2px 0 0;
 
             .version-left,
             .version-right {
                 display: flex;
-                padding: 0 10px;
+                padding: 0 8px;
                 flex: 0 0 50%;
                 align-items: center;
             }
@@ -389,9 +403,8 @@
             }
 
             .bk-select {
-                color: #dcdee5;
-                background: #393a3d;
-                border-color: #393a3d;
+                color: #63656e;
+                background: #fff;
             }
         }
 
@@ -401,7 +414,6 @@
 
         .content-wraper {
             max-height: calc(100vh - 92px);
-            background: #1d1d1d;
         }
 
         .d2h-file-wrapper {
@@ -410,7 +422,7 @@
 
         .diff-details {
             position: relative;
-            background-color: #272822;
+            background-color: #fff;
         }
 
         .d2h-code-side-linenumber {
@@ -436,7 +448,7 @@
             width: 26px;
             height: 26px;
             font-size: 22px;
-            color: #313238;
+            color: #979ba5;
             cursor: pointer;
             border-radius: 50%;
             transition: all 0.1s;

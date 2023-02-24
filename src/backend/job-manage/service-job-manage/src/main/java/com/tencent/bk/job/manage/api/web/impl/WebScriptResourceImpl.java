@@ -298,6 +298,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
                                                        String creator,
                                                        String lastModifyUser,
                                                        String scriptId,
+                                                       String content,
                                                        Integer start,
                                                        Integer pageSize,
                                                        String orderField,
@@ -313,12 +314,12 @@ public class WebScriptResourceImpl implements WebScriptResource {
         scriptQuery.setId(scriptId);
         scriptQuery.setName(name);
         scriptQuery.setType(type);
-        scriptQuery.setPublicScript(publicScript);
         if (panelType != null && panelType == 2) {
             scriptQuery.setUntaggedScript(true);
         } else {
             addTagCondition(scriptQuery, tags, panelTag);
         }
+        scriptQuery.setContentKeyword(content);
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setLength(pageSize);
@@ -396,7 +397,7 @@ public class WebScriptResourceImpl implements WebScriptResource {
     }
 
     private void processAnyScriptExistFlag(AppResourceScope appResourceScope, Boolean publicScript,
-                                           PageData resultPageData) {
+                                           PageData<ScriptVO> resultPageData) {
         if (publicScript != null && publicScript) {
             resultPageData.setExistAny(scriptService.isExistAnyPublicScript());
         } else {

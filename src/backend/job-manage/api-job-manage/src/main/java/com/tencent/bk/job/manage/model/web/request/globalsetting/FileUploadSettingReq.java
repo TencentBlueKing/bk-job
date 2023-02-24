@@ -33,7 +33,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 /**
@@ -47,13 +49,20 @@ import java.util.List;
 @ApiModel("文件上传参数")
 public class FileUploadSettingReq {
     @ApiModelProperty("数量")
-    private Long amount;
+    @NotNull(message = "{validation.constraints.InvalidFileUploadSettingAmount.message}")
+    @Positive(message = "{validation.constraints.InvalidFileUploadSettingAmount.message}")
+    private Float amount;
+
     @ApiModelProperty("单位:可选B/KB/MB/GB/TB/PB")
     private StorageUnitEnum unit;
+
     @ApiModelProperty("限制模式，0:禁止范围，1：允许范围，-1：不限制")
-    @CheckEnum(enumClass = RestrictModeEnum.class, enumMethod = "isValid", message = "{validation.constraints.InvalidUploadFileRestrictMode.message}")
+    @CheckEnum(enumClass = RestrictModeEnum.class, enumMethod = "isValid",
+        message = "{validation.constraints.InvalidUploadFileRestrictMode.message}")
     private Integer restrictMode;
+
     @ApiModelProperty("后缀列表")
-    private List<@Pattern(regexp = "^\\.[A-Za-z0-9_-]{1,24}$", message = "{validation.constraints.InvalidUploadFileSuffix.message}") String> suffixList;
+    private List<@Pattern(regexp = "^\\.[A-Za-z0-9_-]{1,24}$",
+        message = "{validation.constraints.InvalidUploadFileSuffix.message}") String> suffixList;
 
 }

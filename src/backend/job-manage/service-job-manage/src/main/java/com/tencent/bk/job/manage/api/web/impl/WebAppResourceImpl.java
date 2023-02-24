@@ -37,7 +37,7 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupInfoDTO;
+import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -410,7 +410,7 @@ public class WebAppResourceImpl implements WebAppResource {
         if (!applicationDTO.isBiz()) {
             return Response.buildSuccessResp(new ArrayList<>());
         }
-        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
+        List<DynamicGroupWithHost> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
@@ -423,10 +423,11 @@ public class WebAppResourceImpl implements WebAppResource {
     public Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(String username,
                                                                       AppResourceScope appResourceScope,
                                                                       String scopeType,
-                                                                      String scopeId, List<String> dynamicGroupIds) {
+                                                                      String scopeId,
+                                                                      List<String> dynamicGroupIds) {
         // 目前只有业务支持动态分组
         if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
-            List<DynamicGroupInfoDTO> dynamicGroupList =
+            List<DynamicGroupWithHost> dynamicGroupList =
                 hostService.getBizDynamicGroupHostList(
                     username, Long.parseLong(appResourceScope.getId()), dynamicGroupIds
                 );
@@ -444,7 +445,7 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                               String scopeType,
                                                                               String scopeId,
                                                                               List<String> dynamicGroupIds) {
-        List<DynamicGroupInfoDTO> dynamicGroupList = hostService.getAppDynamicGroupList(
+        List<DynamicGroupWithHost> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
         List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()

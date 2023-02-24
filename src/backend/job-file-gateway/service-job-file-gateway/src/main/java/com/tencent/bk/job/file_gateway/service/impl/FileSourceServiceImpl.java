@@ -187,7 +187,7 @@ public class FileSourceServiceImpl implements FileSourceService {
         // 根据文件源类型选中一个Worker
         Long workerId = chooseAvailableWorker(fileSourceTypeCode);
         // 拿到Worker的配置，解析其定义的文件源Params
-        FileWorkerDTO fileWorkerDTO = fileWorkerDAO.getFileWorkerById(dslContext, workerId);
+        FileWorkerDTO fileWorkerDTO = fileWorkerDAO.getFileWorkerById(workerId);
         FileWorkerConfig fileWorkerConfig = JsonUtils.fromJson(fileWorkerDTO.getConfigStr(),
             new TypeReference<FileWorkerConfig>() {
             });

@@ -255,6 +255,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setId(stepInstanceId);
             watch.stop();
 
+            // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
+            watch.start("saveTaskInstanceHosts");
+            saveTaskInstanceHosts(taskInstanceId, Collections.singletonList(stepInstance));
+            watch.stop();
+
             // 保存滚动配置
             if (fastTask.isRollingEnabled()) {
                 watch.start("saveRollingConfig");
@@ -284,6 +289,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("CreateTaskInstanceFast is slow, statistics: {}", watch.prettyPrint());
             }
         }
+    }
+
+    private void saveTaskInstanceHosts(long taskInstanceId,
+                                       List<StepInstanceDTO> stepInstanceList) {
+        Set<HostDTO> stepHosts = extractHosts(stepInstanceList);
+        taskInstanceService.saveTaskInstanceHosts(taskInstanceId, stepHosts);
     }
 
     private void checkTaskEvict(TaskInstanceDTO taskInstance) {
@@ -472,6 +483,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             String checkResultSummary =
                 dangerousScriptCheckService.summaryDangerousScriptCheckResult(stepInstance.getName(), checkResultItems);
             if (StringUtils.isNotBlank(checkResultSummary)) {
+                log.info("Script match dangerous rule, checkResult: {}", checkResultItems);
                 dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
                 if (dangerousScriptCheckService.shouldIntercept(checkResultItems)) {
                     throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION,
@@ -813,11 +825,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             host.setBkCloudId(hostDetail.getBkCloudId());
             host.setIp(hostDetail.getIp());
             // 兼容没有agent_id的主机，按照与GSE的约定，按照{云区域ID:ip}的方式构造agent_id
-            host.setAgentId(StringUtils.isEmpty(hostDetail.getAgentId()) ? host.toCloudIp() : hostDetail.getAgentId());
+            host.setAgentId(host.toCloudIp());
         } else {
             HostDTO hostDetail = hostMap.get("hostIp:" + host.toCloudIp());
             // 兼容没有agent_id的主机，按照与GSE的约定，按照{云区域ID:ip}的方式构造agent_id
-            host.setAgentId(StringUtils.isEmpty(hostDetail.getAgentId()) ? host.toCloudIp() : hostDetail.getAgentId());
+            host.setAgentId(host.toCloudIp());
             host.setHostId(hostDetail.getHostId());
         }
     }
@@ -1032,6 +1044,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.start("saveInstance");
             // 这里保存的stepInstanceList已经是完成变量解析之后的步骤信息了
             saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
+            watch.stop();
+
+            // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
+            watch.start("saveTaskInstanceHosts");
+            saveTaskInstanceHosts(taskInstance.getId(), taskInstance.getStepInstances());
             watch.stop();
 
             watch.start("saveOperationLog");
@@ -1371,6 +1388,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         authRedoJob(operator, appId, originTaskInstance);
 
         saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
+
+        saveTaskInstanceHosts(taskInstance.getId(), taskInstance.getStepInstances());
 
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));

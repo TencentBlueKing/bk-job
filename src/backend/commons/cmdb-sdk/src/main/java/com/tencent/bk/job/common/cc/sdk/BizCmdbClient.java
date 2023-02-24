@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
@@ -37,7 +38,6 @@ import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
-import com.tencent.bk.job.common.cc.model.CcGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
@@ -83,6 +83,7 @@ import com.tencent.bk.job.common.esb.config.EsbConfig;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
+import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.service.QueryAgentStatusClient;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -226,7 +227,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         } else {
             InstanceTopologyDTO topologyDTO = getBizInstTopologyWithoutInternalTopo(bizId);
             InstanceTopologyDTO internalTopologyDTO = getBizInternalModule(bizId);
-            completeTopologyDTO = TopologyUtil.mergeTopology(topologyDTO, internalTopologyDTO);
+            internalTopologyDTO.setObjectName(topologyDTO.getObjectName());
+            internalTopologyDTO.setInstanceName(topologyDTO.getInstanceName());
+            completeTopologyDTO = TopologyUtil.mergeTopology(internalTopologyDTO, topologyDTO);
         }
         return completeTopologyDTO;
     }
@@ -234,8 +237,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     public InstanceTopologyDTO getCachedBizInstCompleteTopology(long bizId) {
         try {
             return bizInstCompleteTopologyCache.get(bizId);
-        } catch (ExecutionException e) {
-            throw new InternalException(e, ErrorCode.CMDB_API_DATA_ERROR, null);
+        } catch (ExecutionException | UncheckedExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else {
+                throw new InternalException(e, ErrorCode.INTERNAL_ERROR, null);
+            }
         }
     }
 
@@ -312,7 +320,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
         String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
         if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
-            if (globalFlowController != null) {
+            if (globalFlowController != null && globalFlowController.isReady()) {
                 log.debug("Flow control resourceId={}", resourceId);
                 long startTime = System.currentTimeMillis();
                 globalFlowController.acquire(resourceId);
@@ -323,7 +331,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                     log.info("Request resource {} wait flowControl for {}ms", resourceId, duration);
                 }
             } else {
-                log.debug("globalFlowController not set, ignore this time");
+                log.debug("globalFlowController not set or not ready, ignore this time");
             }
         }
         long start = System.nanoTime();
@@ -339,7 +347,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
             log.error(errorMsg, e);
             status = "error";
-            throw new InternalException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
+            throw new InternalCmdbException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
@@ -390,28 +398,33 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
             });
         GetBizInternalModuleResult setInfo = esbResp.getData();
-        //将结果转换为Topo树
-        InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
-        instanceTopologyDTO.setObjectId("set");
-        instanceTopologyDTO.setObjectName("Set");
-        instanceTopologyDTO.setInstanceId(setInfo.getSetId());
-        instanceTopologyDTO.setInstanceName(setInfo.getSetName());
+        //将结果转换为拓扑树
+        InstanceTopologyDTO setNode = new InstanceTopologyDTO();
+        setNode.setObjectId("set");
+        setNode.setObjectName("Set");
+        setNode.setInstanceId(setInfo.getSetId());
+        setNode.setInstanceName(setInfo.getSetName());
         List<InstanceTopologyDTO> childList = new ArrayList<>();
         List<GetBizInternalModuleResult.Module> modules = setInfo.getModule();
         if (modules != null && !modules.isEmpty()) {
-            modules.forEach(module -> {
+            for (GetBizInternalModuleResult.Module module : modules) {
                 InstanceTopologyDTO childModule = new InstanceTopologyDTO();
                 childModule.setObjectId("module");
                 childModule.setObjectName("Module");
                 childModule.setInstanceId(module.getModuleId());
                 childModule.setInstanceName(module.getModuleName());
                 childList.add(childModule);
-            });
+            }
         }
-        instanceTopologyDTO.setChild(childList);
-        return instanceTopologyDTO;
+        setNode.setChild(childList);
+        InstanceTopologyDTO bizNode = new InstanceTopologyDTO();
+        bizNode.setObjectId("biz");
+        bizNode.setInstanceId(bizId);
+        childList = new ArrayList<>();
+        childList.add(setNode);
+        bizNode.setChild(childList);
+        return bizNode;
     }
-
 
     @Override
     public List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList) {
@@ -680,7 +693,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ApplicationHostDTO ipInfo = new ApplicationHostDTO();
         ipInfo.setHostId(hostInfo.getHostId());
         // 部分从cmdb同步过来的资源没有ip，需要过滤掉
-        if (StringUtils.isBlank(hostInfo.getIp())) {
+        if (StringUtils.isBlank(hostInfo.getInnerIp())) {
             return null;
         }
 
@@ -696,10 +709,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             return null;
         }
 
+        ipInfo.setDisplayIp(hostInfo.getInnerIp());
+
         if (queryAgentStatusClient != null) {
-            ipInfo.setIp(queryAgentStatusClient.getHostIpByAgentStatus(hostInfo.getIp(), hostInfo.getCloudId()));
+            ipInfo.setIp(queryAgentStatusClient.getHostIpByAgentStatus(hostInfo.getInnerIp(), hostInfo.getCloudId()));
         } else {
-            ipInfo.setIp(hostInfo.getIp());
+            ipInfo.setIp(hostInfo.getFirstIp());
         }
         ipInfo.setBizId(bizId);
         ipInfo.setIpDesc(hostInfo.getHostName());
@@ -724,7 +739,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             SearchAppResult data = esbResp.getData();
             if (data == null) {
                 appList.clear();
-                throw new InternalException("Data is null", ErrorCode.CMDB_API_DATA_ERROR);
+                throw new InternalCmdbException("Data is null", ErrorCode.CMDB_API_DATA_ERROR);
             }
             List<BusinessInfoDTO> businessInfos = data.getInfo();
             if (businessInfos != null && !businessInfos.isEmpty()) {
@@ -764,17 +779,17 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             });
         SearchAppResult data = esbResp.getData();
         if (data == null) {
-            throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
+            throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
         List<BusinessInfoDTO> businessInfos = data.getInfo();
         if (businessInfos == null || businessInfos.isEmpty()) {
-            throw new InternalException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
+            throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
         return convertToAppInfo(businessInfos.get(0));
     }
 
     @Override
-    public List<CcGroupDTO> getDynamicGroupList(long bizId) {
+    public List<CcDynamicGroupDTO> getDynamicGroupList(long bizId) {
         SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, defaultUin,
             defaultSupplierAccount);
         req.setBizId(bizId);
@@ -809,15 +824,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 }
             }
         }
-        return ccDynamicGroupList.parallelStream().map(this::convertToCcGroupDTO).collect(Collectors.toList());
-    }
-
-    private CcGroupDTO convertToCcGroupDTO(CcDynamicGroupDTO ccDynamicGroupDTO) {
-        CcGroupDTO ccGroupDTO = new CcGroupDTO();
-        ccGroupDTO.setBizId(ccDynamicGroupDTO.getBizId());
-        ccGroupDTO.setId(ccDynamicGroupDTO.getId());
-        ccGroupDTO.setName(ccDynamicGroupDTO.getName());
-        return ccGroupDTO;
+        return ccDynamicGroupList;
     }
 
     private List<CcGroupHostPropDTO> convertToCcGroupHostPropList(List<CcHostInfoDTO> hostInfoList) {
@@ -827,13 +834,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 log.warn(
                     "host(id={},ip={}) does not have cloud area, ignore",
                     ccHostInfo.getHostId(),
-                    ccHostInfo.getIp()
+                    ccHostInfo.getInnerIp()
                 );
-            } else if (StringUtils.isBlank(ccHostInfo.getIp())) {
+            } else if (StringUtils.isBlank(ccHostInfo.getInnerIp())) {
                 log.warn(
                     "host(id={},ip={}) ip invalid, ignore",
                     ccHostInfo.getHostId(),
-                    ccHostInfo.getIp()
+                    ccHostInfo.getInnerIp()
                 );
             } else {
                 ccGroupHostList.add(convertToCcHost(ccHostInfo));
@@ -887,7 +894,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         CcGroupHostPropDTO ccGroupHostPropDTO = new CcGroupHostPropDTO();
         ccGroupHostPropDTO.setId(ccHostInfo.getHostId());
         ccGroupHostPropDTO.setName(ccHostInfo.getHostName());
-        ccGroupHostPropDTO.setIp(ccHostInfo.getIp());
+        ccGroupHostPropDTO.setInnerIp(ccHostInfo.getInnerIp());
         CcCloudIdDTO ccCloudIdDTO = new CcCloudIdDTO();
         // 仅使用CloudId其余属性未用到，暂不设置
         ccCloudIdDTO.setInstanceId(ccHostInfo.getCloudId());

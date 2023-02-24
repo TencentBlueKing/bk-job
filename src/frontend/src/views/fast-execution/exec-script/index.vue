@@ -294,7 +294,7 @@
                 this.taskInstanceId = parseInt(this.$route.params.taskInstanceId, 10);
                 this.scriptVersionId = parseInt(this.$route.params.scriptVersionId, 10);
                 const { from } = this.$route.query;
-                
+
                 this.timeTravel();
 
                 // 步骤执行详情历史编辑——从历史缓存数据中查找对应数据的formData
@@ -318,7 +318,7 @@
                     this.fetchData();
                     return;
                 }
-                
+
                 // 执行指定版本的脚本
                 if (this.scriptVersionId > 0) {
                     this.formData.scriptVersionId = this.scriptVersionId;
@@ -428,10 +428,10 @@
                             params.taskInstanceId = this.taskInstanceId;
                             params.isRedoTask = true;
                         }
-                        
+
                         return TaskExecuteService.executeScript(params)
                             .then((data) => {
-                                window.changeConfirm = false;
+                                window.changeFlag = false;
                                 this.$router.push({
                                     name: 'quickLaunchStep',
                                     params: {

@@ -42,6 +42,9 @@ public class WorkerConfig {
     @Value("${job.file-worker.version:0.0.1}")
     private String version;
 
+    @Value("${job.file-worker.tags:}")
+    private List<String> tagList;
+
     @Value("${job.file-worker.name:anon}")
     private String name;
 

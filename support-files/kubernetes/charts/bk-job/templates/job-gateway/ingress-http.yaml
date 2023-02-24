@@ -38,7 +38,7 @@ spec:
         {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
         pathType: {{ .Values.gatewayConfig.ingress.pathType }}
         {{- end }}
-        backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
+        backend: {{- include "common.ingress.backend" (dict "serviceName" "bk-job-gateway" "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
   {{- end }}
   {{- range .Values.gatewayConfig.ingress.extraHosts }}
   - host: {{ .name }}
@@ -48,6 +48,6 @@ spec:
         {{- if eq "true" (include "common.ingress.supportsPathType" $) }}
         pathType: {{ default "ImplementationSpecific" .pathType }}
         {{- end }}
-        backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" $)) "servicePort" "http" "context" $)  | nindent 14 }}
+        backend: {{- include "common.ingress.backend" (dict "serviceName" "bk-job-gateway" "servicePort" "http" "context" $)  | nindent 14 }}
   {{- end }}
 {{- end }}

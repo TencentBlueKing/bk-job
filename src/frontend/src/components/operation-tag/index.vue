@@ -172,7 +172,7 @@
              */
             const handleSubmit = () => {
                 state.isSubmiting = true;
-                
+
                 return formRef.value.validate()
                     .then(() => {
                         if (isEdit.value) {
@@ -180,7 +180,7 @@
                                 id: props.data.id,
                                 ...state.formData,
                             }).then(() => {
-                                window.changeConfirm = false;
+                                window.changeFlag = false;
                                 ctx.emit('on-change');
                                 proxy.messageSuccess(I18n.t('编辑标签成功'));
                                 closeDialog();
@@ -188,7 +188,7 @@
                         }
                         return TagManageService.createTag(state.formData)
                             .then((data) => {
-                                window.changeConfirm = false;
+                                window.changeFlag = false;
                                 ctx.emit('on-change', new TagModel(data));
                                 proxy.messageSuccess(I18n.t('新建标签成功'));
                                 closeDialog();
@@ -207,7 +207,7 @@
                         closeDialog();
                     });
             };
-            
+
             return {
                 ...toRefs(state),
                 formRef,

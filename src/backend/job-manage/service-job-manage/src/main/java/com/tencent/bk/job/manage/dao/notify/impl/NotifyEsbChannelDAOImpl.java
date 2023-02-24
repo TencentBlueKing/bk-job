@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.dao.notify.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -93,10 +94,15 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
         try {
             String lang = JobContextUtil.getUserLang();
             return esbChannelCache.get(lang);
-        } catch (ExecutionException e) {
+        } catch (ExecutionException | UncheckedExecutionException e) {
             String errorMsg = "Fail to load EsbChannel from cache";
             logger.error(errorMsg, e);
-            throw new InternalException(errorMsg, e, ErrorCode.CMSI_MSG_CHANNEL_DATA_ERROR);
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            } else {
+                throw new InternalException(errorMsg, e, ErrorCode.INTERNAL_ERROR);
+            }
         }
     }
 }

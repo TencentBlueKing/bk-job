@@ -26,42 +26,67 @@
 -->
 
 <template>
-    <div class="page-account-rule" v-bkloading="{ isLoading }">
+    <div
+        v-bkloading="{ isLoading }"
+        class="page-account-rule">
         <smart-action offset-target="expression-input">
-            <div class="wraper">
-                <div v-for="(rule, index) in currentRules" :key="index" class="account-block">
-                    <div class="name">{{ rule.osTypeText }}</div>
-                    <div class="expression-input">
-                        <bk-input
-                            :value="rule.expression"
-                            :placeholder="$t('setting.请输入命名规则')"
-                            @change="value => handleChange('expression', value, index)" />
+            <jb-form
+                ref="form"
+                :model="formData"
+                :rules="rules"
+                class="wraper">
+                <jb-form-item
+                    v-for="(rule, index) in currentRules"
+                    :property="rule.osTypeKey"
+                    :label="rule.osTypeText"
+                    required
+                    :key="index">
+                    <div class="account-block">
+                        <div class="expression-input">
+                            <bk-input
+                                :placeholder="$t('setting.请输入命名规则')"
+                                :value="rule.expression"
+                                @change="value => handleChange('expression', value, index)" />
+                        </div>
+                        <div class="rule">
+                            <bk-input
+                                :placeholder="$t('setting.请输入命名规则提醒文案')"
+                                :value="rule.description"
+                                @change="value => handleChange('description', value, index)" />
+                        </div>
+                        <bk-button
+                            class="reset"
+                            text
+                            @click="handleReset(index)">
+                            {{ $t('setting.恢复默认') }}
+                        </bk-button>
                     </div>
-                    <div class="rule">
-                        <bk-input
-                            :value="rule.description"
-                            :placeholder="$t('setting.请输入命名规则提醒文案')"
-                            @change="value => handleChange('description', value, index)" />
-                    </div>
-                    <bk-button text class="reset" @click="handleReset(index)">{{ $t('setting.恢复默认') }}</bk-button>
-                </div>
-            </div>
+                </jb-form-item>
+
+            </jb-form>
             <template #action>
                 <bk-button
-                    theme="primary"
-                    :loading="isSubmitting"
                     class="w120 mr10"
-                    @click="handleSave">{{ $t('setting.保存') }}</bk-button>
-                <bk-button @click="handleResetAll">{{ $t('setting.重置') }}</bk-button>
+                    :loading="isSubmitting"
+                    theme="primary"
+                    @click="handleSave">
+                    {{ $t('setting.保存') }}
+                </bk-button>
+                <bk-button @click="handleResetAll">
+                    {{ $t('setting.重置') }}
+                </bk-button>
             </template>
         </smart-action>
     </div>
 </template>
 <script>
-    import I18n from '@/i18n';
     import _ from 'lodash';
+
     import GlobalSettingService from '@service/global-setting';
+
     import SmartAction from '@components/smart-action';
+
+    import I18n from '@/i18n';
 
     export default {
         name: '',
@@ -73,12 +98,46 @@
                 isLoading: false,
                 isSubmitting: false,
                 currentRules: [],
+                formData: {},
             };
         },
         created () {
             this.fetchData();
             this.defaultRules = [];
             this.selfLastRules = [];
+
+            this.rules = {
+                linux: [
+                    {
+                        validator: () => {
+                            const currentRule = _.find(this.currentRules, item => item.osTypeKey === 'linux');
+                            return currentRule.expression;
+                        },
+                        message: I18n.t('setting.Linux 账号不能为空'),
+                        trigger: 'blur',
+                    },
+                ],
+                windows: [
+                    {
+                        validator: () => {
+                            const currentRule = _.find(this.currentRules, item => item.osTypeKey === 'windows');
+                            return currentRule.expression;
+                        },
+                        message: I18n.t('setting.Windows 账号不能为空'),
+                        trigger: 'blur',
+                    },
+                ],
+                db: [
+                    {
+                        validator: () => {
+                            const currentRule = _.find(this.currentRules, item => item.osTypeKey === 'db');
+                            return currentRule.expression;
+                        },
+                        message: I18n.t('setting.数据库账号不能为空'),
+                        trigger: 'blur',
+                    },
+                ],
+            };
         },
         methods: {
             fetchData () {
@@ -95,7 +154,7 @@
                     });
             },
             handleChange (field, value, index) {
-                window.changeConfirm = true;
+                window.changeFlag = true;
                 this.currentRules[index][field] = value;
                 this.currentRules = [...this.currentRules];
             },
@@ -104,15 +163,19 @@
                 this.currentRules.splice(index, 1, currentRule);
             },
             handleSave () {
-                this.isSubmitting = true;
-                GlobalSettingService.updateNameRules({
-                    rules: this.currentRules,
-                }).then(() => {
-                    window.changeConfirm = false;
-                    this.messageSuccess(I18n.t('setting.账号命名规则保存成功'));
-                })
-                    .finally(() => {
-                        this.isSubmitting = false;
+                this.$refs.form.validate()
+                    .then(() => {
+                        this.isSubmitting = true;
+                        GlobalSettingService.updateNameRules({
+                            rules: this.currentRules,
+                        })
+                            .then(() => {
+                                window.changeFlag = false;
+                                this.messageSuccess(I18n.t('setting.账号命名规则保存成功'));
+                            })
+                            .finally(() => {
+                                this.isSubmitting = false;
+                            });
                     });
             },
             handleResetAll () {
@@ -136,7 +199,6 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            margin-bottom: 20px;
             color: #63656e;
 
             .name {
@@ -145,7 +207,6 @@
 
             .expression-input {
                 width: 300px;
-                margin-left: 24px;
             }
 
             .rule {

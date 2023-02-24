@@ -157,8 +157,8 @@
                         if (val) {
                             this.isRender = true;
                             // 当页面可以进行编辑时，其中一项是通过sideslider来编辑的，需要先记录页面的编辑状态
-                            this.pageChangeConfirmMemo = window.changeConfirm;
-                            window.changeConfirm = 'dialog';
+                            this.pageChangeConfirmMemo = window.changeFlag;
+                            window.changeFlag = 'dialog';
                             this.getMediaWidth();
                             this.$nextTick(() => {
                                 observer.observe(this.$refs.content, {
@@ -206,7 +206,7 @@
                 if (!this.media.length) {
                     return;
                 }
-                
+
                 const queryRange = [
                     // 1366,
                     1680,
@@ -215,7 +215,7 @@
                 ];
                 const windowHeight = window.innerWidth;
                 let index = 0;
-                
+
                 queryRange.forEach((mediaWidth) => {
                     if (mediaWidth < windowHeight) {
                         index = index + 1;
@@ -240,7 +240,7 @@
                     // eslint-disable-next-line no-plusplus
                     for (let i = 0; i < $elList.length; i++) {
                         const currentEl = $elList[i];
-                        
+
                         const { height } = currentEl.getBoundingClientRect();
                         if (height === 0) {
                             return false;
@@ -296,7 +296,7 @@
              * @desc 关闭弹层
              */
             close () {
-                window.changeConfirm = this.pageChangeConfirmMemo;
+                window.changeFlag = this.pageChangeConfirmMemo;
                 this.$emit('update:isShow', false);
             },
             /**
@@ -306,7 +306,7 @@
                 this.isSubmiting = true;
                 Promise.resolve(this.checkHandle().submit())
                     .then(() => {
-                        window.changeConfirm = false;
+                        window.changeFlag = false;
                         this.close();
                     })
                     .finally(() => {
