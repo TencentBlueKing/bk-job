@@ -42,6 +42,7 @@
                 </bk-button>
                 <template #right>
                     <jb-search-select
+                        ref="searchSelect"
                         @on-change="handleSearch"
                         :data="searchSelect"
                         :placeholder="$t('script.选择匹配的字段并输入关键字进行搜索')"
