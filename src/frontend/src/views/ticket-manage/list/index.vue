@@ -57,7 +57,8 @@
                 width="300"
                 prop="id"
                 key="id"
-                align="left">
+                align="left"
+                show-overflow-tooltip>
                 <template slot-scope="{ row }">
                     <span>{{ row.id }}</span>
                 </template>
@@ -91,7 +92,8 @@
                 prop="description"
                 key="description"
                 min-width="150"
-                align="left">
+                align="left"
+                show-overflow-tooltip>
                 <template slot-scope="{ row }">
                     <span>{{ row.description || '--' }}</span>
                 </template>
@@ -128,7 +130,8 @@
                 width="120"
                 prop="creator"
                 key="creator"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
                 :label="$t('ticket.创建时间')"
@@ -142,14 +145,16 @@
                 prop="lastModifyUser"
                 key="lastModifyUser"
                 width="120"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
                 :label="$t('ticket.更新时间')"
                 prop="lastModifyTime"
                 key="lastModifyTime"
                 width="180"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 :label="$t('ticket.操作')"
                 :resizable="false"
@@ -261,7 +266,7 @@
                     return {
                         title: I18n.t('ticket.新建凭证'),
                         okText: I18n.t('ticket.提交'),
-                        
+
                     };
                 }
                 return {

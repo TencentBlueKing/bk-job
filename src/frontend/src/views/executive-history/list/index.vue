@@ -333,6 +333,10 @@
                             id: 7,
                         },
                         {
+                            name: I18n.t('history.状态异常'),
+                            id: 9,
+                        },
+                        {
                             name: I18n.t('history.强制终止中'),
                             id: 10,
                         },
@@ -496,15 +500,15 @@
                     startTime: '',
                     endTime: '',
                 };
-                
+
                 const currentTime = new Date().getTime();
-                
+
                 if (Object.prototype.hasOwnProperty.call(this.$route.query, 'startTime')) {
                     defaultDateTime[0] = this.$route.query.startTime;
                 } else {
                     defaultDateTime[0] = prettyDateTimeFormat(currentTime - 86400000);
                 }
-                
+
                 searchParams.startTime = defaultDateTime[0]; // eslint-disable-line prefer-destructuring
 
                 if (Object.prototype.hasOwnProperty.call(this.$route.query, 'endTime')) {

@@ -75,37 +75,43 @@
                 :label="$t('whiteIP.生效范围.colHead')"
                 prop="scopeText"
                 key="scopeText"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.appText"
                 :label="$t('whiteIP.目标业务.colHead')"
                 prop="appText"
                 key="appText"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.creator"
                 :label="$t('whiteIP.创建人')"
                 prop="creator"
                 key="creator"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.createTime"
                 :label="$t('whiteIP.创建时间')"
                 prop="createTime"
                 key="createTime"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifier"
                 :label="$t('whiteIP.更新人')"
                 prop="lastModifier"
                 key="lastModifier"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 v-if="allRenderColumnMap.lastModifyTime"
                 :label="$t('whiteIP.更新时间')"
                 prop="lastModifyTime"
                 key="lastModifyTime"
-                align="left" />
+                align="left"
+                show-overflow-tooltip />
             <bk-table-column
                 :label="$t('whiteIP.操作')"
                 :resizable="false"
