@@ -63,10 +63,10 @@
       <bk-table-column
         v-if="allRenderColumnMap.scopeText"
         key="scopeText"
-        v-bk-overflow-tips
         align="left"
         :label="$t('whiteIP.生效范围.colHead')"
-        prop="scopeText" />
+        prop="scopeText"
+        show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.appText"
         key="appText"
