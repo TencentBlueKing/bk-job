@@ -105,8 +105,8 @@
               <template slot-scope="{ row }">
                 <bk-button
                   v-bk-tooltips.allowHtml="`
-                                    <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
-                                    <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
+                    <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
+                    <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
                   class="mr20"
                   text
                   @click="handleShowRelated(row)">
@@ -262,6 +262,25 @@
                 :size="tableSize"
                 @setting-change="handleSettingChange" />
             </bk-table-column>
+            <empty
+              v-if="isSearching"
+              slot="empty"
+              type="search">
+              <div>
+                <div style="font-size: 14px; color: #63656e;">
+                  {{ $t('搜索结果为空') }}
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
+                  <span>{{ $t('可以尝试调整关键词') }}</span>
+                  <span>{{ $t('或') }}</span>
+                  <bk-button
+                    text
+                    @click="handleClearSearch">
+                    {{ $t('清空搜索条件') }}
+                  </bk-button>
+                </div>
+              </div>
+            </empty>
           </bk-table>
           <template slot="flod">
             <component
@@ -359,6 +378,7 @@
   } from '@utils/assist';
   import { listColumnsCache } from '@utils/cache-helper';
 
+  import Empty from '@components/empty';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
   import JbSearchSelect from '@components/jb-search-select';
   import ListActionLayout from '@components/list-action-layout';
@@ -380,6 +400,7 @@
   export default {
     name: 'ScriptVersion',
     components: {
+      Empty,
       ListActionLayout,
       JbPopoverConfirm,
       JbSearchSelect,
@@ -397,6 +418,7 @@
         isLoading: false,
         isListFlod: false,
         isShowNewVersion: false,
+        isSearching: false,
         showDiff: false,
         dataMemo: [],
         data: [],
@@ -713,7 +735,14 @@
           });
         });
         this.data = Object.freeze(scriptVersionList);
+        this.isSearching = Object.keys(payload).length > 0;
         this.handleLayoutFlod();
+      },
+      /**
+       * @desc 清空搜索
+       */
+      handleClearSearch () {
+        this.$refs.searchSelect.reset();
       },
       /**
        * @desc 列表排序
