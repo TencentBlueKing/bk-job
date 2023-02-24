@@ -57,7 +57,7 @@ public abstract class AbstractBkApiClient {
         this.appSecret = appSecret;
     }
 
-    private <T> String doPostAndGetRespStr(String uri, T body, ExtHttpHelper httpHelper) {
+    private <T> String postForString(String uri, T body, ExtHttpHelper httpHelper) {
 
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
@@ -199,7 +199,7 @@ public abstract class AbstractBkApiClient {
         String respStr = null;
         switch (httpMethod) {
             case POST:
-                respStr = doPostAndGetRespStr(uri, reqBody, httpHelper);
+                respStr = postForString(uri, reqBody, httpHelper);
                 break;
             default:
                 log.warn("Unimplemented http method: {}", httpMethod.name());
