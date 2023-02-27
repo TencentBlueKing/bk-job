@@ -2,6 +2,7 @@
 <configuration scan="true" scanPeriod="30 seconds">
     <property name="LOG_PATTERN"
               value="[%date{yyyy-MM-dd HH:mm:ss.SSS}] %-5level %logger{36}:%method:%line - %msg%n"/>
+
     <contextName>logback</contextName>
 
     <springProfile name="test">
