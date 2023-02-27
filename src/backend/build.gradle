@@ -192,6 +192,9 @@ subprojects {
     }
     task integrationTest(type: Test, dependsOn: test) {
         useJUnitPlatform()
+        testLogging {
+            events 'PASSED', 'FAILED', 'SKIPPED'
+        }
         include '**/*IntegrationTest.class'
     }
 

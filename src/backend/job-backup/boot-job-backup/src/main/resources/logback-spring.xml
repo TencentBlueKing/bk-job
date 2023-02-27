@@ -1,5 +1,15 @@
-<included>
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <contextName>logback</contextName>
+
+    <property name="APP_NAME" value="${APP_NAME:-job-backup}"/>
+    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-backup}"/>
+    <property name="APP_LOG_NAME" value="backup.log"/>
+    <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="ARCHIVE_ERROR_LOG_FILE" value="${APP_LOG_DIR}/archive_error.log"/>
+
+    <include resource="logback-default.xml"/>
 
     <appender name="archive-error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${ARCHIVE_ERROR_LOG_FILE}</file>
@@ -37,4 +47,4 @@
             <appender-ref ref="archive-error-appender"/>
         </logger>
     </springProfile>
-</included>
+</configuration>

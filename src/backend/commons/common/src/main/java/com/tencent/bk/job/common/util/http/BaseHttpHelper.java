@@ -101,7 +101,7 @@ public class BaseHttpHelper implements HttpHelper {
             get.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "get:keepAlive={},url={},headers={},httpStatusCode={},respStr={}",
+                    "get:keepAlive={},url={},httpStatusCode={},respStr={}",
                     keepAlive,
                     url,
                     httpStatusCode,

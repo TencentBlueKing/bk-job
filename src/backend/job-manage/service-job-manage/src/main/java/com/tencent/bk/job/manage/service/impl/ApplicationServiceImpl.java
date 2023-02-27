@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -35,6 +36,7 @@ import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -120,6 +122,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
             }
         }
+        checkApplication(application);
         return application;
     }
 
@@ -135,7 +138,23 @@ public class ApplicationServiceImpl implements ApplicationService {
                 throw new NotFoundException("App not found, resourceScope:" + resourceScope, ErrorCode.APP_NOT_EXIST);
             }
         }
+        checkApplication(application);
         return application;
+    }
+
+    private void checkApplication(ApplicationDTO application) {
+        if (application == null) {
+            return;
+        }
+        if (application.getId() == null) {
+            log.error("Empty appId");
+            throw new InternalException("Empty appId for application", ErrorCode.INTERNAL_ERROR);
+        }
+        if (application.getScope() == null || application.getScope().getType() == null
+            || StringUtils.isBlank(application.getScope().getId())) {
+            log.error("Invalid resource scope, scope: {}", application.getScope());
+            throw new InternalException("Invalid resource scope", ErrorCode.INTERNAL_ERROR);
+        }
     }
 
     @Override
