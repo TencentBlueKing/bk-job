@@ -11,7 +11,7 @@
                 <charset>utf8</charset>
             </encoder>
         </appender>
-        <root level="DEBUG">
+        <root level="TRACE">
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
