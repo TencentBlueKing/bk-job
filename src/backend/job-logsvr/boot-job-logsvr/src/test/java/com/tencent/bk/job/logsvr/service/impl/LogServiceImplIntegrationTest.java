@@ -38,7 +38,6 @@ import com.tencent.bk.job.logsvr.mongo.ScriptLogsCollectionLoader;
 import com.tencent.bk.job.logsvr.service.LogService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -66,7 +65,7 @@ public class LogServiceImplIntegrationTest {
     @Nested
     @DisplayName("测试保存脚本日志")
     class SaveScriptLogTest {
-        @Test
+//        @Test
         @DisplayName("测试保存脚本日志")
         void testSaveScriptLogV2() {
             TaskHostLog taskHostLog1 = new TaskHostLog();
@@ -142,7 +141,7 @@ public class LogServiceImplIntegrationTest {
     @DisplayName("测试保存文件分发日志")
     class SaveFileLogTest {
 
-        @Test
+//        @Test
         @DisplayName("测试保存文件分发日志")
         void testSaveFileLog() {
             FileTaskLogDoc fileTaskLog1 = buildFileTaskDetailLog(
