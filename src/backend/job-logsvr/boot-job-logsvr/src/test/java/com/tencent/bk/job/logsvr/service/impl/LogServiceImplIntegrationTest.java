@@ -24,27 +24,15 @@
 
 package com.tencent.bk.job.logsvr.service.impl;
 
-import com.tencent.bk.job.logsvr.mongo.FileLogsCollectionLoader;
-import com.tencent.bk.job.logsvr.mongo.LogCollectionFactory;
-import com.tencent.bk.job.logsvr.mongo.LogCollectionLoaderFactory;
-import com.tencent.bk.job.logsvr.mongo.ScriptLogsCollectionLoader;
-import com.tencent.bk.job.logsvr.service.LogService;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-@ActiveProfiles("test")
+//@ActiveProfiles("test")
 //@DataMongoTest
-@ExtendWith(SpringExtension.class)
-@TestPropertySource(locations = "classpath:test.properties")
-@Import({LogServiceImpl.class, LogCollectionFactory.class, ScriptLogsCollectionLoader.class,
-    LogCollectionLoaderFactory.class, FileLogsCollectionLoader.class})
+//@ExtendWith(SpringExtension.class)
+//@TestPropertySource(locations = "classpath:test.properties")
+//@Import({LogServiceImpl.class, LogCollectionFactory.class, ScriptLogsCollectionLoader.class,
+//    LogCollectionLoaderFactory.class, FileLogsCollectionLoader.class})
 public class LogServiceImplIntegrationTest {
-    @Autowired
-    private LogService logService;
+//    @Autowired
+//    private LogService logService;
 
 //    @Nested
 //    @DisplayName("测试保存脚本日志")
