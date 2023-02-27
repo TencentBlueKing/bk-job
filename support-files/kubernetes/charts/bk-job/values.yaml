@@ -1376,7 +1376,7 @@ waitForDependServices:
 ## job-config-watcher 配置
 k8sConfigWatcherConfig:
   image:
-    registry: hub.bktencent.com
+    registry: docker.io
     repository: springcloud/spring-cloud-kubernetes-configuration-watcher
     tag: "3.0.0"
     pullPolicy: IfNotPresent
