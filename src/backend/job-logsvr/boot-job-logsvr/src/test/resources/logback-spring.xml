@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
     <property name="LOG_PATTERN"
-              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
+              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}] %-5level %logger{36}:%method:%line - %msg%n"/>
+
     <contextName>logback</contextName>
 
     <springProfile name="test">
@@ -15,4 +16,5 @@
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
+
 </configuration>

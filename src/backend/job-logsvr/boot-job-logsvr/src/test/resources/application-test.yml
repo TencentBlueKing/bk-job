@@ -8,11 +8,8 @@ spring:
   cloud:
     config:
       enabled: false
-  mongodb:
-    embedded:
-      version: 4.4.0
 de:
   flapdoodle:
     mongodb:
       embedded:
-        version: 4.4.0
+        version: 4.0.0
