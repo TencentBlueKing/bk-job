@@ -90,6 +90,8 @@ ext {
     // https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
     set('apacheCommonsPoolVersion', "2.11.1")
     set('apacheCommonsCodecVersion', "1.14")
+    set('apacheCuratorFrameworkVersion', "5.4.0")
+    set('apacheCuratorRecipesVersion', "5.4.0")
     set('commonsCollectionsVersion', "3.2.2")
     set('dozerVersion', "5.5.1")
     set('jedisVersion', "3.0.1")
@@ -230,6 +232,8 @@ subprojects {
             dependency "org.apache.commons:commons-collections4:$apacheCommonsCollectionVersion"
             dependency "org.apache.commons:commons-pool2:$apacheCommonsPoolVersion"
             dependency "org.apache.commons:commons-lang3:$apacheCommonsLang3Version"
+            dependency "org.apache.curator:curator-framework:$apacheCuratorFrameworkVersion"
+            dependency "org.apache.curator:curator-recipes:$apacheCuratorRecipesVersion"
             dependency "commons-collections:commons-collections:$commonsCollectionsVersion"
             dependency "commons-io:commons-io:$commonsIOVersion"
             dependency "commons-codec:commons-codec:$apacheCommonsCodecVersion"

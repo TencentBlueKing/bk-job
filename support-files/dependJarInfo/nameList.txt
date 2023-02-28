@@ -34,6 +34,8 @@ commons-lang
 commons-lang3
 commons-logging
 commons-pool2
+curator-framework
+curator-recipes
 consul-api
 dozer
 error_prone_annotations
