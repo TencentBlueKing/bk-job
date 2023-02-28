@@ -43,9 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * @Description 字符串处理工具类
- * @Date 2020/3/6
- * @Version 1.0
+ * 字符串处理工具类
  */
 @Slf4j
 public class StringUtil {
@@ -334,5 +332,26 @@ public class StringUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * 返回限定长度的字符
+     *
+     * @param str       字符串
+     * @param maxLength 最大长度(字符)
+     * @return 限定长度的字符
+     */
+    public static String substring(String str, int maxLength) {
+        if (str == null) {
+            return null;
+        }
+        if (maxLength <= 0) {
+            return "";
+        }
+        if (str.length() <= maxLength) {
+            return str;
+        } else {
+            return str.substring(0, maxLength);
+        }
     }
 }

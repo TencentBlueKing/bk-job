@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.esb.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -102,7 +103,7 @@ public class EsbResp<T> {
 
     public static <T> EsbResp<T> buildAuthFailResult(EsbApplyPermissionDTO permission) {
         EsbResp<T> esbResp = buildCommonFailResp(ErrorCode.BK_PERMISSION_DENIED,
-                                                    new String[]{JobContextUtil.getUsername()}, null);
+            new String[]{JobContextUtil.getUsername()}, null);
         esbResp.setPermission(permission);
         return esbResp;
     }
@@ -132,5 +133,10 @@ public class EsbResp<T> {
             }
         }
         return resp;
+    }
+
+    @JsonIgnore
+    public boolean isSuccess() {
+        return this.code == ErrorCode.RESULT_OK;
     }
 }
