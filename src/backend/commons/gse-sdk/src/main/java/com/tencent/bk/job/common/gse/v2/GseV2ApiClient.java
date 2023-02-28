@@ -34,6 +34,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     private static final String URI_ASYNC_EXECUTE_SCRIPT = "/api/v2/task/async_execute_script";
     private static final String URI_GET_EXECUTE_SCRIPT_RESULT = "/api/v2/task/get_execute_script_result";
     private static final String URI_LIST_AGENT_STATE = "/api/v2/cluster/list_agent_state";
+    private static final String URI_ASYNC_TRANSFER_FILE = "/api/v2/task/async_transfer_file";
+    private static final String URI_GET_TRANSFER_FILE_RESULT = "/api/v2/task/async/get_transfer_file_result";
 
     @Autowired
     public GseV2ApiClient(BkApiConfig bkApiConfig) {
@@ -99,7 +101,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     @Override
     public GseTaskResponse asyncTransferFile(TransferFileRequest request) {
         EsbResp<AsyncGseTaskResult> resp =
-            doHttpPost("/api/v2/task/async_transfer_file",
+            doHttpPost(URI_ASYNC_TRANSFER_FILE,
                 request, new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 }, null);
 
@@ -109,7 +111,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     @Override
     public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
         EsbResp<FileTaskResult> resp =
-            doHttpPost("/api/v2/task/async/get_transfer_file_result",
+            doHttpPost(URI_GET_TRANSFER_FILE_RESULT,
                 request, new TypeReference<EsbResp<FileTaskResult>>() {
                 }, null);
         return resp.getData();
