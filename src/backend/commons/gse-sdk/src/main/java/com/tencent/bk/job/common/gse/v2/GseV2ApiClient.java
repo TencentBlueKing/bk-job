@@ -84,7 +84,6 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                         }
                     }
                 });
-        log.info("GetExecuteScriptResult, resp: {}", resp);
         return resp.getData();
     }
 
