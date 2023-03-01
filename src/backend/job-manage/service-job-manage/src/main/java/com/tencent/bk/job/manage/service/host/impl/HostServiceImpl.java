@@ -1375,6 +1375,7 @@ public class HostServiceImpl implements HostService {
             if (host.getHostId() != null) {
                 hostIds.add(host.getHostId());
             } else {
+                // 兼容使用云区域+ip来代表主机的场景
                 cloudIps.add(host.toCloudIp());
             }
         });

@@ -24,11 +24,16 @@
 
 package com.tencent.bk.job.manage.model.inner.request;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 
@@ -39,6 +44,7 @@ import java.util.List;
 @Setter
 @ToString
 @NoArgsConstructor
+@Slf4j
 public class ServiceBatchGetAppHostsReq {
     /**
      * 查询的主机列表
@@ -53,5 +59,28 @@ public class ServiceBatchGetAppHostsReq {
     public ServiceBatchGetAppHostsReq(List<HostDTO> hosts, boolean refreshAgentId) {
         this.hosts = hosts;
         this.refreshAgentId = refreshAgentId;
+    }
+
+    public void validate() throws InvalidParamException {
+        if (CollectionUtils.isEmpty(hosts)) {
+            log.error("Empty param: hosts");
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{
+                    "hosts",
+                    "hosts must not be empty"
+                });
+        }
+        hosts.forEach(host -> {
+            if (host.getHostId() == null && !IpUtils.checkCloudIp(host.toCloudIp())) {
+                log.error("Invalid host: {}", host);
+                throw new InvalidParamException(
+                    ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                    new Object[]{
+                        "hosts",
+                        "Invalid host"
+                    });
+            }
+        });
     }
 }
