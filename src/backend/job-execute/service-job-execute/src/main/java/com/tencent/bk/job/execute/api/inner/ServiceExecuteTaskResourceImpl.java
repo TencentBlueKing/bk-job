@@ -55,6 +55,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.CIPHER;
+
 @RestController
 @Slf4j
 public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResource {
@@ -93,26 +95,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private TaskExecuteParam buildExecuteParam(ServiceTaskExecuteRequest request) {
         List<TaskVariableDTO> executeVariableValues = new ArrayList<>();
-        if (request.getTaskVariables() != null) {
-            for (ServiceTaskVariable serviceTaskVariable : request.getTaskVariables()) {
-                TaskVariableDTO taskVariableDTO = new TaskVariableDTO();
-                taskVariableDTO.setId(serviceTaskVariable.getId());
-                if (serviceTaskVariable.getType() == TaskVariableTypeEnum.STRING.getType()
-                    || serviceTaskVariable.getType() == TaskVariableTypeEnum.CIPHER.getType()
-                    || serviceTaskVariable.getType() == TaskVariableTypeEnum.INDEX_ARRAY.getType()
-                    || serviceTaskVariable.getType() == TaskVariableTypeEnum.ASSOCIATIVE_ARRAY.getType()) {
-                    taskVariableDTO.setValue(serviceTaskVariable.getStringValue());
-                } else if (serviceTaskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-                    ServiceTargetServers serviceServers = serviceTaskVariable.getServerValue();
-                    ServersDTO serversDTO = convertToServersDTO(serviceServers);
-                    taskVariableDTO.setTargetServers(serversDTO);
-                } else if (serviceTaskVariable.getType() == TaskVariableTypeEnum.NAMESPACE.getType()) {
-                    taskVariableDTO.setValue(serviceTaskVariable.getNamespaceValue());
-                }
-                executeVariableValues.add(taskVariableDTO);
-            }
-        }
-        return TaskExecuteParam
+        TaskExecuteParam taskExecuteParam = TaskExecuteParam
             .builder()
             .appId(request.getAppId())
             .planId(request.getPlanId())
@@ -123,6 +106,35 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             .taskName(request.getTaskName())
             .skipAuth(request.getCronTaskId() != null && request.isSkipAuth())
             .build();
+        if (request.getTaskVariables() == null) {
+            return taskExecuteParam;
+        }
+        // 解析构造全局变量
+        for (ServiceTaskVariable serviceTaskVariable : request.getTaskVariables()) {
+            TaskVariableDTO taskVariableDTO = new TaskVariableDTO();
+            taskVariableDTO.setId(serviceTaskVariable.getId());
+            if (serviceTaskVariable.getType() == TaskVariableTypeEnum.STRING.getType()
+                || serviceTaskVariable.getType() == TaskVariableTypeEnum.INDEX_ARRAY.getType()
+                || serviceTaskVariable.getType() == TaskVariableTypeEnum.ASSOCIATIVE_ARRAY.getType()) {
+                taskVariableDTO.setValue(serviceTaskVariable.getStringValue());
+            } else if (serviceTaskVariable.getType() == CIPHER.getType()) {
+                // 如果密码类型的变量传入为空或者“******”，那么密码使用系统中保存的
+                if (serviceTaskVariable.getStringValue() == null || "******".equals(serviceTaskVariable.getStringValue())) {
+                    continue;
+                } else {
+                    taskVariableDTO.setValue(serviceTaskVariable.getStringValue());
+                }
+            } else if (serviceTaskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
+                ServiceTargetServers serviceServers = serviceTaskVariable.getServerValue();
+                ServersDTO serversDTO = convertToServersDTO(serviceServers);
+                taskVariableDTO.setTargetServers(serversDTO);
+            } else if (serviceTaskVariable.getType() == TaskVariableTypeEnum.NAMESPACE.getType()) {
+                taskVariableDTO.setValue(serviceTaskVariable.getNamespaceValue());
+            }
+            executeVariableValues.add(taskVariableDTO);
+        }
+        taskExecuteParam.setExecuteVariableValues(executeVariableValues);
+        return taskExecuteParam;
     }
 
     private ServersDTO convertToServersDTO(ServiceTargetServers servers) {
