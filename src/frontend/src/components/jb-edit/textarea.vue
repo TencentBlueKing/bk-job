@@ -34,6 +34,7 @@
             <div
                 class="render-text-box"
                 ref="valueTextBox"
+                v-bk-overflow-tips="renderText"
                 @copy="handleCopy"
                 :style="boxStyles">
                 <slot v-bind:value="newVal">{{ renderText }}</slot>
@@ -206,7 +207,7 @@
                         $el.style.wordBreak = 'keep-all';
                         $el.style.whiteSpace = 'pre';
                     }
-                    
+
                     this.$refs.valueTextBox.appendChild($el);
 
                     const lineHeight = 24;
@@ -214,7 +215,7 @@
                     const maxHeight = lineHeight * maxLine;
                     let realHeight = 0;
                     let realLength = 1;
-                
+
                     const calcLength = () => {
                         const text = this.newVal.slice(0, realLength);
                         $el.innerText = `${text} 展开展开`;

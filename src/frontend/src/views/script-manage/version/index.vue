@@ -42,6 +42,7 @@
                 </bk-button>
                 <template #right>
                     <jb-search-select
+                        ref="searchSelect"
                         @on-change="handleSearch"
                         :data="searchSelect"
                         :placeholder="$t('script.选择匹配的字段并输入关键字进行搜索')"
@@ -258,6 +259,25 @@
                                 :size="tableSize"
                                 @setting-change="handleSettingChange" />
                         </bk-table-column>
+                        <empty
+                            v-if="isSearching"
+                            slot="empty"
+                            type="search">
+                            <div>
+                                <div style="font-size: 14px; color: #63656e;">
+                                    {{ $t('搜索结果为空') }}
+                                </div>
+                                <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
+                                    <span>{{ $t('可以尝试调整关键词') }}</span>
+                                    <span>{{ $t('或') }}</span>
+                                    <bk-button
+                                        text
+                                        @click="handleClearSearch">
+                                        {{ $t('清空搜索条件') }}
+                                    </bk-button>
+                                </div>
+                            </div>
+                        </empty>
                     </bk-table>
                     <template slot="flod">
                         <component
@@ -341,6 +361,7 @@
     import PublicScriptService from '@service/public-script-manage';
     import NotifyService from '@service/notify';
     import ScriptModel from '@model/script/script';
+    import Empty from '@components/empty';
     import JbSearchSelect from '@components/jb-search-select';
     import ListActionLayout from '@components/list-action-layout';
     import JbPopoverConfirm from '@components/jb-popover-confirm';
@@ -367,6 +388,7 @@
     export default {
         name: 'ScriptVersion',
         components: {
+            Empty,
             ListActionLayout,
             JbPopoverConfirm,
             JbSearchSelect,
@@ -384,6 +406,7 @@
                 isLoading: false,
                 isListFlod: false,
                 isShowNewVersion: false,
+                isSearching: false,
                 showDiff: false,
                 dataMemo: [],
                 data: [],
@@ -700,7 +723,14 @@
                     });
                 });
                 this.data = Object.freeze(scriptVersionList);
+                this.isSearching = Object.keys(payload).length > 0;
                 this.handleLayoutFlod();
+            },
+            /**
+             * @desc 清空搜索
+             */
+            handleClearSearch () {
+                this.$refs.searchSelect.reset();
             },
             /**
              * @desc 列表排序
