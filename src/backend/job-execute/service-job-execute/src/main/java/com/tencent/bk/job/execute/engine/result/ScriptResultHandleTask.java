@@ -287,7 +287,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         StopWatch watch = new StopWatch("analyse-gse-script-task");
         watch.start("analyse");
         for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
-            log.info("[{}]: agentTaskResult={}", gseTask.getTaskUniqueName(), agentTaskResult);
+            log.info("[{}]: Analyse agent task result, result: {}",
+                gseTask.getTaskUniqueName(), agentTaskResult);
 
             /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
              *是获取上下文参数的脚本。所以m_id=0的是用户脚本的执行日志，需要分析记录；m_id=1的，则是获取上下文参数

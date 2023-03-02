@@ -121,7 +121,8 @@ public class JsonMapper {
 
         try {
             return mapper.readValue(jsonString, typeReference);
-        } catch (IOException e) {
+        } catch (Throwable e) {
+            // 捕获所有异常，统一转换为JsonParseException
             log.warn("parse json string error:" + typeReference, e);
             throw new JsonParseException(e);
         }

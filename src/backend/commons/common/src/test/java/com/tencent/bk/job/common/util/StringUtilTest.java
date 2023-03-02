@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StringUtilTest {
 
@@ -67,18 +69,31 @@ public class StringUtilTest {
 
     @Test
     public void testIsDifferent() {
-        assertEquals(StringUtil.isDifferent(null, null), false);
-        assertEquals(StringUtil.isDifferent("123", "123"), false);
-        assertEquals(StringUtil.isDifferent(null, "123"), true);
-        assertEquals(StringUtil.isDifferent("123", null), true);
-        assertEquals(StringUtil.isDifferent("123", "123 "), true);
+        assertFalse(StringUtil.isDifferent(null, null));
+        assertFalse(StringUtil.isDifferent("123", "123"));
+        assertTrue(StringUtil.isDifferent(null, "123"));
+        assertTrue(StringUtil.isDifferent("123", null));
+        assertTrue(StringUtil.isDifferent("123", "123 "));
     }
 
     @Test
     public void testEscape() {
-        assertEquals(StringUtil.escape("a_b", new char[] {'_', '%', '\\'}, new String[] {"\\_", "\\%", "\\\\"}), "a\\_b");
-        assertEquals(StringUtil.escape("a%b", new char[] {'_', '%', '\\'}, new String[] {"\\_", "\\%", "\\\\"}), "a\\%b");
-        assertEquals(StringUtil.escape("a\\b", new char[] {'_', '%', '\\'}, new String[] {"\\_", "\\%", "\\\\"}), "a\\\\b");
-        assertEquals(StringUtil.escape("a_b%c\\d", new char[] {'_', '%', '\\'}, new String[] {"\\_", "\\%", "\\\\"}), "a\\_b\\%c\\\\d");
+        assertEquals(StringUtil.escape("a_b", new char[]{'_', '%', '\\'}, new String[]{"\\_", "\\%", "\\\\"}), "a\\_b");
+        assertEquals(StringUtil.escape("a%b", new char[]{'_', '%', '\\'}, new String[]{"\\_", "\\%", "\\\\"}), "a\\%b");
+        assertEquals(StringUtil.escape("a\\b", new char[]{'_', '%', '\\'}, new String[]{"\\_", "\\%", "\\\\"}), "a" +
+            "\\\\b");
+        assertEquals(StringUtil.escape("a_b%c\\d", new char[]{'_', '%', '\\'}, new String[]{"\\_", "\\%", "\\\\"}),
+            "a\\_b\\%c\\\\d");
+    }
+
+    @Test
+    void substring() {
+        assertEquals(StringUtil.substring("abcde", 3), "abc");
+        assertEquals(StringUtil.substring("abcde", 5), "abcde");
+        assertEquals(StringUtil.substring("abcde", 6), "abcde");
+        assertEquals(StringUtil.substring("abcde", 0), "");
+        assertEquals(StringUtil.substring("abcde", -1), "");
+        assertNull(StringUtil.substring(null, 3));
+
     }
 }

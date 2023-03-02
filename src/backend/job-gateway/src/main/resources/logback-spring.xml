@@ -1,7 +1,17 @@
-<included>
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <contextName>logback</contextName>
+
+    <property name="APP_NAME" value="${APP_NAME:-job-gateway}"/>
+    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-gateway}"/>
+    <property name="APP_LOG_NAME" value="gateway.log"/>
+    <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="ACCESS_LOG" value="${APP_LOG_DIR}/access.log"/>
     <property name="ESB_ACCESS_LOG" value="${APP_LOG_DIR}/esb_access.log"/>
     <property name="IAM_ACCESS_LOG" value="${APP_LOG_DIR}/iam_access.log"/>
+
+    <include resource="logback-default.xml"/>
 
     <appender name="accessLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${ACCESS_LOG}</file>
@@ -100,4 +110,5 @@
             <appender-ref ref="iamAccessLog"/>
         </logger>
     </springProfile>
-</included>
+
+</configuration>
