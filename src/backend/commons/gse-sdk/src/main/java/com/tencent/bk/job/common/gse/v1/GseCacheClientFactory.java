@@ -82,7 +82,7 @@ public class GseCacheClientFactory {
     }
 
     private GseCacheClient getAgent(String ip, int port) throws TException {
-        log.info("Enter getClient with ip=" + ip + ", port=" + port);
+        log.info("Enter GetGseCacheClient with ip=" + ip + ", port=" + port);
         TTransport tTransport;
         BKTSSLTransportFactory.TSSLTransportParameters params =
             new BKTSSLTransportFactory.TSSLTransportParameters();
