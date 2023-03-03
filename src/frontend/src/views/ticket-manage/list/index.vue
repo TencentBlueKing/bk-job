@@ -59,6 +59,7 @@
         align="left"
         :label="$t('ticket.凭证ID')"
         prop="id"
+        show-overflow-tooltip
         width="300">
         <template slot-scope="{ row }">
           <span>{{ row.id }}</span>
@@ -83,6 +84,7 @@
         :filters="sourceFilters"
         :label="$t('ticket.类型.colHead')"
         prop="type"
+        show-overflow-tooltip
         width="180">
         <template slot-scope="{ row }">
           <span>{{ typeMap[row.type] }}</span>
@@ -94,7 +96,8 @@
         align="left"
         :label="$t('ticket.描述')"
         min-width="150"
-        prop="description">
+        prop="description"
+        show-overflow-tooltip>
         <template slot-scope="{ row }">
           <span>{{ row.description || '--' }}</span>
         </template>
@@ -131,6 +134,7 @@
         align="left"
         :label="$t('ticket.创建人')"
         prop="creator"
+        show-overflow-tooltip
         width="120" />
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
@@ -138,6 +142,7 @@
         align="left"
         :label="$t('ticket.创建时间')"
         prop="createTime"
+        show-overflow-tooltip
         width="180" />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyUser"
@@ -145,6 +150,7 @@
         align="left"
         :label="$t('ticket.更新人')"
         prop="lastModifyUser"
+        show-overflow-tooltip
         width="120" />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
@@ -152,6 +158,7 @@
         align="left"
         :label="$t('ticket.更新时间')"
         prop="lastModifyTime"
+        show-overflow-tooltip
         width="180" />
       <bk-table-column
         key="action"
@@ -268,7 +275,7 @@
           return {
             title: I18n.t('ticket.新建凭证'),
             okText: I18n.t('ticket.提交'),
-                        
+
           };
         }
         return {
