@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.crontab.model.CronJobVariableVO;
 import com.tencent.bk.job.crontab.model.inner.ServerDTO;
+import com.tencent.bk.job.crontab.model.inner.ServiceCronJobVariableDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -143,5 +144,15 @@ public class CronJobVariableDTO {
         esbGlobalVar.setValue(cronJobVariableDTO.getValue());
         esbGlobalVar.setServer(ServerDTO.toEsbServerV3(cronJobVariableDTO.getServer()));
         return esbGlobalVar;
+    }
+
+    public ServiceCronJobVariableDTO toServiceCronJobVariableDTO() {
+        ServiceCronJobVariableDTO variable = new ServiceCronJobVariableDTO();
+        variable.setId(id);
+        variable.setName(name);
+        variable.setType(type);
+        variable.setValue(value);
+        variable.setServer(server);
+        return variable;
     }
 }
