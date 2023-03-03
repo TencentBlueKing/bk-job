@@ -1,3 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.tencent.bk.job.common.k8s.config.K8sServiceInfoServiceAutoConfig, \
-com.tencent.bk.job.common.k8s.config.K8sClientAutoConfiguration
+com.tencent.bk.job.common.k8s.config.K8sServiceInfoServiceAutoConfig
