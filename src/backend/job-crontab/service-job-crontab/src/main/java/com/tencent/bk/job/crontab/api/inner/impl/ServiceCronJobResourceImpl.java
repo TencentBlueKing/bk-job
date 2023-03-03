@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.util.ClassUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -41,7 +40,6 @@ import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.crontab.model.inner.request.InternalUpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +57,7 @@ import java.util.stream.Collectors;
 @RestController
 public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
 
-    private CronJobService cronJobService;
+    private final CronJobService cronJobService;
 
     @Autowired
     public ServiceCronJobResourceImpl(CronJobService cronJobService) {
@@ -77,9 +75,10 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(0);
         baseSearchCondition.setLength(Integer.MAX_VALUE);
-        val cronJobDTOList = cronJobService.listPageCronJobInfos(cronJobInfoDTO, baseSearchCondition).getData();
-        val resultData = cronJobDTOList.stream()
-            .map(it -> ClassUtil.copyAttrsBetweenClasses(it, ServiceCronJobDTO.class)).collect(Collectors.toList());
+        List<CronJobInfoDTO> cronJobDTOList = cronJobService.listPageCronJobInfos(cronJobInfoDTO,
+            baseSearchCondition).getData();
+        List<ServiceCronJobDTO> resultData = cronJobDTOList.stream()
+            .map(CronJobInfoDTO::toServiceCronJobDTO).collect(Collectors.toList());
         if (log.isDebugEnabled()) {
             log.debug("cronJobDTOList.size={}", cronJobDTOList.size());
             log.info("resultData=" + JsonUtils.toJson(resultData));
