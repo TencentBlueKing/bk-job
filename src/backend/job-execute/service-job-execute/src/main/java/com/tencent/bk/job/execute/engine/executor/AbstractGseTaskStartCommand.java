@@ -205,6 +205,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
             watch.start("handleGseResponse");
             if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
+                log.error("[{}] Start gse task fail, response: {}", this.gseTaskUniqueName, gseTaskResponse);
                 handleStartGseTaskError(gseTaskResponse);
                 gseTasksExceptionCounter.increment();
                 taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,

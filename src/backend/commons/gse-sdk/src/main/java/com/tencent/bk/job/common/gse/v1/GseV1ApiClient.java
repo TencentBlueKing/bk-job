@@ -793,7 +793,7 @@ public class GseV1ApiClient implements IGseClient {
                 if (gseTaskClient == null) {
                     connect = false;
                     // 如果拿不到连接 ，则等待3s重试
-                    log.info("Gse null GseTaskClient, retry after 3000ms");
+                    log.info("Get GseTaskClient, retry after 3000ms");
                     ThreadUtils.sleep(3000L);
                     continue;
                 }
