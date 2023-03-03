@@ -45,21 +45,10 @@ public class FeatureToggle {
     /**
      * key: featureId; value: Feature
      */
-    private volatile Map<String, Feature> features = new HashMap<>();
+    private static volatile Map<String, Feature> features = new HashMap<>();
+    private static volatile boolean isInitial = false;
 
-    private static class FeatureToggleHolder {
-        private static final FeatureToggle INSTANCE = new FeatureToggle();
-    }
-
-    private FeatureToggle() {
-        reload();
-    }
-
-    public static FeatureToggle getInstance() {
-        return FeatureToggleHolder.INSTANCE;
-    }
-
-    public void reload() {
+    public static void reload() {
         FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
 
         if (featureToggleConfig.getFeatures() == null || featureToggleConfig.getFeatures().isEmpty()) {
@@ -95,7 +84,8 @@ public class FeatureToggle {
             tmpFeatures.put(featureId, feature);
         });
         // 使用新的配置完全替换老的配置
-        this.features = tmpFeatures;
+        features = tmpFeatures;
+        isInitial = true;
         log.info("Load feature toggle config done! features: {}", JsonUtils.toJson(features));
     }
 
@@ -107,7 +97,11 @@ public class FeatureToggle {
      * @param ctx       特性运行上下文
      * @return 是否开启
      */
-    public boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
+    public static boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
+        if (!isInitial) {
+            reload();
+        }
+
         Feature feature = features.get(featureId);
         if (feature == null) {
             log.debug("Feature: {} is not exist!", featureId);
