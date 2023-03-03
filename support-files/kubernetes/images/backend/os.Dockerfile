@@ -11,8 +11,7 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\
     echo 'alias tailf="tail -f"' >> ~/.bashrc
 
 # 安装软件
-RUN yum install -y vi && \
-    yum install -y vim && \
+RUN yum install -y vim && \
     yum install -y less && \
     yum install -y wget && \
     yum install -y lrzsz
