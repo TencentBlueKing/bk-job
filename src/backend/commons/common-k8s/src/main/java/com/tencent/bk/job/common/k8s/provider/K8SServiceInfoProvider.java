@@ -45,6 +45,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceI
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -157,22 +158,37 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
      */
     @Override
     public List<ServiceInstanceInfoDTO> listServiceInfo() {
+        String jobServiceSymbol = "job-";
         List<String> serviceIdList = discoveryClient.getServices();
         List<ServiceInstance> serviceInstanceList = new ArrayList<>();
         for (String serviceId : serviceIdList) {
-            serviceInstanceList.addAll(discoveryClient.getInstances(serviceId));
-        }
-        for (ServiceInstance serviceInstance : serviceInstanceList) {
-            log.debug("serviceInstance={}", JsonUtils.toJson(serviceInstance));
-        }
-        return serviceInstanceList.parallelStream().filter(serviceInstance -> {
-            if (serviceInstance.getServiceId().contains("job-gateway-management")) {
-                return false;
-            } else {
-                return serviceInstance.getServiceId().contains("job-");
+            if (serviceId.contains(jobServiceSymbol)) {
+                serviceInstanceList.addAll(discoveryClient.getInstances(serviceId));
             }
-        }).filter(serviceInstance -> getNameSpace(serviceInstance) != null)
+        }
+        tryToLogServiceInstanceList(serviceInstanceList);
+        return serviceInstanceList.parallelStream().filter(
+                serviceInstance -> !serviceInstance.getServiceId().contains("job-gateway-management")
+            ).filter(serviceInstance -> getNameSpace(serviceInstance) != null)
             .map(this::getDetailFromK8s).collect(Collectors.toList());
+    }
+
+    private void tryToLogServiceInstanceList(List<ServiceInstance> serviceInstanceList) {
+        try {
+            for (ServiceInstance serviceInstance : serviceInstanceList) {
+                Map<String, String> metaData = serviceInstance.getMetadata();
+                // 清除null key，防止后续序列化失败
+                if (metaData != null && metaData.containsKey(null)) {
+                    log.debug("Ignore null key value:{}", metaData.get(null));
+                    metaData.remove(null);
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("serviceInstance={}", JsonUtils.toJson(serviceInstance));
+                }
+            }
+        } catch (Throwable t) {
+            log.warn("Fail to logServiceInstanceList", t);
+        }
     }
 
 }
