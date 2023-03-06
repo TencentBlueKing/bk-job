@@ -115,8 +115,10 @@ ext {
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.22.0-alpha")
     set('commonsValidatorVersion', "1.6")
-    set('okHttpVersion', "4.9.0")
+    set('okHttpVersion', "4.9.1")
     set('jcommanderVersion', "1.71")
+    set('kubernetesJavaClientVersion', "11.0.4")
+    set('springCloudKubernetesVersion', "2.0.6")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersion:" + bkjobVersion
@@ -216,6 +218,19 @@ subprojects {
                 mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
                 mavenBom "org.springframework.cloud:spring-cloud-sleuth-otel-dependencies:${springCloudOtelVersion}"
             }
+            // 由于spring cloud (2021.0.5)的 kubernetes 组件在特性版本jdk(8u252）下会出现不兼容（http2协议)，并且由于历史原因jdk版本无法升级，所以把spring cloud kubernetes 降低版本
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-client-autoconfig:$springCloudKubernetesVersion"
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-client-config:$springCloudKubernetesVersion"
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-client-discovery:$springCloudKubernetesVersion"
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-client-loadbalancer:$springCloudKubernetesVersion"
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-commons:$springCloudKubernetesVersion"
+            dependency "io.kubernetes:client-java:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-api:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-api-fluent:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-extended:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-proto:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-spring-integration:$kubernetesJavaClientVersion"
+
             dependency "org.junit.jupiter:junit-jupiter:$junitVersion"
             dependency "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
             dependency "org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion"

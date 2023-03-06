@@ -47,6 +47,7 @@ export default {
     执行成功: 'Successful',
     执行失败: 'Failed',
     等待确认: 'Waiting',
+    状态异常: 'Abnormal',
     强制终止中: 'Terminating',
     强制终止成功: 'Terminated',
     强制终止失败: 'Terminate failed',
