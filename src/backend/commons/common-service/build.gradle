@@ -42,7 +42,6 @@ dependencies {
         println("Compile with kubernetes mode")
         api project(":commons:common-k8s")
         api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
-        api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-loadbalancer'
     } else {
         api project(":commons:common-consul")
         api 'org.springframework.cloud:spring-cloud-starter-config'
