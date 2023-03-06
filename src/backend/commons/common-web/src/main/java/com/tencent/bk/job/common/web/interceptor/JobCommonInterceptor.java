@@ -238,7 +238,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
         }
 
         // 如果兼容bk_biz_id参数
-        if (FeatureToggle.getInstance().checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE, null)) {
+        if (FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE, null)) {
             // 兼容当前业务ID参数
             if (StringUtils.isNotBlank(bizIdStr)) {
                 long bizId = Long.parseLong(bizIdStr);

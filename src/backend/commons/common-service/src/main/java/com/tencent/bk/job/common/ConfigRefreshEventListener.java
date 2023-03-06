@@ -53,7 +53,7 @@ public class ConfigRefreshEventListener {
             changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."));
         if (isFeatureToggleConfigChanged) {
             log.info("Reload feature toggle start ..");
-            FeatureToggle.getInstance().reload();
+            FeatureToggle.reload();
             log.info("Reload feature toggle successfully");
         }
     }

@@ -790,7 +790,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     private void addEnableFeatureFileManageConfig(Map<String, Object> configMap) {
         configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE,
-            FeatureToggle.getInstance().checkFeature(FeatureIdConstants.FEATURE_FILE_MANAGE, null));
+            FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_FILE_MANAGE, null));
     }
 
     private void addEnableUploadToArtifactoryConfig(Map<String, Object> configMap) {
