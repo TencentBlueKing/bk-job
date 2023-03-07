@@ -58,6 +58,7 @@ public class FeatureToggle {
     }
 
     public static boolean load() {
+        log.info("Load feature toggle start ..");
         FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
 
         if (featureToggleConfig.getFeatures() == null || featureToggleConfig.getFeatures().isEmpty()) {
@@ -74,24 +75,26 @@ public class FeatureToggle {
                 feature.setId(featureId);
                 feature.setEnabled(featureConfig.isEnabled());
 
-                ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
-                if (strategyConfig != null) {
-                    String strategyId = strategyConfig.getId();
-                    ToggleStrategy toggleStrategy = null;
-                    switch (strategyId) {
-                        case ResourceScopeToggleStrategy.STRATEGY_ID:
-                            toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
-                            break;
-                        case WeightToggleStrategy.STRATEGY_ID:
-                            toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
-                            break;
-                        default:
-                            log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId,
-                                featureId);
-                            break;
-                    }
-                    if (toggleStrategy != null) {
-                        feature.setStrategy(toggleStrategy);
+                if (featureConfig.isEnabled()) {
+                    ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
+                    if (strategyConfig != null) {
+                        String strategyId = strategyConfig.getId();
+                        ToggleStrategy toggleStrategy = null;
+                        switch (strategyId) {
+                            case ResourceScopeToggleStrategy.STRATEGY_ID:
+                                toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
+                                break;
+                            case WeightToggleStrategy.STRATEGY_ID:
+                                toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
+                                break;
+                            default:
+                                log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId,
+                                    featureId);
+                                break;
+                        }
+                        if (toggleStrategy != null) {
+                            feature.setStrategy(toggleStrategy);
+                        }
                     }
                 }
                 tmpFeatures.put(featureId, feature);
@@ -106,6 +109,9 @@ public class FeatureToggle {
             // 使用新的配置完全替换老的配置
             features = tmpFeatures;
             log.info("Load feature toggle config successfully! features: {}", JsonUtils.toJson(features));
+        } else {
+            log.error("Load feature toggle config fail, skip update feature toggle config! features: {}",
+                JsonUtils.toJson(features));
         }
 
         return loadSuccess;
