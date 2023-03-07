@@ -35,6 +35,7 @@
       @click.stop="handleBlockShowEdit">
       <div
         ref="valueTextBox"
+        v-bk-overflow-tips="renderText"
         class="render-text-box"
         :style="boxStyles"
         @copy="handleCopy">
@@ -126,10 +127,6 @@
       remoteHander: {
         type: Function,
         default: () => Promise.resolve(),
-      },
-      rules: {
-        type: Array,
-        default: () => [],
       },
       readonly: {
         type: Boolean,

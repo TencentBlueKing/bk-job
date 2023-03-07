@@ -59,7 +59,7 @@ spec:
             - name: spring.profiles.active
               value: bus-amqp
             - name: logging.level.org.springframework.cloud.kubernetes
-              value: DEBUG
+              value: INFO
             - name: spring.rabbitmq.host
               value: {{ include "job.rabbitmq.host" . }}
             - name: spring.rabbitmq.port

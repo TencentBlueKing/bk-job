@@ -65,43 +65,50 @@
         key="scopeText"
         align="left"
         :label="$t('whiteIP.生效范围.colHead')"
-        prop="scopeText" />
+        prop="scopeText"
+        show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.appText"
         key="appText"
         align="left"
         :label="$t('whiteIP.目标业务.colHead')"
-        prop="appText" />
+        prop="appText"
+        show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.remark"
         key="remark"
         align="left"
         :label="$t('whiteIP.备注.colHead')"
-        prop="remark" />
+        prop="remark"
+        show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.creator"
         key="creator"
         align="left"
         :label="$t('whiteIP.创建人')"
-        prop="creator" />
+        prop="creator"
+        show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
         align="left"
         :label="$t('whiteIP.创建时间')"
-        prop="createTime" />
+        prop="createTime"
+        show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifier"
         key="lastModifier"
         align="left"
         :label="$t('whiteIP.更新人')"
-        prop="lastModifier" />
+        prop="lastModifier"
+        show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
         align="left"
         :label="$t('whiteIP.更新时间')"
-        prop="lastModifyTime" />
+        prop="lastModifyTime"
+        show-overflow-tooltip />
       <bk-table-column
         key="action"
         align="left"
