@@ -197,7 +197,10 @@
       });
     },
     beforeDestroy() {
-      this.popperInstance && this.popperInstance.hide();
+      if (this.popperInstance) {
+        this.popperInstance.hide();
+        this.popperInstance.destroy();
+      }
     },
     methods: {
       /**

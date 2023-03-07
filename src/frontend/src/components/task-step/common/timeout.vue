@@ -75,6 +75,12 @@
         default: () => ({}),
       },
     },
+    beforeDestroy() {
+      if (this.popperInstance) {
+        this.popperInstance.hide();
+        this.popperInstance.destroy();
+      }
+    },
     methods: {
       /**
        * @desc 显示tips
