@@ -99,7 +99,7 @@
     </execution-status-bar>
     <jb-sideslider
       :is-show.sync="isShowGlobalVariable"
-      :quick-close="true"
+      quick-close
       :show-footer="false"
       :title="$t('history.全局变量')"
       :width="960">
@@ -107,7 +107,7 @@
     </jb-sideslider>
     <jb-sideslider
       :is-show.sync="isShowOperationRecord"
-      :quick-close="true"
+      quick-close
       :show-footer="false"
       :title="$t('history.操作记录')"
       :width="900">
@@ -178,13 +178,13 @@
         this.clearTimer();
       });
     },
-        
+
     methods: {
       fetchData (isFirst = true) {
         if (isFirst) {
           this.isLoading = true;
         }
-                
+
         TaskExecuteService.fetchTaskExecutionResult({
           id: this.taskInstanceId,
         }, {
@@ -237,6 +237,8 @@
             taskInstanceId: this.taskInstanceId,
           },
           query: {
+            stepInstanceId: stepInstance.stepInstanceId,
+            retryCount: stepInstance.retryCount,
             from: this.$route.query.from || 'historyTask',
           },
         });
@@ -374,7 +376,7 @@
           });
           return;
         }
-                
+
         this.$router.push({
           name: 'historyList',
         });
