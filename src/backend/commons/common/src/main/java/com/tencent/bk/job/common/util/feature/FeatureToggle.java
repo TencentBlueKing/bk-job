@@ -28,7 +28,8 @@ import com.tencent.bk.job.common.config.FeatureConfig;
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeBlackListToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeWhiteListToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.ToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.WeightToggleStrategy;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -103,8 +104,13 @@ public class FeatureToggle {
                 String strategyId = strategyConfig.getId();
                 ToggleStrategy toggleStrategy = null;
                 switch (strategyId) {
-                    case ResourceScopeToggleStrategy.STRATEGY_ID:
-                        toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
+                    case ResourceScopeWhiteListToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new ResourceScopeWhiteListToggleStrategy(featureId,
+                            strategyConfig.getParams());
+                        break;
+                    case ResourceScopeBlackListToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new ResourceScopeBlackListToggleStrategy(featureId,
+                            strategyConfig.getParams());
                         break;
                     case WeightToggleStrategy.STRATEGY_ID:
                         toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
