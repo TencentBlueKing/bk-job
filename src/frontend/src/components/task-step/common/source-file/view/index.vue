@@ -147,7 +147,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         activeResult: [],
         localFileList: [],
@@ -156,22 +156,22 @@
       };
     },
     computed: {
-      isShow () {
+      isShow() {
         return this.isShowLocalFile || this.isShowServerFile || this.isShowSourceFile;
       },
-      isShowLocalFile () {
+      isShowLocalFile() {
         return this.localFileList.length > 0;
       },
-      isShowServerFile () {
+      isShowServerFile() {
         return this.showAddServerFile;
       },
-      isShowSourceFile () {
+      isShowSourceFile() {
         return this.sourceFileList.length > 0;
       },
     },
     watch: {
       data: {
-        handler (allSourceFile) {
+        handler(allSourceFile) {
           if (this.isInnerChange) {
             this.isInnerChange = false;
             return;
@@ -201,17 +201,17 @@
         },
         immediate: true,
       },
-      showAddServerFile (value) {
+      showAddServerFile(value) {
         if (value) {
           this.activeResult.push('server');
         }
       },
-      isAddSourceFile (value) {
+      isAddSourceFile(value) {
         if (value) this.activeResult.push('source');
       },
     },
     methods: {
-      trigger () {
+      trigger() {
         this.isInnerChange = true;
         this.$emit('on-change', [
           ...this.localFileList,
@@ -222,14 +222,14 @@
       /**
        * @desc 隐藏添加服务器文件输入框
        */
-      handleServerClose () {
+      handleServerClose() {
         this.$emit('update', false);
       },
       /**
        * @desc 服务器文件更新
        * @param {Array} serverFileList
        */
-      handleServerFileChange (serverFileList) {
+      handleServerFileChange(serverFileList) {
         if (serverFileList.length > 0) {
           this.activeResult = [...new Set([...this.activeResult, 'server'])];
         }
@@ -239,14 +239,14 @@
       /**
        * @desc 添加文件源文件
        */
-      handleAddSourceFile () {
+      handleAddSourceFile() {
         this.$refs.sourceFile.handleShowSourceDialog();
       },
       /**
        * @desc 文件源文件更新
        * @param {Array} sourceFileList
        */
-      handleSourceFileChange (sourceFileList) {
+      handleSourceFileChange(sourceFileList) {
         if (sourceFileList.length > 0) {
           this.activeResult = [...new Set([...this.activeResult, 'source'])];
         }
@@ -256,14 +256,14 @@
       /**
        * @desc 开始上传本地文件
        */
-      startUploadLocalFile () {
+      startUploadLocalFile() {
         this.$refs.localFile.startUpload();
       },
       /**
        * @desc 本地文件更新
        * @param {Array} localFileList
        */
-      handleLocalFileChange (localFileList) {
+      handleLocalFileChange(localFileList) {
         if (localFileList.length > 0) {
           this.activeResult = [...new Set([...this.activeResult, 'local'])];
         }
@@ -273,7 +273,7 @@
       /**
        * @desc 移除所有本地文件
        */
-      handleRemoveAllLocal () {
+      handleRemoveAllLocal() {
         this.localFileList = [];
         this.trigger();
       },

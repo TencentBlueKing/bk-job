@@ -24,7 +24,7 @@
 */
 
 export default {
-  created () {
+  created() {
     this.stopPollingRun = false;
     this._pollingTaskQueue = []; // eslint-disable-line no-underscore-dangle
     this._stepTimer = [ // eslint-disable-line no-underscore-dangle
@@ -32,16 +32,16 @@ export default {
     ];
     this.startPollingQueueRun();
   },
-  beforeDestroy () {
+  beforeDestroy() {
     this.stopPollingQueueRun();
   },
   methods: {
-    $pollingQueueRun (task) {
+    $pollingQueueRun(task) {
       this._pollingTaskQueue = [ // eslint-disable-line no-underscore-dangle
         task,
       ];
     },
-    startPollingQueueRun () {
+    startPollingQueueRun() {
       if (this.stopPollingRun) {
         return;
       }
@@ -58,7 +58,7 @@ export default {
         this.startPollingQueueRun();
       }, timer);
     },
-    stopPollingQueueRun () {
+    stopPollingQueueRun() {
       this.stopPollingRun = true;
       this._pollingTaskQueue = []; // eslint-disable-line no-underscore-dangle
     },

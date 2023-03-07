@@ -153,7 +153,7 @@
       Empty,
       ActionBar,
     },
-    data () {
+    data() {
       return {
         id: '',
         isLoading: false,
@@ -165,16 +165,16 @@
       };
     },
     computed: {
-      currentPlanList () {
+      currentPlanList() {
         return this.templateInfoMap[this.activeTemplateId].planIdOrigin;
       },
     },
-    created () {
+    created() {
       this.id = taskImport.getItem('id');
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.$request(BackupService.fetchImportInfo({
           id: this.id,
         }), () => {
@@ -208,17 +208,17 @@
             this.isLogLoading = false;
           });
       },
-      handleSelectTemplate (templateId) {
+      handleSelectTemplate(templateId) {
         this.activeTemplateId = templateId;
       },
-      handleTemplateChange (checked, templateId) {
+      handleTemplateChange(checked, templateId) {
         this.templateInfoMap[templateId].checked = checked;
       },
-      handleCancelWholePlan () {
+      handleCancelWholePlan() {
         this.templateInfoMap[this.activeTemplateId].planIdMap = {};
         this.templateInfoMap[this.activeTemplateId].exportAll = 0;
       },
-      handleSelectWholePlan () {
+      handleSelectWholePlan() {
         const templateInfoMap = { ...this.templateInfoMap };
         const currentTemplate = templateInfoMap[this.activeTemplateId];
         currentTemplate.planIdOrigin.forEach((item) => {
@@ -226,7 +226,7 @@
         });
         currentTemplate.exportAll = 1;
       },
-      handleTogglePlan (planId) {
+      handleTogglePlan(planId) {
         if (!this.templateInfoMap[this.activeTemplateId].checked) {
           return;
         }
@@ -237,18 +237,17 @@
           currentTemplate.exportAll = 0;
         } else {
           currentTemplate.planIdMap[planId] = true;
-          currentTemplate.exportAll
-            = Number(Object.keys(currentTemplate.planIdMap).length === currentTemplate.planIdOrigin.length);
+          currentTemplate.exportAll            = Number(Object.keys(currentTemplate.planIdMap).length === currentTemplate.planIdOrigin.length);
         }
         this.templateInfoMap = templateInfoMap;
       },
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancle');
       },
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 2);
       },
-      handleNext () {
+      handleNext() {
         const templateInfo = [];
         for (const templateId in this.templateInfoMap) {
           const currentTemplate = this.templateInfoMap[templateId];

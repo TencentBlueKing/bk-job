@@ -99,7 +99,7 @@
         type: Object,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         oldContent: '',
@@ -111,7 +111,7 @@
         change: 0,
       };
     },
-    created () {
+    created() {
       this.scrollTopMemo = 0;
       this.insElements = [];
       this.insIndex = 0;
@@ -121,7 +121,7 @@
       this.changeIndex = 0;
       this.fetchData();
     },
-    mounted () {
+    mounted() {
       this.zIndex = window.__bk_zIndex_manager.nextZIndex(); // eslint-disable-line no-underscore-dangle
       document.body.append(this.$el);
       window.addEventListener('keydown', this.handleEsc);
@@ -131,11 +131,13 @@
         window.removeEventListener('keydown', this.handleEsc);
         try {
           document.body.removeChild(this.$el);
-        } catch {}
+        } catch {
+          console.log('error');
+        }
       });
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         this.oldContent = Base64.decode(this.oldVersionScript.content);
         this.language = this.oldVersionScript.typeName;
@@ -153,7 +155,7 @@
             this.isLoading = false;
           });
       },
-      statisticsDiff () {
+      statisticsDiff() {
         this.$nextTick(() => {
           const $contentTarget = this.$refs.diff.$el.querySelectorAll('.d2h-file-side-diff');
           const $newTarget = $contentTarget[1];// eslint-disable-line prefer-destructuring
@@ -185,12 +187,12 @@
           this.lineElements = $newTarget.querySelectorAll('td.d2h-code-side-linenumber');
         });
       },
-      lineViewReset () {
+      lineViewReset() {
         this.lineElements.forEach((item) => {
           item.classList.remove('active');
         });
       },
-      handleViewDel () {
+      handleViewDel() {
         this.lineViewReset();
         if (this.del < 1) {
           return;
@@ -205,7 +207,7 @@
           this.delIndex = 0;
         }
       },
-      handleViewChange () {
+      handleViewChange() {
         this.lineViewReset();
         if (this.change < 1) {
           return;
@@ -220,7 +222,7 @@
           this.changeIndex = 0;
         }
       },
-      handleViewIns () {
+      handleViewIns() {
         this.lineViewReset();
         if (this.ins < 1) {
           return;
@@ -235,23 +237,23 @@
           this.insIndex = 0;
         }
       },
-      handleEsc (event) {
+      handleEsc(event) {
         if (event && event.code === 'Escape') {
           this.handleClose();
         }
       },
-      handleClose () {
+      handleClose() {
         this.$emit('on-change', {
           [this.oldVersion]: true,
           [this.newVersion]: true,
         });
         this.$emit('close');
       },
-      resetBodyStyle () {
+      resetBodyStyle() {
         this.scrollTopMemo = document.scrollingElement.scrollTop;
         document.scrollingElement.style.overflow = 'hidden';
       },
-      recoveryBodyStyle () {
+      recoveryBodyStyle() {
         document.scrollingElement.style.overflow = 'initial';
         document.scrollingElement.scrollTop = this.scrollTopMemo;
       },

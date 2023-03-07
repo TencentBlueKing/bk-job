@@ -26,7 +26,7 @@
 import BaseModel from './base';
 
 export default class ScriptRelated extends BaseModel {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.scopeType = payload.scopeType;
     this.scopeId = payload.scopeId;
@@ -43,7 +43,7 @@ export default class ScriptRelated extends BaseModel {
      * @desc 同步状态 ICON
      * @returns { HTMLElement }
      */
-  get statusHtml () {
+  get statusHtml() {
     let styles = 'display: inline-block; padding: 0 8px; line-height: 18px; font-size: 12px; border-radius: 2px;';
 
     switch (this.status) {

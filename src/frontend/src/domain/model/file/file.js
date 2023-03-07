@@ -27,7 +27,7 @@
 import Model from '@model/model';
 
 export default class File extends Model {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.name = payload.name;
     this.createDate = payload.createDate;
@@ -42,7 +42,7 @@ export default class File extends Model {
     this.fileSourceId = payload.fileSourceId;
   }
 
-  get fileIcon () {
+  get fileIcon() {
     return this.dir ? 'folder-2' : 'file-line-2';
   }
 }

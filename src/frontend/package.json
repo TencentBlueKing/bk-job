@@ -65,6 +65,7 @@
     "dotenv": "^16.0.0",
     "eslint": "^8.14.0",
     "eslint-config-standard": "^17.0.0",
+    "eslint-config-tencent": "1.0.4",
     "eslint-plugin-html": "^7.1.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-n": "^15.2.0",

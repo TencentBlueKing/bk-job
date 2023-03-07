@@ -97,7 +97,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         active: '',
         tips: {
@@ -106,7 +106,7 @@
         },
       };
     },
-    created () {
+    created() {
       if (this.variable.length > 0) {
         const [{ id, name }] = this.variable;
         this.active = `variable_${id}_${name}`;
@@ -116,7 +116,7 @@
       this.scrollNum = 0;
       this.offsetTopMap = {};
     },
-    mounted () {
+    mounted() {
       const $scrollContent = document.querySelector('#asynContent').querySelector('.scroll-faker-content');
       $scrollContent.addEventListener('scroll', this.setActive);
       this.$once('hook:beforeDestroy', () => {
@@ -125,7 +125,7 @@
       this.init();
     },
     methods: {
-      init () {
+      init() {
         this.$refs.anchor.querySelectorAll('.item').forEach((item) => {
           const anchorTarget = `${item.getAttribute('data-anchor')}`;
           this.offsetTopMap[anchorTarget] = document.querySelector(`#sync-after_${anchorTarget}`).offsetTop;
@@ -147,13 +147,13 @@
           this.$refs.scroll.scrollTo(26 * this.scrollNum);
         });
       }, 50),
-      handleShowTips (name, target) {
+      handleShowTips(name, target) {
         this.tips = {
           name,
           target,
         };
       },
-      handleChoose (active) {
+      handleChoose(active) {
         const target = document.querySelector(`#sync-after_${active}`);
         const scrollTop = target.offsetTop - 24;
         this.active = active;

@@ -90,7 +90,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         list: [],
         selectRow: '',
@@ -98,7 +98,7 @@
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (data.length < 1) {
             this.isFocused = false;
             this.handleSelect({});
@@ -113,7 +113,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       const focusCallbacks = (event) => {
         this.isFocused = false;
         let $parentEle = event.target;
@@ -145,7 +145,7 @@
        * @desc 鼠标键盘上下键选中
        * @param { Object } event
        */
-      handleKeyDownSelect (event) {
+      handleKeyDownSelect(event) {
         if (!this.isFocused) {
           return;
         }
@@ -166,7 +166,7 @@
        * @desc 选中主机
        * @param { Object } payload
        */
-      handleSelect (payload) {
+      handleSelect(payload) {
         this.selectRow = payload.key;
         this.triggerChange(payload);
       },

@@ -119,15 +119,15 @@
         type: String,
       },
     },
-    data () {
+    data() {
       return {
         sourceFileList: [],
       };
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
-    created () {
+    created() {
       this.fetchFileSourceList = FileManageService.fetchFileSourceList;
       this.searchSelect = [
         {
@@ -140,7 +140,7 @@
       /**
        * @desc 获取被引用文件源列表
        */
-      fetchData () {
+      fetchData() {
         this.$refs.fileSourcelist.$emit('onFetch', {
           ...this.searchParams,
           credentialId: this.credentialId,
@@ -152,7 +152,7 @@
        *
        * 重新拉取数据
        */
-      handleSearch (payload) {
+      handleSearch(payload) {
         this.searchParams = payload;
         this.fetchData();
       },

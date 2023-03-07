@@ -127,7 +127,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isEmpty: false,
@@ -136,17 +136,17 @@
       };
     },
     computed: {
-      detailInfo () {
+      detailInfo() {
         return this.timeTaskList.find(item => item.id === this.currentTaskId) || {};
       },
     },
-    created () {
+    created() {
       this.templateId = this.templateInfo.id;
       this.templateVariableList = this.templateInfo.variables;
       this.fetchTimeTaskList();
     },
     methods: {
-      fetchTimeTaskList () {
+      fetchTimeTaskList() {
         if (this.cronJobList.length > 0) {
           this.timeTaskList = this.cronJobList;
           this.currentTaskId = this.cronJobList[0].id;
@@ -169,7 +169,7 @@
             this.isLoading = false;
           });
       },
-      trigger () {
+      trigger() {
         const cronJob = this.timeTaskList.reduce((result, item) => {
           // 关闭的定时任务传全局变量
           result.push({
@@ -180,22 +180,22 @@
         }, []);
         this.$emit('on-change', cronJob);
       },
-      handleTabChange (id) {
+      handleTabChange(id) {
         this.currentTaskId = id;
       },
-      handleEnableChange (id, enable) {
+      handleEnableChange(id, enable) {
         const timeTask = this.timeTaskList.find(item => item.id === id);
         timeTask.enable = enable;
         timeTask.hasConfirm = false;
         this.trigger();
       },
-      handleVariableChange (payload) {
+      handleVariableChange(payload) {
         const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
         timeTask.variableValue = Object.freeze(payload);
         timeTask.hasConfirm = true;
         this.trigger();
       },
-      handleUpdateConfirm (payload) {
+      handleUpdateConfirm(payload) {
         const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
         timeTask.hasConfirm = payload;
         this.trigger();

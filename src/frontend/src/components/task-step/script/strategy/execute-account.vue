@@ -65,14 +65,14 @@
       },
     },
     computed: {
-      accountType () {
+      accountType() {
         if (formatScriptTypeValue(this.formData[this.scriptLanguageField]) === 'SQL') {
           return 'db';
         }
         return 'system';
       },
     },
-    created () {
+    created() {
       this.rules = [
         {
           required: true,
@@ -82,7 +82,7 @@
       ];
     },
     methods: {
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

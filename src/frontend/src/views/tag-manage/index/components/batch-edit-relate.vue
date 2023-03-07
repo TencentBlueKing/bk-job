@@ -154,7 +154,7 @@
         required: true,
       },
     },
-    setup (props, ctx) {
+    setup(props, ctx) {
       const state = reactive({
         isLoading: true,
         isShowCreateTag: false,

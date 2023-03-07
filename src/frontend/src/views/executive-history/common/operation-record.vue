@@ -96,17 +96,17 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: [],
       };
     },
-    created () {
+    created() {
       this.fetchTaskOperationLog();
     },
     methods: {
-      fetchTaskOperationLog (id) {
+      fetchTaskOperationLog(id) {
         this.$request(TaskExecuteService.fetchTaskOperationLog({
           id: this.id,
         }), () => {
@@ -118,15 +118,15 @@
             this.isLoading = false;
           });
       },
-      chekcIsCurrentUrl (data) {
+      chekcIsCurrentUrl(data) {
         const urlSearch = new URLSearchParams(window.location.search);
         const stepInstanceId = urlSearch.get('stepInstanceId');
         const retryCount = urlSearch.get('retryCount');
-                
+
         return parseInt(stepInstanceId, 10) === data.stepInstanceId
           && parseInt(retryCount, 10) === data.retry;
       },
-      handleView (payload) {
+      handleView(payload) {
         const routerInfo = {
           name: 'historyStep',
           params: {
@@ -139,7 +139,7 @@
             from: this.from || this.$route.query.from,
           },
         };
-                
+
         this.$emit('on-change');
         this.$router.push(routerInfo);
       },

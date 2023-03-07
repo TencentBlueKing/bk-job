@@ -106,12 +106,12 @@
       },
     },
     computed: {
-      templateList () {
+      templateList() {
         return this.channleList.length && (this.channleList[0].templateInfoList || []);
       },
     },
     methods: {
-      getConfigStatus (templateList, code) {
+      getConfigStatus(templateList, code) {
         return templateList.some(template => template.code === code && template.isConfiged);
       },
     },

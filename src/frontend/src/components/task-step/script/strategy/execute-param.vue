@@ -53,7 +53,7 @@
       },
     },
     methods: {
-      handleParamChange (value) {
+      handleParamChange(value) {
         this.$emit('on-change', this.paramField, value);
       },
     },

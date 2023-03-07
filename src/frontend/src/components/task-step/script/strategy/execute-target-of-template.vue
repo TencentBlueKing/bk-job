@@ -50,7 +50,7 @@
       },
     },
     methods: {
-      handleTargetChange (taskHostNode) {
+      handleTargetChange(taskHostNode) {
         this.$emit('on-change', this.field, Object.freeze(taskHostNode));
       },
     },

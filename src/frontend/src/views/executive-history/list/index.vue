@@ -202,7 +202,7 @@
       RenderList,
       JbSearchSelect,
     },
-    data () {
+    data() {
       return {
         showOperation: false,
         searchParams: {
@@ -218,20 +218,20 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      searchInfoEnable () {
+      searchInfoEnable() {
         return !!this.searchParams.taskInstanceId;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
     },
-    created () {
+    created() {
       this.parseDefaultDateTime();
       this.fetchExecutionHistoryList = TaskExecuteService.fetchExecutionHistoryList;
       this.searchSelect = [
@@ -239,7 +239,7 @@
           name: 'ID',
           id: 'taskInstanceId',
           description: I18n.t('history.将覆盖其它条件'),
-          validate (values, item) {
+          validate(values, item) {
             const validate = values.every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('history.ID只支持数字') : true;
           },
@@ -252,7 +252,7 @@
         {
           name: I18n.t('history.目标 IP'),
           id: 'ip',
-          validate (values, item) {
+          validate(values, item) {
             const validate = values.every(_ => IPRule.validator(_.name));
             return !validate ? IPRule.message : true;
           },
@@ -367,7 +367,7 @@
       this.shortcuts = [
         {
           text: I18n.t('history.近1小时'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 3600000);
@@ -378,7 +378,7 @@
         },
         {
           text: I18n.t('history.近12小时'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 43200000);
@@ -389,7 +389,7 @@
         },
         {
           text: I18n.t('history.近1天'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 86400000);
@@ -400,7 +400,7 @@
         },
         {
           text: I18n.t('history.近7天'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 604800000);
@@ -469,13 +469,13 @@
       /**
        * @desc 获取列表数据
        */
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', this.searchParams);
       },
       /**
        * @desc 重做任务
        */
-      redoTask (taskInstanceId) {
+      redoTask(taskInstanceId) {
         TaskExecuteService.redoTask({
           taskInstanceId,
           taskVariables: [],
@@ -495,7 +495,7 @@
       /**
        * @desc 列表默认的执行时间筛选值
        */
-      parseDefaultDateTime () {
+      parseDefaultDateTime() {
         const defaultDateTime = [
           '', '',
         ];
@@ -532,7 +532,7 @@
       /**
        * @desc 自定义表格显示
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -544,7 +544,7 @@
        * @desc 自定义表格显示
        * @param {Object} params 筛选值
        */
-      handleSearch (params) {
+      handleSearch(params) {
         const { startTime, endTime } = this.searchParams;
         this.searchParams = {
           ...params,
@@ -558,7 +558,7 @@
        * @param {Array} date 时间值
        * @param {String} type 选择类型
        */
-      handleDateChange (date, type) {
+      handleDateChange(date, type) {
         if (type === 'upToNow') {
           this.setToNowText(date);
         }
@@ -570,7 +570,7 @@
        * @desc 日期值显示为至今
        * @param {Array} date 日期值
        */
-      setToNowText (date) {
+      setToNowText(date) {
         this.$refs.datePicker.shortcut = {
           text: `${date[0]} ${I18n.t('history.至今')}`,
         };
@@ -581,7 +581,7 @@
        *
        * 如果作业类型的跳转到作业执行详情，如果不是则跳到步骤执行详情
        */
-      handleGoDetail (taskInstance) {
+      handleGoDetail(taskInstance) {
         if (taskInstance.isTask) {
           this.$router.push({
             name: 'historyTask',
@@ -623,7 +623,7 @@
        * 3，快速分发文件
        *  —— 跳转到快速分发文件页面
        */
-      handleGoRetry (taskInstance) {
+      handleGoRetry(taskInstance) {
         // 作业执行
         if (taskInstance.isTask) {
           // 当重做接口比较慢时页面可能存在多个重做请求，避免重复操作需要禁用正在重做的任务操作

@@ -36,7 +36,7 @@
       </div>
       <jb-sideslider
         :is-show.sync="isShow"
-        :quick-close="true"
+        quick-close
         :show-footer="false"
         :title="$t('history.查看步骤内容')"
         :width="960">
@@ -65,13 +65,13 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShow: false,
       };
     },
     methods: {
-      handleShowStepDetail () {
+      handleShowStepDetail() {
         this.isShow = true;
       },
     },

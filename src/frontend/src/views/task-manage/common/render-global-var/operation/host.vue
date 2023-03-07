@@ -128,7 +128,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: { ...this.data },
         isShowChooseIp: false,
@@ -139,11 +139,11 @@
        * @desc 显示清空按钮
        * @returns { Boolean }
        */
-      isShowClear () {
+      isShowClear() {
         return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
       },
     },
-    created () {
+    created() {
       this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
       this.rules = {
         name: [
@@ -170,29 +170,29 @@
        * @desc 编辑主机信息
        * @param { hostNodeInfo } 主机信息
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
       },
       /**
        * @desc 显示 IP 选择器
        */
-      handleOpenChooseIp () {
+      handleOpenChooseIp() {
         this.isShowChooseIp = true;
       },
-      handleCloseIPSelector () {
+      handleCloseIPSelector() {
         this.isShowChooseIp = false;
       },
       /**
        * @desc 清空主机信息
        */
-      handleClearDefault () {
+      handleClearDefault() {
         const { hostNodeInfo } = new TaskHostNodeModel({});
         this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
       },
       /**
        * @desc 保存变量
        */
-      submit () {
+      submit() {
         return this.$refs.varHostForm.validate()
           .then(() => {
             this.$emit('on-change', {

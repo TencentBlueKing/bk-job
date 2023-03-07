@@ -204,7 +204,7 @@
         default: false, // 展示文件日志
       },
     },
-    data () {
+    data() {
       let fontSize = parseInt(localStorage.getItem(STEP_FONT_SIZE_KEY), 10);
       if (!fontSize || fontSize < 12) {
         fontSize = 12;
@@ -221,7 +221,7 @@
       };
     },
     computed: {
-      renderCom () {
+      renderCom() {
         const comMap = {
           scriptLog: ScriptLog,
           download: FileLog,
@@ -230,7 +230,7 @@
         };
         return comMap[this.activePanel];
       },
-      boxStyles () {
+      boxStyles() {
         if (this.isFullscreen) {
           return {
             position: 'fixed',
@@ -243,7 +243,7 @@
         }
         return {};
       },
-      contentStyles () {
+      contentStyles() {
         const lineHeightMap = {
           12: 20,
           13: 21,
@@ -257,16 +257,16 @@
     },
     watch: {
       isFile: {
-        handler (isFile) {
+        handler(isFile) {
           this.activePanel = isFile ? 'download' : 'scriptLog';
         },
         immediate: true,
       },
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.handleExitFullscreen();
     },
-    mounted () {
+    mounted() {
       window.addEventListener('keyup', this.handleExitByESC);
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('keyup', this.handleExitByESC);
@@ -277,13 +277,13 @@
        * @desc 切换面板
        * @param {String} panel 选中的面板
        */
-      handleTogglePanel (panel) {
+      handleTogglePanel(panel) {
         this.activePanel = panel;
       },
       /**
        * @desc 下载主机日志
        */
-      handleDownload () {
+      handleDownload() {
         TaskExecuteService.fetchStepExecutionLogFile({
           id: this.stepInstanceId,
           ip: this.host.hostId,
@@ -297,26 +297,26 @@
       /**
        * @desc 显示字体大小设置面板
        */
-      handleShowSetFont () {
+      handleShowSetFont() {
         this.isFontSet = true;
       },
       /**
        * @desc 隐藏字体大小设置面板
        */
-      handleHideSetFont () {
+      handleHideSetFont() {
         this.isFontSet = false;
       },
       /**
        * @desc 更新日志字体大小
        */
-      handleFontChange (fontSize) {
+      handleFontChange(fontSize) {
         this.fontSize = fontSize;
         localStorage.setItem(STEP_FONT_SIZE_KEY, fontSize);
       },
       /**
        * @desc 日志全屏
        */
-      handleFullscreen () {
+      handleFullscreen() {
         this.isFullscreen = true;
         this.messageInfo(I18n.t('history.按 Esc 即可退出全屏模式'));
         this.infoBoxParentNode = this.$refs.infoBox.parentNode;
@@ -326,7 +326,7 @@
       /**
        * @desc 退出日志全屏
        */
-      handleExitFullscreen (event) {
+      handleExitFullscreen(event) {
         this.isFullscreen = false;
         if (this.infoBoxParentNode) {
           this.infoBoxParentNode.appendChild(this.$refs.infoBox);
@@ -339,7 +339,7 @@
       /**
        * @desc esc键退出日志全屏
        */
-      handleExitByESC (event) {
+      handleExitByESC(event) {
         if (event.keyCode === 27) {
           this.handleExitFullscreen();
         }
@@ -348,7 +348,7 @@
        * @desc 脚本日志自动换行
        * @param {Boolean} lineFeed
        */
-      handleScriptLogLineFeedChange  (lineFeed) {
+      handleScriptLogLineFeedChange(lineFeed) {
         this.isScriptLogLineFeed = lineFeed;
         if (lineFeed) {
           localStorage.setItem(SCRIPT_LOG_AUTO_LINE_FEED, true);

@@ -47,10 +47,10 @@ export const bigTreeTransformTopologyOfTopology = (target, level = 0) => {
   if (!target || target.length < 1) {
     return [];
   }
-                
+
   return target.map((item) => {
     const { instanceId, instanceName, child, objectId, count } = item;
-        
+
     const children = bigTreeTransformTopologyOfTopology(child, level + 1);
 
     return Object.freeze({
@@ -152,7 +152,7 @@ export const mergeInputHost = (first, second) => {
       result.push(ipInfo);
     }
   });
-    
+
   return result;
 };
 
@@ -177,7 +177,7 @@ export const mergeTopologyHost = (target, preList, lastList) => {
       result.push(ipInfo);
     }
   });
-    
+
   return result;
 };
 
@@ -254,6 +254,6 @@ export const sortHost = (hostList) => {
   Object.values(uniqueNormalMap).forEach((value) => {
     result.push(value);
   });
-    
+
   return result;
 };

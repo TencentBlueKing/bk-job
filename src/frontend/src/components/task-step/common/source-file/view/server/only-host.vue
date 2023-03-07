@@ -140,7 +140,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShowChooseIp: false,
         hasSaved: this.data.length > 0,
@@ -157,7 +157,7 @@
        *
        * store记录服务器文件的编辑状态
        */
-      handleFileChange (fileLocation) {
+      handleFileChange(fileLocation) {
         window.changeFlag = true;
         this.serverFile.fileLocation = fileLocation;
         this.editNewSourceFile(true);
@@ -168,7 +168,7 @@
        *
        * store记录服务器文件的编辑状态
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.serverFile.host.hostNodeInfo = Object.freeze(hostNodeInfo);
         window.changeFlag = true;
         this.editNewSourceFile(true);
@@ -176,17 +176,17 @@
       /**
        * @desc 显示ip选择器弹层
        */
-      handleShowChooseIp () {
+      handleShowChooseIp() {
         this.isShowChooseIp = true;
       },
-      handleCloseIpSelector () {
+      handleCloseIpSelector() {
         this.isShowChooseIp = false;
       },
       /**
        * @desc 服务器账号更新
        * @param {Number} accountId 主机值
        */
-      handleAccountChange (accountId) {
+      handleAccountChange(accountId) {
         if (accountId === '') {
           return;
         }
@@ -202,13 +202,13 @@
       /**
        * @desc 添加一个服务器文件
        */
-      handleAddNew () {
+      handleAddNew() {
         this.hasSaved = false;
       },
       /**
        * @desc 保存添加的服务器文件
        */
-      handlerSave () {
+      handlerSave() {
         this.$emit('on-change', this.serverFile);
         this.handlerCancel();
       },
@@ -217,7 +217,7 @@
        *
        * 重置store记录服务器文件的编辑状态
        */
-      handlerCancel () {
+      handlerCancel() {
         this.$emit('on-cancel');
         this.serverFile = generatorDefault();
         this.$refs.ipSelector.resetValue();

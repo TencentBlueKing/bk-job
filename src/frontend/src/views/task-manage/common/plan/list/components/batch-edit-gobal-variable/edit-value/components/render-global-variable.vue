@@ -62,7 +62,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         descPopover: {
           disable: true,
@@ -70,7 +70,7 @@
         isShowDetail: false,
       };
     },
-    mounted () {
+    mounted() {
       this.popperInstance = Tippy(this.$refs.type, {
         arrow: true,
         placement: 'bottom-start',
@@ -87,14 +87,20 @@
         zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
       });
     },
+    beforeDestroy() {
+      if (this.popperInstance) {
+        this.popperInstance.hide();
+        this.popperInstance.destroy();
+      }
+    },
     methods: {
-      handleVariableSelect () {
+      handleVariableSelect() {
         this.$emit('select');
       },
-      handleShowDetail () {
+      handleShowDetail() {
         this.popperInstance.show();
       },
-      handleHideDetail () {
+      handleHideDetail() {
         this.popperInstance.hide();
       },
     },

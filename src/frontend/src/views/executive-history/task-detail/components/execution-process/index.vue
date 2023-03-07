@@ -51,16 +51,16 @@
         required: true,
       },
     },
-    mounted () {
+    mounted() {
       this.timer = setTimeout(() => {
         this.handleScrollToCurrentStep();
       }, 1000);
     },
-    beforeDestroy () {
+    beforeDestroy() {
       clearTimeout(this.timer);
     },
     methods: {
-      handleScrollToCurrentStep () {
+      handleScrollToCurrentStep() {
         const $srollContainer = document.querySelector('.container-content');
         if (!$srollContainer) {
           return;

@@ -99,31 +99,31 @@
 </template>
 <script>
   import QueryGlobalSettingService from '@service/query-global-setting';
-    
+
   export default {
-    data () {
+    data() {
       return {
         relatedSystemUrls: {
           BK_DOC_CENTER_ROOT_URL: '/',
         },
       };
     },
-    created () {
+    created() {
       this.fetchRelatedSystemUrls();
     },
     methods: {
-      fetchRelatedSystemUrls () {
+      fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
           });
       },
-      handleGoTemplateCreate () {
+      handleGoTemplateCreate() {
         this.$router.push({
           name: 'templateCreate',
         });
       },
-      handleGoImportTemplate () {
+      handleGoImportTemplate() {
         this.$router.push({
           name: 'taskImport',
         });

@@ -141,7 +141,7 @@
       AccountDashboard,
       ExecuteDashboard,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         date: prettyDateFormat(Date.now()),
@@ -149,15 +149,15 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.fetchDateInfo();
     },
     methods: {
-      fetchDateInfo () {
+      fetchDateInfo() {
         this.isLoading = true;
         StatisticsService.fetchDateInfo({}, {
           permission: 'page',
@@ -168,7 +168,7 @@
             this.isLoading = false;
           });
       },
-      handleScreenshot () {
+      handleScreenshot() {
         const {
           top,
           width,
@@ -192,7 +192,7 @@
           a.click();
         });
       },
-      handleDateChange (date) {
+      handleDateChange(date) {
         this.date = date;
       },
     },

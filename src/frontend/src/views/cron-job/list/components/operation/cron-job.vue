@@ -132,7 +132,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         selectIndex: '',
         nativeValue: this.value,
@@ -143,7 +143,7 @@
         isTimeMore: false,
       };
     },
-    mounted () {
+    mounted() {
       if (!this.nativeValue) {
         return;
       }
@@ -153,7 +153,7 @@
       /**
        * @desc 检测crontab格式和翻译
        */
-      checkAndTranslate (value) {
+      checkAndTranslate(value) {
         const interval = CronExpression.parse(`0 ${value.trim()}`, {
           currentDate: new Date(),
         });
@@ -173,7 +173,7 @@
        * @desc 选中crontab字段
        * @param {String} lable 选中的字段名
        */
-      handleTimeTextChange (label) {
+      handleTimeTextChange(label) {
         if (!this.nativeValue) {
           return;
         }
@@ -194,14 +194,14 @@
       /**
        * @desc 输入框失去焦点
        */
-      handleBlur () {
+      handleBlur() {
         this.selectIndex = '';
       },
       /**
        * @desc 选中输入框文本
        * @param {Object} event 文本选择事件
        */
-      handleSelectText (event) {
+      handleSelectText(event) {
         const $target = event.target;
         const value = _.trim($target.value);
         this.nativeValue = value;
@@ -250,7 +250,7 @@
       /**
        * @desc 展示下次执行时间列表
        */
-      handleShowMore () {
+      handleShowMore() {
         this.isTimeMore = !this.isTimeMore;
       },
     },

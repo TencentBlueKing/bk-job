@@ -48,7 +48,7 @@
       PlanCount,
       TemplateStep,
     },
-    data () {
+    data() {
       return {};
     },
 

@@ -49,24 +49,24 @@
         type: Boolean,
       },
     },
-    created () {
+    created() {
       this.childrenNum = this.$slots.default;
     },
-    updated () {
+    updated() {
       const childrenNum = this.$slots.default;
       if (this.childrenNum !== childrenNum) {
         this.init();
         this.childrenNum = childrenNum;
       }
     },
-    mounted () {
+    mounted() {
       const isShowLayout = this.$refs.detailLayout.getBoundingClientRect().width > 0;
       if (isShowLayout) {
         this.init();
       }
     },
     methods: {
-      init () {
+      init() {
         if (this.layout === 'vertical') {
           return;
         }

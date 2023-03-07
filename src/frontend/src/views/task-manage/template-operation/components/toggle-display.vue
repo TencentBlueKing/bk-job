@@ -55,13 +55,13 @@
 <script>
   export default {
     name: 'ToggleDisplay',
-    data () {
+    data() {
       return {
         isOpen: false,
       };
     },
     methods: {
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
       },
     },

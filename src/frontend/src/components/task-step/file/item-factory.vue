@@ -71,7 +71,7 @@
       },
     },
     computed: {
-      itemCom () {
+      itemCom() {
         if (!Object.prototype.hasOwnProperty.call(comMap, this.name)) {
           return 'div';
         }

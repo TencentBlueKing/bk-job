@@ -83,7 +83,7 @@
       ChooseSourceFile,
       RenderFileName,
       RenderSourceName,
-            
+
     },
     props: {
       data: {
@@ -91,7 +91,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isShowSourceFile: false,
         editSourceFileIndex: -1,
@@ -100,7 +100,7 @@
     },
     watch: {
       data: {
-        handler (newData) {
+        handler(newData) {
           if (this.innerChange) {
             this.innerChange = false;
             return;
@@ -114,7 +114,7 @@
       /**
        * @desc 触发文件源 更新
        */
-      triggerChange () {
+      triggerChange() {
         this.innerChange = true;
         this.$emit('on-change', [...this.list]);
       },
@@ -122,7 +122,7 @@
        * @desc 更新文件源文件
        * @param {Object} payload 文件源文件数据
        */
-      handleSourceFileChange (payload) {
+      handleSourceFileChange(payload) {
         const newData = [...this.list];
         if (this.editSourceFileIndex > -1) {
           newData.splice(this.editSourceFileIndex, 1, payload);
@@ -131,21 +131,21 @@
         }
 
         this.list = Object.freeze(newData);
-                
+
         this.editSourceFileIndex = -1;
         this.triggerChange();
       },
       /**
        * @desc 组件外部调用，显示选择文件源弹层
        */
-      handleShowSourceDialog () {
+      handleShowSourceDialog() {
         this.isShowSourceFile = true;
         this.editSourceFileIndex = -1;
       },
       /**
        * @desc 显示选择文件源对话框模板
        */
-      handleEditSourceFile (index) {
+      handleEditSourceFile(index) {
         this.isShowSourceFile = true;
         this.editSourceFileIndex = index;
       },
@@ -154,7 +154,7 @@
        * @desc 移除选中的文件源数据
        * @param {Number} index 已选中的文件源数据数组对应下标
        */
-      handlerRemove (index) {
+      handlerRemove(index) {
         const newData = [...this.list];
         newData.splice(this.editSourceFileIndex, 1);
         this.list = Object.freeze(newData);

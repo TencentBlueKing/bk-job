@@ -171,7 +171,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         defaultScript: {},
         scriptGroup: [],
@@ -184,7 +184,7 @@
       /**
        * @desc 使用脚本资源需要的权限
        */
-      authView () {
+      authView() {
         return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
           ? 'script/view'
           : 'public_script/view';
@@ -193,7 +193,7 @@
        * @desc 脚本新建的权限
        * @returns { String }
        */
-      authCreate () {
+      authCreate() {
         return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
           ? 'script/create'
           : 'public_script/create';
@@ -202,7 +202,7 @@
        * @desc 脚本下拉列表显示格式
        * @returns { String }
        */
-      scriptGroupComponent () {
+      scriptGroupComponent() {
         if (this.scriptListDisplay.length > 1) {
           return 'bk-option-group';
         }
@@ -212,16 +212,16 @@
        * @desc 引用脚本类型
        * @returns { Boolean }
        */
-      isScriptRefer () {
+      isScriptRefer() {
         return this.sourceType === 'refer';
       },
       /**
        * @desc 脚本列表
        * @returns { Array }
        */
-      scriptListDisplay () {
+      scriptListDisplay() {
         const scriptSource = this.formData[this.scriptSourceField];
-                
+
         if (scriptSource === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS) {
           return this.scriptGroup;
         }
@@ -234,7 +234,7 @@
        * @desc 按钮的文本
        * @returns { String }
        */
-      newBtnText () {
+      newBtnText() {
         return this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
           ? I18n.t('新建业务脚本')
           : I18n.t('新建公共脚本');
@@ -245,7 +245,7 @@
        *
        * 引用类型的脚本时 scriptId 不能为空
        */
-      rules () {
+      rules() {
         if (this.isScriptRefer) {
           return [{
             required: true,
@@ -258,18 +258,18 @@
     },
     watch: {
       formData: {
-        handler () {
+        handler() {
           this.initScriptSource();
         },
         immediate: true,
       },
-      'formData.scriptId' (value) {
+      'formData.scriptId'(value) {
         if (value) {
           this.$refs.scriptId.clearValidator();
         }
       },
       // 需要同步的脚本默认展开脚本列表
-      scriptListDisplay () {
+      scriptListDisplay() {
         if (this.scriptListDisplay.length > 1 && !this.hasShowScriptSelect) {
           setTimeout(() => {
             this.hasShowScriptSelect = true;
@@ -278,7 +278,7 @@
         }
       },
     },
-    created () {
+    created() {
       this.scriptListMemo = [];
       this.publicScriptListMemo = [];
       this.initScriptContent();
@@ -291,7 +291,7 @@
       /**
        * @desc 获取业务脚本列表
        */
-      fetchScriptList () {
+      fetchScriptList() {
         ScriptManageService.getOnlineScriptList()
           .then((data) => {
             this.scriptGroup = [data];
@@ -302,7 +302,7 @@
       /**
        * @desc 获公共脚本列表
        */
-      fetchPublicScriptList () {
+      fetchPublicScriptList() {
         PublicScriptManageService.getOnlineScriptList()
           .then((data) => {
             this.publicScriptGroup = [data];
@@ -314,13 +314,13 @@
        * @desc 获取指定的脚本版本数据
        * @param {Object} params 脚本数据
        */
-      fetchScriptVersionDetail (params) {
+      fetchScriptVersionDetail(params) {
         return ScriptManageService.versionDetail(params);
       },
       /**
        * @desc 初始化脚本来源
        */
-      initScriptSource () {
+      initScriptSource() {
         if (this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL) {
           this.sourceType = 'local';
           return;
@@ -332,7 +332,7 @@
       /**
        * @desc 初始化脚本内容
        */
-      initScriptContent () {
+      initScriptContent() {
         // 有默认的脚本版本，获取对应版本的脚本内容
         if (!this.formData[this.scriptIdField] && !this.formData[this.scriptVersionIdField]) {
           return;
@@ -363,7 +363,7 @@
       /**
        * @desc 脚本版本有更新时需要将最新的脚本版本组合到脚本列表中
        */
-      composeGroup () {
+      composeGroup() {
         if (!this.defaultScript.id) {
           return;
         }
@@ -390,7 +390,7 @@
           newVersionScript.name = `${newVersionScript.name}（${I18n.t('新版本')}）`;
           currentScriptList.unshift(newVersionScript);
         }
-                
+
         if (publicScript) {
           this.scriptGroup = Object.freeze([this.scriptListMemo]);
           this.publicScriptGroup = Object.freeze([currentScriptList, targetList]);
@@ -403,7 +403,7 @@
        * @desc 更新脚本来源
        * @param {String} source 脚本来源
        */
-      handleScriptSourceChange (source) {
+      handleScriptSourceChange(source) {
         // 脚本来源改变重置脚本相关的信息
         const scriptSource = source === 'local'
           ? TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL
@@ -418,7 +418,7 @@
        * @desc 更新脚本引用来源类型
        * @param {String} scriptSource 脚本引用来源类型
        */
-      handleReferScriptTypeChange (scriptSource) {
+      handleReferScriptTypeChange(scriptSource) {
         this.$emit('on-reset', {
           [this.scriptSourceField]: scriptSource,
           [this.scriptIdField]: '',
@@ -429,7 +429,7 @@
        * @desc 更新脚本引用版本
        * @param {String} scriptVersionId 脚本引用来源类型
        */
-      handleScriptVersionIdChange (scriptVersionId) {
+      handleScriptVersionIdChange(scriptVersionId) {
         if (!scriptVersionId) {
           return;
         }
@@ -457,7 +457,7 @@
       /**
        * @desc 跳转到选择的脚本版本详情
        */
-      handleGoScriptDetail () {
+      handleGoScriptDetail() {
         const routerName = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
           ? 'publicScriptVersion'
           : 'scriptVersion';
@@ -476,7 +476,7 @@
       /**
        * @desc 跳转新建脚本页面
        */
-      handleGoCreate () {
+      handleGoCreate() {
         const routerName = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
           ? 'createPublicScript'
           : 'createScript';
@@ -484,7 +484,7 @@
         const { href } = this.$router.resolve({
           name: routerName,
         });
-                
+
         window.open(href);
       },
     },

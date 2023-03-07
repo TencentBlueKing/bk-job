@@ -84,14 +84,14 @@
         }),
       },
     },
-    data () {
+    data() {
       return {
         list: [],
       };
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (!data.host) {
             this.list = [];
             return;
@@ -101,7 +101,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.append().appendChild(this.$refs.hostDetail);
       this.$once('hook:beforeDestroy', () => {
         const $target = this.append();
@@ -111,7 +111,7 @@
       });
     },
     methods: {
-      handleClose () {
+      handleClose() {
         this.currentPage = 1;
         this.$emit('input', false);
         this.$emit('change', false);

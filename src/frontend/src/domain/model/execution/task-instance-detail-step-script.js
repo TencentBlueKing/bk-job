@@ -35,7 +35,7 @@ export default class TaskInstanceDetailStepScript {
   static TYPE_SOURCE_BUSINESS = 2;
   static TYPE_SOURCE_PUBLIC = 3;
 
-  constructor (payload = {}) {
+  constructor(payload = {}) {
     this.scriptId = payload.scriptId;
     this.ignoreError = payload.ignoreError || 0;
     this.scriptParam = payload.scriptParam || '';
@@ -48,7 +48,7 @@ export default class TaskInstanceDetailStepScript {
     this.account = payload.account;
     this.status = payload.status;
     this.rollingEnabled = Boolean(payload.rollingEnabled);
-        
+
     this.executeTarget = new TaskHostNodeModel(payload.executeTarget || {});
     this.rollingConfig = this.initRollingConfig(payload.rollingConfig);
   }
@@ -57,7 +57,7 @@ export default class TaskInstanceDetailStepScript {
      * @desc 脚本内容引用的公共脚本
      * @returns { Boolean }
      */
-  get isReferPublicScript () {
+  get isReferPublicScript() {
     return this.scriptSource === TaskInstanceDetailStepScript.TYPE_SOURCE_PUBLIC;
   }
 
@@ -65,7 +65,7 @@ export default class TaskInstanceDetailStepScript {
      * @desc 引用脚本被禁用
      * @returns { Boolean }
      */
-  get isDisabled () {
+  get isDisabled() {
     return this.status === TaskInstanceDetailStepScript.STATUS_SCRIPT_DISABLED;
   }
 
@@ -73,7 +73,7 @@ export default class TaskInstanceDetailStepScript {
      * @desc 引用脚本有更新
      * @returns { Boolean }
      */
-  get isNeedUpdate () {
+  get isNeedUpdate() {
     return this.status === TaskInstanceDetailStepScript.STATUS_SCRIPT_NEED_UPDATE;
   }
 
@@ -81,7 +81,7 @@ export default class TaskInstanceDetailStepScript {
      * @desc 脚本状态展示文本
      * @returns { String }
      */
-  get scriptStatusHtml () {
+  get scriptStatusHtml() {
     if (this.status === TaskInstanceDetailStepScript.STATUS_SCRIPT_NEED_UPDATE) {
       // eslint-disable-next-line max-len
       return `<i class="job-icon job-icon-script-update" tippy-tips="${I18n.t('引用脚本待更新')}" style="color: #EA3636"></i>`;
@@ -97,7 +97,7 @@ export default class TaskInstanceDetailStepScript {
      * @desc 脚本来源展示文本
      * @returns { String }
      */
-  get scriptSourceText () {
+  get scriptSourceText() {
     return this.scriptSource === TaskInstanceDetailStepScript.TYPE_SOURCE_LOCAL ? I18n.t('手工录入') : I18n.t('脚本引用');
   }
 
@@ -105,7 +105,7 @@ export default class TaskInstanceDetailStepScript {
      * @desc 忽略错误展示文本
      * @returns { String }
      */
-  get ignoreErrorText () {
+  get ignoreErrorText() {
     return this.ignoreError === 0 ? I18n.t('不忽略') : I18n.t('自动忽略错误');
   }
 
@@ -114,7 +114,7 @@ export default class TaskInstanceDetailStepScript {
      * @param { Object } rollingConfig 滚动执行配置
      * @returns { Object }
      */
-  initRollingConfig (rollingConfig) {
+  initRollingConfig(rollingConfig) {
     const config = {
       expr: '',
       mode: 1,

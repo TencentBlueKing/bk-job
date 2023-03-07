@@ -115,7 +115,7 @@
         type: String,
       },
     },
-    data () {
+    data() {
       return {
         isRender: false,
         isSubmiting: false,
@@ -125,7 +125,7 @@
       };
     },
     computed: {
-      footerStyles () {
+      footerStyles() {
         const styles = {};
         if (this.offsetLeft > 0) {
           styles.paddingLeft = `${this.offsetLeft}px`;
@@ -144,11 +144,11 @@
       /**
        * @desc 处理bk-sideslider中有路由跳转在某些情况下不关闭的bug
        */
-      '$route' () {
+      '$route'() {
         this.$refs.bkSideslider.isShow = false;
       },
       isShow: {
-        handler (val) {
+        handler(val) {
           // settimeout 解决 bk-sideslider 默认显示没有遮罩的 bug
           setTimeout(() => {
             const observer = new MutationObserver(() => {
@@ -184,10 +184,10 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.pageChangeConfirmMemo = false;
     },
-    beforeDestroy () {
+    beforeDestroy() {
       // 解决 bk-sideslider 在其内部有路由跳转时bk-sideslider的dom没有移出的bug
       const { $el } = this.$refs.bkSideslider;
       setTimeout(() => {
@@ -196,7 +196,7 @@
         }
       });
     },
-    mounted () {
+    mounted() {
       window.addEventListener('resize', this.getMediaWidth);
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', this.getMediaWidth);
@@ -276,7 +276,7 @@
        *
        * 判断条件为有没有提供submit方法
        */
-      checkHandle () {
+      checkHandle() {
         // 可以绑定子组件的唯一判断条件——子组件有提供submit methods
         const handle = {
           submit: () => Promise.resolve(),
@@ -293,20 +293,20 @@
         });
         return handle;
       },
-      beforeClose () {
+      beforeClose() {
         return leaveConfirm();
       },
       /**
        * @desc 关闭弹层
        */
-      close () {
+      close() {
         window.changeFlag = this.pageChangeConfirmMemo;
         this.$emit('update:isShow', false);
       },
       /**
        * @desc 弹框的确认操作如果子组件有配置submit方案就执行
        */
-      handleSubmit () {
+      handleSubmit() {
         this.isSubmiting = true;
         Promise.resolve(this.checkHandle().submit())
           .then(() => {
@@ -320,7 +320,7 @@
       /**
        * @desc 关闭弹框时如果子组件有配置reset方案就执行
        */
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => this.checkHandle().reset())
           .then(() => this.close())

@@ -59,7 +59,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         localValue: [],
       };
@@ -69,7 +69,7 @@
        * @desc 全选状态
        * @returns { Object }
        */
-      allCheckStatus () {
+      allCheckStatus() {
         if (this.localValue.length < 1) {
           return {
             checked: false,
@@ -97,14 +97,14 @@
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           this.localValue = value;
         },
         immediate: true,
       },
     },
     methods: {
-      handleCheckToggle () {
+      handleCheckToggle() {
         if (this.allCheckStatus.checked) {
           this.handleChange([]);
         } else {
@@ -112,7 +112,7 @@
           this.handleChange(allChannelCode);
         }
       },
-      handleChange (value) {
+      handleChange(value) {
         this.localValue = value;
         this.$emit('on-change', this.localValue);
       },

@@ -27,24 +27,24 @@
 import NotifySource from '../source/notify';
 
 export default {
-  fetchBlacklist (params) {
+  fetchBlacklist(params) {
     return NotifySource.getBlacklist(params)
       .then(({ data }) => data);
   },
-  blacklistUpdate (params) {
+  blacklistUpdate(params) {
     return NotifySource.updateBlacklist(params);
   },
-  blacklistDelete (params) {
+  blacklistDelete(params) {
     return NotifySource.deleteBlacklistMember(params);
   },
-  fetchPoliciesList (params) {
+  fetchPoliciesList(params) {
     return NotifySource.getPoliciesList(params)
       .then(({ data }) => data);
   },
-  defaultPoliciesUpdate (params) {
+  defaultPoliciesUpdate(params) {
     return NotifySource.updateDefaultPolicies(params);
   },
-  fetchAllUsers (params = {}) {
+  fetchAllUsers(params = {}) {
     return NotifySource.getAllUsers(params)
       .then(({ data }) => data);
   },
@@ -52,7 +52,7 @@ export default {
      * @desc 用户搜索的用户列表
      * @param { String } prefixStr
      */
-  fetchUsersOfSearch (prefixStr = '') {
+  fetchUsersOfSearch(prefixStr = '') {
     return NotifySource.getAllUsers({
       prefixStr,
       offset: 0,
@@ -62,19 +62,19 @@ export default {
       name: _.englishName,
     })));
   },
-  fetchPageTemplate () {
+  fetchPageTemplate() {
     return NotifySource.getPageTemplate()
       .then(({ data }) => data);
   },
-  fetchAllChannel () {
+  fetchAllChannel() {
     return NotifySource.getAllChannel()
       .then(({ data }) => data);
   },
-  fetchAvailableChannel () {
+  fetchAvailableChannel() {
     return NotifySource.getAvailableChannel()
       .then(({ data }) => data);
   },
-  fetchRoleList () {
+  fetchRoleList() {
     return NotifySource.getAllRole()
       .then(({ data }) => data);
   },

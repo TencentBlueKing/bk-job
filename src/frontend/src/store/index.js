@@ -35,15 +35,15 @@ const store = new Vuex.Store({
     scriptCheckError: null,
   },
   getters: {
-        
+
   },
   mutations: {
-    setScriptCheckError (state, value) {
+    setScriptCheckError(state, value) {
       state.scriptCheckError = value;
     },
   },
   actions: {
-        
+
   },
   // 模块
   modules: {

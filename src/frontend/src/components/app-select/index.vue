@@ -192,7 +192,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isFocus: false,
         renderList: [],
@@ -207,23 +207,23 @@
       };
     },
     computed: {
-      icon () {
+      icon() {
         return this.scopeName.slice(0, 1);
       },
     },
-    created () {
+    created() {
       this.list = [];
       this.fetchRelatedSystemUrls();
       this.fetchWholeAppList();
     },
-    mounted () {
+    mounted() {
       this.initPopover();
     },
     methods: {
       /**
        * @desc 获取系统配置项
        */
-      fetchRelatedSystemUrls () {
+      fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
@@ -232,7 +232,7 @@
       /**
        * @desc 获取业务列表
        */
-      fetchWholeAppList () {
+      fetchWholeAppList() {
         AppManageService.fetchWholeAppList()
           .then((data) => {
             this.list = data.data.map(item => ({
@@ -260,7 +260,7 @@
       /**
        * @desc 下拉列表
        */
-      initPopover () {
+      initPopover() {
         if (!this.popperInstance) {
           this.popperInstance = this.$bkPopover(this.$refs.app, {
             theme: 'light app-list',
@@ -296,7 +296,7 @@
       /**
        * @desc 跳转cmdb创建新的业务
        */
-      handleGoCreateApp () {
+      handleGoCreateApp() {
         if (!this.relatedSystemUrls.BK_CMDB_ROOT_URL) {
           alert(I18n.t('网络错误，请刷新页面重试'));
           return;
@@ -307,7 +307,7 @@
        * @desc 键盘上下键选择
        * @param {String} step 移动方向
        */
-      handleStep (step) {
+      handleStep(step) {
         if (step === 'next') {
           this.activeIndex += 1;
           if (this.activeIndex === this.renderList.length) {
@@ -335,7 +335,7 @@
        * @desc 鼠标选择
        * @param {Number} index 鼠标选中的索引
        */
-      handleMouseenter (index) {
+      handleMouseenter(index) {
         this.activeIndex = index;
       },
       /**
@@ -343,7 +343,7 @@
        *
        * 对于无权限的业务通过click事件触发鉴权逻辑
        */
-      handleSelect () {
+      handleSelect() {
         this.$refs.list.querySelector('.hover').click();
       },
       /**
@@ -375,7 +375,7 @@
        * @param {String} scopeId 业务id
        * @param {Boolean} favor 收藏状态
        */
-      handleFavor (scopeType, scopeId, favor) {
+      handleFavor(scopeType, scopeId, favor) {
         const app = _.find(this.list, _ => _.scopeType === scopeType && _.scopeId === scopeId);
         if (favor) {
           AppManageService.favorApp({
@@ -406,19 +406,19 @@
        * @desc 切换业务
        * @param { object } appInfo 最新业务信息
        */
-      handleAppChange (appInfo) {
+      handleAppChange(appInfo) {
         const {
           scopeType,
           scopeId,
         } = appInfo;
-                
+
         this.loading = true;
         const pathRoot = `/${scopeType}/${scopeId}`;
         if (!window.PROJECT_CONFIG.SCOPE_TYPE || !window.PROJECT_CONFIG.SCOPE_ID) {
           window.location.href = pathRoot;
           return;
         }
-                
+
         scopeCache.setItem({
           scopeType,
           scopeId,
@@ -450,7 +450,7 @@
           reload(path);
           return;
         }
-                
+
         // 路由有多层嵌套
         /* eslint-disable prefer-destructuring */
         const { path, redirect } = matched[1];

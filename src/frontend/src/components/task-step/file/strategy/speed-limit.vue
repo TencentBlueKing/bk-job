@@ -87,14 +87,14 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         enabled: false,
       };
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           if (formData[this.field] > 0) {
             this.enabled = true;
           }
@@ -102,7 +102,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.speedLimitTipsConfig = {
         allowHTML: true,
         width: '325px',
@@ -113,11 +113,11 @@
       };
     },
     methods: {
-      handleEnableChange (enabled) {
+      handleEnableChange(enabled) {
         this.enabled = enabled;
         this.$emit('on-change', this.field, enabled ? 10 : 0);
       },
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

@@ -115,7 +115,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isConfigLoading: true,
         isAddServerFile: false,
@@ -127,7 +127,7 @@
     },
     watch: {
       data: {
-        handler (newSourceFileList) {
+        handler(newSourceFileList) {
           if (this.isSelfChange) {
             this.isSelfChange = false;
             return;
@@ -143,13 +143,13 @@
         },
         immediate: true,
       },
-      sourceFileList (sourceFileList) {
+      sourceFileList(sourceFileList) {
         if (sourceFileList.length > 0) {
           this.$refs.item.clearValidator();
         }
       },
     },
-    created () {
+    created() {
       this.rules = [
         {
           validator: () => {
@@ -245,7 +245,7 @@
       };
       this.fetchJobConfig();
     },
-    mounted () {
+    mounted() {
       const unWatch = this.$watch(() => this.$refs.serverFileView.isShow, (value) => {
         this.showFileView = value;
       }, {
@@ -265,7 +265,7 @@
        *
        * 本地文件上传大小限制
        */
-      fetchJobConfig () {
+      fetchJobConfig() {
         this.isConfigLoading = true;
         QuertGlobalSettingService.fetchJobConfig()
           .then((data) => {
@@ -280,26 +280,26 @@
       /**
        * @desc 触发change事件
        */
-      triggerChange () {
+      triggerChange() {
         this.isSelfChange = true;
         this.$emit('on-change', this.sourceFileList);
       },
       /**
        * @desc 显示添加服务器文件输入框
        */
-      handleAddServerFile () {
+      handleAddServerFile() {
         this.isAddServerFile = true;
       },
       /**
        * @desc 显示添加文件源文件弹框
        */
-      handleAddSourceFile () {
+      handleAddSourceFile() {
         this.$refs.serverFileView.handleAddSourceFile();
       },
       /**
        * @desc 选择本地文件开始上传
        */
-      handlerUploadLocalFile () {
+      handlerUploadLocalFile() {
         this.isAddLocalFile = true;
         this.$refs.serverFileView.startUploadLocalFile();
       },
@@ -307,7 +307,7 @@
        * @desc 更新文件来源的值
        * @param {Array} souceFileList 文件源文件
        */
-      handleSourceFileChange (souceFileList) {
+      handleSourceFileChange(souceFileList) {
         this.sourceFileList = Object.freeze(souceFileList);
         this.triggerChange();
       },

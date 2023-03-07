@@ -76,20 +76,20 @@
       ResizeableBox,
     },
     inheritAttrs: false,
-    data () {
+    data() {
       return {
         isLoading: false,
         variableList: [],
       };
     },
-    created () {
+    created() {
       this.fetchVariableList();
     },
     methods: {
       /**
        * @desc 获取变量列表
        */
-      fetchVariableList () {
+      fetchVariableList() {
         this.isLoading = true;
         ScriptTemplateService.fetchVaribaleList()
           .then((data) => {
@@ -102,7 +102,7 @@
       /**
        * @desc 复制变量（变量名被 {{}} 包裹）
        */
-      handleCopyScriptVariable (variableName) {
+      handleCopyScriptVariable(variableName) {
         execCopy(variableName, `${I18n.t('scriptTemplate.复制成功')} ${variableName}`);
       },
     },

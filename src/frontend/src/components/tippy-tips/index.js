@@ -31,7 +31,7 @@ const defaultOptions = {
   arrow: true,
 };
 export default {
-  install (Vue) {
+  install(Vue) {
     Vue.mixin({
       updated: _.debounce(() => {
         const $els = document.body.querySelectorAll('[tippy-tips]');

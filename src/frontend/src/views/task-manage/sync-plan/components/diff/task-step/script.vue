@@ -96,7 +96,7 @@
       },
     },
     methods: {
-      findName (accountId) {
+      findName(accountId) {
         const account = this.account.find(_ => _.id === accountId);
         if (!account) {
           return '';

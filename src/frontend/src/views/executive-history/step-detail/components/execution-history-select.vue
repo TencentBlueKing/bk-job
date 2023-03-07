@@ -78,14 +78,14 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         isNeedRender: false,
         executionList: [],
       };
     },
     computed: {
-      retryCountText () {
+      retryCountText() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.executionList.length; i++) {
           if (this.executionList[i].retryCount === this.retryCount) {
@@ -97,7 +97,7 @@
     },
     watch: {
       stepInstanceId: {
-        handler (stepInstanceId) {
+        handler(stepInstanceId) {
           this.popperDestroy();
           if (!stepInstanceId) {
             return;
@@ -107,7 +107,7 @@
         immediate: true,
       },
       batch: {
-        handler () {
+        handler() {
           if (!this.stepInstanceId) {
             return;
           }
@@ -116,14 +116,14 @@
         immediate: true,
       },
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.popperDestroy();
     },
     methods: {
       /**
        * @desc 组件外部调用api，刷新数据
        */
-      reLoading () {
+      reLoading() {
         this.fetchStepExecutionHistory();
       },
       /**
@@ -151,7 +151,7 @@
             };
           });
           this.executionList = Object.freeze(result);
-                    
+
           // 重试次数大于1才需要显示
           this.isNeedRender = this.executionList.length > 1;
 
@@ -184,7 +184,7 @@
       /**
        * @desc 销毁popover实例
        */
-      popperDestroy () {
+      popperDestroy() {
         if (this.popperInstance) {
           this.popperInstance.destroy();
           this.popperInstance = null;
@@ -196,7 +196,7 @@
        *
        * 切换成功后需要将retryCount的最新值更新到url上
        */
-      handleSelectRetryCount (retryCount) {
+      handleSelectRetryCount(retryCount) {
         this.popperInstance && this.popperInstance.hide();
         this.$emit('on-change', retryCount);
         const searchParams = new URLSearchParams(window.location.search);

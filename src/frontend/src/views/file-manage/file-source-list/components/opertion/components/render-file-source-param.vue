@@ -42,7 +42,7 @@
 </template>
 <script>
   import FileManageService from '@service/file-source-manage';
-    
+
   export default {
     name: '',
     props: {
@@ -54,19 +54,19 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         paramList: [],
       };
     },
     computed: {
-      isRender () {
+      isRender() {
         return this.fileSourceTypeCode && this.paramList.length > 0;
       },
     },
     watch: {
       fileSourceTypeCode: {
-        handler (fileSourceTypeCode) {
+        handler(fileSourceTypeCode) {
           if (fileSourceTypeCode) {
             this.fetchFileSourceParams();
           }
@@ -80,7 +80,7 @@
        *
        * paramMap 为空使用默认值
        */
-      fetchFileSourceParams () {
+      fetchFileSourceParams() {
         FileManageService.fetchParams({
           fileSourceTypeCode: this.fileSourceTypeCode,
         }).then((data) => {
@@ -98,7 +98,7 @@
        * @desc 验证规则
        * @param {Object} formItem 表单项数据
        */
-      calcRules (formItem) {
+      calcRules(formItem) {
         const rules = [];
         if (formItem.required) {
           rules.push({
@@ -114,7 +114,7 @@
        * @param {String} name 参数名
        * @param {String} value 参数值
        */
-      handleChange (name, value) {
+      handleChange(name, value) {
         this.$emit('on-change', {
           ...this.paramMap,
           [name]: value,

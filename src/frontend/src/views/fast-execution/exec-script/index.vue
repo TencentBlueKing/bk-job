@@ -31,7 +31,7 @@
     class="exec-script-page">
     <resize-layout
       class="exec-scipt-content"
-      :right-fixed="true"
+      right-fixed
       :right-width="366">
       <smart-action offset-target="bk-form-content">
         <jb-form
@@ -206,7 +206,7 @@
       ItemFactory,
       ResizeLayout,
     },
-    data () {
+    data() {
       return {
         reset: 0,
         isLoading: false,
@@ -217,27 +217,27 @@
         ipSelectorData: {},
       };
     },
-    created () {
+    created() {
       this.parseUrlParams();
     },
-    mounted () {
+    mounted() {
       window.IPInputScope = 'SCRIPT_EXECUTE';
     },
     /**
      * @desc 销毁时清空脚本调试的数据
      */
-    beforeDestroy () {
+    beforeDestroy() {
       debugScriptCache.clearItem();
       window.IPInputScope = '';
     },
     methods: {
-      handleIpChange (value) {
+      handleIpChange(value) {
         this.ipSelectorData = value;
       },
       /**
        * @desc 重做时获取任务详细信息
        */
-      fetchData () {
+      fetchData() {
         this.$request(TaskExecuteService.fetchTaskInstance({
           id: this.taskInstanceId,
         }), () => {
@@ -297,7 +297,7 @@
        * 3，执行列表重做任务
        * 4，脚本管理，执行指定版本脚本
        */
-      parseUrlParams () {
+      parseUrlParams() {
         const { model } = this.$route.query;
         // 调试脚本模式
         if (model === 'debugScript') {
@@ -345,13 +345,13 @@
       /**
        * @desc 读取执行历史
        */
-      timeTravel () {
+      timeTravel() {
         this.historyList = Object.freeze(execScriptHistory.getItem());
       },
       /**
        * @desc 缓存执行历史
        */
-      pushLocalStorage (history) {
+      pushLocalStorage(history) {
         const historyList = execScriptHistory.getItem();
         historyList.unshift(history);
         execScriptHistory.setItem(historyList);
@@ -359,14 +359,14 @@
       /**
        * @desc 展开执行历史面板
        */
-      handleShowHistory () {
+      handleShowHistory() {
         this.isShowHistory = !this.isShowHistory;
       },
       /**
        * @desc 定位到历史执行任务详情
        * @param {Object} task 历史执行任务数据
        */
-      handleGoHistoryDetail (task) {
+      handleGoHistoryDetail(task) {
         this.$router.push({
           name: 'quickLaunchStep',
           params: {
@@ -383,14 +383,14 @@
        * @param {String} field 字段名
        * @param {Any} value 字段值
        */
-      handleChange (field, value) {
+      handleChange(field, value) {
         this.formData[field] = value;
       },
       /**
        * @desc 批量更新字段
        * @param {Object} payload 将要更新的字段值
        */
-      handleReset (payload) {
+      handleReset(payload) {
         this.formData = {
           ...this.formData,
           ...payload,
@@ -399,7 +399,7 @@
       /**
        * @desc 执行任务
        */
-      handleSubmit () {
+      handleSubmit() {
         this.isSubmiting = true;
         this.$refs.execScriptForm.validate()
           .then(scriptErrorConfirm)
@@ -475,7 +475,7 @@
       /**
        * @desc 取消、重置操作数据
        */
-      handleCancel () {
+      handleCancel() {
         this.$refs.execScriptForm.clearError();
         this.formData = getDefaultData();
         this.reset += 1;

@@ -74,7 +74,7 @@
   } from '../components/utils';
 
   import I18n from '@/i18n';
-    
+
   export default {
     name: '',
     components: {
@@ -91,14 +91,14 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         list: [],
         statisticsData: {},
       };
     },
     computed: {
-      classes () {
+      classes() {
         return {
           scroll: this.data.length > 10,
         };
@@ -106,7 +106,7 @@
     },
     watch: {
       data: {
-        handler (host) {
+        handler(host) {
           if (this.isInnerChange) {
             this.isInnerChange = false;
             return;
@@ -123,7 +123,7 @@
       /**
        * @desc 删除所有筛选得到的主机
        */
-      handleRemoveAll () {
+      handleRemoveAll() {
         if (this.list.length < 1) {
           this.messageSuccess(I18n.t('没有可移除主机'));
           return;
@@ -139,7 +139,7 @@
        *
        * 抛出change事件通知那些主机被删除
        */
-      handleRemoveFail () {
+      handleRemoveFail() {
         const effectiveIp = [];
         const failIpList = [];
         this.list.forEach((currentHost) => {
@@ -164,7 +164,7 @@
        *
        * 抛出change事件通知那些主机被删除
        */
-      handleRemoveOne (hostInfo) {
+      handleRemoveOne(hostInfo) {
         // 内部显示删除
         const newList = [];
         let removeHost = null;
@@ -179,7 +179,7 @@
         if (!removeHost) {
           return;
         }
-                
+
         this.isInnerChange = true;
         this.$emit('on-remove', [
           removeHost,

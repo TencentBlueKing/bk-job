@@ -92,20 +92,20 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         needRefresh: false,
       };
     },
     computed: {
-      mode () {
+      mode() {
         return `ace/mode/${LANG_MAP[this.scriptLanguage]}`;
       },
     },
     watch: {
       scriptContent: {
-        handler () {
+        handler() {
           if (this.hasRendered) {
             this.needRefresh = true;
             return;
@@ -114,25 +114,25 @@
         },
         immediate: true,
       },
-      scriptLanguage () {
+      scriptLanguage() {
         this.fetchRenderScript();
         setTimeout(() => {
           this.editor.getSession().setMode(this.mode);
         });
       },
     },
-    created () {
+    created() {
       this.hasRendered = false;
       this.editorId = `scriptTemplatePrevice${_.random(1, 1000)}_${Date.now()}`;
     },
-    mounted () {
+    mounted() {
       this.initEditor();
     },
     methods: {
       /**
        * 初始化脚本编辑器
        */
-      initEditor () {
+      initEditor() {
         const editor = ace.edit(this.editorId);
         editor.getSession().setMode(this.mode);
         editor.setOptions({
@@ -152,7 +152,7 @@
         editor.setShowPrintMargin(false);
         editor.$blockScrolling = Infinity;
         editor.setReadOnly(true);
-                
+
         // 先保存 editor 在设置 value
         editor.scrollToLine(Infinity);
         editor.setValue('');
@@ -166,7 +166,7 @@
       /**
        * @desc 预览脚本模板
        */
-      fetchRenderScript () {
+      fetchRenderScript() {
         this.isLoading = true;
         ScriptTemplateService.fetchRenderScript({
           scriptContent: this.scriptContent,
@@ -184,7 +184,7 @@
       /**
        * @desc 有更新，重新预览脚本模板
        */
-      handleRefresh () {
+      handleRefresh() {
         this.fetchRenderScript();
       },
     },

@@ -208,7 +208,7 @@
         default: I18n.t('服务器不能为空'),
       },
     },
-    data () {
+    data() {
       this.ipListTopolagyLast = [];
       return {
         isShowDialog: false,
@@ -237,7 +237,7 @@
        * @desc 渲染tab组件
        * @returns {Object}
        */
-      panelCom () {
+      panelCom() {
         const comMap = {
           static: RenderBusinessTopology,
           dynamic: RenderDynamicBusinessTopology,
@@ -250,7 +250,7 @@
        * @desc 弹框内容区样式
        * @returns {Object}
        */
-      containerStyles () {
+      containerStyles() {
         return {
           height: `${this.dialogHeight - DIALOG_FOOTER_HEIGHT}px`,
         };
@@ -259,7 +259,7 @@
        * @desc tab内容区样式
        * @returns {Object}
        */
-      contentStyles () {
+      contentStyles() {
         return {
           height: `${this.dialogHeight - DIALOG_FOOTER_HEIGHT - CONTENT_TAB_HEIGHT}px`,
         };
@@ -268,14 +268,14 @@
        * @desc 主机是否为空
        * @returns {Boolean}
        */
-      isEmpty () {
+      isEmpty() {
         return !this.topoNodeList.length && !this.ipList.length && !this.dynamicGroupList.length;
       },
       /**
        * @desc 选择结果的展示
        * @returns {String}
        */
-      actionResult () {
+      actionResult() {
         const result = [];
         if (this.ipList.length > 0) {
           result.push(`<span class="strong number choose-host">${this.ipList.length}</span>${I18n.t('台主机.select')}`);
@@ -302,7 +302,7 @@
          * @desc 每次打开重新拉取拓扑节点树
          * @param {Boolean} show 显示 ip 选择器
          */
-        handler (show) {
+        handler(show) {
           if (show) {
             this.fetchTopologyWithCount();
           }
@@ -317,7 +317,7 @@
          * @desc 处理默认值
          * @param {Object} hostNodeInfo 主机信息
          */
-        handler (hostNodeInfo) {
+        handler(hostNodeInfo) {
           if (this.isSelfChange) {
             this.isSelfChange = false;
             return;
@@ -327,7 +327,7 @@
             dynamicGroupList = [],
             topoNodeList = [],
           } = hostNodeInfo;
-                    
+
           this.ipList = Object.freeze(ipList);
           this.ipListTopolagyLast = ipList;
           this.dynamicGroupList = Object.freeze(dynamicGroupList);
@@ -338,7 +338,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.previewId = `chooseIPPreview_${_.random(1, 99999999)}`;
       this.isSelfChange = false;
       this.hostInput = [];
@@ -346,14 +346,14 @@
         1240, 1400, 1560, 1720,
       ];
     },
-    mounted () {
+    mounted() {
       this.calcDialogHeight();
     },
     methods: {
       /**
        * @desc 获取拓扑节点树
        */
-      fetchTopologyWithCount () {
+      fetchTopologyWithCount() {
         this.isLoading = true;
         HostManageService.fetchTopologyWithCount()
           .then((data) => {
@@ -368,14 +368,14 @@
       /**
        * @desc 动态计算弹框高度占浏览器窗口的 80%
        */
-      calcDialogHeight () {
+      calcDialogHeight() {
         const dialogHeight = window.innerHeight * 0.8;
         this.dialogHeight = dialogHeight < 660 ? 660 : dialogHeight;
       },
       /**
        * @desc tab 面板切换
        */
-      handleTabChange (payload) {
+      handleTabChange(payload) {
         this.activeTab = payload;
       },
       /**
@@ -385,7 +385,7 @@
        *
        * 静态 ip 选择和手动输入的结果需要合并
        */
-      handleChange (field, value) {
+      handleChange(field, value) {
         this.error = '';
         switch (field) {
         case 'ipList':
@@ -414,7 +414,7 @@
        *
        * 有输入结果但是没有添加需要给出提示结果
        */
-      handleInputChange (status) {
+      handleInputChange(status) {
         this.ipInputStatus = status;
       },
       /**
@@ -423,13 +423,13 @@
        *
        * 动画没结束禁止提交
        */
-      handleInputAnimate (running) {
+      handleInputAnimate(running) {
         this.isSubmitDisable = running;
       },
       /**
        * @desc 预览结果
        */
-      handleShowChoosePreview () {
+      handleShowChoosePreview() {
         this.showChoosePreview = true;
       },
       /**
@@ -437,7 +437,7 @@
        * @param {Object} hostNodeInfo 主机信息
        *
        */
-      handlePreviewChange (hostNodeInfo) {
+      handlePreviewChange(hostNodeInfo) {
         const {
           dynamicGroupList,
           ipList,
@@ -452,14 +452,14 @@
        * @param {Object} groupInfo 分组信息
        *
        */
-      handleGroupPreview (groupInfo) {
+      handleGroupPreview(groupInfo) {
         this.previewGroup = groupInfo;
         this.showGroupPreview = true;
       },
       /**
        * @desc 外部调用，重置选中状态
        */
-      reset () {
+      reset() {
         this.topoNodeList = [];
         this.ipList = [];
         this.dynamicGroupList = [];
@@ -467,7 +467,7 @@
       /**
        * @desc 弹框关闭
        */
-      close () {
+      close() {
         this.activeTab = 'static';
         this.$emit('on-cancel');
         this.$emit('input', false);
@@ -475,19 +475,19 @@
       /**
        * @desc 提交操作结果
        */
-      handleSubmit () {
+      handleSubmit() {
         return Promise.resolve()
           .then(() => {
             if (this.required && this.isEmpty) {
               this.error = I18n.t('源文件的服务器列表不允许为空');
               return;
             }
-                        
+
             // 保证先关闭jb-popover-confirm，再关闭dialog
             Promise.resolve()
               .then(() => {
                 this.isSelfChange = true;
-                                
+
                 this.$emit('on-change', {
                   ipList: this.ipList,
                   topoNodeList: this.topoNodeList,
@@ -502,7 +502,7 @@
        *
        * 重置默认数据
        */
-      handleCancle () {
+      handleCancle() {
         const {
           dynamicGroupList = [],
           ipList = [],

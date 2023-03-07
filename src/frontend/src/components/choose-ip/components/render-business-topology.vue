@@ -250,7 +250,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       this.selfChange = false;
       return {
         isLoading: true,
@@ -276,7 +276,7 @@
       /**
        * @desc 表格的全选状态
        */
-      pageCheckInfo () {
+      pageCheckInfo() {
         const info = {
           indeterminate: false,
           checked: false,
@@ -284,10 +284,10 @@
         const checkedNums = Object.keys(this.checkedMap).length;
         info.indeterminate = checkedNums > 0;
         info.checked = checkedNums > 0 && checkedNums >= this.pagination.total;
-                
+
         return info;
       },
-      isSearch () {
+      isSearch() {
         return [
           0, 1,
         ].includes(this.agentFilter) || !!this.searchContent;
@@ -298,12 +298,12 @@
        * @desc 选中的主机更新
        */
       ipList: {
-        handler (ipList) {
+        handler(ipList) {
           if (this.selfChange) {
             this.selfChange = false;
             return;
           }
-                    
+
           this.pagination.page = 1;
           this.checkedMap = Object.freeze(ipList.reduce((result, ipInfo) => {
             result[ipInfo.hostId] = ipInfo;
@@ -312,16 +312,16 @@
         },
         immediate: true,
       },
-      topologyLoading (topologyLoading) {
+      topologyLoading(topologyLoading) {
         if (!topologyLoading) {
           this.resetTopoTree();
         }
       },
     },
-    created () {
+    created() {
       this.fetchUserInfo();
     },
-    mounted () {
+    mounted() {
       this.calcPageSize();
       // 根节点 ID 默认已知，主动拉取节点下面的主机
       this.fetchTopologyHost();
@@ -330,7 +330,7 @@
       /**
        * @desc 获取登陆用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
@@ -413,7 +413,7 @@
        * @param {Array} expandIds 需要展开的节点
        * @param {Boolean} emitEvent 选中节点时触发选中事件
        */
-      resetTopoTree (expandIds, emitEvent = false) {
+      resetTopoTree(expandIds, emitEvent = false) {
         const topologyNodeTree = filterTopology(this.topologyNodeTree, this.isRenderEmptyTopoNode);
         const expandIdArr = expandIds && expandIds.length > 0 ? expandIds : [this.selectedNodeId];
         this.$refs.tree.setData(topologyNodeTree);
@@ -432,7 +432,7 @@
       /**
        * @desc 计算PageSize
        */
-      calcPageSize () {
+      calcPageSize() {
         const topOffset = 154;
         const bottomOffset = 116;
         const pageSize = Math.floor((this.dialogHeight - topOffset - bottomOffset) / 41);
@@ -441,7 +441,7 @@
       /**
        * @desc 更新静态ip值
        */
-      triggerChange () {
+      triggerChange() {
         this.selfChange = true;
         this.$emit('on-change', 'ipList', Object.values(this.checkedMap));
       },
@@ -450,7 +450,7 @@
        *
        * 缓存状态，切换过程中保持节点的展开状态
        */
-      handleFilterEmptyToggle (event) {
+      handleFilterEmptyToggle(event) {
         this.isRenderEmptyTopoNode = !this.isRenderEmptyTopoNode;
         const selectNode = this.$refs.tree.getNodeById(this.selectedNodeId);
         if (this.isRenderEmptyTopoNode) {
@@ -473,7 +473,7 @@
           }
           return result;
         }, []);
-                
+
         this.resetTopoTree(expandIdArr, true);
       },
       /**
@@ -497,7 +497,7 @@
        *
        * 节点切换时重新拉取主机列表
        */
-      handleNodeChange (node) {
+      handleNodeChange(node) {
         this.selectedNodeId = node.id;
         this.pagination.page = 1;
         if (!node.expanded) {
@@ -513,16 +513,16 @@
        */
       handleHostSearch: _.debounce(function (str) {
         const value = _.trim(str);
-                
+
         // 前后两次搜索内容相同直接返回
         if (this.searchContent === value) {
           return;
         }
-                
+
         // 搜索框内容为空格换行等空白符直接用空字符串搜索
         const realValue = value.replace(/\s/g, '');
         this.searchContent = realValue ? value : '';
-                
+
         this.pagination.page = 1;
         this.fetchTopologyHost();
       }, 300),
@@ -530,7 +530,7 @@
        * @desc Agent状态筛选
        * @param {String} type 筛选字符
        */
-      handleAgentFiler (type) {
+      handleAgentFiler(type) {
         this.pagination.page = 1;
         this.agentFilter = type;
         this.fetchTopologyHost();
@@ -538,7 +538,7 @@
       /**
        * @desc 全选节点下的所有主机
        */
-      handleToggleWholeAll () {
+      handleToggleWholeAll() {
         this.isCheckedAll = !this.isCheckedAll;
         this.fetchTopologyHostWhole(this.isCheckedAll);
       },
@@ -546,7 +546,7 @@
        * @desc 选择单台主机
        * @param {Object} host 主机信息
        */
-      handleHostCheck ({ hostId }) {
+      handleHostCheck({ hostId }) {
         const checkedMap = Object.assign({}, this.checkedMap);
         if (checkedMap[hostId]) {
           delete checkedMap[hostId];
@@ -562,7 +562,7 @@
        * @desc 切换分页
        * @param {Number} page 页码
        */
-      handlePageChange (page) {
+      handlePageChange(page) {
         this.pagination.page = page;
         this.fetchTopologyHost();
       },

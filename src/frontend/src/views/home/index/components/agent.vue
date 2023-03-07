@@ -92,7 +92,7 @@
       ActionExtend,
       HostList,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isShow: false,
@@ -102,24 +102,24 @@
       };
     },
     computed: {
-      listTitle () {
+      listTitle() {
         const statusListMap = {
           normal: I18n.t('home.Agent 正常的机器列表：'),
           fail: I18n.t('home.Agent 异常的机器列表：'),
         };
         return statusListMap[this.statusType];
       },
-      defaultHighlight () {
+      defaultHighlight() {
         return (this.agentInfo.abnormalNum || !this.agentInfo.normalNum)
           ? this.$t('home.异常')
           : this.$t('home.正常');
       },
     },
-    created () {
+    created() {
       this.fetchStatisticsAgent();
     },
     methods: {
-      fetchStatisticsAgent () {
+      fetchStatisticsAgent() {
         this.$request(HomeService.fetchStatisticsAgent(), () => {
           this.isLoading = true;
         }).then((data) => {
@@ -130,7 +130,7 @@
             this.isLoading = false;
           });
       },
-      handleShowAgentDetail (status, count) {
+      handleShowAgentDetail(status, count) {
         if (!count) {
           return;
         }
@@ -138,14 +138,14 @@
         this.statusType = status;
         this.fetchAllAgentStatus();
       },
-      handleClose () {
+      handleClose() {
         this.isShow = false;
       },
-      handleCopyAll () {
+      handleCopyAll() {
         const allIP = this.allHostList.map(_ => _.split(':').pop());
         execCopy(allIP.join('\n'), `${I18n.t('home.复制成功')}（${allIP.length}${I18n.t('home.个IP')}）`);
       },
-      fetchAllAgentStatus () {
+      fetchAllAgentStatus() {
         const agentStatus = this.statusType === 'fail' ? 0 : 1;
         HomeService.fetchAllAgentStatus({
           agentStatus,
@@ -153,7 +153,7 @@
           this.allHostList = data.data;
         });
       },
-      handlePieScale (curName) {
+      handlePieScale(curName) {
         const statusMap = [
           this.$t('home.正常'),
           this.$t('home.异常'),
@@ -165,7 +165,7 @@
         this.myChart.dispatchAction({ type: 'highlight', name: selectItem });
         this.myChart.dispatchAction({ type: 'downplay', name: unSelectItems });
       },
-      initAgentStatistics () {
+      initAgentStatistics() {
         this.myChart = echarts.init(this.$refs.agentStatistics);
         const option = {
           series: [

@@ -84,23 +84,23 @@
     props: {
       variable: {
         type: Array,
-        default () {
+        default() {
           return [];
         },
       },
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         formData: { ...this.data },
       };
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -122,7 +122,7 @@
       };
     },
     methods: {
-      submit () {
+      submit() {
         return this.$refs.varPasswordForm.validate()
           .then(() => {
             this.$emit('on-change', {

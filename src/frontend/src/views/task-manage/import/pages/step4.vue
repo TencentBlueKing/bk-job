@@ -96,7 +96,7 @@
     components: {
       ActionBar,
     },
-    data () {
+    data() {
       return {
         isSubmiting: false,
         formData: {
@@ -105,7 +105,7 @@
         },
       };
     },
-    created () {
+    created() {
       this.id = taskImport.getItem('id');
       this.templateInfo = taskImport.getItem('templateInfo');
       this.rules = {
@@ -115,13 +115,13 @@
       };
     },
     methods: {
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancle');
       },
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 3);
       },
-      handleNext () {
+      handleNext() {
         this.isSubmiting = true;
         this.$refs.form.validate()
           .then(() => BackupService.import({

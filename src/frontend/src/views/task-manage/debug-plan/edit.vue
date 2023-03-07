@@ -99,7 +99,7 @@
       RenderGlobalVar,
       RenderTaskStep,
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
         variableList: [],
@@ -109,15 +109,15 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
-      selectedVariable () {
+      selectedVariable() {
         const selectedSteps = this.taskStepList.filter(step => this.formData.enableSteps.includes(step.id));
         return findUsedVariable(selectedSteps);
       },
     },
-    created () {
+    created() {
       this.rules = {
         enableSteps: [
           {
@@ -131,7 +131,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.$request(TaskPlanService.fetchDebugInfo({
           templateId: this.formData.templateId,
         }, {
@@ -161,7 +161,7 @@
           });
       },
 
-      handleGlobalVariableChange (payload) {
+      handleGlobalVariableChange(payload) {
         this.formData.variables = payload.map((item) => {
           const data = { ...item };
           if (!data.delete) {
@@ -171,7 +171,7 @@
         });
       },
 
-      handleSelectStep (payload) {
+      handleSelectStep(payload) {
         const index = this.formData.enableSteps.findIndex(item => item === payload.id);
 
         if (index > -1) {
@@ -186,7 +186,7 @@
         }
       },
 
-      handleSumbit () {
+      handleSumbit() {
         this.isSubmitLoading = true;
         this.$refs.editPlanForm.validate()
           .then(() => TaskPlanService.planUpdate(this.formData)
@@ -207,11 +207,11 @@
           });
       },
 
-      handleCancle () {
+      handleCancle() {
         this.routerBack();
       },
 
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'debugPlan',
           params: {

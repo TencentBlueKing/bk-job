@@ -115,7 +115,7 @@
       },
     },
     computed: {
-      position () {
+      position() {
         return Math.abs(this.maxWidth - 480);
       },
     },

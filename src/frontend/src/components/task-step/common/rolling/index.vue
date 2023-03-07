@@ -124,7 +124,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isShowGuide: false,
         tips: '',
@@ -136,7 +136,7 @@
        * @desc 滚动策略验证规则，不需要滚动执行时不进行验证
        * @returns { Array }
        */
-      rollingExprRule () {
+      rollingExprRule() {
         if (!this.formData[this.enabledField]) {
           return [];
         }
@@ -163,7 +163,7 @@
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           this.validatorExpr(formData[this.exprField]);
         },
         immediate: true,
@@ -175,7 +175,7 @@
        * @desc 验证滚动规则
        * @param { String } expr
        */
-      validatorExpr (expr) {
+      validatorExpr(expr) {
         try {
           this.errorMessage = '';
           this.tips = rollingExprParse(expr);
@@ -188,7 +188,7 @@
        * @desc 是否启用滚动
        * @param { Boolean } enabled
        */
-      handleRollingEnableChange (enabled) {
+      handleRollingEnableChange(enabled) {
         this.$emit('on-change', this.enabledField, enabled);
         if (!enabled) {
           this.tips = '';
@@ -222,13 +222,13 @@
        * @desc 滚动机制更新
        * @param { Number } rollingMode
        */
-      handleRollingModeChange (rollingMode) {
+      handleRollingModeChange(rollingMode) {
         this.$emit('on-change', this.modeField, rollingMode);
       },
-      handleShowGuide () {
+      handleShowGuide() {
         this.isShowGuide = !this.isShowGuide;
       },
-      handleHideGuide () {
+      handleHideGuide() {
         this.isShowGuide = false;
       },
     },

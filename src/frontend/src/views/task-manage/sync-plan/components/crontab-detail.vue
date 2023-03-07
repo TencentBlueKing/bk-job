@@ -124,7 +124,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isEmpty: false,
@@ -139,14 +139,14 @@
       };
     },
     computed: {
-      readonly () {
+      readonly() {
         if (!this.data.enable) {
           return true;
         }
         return this.isEditing ? false : this.info.hasConfirm;
       },
     },
-    created () {
+    created() {
       if (!this.data.id) {
         return;
       }
@@ -160,7 +160,7 @@
       }
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         TimeTaskService.getDetail({
           id: this.data.id,
@@ -190,11 +190,11 @@
             this.isLoading = false;
           });
       },
-      handleToggleEdit () {
+      handleToggleEdit() {
         this.isEditing = true;
         this.$emit('on-update-confirm', false);
       },
-      handleSubmit () {
+      handleSubmit() {
         Promise.all(this.$refs.variable.map(item => item.validate()))
           .then((variableValue) => {
             window.changeFlag = false;
@@ -205,7 +205,7 @@
             this.$emit('on-change', Object.freeze(variableValue));
           });
       },
-      handleReset () {
+      handleReset() {
         this.$refs.variable.forEach(item => item.reset());
       },
     },

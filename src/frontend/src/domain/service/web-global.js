@@ -27,11 +27,11 @@
 import WebGlobalSource from '../source/web-global';
 
 export default {
-  fetchVersionLog () {
+  fetchVersionLog() {
     return WebGlobalSource.getVersionLog()
       .then(({ data }) => Object.freeze(data));
   },
-  fetchVersionENLog () {
+  fetchVersionENLog() {
     return WebGlobalSource.getVersionENLog()
       .then(({ data }) => Object.freeze(data));
   },

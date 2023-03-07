@@ -74,18 +74,18 @@
         type: Function,
       },
     },
-    data () {
+    data() {
       return {
         variableType: 'general',
       };
     },
     computed: {
-      renderList () {
+      renderList() {
         return InternalVariables[this.variableType];
       },
     },
     methods: {
-      handleTabChange (tab) {
+      handleTabChange(tab) {
         this.variableType = tab;
       },
     },

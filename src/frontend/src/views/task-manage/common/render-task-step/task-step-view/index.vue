@@ -79,10 +79,10 @@
       },
     },
     computed: {
-      stepTypeText () {
+      stepTypeText() {
         return STEP_TYPE_LIST[this.data.type];
       },
-      stepCom () {
+      stepCom() {
         const taskStepMap = {
           1: StepExecScript,
           2: StepDistroFile,

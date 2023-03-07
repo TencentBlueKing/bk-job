@@ -28,24 +28,24 @@ import Request from '@utils/request';
 import ModuleBase from './module-base';
 
 class CustomSettgings extends ModuleBase {
-  constructor () {
+  constructor() {
     super();
     this.module = 'job-manage/web/customSettings';
   }
 
-  getAll (params = {}) {
+  getAll(params = {}) {
     return Request.post(`${this.path}/batchGet`, {
       params,
     });
   }
 
-  update (params = {}) {
+  update(params = {}) {
     return Request.post(`${this.path}`, {
       params,
     });
   }
 
-  remove (params = {}) {
+  remove(params = {}) {
     return Request.delete(`${this.path}`, {
       params,
     });

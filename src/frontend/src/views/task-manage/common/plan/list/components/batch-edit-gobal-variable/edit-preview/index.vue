@@ -41,7 +41,7 @@
   } from '../utils';
 
   import RenderRelatedInfo from './components/render-related-info';
-    
+
   export default {
     name: 'EditPreview',
     components: {
@@ -57,12 +57,12 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         globalVariableRelatePlanMap: {},
       };
     },
-    created () {
+    created() {
       this.relatePlanMap = {};
       this.traverPlanList();
     },
@@ -70,7 +70,7 @@
       /**
        * @desc 遍历执行方案全局变量
        */
-      traverPlanList () {
+      traverPlanList() {
         const globalVariableRelatePlanMap = {};
         this.planList.forEach((planData) => {
           planData.variableList.forEach((variableData) => {
@@ -91,7 +91,7 @@
             }
           });
         });
-                
+
         this.globalVariableRelatePlanMap = Object.freeze(globalVariableRelatePlanMap);
         // 默认站看第一个全局变量的信息
         this.$nextTick(() => {
@@ -102,7 +102,7 @@
        * @desc 外部调用，获取需要更新的执行方案
        * @return {Array} 需要更新的执行方案列表
        */
-      getRelatePlanList () {
+      getRelatePlanList() {
         return Object.values(this.relatePlanMap);
       },
     },

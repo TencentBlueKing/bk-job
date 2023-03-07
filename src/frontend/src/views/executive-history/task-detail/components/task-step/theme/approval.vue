@@ -128,7 +128,7 @@
         default: () => {},
       },
     },
-    data () {
+    data() {
       return {
         confirmReason: '',
       };

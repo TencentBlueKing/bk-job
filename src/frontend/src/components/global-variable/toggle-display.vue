@@ -60,13 +60,13 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isOpen: false,
       };
     },
     methods: {
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
       },
     },

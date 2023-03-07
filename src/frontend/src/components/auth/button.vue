@@ -71,14 +71,14 @@
       scopeType: String,
       scopeId: String,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         hasPermission: false,
       };
     },
     computed: {
-      showRaw () {
+      showRaw() {
         if (this.permission) {
           return true;
         }
@@ -89,14 +89,14 @@
       },
     },
     watch: {
-      resourceId (resourceId) {
+      resourceId(resourceId) {
         if (!resourceId) {
           return;
         }
         this.checkPermission();
       },
     },
-    created () {
+    created() {
       this.checkPermission();
       this.authResult = {};
     },
@@ -104,7 +104,7 @@
       /**
        * @desc 主动鉴权，指定资源和资源权限
        */
-      fetchPermission () {
+      fetchPermission() {
         this.isLoading = true;
         PermissionCheckService.fetchPermission({
           operation: this.auth,
@@ -123,7 +123,7 @@
       /**
        * @desc 判断预鉴权逻辑
        */
-      checkPermission () {
+      checkPermission() {
         if (this.permission === '' && this.auth) {
           this.fetchPermission();
         }
@@ -131,7 +131,7 @@
       /**
        * @desc 无权限时弹框提示资源权限申请
        */
-      handleRequestPermission () {
+      handleRequestPermission() {
         if (this.isLoading) {
           return;
         }

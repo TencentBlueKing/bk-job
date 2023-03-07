@@ -28,13 +28,13 @@ import Request from '@utils/request';
 import ModuleBase from './module-base';
 
 class Statistics extends ModuleBase {
-  constructor () {
+  constructor() {
     super();
     this.module = '/job-analysis/web/statistics';
   }
 
   // 查询某个统计量的分布信息
-  getDistributionMetrics (params = {}) {
+  getDistributionMetrics(params = {}) {
     const realParams = { ...params };
     delete realParams.metric;
     return Request.get(`${this.module}/distribution/metrics/${params.metric}`, {
@@ -43,7 +43,7 @@ class Statistics extends ModuleBase {
   }
 
   // 查询某个统计量的逐业务统计列表
-  getListByPerAppMetrics (params = {}) {
+  getListByPerAppMetrics(params = {}) {
     const realParams = { ...params };
     delete realParams.metric;
     return Request.get(`${this.module}/listByPerApp/metrics/${params.metric}`, {
@@ -52,7 +52,7 @@ class Statistics extends ModuleBase {
   }
 
   // 查询某种资源某个维度下的每日统计详情
-  getReourcesDimensions (params = {}) {
+  getReourcesDimensions(params = {}) {
     const realParams = { ...params };
     delete realParams.resource;
     delete realParams.dimension;
@@ -62,7 +62,7 @@ class Statistics extends ModuleBase {
   }
 
   // 查询某个统计量的统计信息
-  getTotalMetrics (params = {}) {
+  getTotalMetrics(params = {}) {
     const realParams = { ...params };
     delete realParams.metric;
     return Request.get(`${this.module}/total/metrics/${params.metric}`, {
@@ -71,7 +71,7 @@ class Statistics extends ModuleBase {
   }
 
   // 查询某个统计量的趋势
-  getTrendsMetrics (params = {}) {
+  getTrendsMetrics(params = {}) {
     const realParams = { ...params };
     delete realParams.metric;
     return Request.get(`${this.module}/trends/metrics/${params.metric}`, {
@@ -80,14 +80,14 @@ class Statistics extends ModuleBase {
   }
 
   // 查询脚本引用统计信息
-  getScriptCiteInfo (params = {}) {
+  getScriptCiteInfo(params = {}) {
     return Request.get(`${this.module}/script/citeInfo`, {
       params,
     });
   }
 
   // 查询统计数据起始日期
-  getDateInfo (params = {}, payload = {}) {
+  getDateInfo(params = {}, payload = {}) {
     return Request.get(`${this.module}/info`, {
       params,
       payload,

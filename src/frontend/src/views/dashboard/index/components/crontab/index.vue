@@ -41,7 +41,7 @@
       CrontabStatus,
       CrontabType,
     },
-    data () {
+    data() {
       return {};
     },
 

@@ -99,7 +99,7 @@
     components: {
       ActionBar,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         status: 0,
@@ -107,19 +107,19 @@
       };
     },
     computed: {
-      isImportSuccess () {
+      isImportSuccess() {
         return [
           TASK_STATUS_SUCCESS,
           TASK_STATUS_CANCEL,
         ].includes(this.status);
       },
-      isImportFailed () {
+      isImportFailed() {
         return [
           TASK_STATUS_FAILED,
         ].includes(this.status);
       },
     },
-    created () {
+    created() {
       this.id = taskImport.getItem('id');
       this.pollingQueue = [];
       taskImport.clearItem();
@@ -130,7 +130,7 @@
       });
     },
     methods: {
-      fetchData () {
+      fetchData() {
         BackupService.fetchImportInfo({
           id: this.id,
         }).then((data) => {
@@ -150,7 +150,7 @@
             this.isLoading = false;
           });
       },
-      startTimer () {
+      startTimer() {
         if (this.isClearTimer) {
           return;
         }
@@ -162,10 +162,10 @@
           this.startTimer();
         }, 2000);
       },
-      clearTimer () {
+      clearTimer() {
         this.isClearTimer = true;
       },
-      handleLocationTemplate (payload) {
+      handleLocationTemplate(payload) {
         const { href } = this.$router.resolve({
           name: 'templateDetail',
           params: {
@@ -174,7 +174,7 @@
         });
         window.open(href);
       },
-      handleLocationPlan (payload) {
+      handleLocationPlan(payload) {
         const { href } = this.$router.resolve({
           name: 'viewPlan',
           params: {
@@ -186,10 +186,10 @@
         });
         window.open(href);
       },
-      handleCopyLog () {
+      handleCopyLog() {
         execCopy(this.$refs.log.innerText);
       },
-      handleFinish () {
+      handleFinish() {
         this.$emit('on-cancle');
       },
     },

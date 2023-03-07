@@ -108,7 +108,7 @@
         default: () => genDefaultData(),
       },
     },
-    setup (props, ctx) {
+    setup(props, ctx) {
       const state = reactive({
         isSubmiting: false,
         formData: genDefaultData(),

@@ -75,7 +75,7 @@
 
   export default {
     name: '',
-    data () {
+    data() {
       return {
         isLoading: true,
         isShowContent: false,
@@ -83,13 +83,13 @@
       };
     },
     computed: {
-      dialogStyles () {
+      dialogStyles() {
         return {
           'z-index': window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
         };
       },
     },
-    created () {
+    created() {
       const currentStep = findParent(this, 'DiffTaskStep');
       const dataSourceParent = findParent(this, 'SyncPlanStep2');
       const currentPlanStep = findStep(dataSourceParent.planStepList, currentStep.data.realId);
@@ -110,7 +110,7 @@
         });
     },
     methods: {
-      fetchContent (step) {
+      fetchContent(step) {
         const currentStepData = step.scriptStepInfo;
         if (currentStepData.scriptSource === 1) {
           return Promise.resolve(Base64.decode(currentStepData.content));
@@ -122,13 +122,13 @@
           id: currentStepData.scriptVersionId,
         }).then(data => Base64.decode(data.content));
       },
-      handleView () {
+      handleView() {
         this.isShowContent = true;
         this.$nextTick(() => {
           document.body.appendChild(this.$refs.dialog);
         });
       },
-      handleClose () {
+      handleClose() {
         if (this.$refs.dialog) {
           document.body.removeChild(this.$refs.dialog);
         }

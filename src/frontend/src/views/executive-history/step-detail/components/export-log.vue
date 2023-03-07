@@ -120,7 +120,7 @@
       /**
        * @desc 格式化文件大小显示
        */
-      formFileSize (value) {
+      formFileSize(value) {
         if (Number(value) < 1) {
           return '--';
         }
@@ -134,7 +134,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         // 弹层显示状态标记
         isPopoverShowFlag: false,
@@ -148,7 +148,7 @@
       };
     },
     computed: {
-      boxClass () {
+      boxClass() {
         const classMap = {
           1: 'normal',
           2: 'packageing',
@@ -160,22 +160,22 @@
       /**
        * @desc 日志文件打包完成但没有下载，并且弹层是关闭状态显示进度条缩略图
        */
-      isShowThumProcess () {
+      isShowThumProcess() {
         return !this.isPopoverShowFlag && !this.isLogDownloaded && this.isPackageing;
       },
     },
-    created () {
+    created() {
       this.isPackageing = false;
       // api 标记重新打包
       this.repackage = false;
       // 用于重置 bk-progress
       this.resetKey = 1;
     },
-    mounted () {
+    mounted() {
       this.initPopover();
       this.taskQueue = [];
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.stopQueueRun();
     },
     methods: {
@@ -184,7 +184,7 @@
        *
        * 打包过程没结束一直轮询状态
        */
-      fetchLogFilePackageResult () {
+      fetchLogFilePackageResult() {
         TaskExecuteService.fetchLogFilePackageResult({
           stepInstanceId: this.stepInstanceId,
           repackage: this.repackage,
@@ -214,7 +214,7 @@
       /**
        * @desc 弹层初始化
        */
-      initPopover () {
+      initPopover() {
         this.popperInstance = this.$bkPopover(this.$refs.download, {
           arrow: true,
           placement: 'bottom',
@@ -236,7 +236,7 @@
       /**
        * @desc 推入轮询任务队列
        */
-      pushQueue (task) {
+      pushQueue(task) {
         if (!this.taskQueue) {
           this.taskQueue = [];
         }
@@ -245,7 +245,7 @@
       /**
        * @desc 开始轮询
        */
-      startQueueRun () {
+      startQueueRun() {
         const nextTask = this.taskQueue.shift();
         if (nextTask) {
           nextTask();
@@ -257,14 +257,14 @@
       /**
        * @desc 终止轮询
        */
-      stopQueueRun () {
+      stopQueueRun() {
         this.stopQueueRunning = true;
         clearTimeout(this.timer);
       },
       /**
        * @desc 开始模拟任务进度
        */
-      startProgress () {
+      startProgress() {
         if (this.process > 0.85) {
           return;
         }
@@ -276,7 +276,7 @@
       /**
        * @desc 任务进度完成
        */
-      endProgress () {
+      endProgress() {
         this.process = 1;
       },
       /**
@@ -284,7 +284,7 @@
        *
        * 如果没有开始打包过程则开始日志文件的打包
        */
-      handleShow () {
+      handleShow() {
         if (this.isFile) {
           return;
         }
@@ -298,7 +298,7 @@
        *
        * 重置打包状态
        */
-      handleGetLogFilePackageResult () {
+      handleGetLogFilePackageResult() {
         this.fileSize = 0;
         this.packageStatus = 1;
         this.process = 0;
@@ -314,7 +314,7 @@
       /**
        * @desc 下载日志打包文件
        */
-      handleDownload () {
+      handleDownload() {
         this.isLogDownloaded = true;
         TaskExecuteService.fetchStepExecutionLogFile({
           id: this.stepInstanceId,

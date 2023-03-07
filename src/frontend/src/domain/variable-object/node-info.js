@@ -24,7 +24,7 @@
 */
 
 export default class NodeInfo {
-  constructor (payload) {
+  constructor(payload) {
     this.id = payload.id;
     this.name = payload.name;
     this.nodeType = payload.nodeType;

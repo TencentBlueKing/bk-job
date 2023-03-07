@@ -132,21 +132,21 @@
     components: {
       RenderTag,
     },
-    provide () {
+    provide() {
       return {
         searchSelect: this,
       };
     },
-        
+
     model: {
       prop: 'values',
       event: 'change',
     },
-        
+
     props: {
       data: {
         default: () => [],
-        validator (data) {
+        validator(data) {
           if (!Array.isArray(data)) {
             return false;
           }
@@ -165,7 +165,7 @@
         type: String,
         default: locale.t('bk.searchSelect.emptyText'),
       },
-            
+
       displayKey: {
         type: String,
         default: 'name',
@@ -176,13 +176,13 @@
       },
       condition: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
       values: {
         type: Array,
-        default () {
+        default() {
           return [];
         },
       },
@@ -215,8 +215,8 @@
         default: 100,
       },
     },
-        
-    data () {
+
+    data() {
       return {
         menu: generatorMenu(),
         chipList: [],
@@ -228,13 +228,13 @@
         validateStr: '',
       };
     },
-        
+
     computed: {
-      currentSelectKey () {
+      currentSelectKey() {
         return this.data.find(item => item[this.primaryKey] === this.menu.id) || {};
       },
       // 通过输入框直接搜索的key
-      defaultInputKey () {
+      defaultInputKey() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.data.length; i++) {
           const currentkey = this.data[i];
@@ -248,11 +248,11 @@
         }
         return null;
       },
-            
-      placeholderText  () {
+
+      placeholderText() {
         return this.chipList.length > 0 ? '' : this.placeholder;
       },
-      renderTagList () {
+      renderTagList() {
         if (this.focused) {
           return this.chipList;
         }
@@ -261,14 +261,14 @@
         }
         return this.chipList.slice(0, this.maxRenderTagNums);
       },
-      isShowTagMultLine () {
+      isShowTagMultLine() {
         if (this.focused) {
           return false;
         }
         return this.maxRenderTagNums > 0;
       },
 
-      tagGroupStyles () {
+      tagGroupStyles() {
         return {
           width: 'calc(100% - 50px)',
           'max-height': this.focused ? '320px' : '30px',
@@ -276,7 +276,7 @@
         };
       },
 
-      searchInputBoxStyles () {
+      searchInputBoxStyles() {
         const styles = {
           position: 'relative',
           width: this.focused ? `${this.textareaWidth}px` : 'auto',
@@ -286,18 +286,18 @@
         if (this.chipList.length < 1) {
           styles.width = '100%';
         }
-                
+
         return styles;
       },
 
-      isClearable () {
+      isClearable() {
         return !this.readonly && this.clearable && this.chipList.length > 0;
       },
     },
-        
+
     watch: {
       values: {
-        handler (values) {
+        handler(values) {
           if (values !== this.chipList) {
             this.chipList = values;
           }
@@ -306,14 +306,14 @@
         immediate: true,
       },
       menu: {
-        handler  () {
+        handler() {
           this.updateLocalInput();
         },
         deep: true,
       },
     },
-        
-    created () {
+
+    created() {
       this.panelInstance = null;
       this.popperInstance = null;
       this.renderTagInstance = null;
@@ -331,16 +331,16 @@
       this.showPopper = _.throttle(this._showMenu, 50);
       this.remoteExecuteImmediate();
     },
-        
-    beforeDestroy () {
+
+    beforeDestroy() {
       this.popperInstance && this.popperInstance.destroy(true);
     },
-        
+
     methods: {
       /**
        * @desc 计算输入框的高度
        */
-      _calcTextareaWidth () {
+      _calcTextareaWidth() {
         this.$nextTick(() => {
           const { width } = this.$refs.realInputContent.getBoundingClientRect();
           this.textareaWidth = width + 20;
@@ -350,7 +350,7 @@
        * @desc 显示 key 面板
        * @param {Object} lastPanelInstance 显示的下来面板实例
        */
-      _showKeyMenu (lastPanelInstance) {
+      _showKeyMenu(lastPanelInstance) {
         if (this.panelInstance) {
           return;
         }
@@ -373,7 +373,7 @@
        * @desc 显示 value 面板
        * @param {Object} lastPanelInstance 显示的下来面板实例
        */
-      _showValueMenu (lastPanelInstance) {
+      _showValueMenu(lastPanelInstance) {
         if (this.panelInstance) {
           return;
         }
@@ -409,7 +409,7 @@
        * @desc 显示 suggest 面板
        * @param {Object} lastPanelInstance 显示的下来面板实例
        */
-      _showSuggestMenu (lastPanelInstance) {
+      _showSuggestMenu(lastPanelInstance) {
         if (this.panelInstance) {
           return;
         }
@@ -430,7 +430,7 @@
       /**
        * @desc 显示下拉面板
        */
-      _showMenu () {
+      _showMenu() {
         if (!this.popperInstance) {
           this.popperInstance = Tippy(this.$refs.input, { ...popperConfig });
         }
@@ -464,7 +464,7 @@
       /**
        * @desc 隐藏下拉面板
        */
-      hidePopper () {
+      hidePopper() {
         if (this.panelInstance) {
           this.panelInstance.$destroy();
           this.panelInstance = null;
@@ -476,7 +476,7 @@
       /**
        * @desc 立即执行 remote 配置项
        */
-      remoteExecuteImmediate () {
+      remoteExecuteImmediate() {
         this._remoteKeyImmediateChildrenMap = {};
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.data.length; i++) {
@@ -487,7 +487,9 @@
               try {
                 const children = await currentItem.remoteMethod();
                 this._remoteKeyImmediateChildrenMap[currentItem[this.primaryKey]] = children;
-              } catch {}
+              } catch (error) {
+                console.log(error);
+              }
             })();
           }
         }
@@ -495,7 +497,7 @@
       /**
        * @desc 设置输入框的值
        */
-      updateLocalInput () {
+      updateLocalInput() {
         if (!this.menu.id) {
           this.localValue = '';
         } else {
@@ -515,7 +517,7 @@
        * @desc 验证用户输入
        * @param {Array} valList 用户输入结果列表
        */
-      valueValidate (valList) {
+      valueValidate(valList) {
         let validate = true;
         if (this.currentSelectKey
           && this.currentSelectKey.validate
@@ -538,7 +540,7 @@
        * @desc 新增一个选项
        * @param {Object} item 用户选中的筛选项
        */
-      appendChipList  (item) {
+      appendChipList(item) {
         const validate = this.valueValidate(item.values);
         if (!validate) return;
 
@@ -546,7 +548,7 @@
           ...this.chipList,
         ];
         result.push(item);
-                
+
         // 根据primaryKey去重
         const memoMap = {};
         const stack = [];
@@ -568,7 +570,7 @@
       /**
        * @desc 触发 change 操作
        */
-      triggerChange () {
+      triggerChange() {
         this.menu = generatorMenu();
         this.$emit('change', [
           ...this.chipList,
@@ -577,20 +579,20 @@
       /**
        * @desc 点击时获得焦点
        */
-      handleSearchSelectClick () {
+      handleSearchSelectClick() {
         this.handleInputFocus();
       },
       /**
        * @desc 输入框获得焦点时需要执行的逻辑
        */
-      handleInputFocus () {
+      handleInputFocus() {
         this.renderTagInstance && this.renderTagInstance.hidePopper();
         if (this.readonly) {
           return;
         }
-                
+
         this.focused = true;
-                
+
         this.$refs.textarea.focus();
         this.showPopper();
         this.$emit('focus');
@@ -598,7 +600,7 @@
       /**
        * @desc 输入框失去焦点时需要执行的逻辑
        */
-      handleInputOutSide (event) {
+      handleInputOutSide(event) {
         if (!this.focused) {
           return;
         }
@@ -618,7 +620,7 @@
           const {
             width: searchSelectWidth,
           } = this.$refs.searchSelect.getBoundingClientRect();
-                    
+
           let tagWidthTotal = 0;
           // eslint-disable-next-line no-plusplus
           for (let i = 0; i < allTag.length; i++) {
@@ -637,7 +639,7 @@
        * @desc 输入框输入时需要执行的逻辑
        * @param {Object} event 输入框输入事件
        */
-      handleInputChange (event) {
+      handleInputChange(event) {
         const text = event.target.value.replace(/[\r\n]/, '');
         if (text === '') {
           this.menu = generatorMenu();
@@ -651,7 +653,7 @@
        * @desc 键盘删除时的事件
        * @param {Object} event Keydown 事件
        */
-      keyDelete (event) {
+      keyDelete(event) {
         // 删除逻辑的优先级需要保持下面的顺序
 
         // 删除value
@@ -703,12 +705,12 @@
        * @desc 键盘 enter 时的事件
        * @param {Object} event Keydown 事件
        */
-      keySubmit () {
+      keySubmit() {
         // 输入框没有内容
         if (!this.localValue) {
           return;
         }
-                
+
         if (!this.currentSelectKey[this.primaryKey]) {
           // 没有选中key
 
@@ -717,7 +719,7 @@
 
             const id = this.defaultInputKey[this.primaryKey];
             const name = this.defaultInputKey[this.displayKey];
-                        
+
             this.appendChipList({
               [this.primaryKey]: id,
               [this.displayKey]: name,
@@ -753,7 +755,7 @@
             this.showPopper();
             return;
           }
-                    
+
           // 提交结果
           let realValue = this.localValue.replace(keyText, '');
           if (conditionText) {
@@ -780,7 +782,7 @@
        * @desc 用户操作时需要执行的逻辑
        * @param {Object} event Keydown 事件
        */
-      handleInputKeydown (event) {
+      handleInputKeydown(event) {
         if (this.readonly) {
           event.preventDefault();
           return;
@@ -813,7 +815,7 @@
        * @desc 用户点击搜索 icon 时需要执行的逻辑
        * @param {Object} event click 事件
        */
-      handleSubmit (event) {
+      handleSubmit(event) {
         this.keySubmit();
         // 通过搜索按钮触发提交不继续显示keymemu
         setTimeout(() => {
@@ -828,7 +830,7 @@
        * @param {Number} index 索引
        * @param {Object} value 新的搜索值
        */
-      handleTagChange (index, value) {
+      handleTagChange(index, value) {
         const list = [
           ...this.chipList,
         ];
@@ -840,7 +842,7 @@
        * @desc 删除已选结果的处理逻辑
        * @param {Number} index 索引
        */
-      handleTagDelete (index) {
+      handleTagDelete(index) {
         const result = [
           ...this.chipList,
         ];
@@ -851,7 +853,7 @@
       /**
        * @desc 清空所有搜索值
        */
-      handleClearAll () {
+      handleClearAll() {
         this.menu = generatorMenu();
         this.chipList = [];
         this.triggerChange();
@@ -862,7 +864,7 @@
        * @desc 用户选中了一个 key
        * @param {String} key 删选项的 key
        */
-      handleKeyChange (key) {
+      handleKeyChange(key) {
         this.menu = generatorMenu();
         this.menu.id = key[this.primaryKey];
 
@@ -872,7 +874,7 @@
        * @desc 用户选中了一个 condition
        * @param {String} key condition 的key
        */
-      handleKeyConditonChange (value) {
+      handleKeyConditonChange(value) {
         this.appendChipList(value);
         this.showPopper();
       },
@@ -880,7 +882,7 @@
        * @desc 用户选中了一个 condition 的 value
        * @param {Object} condition condition 的 value
        */
-      handleValueConditionChange (condition) {
+      handleValueConditionChange(condition) {
         this.menu.condition = condition;
         this.showPopper();
       },
@@ -888,13 +890,13 @@
        * @desc 多选时的处理逻辑
        * @param {Array} values condition 的 value
        */
-      handleMultCheck (values) {
+      handleMultCheck(values) {
         this.menu.checked = Object.freeze(values);
       },
       /**
        * @desc 用户选中了 value 面板时的处理逻辑
        */
-      handleValueChange () {
+      handleValueChange() {
         const id = this.currentSelectKey[this.primaryKey];
         const name = this.currentSelectKey[this.displayKey];
         this.appendChipList({
@@ -908,27 +910,27 @@
       /**
        * @desc 用户关闭了 value 面板时的处理逻辑
        */
-      handleValueCancel () {
+      handleValueCancel() {
         this.menu = generatorMenu();
         this.showPopper();
       },
       /**
        * @desc 用户选中了 suggest 面板时的处理逻辑
        */
-      handleMenuSuggestSelect (value) {
+      handleMenuSuggestSelect(value) {
         this.appendChipList(value);
         this.showPopper();
       },
       /**
        * @desc 外部调用——获取输入框实例引用
        */
-      getInputInstance () {
+      getInputInstance() {
         return this.$refs.textarea;
       },
       /**
        * @desc 外部调用——重置搜索状态
        */
-      reset () {
+      reset() {
         this.maxRenderTagNums = -1;
         this.chipList = [];
         this.$emit('change', []);

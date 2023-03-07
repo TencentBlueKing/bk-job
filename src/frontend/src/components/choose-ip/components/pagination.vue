@@ -69,26 +69,26 @@
         default: 0,
       },
     },
-    data () {
+    data() {
       return {
         current: 1,
       };
     },
     computed: {
-      totalPage () {
+      totalPage() {
         return Math.ceil(this.total / this.pageSize);
       },
     },
     watch: {
       page: {
-        handler (newPage) {
+        handler(newPage) {
           this.current = newPage;
         },
         immediate: true,
       },
     },
     methods: {
-      handleInput (event) {
+      handleInput(event) {
         const $target = event.target;
         let value = parseInt($target.value, 10);
         if (!value) {
@@ -105,7 +105,7 @@
           $target.value = value;
         });
       },
-      handleInputSubmit (event) {
+      handleInputSubmit(event) {
         const $target = event.target;
         let value = parseInt($target.value, 10);
         if (!value) {
@@ -126,7 +126,7 @@
         }
         this.$emit('on-change', this.current);
       },
-      handlePageChange (step) {
+      handlePageChange(step) {
         const newPage = this.page + step;
         if (newPage < 1) {
           return;

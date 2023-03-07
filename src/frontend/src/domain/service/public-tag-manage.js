@@ -29,11 +29,11 @@ import TagModel from '@model/tag';
 import PubliceTagSource from '../source/public-tag-manage';
 
 export default {
-  fetchTagList (params) {
+  fetchTagList(params) {
     return PubliceTagSource.getAll(params)
       .then(({ data }) => data.sort((pre, next) => pre.id - next.id).map(tag => new TagModel(tag)));
   },
-  fetchTagOfSearch (tagName) {
+  fetchTagOfSearch(tagName) {
     return PubliceTagSource.getAll({
       tagName,
     }).then(({ data }) => data.map(tag => new TagModel(tag)));

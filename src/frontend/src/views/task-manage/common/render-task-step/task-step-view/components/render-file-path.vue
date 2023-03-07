@@ -62,14 +62,14 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {};
     },
     computed: {
-      renderData () {
+      renderData() {
         return this.data.slice(0, DISPLAY_ROW_NUMS);
       },
-      hasMore () {
+      hasMore() {
         return this.data.length > DISPLAY_ROW_NUMS;
       },
     },

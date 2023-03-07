@@ -148,7 +148,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         stepInfo: {},
         executeAccountText: '',
@@ -161,14 +161,14 @@
       };
     },
     computed: {
-      isLoading () {
+      isLoading() {
         return this.requestQueue.length > 0;
       },
-      isReferScript () {
+      isReferScript() {
         return this.data.scriptStepInfo.scriptSource && this.data.scriptStepInfo.scriptSource !== 1;
       },
     },
-    created () {
+    created() {
       this.stepInfo = Object.freeze(this.data.scriptStepInfo);
       this.language = formatScriptTypeValue(this.stepInfo.scriptLanguage);
       this.languageOption = [
@@ -183,7 +183,7 @@
       /**
        * @desc 更新脚本版本获取版本详情
        */
-      fetchScriptDetail () {
+      fetchScriptDetail() {
         this.requestQueue.push(true);
         ScriptService.versionDetail({
           id: this.stepInfo.scriptVersionId,
@@ -199,7 +199,7 @@
       /**
        * @desc 获取完整的账号列表
        */
-      fetchAccount () {
+      fetchAccount() {
         this.requestQueue.push(true);
         AccountManageService.fetchAccountWhole()
           .then((data) => {
@@ -217,7 +217,7 @@
       /**
        * @desc 新开窗口跳转脚本版本列表
        */
-      handleGoScriptDetail () {
+      handleGoScriptDetail() {
         const routerName = this.scriptInfo.publicScript ? 'publicScriptVersion' : 'scriptVersion';
 
         const router = this.$router.resolve({
@@ -234,16 +234,16 @@
       /**
        * @desc 脚本版本对比
        */
-      handleShowScriptVersionDiff () {
+      handleShowScriptVersionDiff() {
         this.isShowDiff = true;
       },
-      handleDiffClose () {
+      handleDiffClose() {
         this.isShowDiff = false;
       },
       /**
        * @desc 编辑作业模板，更新步骤引用的脚本版本
        */
-      handleUpdateScript () {
+      handleUpdateScript() {
         this.$router.push({
           name: 'templateEdit',
           params: {

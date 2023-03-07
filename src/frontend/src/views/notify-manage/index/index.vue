@@ -78,7 +78,7 @@
       NotifyCollapseItem,
       TriggerSetting,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isSubmiting: false,
@@ -92,11 +92,11 @@
        * @desc 页面输入骨架片 loading
        * @returns { Boolean }
        */
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.isLoading = true;
       Promise.all([
         this.fetchPageTemplate(),
@@ -109,7 +109,7 @@
       /**
        * @desc 获取页面数据
        */
-      fetchPageTemplate () {
+      fetchPageTemplate() {
         return NotifyService.fetchPageTemplate()
           .then((data) => {
             const {
@@ -132,7 +132,7 @@
       /**
        * @desc 获取消息通知配置的值
        */
-      fetchPoliciesList () {
+      fetchPoliciesList() {
         return NotifyService.fetchPoliciesList()
           .then((data) => {
             const triggerPoliciesData = data.reduce((result, item) => {
@@ -157,7 +157,7 @@
       /**
        * @desc 保存
        */
-      handleSave () {
+      handleSave() {
         this.isSubmiting = true;
         const triggerPoliciesList = this.$refs.setting.map(settingItem => settingItem.getValue());
         NotifyService.defaultPoliciesUpdate({
@@ -174,7 +174,7 @@
       /**
        * @desc 重置
        */
-      handleCancel () {
+      handleCancel() {
         this.$refs.setting.forEach(item => item.reset());
         window.changeFlag = false;
       },

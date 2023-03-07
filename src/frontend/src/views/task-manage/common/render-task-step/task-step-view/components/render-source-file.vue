@@ -181,7 +181,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         activeResult: [],
         localFileList: [],
@@ -192,19 +192,19 @@
       };
     },
     computed: {
-      isShowLocalFile () {
+      isShowLocalFile() {
         return this.localFileList.length > 0;
       },
-      isShowServerFile () {
+      isShowServerFile() {
         return this.serverFileList.length > 0;
       },
-      isShowSourceFile () {
+      isShowSourceFile() {
         return this.sourceFileList.length > 0;
       },
     },
     watch: {
       data: {
-        handler (fileList) {
+        handler(fileList) {
           fileList.forEach((fileItem) => {
             const fileSource = new SourceFileVO(fileItem);
             if (fileSource.isServerFile) {
@@ -230,7 +230,7 @@
       },
       // 根据文件源ID获取文件源Alias
       fileSourceIdsList: {
-        handler (newVal) {
+        handler(newVal) {
           if (newVal.length) {
             const promiseList = newVal.map(id => FileManageService.getSourceInfo({
               id,
@@ -246,7 +246,7 @@
       },
     },
     methods: {
-      findVariableValue (variable) {
+      findVariableValue(variable) {
         const curVariable = this.variable.find(item => item.name === variable);
         if (!curVariable) {
           const { hostNodeInfo } = new TaskHostNodeModel({});
@@ -254,14 +254,14 @@
         }
         return curVariable.defaultTargetValue.hostNodeInfo;
       },
-      findAccountAlias (payload) {
+      findAccountAlias(payload) {
         const accountData = this.account.find(item => item.id === payload);
         if (accountData) {
           return accountData.alias;
         }
         return '';
       },
-      handleGoSource (payload, index) {
+      handleGoSource(payload, index) {
         const { fileSourceId } = payload;
         const sourceAlias = this.fileSourceAliasList[index];
         const { href } = this.$router.resolve({

@@ -59,14 +59,14 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         localValue: this.value,
         focused: false,
       };
     },
     computed: {
-      stylees () {
+      stylees() {
         const styles = {};
         if (this.focused) {
           styles['z-index'] = 1999;
@@ -78,45 +78,45 @@
         }
         return styles;
       },
-      showPlaceholder () {
+      showPlaceholder() {
         if (this.focused) {
           return false;
         }
         return !this.localValue;
       },
     },
-    mounted () {
+    mounted() {
       this.init();
     },
     methods: {
-      init () {
+      init() {
         this.$refs.input.innerText = this.value;
       },
-      focus () {
+      focus() {
         this.$refs.input.focus();
       },
-      handleInputFocus () {
+      handleInputFocus() {
         this.focus();
         setTimeout(() => {
           this.$refs.input.selectionStart = this.localValue.length;
           this.$refs.input.selectionEnd = this.localValue.length;
         });
       },
-      handleInput (event) {
+      handleInput(event) {
         const value = event.target.outerText;
         this.localValue = value.trim();
         this.$emit('input', this.localValue);
         this.$emit('change', this.localValue);
       },
-      handleFocus () {
+      handleFocus() {
         this.focused = true;
       },
-      handleBlur () {
+      handleBlur() {
         this.focused = false;
         this.$refs.input.scrollTop = 0;
         this.$emit('blur', this.localValue);
       },
-      handlePaste (e) {
+      handlePaste(e) {
         e.preventDefault();
         e.stopPropagation();
         let text = '';

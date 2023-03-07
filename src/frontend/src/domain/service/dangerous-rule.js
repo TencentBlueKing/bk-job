@@ -27,19 +27,19 @@
 import DangerousRuleSource from '../source/dangerous-rule';
 
 export default {
-  fetchList (params = {}, payload = {}) {
+  fetchList(params = {}, payload = {}) {
     return DangerousRuleSource.getData(params, payload)
       .then(({ data }) => data);
   },
-  update (params) {
+  update(params) {
     return DangerousRuleSource.update(params)
       .then(({ data }) => data);
   },
-  remove (params) {
+  remove(params) {
     return DangerousRuleSource.removeById(params)
       .then(({ data }) => data);
   },
-  updateSort (params) {
+  updateSort(params) {
     return DangerousRuleSource.move(params)
       .then(({ data }) => data);
   },

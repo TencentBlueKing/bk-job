@@ -36,12 +36,12 @@
         type: Array,
       },
     },
-    data () {
+    data() {
       return {
         showHostList: false,
       };
     },
-    created () {
+    created() {
       this.ipSelectorConfig = {
         service: {
           fetchTopologyHostCount: HostAllManageService.fetchTopologyWithCount,
@@ -53,10 +53,10 @@
       };
     },
     methods: {
-      handleShowIp () {
+      handleShowIp() {
         this.showHostList = true;
       },
-      handleHideHostList () {
+      handleHideHostList() {
         this.showHostList = false;
       },
     },

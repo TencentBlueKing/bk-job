@@ -59,7 +59,7 @@
 
   export default {
     name: '',
-    data () {
+    data() {
       const step = parseInt(this.$route.query.step, 10);
       return {
         isLoading: true,
@@ -67,7 +67,7 @@
       };
     },
     computed: {
-      pageCom () {
+      pageCom() {
         if (this.isLoading) {
           return 'div';
         }
@@ -81,7 +81,7 @@
         return comMap[this.currentStep];
       },
     },
-    created () {
+    created() {
       this.steps = [
         { title: I18n.t('template.用户须知.header'), icon: 1 },
         { title: I18n.t('template.文件包上传'), icon: 2 },
@@ -92,7 +92,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         BackupService.fetchInfo()
           .then((data) => {
@@ -124,16 +124,16 @@
             this.isLoading = false;
           });
       },
-      handleStepChange (step) {
+      handleStepChange(step) {
         this.currentStep = step;
         const searchParams = new URLSearchParams(window.location.search);
         searchParams.set('step', step);
         window.history.replaceState({}, '', `?${searchParams.toString()}`);
       },
-      handleCancle () {
+      handleCancle() {
         this.routerBack();
       },
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'taskList',
         });

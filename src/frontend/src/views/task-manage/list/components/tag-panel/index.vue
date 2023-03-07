@@ -34,7 +34,7 @@
       :count="totalCount"
       icon="business-manage"
       :name="$t('template.全部作业')"
-      :tooltips-disabled="true"
+      tooltips-disabled
       :value="classesId"
       @on-select="handleClassesSelect" />
     <tab-item
@@ -42,7 +42,7 @@
       :count="unclassifiedCount"
       icon="unclassified"
       :name="$t('template.未分类')"
-      :tooltips-disabled="true"
+      tooltips-disabled
       :value="classesId"
       @on-select="handleClassesSelect" />
     <tab-item
@@ -50,7 +50,7 @@
       :count="needUpdateCount"
       icon="update"
       :name="$t('template.待更新')"
-      :tooltips-disabled="true"
+      tooltips-disabled
       :value="classesId"
       @on-select="handleClassesSelect" />
     <div class="line" />
@@ -59,7 +59,7 @@
         v-if="item.relatedTaskTemplateNum > 0"
         :id="item.id"
         :key="item.id"
-        :can-edit="true"
+        can-edit
         :count="item.relatedTaskTemplateNum"
         :description="item.description"
         :name="item.name"
@@ -92,7 +92,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         classesId: 1,
@@ -103,36 +103,36 @@
       };
     },
     computed: {
-      totalCount () {
+      totalCount() {
         return this.countMap.total || 0;
       },
-      unclassifiedCount () {
+      unclassifiedCount() {
         return this.countMap.unclassified || 0;
       },
-      needUpdateCount () {
+      needUpdateCount() {
         return this.countMap.needUpdate || 0;
       },
     },
-    created () {
+    created() {
       this.init();
     },
-    mounted () {
+    mounted() {
       this.parseDefaultValueFromURL();
     },
     methods: {
       /**
        * @desc 获取tag列表
        */
-      fetchTagList () {
+      fetchTagList() {
         return TagManageService.fetchWholeList();
       },
       /**
        * @desc 获取tag的使用数量
        */
-      fetchTagTemplateNum () {
+      fetchTagTemplateNum() {
         return TaskManageService.fetchTagCount();
       },
-      init () {
+      init() {
         this.isLoading = true;
         Promise.all([
           this.fetchTagList(),
@@ -154,7 +154,7 @@
       /**
        * @desc 解析url中的默认tag
        */
-      parseDefaultValueFromURL () {
+      parseDefaultValueFromURL() {
         let classesId = 1;
         if (this.$route.query.type) {
           classesId = ~~this.$route.query.type || 1;
@@ -174,7 +174,7 @@
        * @desc 分类切换
        * @param {Number} id 分类id
        */
-      handleClassesSelect (id) {
+      handleClassesSelect(id) {
         if (this.classesId === id) {
           return;
         }
@@ -190,7 +190,7 @@
        * @desc tag切换
        * @param {Number} id 分类id
        */
-      handleSelect (id) {
+      handleSelect(id) {
         if (id === this.tagId) return;
         this.tagId = id;
         this.classesId = 0;
@@ -205,7 +205,7 @@
        *
        * 编辑成功需要刷新标签数据
        */
-      handleEdit (payload) {
+      handleEdit(payload) {
         TagManageService.updateTag(payload)
           .then(() => {
             this.messageSuccess(I18n.t('template.标签名更新成功'));

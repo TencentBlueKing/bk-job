@@ -145,7 +145,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         curStep: 1,
@@ -156,7 +156,7 @@
       };
     },
     computed: {
-      stepCom () {
+      stepCom() {
         const comMap = {
           1: EditValue,
           2: EditPreview,
@@ -167,7 +167,7 @@
        * @desc 编辑的变量中是否有值为空的变量
        * @return {Boolean}
        */
-      hasEmptyValueVariable () {
+      hasEmptyValueVariable() {
         for (const variableKey in this.globalVariableValueMap) {
           const variableValue = this.globalVariableValueMap[variableKey];
           if (!variableValue) {
@@ -182,7 +182,7 @@
     },
     watch: {
       isShow: {
-        handler (isShow) {
+        handler(isShow) {
           if (isShow) {
             this.fetchPlanDetailData();
           }
@@ -190,7 +190,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.steps = [
         {
           title: I18n.t('template.编辑变量'),
@@ -208,7 +208,7 @@
        *
        * 得到执行方案详情数据后需要判断所有的执行方案中是否有全局变量
        */
-      fetchPlanDetailData () {
+      fetchPlanDetailData() {
         this.isLoading = true;
         this.isGlobalVariableNotEmpty = false;
         TaskPlanService.fetchBatchPlan({
@@ -227,7 +227,7 @@
             this.isLoading = false;
           });
       },
-      handleEditChange (globalVariableValueMap) {
+      handleEditChange(globalVariableValueMap) {
         this.isPreviewDisabled = Object.values(globalVariableValueMap).length < 1;
       },
       /**
@@ -236,7 +236,7 @@
        *
        * 每次切换步骤时内容区需要滚动到顶部
        */
-      handlePreview () {
+      handlePreview() {
         this.globalVariableValueMap = Object.freeze(this.$refs.handler.getEditValue());
         this.handleChangeStep(2);
       },
@@ -246,14 +246,14 @@
        *
        * 每次切换步骤时内容区需要滚动到顶部
        */
-      handleChangeStep (step) {
+      handleChangeStep(step) {
         this.curStep = step;
         this.$refs.root.$el.querySelector('.bk-sideslider-content').scrollTop = 0;
       },
       /**
        * @desc 提交变量编辑
        */
-      handleSubmit () {
+      handleSubmit() {
         const planList = this.$refs.handler.getRelatePlanList();
 
         const stack = [];
@@ -298,7 +298,7 @@
       /**
        * @desc 取消编辑
        */
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => {
             this.curStep = 1;

@@ -51,7 +51,7 @@
       },
     },
     computed: {
-      arrowStyles () {
+      arrowStyles() {
         const index = _.findIndex(this.sourceTypeList, _ => _.code === this.fileSourceType);
         if (index < 0) {
           return {

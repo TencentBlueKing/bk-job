@@ -121,7 +121,7 @@
         color,
         value,
       } = data;
-            
+
       if (seriesType === 'bar') {
         return `
                     <tr>
@@ -132,7 +132,7 @@
                         <td style="text-align: right">${value}</td>
                     </tr>
                 `;
-      } else if (seriesType === 'line') {
+      } if (seriesType === 'line') {
         return `
                     <tr>
                         <td style="padding-right: 24px; vertical-align: middle;">
@@ -152,7 +152,7 @@
     } else {
       paramsArr = params;
     }
-        
+
     return `<table>${paramsArr.map(generatorHtml).join('')}</table>`;
   };
 
@@ -164,7 +164,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         dimension: '',
@@ -173,11 +173,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.handleDaysChange(this.days);
       },
     },
-    mounted () {
+    mounted() {
       // 下钻的作业类型
       this.drillDowntaskType = '';
 
@@ -190,7 +190,7 @@
           this.handleTaskTypeChange(target.seriesId);
         }
       });
-            
+
       const resize = _.throttle(() => {
         this.myChart.resize();
       }, 300);
@@ -205,7 +205,7 @@
        * @desc 按渠道统计
        * @param {Array} data 数据
        */
-      initTaskStartupMode (data) {
+      initTaskStartupMode(data) {
         const dateList = [];
         const normalList = [];
         const cronList = [];
@@ -224,7 +224,7 @@
             CRON,
             NORMAL,
           } = distribution.labelAmountMap;
-                    
+
           apiList.push(API);
           cronList.push(CRON);
           normalList.push(NORMAL);
@@ -371,7 +371,7 @@
        * @desc 按任务类型统计
        * @param {Array} data 数据
        */
-      initTaskType (data) {
+      initTaskType(data) {
         const dateList = [];
         const fastPushFileList = [];
         const fastExecuteScriptList = [];
@@ -389,7 +389,7 @@
             FAST_EXECUTE_SCRIPT,
             FAST_PUSH_FILE,
           } = distribution.labelAmountMap;
-                    
+
           executeTaskList.push(EXECUTE_TASK);
           fastExecuteScriptList.push(FAST_EXECUTE_SCRIPT);
           fastPushFileList.push(FAST_PUSH_FILE);
@@ -518,7 +518,7 @@
        * @desc 按执行耗时统计
        * @param {Array} data 数据
        */
-      initTaskTimeConsuming (data) {
+      initTaskTimeConsuming(data) {
         const dateList = [];
         const overTenMinList = [];
         const oneMinToTenMinList = [];
@@ -671,7 +671,7 @@
        * @param {Array} data 数据
        *
        */
-      initExecutedFastScriptDrillDown (data) {
+      initExecutedFastScriptDrillDown(data) {
         const dateList = [];
         const BatList = [];
         const PerlList = [];
@@ -867,7 +867,7 @@
        * @param {Array} data 数据
        *
        */
-      initExecutedFastFileDrillDown (data) {
+      initExecutedFastFileDrillDown(data) {
         const dateList = [];
         const forceList = [];
         const strictList = [];
@@ -1006,7 +1006,7 @@
        * @param {String} dimension 统计纬度
        *
        */
-      handleDimensionChange (dimension) {
+      handleDimensionChange(dimension) {
         this.isLoading = true;
         this.dimension = dimension;
         const actionMap = {
@@ -1031,7 +1031,7 @@
        * @param {String} days 统计纬度
        *
        */
-      handleDaysChange (days) {
+      handleDaysChange(days) {
         this.days = days;
         if (this.isDrillDown) {
           this.handleTaskTypeChange(this.drillDowntaskType);
@@ -1044,7 +1044,7 @@
        * @param {String} taskType 作业类型
        *
        */
-      handleTaskTypeChange (taskType) {
+      handleTaskTypeChange(taskType) {
         this.isLoading = true;
         this.isDrillDown = true;
         this.drillDowntaskType = taskType;
@@ -1080,7 +1080,7 @@
        * @desc 返回按类型统计
        *
        */
-      handleDimensionBack () {
+      handleDimensionBack() {
         this.isDrillDown = false;
         this.drillDowntaskType = '';
         this.handleDimensionChange(this.dimension);

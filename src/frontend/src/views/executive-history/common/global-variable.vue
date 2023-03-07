@@ -67,20 +67,20 @@
         default: 0,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         taskVariables: [],
       };
     },
     computed: {
-      isShowVar () {
+      isShowVar() {
         return this.taskVariables.length > 0;
       },
     },
     watch: {
       id: {
-        handler  (id) {
+        handler(id) {
           if (!id) {
             return;
           }
@@ -90,7 +90,7 @@
       },
     },
     methods: {
-      fetchTaskVariables (id) {
+      fetchTaskVariables(id) {
         this.$request(TaskExecuteService.fetchStepInstanceParam({
           id,
         }), () => {

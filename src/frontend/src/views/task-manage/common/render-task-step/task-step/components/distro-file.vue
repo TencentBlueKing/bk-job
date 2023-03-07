@@ -167,7 +167,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
       };
@@ -178,13 +178,13 @@
         isLocalFileUploading: state => state.isLocalFileUploading,
         isLocalFileUploadFailed: state => state.isLocalFileUploadFailed,
       }),
-      formMarginLeftWidth () {
+      formMarginLeftWidth() {
         return this.$i18n.locale === 'en-US' ? 140 : 110;
       },
     },
     watch: {
       data: {
-        handler (newData) {
+        handler(newData) {
           // 本地新建的步骤id为-1，已提交后端保存的id大于0
           if (!newData.id) {
             this.formData = Object.assign({}, this.formData, newData);
@@ -214,7 +214,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       window.IPInputScope = 'FILE_DISTRIBUTION';
       this.$once('hook:beforeDestroy', () => {
         window.IPInputScope = '';
@@ -226,7 +226,7 @@
        * @param {String} field 字段名
        * @param {Any} value 字段值
        */
-      handleChange (field, value) {
+      handleChange(field, value) {
         this.formData[field] = value;
       },
       /**
@@ -236,7 +236,7 @@
        * 2，表单验证
        *   - 表单验证失败检测是否有本地文件上传未完成或者本地文件上传失败
        */
-      submit () {
+      submit() {
         return Promise.resolve()
           // 检测没有保存的源文件
           .then(() => new Promise((resolve, reject) => {
@@ -346,7 +346,7 @@
                   path,
                   server,
                 },
-                                
+
               },
             };
             return this.$refs.form.validate()

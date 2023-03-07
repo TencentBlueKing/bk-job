@@ -64,10 +64,10 @@
 <script>
   export default {
     methods: {
-      handleNext () {
+      handleNext() {
         this.$emit('on-change', 2);
       },
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancle');
       },
     },

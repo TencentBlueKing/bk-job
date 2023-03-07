@@ -115,7 +115,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isShowDetail: false,
         isShowDiff: false,
@@ -130,14 +130,14 @@
       };
     },
     computed: {
-      title () {
+      title() {
         if (this.type) {
           return this.type;
         }
         return `${I18n.t('template.全局变量.label')} - ${this.name}`;
       },
     },
-    mounted () {
+    mounted() {
       this.composeNode = [];
       this.diffNodeMemo = {};
       this.composeHost = [];
@@ -147,7 +147,7 @@
       this.checkDiff();
     },
     methods: {
-      checkDiff () {
+      checkDiff() {
         const createVariable = () => {
           const {
             hostNodeInfo,
@@ -170,7 +170,7 @@
 
         const planValue = currentPlanVariable.defaultTargetValue.hostNodeInfo;
         const templateValue = currentTemplateVariable.defaultTargetValue.hostNodeInfo;
-                
+
         // 对比节点
         const nodeDiffMap = {};
         const nodeList = [];
@@ -189,7 +189,7 @@
         });
         this.composeNode = Object.freeze(nodeList);
         this.diffNodeMemo = Object.freeze(nodeDiffMap);
-                
+
         // 对比主机
         const hostDiffMap = {};
         const hostList = [];
@@ -224,11 +224,11 @@
             dynamicGroupList.push(group);
           }
         });
-                
+
         this.composeGroup = Object.freeze(dynamicGroupList);
         this.diffGroupMemo = Object.freeze(groupDiffMap);
       },
-      handlerView () {
+      handlerView() {
         // const {
         //     dynamicGroupList,
         //     hostList,
@@ -243,7 +243,7 @@
         this.groupDiff = {};
         this.isShowDetail = true;
       },
-      handleToggleDiff (value) {
+      handleToggleDiff(value) {
         if (value) {
           this.hostNodeInfo = Object.freeze({
             dynamicGroupList: this.composeGroup,

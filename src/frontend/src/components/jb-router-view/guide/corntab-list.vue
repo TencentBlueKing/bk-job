@@ -80,7 +80,7 @@
 <script>
   export default {
     methods: {
-      handleCreateCron () {
+      handleCreateCron() {
         this.$router.push({
           name: 'cronList',
           query: {

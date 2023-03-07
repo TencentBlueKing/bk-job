@@ -95,13 +95,13 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         renderRoleList: [],
         renderChannel: '',
       };
     },
-    created () {
+    created() {
       Promise.all([
         this.fetchRoleList(),
         this.fetchAllChannel(),
@@ -110,7 +110,7 @@
       });
     },
     methods: {
-      fetchRoleList () {
+      fetchRoleList() {
         NotifyService.fetchRoleList()
           .then((data) => {
             const roleMap = {};
@@ -120,7 +120,7 @@
             this.renderRoleList = this.data.approvalUser.roleList.map(_ => roleMap[_]);
           });
       },
-      fetchAllChannel () {
+      fetchAllChannel() {
         QueryGlobalSettingService.fetchActiveNotifyChannel()
           .then((data) => {
             const channelMap = {};

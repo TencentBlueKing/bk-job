@@ -121,7 +121,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -134,11 +134,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    created () {
+    created() {
       this.list = [
         I18n.t('dashboard.文件分发'),
         I18n.t('dashboard.本地文件源'),
@@ -151,7 +151,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchDistributionMetrics({
           date: this.date,
@@ -164,7 +164,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         this.myChart = echarts.init(this.$refs.dashboard);
         const option = {
           ...chartsOptionsBase,
@@ -274,7 +274,7 @@
           this.handleMouseover(params.data.name);
         });
       },
-      calcItemCircleStyles (type) {
+      calcItemCircleStyles(type) {
         return {
           width: '8px',
           height: '8px',
@@ -283,7 +283,7 @@
           backgroundColor: colorMap[type],
         };
       },
-      handleMouseover (label) {
+      handleMouseover(label) {
         const others = _.filter(this.list, _ => _ !== label);
         this.myChart.dispatchAction({ type: 'highlight', name: label });
         this.myChart.dispatchAction({ type: 'downplay', name: others });
