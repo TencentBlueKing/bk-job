@@ -71,32 +71,7 @@ public class FeatureToggle {
         Map<String, Feature> tmpFeatures = new HashMap<>();
         try {
             featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
-                Feature feature = new Feature();
-                feature.setId(featureId);
-                feature.setEnabled(featureConfig.isEnabled());
-
-                if (featureConfig.isEnabled()) {
-                    ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
-                    if (strategyConfig != null) {
-                        String strategyId = strategyConfig.getId();
-                        ToggleStrategy toggleStrategy = null;
-                        switch (strategyId) {
-                            case ResourceScopeToggleStrategy.STRATEGY_ID:
-                                toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
-                                break;
-                            case WeightToggleStrategy.STRATEGY_ID:
-                                toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
-                                break;
-                            default:
-                                log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId,
-                                    featureId);
-                                break;
-                        }
-                        if (toggleStrategy != null) {
-                            feature.setStrategy(toggleStrategy);
-                        }
-                    }
-                }
+                Feature feature = parseFeatureConfig(featureId, featureConfig);
                 tmpFeatures.put(featureId, feature);
             });
         } catch (Throwable e) {
@@ -115,6 +90,36 @@ public class FeatureToggle {
         }
 
         return loadSuccess;
+    }
+
+    private static Feature parseFeatureConfig(String featureId, FeatureConfig featureConfig) {
+        Feature feature = new Feature();
+        feature.setId(featureId);
+        feature.setEnabled(featureConfig.isEnabled());
+
+        if (featureConfig.isEnabled()) {
+            ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
+            if (strategyConfig != null) {
+                String strategyId = strategyConfig.getId();
+                ToggleStrategy toggleStrategy = null;
+                switch (strategyId) {
+                    case ResourceScopeToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
+                        break;
+                    case WeightToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
+                        break;
+                    default:
+                        log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId,
+                            featureId);
+                        break;
+                }
+                if (toggleStrategy != null) {
+                    feature.setStrategy(toggleStrategy);
+                }
+            }
+        }
+        return feature;
     }
 
 
