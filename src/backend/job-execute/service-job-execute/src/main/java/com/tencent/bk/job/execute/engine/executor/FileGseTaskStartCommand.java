@@ -35,7 +35,9 @@ import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
@@ -406,7 +408,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     @Override
     protected void handleStartGseTaskError(GseTaskResponse gseTaskResponse) {
-
+        long now = DateUtils.currentTimeMillis();
+        updateGseTaskExecutionInfo(null, RunStatusEnum.FAIL, null, now, now - gseTask.getStartTime());
     }
 
     @Override

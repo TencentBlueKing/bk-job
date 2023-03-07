@@ -413,8 +413,15 @@ public class GseV1ApiClient implements IGseClient {
         api_map_rsp rsp;
         if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
             rsp = pullCopyFileResult(request.getTaskId(), request.getAgentIds());
-        } else {
+        } else if (StringUtils.isNotBlank(request.getTaskId())) {
             rsp = pullCopyFileResult(request.getTaskId());
+        } else {
+            log.error("GetTransferFileResult, invalid request!");
+            return null;
+        }
+        if (rsp == null) {
+            log.error("GetTransferFileResult, response is null!");
+            return null;
         }
         return toFileTaskResult(rsp);
     }
@@ -498,6 +505,7 @@ public class GseV1ApiClient implements IGseClient {
 
     /**
      * tmp: 临时兼容，等GSE Agent 全面升级到1.7.6+版本之后，不再支持
+     *
      * @param copyFileRsp
      * @param resultKey
      */
@@ -720,7 +728,7 @@ public class GseV1ApiClient implements IGseClient {
         return sendCmd(new GseApiCallback<api_map_rsp>() {
             @Override
             public api_map_rsp callback(GseTaskClient gseTaskClient) throws TException {
-                log.info("GetCopyFileResult|/-///: {}", gseTaskId);
+                log.info("GetCopyFileResult|request|gseTaskId: {}", gseTaskId);
                 api_map_rsp copyFileTaskLog = gseTaskClient.getGseAgentClient().get_copy_file_result(gseTaskId);
                 log.info("GetCopyFileResult|response: {}", copyFileTaskLog);
                 return copyFileTaskLog;
@@ -785,6 +793,7 @@ public class GseV1ApiClient implements IGseClient {
                 if (gseTaskClient == null) {
                     connect = false;
                     // 如果拿不到连接 ，则等待3s重试
+                    log.info("Get GseTaskClient, retry after 3000ms");
                     ThreadUtils.sleep(3000L);
                     continue;
                 }
@@ -796,7 +805,7 @@ public class GseV1ApiClient implements IGseClient {
                     log.error("Invoke gse api fail", e);
                     throw new GseReadTimeoutException(e.getMessage());
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.error("Invoke gse api fail", e);
                 status = "error";
             } finally {
@@ -815,6 +824,7 @@ public class GseV1ApiClient implements IGseClient {
         String getApiName();
 
         default T fail(boolean connect) {
+            log.warn("Call gse api fail, connect: {}", connect);
             return null;
         }
     }

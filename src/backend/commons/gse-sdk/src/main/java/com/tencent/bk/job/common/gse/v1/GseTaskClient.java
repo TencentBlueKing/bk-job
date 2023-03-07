@@ -94,6 +94,7 @@ public class GseTaskClient implements Closeable {
      * @return GseClient
      */
     static GseTaskClient getClient(String ip, int port) throws TException {
+        log.info("Get gseTaskClient, ip: {}, port: {}", ip, port);
         return new GseTaskClient(ip, port);
     }
 
