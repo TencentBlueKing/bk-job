@@ -96,7 +96,7 @@
       CardLayout,
     },
     filters: {
-      formatNumber (value) {
+      formatNumber(value) {
         return formatNumber(value);
       },
     },
@@ -106,7 +106,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -117,15 +117,15 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchDistributionMetrics({
           date: this.date,
@@ -138,13 +138,13 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         const typeList = [
           'LINUX',
           'WINDOWS',
           'DB',
         ];
-                
+
         typeList.forEach((typeItem) => {
           if (!this.$refs.LINUX) {
             return;
@@ -193,7 +193,7 @@
           });
         });
       },
-      calcPercentage (value) {
+      calcPercentage(value) {
         const total = parseInt(this.data.DB, 10)
           + parseInt(this.data.LINUX, 10) + parseInt(this.data.WINDOWS, 10);
         if (!total) {

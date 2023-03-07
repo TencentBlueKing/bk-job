@@ -102,7 +102,7 @@
   });
 
   export default {
-    data () {
+    data() {
       return {
         isEdit: false,
         isSubmiting: false,
@@ -110,14 +110,14 @@
         scriptTypeList: [],
       };
     },
-    created () {
+    created() {
       this.fetchScriptType();
     },
     methods: {
       /**
        * @desc 获取脚本类型列表
        */
-      fetchScriptType () {
+      fetchScriptType() {
         PublicScriptManageService.scriptTypeList()
           .then((data) => {
             this.scriptTypeList = data;
@@ -126,20 +126,20 @@
       /**
        * @desc 切换编辑状态
        */
-      handleToggle () {
+      handleToggle() {
         this.isEdit = true;
       },
       /**
        * @desc 取消编辑状态，重置表单数据
        */
-      handleCancel () {
+      handleCancel() {
         this.isEdit = false;
         this.formData = generatorDefautlData();
       },
       /**
        * @desc 提交用户数据
        */
-      handleSubmit () {
+      handleSubmit() {
         if (this.isSubmiting) {
           return;
         }

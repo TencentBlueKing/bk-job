@@ -111,13 +111,13 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         variableList: _.cloneDeep(this.variable),
       };
     },
     computed: {
-      isEmpty () {
+      isEmpty() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.variableList.length; i++) {
           if (!this.variableList[i].delete) {
@@ -135,7 +135,7 @@
        *
        * 不包含变量名为空和已删除的变量
        */
-      calcExcludeNameList (variableData) {
+      calcExcludeNameList(variableData) {
         return this.variableList.reduce((result, item) => {
           if (variableData.id !== item.id
             && item.name
@@ -150,7 +150,7 @@
        * @param {Number} index 编辑的变量索引
        * @param {Object} variableData 全局变量数据
        */
-      handleChange (index, variableData) {
+      handleChange(index, variableData) {
         const variableList = [...this.variableList];
         const variable = new GlobalVariableModel(variableData);
         variableList.splice(index, 1, variable);
@@ -161,7 +161,7 @@
        * @desc 删除指定索引的变量
        * @param {Number} index 编辑的变量索引
        */
-      handleDelete (index) {
+      handleDelete(index) {
         const variableList = [...this.variableList];
         const editVariable = variableList[index];
         if (editVariable.id > 0) {
@@ -178,7 +178,7 @@
        * @desc 在指定索引位置添加一个新变量
        * @param {Number} index 编辑的变量索引
        */
-      handleAppendVariable (index) {
+      handleAppendVariable(index) {
         this.variableList.splice(index + 1, 0, createVariable());
         window.changeFlag = true;
       },
@@ -186,7 +186,7 @@
        * @desc 提交编辑
        * @returns {Promise}
        */
-      submit () {
+      submit() {
         const queue = [];
         if (this.$refs.variableEdit) {
           queue.push(...this.$refs.variableEdit.map(item => item.validate()));

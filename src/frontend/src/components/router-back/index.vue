@@ -52,13 +52,13 @@
         default: 'window',
       },
     },
-    data () {
+    data() {
       return {
         showBack: false,
       };
     },
     watch: {
-      '$route' () {
+      '$route'() {
         this.check();
         const { name } = this.$route;
         // 路由变更清空作业导入缓存
@@ -71,17 +71,17 @@
         }
       },
     },
-    created () {
+    created() {
       this.timer = '';
       this.$once('hook:beforeDestroy', () => {
         clearTimeout(this.timer);
       });
     },
-    mounted () {
+    mounted() {
       this.check();
     },
     methods: {
-      check () {
+      check() {
         // iframe 嵌入的方式有两种场景
         // 1，paas 桌面的方式需要显示完整的导航
         // 2，第三方系统嵌入的方式不需要显示
@@ -105,7 +105,7 @@
           }
         }, 100);
       },
-      handleGoBack () {
+      handleGoBack() {
         window.routerFlashBack = true;
         const viewInstance = _.last(this.$route.matched).instances.default || {};
         if (typeof viewInstance.routerBack === 'function') {

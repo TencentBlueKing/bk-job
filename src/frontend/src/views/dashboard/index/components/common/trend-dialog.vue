@@ -45,10 +45,10 @@
             :options="datePickerOptions"
             :placeholder="$t('dashboard.选择日期')"
             placement="bottom-end"
-            :shortcut-close="true"
+            shortcut-close
             :shortcuts="shortcuts"
             type="daterange"
-            :use-shortcut-text="true"
+            use-shortcut-text
             :value="defaultDateRang"
             @change="handleDateChange" />
         </div>
@@ -130,14 +130,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
       };
     },
     watch: {
       date: {
-        handler (date) {
+        handler(date) {
           this.endDate = date;
           this.startDate = prettyDateFormat(new Date(date) - 6 * 86400000);
           this.defaultDateRang = [
@@ -147,7 +147,7 @@
           this.shortcuts = [
             {
               text: I18n.t('dashboard.今天'),
-              value () {
+              value() {
                 const start = new Date(date);
                 return [
                   start,
@@ -157,7 +157,7 @@
             },
             {
               text: I18n.t('dashboard.昨天'),
-              value () {
+              value() {
                 const end = new Date(date);
                 const start = new Date();
                 start.setTime(end - 86400000);
@@ -169,7 +169,7 @@
             },
             {
               text: I18n.t('dashboard.最近3天'),
-              value () {
+              value() {
                 const end = new Date(date);
                 const start = new Date();
                 start.setTime(end - 2 * 86400000);
@@ -181,7 +181,7 @@
             },
             {
               text: I18n.t('dashboard.最近7天'),
-              value () {
+              value() {
                 const end = new Date(date);
                 const start = new Date();
                 start.setTime(end - 6 * 86400000);
@@ -193,7 +193,7 @@
             },
             {
               text: I18n.t('dashboard.最近30天'),
-              value () {
+              value() {
                 const end = new Date(date);
                 const start = new Date();
                 start.setTime(end - 30 * 86400000);
@@ -207,19 +207,19 @@
         },
         immediate: true,
       },
-      value (value) {
+      value(value) {
         if (value) {
           this.fetchData();
         }
       },
     },
-    created () {
+    created() {
       this.datePickerOptions = {
         disabledDate: date => date.getTime() > Date.now(),
       };
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchTrendsMetrics({
           endDate: this.endDate,
@@ -232,7 +232,7 @@
             this.isLoading = false;
           });
       },
-      initTrend (data) {
+      initTrend(data) {
         if (!this.myChart) {
           this.myChart = echarts.init(this.$refs.trend);
         }
@@ -344,7 +344,7 @@
         }
         this.myChart.setOption(options);
       },
-      handleDateChange (value) {
+      handleDateChange(value) {
         const [
           startDate,
           endDate,
@@ -353,7 +353,7 @@
         this.endDate = endDate;
         this.fetchData();
       },
-      handleInput (value) {
+      handleInput(value) {
         this.$emit('input', value);
         this.$emit('change', value);
       },

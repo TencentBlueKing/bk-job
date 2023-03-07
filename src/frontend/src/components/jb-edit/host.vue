@@ -119,7 +119,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         localValue: this.value,
         isShowChooseIp: false,
@@ -129,7 +129,7 @@
       };
     },
     computed: {
-      renderHtml () {
+      renderHtml() {
         if (!this.localValue) {
           return '--';
         }
@@ -150,31 +150,31 @@
         }
         return strs.length > 0 ? strs.join('\n') : '--';
       },
-      styles () {
+      styles() {
         return {
           width: this.width,
         };
       },
-      isBlock () {
+      isBlock() {
         return this.mode === 'block';
       },
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           this.localValue = Object.freeze(_.cloneDeep(value));
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.originalValue = _.cloneDeep(this.value.hostNodeInfo);
     },
     methods: {
       /**
        * @desc 值验证
        */
-      doValidator () {
+      doValidator() {
         const checkValidator = (rule, value) => new Promise((resolve, reject) => {
           if (rule.required && !value) {
             reject(rule.message);
@@ -200,7 +200,7 @@
             resolve();
           }
         });
-                
+
         const allPromise = this.rules.map(rule => checkValidator(rule, this.localValue));
         this.isValidatoring = true;
         return Promise.all(allPromise).finally(() => {
@@ -210,7 +210,7 @@
       /**
        * @desc 提交编辑
        */
-      triggerChange () {
+      triggerChange() {
         this.doValidator()
           .then(() => {
             this.isEditing = false;
@@ -237,7 +237,7 @@
             this.error = error;
           });
       },
-      handleBlockShowEdit () {
+      handleBlockShowEdit() {
         if (!this.isBlock) {
           return;
         }
@@ -246,15 +246,15 @@
       /**
        * @desc 显示input
        */
-      handleShowEdit () {
+      handleShowEdit() {
         document.body.click();
         this.isShowChooseIp = true;
       },
-      handleCloseIPSelector () {
+      handleCloseIPSelector() {
         this.isShowChooseIp = false;
       },
-            
-      handleHostChange (hostNodeInfo) {
+
+      handleHostChange(hostNodeInfo) {
         this.localValue = Object.freeze({
           ...this.localValue,
           hostNodeInfo,

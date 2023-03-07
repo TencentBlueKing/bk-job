@@ -119,17 +119,17 @@
       FavorTask,
       HistoryRecord,
     },
-    data () {
+    data() {
       return {
         footerLink: '',
         footerCopyRight: '',
       };
     },
-    created () {
+    created() {
       this.fetchTitleAndFooter();
     },
     methods: {
-      fetchTitleAndFooter () {
+      fetchTitleAndFooter() {
         QueryGlobalSettingService.fetchFooterConfig()
           .then((data) => {
             this.footerLink = xssHTML(marked.parse(`${data.footerLink}`));

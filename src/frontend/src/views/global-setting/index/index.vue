@@ -73,16 +73,16 @@
       PlatformInfo,
       FileUpload,
     },
-    data () {
+    data() {
       return {
         page: 'notify',
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.page.isLoading;
       },
-      pageCom () {
+      pageCom() {
         const pageMap = {
           notify: NotifyManage,
           strategy: StorageStrategy,
@@ -94,7 +94,7 @@
       },
     },
     methods: {
-      handleTabChange (value) {
+      handleTabChange(value) {
         return leaveConfirm().then(() => {
           this.page = value;
         });

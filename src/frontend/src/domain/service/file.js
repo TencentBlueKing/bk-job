@@ -29,7 +29,7 @@ import FileModel from '@model/file/file';
 import fileSource from '../source/file';
 
 export default {
-  fetchgetListFileNode (params) {
+  fetchgetListFileNode(params) {
     return fileSource.getListFileNode(params)
       .then(({ data }) => {
         const {
@@ -44,11 +44,11 @@ export default {
         };
       });
   },
-  executeAction (params) {
+  executeAction(params) {
     return fileSource.updateAction(params)
       .then(({ data }) => data);
   },
-  bucketList (params) {
+  bucketList(params) {
     return fileSource.getList(params)
       .then(({ data }) => {
         data.data = data.data.map(file => Object.freeze(new FileModel(file)));
@@ -56,22 +56,22 @@ export default {
       });
   },
 
-  fileList (params) {
+  fileList(params) {
     return fileSource.getFileList(params)
       .then(({ data }) => {
         data.data = data.data.map(file => new FileModel(file));
         return data;
       });
   },
-  deleteBucketFile (params) {
+  deleteBucketFile(params) {
     return fileSource.deleteFile(params)
       .then(({ data }) => data);
   },
-  deleteBucket (params) {
+  deleteBucket(params) {
     return fileSource.deleteBucket(params)
       .then(({ data }) => data);
   },
-  uploadFiles (params) {
+  uploadFiles(params) {
     return fileSource.uploadFilesToBucket(params)
       .then(({ data }) => data);
   },

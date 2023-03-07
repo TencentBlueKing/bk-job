@@ -60,16 +60,16 @@
         default: true,
       },
     },
-    data () {
+    data() {
       return {
         isShow: false,
       };
     },
     computed: {
-      classes () {
+      classes() {
         return `theme-${this.size}`;
       },
-      styles () {
+      styles() {
         if (!this.fixed) {
           return {};
         }
@@ -80,7 +80,7 @@
         };
       },
     },
-    mounted () {
+    mounted() {
       this.smartPosition();
       window.addEventListener('resize', this.smartPosition);
       const observer = new MutationObserver((payload) => {
@@ -114,7 +114,7 @@
       /**
        * @desc 点击按钮目标容器滚动到顶部
        */
-      handleBackTop () {
+      handleBackTop() {
         const $srollContainer = this.target();
         scrollTopSmooth($srollContainer, 0);
       },

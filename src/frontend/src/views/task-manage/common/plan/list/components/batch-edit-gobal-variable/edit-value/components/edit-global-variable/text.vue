@@ -54,7 +54,7 @@
       },
     },
     computed: {
-      descPopover () {
+      descPopover() {
         return {
           theme: 'light',
           extCls: 'variable-desc-tippy',
@@ -67,10 +67,10 @@
       },
     },
     methods: {
-      handleRemove () {
+      handleRemove() {
         this.$emit('on-remove');
       },
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', value);
       },
     },

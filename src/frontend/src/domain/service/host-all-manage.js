@@ -36,89 +36,89 @@ import HostAllManageSource from '../source/host-all-manage';
 
 export default {
   // 获取拓扑节点树
-  fetchTopology () {
+  fetchTopology() {
     return HostAllManageSource.getAllTopology()
       .then(({ data }) => data);
   },
-    
+
   // 获取拓扑节点数包含主机
-  fetchAllTopologyHost () {
+  fetchAllTopologyHost() {
     return HostAllManageSource.getAllTopologyWithHost()
       .then(({ data }) => data);
   },
   // 获取节点的主机
-  fetchNodeInfo (params) {
+  fetchNodeInfo(params) {
     return HostAllManageSource.getHostByNode(params)
       .then(({ data }) => data.map(item => new NodeInfoVO(item)));
   },
   // 获取节点详情
-  fetchNodeDetail (params) {
+  fetchNodeDetail(params) {
     return HostAllManageSource.getNodeInfo(params)
       .then(({ data }) => data);
   },
-    
+
   // ip输入获取主机列表
-  fetchHostOfHost (params) {
+  fetchHostOfHost(params) {
     return HostAllManageSource.getHostByHost(params)
       .then(({ data }) => data);
   },
-    
+
   // IP选择器根据拓扑节点获取其子节点
-  fetchChildOfNode (params) {
+  fetchChildOfNode(params) {
     return HostAllManageSource.getChildOfNode(params)
       .then(({ data }) => data);
   },
-  fetchHostStatistics (params) {
+  fetchHostStatistics(params) {
     return HostAllManageSource.getHostStatistics(params)
       .then(({ data }) => data);
   },
   // 获取业务拓扑主机列表（包含主机）
-  fetchTopologyWithCount () {
+  fetchTopologyWithCount() {
     return HostAllManageSource.getAllTopologyWithCount()
       .then(({ data }) => IpSelectrAdapter.topologyHostCount(data));
   },
   // 获取节点拓扑路径
-  fetchNodePath (params) {
+  fetchNodePath(params) {
     return HostAllManageSource.getNodePath(params)
       .then(({ data }) => IpSelectrAdapter.topologyQueryPath(data));
   },
   // 获取动态分列表
-  fetchDynamicGroup (params) {
+  fetchDynamicGroup(params) {
     return HostAllManageSource.getAllDynamicGroup(params)
       .then(({ data }) => IpSelectrAdapter.dynamicGroups(data));
   },
   // 获取动态分组的主机列表
-  fetchHostOfDynamicGroup (params) {
+  fetchHostOfDynamicGroup(params) {
     return HostAllManageSource.getHostByDynamicGroupId(params)
       .then(({ data }) => data.map(item => new DynamicGroupInfoVO(item)));
   },
-    
-  fetchTopologyHost (params) {
+
+  fetchTopologyHost(params) {
     return HostAllManageSource.getTopologyHost(params)
       .then(({ data }) => IpSelectrAdapter.topolopyHostsNodes(data));
   },
-  fetchTopogyHostIdList (params) {
+  fetchTopogyHostIdList(params) {
     return HostAllManageSource.getTopologyNodeAllHostId(params)
       .then(({ data }) => IpSelectrAdapter.topolopyHostIdsNodes(data));
   },
-    
-  fetchBatchNodeAgentStatistics (params) {
+
+  fetchBatchNodeAgentStatistics(params) {
     return HostAllManageSource.getBatchNodeAgentStatistics(params)
       .then(({ data }) => IpSelectrAdapter.hostAgentStatisticsNodes(data));
   },
-  fetchDynamicGroupHost (params) {
+  fetchDynamicGroupHost(params) {
     return HostAllManageSource.getDynamicGroupHost(params)
       .then(({ data }) => IpSelectrAdapter.hostsDynamicGroup(data));
   },
-  fetchBatchGroupAgentStatistics (params) {
+  fetchBatchGroupAgentStatistics(params) {
     return HostAllManageSource.getBatchGroupAgentStatistics(params)
       .then(({ data }) => IpSelectrAdapter.hostAgentStatisticsDynamicGroups(data));
   },
-  fetchInputParseHostList (params) {
+  fetchInputParseHostList(params) {
     return HostAllManageSource.getInputParseHostList(params)
       .then(({ data }) => IpSelectrAdapter.hostCheck(data));
   },
-  fetchHostInfoByHostId (params) {
+  fetchHostInfoByHostId(params) {
     return HostAllManageSource.getHostInfoByHostId(params)
       .then(({ data }) => IpSelectrAdapter.hostsDetails(data));
   },

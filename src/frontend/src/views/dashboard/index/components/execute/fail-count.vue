@@ -104,7 +104,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isShowTrend: false,
@@ -113,10 +113,10 @@
       };
     },
     methods: {
-      handleShowTrend () {
+      handleShowTrend() {
         this.isShowTrend = true;
       },
-      handleShowList () {
+      handleShowList() {
         this.isShowList = true;
         this.isLoading = true;
         StatisticsService.fetchListByPerAppMetrics({

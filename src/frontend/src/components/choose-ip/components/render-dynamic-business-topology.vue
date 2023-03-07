@@ -115,7 +115,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         currentUser: {},
         isRenderEmptyTopoNode: false,
@@ -128,7 +128,7 @@
       /**
        * @desc 更新 topo 树节点的选中状态
        */
-      topoNodeList (newTopoNodeList, oldTopoNodeList) {
+      topoNodeList(newTopoNodeList, oldTopoNodeList) {
         if (this.isSelfChange) {
           this.isSelfChange = false;
           return;
@@ -148,12 +148,12 @@
         this.recoverTreeState(newTopoNodeList, oldTopoNodeList);
       },
     },
-    created () {
+    created() {
       this.isSelfChange = false;
       this.isTreeRefresh = false;
       this.fetchUserInfo();
     },
-    mounted () {
+    mounted() {
       if (this.emptyTopologyOfAllBusiness) {
         return;
       }
@@ -169,7 +169,7 @@
       /**
        * @desc 获取登陆用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
@@ -183,12 +183,12 @@
        *
        * 外部传入值还原树的选中状态
        */
-      recoverTreeState (newTopoNodeList, oldTopoNodeList = []) {
+      recoverTreeState(newTopoNodeList, oldTopoNodeList = []) {
         this.isSearchEmpty = this.topologyNodeTree.length < 1;
         const isRemove = newTopoNodeList.length < oldTopoNodeList.length;
         const oldNodeId = oldTopoNodeList.map(item => `#${item.type}#${item.id}`);
         const newNodeId = newTopoNodeList.map(item => `#${item.type}#${item.id}`);
-                
+
         if (isRemove) {
           // 外部删除操作
           const needRemoveCheckNode = _.difference(oldNodeId, newNodeId);
@@ -209,8 +209,8 @@
           }
         }
       },
-            
-      handleFilterEmptyToggle (event) {
+
+      handleFilterEmptyToggle(event) {
         this.isRenderEmptyTopoNode = !this.isRenderEmptyTopoNode;
         if (this.isRenderEmptyTopoNode) {
           // 显示所有节点，节点的选中状态不变
@@ -249,7 +249,7 @@
        * @param {Array} allCheckNode 所有选中的节点
        * @param {Object} node 当前操作的节点
        */
-      handleCheckChange (allCheckNode, node) {
+      handleCheckChange(allCheckNode, node) {
         const filterCheckNode = (nodeList) => {
           const expireNodeMap = {};
           if (nodeList.length < 1) {
@@ -270,7 +270,7 @@
             if (index >= list.length) {
               return list;
             }
-                        
+
             const currentNodeChildIds = findAllChildNodeId(currentNode);
             const validList = _.difference(list, currentNodeChildIds);
             expireNodeMap[currentNode.id] = true;

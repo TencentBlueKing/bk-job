@@ -78,7 +78,7 @@
         type: [Number, String],
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         stepInfo: {},
@@ -87,7 +87,7 @@
         variableList: [],
       };
     },
-    created () {
+    created() {
       this.isLoading = true;
       Promise.all([
         this.fetchStep(),
@@ -102,11 +102,11 @@
        * @param { String } expr
        * @returns { String }
        */
-      rollingExprParse (expr) {
+      rollingExprParse(expr) {
         return rollingExprParse(expr);
       },
       //  步骤详情
-      fetchStep () {
+      fetchStep() {
         return TaskExecuteService.fetchStepInstance({
           id: this.id,
         }).then((data) => {
@@ -119,11 +119,11 @@
             };
             this.rollingModeText = modeMap[data.rollingConfig.mode];
           }
-                    
+
           this.stepInfo = Object.freeze(new TaskStepModel(data));
         });
       },
-      fetchTaskVariables () {
+      fetchTaskVariables() {
         return TaskExecuteService.fetchStepInstanceParam({
           id: this.taskId,
         }).then((data) => {

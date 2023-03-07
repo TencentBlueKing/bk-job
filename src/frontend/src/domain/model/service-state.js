@@ -31,7 +31,7 @@ import Model from '@model/model';
 // const STATUS_UNKNOWN = -1 // 未知
 
 export default class SeverState extends Model {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.name = payload.name;
     this.instanceList = payload.instanceList;
@@ -39,7 +39,7 @@ export default class SeverState extends Model {
     this.versionConsistent = payload.versionConsistent;
   }
 
-  get versionHtml () {
+  get versionHtml() {
     /* eslint-disable max-len */
     return this.versionConsistent
       ? `<span>${this.version}</span>`

@@ -60,13 +60,13 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isFinishBeforeNotify: false,
       };
     },
     computed: {
-      isShowNotify () {
+      isShowNotify() {
         if (!this.formData.endTime) {
           return false;
         }
@@ -78,7 +78,7 @@
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           if (this.formData.notifyOffset
             || this.formData.notifyChannel.length > 0
             || this.formData.notifyUser.roleList.length > 0

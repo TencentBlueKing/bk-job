@@ -154,7 +154,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isRequestError: false,
@@ -163,13 +163,13 @@
       };
     },
     computed: {
-      statisticsData () {
+      statisticsData() {
         return statisticsHost(this.list);
       },
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (this.isInnerChange) {
             this.isInnerChange = false;
             return;
@@ -183,14 +183,14 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.isInnerChange = false;
     },
     methods: {
       /**
        * @desc 通过ip和云区域获取主机信息
        */
-      fetchHostOfHost () {
+      fetchHostOfHost() {
         this.isLoading = true;
         const hostIdMap = this.data.reduce((result, ipInfo) => {
           result[ipInfo.hostId] = ipInfo;
@@ -232,7 +232,7 @@
       /**
        * @desc 外部调用获取所有主机
        */
-      getAllHost () {
+      getAllHost() {
         return [
           ...this.list,
         ];
@@ -241,18 +241,18 @@
       /**
        * @desc 外部调用移除所有无效的主机
        */
-      removeAllInvalidHost () {
+      removeAllInvalidHost() {
         this.invalidList = [];
         this.triggerChange();
       },
       /**
        * @desc 外部调用获取所有无效的主机
        */
-      getAllInvalidHost () {
+      getAllInvalidHost() {
         return this.invalidList;
       },
 
-      triggerChange () {
+      triggerChange() {
         this.isInnerChange = true;
         const result = this.invalidList.map(({ hostId }) => ({ hostId }));
         this.list.forEach((hostInfo) => {
@@ -265,14 +265,14 @@
       /**
        * @desc 失败重试
        */
-      handleRefresh () {
+      handleRefresh() {
         this.fetchHostOfHost();
       },
       /**
        * @desc 移除无效主机
        * @prams { Number } hostId  移除主机
        */
-      handleInvalidRemove (hostId) {
+      handleInvalidRemove(hostId) {
         this.invalidList = Object.freeze(this.invalidList.reduce((result, item) => {
           if (item !== hostId) {
             result.push(item);
@@ -284,7 +284,7 @@
       /**
        * @desc 移除所有主机
        */
-      handleRemoveAll () {
+      handleRemoveAll() {
         if (this.list.length < 1
           && this.invalidList.length < 1) {
           this.messageSuccess(I18n.t('没有可移除主机'));
@@ -299,7 +299,7 @@
        * @desc 移除主机
        * @param { String} hostInfo
        */
-      handleRemoveOne (hostInfo) {
+      handleRemoveOne(hostInfo) {
         // 内部显示删除
         const list = this.list.reduce((result, currentHostInfo) => {
           if (currentHostInfo.hostId !== hostInfo.hostId) {
@@ -313,7 +313,7 @@
       /**
        * @desc 移除异常主机
        */
-      handleRemoveFail () {
+      handleRemoveFail() {
         const effectiveIp = [];
         const failIp = [];
         this.list.forEach((currentHostInfo) => {

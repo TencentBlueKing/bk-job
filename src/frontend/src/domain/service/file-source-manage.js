@@ -29,48 +29,48 @@ import FileSourceModel from '@model/file/file-source';
 import FileSourceManageSource from '../source/file-source-manage';
 
 export default {
-  availableSourceList (params) {
+  availableSourceList(params) {
     return FileSourceManageSource.getAvailableList(params)
       .then(({ data }) => {
         data.data = data.data.map(file => Object.freeze(new FileSourceModel(file)));
         return data;
       });
   },
-  fetchAliasCheck (params = {}) {
+  fetchAliasCheck(params = {}) {
     return FileSourceManageSource.getAliasCheck(params)
       .then(({ data }) => data);
   },
-  fetchFileSourceList (params) {
+  fetchFileSourceList(params) {
     return FileSourceManageSource.getWorkTableList(params)
       .then(({ data }) => {
         data.data = data.data.map(file => Object.freeze(new FileSourceModel(file)));
         return data;
       });
   },
-  addSource (params) {
+  addSource(params) {
     return FileSourceManageSource.addFileSource(params)
       .then(({ data }) => data);
   },
-  updateSource (params) {
+  updateSource(params) {
     return FileSourceManageSource.updateFileSource(params)
       .then(({ data }) => data);
   },
-  getSourceInfo (params) {
+  getSourceInfo(params) {
     return FileSourceManageSource.getFileSourceInfo(params)
       .then(({ data }) => {
         data = Object.freeze(new FileSourceModel(data));
         return data;
       });
   },
-  removeSource (params) {
+  removeSource(params) {
     return FileSourceManageSource.removeFileSource(params)
       .then(({ data }) => data);
   },
-  toggleSourceEnable (params) {
+  toggleSourceEnable(params) {
     return FileSourceManageSource.toggleEnable(params)
       .then(({ data }) => data);
   },
-  fetchParams (params) {
+  fetchParams(params) {
     return FileSourceManageSource.getParams(params)
       .then(({ data }) => data);
   },

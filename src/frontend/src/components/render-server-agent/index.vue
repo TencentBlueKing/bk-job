@@ -83,7 +83,7 @@
 
   import TaskHostNodeModel from '@model/task-host-node';
   // import ServerPanel from '@components/choose-ip/server-panel';
-    
+
   export default {
     name: '',
     components: {
@@ -103,7 +103,7 @@
         default: '，',
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isShowDetail: false,
@@ -114,20 +114,20 @@
       };
     },
     computed: {
-      isEmpty () {
+      isEmpty() {
         return TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
       },
     },
     watch: {
-      hostNodeInfo () {
+      hostNodeInfo() {
         this.fetchData();
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         if (this.isEmpty || this.isLoading) {
           this.isLoading = false;
           return;
@@ -145,10 +145,10 @@
             this.isLoading = false;
           });
       },
-      handleShowDetail () {
+      handleShowDetail() {
         this.isShowDetail = true;
       },
-      handleClose () {
+      handleClose() {
         this.isShowDetail = false;
       },
     },

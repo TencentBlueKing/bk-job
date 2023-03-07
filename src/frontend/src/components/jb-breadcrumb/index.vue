@@ -27,7 +27,7 @@
 
 <script>
   import _ from 'lodash';
-            
+
   export default {
     name: '',
     props: {
@@ -35,7 +35,7 @@
         type: Number,
       },
     },
-    data () {
+    data() {
       return {
         boxStyles: {
           visibility: 'hidden',
@@ -46,11 +46,11 @@
         isEllipsis: false,
       };
     },
-    mounted () {
+    mounted() {
       const placementWidth = 30;
       const boxWidth = this.width || this.$refs.box.getBoundingClientRect().width;
       let totalChildWidth = 0;
-            
+
       const itemWidthList = [];
       // 计算所有项的宽度和
       this.$refs.box.childNodes.forEach((item) => {
@@ -59,7 +59,7 @@
         itemWidthList.push(width);
       });
       this.isEllipsis = totalChildWidth + placementWidth > boxWidth;
-            
+
       if (this.isEllipsis) {
         if (this.$refs.box.childNodes.length < 7) {
           this.lastItemStyles = {
@@ -70,11 +70,11 @@
             .slice(0, 4)
             .concat(itemWidthList.slice(-2))
             .reduce((result, item) => result + item, 0);
-                
+
           if (realRenderWidth + placementWidth > boxWidth) {
             const lastWidth = itemWidthList[itemWidthList.length - 1];
             const needEllipsisWidth = realRenderWidth + placementWidth - boxWidth;
-                    
+
             if (lastWidth > needEllipsisWidth) {
               this.lastItemStyles = {
                 width: `${lastWidth - needEllipsisWidth}px`,
@@ -88,14 +88,14 @@
       };
     },
     methods: {
-      renderSplit (h) {
+      renderSplit(h) {
         return h('span', {
           style: {
             padding: '0 10px',
           },
         }, ['/']);
       },
-      renderEllipsis (h) {
+      renderEllipsis(h) {
         return h('span', {
           staticClass: 'jb-breadcrumb-back',
           on: {
@@ -112,7 +112,7 @@
         }, ['..']);
       },
     },
-    render (h) {
+    render(h) {
       let renderSlots = this.$slots.default.reduce((result, item, index) => {
         if (!item.tag || !/jb-breadcrumb-item/.test(item.data.staticClass)) {
           return result;
@@ -126,7 +126,7 @@
         result.push(item);
         return result;
       }, []);
-            
+
       if (this.isEllipsis) {
         renderSlots = renderSlots
           .slice(0, 4)
@@ -145,7 +145,7 @@
         lastSlot.data.staticClass = staticClass;
         lastSlot.data.style = this.lastItemStyles;
       }
-            
+
       return h('div', {
         ref: 'box',
         key: this.isEllipsis,

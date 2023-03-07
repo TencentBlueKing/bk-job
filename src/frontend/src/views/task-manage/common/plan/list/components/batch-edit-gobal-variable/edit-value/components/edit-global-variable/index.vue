@@ -48,11 +48,11 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {};
     },
     computed: {
-      com () {
+      com() {
         const comMap = {
           [GlobalVariableModel.TYPE_STRING]: TextType,
           [GlobalVariableModel.TYPE_NAMESPACE]: TextType,

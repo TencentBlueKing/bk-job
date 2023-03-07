@@ -34,7 +34,7 @@
       :count="totalCount"
       icon="business-manage"
       :name="$t('script.全部脚本')"
-      :tooltips-disabled="true"
+      tooltips-disabled
       :value="classesId"
       @on-select="handleClassesSelect" />
     <tab-item
@@ -42,7 +42,7 @@
       :count="unclassifiedCount"
       icon="unclassified"
       :name="$t('script.未分类')"
-      :tooltips-disabled="true"
+      tooltips-disabled
       :value="classesId"
       @on-select="handleClassesSelect" />
     <div class="line" />
@@ -51,7 +51,7 @@
         v-if="item.relatedScriptNum > 0"
         :id="item.id"
         :key="item.id"
-        :can-edit="true"
+        can-edit
         :count="item.relatedScriptNum"
         :description="item.description"
         :name="item.name"
@@ -79,7 +79,7 @@
     components: {
       TabItem,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         classesId: 1,
@@ -90,25 +90,25 @@
       };
     },
     computed: {
-      totalCount () {
+      totalCount() {
         return this.countMap.total || 0;
       },
-      unclassifiedCount () {
+      unclassifiedCount() {
         return this.countMap.unclassified || 0;
       },
     },
-    created () {
+    created() {
       this.isPublicScript = checkPublicScript(this.$route);
       this.init();
     },
-    mounted () {
+    mounted() {
       this.parseDefaultValueFromURL();
     },
     methods: {
       /**
        * @desc 获取tag列表
        */
-      fetchTagList () {
+      fetchTagList() {
         if (this.isPublicScript) {
           return PubliceTagManageService.fetchTagList();
         }
@@ -117,13 +117,13 @@
       /**
        * @desc 获取tag的使用数量
        */
-      fetchTagScriptNum () {
+      fetchTagScriptNum() {
         if (this.isPublicScript) {
           return PublicScriptManageService.fetchTagCount();
         }
         return ScriptManageService.fetchTagCount();
       },
-      init () {
+      init() {
         this.isLoading = true;
         Promise.all([
           this.fetchTagList(),
@@ -145,14 +145,14 @@
       /**
        * @desc 解析url中的默认tag
        */
-      parseDefaultValueFromURL () {
+      parseDefaultValueFromURL() {
         let classesId = 1;
         if (this.$route.query.panelType) {
           classesId = ~~this.$route.query.panelType || 1;
           this.handleClassesSelect(classesId);
           return;
         }
-                
+
         if (this.$route.query.panelTag) {
           const currentTagId = parseInt(this.$route.query.panelTag, 10);
           if (currentTagId > 0) {
@@ -165,7 +165,7 @@
        * @desc 分类切换
        * @param {Number} id 分类id
        */
-      handleClassesSelect (id) {
+      handleClassesSelect(id) {
         if (this.classesId === id) {
           return;
         }
@@ -180,7 +180,7 @@
        * @desc tag切换
        * @param {Number} id 分类id
        */
-      handleSelect (id) {
+      handleSelect(id) {
         if (id === this.tagId) return;
         this.tagId = id;
         this.classesId = 0;
@@ -195,7 +195,7 @@
        *
        * 编辑成功需要刷新标签数据
        */
-      handleEdit (payload) {
+      handleEdit(payload) {
         TagManageService.updateTag(payload)
           .then(() => {
             this.messageSuccess(I18n.t('script.标签名更新成功'));

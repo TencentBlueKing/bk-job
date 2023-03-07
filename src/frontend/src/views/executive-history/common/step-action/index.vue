@@ -131,7 +131,7 @@
       },
     },
     computed: {
-      actionCom () {
+      actionCom() {
         const comMap = {
           confirm: ActionConfirm,
           confirmForced: ActionConfirmForced,
@@ -146,18 +146,18 @@
         };
         return comMap[this.name];
       },
-      confirmInfo () {
+      confirmInfo() {
         return actionMap[this.name];
       },
     },
     methods: {
-      handleConfirm () {
+      handleConfirm() {
         return this.confirmHandler(this.confirmInfo.operationCode);
       },
-      handleConfirmShow () {
+      handleConfirmShow() {
         this.$emit('on-show');
       },
-      handleConfirmCancel () {
+      handleConfirmCancel() {
         this.$emit('on-cancel');
       },
     },

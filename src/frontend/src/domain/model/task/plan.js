@@ -29,7 +29,7 @@ import GlobalVariableModel from '@model/task/global-variable';
 import PlanStepModel from '@model/task/plan-step';
 
 export default class Plan {
-  constructor (payload) {
+  constructor(payload) {
     this.id = payload.id;
     this.name = payload.name;
     this.scopeType = payload.scopeType;
@@ -57,12 +57,12 @@ export default class Plan {
   }
 
   // 执行方案中使用到的模板步骤
-  get enableStepList () {
+  get enableStepList() {
     return _.filter(this.stepList, item => item.enable);
   }
 
   // 所有使用到来模板步骤的id
-  get enableStepId () {
+  get enableStepId() {
     return this.stepList.reduce((result, step) => {
       if (step.enable) {
         result.push(step.id);
@@ -72,28 +72,28 @@ export default class Plan {
   }
 
   // 关联作业模板中的步骤数
-  get templateStepNums () {
+  get templateStepNums() {
     return this.stepList.length;
   }
 
   // 执行方案中使用的到模板步骤数
-  get enableStepNums () {
+  get enableStepNums() {
     const stepList = _.filter(this.stepList, item => item.enable);
     return stepList.length;
   }
 
-  toggleFavored () {
+  toggleFavored() {
     this.favored = !this.favored;
   }
 
-  initStep (payload) {
+  initStep(payload) {
     if (!Array.isArray(payload)) {
       return [];
     }
     return payload.map(item => new PlanStepModel(item));
   }
-    
-  initVariable (payload) {
+
+  initVariable(payload) {
     if (!Array.isArray(payload)) {
       return [];
     }

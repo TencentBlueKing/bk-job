@@ -110,7 +110,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         stepInfo: {},
@@ -118,12 +118,12 @@
         account: [],
       };
     },
-    created () {
+    created() {
       this.stepInfo = Object.freeze(this.data.fileStepInfo);
       this.fetchAccount();
     },
     methods: {
-      fetchAccount () {
+      fetchAccount() {
         this.isLoading = true;
         AccountManageService.fetchAccountWhole()
           .then((data) => {

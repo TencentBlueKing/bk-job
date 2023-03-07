@@ -76,7 +76,7 @@
         type: Object,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         variableList: [],
@@ -84,7 +84,7 @@
     },
     watch: {
       name: {
-        handler () {
+        handler() {
           this.isLoading = true;
           this.fetchStepVariables();
         },
@@ -93,7 +93,7 @@
     },
     methods: {
       // 步骤使用的变量
-      fetchStepVariables () {
+      fetchStepVariables() {
         if (!this.ip) {
           this.isLoading = false;
           return;

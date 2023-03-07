@@ -69,7 +69,7 @@
       /**
        * @desc 无权限时弹框提示资源权限申请
        */
-      handleCheckPermission () {
+      handleCheckPermission() {
         permissionDialog({
           operation: this.auth,
           resourceId: this.resourceId,

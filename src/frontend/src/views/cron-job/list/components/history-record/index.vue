@@ -92,7 +92,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         listTab: 'launch',
         isLaunchLoading: true,
@@ -102,18 +102,18 @@
       };
     },
     computed: {
-      listCom () {
+      listCom() {
         return listComMap[this.listTab];
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      handleTabChange (value) {
+      handleTabChange(value) {
         this.listTab = value;
       },
-      fetchData () {
+      fetchData() {
         TaskExecuteService.fetchExecutionHistoryList({
           cronTaskId: this.data.id,
           startTime: '',

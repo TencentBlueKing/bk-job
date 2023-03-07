@@ -161,7 +161,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         list: [],
         invalidList: [],
@@ -171,7 +171,7 @@
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (this.isInnerChange) {
             this.isInnerChange = false;
             return;
@@ -185,7 +185,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.isInnerChange = false;
       // 缓存数据用查看分组的主机详情
       this.groupMap = {};
@@ -194,13 +194,13 @@
       /**
        * @desc 获取分组的主机信息
        */
-      fetchDynamicGroup () {
+      fetchDynamicGroup() {
         this.isLoading = true;
         const allGroupMap = this.data.reduce((result, groupId) => {
           result[groupId] = groupId;
           return result;
         }, {});
-                
+
         HostManageService.fetchHostOfDynamicGroup({
           id: this.data.join(','),
         }).then((data) => {
@@ -246,7 +246,7 @@
        * @desc 外部调用获取所有分组下的主机
        *
        */
-      getAllHost () {
+      getAllHost() {
         const stack = [];
         for (const groupId in this.groupMap) {
           stack.push(...this.groupMap[groupId].host);
@@ -256,11 +256,11 @@
       /**
        * @desc 外部调用移除所有无效的分组
        */
-      removeAllInvalidHost () {
+      removeAllInvalidHost() {
         this.invalidList = [];
         this.triggerChange();
       },
-      triggerChange () {
+      triggerChange() {
         this.isInnerChange = true;
         // 所有分组id
         const groupIdList = [...this.invalidList];
@@ -272,14 +272,14 @@
       /**
        * @desc 失败重试
        */
-      handleRefresh () {
+      handleRefresh() {
         this.fetchDynamicGroup();
       },
       /**
        * @desc 移除无效分组
        * @param {Number} index 分组的索引
        */
-      handleInvalidRemove (index) {
+      handleInvalidRemove(index) {
         const invalidList = [
           ...this.invalidList,
         ];
@@ -291,7 +291,7 @@
        * @desc 移除所有分组
        *
        */
-      handleRemoveAll () {
+      handleRemoveAll() {
         if (this.data.length < 1) {
           this.messageSuccess(I18n.t('你还未选择动态分组'));
           return;
@@ -306,7 +306,7 @@
        * @desc 移除分组
        * @param {Number} index 分组的索引
        */
-      handleRemove (index) {
+      handleRemove(index) {
         const currentNode = this.list[index];
         const list = [...this.list];
         list.splice(index, 1);
@@ -319,7 +319,7 @@
        * @desc 查看分组的主机详情
        * @param {String} id 分组的id
        */
-      handleView (id) {
+      handleView(id) {
         this.$emit('on-view', Object.freeze(this.groupMap[id]));
       },
     },

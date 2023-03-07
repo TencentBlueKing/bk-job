@@ -52,7 +52,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isEditing: false,
         textareaWidth: 0,
@@ -63,14 +63,14 @@
       };
     },
     computed: {
-      textareaStyles () {
+      textareaStyles() {
         return {
           position: 'relative',
           width: `${this.textareaWidth}px`,
           'max-width': `${this.searchSelectWidth - this.keyBoxWidth - 20}px`,
         };
       },
-      valueStyles () {
+      valueStyles() {
         const {
           isTagMultLine,
           maxTagWidth,
@@ -87,7 +87,7 @@
         }
         return {};
       },
-      conditionText () {
+      conditionText() {
         // 是否选中condition
         let conditionText = '';
         if (Object.keys(this.menu.condition).length > 0) {
@@ -95,16 +95,16 @@
         }
         return conditionText;
       },
-      currentItem () {
+      currentItem() {
         return this.searchSelect.data.find(_ => _.id === this.data.id);
       },
     },
     watc: {
-      data () {
+      data() {
         this.updateLocalValue();
       },
     },
-    created () {
+    created() {
       this.menu = {
         id: this.data.id,
         checked: this.data.values,
@@ -114,23 +114,23 @@
       this.memoValue = this.localValue;
       this.searchSelect.$once('show-menu', this.hidePopper);
     },
-    mounted () {
+    mounted() {
       this.searchSelect.renderTagInstance = this;
       this.keyBoxWidth = this.$refs.keyBox.getBoundingClientRect().width;
       document.body.addEventListener('click', this.handleInputOutSide);
     },
-    beforeDestroy () {
+    beforeDestroy() {
       document.body.removeEventListener('click', this.handleInputOutSide);
     },
     methods: {
-      calcTextareaWidth () {
+      calcTextareaWidth() {
         this.$nextTick(() => {
           const { width } = this.$refs.realContent.getBoundingClientRect();
           this.textareaWidth = width + 20;
         });
       },
-            
-      updateLocalValue () {
+
+      updateLocalValue() {
         const {
           displayKey,
         } = this.searchSelect;
@@ -147,8 +147,8 @@
         this.localValue = text;
         this.calcTextareaWidth();
       },
-            
-      showPopper () {
+
+      showPopper() {
         if (tagInstance && tagInstance !== this) {
           tagInstance.hidePopper();
         }
@@ -170,7 +170,7 @@
         this.menuInstance.currentItem = this.currentItem;
 
         this.menuInstance.menu = this.menu;
-                
+
         if (this.menuInstance.needRender) {
           this.menuInstance.$mount();
           this.menuInstance.generatorList();
@@ -181,8 +181,8 @@
           this.popperInstance.show();
         }
       },
-            
-      hidePopper () {
+
+      hidePopper() {
         this.isEditing = false;
         if (this.popperInstance) {
           this.popperInstance.hide(0);
@@ -194,12 +194,12 @@
           this.menuInstance = null;
         }
       },
-            
-      handleWraperClick (event) {
+
+      handleWraperClick(event) {
         event.stopPropagation();
       },
-            
-      handleInputOutSide (event) {
+
+      handleInputOutSide(event) {
         let parent = event.target.parentNode;
         while (parent && parent.classList) {
           if (parent.classList.contains('jb-bk-search-list') || parent.classList.contains('bk-search-select')) {
@@ -211,7 +211,7 @@
         this.hidePopper();
       },
 
-      handleTagClick (event) {
+      handleTagClick(event) {
         if (this.isEditing) {
           return;
         }
@@ -231,19 +231,19 @@
         this.searchSelect.hidePopper();
         this.showPopper();
       },
-            
-      handleTagInput (event) {
+
+      handleTagInput(event) {
         // 禁用换行符
         this.localValue = event.target.value.replace(/\n/, '');
-                
+
         this.calcTextareaWidth();
-                
+
         if (this.menuInstance) {
           this.menuInstance.search = this.localValue;
           if (this.menuInstance.isCondition) {
             // 重新选择condition
             const conditionText = this.menu.condition[this.searchSelect.displayKey] || '';
-                        
+
             if (!conditionText
               || conditionText.length > this.localValue.length
               || (conditionText.length === this.localValue.length && conditionText !== this.localValue)) {
@@ -260,18 +260,18 @@
           this.showPopper();
         }
       },
-            
-      handleRemove () {
+
+      handleRemove() {
         this.$emit('delete', this.index);
       },
       // 多选时——选中一项
-      handleMultCheck (values) {
+      handleMultCheck(values) {
         this.menu.checked = Object.freeze(values);
         this.updateLocalValue();
       },
-            
+
       // enter 提交值
-      handleKeydown (event) {
+      handleKeydown(event) {
         if ([
           'Backspace',
         ].includes(event.code) && this.localValue === '') {
@@ -316,7 +316,7 @@
         }
       },
       // 提交 tag 的值
-      handleSubmit (values) {
+      handleSubmit(values) {
         const value = {
           ...this.data,
           values: this.menu.checked,
@@ -327,12 +327,12 @@
         this.$emit('change', this.index, value);
       },
       // 取消编辑
-      handleMultCancel () {
+      handleMultCancel() {
         this.localValue = this.memoValue;
         this.hidePopper();
       },
 
-      handleConditionSelect (value) {
+      handleConditionSelect(value) {
         this.menu.condition = Object.freeze({ ...value });
         this.updateLocalValue();
         this.showPopper();
@@ -342,7 +342,7 @@
         }
       },
 
-      renderKey (h) {
+      renderKey(h) {
         const {
           displayKey,
           explainCode,
@@ -353,8 +353,8 @@
                 <div ref="keyBox" class="tag-label">{text}{explainCode}</div>
         );
       },
-            
-      renderValue (h) {
+
+      renderValue(h) {
         const renderContent = (h) => {
           if (this.isEditing) {
             return (
@@ -383,8 +383,8 @@
                 </div>
         );
       },
-            
-      renderClear (h) {
+
+      renderClear(h) {
         if (this.searchSelect.readonly || this.isEditing) {
           return null;
         }
@@ -395,7 +395,7 @@
 
     },
 
-    render (h) {
+    render(h) {
       const classes = {
         'search-tag-box': true,
         focused: this.isEditing,

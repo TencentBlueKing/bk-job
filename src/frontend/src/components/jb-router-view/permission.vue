@@ -34,7 +34,7 @@
 </template>
 <script>
   import ApplyPage from '@components/apply-permission/apply-page';
-    
+
   export default {
     name: '',
     components: {

@@ -92,7 +92,7 @@
     props: {
       variable: {
         type: Array,
-        default () {
+        default() {
           return [];
         },
       },
@@ -101,12 +101,12 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: { ...this.data },
       };
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -128,7 +128,7 @@
       };
     },
     methods: {
-      submit () {
+      submit() {
         return this.$refs.varStringForm.validate()
           .then(() => {
             this.$emit('on-change', {

@@ -55,7 +55,7 @@
       },
     },
     computed: {
-      themeCom () {
+      themeCom() {
         if (this.data.isApproval && !this.data.isNotStart) {
           return ThemeApproval;
         }
@@ -63,7 +63,7 @@
       },
     },
     methods: {
-      handleChoose () {
+      handleChoose() {
         if (this.data.isApproval) {
           return;
         }
@@ -75,10 +75,10 @@
           });
           return;
         }
-                
+
         this.$emit('on-select', this.data);
       },
-      handleChangeStatus (operationCode, confirmReason) {
+      handleChangeStatus(operationCode, confirmReason) {
         return TaskExecuteService.updateTaskExecutionStepOperate({
           id: this.data.stepInstanceId,
           operationCode,

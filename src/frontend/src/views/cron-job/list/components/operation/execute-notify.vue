@@ -122,27 +122,27 @@
         default: 'finish-before', // execute-beofre / finish-before
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         channleList: [],
       };
     },
     computed: {
-      isChannelAll () {
+      isChannelAll() {
         if (this.channleList.length < 1) {
           return false;
         }
         return this.formData.notifyChannel.length === this.channleList.length;
       },
-      isChannelIndeterminate () {
+      isChannelIndeterminate() {
         if (this.formData.notifyChannel.length < 1) {
           return false;
         }
         return this.formData.notifyChannel.length !== this.channleList.length;
       },
     },
-    created () {
+    created() {
       this.fetchAllChannel();
       this.$emit('on-change', {
         notifyOffset: 10,
@@ -162,7 +162,7 @@
         ];
       }
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.$emit('on-change', {
         notifyOffset: 0,
         notifyUser: {
@@ -173,7 +173,7 @@
       });
     },
     methods: {
-      fetchAllChannel () {
+      fetchAllChannel() {
         QueryGlobalSettingService.fetchActiveNotifyChannel()
           .then((data) => {
             this.channleList = data;
@@ -182,19 +182,19 @@
             this.isLoading = false;
           });
       },
-      handleToggleAllChannel () {
+      handleToggleAllChannel() {
         if (this.isChannelAll) {
           this.handleNotifyChannelChange([]);
         } else {
           this.handleNotifyChannelChange(this.channleList.map(_ => _.code));
         }
       },
-      handleNotifyOffsetChange (value) {
+      handleNotifyOffsetChange(value) {
         this.$emit('on-change', {
           notifyOffset: value,
         });
       },
-      handleApprovalUserChange (userList, roleList) {
+      handleApprovalUserChange(userList, roleList) {
         this.$emit('on-change', {
           notifyUser: {
             userList,
@@ -202,7 +202,7 @@
           },
         });
       },
-      handleNotifyChannelChange (value) {
+      handleNotifyChannelChange(value) {
         this.$emit('on-change', {
           notifyChannel: value,
         });

@@ -202,7 +202,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         planInfo: {
           variableList: [],
@@ -215,10 +215,10 @@
         deleteLoading: false,
       };
     },
-        
+
     watch: {
       id: {
-        handler (value) {
+        handler(value) {
           this.fetchData(value);
         },
         immediate: true,
@@ -228,7 +228,7 @@
       /**
        * @desc 获取执行方案详情
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         TaskPlanService.fetchPlanDetailInfo({
           id: this.id,
@@ -263,7 +263,7 @@
       /**
        * @desc 立即执行执行方案
        */
-      fetchTaskExecution () {
+      fetchTaskExecution() {
         this.execLoading = true;
         TaskExecuteService.taskExecution({
           taskId: this.id,
@@ -290,13 +290,13 @@
       /**
        * @desc 外部调用——刷新接口数据
        */
-      refresh () {
+      refresh() {
         this.fetchData();
       },
       /**
        * @desc 编辑执行方案
        */
-      handleEdit () {
+      handleEdit() {
         this.$emit('on-edit', {
           id: this.templateId,
           active: this.id,
@@ -305,13 +305,13 @@
       /**
        * @desc 执行方案编辑成功
        */
-      handleEditSuccess () {
+      handleEditSuccess() {
         this.$emit('on-edit-success');
       },
       /**
        * @desc 查看执行方案关联的定时任务列表
        */
-      handleGoCronList () {
+      handleGoCronList() {
         const { href } = this.$router.resolve({
           name: 'cronList',
           query: {
@@ -323,7 +323,7 @@
       /**
        * @desc 查看执行方案关联的作业模板详情
        */
-      handleGoTemplate () {
+      handleGoTemplate() {
         const { href } = this.$router.resolve({
           name: 'templateDetail',
           params: {
@@ -335,7 +335,7 @@
       /**
        * 以当前执行方案新建定时任务
        */
-      handleGoCron () {
+      handleGoCron() {
         const { href } = this.$router.resolve({
           name: 'cronList',
           query: {
@@ -349,7 +349,7 @@
       /**
        * @desc 删除执行方案
        */
-      handleDelete () {
+      handleDelete() {
         return TaskPlanService.planDelete({
           id: this.id,
           templateId: this.templateId,
@@ -367,7 +367,7 @@
       /**
        * @desc 同步执行方案
        */
-      handleSync () {
+      handleSync() {
         this.$router.push({
           name: 'syncPlan',
           params: {
@@ -385,7 +385,7 @@
        * 执行方案中没有变量——直接执行
        * 执行方案中有变量——跳转到设置变量页面
        */
-      handleExec () {
+      handleExec() {
         if (!this.planInfo.variableList.length) {
           this.$bkInfo({
             title: I18n.t('template.确认执行？'),

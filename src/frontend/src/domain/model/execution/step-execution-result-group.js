@@ -33,19 +33,19 @@ const STATUS_DOING = 7;
 // 步骤执行详情页
 // ——执行结果分组实例
 export default class ResultGroup {
-  constructor (payload) {
+  constructor(payload) {
     this.resultType = payload.resultType;
     this.resultTypeDesc = payload.resultTypeDesc;
     this.tag = payload.tag || '';
     this.agentTaskExecutionDetail = this.initAgentTaskExecution(payload.agentTaskExecutionDetail);
     this.agentTaskSize = payload.agentTaskSize || 0;
   }
-    
+
   /**
      * @desc 分组名
      * @returns { String }
      */
-  get groupName () {
+  get groupName() {
     let name = `${this.resultTypeDesc}`;
     if (this.tag) {
       name += `(${this.tag})`;
@@ -57,7 +57,7 @@ export default class ResultGroup {
      * @desc 最大长度的 tag (256)
      * @returns { Boolean }
      */
-  get tagMaxLength () {
+  get tagMaxLength() {
     return this.tag.length >= 256;
   }
 
@@ -65,7 +65,7 @@ export default class ResultGroup {
      * @desc 分组结果的数据统计
      * @returns { Number }
      */
-  get groupNums () {
+  get groupNums() {
     return this.agentTaskExecutionDetail.length;
   }
 
@@ -73,7 +73,7 @@ export default class ResultGroup {
      * @desc 当前分组处于 loading 状态
      * @returns { Boolean }
      */
-  get isLoading () {
+  get isLoading() {
     return [
       STATUS_PENDING,
       STATUS_DOING,

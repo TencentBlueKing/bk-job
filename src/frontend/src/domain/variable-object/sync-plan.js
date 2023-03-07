@@ -79,7 +79,7 @@ export default class SyncPlan {
     [STATUS_PERMISSION]: 'sync-default',
   };
 
-  constructor (payload) {
+  constructor(payload) {
     this.id = payload.id;
     this.name = payload.name;
     this.createTime = payload.createTime;
@@ -99,7 +99,7 @@ export default class SyncPlan {
     this.canDelete = payload.canDelete;
     this.canEdit = payload.canEdit;
     this.canView = payload.canView;
-        
+
     // 私有属性
     this._cronJonList = []; // 确认的定时任务信息
     this._error = '';
@@ -111,29 +111,29 @@ export default class SyncPlan {
       this._status = SyncPlan.STATUS_PERMISSION;
     }
   }
-    
-  get cronJobInfoList () {
+
+  get cronJobInfoList() {
     return this._cronJonList;
   }
 
-  set cronJobInfoList (value) {
+  set cronJobInfoList(value) {
     this._cronJonList = value;
   }
 
-  get error () {
+  get error() {
     return this._error;
   }
 
-  set error (value) {
+  set error(value) {
     this._error = value;
   }
 
   // 执行方案同步状态
-  get status () {
+  get status() {
     return SyncPlan.STATUS_TEXT_MAP[this._status];
   }
 
-  set status (value) {
+  set status(value) {
     // 没有编辑权限
     if (!this.canEdit) {
       return;
@@ -164,7 +164,7 @@ export default class SyncPlan {
   }
 
   // 状态描述显示内容
-  get statusHtml () {
+  get statusHtml() {
     let errorInfo = '';
     if ([
       SyncPlan.STATUS_CONFIRM_FAILED,
@@ -176,28 +176,28 @@ export default class SyncPlan {
   }
 
   // 状态icon
-  get statusIcon () {
+  get statusIcon() {
     return SyncPlan.STATUS_ICON_MAP[this._status];
   }
 
   // 执行方案的定时任务加载中
-  get isCronJobLoading () {
+  get isCronJobLoading() {
     return this._status === SyncPlan.STATUS_CRON_JOB_LOADING;
   }
 
   // 无需确认
-  get isPassConfirm () {
+  get isPassConfirm() {
     // 没有定时任务或者执行方案不需要同步——无需确认
     return this.cronJobCount < 1 || !this.needUpdate;
   }
 
   // 无需同步
-  get isSyncDisabled () {
+  get isSyncDisabled() {
     return !this.needUpdate;
   }
 
   // 已确认
-  get isConfirmed () {
+  get isConfirmed() {
     return ![
       SyncPlan.STATUS_DEFAULT,
       SyncPlan.STATUS_CONFIRM_QUEUE,
@@ -207,12 +207,12 @@ export default class SyncPlan {
   }
 
   // 失败重试
-  get isRetryEnable () {
+  get isRetryEnable() {
     return this._status === SyncPlan.STATUS_SYNC_FAILED;
   }
 
   // 不能查看差异的原因
-  get disableDiffTips () {
+  get disableDiffTips() {
     if (!this.needUpdate) {
       return I18n.t('方案已是最新版，无差异');
     }
@@ -220,7 +220,7 @@ export default class SyncPlan {
   }
 
   // 无需确认的原因
-  get disableConfirmTips () {
+  get disableConfirmTips() {
     if (!this.needUpdate) {
       return I18n.t('该方案已同步，无需处理');
     }
@@ -231,7 +231,7 @@ export default class SyncPlan {
   }
 
   // 确认定时任务进度
-  get confirmProcessText () {
+  get confirmProcessText() {
     if (this.isConfirmed) {
       return `${this.cronJobCount}/${this.cronJobCount}`;
     }
@@ -241,7 +241,7 @@ export default class SyncPlan {
         hasConfirmedNums += 1;
       }
     });
-        
+
     return `${hasConfirmedNums}/${this.cronJobCount}`;
   }
 }

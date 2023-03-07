@@ -126,13 +126,13 @@
       },
     },
     computed: {
-      xPosition1 () {
+      xPosition1() {
         return this.maxWidth - 100;
       },
-      xPosition2 () {
+      xPosition2() {
         return this.maxWidth - 590;
       },
-      blockWidth () {
+      blockWidth() {
         return Math.abs(this.maxWidth - 279);
       },
     },

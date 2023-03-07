@@ -359,7 +359,7 @@
   import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'task_list_columns';
-    
+
   export default {
     name: 'TaskManageList',
     components: {
@@ -373,7 +373,7 @@
       TagPanel,
       BatchEditTag,
     },
-    data () {
+    data() {
       return {
         isShowBatchEdit: false,
         currentUser: {},
@@ -392,7 +392,7 @@
        * @desc 列表骨架屏 loading
        * @returns { Boolean }
        */
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
       /**
@@ -403,7 +403,7 @@
        * 2，未选中作业
        * 3，选中的作业没用查看权限
        */
-      isExportJobDisable () {
+      isExportJobDisable() {
         if (this.backupInfo.exportJob.length > 0) {
           return false;
         }
@@ -423,7 +423,7 @@
        * 1，未选中作业
        * 2，选中的作业没用查看权限
        */
-      isBatchEditTagDisabled () {
+      isBatchEditTagDisabled() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.listSelect.length; i++) {
           const current = this.listSelect[i];
@@ -433,14 +433,14 @@
         }
         return this.listSelect.length < 1;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
     },
-    created () {
+    created() {
       this.searchParams = {};
       this.searchClass = {};
       this.listDataSource = TaskService.taskList;
@@ -449,7 +449,7 @@
           name: 'ID',
           id: 'templateId',
           description: I18n.t('template.将覆盖其它条件'),
-          validate (values, item) {
+          validate(values, item) {
             const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('template.ID只支持数字') : true;
           },
@@ -525,7 +525,7 @@
         ]);
       }
     },
-    mounted () {
+    mounted() {
       this.fetchUserInfo();
       this.fetchBackup();
     },
@@ -533,7 +533,7 @@
       /**
        * @desc 获取作业模板列表
        */
-      fetchData () {
+      fetchData() {
         // 合并左侧分类和右侧搜索的查询条件
         const searchParams = { ...this.searchParams };
         if (this.searchClass.type) {
@@ -547,7 +547,7 @@
       /**
        * @desc 获取登陆用户名
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = data;
@@ -556,7 +556,7 @@
       /**
        * @desc 获取作业模板导出记录信息
        */
-      fetchBackup () {
+      fetchBackup() {
         BackupService.fetchInfo()
           .then((data) => {
             this.backupInfo = Object.freeze(data);
@@ -565,7 +565,7 @@
       /**
        * @desc 列表自定义配置
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -577,7 +577,7 @@
        * @desc 切换分类
        * @param {String} searchClass 最新分类
        */
-      handleTagPlanChange (searchClass) {
+      handleTagPlanChange(searchClass) {
         this.searchClass = searchClass;
         this.fetchData();
       },
@@ -585,14 +585,14 @@
        * @desc 切换分类
        * @param {Object} params 搜索参数
        */
-      handleSearch (params) {
+      handleSearch(params) {
         this.searchParams = params;
         this.fetchData();
       },
       /**
        * @desc 跳转作业模板新建页
        */
-      handleCreate () {
+      handleCreate() {
         this.$router.push({
           name: 'templateCreate',
           query: {
@@ -603,7 +603,7 @@
       /**
        * @desc 跳转作业模板导入页
        */
-      handleImport () {
+      handleImport() {
         this.$router.push({
           name: 'taskImport',
         });
@@ -613,7 +613,7 @@
        *
        * 同时只能存在一个导出任务，如果有导出任务没有结束给出提示
        */
-      handleExport () {
+      handleExport() {
         const confirmFn = () => {
           this.$router.push({
             name: 'taskExport',
@@ -635,20 +635,20 @@
       /**
        * @desc 批量编辑 TAG
        */
-      handleBatchEditTag () {
+      handleBatchEditTag() {
         this.isShowBatchEdit = true;
       },
       /**
        * @desc tag 批量编辑完成需要刷新列表和 tag 面板数据
        */
-      handleBatchEditChange () {
+      handleBatchEditChange() {
         this.fetchData();
         this.$refs.tagPanelRef.init();
       },
       /**
        * @desc 查看登陆用户的作业模板
        */
-      handleMyTask () {
+      handleMyTask() {
         const currentUserName = this.currentUser.username;
         const creator = {
           name: I18n.t('template.创建人'),
@@ -672,7 +672,7 @@
        * @param {Object} task 作业模板数据
        * @param {Object} payload 编辑的数据
        */
-      handleUpdateTask (task, payload) {
+      handleUpdateTask(task, payload) {
         const { id, name, description } = task;
         return TaskService.taskUpdateBasic({
           id,
@@ -687,14 +687,14 @@
        * @desc 选择作业模板
        * @param {Array} selectTemplate 选择的作业模板
        */
-      handleSelection (selectTemplate) {
+      handleSelection(selectTemplate) {
         this.listSelect = Object.freeze(selectTemplate);
       },
       /**
        * @desc 编辑作业模板
        * @param {Number} id 选中的作业模板
        */
-      handleEdit (id) {
+      handleEdit(id) {
         this.$router.push({
           name: 'templateEdit',
           params: { id },
@@ -707,7 +707,7 @@
        * @desc 克隆作业模板
        * @param {Number} id 选中的作业模板
        */
-      handleClone (id) {
+      handleClone(id) {
         this.$router.push({
           name: 'templateClone',
           params: { id },
@@ -720,7 +720,7 @@
        * @desc 删除作业模板
        * @param {Number} id 选中的作业模板
        */
-      handleDelete (id) {
+      handleDelete(id) {
         return TaskService.taskDelete({
           id,
         }).then(() => {
@@ -734,7 +734,7 @@
        * @desc 收藏作业模板
        * @param {Object} task 选中的作业模板
        */
-      handleCollection (task) {
+      handleCollection(task) {
         const requestHander = task.favored ? TaskService.taskDeleteFavorite : TaskService.taskUpdateFavorite;
         requestHander({
           id: task.id,

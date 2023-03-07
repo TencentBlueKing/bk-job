@@ -45,18 +45,18 @@
 
   export default {
     name: 'JbPopoverConfirm',
-    created () {
+    created() {
       this.id = `dropdown_menu_${Math.random()}_${Math.random()}`;
     },
-    mounted () {
+    mounted() {
       this.init();
     },
-    beforeDestroy () {
+    beforeDestroy() {
       instanceMap[this.id].hide();
       delete instanceMap[this.id];
     },
     methods: {
-      init () {
+      init() {
         instanceMap[this.id] = this.$bkPopover(this.$el, {
           theme: 'server-panel-dropdown-menu-popover',
           interactive: true,
@@ -73,15 +73,15 @@
           },
         });
       },
-      handleHide () {
+      handleHide() {
         this.leaveTimer = setTimeout(() => {
           instanceMap[this.id].hide();
         }, 2000);
       },
-      handleShow () {
+      handleShow() {
         clearTimeout(this.leaveTimer);
       },
-      handleClose () {
+      handleClose() {
         instanceMap[this.id].hide();
       },
     },

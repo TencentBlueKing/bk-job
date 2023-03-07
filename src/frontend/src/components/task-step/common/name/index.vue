@@ -66,14 +66,14 @@
         default: I18n.t('请输入步骤名称'),
       },
     },
-    created () {
+    created() {
       this.rules = [
         {
           required: true,
           message: `${this.label}${I18n.t('必填')}`,
           trigger: 'blur',
         },
-                
+
         {
           validator: value => /^[^\\|/:*<>"?]{1,60}$/.test(value),
           message: `${this.label}${I18n.t('不允许包含')}\\ | / : * < > " ?`,
@@ -82,7 +82,7 @@
       ];
     },
     methods: {
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

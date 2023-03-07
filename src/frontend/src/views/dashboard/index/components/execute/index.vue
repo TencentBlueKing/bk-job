@@ -48,7 +48,7 @@
       FailCount,
       Statistics,
     },
-    data () {
+    data() {
       return {};
     },
 

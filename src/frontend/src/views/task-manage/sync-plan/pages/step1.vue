@@ -72,7 +72,7 @@
     diffVariableSimple,
     mergeList,
   } from '../components/utils';
-    
+
   export default {
     name: 'SyncPlanStep1',
     components: {
@@ -98,7 +98,7 @@
         }),
       },
     },
-    data () {
+    data() {
       return {
         templateVariableList: [],
         templateStepList: [],
@@ -106,10 +106,10 @@
         stepDiff: {},
       };
     },
-    created () {
+    created() {
       this.templateVariableList = Object.freeze(mergeList(this.templateInfo.variables, this.planInfo.variableList));
       this.variableDiff = Object.freeze(diffVariableSimple(this.templateInfo.variables, this.planInfo.variableList));
-           
+
       const [
         templateStepList,
         stepDiff,
@@ -121,13 +121,13 @@
       /**
        * @desc 切换下一步
        */
-      handleNext () {
+      handleNext() {
         this.$emit('on-change', 2);
       },
       /**
        * @desc 取消同步
        */
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancel');
       },
     },

@@ -62,12 +62,12 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isAppleFlag: true,
       };
     },
-    created () {
+    created() {
       this.applyText = I18n.t('去申请');
       this.appliedText = I18n.t('已申请');
     },
@@ -75,14 +75,14 @@
       /**
        * @desc 跳转权限中心
        */
-      handleApply () {
+      handleApply() {
         window.open(this.authResult.applyUrl, '_blank');
         this.isAppleFlag = false;
       },
       /**
        * @desc 已申请刷新页面
        */
-      handleReload () {
+      handleReload() {
         location.reload();
       },
     },

@@ -112,7 +112,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isHide: true,
         renderGroup: [],
@@ -120,16 +120,16 @@
       };
     },
     computed: {
-      groupHolder () {
+      groupHolder() {
         if (this.toggleGroup.find(_ => _.groupName === this.value.groupName)) {
           return this.value.groupName;
         }
         return I18n.t('history.更多分组');
       },
-      showGroupToggle () {
+      showGroupToggle() {
         return this.toggleGroup.length > 0;
       },
-      groupToggleClass () {
+      groupToggleClass() {
         if (this.toggleGroup.find(_ => _.groupName === this.value.groupName)) {
           return 'active';
         }
@@ -141,7 +141,7 @@
        * @desc 没有选中的分组和选中的分组不存在了，默认选中第一个
        */
       data: {
-        handler (data) {
+        handler(data) {
           if (this.data.length < 1) {
             return;
           }
@@ -157,7 +157,7 @@
     /**
      * @desc 浏览器宽度变化时，重新计算分组的排版
      */
-    mounted () {
+    mounted() {
       const resizeHandler = _.throttle(() => {
         this.renderGroup = this.data;
         this.isHide = true;
@@ -175,10 +175,10 @@
       /**
        * @desc 计算分组的排版，超过一行的分组聚合到最后
        */
-      renderGroupItem () {
+      renderGroupItem() {
         const { width } = this.$refs.groupTab.getBoundingClientRect();
         const allGroup = [...this.$refs.groupTab.querySelectorAll('.tab-item')];
-                
+
         let realTabCotentWidth = 0;
         let realDisplayNum = 0;
         // eslint-disable-next-line no-plusplus
@@ -205,7 +205,7 @@
        * @desc 切换分组
        * @param {Object} group 最新选中的分组
        */
-      handleGroupChange (group) {
+      handleGroupChange(group) {
         const { resultType, tag } = this.value;
         if (resultType === group.resultType && tag === group.tag) {
           return;

@@ -91,7 +91,7 @@
       },
     },
     computed: {
-      listStyle () {
+      listStyle() {
         const styles = {};
         if (this.loading) {
           styles['min-height'] = '80px';
@@ -103,7 +103,7 @@
         return styles;
       },
     },
-    created () {
+    created() {
       this.titleText = I18n.t('该操作需要以下权限');
       this.actionText = I18n.t('需申请的权限');
       this.resourceText = I18n.t('关联的资源实例');

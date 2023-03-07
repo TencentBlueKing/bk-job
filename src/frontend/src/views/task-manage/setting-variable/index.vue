@@ -109,7 +109,7 @@
       ToggleDisplay,
       BackTop,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isSubmiting: false,
@@ -120,11 +120,11 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.taskId = this.$route.params.id;
       this.templateId = this.$route.params.templateId;
       this.isDebugPlan = Boolean(this.$route.params.debug);
@@ -134,7 +134,7 @@
       /**
        * @desc 获取执行方案数据
        */
-      fetchData () {
+      fetchData() {
         const serviceHandler = this.isDebugPlan
           ? TaskPlanService.fetchDebugInfo
           : TaskPlanService.fetchPlanDetailInfo;
@@ -190,7 +190,7 @@
       /**
        * @desc 开始执行
        */
-      handleGoExec () {
+      handleGoExec() {
         const validateQueue = [];
         if (this.$refs.used) {
           this.$refs.used.forEach((item) => {
@@ -242,20 +242,20 @@
       /**
        * @desc 取消执行
        */
-      handleCancle () {
+      handleCancle() {
         this.routerBack();
       },
       /**
        * @desc 一键移除所有无效主机
        */
-      handleRemoveAllInvalidHost () {
+      handleRemoveAllInvalidHost() {
         this.$refs.used && this.$refs.used.forEach(item => item.removeAllInvalidHost());
         this.$refs.unused && this.$refs.unused.forEach(item => item.removeAllInvalidHost());
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'debugPlan') {
           this.$router.push({

@@ -29,24 +29,24 @@ import AccountModel from '@model/account';
 import AccountSource from '../source/account-manage';
 
 export default {
-  fetchAccountWhole (params) {
+  fetchAccountWhole(params) {
     return AccountSource.getWhole(params)
       .then(({ data }) => Object.freeze(data.map(item => new AccountModel(item))));
   },
-  fetchAccountList (params) {
+  fetchAccountList(params) {
     return AccountSource.getAll(params)
       .then(({ data }) => {
         data.data = data.data.map(item => Object.freeze(new AccountModel(item)));
         return data;
       });
   },
-  createAccount (params) {
+  createAccount(params) {
     return AccountSource.create(params);
   },
-  updateAccount (params) {
+  updateAccount(params) {
     return AccountSource.update(params);
   },
-  deleteAccount (params) {
+  deleteAccount(params) {
     return AccountSource.deleteById(params);
   },
 };

@@ -43,7 +43,7 @@
       },
     },
     computed: {
-      classes () {
+      classes() {
         const classes = {
           'global-variable-layout': true,
         };
@@ -53,20 +53,20 @@
         return classes;
       },
     },
-    updated () {
+    updated() {
       const childrenNum = this.$slots.default;
       if (this.childrenNum !== childrenNum) {
         this.childrenNum = childrenNum;
         this.init();
       }
     },
-    mounted  () {
+    mounted() {
       if (this.type === 'horizontal') {
         this.init();
       }
     },
     methods: {
-      init () {
+      init() {
         const isShowLayout = this.$refs.layout.getBoundingClientRect().width > 0;
         if (!isShowLayout) {
           return;

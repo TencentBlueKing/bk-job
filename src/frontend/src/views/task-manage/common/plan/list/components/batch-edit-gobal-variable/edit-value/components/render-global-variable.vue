@@ -62,7 +62,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         descPopover: {
           disable: true,
@@ -70,7 +70,7 @@
         isShowDetail: false,
       };
     },
-    mounted () {
+    mounted() {
       this.popperInstance = Tippy(this.$refs.type, {
         arrow: true,
         placement: 'bottom-start',
@@ -88,13 +88,13 @@
       });
     },
     methods: {
-      handleVariableSelect () {
+      handleVariableSelect() {
         this.$emit('select');
       },
-      handleShowDetail () {
+      handleShowDetail() {
         this.popperInstance.show();
       },
-      handleHideDetail () {
+      handleHideDetail() {
         this.popperInstance.hide();
       },
     },

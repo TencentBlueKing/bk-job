@@ -151,7 +151,7 @@
       },
     },
     computed: {
-      xPosition () {
+      xPosition() {
         return (this.maxWidth - 960) / 2;
       },
     },

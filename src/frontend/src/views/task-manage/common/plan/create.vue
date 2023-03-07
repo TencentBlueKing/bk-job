@@ -170,7 +170,7 @@
         default: true,
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
         globalVariableList: [],
@@ -184,7 +184,7 @@
        * @desc 查找步骤中已使用的变量
        * @return {Array}
        */
-      selectedVariable () {
+      selectedVariable() {
         const selectedSteps = this.taskStepList.filter(step => this.formData.enableSteps.includes(step.id));
         return findUsedVariable(selectedSteps);
       },
@@ -192,18 +192,18 @@
        * @desc 已选中所有步骤
        * @return {Boolean}
        */
-      hasSelectAll () {
+      hasSelectAll() {
         return this.formData.enableSteps.length >= this.taskStepList.length;
       },
       /**
        * @desc 禁用提交按钮
        * @returns { Boolean }
        */
-      isSubmitDisable () {
+      isSubmitDisable() {
         return this.formData.enableSteps.length < 1;
       },
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -244,7 +244,7 @@
        *
        * 如果模板关联的执行方案为空，初始化执行方案的 name 为作业模板的 name
        */
-      fetchData () {
+      fetchData() {
         TaskManageService.taskDetail({
           id: this.formData.templateId,
         }).then((data) => {
@@ -278,41 +278,41 @@
       /**
        * @desc 外部调用——刷新接口数据
        */
-      refresh () {
+      refresh() {
         this.fetchData();
       },
       /**
        * @desc 执行方案名更新
        * @param {String} name
        */
-      handleNameChange (name) {
+      handleNameChange(name) {
         this.formData.name = name;
         this.$emit('on-name-change', name);
       },
       /**
        * @desc 选中所有步骤
        */
-      handleSelectAll () {
+      handleSelectAll() {
         this.formData.enableSteps = this.taskStepList.map(item => item.id);
       },
       /**
        * @desc 清空步骤的选中状态
        */
-      handleDeselectAll () {
+      handleDeselectAll() {
         this.formData.enableSteps = [];
       },
       /**
        * @desc 编辑执行方案的变量
        * @param {Array} variables
        */
-      handleVariableChange (variables) {
+      handleVariableChange(variables) {
         this.formData.variables = variables;
       },
       /**
        * @desc 选中步骤
        * @param {Object} stepData 步骤数据
        */
-      handleSelectStep (stepData) {
+      handleSelectStep(stepData) {
         const index = this.formData.enableSteps.findIndex(item => item === stepData.id);
 
         if (index > -1) {
@@ -329,7 +329,7 @@
       /**
        * @desc 提交新建执行方案
        */
-      handleSumbit () {
+      handleSumbit() {
         this.submitLoading = true;
         Promise.all([
           this.$refs.titleForm.validate(),
@@ -350,7 +350,7 @@
       /**
        * @desc 重置表单数据
        */
-      handleReset () {
+      handleReset() {
         this.formData = this.generatorFormData();
         this.$refs.createPlanForm.clearError();
       },

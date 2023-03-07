@@ -116,7 +116,7 @@
     mixins: [
       mixins,
     ],
-    data () {
+    data() {
       return {
         isLoading: false,
         isShow: false,
@@ -133,13 +133,13 @@
       };
     },
     computed: {
-      currentStepOrder () {
+      currentStepOrder() {
         return _.findIndex(
           this.taskExecutionDetail.stepExecution,
           _ => _.stepInstanceId === this.currentStepInstanceId,
         ) + 1;
       },
-      historyEnable () {
+      historyEnable() {
         if (this.taskExecutionDetail.taskExecution.isScript) {
           return this.scriptHistoryList.length > 0;
         }
@@ -149,26 +149,26 @@
         return false;
       },
     },
-    created () {
+    created() {
       this.timer = '';
 
       const { taskInstanceId } = this.$route.params;
       const { stepInstanceId, retryCount = 0 } = this.$route.query;
-            
+
       this.taskInstanceId = parseInt(taskInstanceId, 10);
       this.stepInstanceId = parseInt(stepInstanceId, 10);
       this.retryCount = parseInt(retryCount, 10);
-            
+
       this.fetchData();
     },
-    mounted () {
+    mounted() {
       this.initHistory();
       this.$once('hook:beforeDestroy', () => {
         clearTimeout(this.timer);
       });
     },
     methods: {
-      fetchData (trigger = false) {
+      fetchData(trigger = false) {
         this.isLoading = true;
         TaskExecuteService.fetchTaskExecutionResult({
           id: this.taskInstanceId,
@@ -190,7 +190,7 @@
             this.stepInstanceId = stepInstanceId;
             this.retryCount = retryCount;
           }
-                    
+
           this.currentStepInstanceId = this.stepInstanceId;
           this.$emit('on-init', {
             taskInstanceId: this.taskInstanceId,
@@ -218,7 +218,7 @@
           });
       },
       // 作业执行状态轮询
-      reLoading () {
+      reLoading() {
         // 是作业类型的任务才会轮询作业的状态
         if (!this.taskExecutionDetail.taskExecution.isTask) {
           return;
@@ -232,14 +232,14 @@
           }
         });
       },
-      initHistory () {
+      initHistory() {
         this.scriptHistoryList = Object.freeze(execScriptHistory.getItem());
         this.fileHistoryList = Object.freeze(pushFileHistory.getItem());
       },
-      handleShowHistory () {
+      handleShowHistory() {
         this.isShowHistory = !this.isShowHistory;
       },
-      handleGoRedoScriptExec (payload) {
+      handleGoRedoScriptExec(payload) {
         this.$router.push({
           name: 'fastExecuteScript',
           params: {
@@ -250,7 +250,7 @@
           },
         });
       },
-      handleGoRedoFileExec (payload) {
+      handleGoRedoFileExec(payload) {
         this.$router.push({
           name: 'fastPushFile',
           params: {
@@ -261,7 +261,7 @@
           },
         });
       },
-      handleChangeStep (step) {
+      handleChangeStep(step) {
         if (step.stepInstanceId === this.currentStepInstanceId) {
           return;
         }
@@ -283,10 +283,10 @@
           });
           return;
         }
-                
+
         const { stepInstanceId, retryCount } = step;
         this.currentStepInstanceId = stepInstanceId;
-                
+
         this.$emit('on-init', {
           stepInstanceId,
           taskInstanceId: this.taskInstanceId,
@@ -296,7 +296,7 @@
           taskExecution: this.taskExecutionDetail.taskExecution,
         });
       },
-      handleTaskStatusUpdate (payload) {
+      handleTaskStatusUpdate(payload) {
         this.reLoading();
       },
     },

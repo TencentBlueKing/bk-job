@@ -45,7 +45,7 @@ const init = function (el, binding) {
     element.style.height = '18px';
     el.element = element;
     document.body.appendChild(element);
-        
+
     element.classList.add(binding.value.cls || DEFAULT_OPTIONS.cls);
     el.addEventListener('mousemove', el.mouseMoveHandler);
   };
@@ -76,18 +76,18 @@ const destroy = function (el) {
 };
 
 export default {
-  install (Vue) {
+  install(Vue) {
     Vue.directive('cursor', {
-      bind (el, binding) {
+      bind(el, binding) {
         binding.value = Object.assign({}, DEFAULT_OPTIONS, binding.value);
         init(el, binding);
       },
-      update (el, binding) {
+      update(el, binding) {
         binding.value = Object.assign({}, DEFAULT_OPTIONS, binding.value);
         destroy(el);
         init(el, binding);
       },
-      unbind (el) {
+      unbind(el) {
         destroy(el);
       },
     });

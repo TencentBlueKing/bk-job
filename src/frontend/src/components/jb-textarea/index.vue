@@ -86,31 +86,31 @@
       },
       maxlength: Number,
     },
-    data () {
+    data() {
       return {
         localValue: this.value,
         isFocused: false,
       };
     },
     computed: {
-      boxStyles () {
+      boxStyles() {
         const styles = {};
         const defaultHeight = this.rows * rowHeight + 12;
         styles.height = `${defaultHeight}px`;
         return styles;
       },
-      wraperStyles () {
+      wraperStyles() {
         const styles = {
           // eslint-disable-next-line no-underscore-dangle
           zIndex: window.__bk_zIndex_manager.nextZIndex(),
         };
-                
+
         if (!this.isFocused) {
           styles['max-height'] = '100%';
         }
         return styles;
       },
-      showPlaceholder () {
+      showPlaceholder() {
         if (this.isFocused) {
           return false;
         }
@@ -121,13 +121,13 @@
       /**
        * @desc 输入框聚焦
        */
-      focus () {
+      focus() {
         this.$refs.textarea.focus();
       },
       /**
        * @desc 输入框获得焦点
        */
-      handleInputGetFocus () {
+      handleInputGetFocus() {
         this.isFocused = true;
         setTimeout(() => {
           this.$refs.textarea.selectionStart = this.localValue.length;
@@ -137,7 +137,7 @@
       /**
        * @desc 用户输入
        */
-      handleInputChange (event) {
+      handleInputChange(event) {
         let localValue = event.target.value.trim();
         if (this.maxlength > 0 && localValue.length > this.maxlength) {
           localValue = localValue.slice(0, this.maxlength);
@@ -152,7 +152,7 @@
       /**
        * @desc 输入框失焦
        */
-      handleBlur () {
+      handleBlur() {
         this.isFocused = false;
         this.$emit('blur', this.localValue);
       },

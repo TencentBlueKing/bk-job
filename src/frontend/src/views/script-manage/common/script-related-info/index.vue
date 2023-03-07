@@ -62,11 +62,11 @@
 
   export default {
     name: 'RenderRelatedScript',
-        
+
     props: {
       mode: {
         type: String,
-        validator (value) {
+        validator(value) {
           return [
             'scriptList',
             'scriptVersionList',
@@ -79,20 +79,20 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         listTab: 'template',
       };
     },
     computed: {
-      listCom () {
+      listCom() {
         const componentMap = {
           template: TemplateList,
           plan: PlanList,
         };
         return componentMap[this.listTab];
       },
-      params () {
+      params() {
         const params = {
           scriptId: this.info.id,
         };
@@ -103,7 +103,7 @@
       },
     },
     methods: {
-      handleTabChange (tab) {
+      handleTabChange(tab) {
         this.listTab = tab;
       },
     },

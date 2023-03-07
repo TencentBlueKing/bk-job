@@ -91,14 +91,14 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         searchValue: [],
       };
     },
     watch: {
       value: {
-        handler (val) {
+        handler(val) {
           let oldSearchComponentValue = [];
           if (this.$refs.searchSelect) {
             oldSearchComponentValue = this.$refs.searchSelect.chipList;
@@ -108,7 +108,7 @@
         immediate: true,
       },
       appendValue: {
-        handler (appendValue) {
+        handler(appendValue) {
           setTimeout(() => {
             if (!this.$refs.searchSelect) {
               return;
@@ -130,7 +130,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       if (this.parseUrl) {
         this.parseURLData();
       }
@@ -139,7 +139,7 @@
       /**
        * @desc 解析 URL 参数
        */
-      parseURLData  () {
+      parseURLData() {
         this.URLQuery = this.$route.query;
 
         const defaultSearchComponentValue = [];
@@ -149,7 +149,7 @@
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.data.length; i++) {
           const currentData = this.data[i];
-                    
+
           // 只解析存在于搜索配置中的字段
           if (!Object.prototype.hasOwnProperty.call(this.URLQuery, currentData.id)) {
             continue;
@@ -163,7 +163,7 @@
           }
 
           let remoteHandler = Promise.resolve();
-                    
+
           if (currentData.remoteMethod) {
             remoteHandler = currentData.remoteMethod();
           } else if (currentData.children) {
@@ -199,7 +199,7 @@
               if (valueStack.length < 1) {
                 return;
               }
-                            
+
               currentSearchComponentValue = {
                 id,
                 name,
@@ -246,11 +246,11 @@
        * @desc 按 API 格式要求处理筛选值
        * @params {Object} payload 筛选结果
        */
-      handleChange (payload) {
+      handleChange(payload) {
         const validValue = payload;
         const result = {};
         const defaultValueMap = val => val.id;
-        const trim = valueTarget => _.isString(valueTarget) ? _.trim(valueTarget) : valueTarget;
+        const trim = valueTarget => (_.isString(valueTarget) ? _.trim(valueTarget) : valueTarget);
         validValue.forEach((currentValue) => {
           const valueMap = typeof currentValue.map === 'function' ? currentValue.map : defaultValueMap;
           if (currentValue.multiable) {
@@ -268,7 +268,7 @@
             userSearchCache.setItem(result[userField]);
           }
         });
-                
+
         this.$emit('on-change', result);
         this.$emit('input', result);
       },
@@ -276,13 +276,13 @@
        * @desc 外部调用——检查搜索条件是否为空
        * @returns {Boolean}
        */
-      checkEmpty () {
+      checkEmpty() {
         return this.$refs.searchSelect.chipList.length < 1;
       },
       /**
        * @desc 外部调用——重置筛选条件
        */
-      reset () {
+      reset() {
         this.searchValue = [];
         this.$refs.searchSelect.reset();
       },

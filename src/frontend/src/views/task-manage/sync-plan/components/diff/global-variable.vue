@@ -100,14 +100,14 @@
       },
     },
     computed: {
-      classes () {
+      classes() {
         const diffKey = `${this.data.realId}`;
         if (this.diff[diffKey]) {
           return this.diff[diffKey].type;
         }
         return '';
       },
-      diffValue () {
+      diffValue() {
         const diffKey = `${this.data.realId}`;
         if (this.diff[diffKey]) {
           return this.diff[diffKey].value || {};

@@ -172,7 +172,7 @@
       TableActionRow,
       EditAction,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         list: [],
@@ -180,11 +180,11 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.editRule = {};
       this.fetchData();
       this.fetchScriptType();
@@ -214,7 +214,7 @@
       /**
        * @desc 获取高危语句规则
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         DangerousRuleService.fetchList({}, {
           permission: 'page',
@@ -229,7 +229,7 @@
       /**
        * @desc 获取支持的脚本类型列表
        */
-      fetchScriptType () {
+      fetchScriptType() {
         PublicScriptManageService.scriptTypeList()
           .then((data) => {
             this.scriptTypeList = data;
@@ -240,7 +240,7 @@
        * @param {String} rule 高危语句规则
        * @param {Array} scriptTypeList 脚本语言列表哦
        */
-      handleScriptTypeUpdate (rule, scriptTypeList) {
+      handleScriptTypeUpdate(rule, scriptTypeList) {
         this.editRule = {
           ...rule,
           scriptTypeList,
@@ -250,7 +250,7 @@
        * @desc 脚本语言下拉框收起时提交更新
        * @param {Boolean} toggle 脚本语言下拉框收起状态
        */
-      handleSubmitScriptTypeChange (toggle) {
+      handleSubmitScriptTypeChange(toggle) {
         if (!toggle
           && this.editRule.scriptTypeList
           && this.editRule.scriptTypeList.length > 0) {
@@ -266,7 +266,7 @@
        * @param {Object} rule 高危语句规则
        * @param {Object} payload 脚本语言列表哦
        */
-      handleUpdate (rule, payload) {
+      handleUpdate(rule, payload) {
         return DangerousRuleService.update({
           ...rule,
           ...payload,
@@ -278,7 +278,7 @@
       /**
        * @desc 添加一条高危语句
        */
-      handleAdd () {
+      handleAdd() {
         this.fetchData();
       },
       /**
@@ -286,7 +286,7 @@
        * @param {Number} index 当前语句的位置索引
        * @param {Number} step 移动的步数
        */
-      handleMove (index, step) {
+      handleMove(index, step) {
         this.isLoading = true;
         DangerousRuleService.updateSort({
           id: this.list[index].id,
@@ -306,7 +306,7 @@
        * @desc 删除高危语句
        * @param {Number} id 高危语句的id
        */
-      handleDelete (id) {
+      handleDelete(id) {
         return DangerousRuleService.remove({
           id,
         }).then(() => {

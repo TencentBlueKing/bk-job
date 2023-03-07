@@ -165,7 +165,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         localValue: this.value,
         error: '',
@@ -178,7 +178,7 @@
        * @desc 非编辑状态时
        * @returns { Boolean }
        */
-      renderText () {
+      renderText() {
         const valueMap = {};
         if (Array.isArray(this.localValue)) {
           this.localValue.forEach((value) => {
@@ -193,24 +193,24 @@
         }
         return result.map(({ name }) => name).join(',');
       },
-      styles () {
+      styles() {
         return {
           width: this.width,
         };
       },
-      isBlock () {
+      isBlock() {
         return this.mode === 'block';
       },
-      refreshKey () {
+      refreshKey() {
         return `editSelect_${Array.isArray(this.value) ? this.value.join('_') : this.value}`;
       },
     },
     watch: {
-      value (localValue) {
+      value(localValue) {
         this.localValue = localValue;
       },
     },
-    mounted () {
+    mounted() {
       this.isValidatoring = false;
       document.body.addEventListener('click', this.handleHideEdit);
       this.$once('hook:beforeDestroy', () => {
@@ -221,7 +221,7 @@
       /**
        * @desc 值验证
        */
-      doValidator () {
+      doValidator() {
         const checkValidator = (rule, value) => new Promise((resolve, reject) => {
           if (rule.required && !value) {
             reject(rule.message);
@@ -257,7 +257,7 @@
       /**
        * @desc 提交编辑
        */
-      triggerChange () {
+      triggerChange() {
         this.doValidator()
           .then(() => {
             this.isEditing = false;
@@ -284,7 +284,7 @@
             this.error = error;
           });
       },
-      handleBlockShowEdit () {
+      handleBlockShowEdit() {
         if (!this.isBlock) {
           return;
         }
@@ -293,7 +293,7 @@
       /**
        * @desc 显示input
        */
-      handleShowEdit () {
+      handleShowEdit() {
         document.body.click();
         this.isEditing = true;
         this.$nextTick(() => {
@@ -304,7 +304,7 @@
        * @desc 隐藏 input 框
        * @param {Object} event dom 事件
        */
-      handleHideEdit (event) {
+      handleHideEdit(event) {
         const eventPath = event.composedPath();
         if (this.isValidatoring || this.error) {
           return;
@@ -323,13 +323,13 @@
        * @desc input 值更新
        * @param {String} value 最新输入值
        */
-      handleSelectChange (value) {
+      handleSelectChange(value) {
         this.localValue = value;
       },
       /**
        * @desc 下拉面板收起，取消编辑状态
        */
-      handleSelectToggle (toggle) {
+      handleSelectToggle(toggle) {
         if (!toggle) {
           // this.isEditing = false;
           this.triggerChange();

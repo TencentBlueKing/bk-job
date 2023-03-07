@@ -78,7 +78,7 @@
     [GlobalVariableModel.TYPE_RELATE_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
     [GlobalVariableModel.TYPE_INDEX_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
   });
-    
+
   export default {
     name: 'GlobalVarView',
     components: {
@@ -88,7 +88,7 @@
     props: {
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
@@ -98,7 +98,7 @@
       },
     },
     computed: {
-      describeMap () {
+      describeMap() {
         return generateVariableDescribeMap(this.defaultField)[this.data.type];
       },
     },

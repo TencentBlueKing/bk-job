@@ -180,7 +180,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShowChooseIp: false,
         // 服务器文件列表为空时，默认显示
@@ -190,7 +190,7 @@
         reset: 0,
       };
     },
-    created () {
+    created() {
       if (this.variable.length > 0) {
         this.handleVariableChange(this.variable[0].name);
         // 设置默认数据，需要取消 window.changeFlag 的状态
@@ -207,7 +207,7 @@
        * @desc 文件路径更新
        * @param {Array} fileLocation 文件路径
        */
-      handleFileChange (fileLocation) {
+      handleFileChange(fileLocation) {
         this.serverFile.fileLocation = fileLocation;
         window.changeFlag = true;
         this.editNewSourceFile(true);
@@ -216,7 +216,7 @@
        * @desc 服务器类型更新
        * @param {String} type 服务器类型
        */
-      handleSourceFileTypeChange (type) {
+      handleSourceFileTypeChange(type) {
         this.sourceFileType = type;
         this.serverFile.host = new TaskHostNodeModel({});
         const formItem = findParent(this, 'JbFormItem');
@@ -230,7 +230,7 @@
        * @desc 服务器类型为全局变量时更新选择的全局变量
        * @param {String} variable 全局变量名
        */
-      handleVariableChange (variable) {
+      handleVariableChange(variable) {
         if (!variable) {
           return;
         }
@@ -247,17 +247,17 @@
       /**
        * @desc 服务器类型为主机时更新显示ip选择器弹层
        */
-      handleShowChooseIp () {
+      handleShowChooseIp() {
         this.isShowChooseIp = true;
       },
-      handleCloseIpSelector () {
+      handleCloseIpSelector() {
         this.isShowChooseIp = false;
       },
       /**
        * @desc 服务器类型为主机时主机值更新
        * @param {Object} hostNodeInfo 主机值
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         window.changeFlag = true;
         this.serverFile.host.hostNodeInfo = hostNodeInfo;
         this.editNewSourceFile(true);
@@ -266,7 +266,7 @@
        * @desc 服务器账号更新
        * @param {Number} accountId 主机值
        */
-      handleAccountChange (accountId) {
+      handleAccountChange(accountId) {
         if (accountId === '') {
           return;
         }
@@ -282,20 +282,20 @@
       /**
        * @desc 添加一个服务器文件
        */
-      handleAddNew () {
+      handleAddNew() {
         this.hasSaved = false;
       },
       /**
        * @desc 保存添加的服务器文件
        */
-      handlerSave () {
+      handlerSave() {
         this.$emit('on-change', this.serverFile);
         this.handlerCancel();
       },
       /**
        * @desc 取消添加的服务器文件
        */
-      handlerCancel () {
+      handlerCancel() {
         this.$emit('on-cancel');
         this.serverFile = generatorDefault();
         this.sourceFileType = 'globalVar';

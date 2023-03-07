@@ -163,14 +163,14 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         page: 1,
         offset: 30,
       };
     },
     computed: {
-      styles () {
+      styles() {
         const style = {
           width: '100%',
         };
@@ -179,16 +179,16 @@
         }
         return style;
       },
-      renderList () {
+      renderList() {
         return Object.freeze(this.list.slice(0, this.page * this.offset));
       },
-      isShowMorePage () {
+      isShowMorePage() {
         return this.renderList.length < this.list.length;
       },
-      isEmpty () {
+      isEmpty() {
         return this.list.length < 1 && !this.$slots.appendBefore;
       },
-      emptyType () {
+      emptyType() {
         if (this.isSearch) {
           return 'search';
         }
@@ -200,10 +200,10 @@
        * @desc 移除主机
        * @param { Object } hostInfo
        */
-      handleRemove (hostInfo) {
+      handleRemove(hostInfo) {
         this.$emit('on-change', hostInfo);
       },
-      handlePage () {
+      handlePage() {
         this.page += 1;
       },
     },

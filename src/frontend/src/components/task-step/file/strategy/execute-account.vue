@@ -57,7 +57,7 @@
         required: true,
       },
     },
-    created () {
+    created() {
       this.rules = [
         {
           required: true,
@@ -67,7 +67,7 @@
       ];
     },
     methods: {
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

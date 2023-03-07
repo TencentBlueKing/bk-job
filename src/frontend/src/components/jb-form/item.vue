@@ -53,7 +53,7 @@
     },
 
     computed: {
-      classes () {
+      classes() {
         const classes = {
           'label-miss': !this.label,
         };
@@ -62,7 +62,7 @@
     },
 
     methods: {
-      clearValidator () {
+      clearValidator() {
         this.$refs.bkFormItem.clearValidator();
       },
     },

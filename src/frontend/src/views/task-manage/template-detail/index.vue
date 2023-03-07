@@ -204,7 +204,7 @@
       JbEditTextarea,
       JbPopoverConfirm,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isPlanListLoading: true,
@@ -214,21 +214,21 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
       /**
        * @desc 模板关联的执行方案是否需要同步
        * @returns { Boolean }
        */
-      isNotNeedUpdate () {
+      isNotNeedUpdate() {
         return !this.planList.some(_ => _.needUpdate);
       },
       /**
        * @desc 模板关联的执行方案同步 tips
        * @returns { Boolean }
        */
-      notNeedUpdateTips () {
+      notNeedUpdateTips() {
         if (this.planList.length < 1) {
           return I18n.t('template.该模板下面没有执行方案');
         }
@@ -238,7 +238,7 @@
         return '';
       },
     },
-    created () {
+    created() {
       this.taskId = this.$route.params.id;
       // 是否默认显示需要更新脚本的执行脚本步骤
       this.initShowScriptUpdateStep = this.$route.query.mode === 'scriptUpdate';
@@ -246,7 +246,7 @@
 
       this.fetchData();
       this.fetchPlanList();
-            
+
       this.rules = {
         name: [
           {
@@ -272,7 +272,7 @@
        * @desc 获取作业模板详情
        * @param {Boolean} refresh 更新元数据重新获取
        */
-      fetchData (refresh = false) {
+      fetchData(refresh = false) {
         TaskManageService.taskDetail({
           id: this.taskId,
         }, {
@@ -321,7 +321,7 @@
       /**
        * @desc 获取作业模板关联的执行方案列表
        */
-      fetchPlanList () {
+      fetchPlanList() {
         this.isPlanListLoading = true;
         TaskPlanService.fetchTaskPlan({
           id: this.taskId,
@@ -335,7 +335,7 @@
       /**
        * @desc 检测作业模板名是否存在
        */
-      checkName (name) {
+      checkName(name) {
         return TaskManageService.taskCheckName({
           id: this.taskId,
           name,
@@ -345,7 +345,7 @@
        * @desc 更新作业模板元数据
        * @param {Object} payload 将要更新的字段名和值
        */
-      handleUpdateTemplate (payload) {
+      handleUpdateTemplate(payload) {
         const { name, description, tags } = this.formDataLocal;
         return TaskManageService.taskUpdateBasic({
           id: this.taskId,
@@ -360,7 +360,7 @@
       /**
        * @desc 执行执行方案
        */
-      handleGoExec () {
+      handleGoExec() {
         this.$router.push({
           name: 'viewPlan',
           params: {
@@ -374,7 +374,7 @@
       /**
        * @desc 调试执行方案
        */
-      handleGoDebug () {
+      handleGoDebug() {
         this.$router.push({
           name: 'debugPlan',
           params: {
@@ -388,7 +388,7 @@
       /**
        * @desc 同步执行方案
        */
-      handleGoSyncPlan () {
+      handleGoSyncPlan() {
         this.$router.push({
           name: 'syncPlanBatch',
           query: {
@@ -400,7 +400,7 @@
       /**
        * @desc 编辑作业模板
        */
-      handleGoEdit () {
+      handleGoEdit() {
         this.$router.push({
           name: 'templateEdit',
           params: {
@@ -414,7 +414,7 @@
       /**
        * @desc 删除作业模板，然后路由回退
        */
-      handleDelete () {
+      handleDelete() {
         return TaskManageService.taskDelete({
           id: this.taskId,
         }).then(() => {
@@ -425,7 +425,7 @@
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'taskList',
         });

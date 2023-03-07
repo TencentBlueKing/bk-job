@@ -76,7 +76,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -86,11 +86,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    created () {
+    created() {
       this.list = [
         {
           label: I18n.t('dashboard.单次执行'),
@@ -102,11 +102,11 @@
         },
       ];
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchDistributionMetrics({
           date: this.date,
@@ -119,7 +119,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         this.myChart = echarts.init(this.$refs.dashboard);
         const data = [];
         let maxItem = this.list[0];// eslint-disable-line prefer-destructuring
@@ -187,7 +187,7 @@
           this.handleMouseover(params.data.name);
         });
       },
-      calcItemCircleStyles (key) {
+      calcItemCircleStyles(key) {
         return {
           width: '8px',
           height: '8px',
@@ -196,7 +196,7 @@
           backgroundColor: colorMap[key],
         };
       },
-      handleMouseover (label) {
+      handleMouseover(label) {
         const others = _.filter(this.list, _ => _.label !== label).map(_ => _.label);
         this.myChart.dispatchAction({ type: 'highlight', name: label });
         this.myChart.dispatchAction({ type: 'downplay', name: others });

@@ -83,7 +83,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isShowChooseIp: false,
         hostNodeInfo: {},
@@ -91,16 +91,16 @@
       };
     },
     computed: {
-      isNotEmpty () {
+      isNotEmpty() {
         return !TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
       },
-      isError () {
+      isError() {
         if (this.data.required !== 1) {
           return false;
         }
         return !this.isNotEmpty;
       },
-      descPopover () {
+      descPopover() {
         return {
           theme: 'light',
           extCls: 'variable-desc-tippy',
@@ -111,14 +111,14 @@
         };
       },
     },
-    created () {
+    created() {
       this.init();
     },
     methods: {
       /**
        * @desc 解析默认值
        */
-      init () {
+      init() {
         if (this.data.defaultTargetValue) {
           this.hostNodeInfo = this.data.defaultTargetValue.hostNodeInfo;
         } else {
@@ -129,23 +129,23 @@
       /**
        * @desc 外部调用——移除无效主机
        */
-      removeAllInvalidHost () {
+      removeAllInvalidHost() {
         window.changeFlag = true;
         this.$refs.choostIP.removeAllInvalidHost();
       },
       /**
        * @desc 编辑主机列表
        */
-      handleChooseIp () {
+      handleChooseIp() {
         this.isShowChooseIp = true;
       },
-      handleCloseIpSelector () {
+      handleCloseIpSelector() {
         this.isShowChooseIp = false;
       },
       /**
        * @desc 清空主机列表
        */
-      handleClear () {
+      handleClear() {
         const { hostNodeInfo } = new TaskHostNodeModel({});
         this.hostNodeInfo = hostNodeInfo;
         window.changeFlag = true;
@@ -153,21 +153,21 @@
       /**
        * @desc 提交编辑的数据
        */
-      handleChange (hostNodeInfo) {
+      handleChange(hostNodeInfo) {
         this.hostNodeInfo = Object.freeze(hostNodeInfo);
         window.changeFlag = true;
       },
       /**
        * @desc 外部调用——还原默认值
        */
-      reset () {
+      reset() {
         this.init();
       },
       /**
        * @desc 外部调用——值验证
        * @returns {Promise}
        */
-      validate () {
+      validate() {
         const { type, id, name } = this.data;
 
         const data = {

@@ -33,7 +33,7 @@ export default {
     },
     tailBackgroundColor: String,
   },
-  render (h) {
+  render(h) {
     const childrenArr = this.$slots.default;
 
     if (childrenArr.length > 1) {

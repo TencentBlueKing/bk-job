@@ -110,14 +110,14 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
         type: '',
       };
     },
     computed: {
-      formItemCom () {
+      formItemCom() {
         const formItemMap = {
           PASSWORD: Password,
           USERNAME_PASSWORD: UsernamePassword,
@@ -129,7 +129,7 @@
     },
     watch: {
     },
-    created () {
+    created() {
       if (this.data.id) {
         this.formData = { ...this.data };
         this.type = this.formData.type;
@@ -156,7 +156,7 @@
        *
        * 校验通过后,根据文件源ID是否存在提示新建、编辑提示语
        */
-      submit () {
+      submit() {
         return Promise.all([
           this.$refs.handler.getData(),
           this.$refs.ticketForm.validate(),

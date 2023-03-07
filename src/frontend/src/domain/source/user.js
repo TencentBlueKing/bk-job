@@ -26,7 +26,7 @@
 import Request from '@utils/request';
 
 class User {
-  getData () {
+  getData() {
     return Request.get('user/current', {
       cache: true,
     });

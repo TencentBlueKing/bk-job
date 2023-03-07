@@ -90,7 +90,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       const { hostNodeInfo } = new TaskHostNodeModel({});
 
       return {
@@ -99,24 +99,24 @@
       };
     },
     computed: {
-      title () {
+      title() {
         if (this.type) {
           return this.type;
         }
         return `${I18n.t('template.全局变量.label')} - ${this.name}`;
       },
-      isEmpty () {
+      isEmpty() {
         return TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
       },
     },
     methods: {
-      handlerView () {
+      handlerView() {
         const curVariable = this.data.find(item => item.name === this.name);
         this.hostNodeInfo = Object.freeze(curVariable.defaultTargetValue.hostNodeInfo);
 
         this.isShowDetail = true;
       },
-      handleClose () {
+      handleClose() {
         this.isShowDetail = false;
       },
     },

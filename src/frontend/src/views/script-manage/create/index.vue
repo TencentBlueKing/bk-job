@@ -131,7 +131,7 @@
       JbTagSelect,
       JbInput,
     },
-    data () {
+    data() {
       return {
         isContentLoading: false,
         isSbumiting: false,
@@ -147,7 +147,7 @@
         },
       };
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
 
@@ -206,14 +206,14 @@
         ],
       };
     },
-    mounted () {
+    mounted() {
       this.init();
     },
     methods: {
       /**
        * @desc 计算内容区的高度
        */
-      init () {
+      init() {
         const contentOffsetTop = getOffset(this.$refs.content).top;
         const contentHeight = window.innerHeight - contentOffsetTop + 20;
         this.contentHeight = contentHeight > 480 ? contentHeight : 480;
@@ -222,14 +222,14 @@
        * @desc 脚本语言类型切换
        * @param {String} scriptType 脚本语言
        */
-      handleTypeChange (scriptType) {
+      handleTypeChange(scriptType) {
         this.scriptType = scriptType;
         this.formData.type = formatScriptTypeValue(scriptType);
       },
       /**
        * @desc 保存脚本
        */
-      handleSubmit () {
+      handleSubmit() {
         this.isSbumiting = true;
         this.$refs.form.validate()
           .then(scriptErrorConfirm)
@@ -255,13 +255,13 @@
       /**
        * @desc 取消新建
        */
-      handleCancel () {
+      handleCancel() {
         this.routerBack();
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         if (this.publicScript) {
           this.$router.push({
             name: 'publicScriptList',

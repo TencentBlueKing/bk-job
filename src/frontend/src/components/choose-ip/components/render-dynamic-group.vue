@@ -112,7 +112,7 @@
   } from '@utils/assist';
 
   import HostTable from './host-table';
-    
+
   export default {
     name: '',
     components: {
@@ -129,7 +129,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       this.selfChange = false;
       return {
         isLoading: false,
@@ -147,11 +147,11 @@
       };
     },
     computed: {
-      renderList  () {
+      renderList() {
         const { page, pageSize } = this.pagination;
         return Object.freeze(this.tempList.slice((page - 1) * pageSize, page * pageSize));
       },
-      pageCheckInfo () {
+      pageCheckInfo() {
         const info = {
           indeterminate: false,
           checked: false,
@@ -164,7 +164,7 @@
     },
     watch: {
       dynamicGroupList: {
-        handler (dynamicGroupList) {
+        handler(dynamicGroupList) {
           if (this.selfChange) {
             this.selfChange = false;
             return;
@@ -179,7 +179,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.calcPageSize();
       this.fetchDynamicGroup();
     },
@@ -189,7 +189,7 @@
        *
        * 动态分组列表为空可以跳转 cmdb 创建
        */
-      fetchDynamicGroup () {
+      fetchDynamicGroup() {
         this.isLoading = true;
         HostManageService.fetchDynamicGroup()
           .then((data) => {
@@ -208,7 +208,7 @@
       /**
        * @desc 没有动态分组时可以去 cmdb 创建
        */
-      fetchCMDBUrl () {
+      fetchCMDBUrl() {
         return QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.CMDBCreateGroupUrl = `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`;
@@ -217,7 +217,7 @@
       /**
        * @desc 计算PageSize
        */
-      calcPageSize () {
+      calcPageSize() {
         const topOffset = 154;
         const bottomOffset = 116;
         const pageSize = Math.floor((this.dialogHeight - topOffset - bottomOffset) / 40);
@@ -226,7 +226,7 @@
       /**
        * @desc 动态分组值更新
        */
-      trigger () {
+      trigger() {
         this.selfChange = true;
         this.$emit('on-change', 'dynamicGroupList', Object.keys(this.checkedMap));
       },
@@ -247,13 +247,13 @@
           });
           this.tempList = Object.freeze(group);
         }
-                
+
         this.pagination.total = this.tempList.length;
       }, 300),
       /**
        * @desc 列表跨页全选切换
        */
-      handleToggleWholeAll () {
+      handleToggleWholeAll() {
         const checkedMap = {
           ...this.checkedMap,
         };
@@ -272,7 +272,7 @@
        * @desc 选中单个分组
        * @param {Number} groupId
        */
-      handleGroupCheck (groupId) {
+      handleGroupCheck(groupId) {
         const checkedMap = {
           ...this.checkedMap,
         };
@@ -288,7 +288,7 @@
        * @desc 预览单个分组的主机详情
        * @param {Object} group
        */
-      handlePreview (group) {
+      handlePreview(group) {
         this.$emit('on-group-preview', {
           name: group.name,
           id: group.id,
@@ -298,7 +298,7 @@
        * @desc 列表翻页
        * @param {Number} page
        */
-      handlePageChange (page) {
+      handlePageChange(page) {
         this.pagination.page = page;
       },
     },

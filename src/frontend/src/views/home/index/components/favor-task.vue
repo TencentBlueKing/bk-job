@@ -133,17 +133,17 @@
   import HomeService from '@service/home';
 
   export default {
-    data () {
+    data() {
       return {
         isLoading: true,
         height: undefined,
         favorList: [],
       };
     },
-    created () {
+    created() {
       this.fetchMyFavorList();
     },
-    mounted () {
+    mounted() {
       this.init();
       window.addEventListener('resize', this.init);
       this.$once('hook:beforeDestroy', () => {
@@ -151,7 +151,7 @@
       });
     },
     methods: {
-      fetchMyFavorList () {
+      fetchMyFavorList() {
         HomeService.fetchMyFavorList()
           .then((data) => {
             this.favorList = Object.freeze(data);
@@ -160,7 +160,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         const { height } = this.$refs.container.getBoundingClientRect();
         this.height = height;
       },
