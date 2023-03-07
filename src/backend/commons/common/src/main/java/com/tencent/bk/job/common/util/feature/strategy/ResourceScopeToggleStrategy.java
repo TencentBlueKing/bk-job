@@ -15,7 +15,7 @@ public class ResourceScopeToggleStrategy extends AbstractToggleStrategy {
     /**
      * 策略参数-资源范围
      */
-    public static final String INIT_PARAM_RESOURCE_SCOPE = "resource_scope";
+    public static final String INIT_PARAM_RESOURCE_SCOPE = "resourceScope";
     /**
      * 上下文参数-资源范围
      */

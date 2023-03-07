@@ -749,7 +749,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
 
     private boolean isUsingGseV2(long appId) {
-        return FeatureToggle.getInstance().checkFeature(
+        return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_GSE_V2,
             FeatureExecutionContextBuilder.builder()
                 .resourceScope(appScopeMappingService.getScopeByAppId(appId))

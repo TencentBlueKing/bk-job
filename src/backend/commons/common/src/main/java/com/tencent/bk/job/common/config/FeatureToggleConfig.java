@@ -36,8 +36,11 @@ import java.util.Map;
 
 /**
  * 特性开关配置
+ * <p>
+ * ignoreInvalidFields: true, 避免因为错误的配置导致微服务不可用（RefreshScopeHealthIndicator会对ConfigurationProperties
+ * 进行健康检查，如果配置有问题，会把微服务的状态设置为health=DOWN)
  */
-@ConfigurationProperties(prefix = "job")
+@ConfigurationProperties(prefix = "job", ignoreInvalidFields = true)
 @ToString
 @Getter
 @Setter
