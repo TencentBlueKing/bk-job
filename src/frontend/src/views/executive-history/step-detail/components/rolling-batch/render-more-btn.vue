@@ -105,33 +105,33 @@
     props: {
       stepData: Object,
     },
-    data () {
+    data() {
       return {
         batchLocation: '',
       };
     },
     computed: {
-      rollingTaskNums () {
+      rollingTaskNums() {
         return this.stepData.rollingTasks ? this.stepData.rollingTasks.length : 0;
       },
     },
     methods: {
-      triggerChange () {
+      triggerChange() {
         this.$emit('on-change', this.batchLocation);
       },
       /**
        * @desc 定位到指定批次
        */
-      handleGoBatch () {
+      handleGoBatch() {
         const batchLocation = Math.min(Math.max(this.batchLocation, 1), this.rollingTaskNums);
         this.batchLocation = batchLocation;
         this.triggerChange();
       },
-      handleGoLast () {
+      handleGoLast() {
         this.batchLocation = this.rollingTaskNums;
         this.triggerChange();
       },
-      handleGoRunning () {
+      handleGoRunning() {
         this.batchLocation = this.stepData.runningBatchOrder;
         this.triggerChange();
       },
@@ -140,7 +140,7 @@
        * @param { Number } value
        * @param { Object } event
        */
-      handleEnterSubmit (value, event) {
+      handleEnterSubmit(value, event) {
         if (event.isComposing) {
           // 跳过输入法复合事件
           return;
@@ -153,7 +153,7 @@
       /**
        * @desc 关闭批次跳转弹框
        */
-      handleCancelGoBatch () {
+      handleCancelGoBatch() {
         document.body.click();
       },
     },

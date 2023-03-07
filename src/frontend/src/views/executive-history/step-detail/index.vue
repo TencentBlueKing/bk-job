@@ -241,7 +241,7 @@
     mixins: [
       mixins,
     ],
-    data () {
+    data() {
       return {
         isLoading: true,
         isLogSearching: false,
@@ -291,7 +291,7 @@
       /**
        * @desc 骨架屏loading
        */
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
       /**
@@ -299,7 +299,7 @@
        *
        * 对作业里面的步骤需要显示当前步骤在作业中的索引
        */
-      stepTypeText () {
+      stepTypeText() {
         let text = '';
         if (this.isTask) {
           const index = _.findIndex(this.taskStepList, _ => _.stepInstanceId === this.params.id);
@@ -320,13 +320,13 @@
        *
        * 主要用于任务结束后切换分组的场景
        */
-      isHostLoading () {
+      isHostLoading() {
         return this.data.finished ? this.isLoading : false;
       },
       /**
        * @desc 展示被选中的分组信息
        */
-      dispalyGroup () {
+      dispalyGroup() {
         const targetGroup = _.find(this.data.resultGroups, _ => _.groupName === this.currentGroup.groupName);
         if (targetGroup) {
           return targetGroup;
@@ -337,19 +337,19 @@
         };
       },
     },
-    created () {
+    created() {
       this.taskInstanceId = 0;
       this.params.batch = this.$route.query.batch || '';
       this.isForceing = false;
       this.$Progress.start();
     },
-    mounted () {
+    mounted() {
       window.addEventListener('rezie', this.calcDetailContainerStyle);
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('rezie', this.calcDetailContainerStyle);
       });
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.$Progress.finish();
     },
     methods: {
@@ -423,7 +423,7 @@
        *
        * 前置获取步骤关联的作业执行详情
        */
-      handleTaskInit (payload) {
+      handleTaskInit(payload) {
         this.params = {
           ...this.params,
           id: payload.stepInstanceId,
@@ -446,7 +446,7 @@
        * 切换批次时不主动获取步骤执行数据，
        * 切换批次时会导致组件 execution-history-select 刷新数据，这个时候会主动获取步骤执行数据
        */
-      handleBatchChange (batch) {
+      handleBatchChange(batch) {
         this.params = {
           ...this.params,
           batch,
@@ -465,7 +465,7 @@
        *
        * 刷新步骤执行详情
        */
-      handleRetryCountChange (retryCount) {
+      handleRetryCountChange(retryCount) {
         this.params = {
           ...this.params,
           retryCount,
@@ -482,7 +482,7 @@
        * 刷新步骤执行详情
        *
        */
-      handelGroupChange (group) {
+      handelGroupChange(group) {
         this.currentGroup = group;
         this.fetchStep();
       },
@@ -490,14 +490,14 @@
        * @desc 选中主机
        * @param {Object} host 选中的主机
        */
-      handleHostChange (host) {
+      handleHostChange(host) {
         this.currentHost = Object.freeze(host);
       },
       /**
        * @desc 组件列表分页
        * @param {Number} pageSize 每页条数
        */
-      handlePaginationChange (pageSize) {
+      handlePaginationChange(pageSize) {
         this.params.maxIpsPerResultGroup = pageSize;
         this.paginationChangeLoading = true;
         this.fetchStep();
@@ -506,14 +506,14 @@
        * @desc 主机排序
        * @param {Object} payload 排序信息
        */
-      handleSort (payload) {
+      handleSort(payload) {
         this.params = Object.assign({}, this.params, payload);
         this.fetchStep();
       },
       /**
        * @desc 清空搜索条件
        */
-      handleClearSearch () {
+      handleClearSearch() {
         this.params.keyword = '';
         this.params.searchIp = '';
         this.isLogSearching = true;
@@ -525,7 +525,7 @@
        *
        * 主机列表是分页加载，复制全部主机时需要全量请求一次
        */
-      handleCopyHost (fieldName) {
+      handleCopyHost(fieldName) {
         TaskExecuteService.fetchStepGroupHost({
           ...this.params,
           resultType: this.currentGroup.resultType,
@@ -554,7 +554,7 @@
       /**
        * @desc 导出脚本执行日志
        */
-      handleExportExecutionLog () {
+      handleExportExecutionLog() {
         TaskExecuteService.fetchStepExecutionLogFile({
           id: this.params.id,
         }).then(() => {
@@ -567,14 +567,14 @@
       /**
        * @desc 开始强制终止
        */
-      handleStartForceTask () {
+      handleStartForceTask() {
         this.isForceing = true;
         this.$Progress.start();
       },
       /**
        * @desc 取消强制终止
        */
-      handleCancelForceTask () {
+      handleCancelForceTask() {
         this.isForceing = false;
         this.$Progress.start();
         this.fetchStep();
@@ -584,7 +584,7 @@
        *
        * 强制终止成功需要刷新作业的状态和执行历史记录
        */
-      handleForceTask () {
+      handleForceTask() {
         this.$Progress.start();
         return TaskExecuteService.updateTaskExecutionStepOperateTerminate({
           taskInstanceId: this.taskInstanceId,
@@ -602,7 +602,7 @@
        *
        * 强制终止成功需要刷新作业的状态和执行历史记录
        */
-      handleStatusUpdate (operationCode) {
+      handleStatusUpdate(operationCode) {
         this.$Progress.start();
         return TaskExecuteService.updateTaskExecutionStepOperate({
           id: this.params.id,
@@ -632,7 +632,7 @@
        * 2，enter建触发搜索
        * 3，重置页码（ip-list组件处理）
        */
-      handleIPSearch (value, event) {
+      handleIPSearch(value, event) {
         if (event.isComposing) {
           // 跳过输入法复合事件
           return;
@@ -657,7 +657,7 @@
        * 2，enter建触发搜索
        * 3，重置页码（ip-list组件处理）
        */
-      handleLogSearch (value, event) {
+      handleLogSearch(value, event) {
         if (event.isComposing) {
           // 跳过输入法复合事件
           return;
@@ -678,7 +678,7 @@
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'historyTask') {
           this.$router.push({

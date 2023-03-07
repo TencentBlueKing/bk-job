@@ -192,7 +192,7 @@
       },
       searchValue: String,
     },
-    data () {
+    data() {
       let allShowColumn = [
         'ipv4',
         'ipv6',
@@ -218,7 +218,7 @@
        * @desc IP 列表样式判断
        * @return {Object}
        */
-      styles () {
+      styles() {
         const allShowColumnMap = makeMap(this.allShowColumn);
         const allShowColumnWidth = columnList.reduce((result, item) => {
           if (allShowColumnMap[item.name]) {
@@ -235,7 +235,7 @@
        * @desc 列选择是否半选状态
        * @return {Boolean}
        */
-      hasMore () {
+      hasMore() {
         return this.page * this.pageSize < this.total;
       },
     },
@@ -244,11 +244,11 @@
       /**
        * @desc IP 列表名称变化时重置翻页
        */
-      name () {
+      name() {
         this.page = 1;
       },
       data: {
-        handler (data) {
+        handler(data) {
           // 切换分组时最新的分组数据一定来自API返回数据
           // listLoading为false说明是本地切换不更新列表
           if (!this.listLoading) {
@@ -259,7 +259,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.initSettingPopover();
       this.calcPageSize();
       window.addEventListener('resize', this.handleScroll);
@@ -268,7 +268,7 @@
       });
     },
     methods: {
-      initSettingPopover () {
+      initSettingPopover() {
         this.settingPopover = this.$bkPopover(document.querySelector('#stepDetailIpListSettingBtn'), {
           theme: 'light step-execution-history-ip-list-setting',
           arrow: true,
@@ -288,7 +288,7 @@
       /**
        * @desc 根据屏幕高度计算单页 pageSize
        */
-      calcPageSize () {
+      calcPageSize() {
         const { top } = getOffset(this.$refs.list);
         const windowHeight = window.innerHeight;
         const listHeight = windowHeight - top - 20;
@@ -315,19 +315,19 @@
        * @desc 复制ip
        * @param { String } type 要复制的字段，IP | IPv6
        */
-      handleCopyIP (type) {
+      handleCopyIP(type) {
         this.$emit('on-copy', type);
       },
       /**
        * @desc 显示列配置面板
        */
-      handleShowSetting () {
+      handleShowSetting() {
         this.isShowColumnSetting = true;
       },
       /**
        * @desc 保存列配置
        */
-      handleSubmitSetting (showColumnList) {
+      handleSubmitSetting(showColumnList) {
         this.allShowColumn = showColumnList;
         this.isShowColumnSetting = false;
         localStorage.setItem(COLUMN_CACHE_KEY, JSON.stringify(this.allShowColumn));
@@ -335,7 +335,7 @@
       /**
        * @desc 隐藏列配置面板
        */
-      handleHideSetting () {
+      handleHideSetting() {
         this.isShowColumnSetting = false;
         this.settingPopover.hide();
       },
@@ -343,7 +343,7 @@
        * @desc 表格排序
        * @param {Object} column 操作列数据
        */
-      handleSort (column) {
+      handleSort(column) {
         const {
           orderField,
           order,
@@ -368,13 +368,13 @@
        * @desc 选择表格一行数据
        * @param {Object} row 选择数据
        */
-      handleSelect (row) {
+      handleSelect(row) {
         this.$emit('on-change', row);
       },
       /**
        * @desc 清空搜索
        */
-      handleClearSearch () {
+      handleClearSearch() {
         this.$emit('on-clear-search');
       },
     },

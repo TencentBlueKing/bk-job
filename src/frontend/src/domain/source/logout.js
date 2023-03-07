@@ -25,7 +25,7 @@
 
 import Request from '@utils/request';
 class Logout {
-  logout () {
+  logout() {
     return Request.get('/logout');
   }
 }

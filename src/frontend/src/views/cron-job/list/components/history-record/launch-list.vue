@@ -41,11 +41,11 @@
           ref="datePicker"
           :clearable="false"
           :placeholder="$t('cron.选择日期')"
-          :shortcut-close="true"
+          shortcut-close
           :shortcuts="shortcuts"
           type="datetimerange"
           up-to-now
-          :use-shortcut-text="true"
+          use-shortcut-text
           :value="defaultDateTime"
           @change="handleDateChange" />
       </template>
@@ -129,14 +129,14 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         searchParams: {},
         defaultDateTime: [prettyDateTimeFormat(Date.now() - 29 * 86400000), ''],
         searchAppendValue: [],
       };
     },
-    created () {
+    created() {
       this.fetchExecutionHistoryList = TaskExecuteService.fetchExecutionHistoryList;
       if (this.showFaild) {
         this.searchParams.status = 4;
@@ -154,14 +154,14 @@
       const [startTime, endTime] = this.defaultDateTime;
       this.searchParams.startTime = startTime;
       this.searchParams.endTime = endTime;
-            
+
       this.searchSelect = [
         {
           name: 'ID',
           id: 'taskInstanceId',
           description: I18n.t('cron.搜索条件带任务ID时，将自动忽略其他条件'),
           default: true,
-          validate (values, item) {
+          validate(values, item) {
             const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('cron.ID只支持数字') : true;
           },
@@ -215,11 +215,11 @@
           inputInclude: true,
         },
       ];
-            
+
       this.shortcuts = [
         {
           text: I18n.t('cron.近1小时'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 3600000);
@@ -228,7 +228,7 @@
         },
         {
           text: I18n.t('cron.近12小时'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 43200000);
@@ -237,7 +237,7 @@
         },
         {
           text: I18n.t('cron.近1天'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 86400000);
@@ -246,7 +246,7 @@
         },
         {
           text: I18n.t('cron.近7天'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 604800000);
@@ -255,21 +255,21 @@
         },
       ];
     },
-    mounted () {
+    mounted() {
       this.fetchData();
       this.$refs.datePicker.shortcut = {
         text: `${this.defaultDateTime[0]} ${I18n.t('cron.至今')}`,
       };
     },
     methods: {
-      fetchData () {
+      fetchData() {
         const searchParams = {
           ...this.searchParams,
           cronTaskId: this.data.id,
         };
         this.$refs.list.$emit('onFetch', searchParams);
       },
-      handleSearch (payload) {
+      handleSearch(payload) {
         const { startTime, endTime } = this.searchParams;
         this.searchParams = {
           ...payload,
@@ -278,7 +278,7 @@
         };
         this.fetchData();
       },
-      handleDateChange (date, type) {
+      handleDateChange(date, type) {
         if (type === 'upToNow') {
           this.setToNowText(date);
         }
@@ -286,7 +286,7 @@
         this.searchParams.endTime = type === 'upToNow' ? '' : date[1];
         this.fetchData();
       },
-      handleGoDetail (taskInstance) {
+      handleGoDetail(taskInstance) {
         let router = null;
         if (taskInstance.isTask) {
           router = this.$router.resolve({

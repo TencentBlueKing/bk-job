@@ -99,7 +99,7 @@
     </execution-status-bar>
     <jb-sideslider
       :is-show.sync="isShowGlobalVariable"
-      :quick-close="true"
+      quick-close
       :show-footer="false"
       :title="$t('history.全局变量')"
       :width="960">
@@ -107,7 +107,7 @@
     </jb-sideslider>
     <jb-sideslider
       :is-show.sync="isShowOperationRecord"
-      :quick-close="true"
+      quick-close
       :show-footer="false"
       :title="$t('history.操作记录')"
       :width="900">
@@ -147,7 +147,7 @@
       TaskStepEnd,
       ExecutionStatusBar,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         taskInstanceId: 0,
@@ -163,11 +163,11 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.timer = '';
       this.taskPollingQueue = [];
       this.taskInstanceId = this.$route.params.id;
@@ -178,13 +178,13 @@
         this.clearTimer();
       });
     },
-        
+
     methods: {
-      fetchData (isFirst = true) {
+      fetchData(isFirst = true) {
         if (isFirst) {
           this.isLoading = true;
         }
-                
+
         TaskExecuteService.fetchTaskExecutionResult({
           id: this.taskInstanceId,
         }, {
@@ -214,7 +214,7 @@
             this.isLoading = false;
           });
       },
-      startTimer () {
+      startTimer() {
         if (this.timerClear) {
           return;
         }
@@ -226,29 +226,31 @@
           this.startTimer();
         }, 1000);
       },
-      clearTimer () {
+      clearTimer() {
         this.timerClear = true;
         this.taskPollingQueue = [];
       },
-      handleSelectStep (stepInstance) {
+      handleSelectStep(stepInstance) {
         this.$router.push({
           name: 'historyStep',
           params: {
             taskInstanceId: this.taskInstanceId,
           },
           query: {
+            stepInstanceId: stepInstance.stepInstanceId,
+            retryCount: stepInstance.retryCount,
             from: this.$route.query.from || 'historyTask',
           },
         });
       },
-      handleStartForceTask () {
+      handleStartForceTask() {
         this.isForceing = true;
       },
-      handleCancelForceTask () {
+      handleCancelForceTask() {
         this.isForceing = false;
         this.fetchData();
       },
-      handleForceTask () {
+      handleForceTask() {
         return TaskExecuteService.updateTaskExecutionStepOperateTerminate({
           taskInstanceId: this.taskInstanceId,
         }).then(() => {
@@ -258,10 +260,10 @@
           return true;
         });
       },
-      handleUpdateStepStatus () {
+      handleUpdateStepStatus() {
         this.fetchData();
       },
-      handleGoRetry () {
+      handleGoRetry() {
         this.isLoading = true;
         TaskExecuteService.fetchTaskInstance({
           id: this.taskInstanceId,
@@ -308,13 +310,13 @@
             this.isLoading = false;
           });
       },
-      handleShowGlobalVariable () {
+      handleShowGlobalVariable() {
         this.isShowGlobalVariable = true;
       },
-      handleShowOperationRecord () {
+      handleShowOperationRecord() {
         this.isShowOperationRecord = true;
       },
-      handleGoPlan () {
+      handleGoPlan() {
         let router = {};
         if (this.formData.taskExecution.debugTask) {
           router = this.$router.resolve({
@@ -341,7 +343,7 @@
         }
         window.open(router.href);
       },
-      routerBack () {
+      routerBack() {
         if (this.formData.taskExecution.debugTask) {
           this.$router.push({
             name: 'templateDetail',
@@ -374,7 +376,7 @@
           });
           return;
         }
-                
+
         this.$router.push({
           name: 'historyList',
         });

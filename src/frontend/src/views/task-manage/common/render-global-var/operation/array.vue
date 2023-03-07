@@ -115,40 +115,40 @@
     props: {
       variable: {
         type: Array,
-        default () {
+        default() {
           return [];
         },
       },
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         arrayType: 5,
         formData: { ...this.data },
       };
     },
     computed: {
-      isEdit () {
+      isEdit() {
         return !!this.data.name;
       },
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (data.name) {
             this.arrayType = data.type;
           }
         },
         immediate: true,
       },
-            
+
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -170,10 +170,10 @@
       };
     },
     methods: {
-      handleArrayTypeChange (value) {
+      handleArrayTypeChange(value) {
         this.arrayType = value;
       },
-      submit () {
+      submit() {
         return this.$refs.varArrayForm.validate()
           .then(() => {
             this.$emit('on-change', {

@@ -69,7 +69,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         formData: {
           value1: this.data.value1,
@@ -78,7 +78,7 @@
         },
       };
     },
-    created () {
+    created() {
       if (this.type !== 'USERNAME_PASSWORD') {
         this.formData.value1 = '';
         this.formData.value2 = '';
@@ -106,7 +106,7 @@
        *
        * 校验成功传递表单数据到父组件
        */
-      getData () {
+      getData() {
         return this.$refs.form.validate()
           .then(validator => this.formData, validator => Promise.reject(validator.content));
       },

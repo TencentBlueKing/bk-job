@@ -198,7 +198,7 @@
       <jb-sideslider
         :is-show.sync="isShowDetail"
         :media="mediaQueryMap"
-        :quick-close="true"
+        quick-close
         :show-footer="false"
         :title="$t('template.查看作业步骤')"
         :width="896">
@@ -277,7 +277,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         steps: [],
         isShowOperation: false,
@@ -296,7 +296,7 @@
        * @desc 步骤有id说明是编辑状态
        * @return {Boolean}
        */
-      isEdit () {
+      isEdit() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.list.length; i++) {
           if (this.list[i].id) {
@@ -309,35 +309,35 @@
        * @desc 操作模板步骤（新建、编辑）
        * @return {Boolean}
        */
-      isOperation () {
+      isOperation() {
         return this.mode === 'operation';
       },
       /**
        * @desc 选择模板步骤（用于编辑执行的场景）
        * @return {Boolean}
        */
-      isSelect () {
+      isSelect() {
         return this.mode === 'select';
       },
       /**
        * @desc 查看作业模板步骤
        * @return {Boolean}
        */
-      isView () {
+      isView() {
         return !this.mode || this.mode === 'select';
       },
       /**
        * @desc 作业模板步骤同比查看差异
        * @return {Boolean}
        */
-      isDiff () {
+      isDiff() {
         return this.mode === 'diff';
       },
       /**
        * @desc 作业模板步骤可以编辑时需要能拖动排序
        * @return {String}
        */
-      stepBoxCom () {
+      stepBoxCom() {
         if (this.isOperation) {
           return 'draggable';
         }
@@ -347,7 +347,7 @@
        * @desc 步骤编辑的样式 class
        * @return {Object}
        */
-      stepContainerClasses () {
+      stepContainerClasses() {
         const classes = {};
         if (!this.isShowOperation && !this.isShowDetail && !this.isShowClone) {
           return classes;
@@ -359,21 +359,21 @@
        * @desc 步骤的执行目标只能选中主机变量
        * @return {Array}
        */
-      hostVariables () {
+      hostVariables() {
         return this.variable.filter(item => !item.delete && item.isHost);
       },
       /**
        * @desc 脚本步骤中脚本内容可使用非主机变量
        * @return {Array}
        */
-      scriptVariables () {
+      scriptVariables() {
         return this.variable.filter(item => !item.delete && !item.isHost);
       },
       /**
        * @desc 步骤操作弹层的信息
        * @return {Object}
        */
-      operationSideSliderInfo () {
+      operationSideSliderInfo() {
         if (this.operationType === 'create') {
           return {
             title: I18n.t('template.新建作业步骤'),
@@ -388,7 +388,7 @@
     },
     watch: {
       list: {
-        handler (list) {
+        handler(list) {
           if (this.isOperation) {
             if (list.length < 1) {
               this.steps = [];
@@ -400,11 +400,11 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       // 重新计算每个步骤的索引值（被删除的步骤不被显示）
       this.order = 0;
     },
-    beforeUpdate () {
+    beforeUpdate() {
       // 重新计算每个步骤的索引值（被删除的步骤不被显示）
       this.order = 0;
     },
@@ -412,10 +412,10 @@
       /**
        * @desc 外部调用——点击指定 index 的步骤
        */
-      clickStepByIndex (index) {
+      clickStepByIndex(index) {
         this.handleStepClick(index);
       },
-      genOrder () {
+      genOrder() {
         this.order += 1;
         return this.order;
       },
@@ -424,7 +424,7 @@
        * @param {Object} payload 点击的模板步骤数据
        * @param {Number} index 点击的模板步骤索引
        */
-      handleStepClick (index) {
+      handleStepClick(index) {
         if (this.isOperation) {
           // 编辑步骤
           this.handleShowEdit(index);
@@ -440,14 +440,14 @@
        * @desc 操作执行方案步骤时，选择作业模板的步骤
        * @param {Object} step 点击的模板步骤数据
        */
-      handleStepSelect (step) {
+      handleStepSelect(step) {
         this.$emit('on-select', step);
       },
       /**
        * @desc 显示编辑作业模板步骤的弹层
        * @param {Number} index 点击的模板步骤索引
        */
-      handleShowEdit (index) {
+      handleShowEdit(index) {
         this.operationType = 'edit';
         this.activeStepIndex = index;
         this.operationData = this.steps[index];
@@ -458,7 +458,7 @@
        * @param {Number} index 点击的模板步骤索引
        * @param {Boolean} isHover 鼠标的hover状态
        */
-      handleCloneStepHover (index, isHover) {
+      handleCloneStepHover(index, isHover) {
         if (isHover) {
           this.activeStepIndex = index;
           this.operationType = 'clone';
@@ -473,7 +473,7 @@
        * @desc 克隆作业模板步骤
        * @param {Number} index 点击的模板步骤索引
        */
-      handleCloneStep (index) {
+      handleCloneStep(index) {
         const steps = [...this.steps];
 
         let newStep = {
@@ -492,7 +492,7 @@
        * @desc 创建指定类型的步骤
        * @param { Number } index 在指定的步骤后面新加一个步骤
        */
-      handleShowCreateWithType (type, index = -1) {
+      handleShowCreateWithType(type, index = -1) {
         const typeMap = {
           script: TaskStepModel.TYPE_SCRIPT,
           file: TaskStepModel.TYPE_FILE,
@@ -505,12 +505,12 @@
         };
         this.isShowOperation = true;
       },
-            
+
       /**
        * @desc 删除作业模板新建
        * @param {Number} index 将要的模板步骤索引
        */
-      handleDel (index) {
+      handleDel(index) {
         this.$bkInfo({
           title: I18n.t('template.确定删除该步骤？'),
           subTitle: I18n.t('template.删除之后不可恢复，请谨慎操作！'),
@@ -538,7 +538,7 @@
        * @param {Number} payload 将要的模板步骤索引
        * @param {Boolean} localValidator 表单验证结果
        */
-      handleTaskStepSubmit (payload, localValidator) {
+      handleTaskStepSubmit(payload, localValidator) {
         const operationStep = new TaskStepModel(payload);
         const steps = [...this.steps];
 
@@ -565,7 +565,7 @@
        * @desc 选中拖动的作业模板步骤
        * @param {Number} index 拖动的模板步骤索引
        */
-      handleDragStart (index) {
+      handleDragStart(index) {
         this.dragStartIndex = index;
       },
       /**
@@ -581,7 +581,7 @@
        * @desc 拖动结束
        * @param {Number} index 拖动的模板步骤索引
        */
-      handleDragAdd (index) {
+      handleDragAdd(index) {
         if (this.dragStartIndex === index) {
           return;
         }

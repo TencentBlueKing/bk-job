@@ -37,7 +37,7 @@
       PlanList,
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
     },

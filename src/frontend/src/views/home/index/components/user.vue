@@ -116,7 +116,7 @@
     components: {
       Greeting,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isShowList: false,
@@ -130,7 +130,7 @@
       };
     },
     computed: {
-      workTipsStyles () {
+      workTipsStyles() {
         const classes = {
           transform: `translateY(${-100 * this.analysisIndex}%)`,
         };
@@ -139,14 +139,14 @@
         }
         return classes;
       },
-      listInfo () {
+      listInfo() {
         return {
           dialogTitle: dialogTitleMap[this.listType],
           columnName: columnNameMap[this.listType],
         };
       },
     },
-    created () {
+    created() {
       this.analysisResultTimer = '';
       this.analysisMap = {};
       Promise.all([
@@ -157,13 +157,13 @@
       });
     },
     methods: {
-      fetchUserInfo () {
+      fetchUserInfo() {
         return UserService.fetchUserInfo()
           .then((data) => {
             this.userInfo = Object.freeze(data);
           });
       },
-      fetchAnalysisResult () {
+      fetchAnalysisResult() {
         return StatisticsIndexService.fetchAnalysisResult()
           .then((data) => {
             const analysisList = [];
@@ -185,10 +185,10 @@
             this.swiperAnalysisResult();
           });
       },
-      handleHideList () {
+      handleHideList() {
         this.isShowList = false;
       },
-      handleShowList (event) {
+      handleShowList(event) {
         const $target = event.target;
         if ($target.className !== 'action-list') {
           return;
@@ -198,7 +198,7 @@
         this.listData = Object.freeze(this.analysisMap[id].contents);
         this.isShowList = true;
       },
-      handleGoDetail (payload) {
+      handleGoDetail(payload) {
         let router = {};
         if (payload.type === 'TEMPLATE') {
           router = this.$router.resolve({
@@ -231,13 +231,13 @@
         }
         window.open(router.href);
       },
-      handleStopSwiper () {
+      handleStopSwiper() {
         clearTimeout(this.analysisResultTimer);
       },
-      handleBeginSwiper () {
+      handleBeginSwiper() {
         this.swiperAnalysisResult();
       },
-      swiperAnalysisResult () {
+      swiperAnalysisResult() {
         if (this.analysisList.length < 1) {
           return;
         }

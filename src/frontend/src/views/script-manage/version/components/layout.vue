@@ -81,7 +81,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isShowRight: false,
         isOpen: false,
@@ -90,7 +90,7 @@
       };
     },
     computed: {
-      styles () {
+      styles() {
         if (this.flod) {
           return {
             width: '360px',
@@ -100,7 +100,7 @@
           width: this.layoutWidth,
         };
       },
-      rightStyles () {
+      rightStyles() {
         const paddingBottom = 20;
         return {
           height: `calc(100vh -  ${this.layoutOffsetTop + paddingBottom}px)`,
@@ -109,7 +109,7 @@
     },
     watch: {
       flod: {
-        handler (flod) {
+        handler(flod) {
           if (flod) {
             setTimeout(() => {
               this.isShowRight = flod;
@@ -121,7 +121,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.init();
       window.addEventListener('resize', this.init);
       this.$once('hook:beforeDestroy', () => {
@@ -132,16 +132,16 @@
       /**
        * @desc 根据屏幕尺寸动态计算 layout 的位置信息
        */
-      init () {
+      init() {
         const layoutWidth = this.$refs.layout.getBoundingClientRect().width;
         this.layoutWidth = `${layoutWidth}px`;
         const offsetTop = getOffset(this.$refs.layout).top;
         this.layoutOffsetTop = offsetTop;
       },
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
       },
-      handleClose () {
+      handleClose() {
         leaveConfirm()
           .then(() => {
             this.isOpen = false;

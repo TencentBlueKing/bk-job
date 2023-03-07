@@ -28,19 +28,19 @@
 import AppManageSource from '../source/app-manage';
 
 export default {
-  fetchAppList () {
+  fetchAppList() {
     return AppManageSource.getWholeAppList()
       .then(({ data }) => Object.freeze(data.data));
   },
-  fetchWholeAppList () {
+  fetchWholeAppList() {
     return AppManageSource.getWholeAppList()
       .then(({ data }) => Object.freeze(data));
   },
-  favorApp (params) {
+  favorApp(params) {
     return AppManageSource.updateFavorApp(params)
       .then(({ data }) => data);
   },
-  cancelFavorApp (params) {
+  cancelFavorApp(params) {
     return AppManageSource.updateCancelFavorApp(params)
       .then(({ data }) => data);
   },

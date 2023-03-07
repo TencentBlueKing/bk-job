@@ -79,7 +79,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShowPopover: false,
         confirmReason: '',
@@ -91,7 +91,7 @@
       };
     },
     computed: {
-      popoverCom () {
+      popoverCom() {
         if (this.data.isApproval) {
           return ApprovalView;
         }
@@ -100,7 +100,7 @@
         }
         return NormalView;
       },
-      popoverStyles () {
+      popoverStyles() {
         const { top, left, zIndex } = this.popoverPosition;
         return {
           position: 'absolute',
@@ -110,17 +110,17 @@
         };
       },
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.destroyePopover();
     },
     methods: {
-      handleSelect () {
+      handleSelect() {
         this.$emit('on-select', this.data);
       },
-      handleTaskStatusUpdate (payload) {
+      handleTaskStatusUpdate(payload) {
         this.$emit('on-update', payload);
       },
-      handleShowPopover () {
+      handleShowPopover() {
         if (activeHandler) {
           activeHandler.handleHidePopover();
         }
@@ -161,17 +161,17 @@
         });
       },
 
-      handleHidePopover () {
+      handleHidePopover() {
         this.isShowPopover = false;
       },
 
-      handleClickoutside (event) {
+      handleClickoutside(event) {
         if (getParentElementByClass(event.target, 'task-status-bar-step-popover')) {
           return;
         }
         this.handleHidePopover();
       },
-      destroyePopover () {
+      destroyePopover() {
         activeHandler = null;
         if (this.$refs.popover.$el) {
           this.$refs.popover.$el.parentNode.removeChild(this.$refs.popover.$el);

@@ -90,7 +90,7 @@
         default: I18n.t('template.初始值'),
       },
     },
-    data () {
+    data() {
       return {
         position: 'left',
         width: 300,
@@ -99,12 +99,12 @@
       };
     },
     computed: {
-      classes () {
+      classes() {
         return {
           [`arrow-position-${this.position}`]: true,
         };
       },
-      styles () {
+      styles() {
         return {
           position: 'absolute',
           top: `${this.top}px`,
@@ -114,18 +114,20 @@
         };
       },
     },
-    mounted () {
+    mounted() {
       this.init();
     },
-    beforeDestroy () {
+    beforeDestroy() {
       try {
         if (this.$refs.detail && document.body.hasChildNodes(this.$refs.detail)) {
           document.body.removeChild(this.$refs.detail);
         }
-      } catch (error) {}
+      } catch (error) {
+        console.log(error);
+      }
     },
     methods: {
-      init () {
+      init() {
         const windowWidth = window.innerWidth;
         const $target = document.querySelector(`#globalVariableWithName_${this.data.name}`);
         const { top, left } = $target.getBoundingClientRect();

@@ -247,7 +247,7 @@
       JbPopoverConfirm,
       RelatedTicket,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         tableSize: 'small',
@@ -261,16 +261,16 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
-      operationSidesliderInfo () {
+      operationSidesliderInfo() {
         if (!this.ticketDetailInfo.id) {
           return {
             title: I18n.t('ticket.新建凭证'),
@@ -284,7 +284,7 @@
         };
       },
     },
-    created () {
+    created() {
       this.getTicketList = TicketService.fetchListWithRelate;
       this.sourceFilters = [
         {
@@ -400,7 +400,7 @@
       /**
        * @desc 获取凭证数据列表
        */
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', {
           ...this.searchParams,
         });
@@ -411,7 +411,7 @@
        *
        * 显示新建凭证模板
        */
-      handleCreate () {
+      handleCreate() {
         this.showOpertionSideslider = true;
         this.ticketDetailInfo = {};
       },
@@ -422,7 +422,7 @@
        *
        * 显示被引用模板详情
        */
-      handleShowRelated (id) {
+      handleShowRelated(id) {
         this.credentialId = id;
         this.showRelatedSideslider = true;
       },
@@ -433,7 +433,7 @@
        *
        * 重新拉取数据
        */
-      handleSearch (searchParams) {
+      handleSearch(searchParams) {
         this.searchParams = searchParams;
         this.fetchData();
       },
@@ -441,7 +441,7 @@
       /**
        * @desc 设置表格显示列/表格size
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -455,13 +455,13 @@
        *
        * 重新拉取列表数据
        */
-      handleChange () {
+      handleChange() {
         this.fetchData();
         this.relatedNum = [];
         this.fetchCitedNum();
       },
 
-      handelFilterType (value, row, column) {
+      handelFilterType(value, row, column) {
         const { property } = column;
         return row[property] === value;
       },
@@ -472,7 +472,7 @@
        *
        * 显示编辑凭证数据模板
        */
-      handleEdit (payload) {
+      handleEdit(payload) {
         this.ticketDetailInfo = payload;
         this.showOpertionSideslider = true;
       },
@@ -483,7 +483,7 @@
        *
        * 删除成功重新拉取列表数据
        */
-      handleDelete (id) {
+      handleDelete(id) {
         TicketService.remove({
           id,
         }).then(() => {

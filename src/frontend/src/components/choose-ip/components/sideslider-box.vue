@@ -80,14 +80,14 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         styles: {},
       };
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           if (value) {
             this.styles = {
               'z-index': window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
@@ -98,7 +98,7 @@
       },
     },
     methods: {
-      handleClose () {
+      handleClose() {
         this.$emit('input', false);
         this.$emit('change', false);
       },

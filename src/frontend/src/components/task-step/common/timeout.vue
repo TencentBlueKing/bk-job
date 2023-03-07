@@ -75,11 +75,17 @@
         default: () => ({}),
       },
     },
+    beforeDestroy() {
+      if (this.popperInstance) {
+        this.popperInstance.hide();
+        this.popperInstance.destroy();
+      }
+    },
     methods: {
       /**
        * @desc 显示tips
        */
-      showTips () {
+      showTips() {
         if (!this.popperInstance) {
           this.popperInstance = Tippy(this.$refs.input.$el, {
             arrow: true,
@@ -97,13 +103,13 @@
           });
           this.popperInstance.setContent(this.$refs.tips);
         }
-                
+
         this.popperInstance.show();
       },
       /**
        * @desc 隐藏tips
        */
-      hideTips () {
+      hideTips() {
         if (this.isMouseenter) {
           return;
         }
@@ -112,14 +118,14 @@
       /**
        * @desc 鼠标移入的时候显示tips
        */
-      handleMouseenter () {
+      handleMouseenter() {
         clearTimeout(this.hideTimer);
         this.showTips();
       },
       /**
        * @desc 鼠标移出的时候隐藏tips
        */
-      handleMouseleave () {
+      handleMouseleave() {
         this.isMouseenter = false;
         this.hideTimer = setTimeout(() => {
           if (!this.isInputFocus) {
@@ -130,25 +136,25 @@
       /**
        * @desc 获得焦点是显示ips
        */
-      handleInputFocus () {
+      handleInputFocus() {
         this.isInputFocus = true;
         this.showTips();
       },
       /**
        * @desc 失去焦点是显示ips
        */
-      handleInputBlur () {
+      handleInputBlur() {
         this.isInputFocus = false;
         this.hideTips();
       },
       /**
        * @desc 鼠标在tips内部时取消隐藏tips定时器
        */
-      handleTipsMouseenter () {
+      handleTipsMouseenter() {
         clearTimeout(this.hideTimer);
         this.isMouseenter = true;
       },
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

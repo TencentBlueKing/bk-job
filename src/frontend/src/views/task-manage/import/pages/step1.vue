@@ -72,10 +72,10 @@
       ActionBar,
     },
     methods: {
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancle');
       },
-      handleNext () {
+      handleNext() {
         this.$emit('on-change', 2);
       },
     },

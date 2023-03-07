@@ -77,7 +77,7 @@
       GlobalVariableLayout,
       GlobalVariable,
     },
-    data () {
+    data() {
       return {
         taskName: '',
         taskVariables: [],
@@ -88,11 +88,11 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.taskInstanceId = this.$route.params.taskInstanceId;
       this.fetchData();
     },
@@ -100,7 +100,7 @@
       /**
        * @desc 获取任务详情数据
        */
-      fetchData () {
+      fetchData() {
         TaskExecuteService.fetchTaskInstance({
           id: this.taskInstanceId,
         }).then((data) => {
@@ -128,7 +128,7 @@
       /**
        * @desc 任务重做执行
        */
-      handleGoExec () {
+      handleGoExec() {
         if (!this.$refs.variable) {
           return;
         }
@@ -165,13 +165,13 @@
       /**
        * @desc 取消重做
        */
-      handleCancle () {
+      handleCancle() {
         this.routerBack();
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'historyList',
         });

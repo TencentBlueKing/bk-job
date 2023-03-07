@@ -41,7 +41,7 @@
   export default {
     name: '',
 
-    data () {
+    data() {
       return {};
     },
 

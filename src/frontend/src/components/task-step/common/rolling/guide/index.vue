@@ -45,17 +45,17 @@
 
   export default {
     name: '',
-    data () {
+    data() {
       return {
       };
     },
     computed: {
-      contentHtml () {
+      contentHtml() {
         return this.$i18n.locale === 'zh-CN' ? expr : exprEN;
       },
     },
     methods: {
-      handleClose () {
+      handleClose() {
         this.$emit('on-close');
       },
     },

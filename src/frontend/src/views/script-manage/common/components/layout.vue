@@ -63,7 +63,7 @@
 
   export default {
     name: '',
-    data () {
+    data() {
       return {
         showContent: !this.loading,
         offsetLeft: 0,
@@ -72,14 +72,14 @@
       };
     },
     computed: {
-      contentStyles () {
+      contentStyles() {
         const offset = this.contentOffsetTop + PAGE_PADDING_BOTTOM + this.footerHeight;
         return {
           height: `calc(100vh - ${offset}px)`,
         };
       },
     },
-    mounted () {
+    mounted() {
       this.contentOffsetTop = getOffset(this.$refs.content).top;
     },
   };

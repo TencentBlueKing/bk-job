@@ -121,7 +121,7 @@
         default: 'edit',
       },
     },
-    data () {
+    data() {
       return {
         showEdit: false,
         isError: false,
@@ -131,13 +131,13 @@
       };
     },
     computed: {
-      displayRows () {
+      displayRows() {
         return this.renderValue.slice(0, DISPLAY_ROW_NUMS);
       },
-      hasMore () {
+      hasMore() {
         return this.renderValue.length > DISPLAY_ROW_NUMS;
       },
-      styles () {
+      styles() {
         if (this.showEdit) {
           return {
             visibility: 'hidden',
@@ -150,7 +150,7 @@
     },
     watch: {
       value: {
-        handler  (newValue) {
+        handler(newValue) {
           this.renderValue = newValue;
           this.tempValue = newValue.join('\n');
         },
@@ -158,27 +158,27 @@
       },
     },
     methods: {
-      handleShowEdit () {
+      handleShowEdit() {
         this.showEdit = true;
         this.$nextTick(() => {
           this.$refs.pathEdit.focus();
         });
       },
-      handleEditChange (value) {
+      handleEditChange(value) {
         this.error = '';
         if (!value) {
           this.error = I18n.t('路径不能为空');
         }
         this.tempValue = value;
       },
-      handleEditSubmit () {
+      handleEditSubmit() {
         if (this.error) {
           this.$refs.pathEdit.focused = true;
           return;
         }
-                
+
         const realValue = formatValue(this.tempValue);
-                
+
         const hasError = !realValue.every(item => filePathRule.validator(item));
         if (hasError) {
           this.error = I18n.t('路径格式不正确');
@@ -190,7 +190,7 @@
         this.renderValue = realValue;
         this.$emit('on-change', realValue);
       },
-      handleCreateSubmit (value) {
+      handleCreateSubmit(value) {
         this.tempValue = value;
         const realValue = formatValue(this.tempValue);
         const isError = !realValue.every(item => filePathRule.validator(item));
@@ -202,7 +202,7 @@
         this.renderValue = realValue;
         this.$emit('on-change', realValue);
       },
-      handleCreteaBlur () {
+      handleCreteaBlur() {
         if (this.error) {
           this.$refs.pathSubmit.focused = true;
         }

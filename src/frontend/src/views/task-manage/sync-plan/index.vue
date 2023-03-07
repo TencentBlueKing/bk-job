@@ -62,7 +62,7 @@
       Step2,
       Step3,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         curStep: 1,
@@ -71,7 +71,7 @@
       };
     },
     computed: {
-      stepCom () {
+      stepCom() {
         const comMap = {
           1: Step1,
           2: Step2,
@@ -80,10 +80,10 @@
         return comMap[this.curStep];
       },
     },
-    created () {
+    created() {
       this.id = this.$route.params.id;
       this.templateId = this.$route.params.templateId;
-            
+
       this.stepList = [
         { title: I18n.t('template.差异总览'), icon: 1 },
         { title: I18n.t('template.差异明细'), icon: 2 },
@@ -97,7 +97,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData (id) {
+      fetchData(id) {
         this.$request(TaskPlanService.fetchSyncInfo({
           id: this.id,
           templateId: this.templateId,
@@ -147,14 +147,14 @@
             this.isLoading = false;
           });
       },
-      handleStepChange (payload) {
+      handleStepChange(payload) {
         this.curStep = payload;
       },
-      handleCancel () {
+      handleCancel() {
         this.routerBack();
       },
 
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'viewPlan') {
           this.$router.push({

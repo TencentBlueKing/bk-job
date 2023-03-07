@@ -78,20 +78,20 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         width: 0,
       };
     },
     computed: {
-      realCom () {
+      realCom() {
         if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
           return 'div';
         }
         return comMap[this.type];
       },
     },
-    mounted () {
+    mounted() {
       this.init();
       window.addEventListener('resize', this.init);
       this.$once('hook:beforeDestroy', () => {
@@ -99,7 +99,7 @@
       });
     },
     methods: {
-      init () {
+      init() {
         if (!this.$refs.wraper) {
           return;
         }

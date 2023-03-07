@@ -122,7 +122,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isEmpty: false,
@@ -131,11 +131,11 @@
       };
     },
     computed: {
-      detailInfo () {
+      detailInfo() {
         return this.timeTaskList.find(item => item.id === this.currentTaskId) || {};
       },
     },
-    created () {
+    created() {
       this.id = this.$route.params.id;
       this.templateId = this.$route.params.templateId;
       this.templateVariableList = this.templateInfo.variables;
@@ -145,7 +145,7 @@
       /**
        * @desc 获取执行方案关联的定时任务列表
        */
-      fetchTimeTaskList () {
+      fetchTimeTaskList() {
         this.isLoading = true;
         TimeTaskService.fetchTaskOfPlan({
           id: this.id,
@@ -167,7 +167,7 @@
        * @desc 切换定时任务
        * @param {Number} id 定时任务id
        */
-      handleTabChange (id) {
+      handleTabChange(id) {
         this.currentTaskId = id;
       },
       /**
@@ -175,7 +175,7 @@
        * @param {Number} id 定时任务id
        * @param {Boolean} enable 开启状态
        */
-      handleEnableChange (id, enable) {
+      handleEnableChange(id, enable) {
         const timeTask = this.timeTaskList.find(item => item.id === id);
         timeTask.enable = enable;
         window.changeFlag = true;
@@ -184,7 +184,7 @@
        * @desc 更新定时任务的开启状态
        * @param {Array} variableValue 定时任务中全局变量
        */
-      handleVariableChange (variableValue) {
+      handleVariableChange(variableValue) {
         const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
         timeTask.variableValue = variableValue;
         timeTask.hasConfirm = true;
@@ -194,7 +194,7 @@
        * @desc 更新定时任务同步的确认状态
        * @param {Boolean} comfirm 定时任务的确认状态
        */
-      handleUpdateConfirm (comfirm) {
+      handleUpdateConfirm(comfirm) {
         const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
         timeTask.hasConfirm = comfirm;
         window.changeFlag = true;
@@ -202,7 +202,7 @@
       /**
        * @desc 提交定时任务的确认操作
        */
-      handleSubmit () {
+      handleSubmit() {
         const hasAllConfirm = this.timeTaskList.filter(item => item.enable).every(item => item.hasConfirm);
         if (!hasAllConfirm) {
           this.messageWarn(I18n.t('template.有定时任务还未确认'));
@@ -238,7 +238,7 @@
       /**
        * @desc 回退到上一步
        */
-      handleLast () {
+      handleLast() {
         leaveConfirm()
           .then(() => {
             this.$emit('on-change', 2);
@@ -247,7 +247,7 @@
       /**
        * @desc 取消同步
        */
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancel');
       },
     },

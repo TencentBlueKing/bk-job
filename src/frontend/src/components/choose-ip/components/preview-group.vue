@@ -77,20 +77,20 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         statisticsData: {},
         list: [],
       };
     },
-    created () {
+    created() {
       if (this.data.id) {
         this.fetchDynamicGroup();
       }
     },
     methods: {
-      fetchDynamicGroup () {
+      fetchDynamicGroup() {
         this.isLoading = true;
         HostManageService.fetchHostOfDynamicGroup({
           id: this.data.id,
@@ -106,7 +106,7 @@
             this.isLoading = false;
           });
       },
-      handleClose () {
+      handleClose() {
         this.list = [];
         this.statisticsData = {};
         this.$emit('input', false);

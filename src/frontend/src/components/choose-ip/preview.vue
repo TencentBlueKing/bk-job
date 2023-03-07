@@ -90,13 +90,13 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         hostNodeInfoLocal: {},
       };
     },
     computed: {
-      hostNodeInfo () {
+      hostNodeInfo() {
         return {
           ipList: this.host,
           dynamicGroupList: this.group,
@@ -107,7 +107,7 @@
        * @desc 选择结果的展示
        * @returns {String}
        */
-      resultText () {
+      resultText() {
         const {
           dynamicGroupList = [],
           ipList = [],
@@ -132,30 +132,30 @@
     },
     watch: {
       hostNodeInfo: {
-        handler (hostNodeInfo) {
+        handler(hostNodeInfo) {
           this.hostNodeInfoLocal = Object.freeze(hostNodeInfo);
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.innerChange = false;
     },
     methods: {
-      getElementTarget () {
+      getElementTarget() {
         return document.querySelector('#chooseIPServerPreview');
       },
-      handleServerPanelChange (hostNodeInfo) {
+      handleServerPanelChange(hostNodeInfo) {
         this.innerChange = true;
         this.hostNodeInfoLocal = Object.freeze(hostNodeInfo);
       },
-      handleSubmit () {
+      handleSubmit() {
         if (this.innerChange) {
           this.$emit('on-change', this.hostNodeInfoLocal);
         }
         this.handleClose();
       },
-      handleClose () {
+      handleClose() {
         this.innerChange = false;
         this.$emit('input', false);
         this.$emit('change', false);

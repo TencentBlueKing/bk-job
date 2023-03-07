@@ -57,7 +57,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isAddServeFile: false,
         fileSources: [],
@@ -65,7 +65,7 @@
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           this.fileSources = Object.freeze(formData[this.field].map((fileItem) => {
             const fileSource = new SourceFileVO(fileItem);
             fileSource.loaded = 1;
@@ -77,7 +77,7 @@
       },
     },
     methods: {
-      handleSourceFileChange (payload) {
+      handleSourceFileChange(payload) {
         const originFileList = payload.map(fileItem => ({
           fileHash: fileItem.fileHash,
           fileLocation: fileItem.fileLocation,
@@ -88,7 +88,7 @@
           id: fileItem.id,
           fileSourceId: fileItem.fileSourceId,
         }));
-                
+
         this.$emit('on-change', this.field, Object.freeze(originFileList));
       },
     },

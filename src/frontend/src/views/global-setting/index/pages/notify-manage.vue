@@ -115,7 +115,7 @@
       JbSideslider,
       editOfTemplate,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isSubmiting: false,
@@ -133,7 +133,7 @@
         users: [],
       };
     },
-    created () {
+    created() {
       this.backlistConfig = {
         width: 202,
         placement: 'top',
@@ -145,7 +145,7 @@
       this.usersMemo = [];
     },
     methods: {
-      fetchAllChannelConfig () {
+      fetchAllChannelConfig() {
         GlobalSettingService.fetchAllNotifyChannelConfig({}, {
           permission: 'page',
         }).then((data) => {
@@ -162,7 +162,7 @@
             this.isLoading = false;
           });
       },
-      fetchAllUserBlacklist () {
+      fetchAllUserBlacklist() {
         GlobalSettingService.fetchAllUserBlacklist({}, {
           permission: 'page',
         }).then((data) => {
@@ -170,10 +170,10 @@
           this.usersMemo = [...this.users];
         });
       },
-      handleBlackListChange (user, role) {
+      handleBlackListChange(user, role) {
         this.formData.users = user;
       },
-      handleToggleChannel (code) {
+      handleToggleChannel(code) {
         const index = this.formData.channelCode.indexOf(code);
         if (index > -1) {
           this.formData.channelCode.splice(index, 1);
@@ -181,7 +181,7 @@
           this.formData.channelCode.push(code);
         }
       },
-      handleEditTemplate (channel, template) {
+      handleEditTemplate(channel, template) {
         GlobalSettingService.fetchChannelTemplate({
           channelCode: channel,
           messageTypeCode: template,
@@ -195,7 +195,7 @@
             this.showTemplateEdit = true;
           });
       },
-      handleSave () {
+      handleSave() {
         this.isSubmiting = true;
         Promise.all([
           GlobalSettingService.updateNotifyChannel({
@@ -216,14 +216,14 @@
             this.isSubmiting = false;
           });
       },
-      handleReset () {
+      handleReset() {
         this.formData.channelCode = [...this.channelCodeMemo];
         this.formData.users = [...this.usersMemo];
       },
-      handleNotifyContent (value, filed) {
+      handleNotifyContent(value, filed) {
         this.templateDetail[filed] = value;
       },
-      handleTriggerSave () {
+      handleTriggerSave() {
         this.$refs.editTemplate.$refs.templateForm.validate().then(() => {
           const { code, messageTypeCode, content, title } = this.templateDetail;
           const params = {
@@ -242,10 +242,10 @@
             });
         });
       },
-      handleTriggerReset () {
+      handleTriggerReset() {
         this.templateDetail = _.cloneDeep(this.currentTemplate);
       },
-      handleTriggerInit () {
+      handleTriggerInit() {
         this.templateDetail = _.cloneDeep(this.currentDefaultTemplate);
       },
     },

@@ -72,7 +72,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isShowDialog: false,
         isLoading: true,
@@ -80,7 +80,7 @@
       };
     },
     watch: {
-      templateId (templateId) {
+      templateId(templateId) {
         if (templateId < 0) {
           return;
         }
@@ -88,7 +88,7 @@
       },
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         TaskManageService.taskDetail({
           id: this.templateId,
@@ -99,10 +99,10 @@
             this.isLoading = false;
           });
       },
-      handleClose () {
+      handleClose() {
         this.$emit('on-close');
       },
-      handleConfirmCron (cronJonList) {
+      handleConfirmCron(cronJonList) {
         this.$emit('on-change', cronJonList);
       },
     },

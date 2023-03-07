@@ -80,7 +80,7 @@
         ].includes(value),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         wholeList: [],
@@ -92,7 +92,7 @@
       /**
        * @desc 页面展示的账号列表
        */
-      accountList () {
+      accountList() {
         if (this.type === 'system') {
           return this.systemAccountList;
         }
@@ -106,18 +106,18 @@
       /**
        * @desc 账号类型改变时重新显示账号列表
        */
-      type () {
+      type() {
         this.initDefaultAccount();
       },
     },
-    created () {
+    created() {
       this.fetchAppAccount();
     },
     methods: {
       /**
        * @desc 获取完整的账号列表
        */
-      fetchAppAccount () {
+      fetchAppAccount() {
         this.isLoading = true;
         AccountManageService.fetchAccountWhole()
           .then((data) => {
@@ -142,7 +142,7 @@
       /**
        * @desc 账号列表的默认选中值
        */
-      initDefaultAccount () {
+      initDefaultAccount() {
         // 编辑状态
         // 现有账号不存在于当前账号列表中默认重置为空
         if (this.value) {
@@ -167,7 +167,7 @@
           this.handleChange(rootAccount.id);
           return;
         }
-                
+
         // 3，使用第一个账号
         const [firstAccount] = this.accountList;
         if (firstAccount) {
@@ -177,7 +177,7 @@
       /**
        * @desc 跳转到创建账号页面
        */
-      handleCreate () {
+      handleCreate() {
         const { href } = this.$router.resolve({
           name: 'accountList',
         });
@@ -188,7 +188,7 @@
        * @desc select 的下面板展开时重新获取最新账号数据
        * @param {Boolean} toogle 下拉面板的展开收起状态
        */
-      handleClick (toggle) {
+      handleClick(toggle) {
         if (toggle) {
           this.fetchAppAccount();
         }
@@ -197,7 +197,7 @@
        * @desc 用户选中账号
        * @param {Number} 选中的账号ID
        */
-      handleChange (value) {
+      handleChange(value) {
         if (value === this.value) {
           return;
         }

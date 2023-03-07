@@ -167,7 +167,7 @@
         }),
       },
     },
-    data () {
+    data() {
       return {
         accountList: [],
         templateVariableList: [],
@@ -180,7 +180,7 @@
         stepDiff: {},
       };
     },
-    created () {
+    created() {
       this.isView = this.$route.query.mode === 'view';
       this.fetchAccount();
       this.init();
@@ -189,7 +189,7 @@
       /**
        * @desc 计算差异
        */
-      init () {
+      init() {
         const templateInfoVariableList = _.cloneDeep(this.templateInfo.variables);
         const templateInfoStepList = _.cloneDeep(this.templateInfo.stepList);
         const planInfoVariableList = _.cloneDeep(this.planInfo.variableList);
@@ -230,7 +230,7 @@
       /**
        * @desc 获取账号列表
        */
-      fetchAccount () {
+      fetchAccount() {
         AccountManageService.fetchAccountWhole()
           .then((data) => {
             this.accountList = data;
@@ -239,19 +239,19 @@
       /**
        * @desc 回退到上一步
        */
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 1);
       },
       /**
        * @desc 下一步
        */
-      handleNext () {
+      handleNext() {
         this.$emit('on-change', 3);
       },
       /**
        * @desc 取消同步
        */
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancel');
       },
     },

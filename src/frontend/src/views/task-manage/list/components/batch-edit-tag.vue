@@ -156,7 +156,7 @@
       },
     },
     emit: ['on-change'],
-    setup (props, ctx) {
+    setup(props, ctx) {
       const state = reactive({
         isLoading: true,
         isShowCreate: false,

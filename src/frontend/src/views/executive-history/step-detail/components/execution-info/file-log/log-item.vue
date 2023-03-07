@@ -36,7 +36,7 @@
 
   export default {
     functional: true,
-    render (h, context) {
+    render(h, context) {
       const { props, listeners, parent } = context;
       const {
         data,

@@ -143,7 +143,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShowDetail: false,
         isShowDiff: false,
@@ -157,17 +157,17 @@
       };
     },
     computed: {
-      isNotEmpty () {
+      isNotEmpty() {
         return this.variableName || this.ipText;
       },
-      diffEnable () {
+      diffEnable() {
         if (isHostEmpty(this.preHost) || isHostEmpty(this.lastHost)) {
           return false;
         }
         return !this.hostEqual;
       },
     },
-    created () {
+    created() {
       const { hostNodeInfo } = new TaskHostNodeModel({});
       this.originHostNodeInfo = Object.freeze(hostNodeInfo);
       this.hostNodeInfo = Object.freeze(hostNodeInfo);
@@ -179,14 +179,14 @@
       this.composeGroup = [];
       this.diffGroupMemo = {};
     },
-    mounted () {
+    mounted() {
       this.stepParent = findParent(this, 'DiffTaskStep');
       this.dataSourceParent = findParent(this, 'SyncPlanStep2');
       this.init();
       this.checkDiff();
     },
     methods: {
-      init () {
+      init() {
         let host = this.preHost;
         if (this.stepParent.type === 'sync-after') {
           host = this.lastHost;
@@ -203,10 +203,10 @@
         }
         this.hostNodeInfo = this.originHostNodeInfo;
       },
-      checkDiff () {
+      checkDiff() {
         let preValue = this.preHost.hostNodeInfo;
         let lastValue = this.lastHost.hostNodeInfo;
-                
+
         // 优先判断是否使用全局主机变量
         if (this.preHost.variable) {
           const curVariable = findVariable(this.dataSourceParent.planVariableList, this.preHost.variable);
@@ -220,7 +220,7 @@
             lastValue = curVariable.defaultTargetValue.hostNodeInfo;
           }
         }
-                
+
         // 对比节点
         const nodeDiffMap = {};
         const nodeList = [];
@@ -245,7 +245,7 @@
             this.hostEqual = false;
           }
         });
-                
+
         // 对比主机
         const hostDiffMap = {};
         const hostList = [];
@@ -286,7 +286,7 @@
             dynamicGroupList.push(group);
           }
         });
-                
+
         this.composeGroup = Object.freeze(dynamicGroupList);
         this.diffGroupMemo = Object.freeze(groupDiffMap);
         Object.values(this.diffGroupMemo).forEach((value) => {
@@ -295,7 +295,7 @@
           }
         });
       },
-      handlerView () {
+      handlerView() {
         this.hostNodeInfo = this.originHostNodeInfo;
         this.nodeDiff = {};
         this.hostDiff = {};
@@ -303,7 +303,7 @@
         this.isShowDetail = true;
         this.isShowDiff = false;
       },
-      handleToggleDiff (value) {
+      handleToggleDiff(value) {
         if (value) {
           this.hostNodeInfo = Object.freeze({
             dynamicGroupList: this.composeGroup,

@@ -218,7 +218,7 @@
       FileOpertion,
       JbPopoverConfirm,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         tableSize: 'small',
@@ -229,10 +229,10 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.fileSourcelist.isLoading;
       },
-      operationSidesliderInfo () {
+      operationSidesliderInfo() {
         if (this.fileSourceDetailInfo.id) {
           return {
             title: I18n.t('file.编辑文件源'),
@@ -244,14 +244,14 @@
           okText: I18n.t('file.提交'),
         };
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
     },
-    created () {
+    created() {
       this.fetchFileSourceList = FileManageService.fetchFileSourceList;
       this.searchSelect = [
         {
@@ -308,7 +308,7 @@
       /**
        * @desc 获取文件夹数据
        */
-      fetchData () {
+      fetchData() {
         this.$refs.fileSourcelist.$emit('onFetch', {
           ...this.searchParams,
         });
@@ -319,7 +319,7 @@
        *
        * 显示新建文件源模板
        */
-      handleCreate () {
+      handleCreate() {
         this.fileSourceDetailInfo = {};
         this.isShowSideslider = true;
       },
@@ -330,7 +330,7 @@
        *
        * 显示编辑文件源模板
        */
-      handleEdit (payload) {
+      handleEdit(payload) {
         this.fileSourceDetailInfo = payload;
         this.isShowSideslider = true;
       },
@@ -340,7 +340,7 @@
        *
        * 重新拉取数据
        */
-      handleFileSourceChange () {
+      handleFileSourceChange() {
         this.fetchData();
       },
 
@@ -349,7 +349,7 @@
        * @param {Boolean} value 是否开启
        * @param {Object} row 文件源详情数据
        */
-      hanldeToggleEnable (value, row) {
+      hanldeToggleEnable(value, row) {
         const enableMemo = row.enable;
         FileManageService.toggleSourceEnable({
           flag: value,
@@ -365,7 +365,7 @@
       /**
        * @desc 设置表格显示列/表格size
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -380,7 +380,7 @@
        *
        * 重新拉取数据
        */
-      handleSearch (payload) {
+      handleSearch(payload) {
         this.searchParams = payload;
         this.fetchData();
       },
@@ -391,7 +391,7 @@
        *
        * 删除成功重新拉取数据
        */
-      handleDelete (id) {
+      handleDelete(id) {
         FileManageService.removeSource(id)
           .then((res) => {
             this.messageSuccess(I18n.t('file.删除成功'));
@@ -403,7 +403,7 @@
        * @desc 跳转到bucket存储桶列表
        * @param {Object} row 文件源详情数据
        */
-      handelGoBucket (row) {
+      handelGoBucket(row) {
         this.$router.push({
           name: 'bucketList',
           query: {

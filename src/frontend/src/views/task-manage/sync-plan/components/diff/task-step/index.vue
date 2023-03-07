@@ -89,10 +89,10 @@
       },
     },
     computed: {
-      infoCom () {
+      infoCom() {
         return comMap[this.data.type];
       },
-      info () {
+      info() {
         const fieldMap = {
           [TaskStepModel.TYPE_SCRIPT]: 'scriptStepInfo',
           [TaskStepModel.TYPE_FILE]: 'fileStepInfo',
@@ -100,14 +100,14 @@
         };
         return this.data[fieldMap[this.data.type]];
       },
-      classes () {
+      classes() {
         const diffKey = `${this.data.realId}`;
         if (this.diff[diffKey]) {
           return this.diff[diffKey].type;
         }
         return '';
       },
-      diffValue () {
+      diffValue() {
         const diffKey = `${this.data.realId}`;
         if (this.diff[diffKey]) {
           return this.diff[diffKey].value || {};

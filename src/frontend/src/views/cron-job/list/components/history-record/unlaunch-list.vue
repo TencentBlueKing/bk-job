@@ -69,20 +69,20 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         searchParams: {},
       };
     },
-    created () {
+    created() {
       this.searchParams.cronTaskId = this.data.id;
       this.fetchUnlaunchHistory = TimeTaskService.fetchUnlaunchHistory;
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', this.searchParams);
       },
     },

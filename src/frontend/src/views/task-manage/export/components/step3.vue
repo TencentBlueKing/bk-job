@@ -168,7 +168,7 @@
   import I18n from '@/i18n';
 
   export default {
-    data () {
+    data() {
       this.rules = {};
       return {
         isSubmiting: false,
@@ -184,13 +184,13 @@
       };
     },
     computed: {
-      isPasswordRequired () {
+      isPasswordRequired() {
         return this.formData.isEncrypt === 1;
       },
-      passwordLengthResult () {
+      passwordLengthResult() {
         return this.formData.password.length >= 6 && this.formData.password.length <= 20;
       },
-      passwordFormatResult () {
+      passwordFormatResult() {
         return !/^[A-Za-z0-9]*$/.test(this.formData.password);
       },
     },
@@ -199,7 +199,7 @@
        * @desc 文件加密时需要验证密码
        */
       'formData.isEncrypt': {
-        handler (isEncrypt) {
+        handler(isEncrypt) {
           const passwordRule = [
             {
               validator: (val) => {
@@ -248,7 +248,7 @@
       /**
        * @desc 自定义文件有效期时对输入框的值进行验证
        */
-      'formData.expireTime' () {
+      'formData.expireTime'() {
         if (this.formData.expireTime === 'custom') {
           this.rules.customNum = [
             {
@@ -267,7 +267,7 @@
         }
       },
     },
-    created () {
+    created() {
       this.expireTimeList = [
         { id: 0, name: I18n.t('template.永久') },
         { id: 1, name: I18n.t('template.1 天') },
@@ -320,13 +320,13 @@
       });
     },
     methods: {
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancle');
       },
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 2);
       },
-      handleNext () {
+      handleNext() {
         const templateInfo = taskExport.getItem('templateInfo');
         if (!templateInfo) {
           return;

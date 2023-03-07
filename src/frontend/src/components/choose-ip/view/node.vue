@@ -178,7 +178,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isNodeListLoading: true,
@@ -190,7 +190,7 @@
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (this.isInnerChange) {
             this.isInnerChange = false;
             return;
@@ -204,7 +204,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.isInnerChange = false;
       // 缓存数据用查看节点的主机详情
       this.nodeMap = {};
@@ -213,14 +213,14 @@
       /**
        * 获取节点的信息
        */
-      fetchNodeDetail () {
+      fetchNodeDetail() {
         this.isLoading = true;
         this.isNodeListLoading = true;
         const wholeNodeMap = this.data.reduce((result, node) => {
           result[`#${node.type}#${node.id}`] = node;
           return result;
         }, {});
-                
+
         HostManageService.fetchNodePath(this.data)
           .then((data) => {
             this.nodeMap = {};
@@ -262,7 +262,7 @@
       /**
        * 获取节点的主机信息
        */
-      fetchHostOfNode () {
+      fetchHostOfNode() {
         const nodeMap = this.list.reduce((result, item) => {
           result[item.key] = Object.assign({}, item, {
             isHostLoading: true,
@@ -315,7 +315,7 @@
       /**
        * @desc 外部调用获取所有节点下的主机
        */
-      getAllHost () {
+      getAllHost() {
         const stack = [];
         for (const nodeId in this.nodeMap) {
           stack.push(...this.nodeMap[nodeId].host);
@@ -325,11 +325,11 @@
       /**
        * @desc 外部调用移除所有无效的分组
        */
-      removeAllInvalidHost () {
+      removeAllInvalidHost() {
         this.invalidList = [];
         this.triggerChange();
       },
-      triggerChange () {
+      triggerChange() {
         this.isInnerChange = true;
         this.$emit('on-change', [
           ...this.invalidList,
@@ -339,14 +339,14 @@
       /**
        * @desc 失败重试
        */
-      handleRefresh () {
+      handleRefresh() {
         this.fetchNodeDetail();
       },
       /**
        * @desc 移除无效节点
        * @param {Number} index 节点索引
        */
-      handleInvalidRemove (index) {
+      handleInvalidRemove(index) {
         const invalidList = [
           ...this.invalidList,
         ];
@@ -357,7 +357,7 @@
       /**
        * @desc 移除所有节点
        */
-      handleRemoveAll () {
+      handleRemoveAll() {
         if (this.data.length < 1) {
           this.messageSuccess(I18n.t('你还未选择节点'));
           return;
@@ -373,7 +373,7 @@
        * @desc 移除节点
        * @param {Number} index 节点索引
        */
-      handleRemoveOne (index) {
+      handleRemoveOne(index) {
         // 内部显示删除
         const currentNode = this.list[index];
         const list = [...this.list];
@@ -387,7 +387,7 @@
        * @desc 查看阶段的主机详情
        * @param {String} key 节点key
        */
-      handleViewHostList (key) {
+      handleViewHostList(key) {
         if (this.isNodeListLoading) {
           this.messageError('节点主机列表加载中');
           return;

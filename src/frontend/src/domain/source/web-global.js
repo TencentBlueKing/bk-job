@@ -26,11 +26,11 @@
 import Request from '@utils/request';
 
 class WebGlobal {
-  getVersionLog () {
+  getVersionLog() {
     return Request.get(`${window.location.origin}/static/bundledVersionLog.json`);
   }
 
-  getVersionENLog () {
+  getVersionENLog() {
     return Request.get(`${window.location.origin}/static/bundledVersionLog_en.json`);
   }
 }

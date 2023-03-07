@@ -166,7 +166,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isSubmiting: false,
@@ -175,7 +175,7 @@
       };
     },
     computed: {
-      versionMap () {
+      versionMap() {
         return this.scriptVersionList.reduce((result, item) => {
           if (item.scriptVersionId < 1) {
             return result;
@@ -187,7 +187,7 @@
     },
     watch: {
       scriptInfo: {
-        handler (scriptInfo) {
+        handler(scriptInfo) {
           if (!scriptInfo.id) {
             return;
           }
@@ -212,7 +212,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.scriptManageServiceHandler = this.publicScript ? PublicScriptManageService : ScriptManageService;
       this.rules = {
@@ -254,7 +254,7 @@
         ],
       };
     },
-    mounted () {
+    mounted() {
       this.calcContentHeight();
       const handleResize = _.throttle(this.calcContentHeight, 60);
       window.addEventListener('resize', handleResize);
@@ -266,17 +266,17 @@
       /**
        * @desc 计算内容去高度
        */
-      calcContentHeight () {
+      calcContentHeight() {
         const contentOffsetTop = getOffset(this.$refs.content).top;
         this.contentHeight = window.innerHeight - contentOffsetTop - 66;
       },
-      handleUploadScript () {
+      handleUploadScript() {
         this.$refs.aceEditor.handleUploadScript();
       },
-      handleShowHistory () {
+      handleShowHistory() {
         this.$refs.aceEditor.handleShowHistory();
       },
-      handleFullScreen () {
+      handleFullScreen() {
         this.$refs.aceEditor.handleFullScreen();
       },
       /**
@@ -293,13 +293,13 @@
        * @desc 脚本语言
        * @param {String} scriptType 脚本语言
        */
-      handleTypeChange (scriptType) {
+      handleTypeChange(scriptType) {
         this.formData.type = formatScriptTypeValue(scriptType);
       },
       /**
        * @desc 保存脚本
        */
-      handleSubmit () {
+      handleSubmit() {
         if (!this.formData.content) {
           this.messageError(I18n.t('script.脚本内容不能为空'));
           return;
@@ -325,7 +325,7 @@
       /**
        * @desc 跳转到快速执行脚本页面执行
        */
-      handleDebugScript () {
+      handleDebugScript() {
         debugScriptCache.setItem(this.formData.content);
         const { href } = this.$router.resolve({
           name: 'fastExecuteScript',
@@ -338,7 +338,7 @@
       /**
        * @desc 取消新建
        */
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => {
             this.$emit('on-create-cancel');

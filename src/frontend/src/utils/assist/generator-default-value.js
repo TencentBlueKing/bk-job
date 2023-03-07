@@ -41,7 +41,7 @@ export const genDefaultName = (prefixStr = 'auto') => {
   };
   const d = new Date();
   const month = d.getMonth() + 1;
-    
+
   const temp = [
     d.getFullYear(),
     formatStr(month),
@@ -67,7 +67,7 @@ export const genDefaultScriptVersion = () => {
     return str;
   };
   const d = new Date();
-    
+
   const month = formatStr(d.getMonth() + 1);
   const date = formatStr(d.getDate());
   const hours = formatStr(d.getHours());
@@ -84,6 +84,6 @@ export const genDefaultScriptVersion = () => {
     seconds,
     millSeconds,
   ];
-    
+
   return `${uid}.${temp.join('')}`.slice(0, 30);
 };

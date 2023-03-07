@@ -56,7 +56,7 @@
       ScriptVersionUse,
       ScriptVersionStatus,
     },
-    data () {
+    data() {
       return {};
     },
 

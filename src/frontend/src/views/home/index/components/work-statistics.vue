@@ -64,17 +64,17 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         jobNum: 0,
         scriptNum: 0,
       };
     },
-    created () {
+    created() {
       this.fetchStatisticsJobAndScript();
     },
     methods: {
-      fetchStatisticsJobAndScript () {
+      fetchStatisticsJobAndScript() {
         HomeService.fetchStatisticsJobAndScript()
           .then(({ jobNum, scriptNum }) => {
             this.jobNum = jobNum;

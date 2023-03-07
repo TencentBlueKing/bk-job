@@ -122,14 +122,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         confirmReason: '',
       };
     },
 
     methods: {
-      handleChangeStatus (operationCode) {
+      handleChangeStatus(operationCode) {
         return TaskExecuteService.updateTaskExecutionStepOperate({
           id: this.data.stepInstanceId,
           operationCode,

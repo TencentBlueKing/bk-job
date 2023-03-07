@@ -64,7 +64,7 @@
         require: true,
       },
     },
-    data () {
+    data() {
       return {
         renderList: [],
         formData: {
@@ -74,14 +74,14 @@
     },
     watch: {
       versionList: {
-        handler (versionList) {
+        handler(versionList) {
           this.renderList = Object.freeze(versionList);
           this.formData.scriptVersionId = '';
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.rules = {
         scriptVersionId: [
           {
@@ -96,14 +96,14 @@
       /**
        * @desc 选中版本开始复制新建
        */
-      submit () {
+      submit() {
         return this.$refs.form.validate()
           .then(() => {
             const scriptVersion = _.find(this.renderList, ({ scriptVersionId }) => scriptVersionId === this.formData.scriptVersionId);
             this.$emit('on-create', scriptVersion);
           });
       },
-      reset () {
+      reset() {
         this.formData.scriptVersionId = '';
         this.$refs.form.clearError();
       },

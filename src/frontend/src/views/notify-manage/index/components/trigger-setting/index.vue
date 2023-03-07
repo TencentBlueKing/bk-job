@@ -100,7 +100,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         localValue: _.cloneDeep(this.data),
       };
@@ -109,14 +109,14 @@
       /**
        * @desc 外部调用——重置用户输入
        */
-      reset () {
+      reset() {
         this.localValue = _.cloneDeep(this.data);
       },
       /**
        * @desc 外部调用——获取用户输入
        * @returns {Object} 通知策略配置
        */
-      getValue () {
+      getValue() {
         const {
           resourceTypeList,
           extraObserverList,
@@ -141,7 +141,7 @@
        * @desc 设置操作类型
        * @param { Array } resourceTypeList
        */
-      handleResourceTypeChange (resourceTypeList) {
+      handleResourceTypeChange(resourceTypeList) {
         this.localValue.resourceTypeList = resourceTypeList;
         window.changeFlag = true;
       },
@@ -150,7 +150,7 @@
        * @param { Array } usextraObserverLister 额外通知人
        * @param { Array } role 通知角色
        */
-      handleUserChange (extraObserverList, roleList) {
+      handleUserChange(extraObserverList, roleList) {
         if (extraObserverList.length > 0) {
           roleList.push('JOB_EXTRA_OBSERVER');
         }
@@ -163,7 +163,7 @@
        * @param { String } executeStatus 执行状态
        * @param { Array } channelList 通知渠道
        */
-      handleNotifyWayChange (executeStatus, channelList) {
+      handleNotifyWayChange(executeStatus, channelList) {
         this.localValue.resourceStatusChannelMap[executeStatus] = channelList;
         window.changeFlag = true;
       },

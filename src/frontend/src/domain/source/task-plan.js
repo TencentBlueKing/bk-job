@@ -29,27 +29,27 @@ import ModuleBase from './module-base';
 
 /* eslint-disable max-len */
 class TaskPlan extends ModuleBase {
-  constructor () {
+  constructor() {
     super();
     this.module = '/job-manage/web';
   }
 
   // 获取执行方案基本信息列表
-  getAllPlanOfTemplate (params = {}, payload = {}) {
+  getAllPlanOfTemplate(params = {}, payload = {}) {
     return Request.get(`${this.path}/task/plan/${params.id}`, {
       payload,
     });
   }
 
   // 批量获取作业模板的执行方案列表
-  getAllTemplatePlan (params = {}) {
+  getAllTemplatePlan(params = {}) {
     return Request.get(`${this.path}/task/plan:batchGet`, {
       params,
     });
   }
 
   // 获取执行方案信息
-  getDetail (params = {}, payload = {}) {
+  getDetail(params = {}, payload = {}) {
     const { templateId, id } = params;
     return Request.get(`${this.path}/task/plan/${templateId}/${id}`, {
       payload,
@@ -57,57 +57,57 @@ class TaskPlan extends ModuleBase {
   }
 
   // 更新执行方案
-  update (params = {}) {
+  update(params = {}) {
     const realParams = { ...params };
     delete realParams.templateId;
     delete realParams.id;
-        
+
     return Request.put(`${this.path}/task/plan/${params.templateId}/${params.id}`, {
       params: realParams,
     });
   }
 
-  batchUpdateVariable (params = {}) {
+  batchUpdateVariable(params = {}) {
     return Request.post(`${this.path}/task/plan/batch_update_variable`, { params });
   }
 
   // 删除执行方案
-  delete (params = {}) {
+  delete(params = {}) {
     const { templateId, id } = params;
     return Request.delete(`${this.path}/task/plan/${templateId}/${id}`, {});
   }
 
   // 获取调试信息
-  getDebugInfo (params = {}, payload = {}) {
+  getDebugInfo(params = {}, payload = {}) {
     return Request.get(`${this.path}/task/plan/${params.templateId}/debug`, {
       payload,
     });
   }
 
   // 批量获取执行方案基础信息
-  getPlansBasicInfo (params = {}) {
+  getPlansBasicInfo(params = {}) {
     return Request.get(`${this.path}/task/plan`, { params });
   }
 
   // 获取业务下的执行方案列表
-  getAllPlan (params = {}) {
+  getAllPlan(params = {}) {
     return Request.get(`${this.path}/task/plan/list`, { params });
   }
 
   // 同步执行方案
-  updateSyncInfo (params = {}) {
+  updateSyncInfo(params = {}) {
     return Request.post(`${this.path}/task/plan/${params.templateId}/${params.planId}/sync?templateVersion=${params.templateVersion}`, {});
   }
 
   // 获取执行方案同步信息
-  getSyncDataById (params = {}, payload = {}) {
+  getSyncDataById(params = {}, payload = {}) {
     return Request.get(`${this.path}/task/plan/${params.templateId}/${params.id}/sync_info`, {
       payload,
     });
   }
 
   // 检查执行方案名称是否已占用
-  getCheckResult (payload) {
+  getCheckResult(payload) {
     const params = { ...payload };
     delete params.templateId;
     delete params.planId;
@@ -117,17 +117,17 @@ class TaskPlan extends ModuleBase {
   }
 
   // 新增收藏
-  updateFavorite (params = {}) {
+  updateFavorite(params = {}) {
     return Request.put(`${this.path}/task/plan/${params.templateId}/${params.id}/favorite`);
   }
 
   // 删除收藏
-  deleteFavorite (params = {}) {
+  deleteFavorite(params = {}) {
     return Request.delete(`${this.path}/task/plan/${params.templateId}/${params.id}/favorite`);
   }
 
   // 根据执行方案 ID 拉基本信息
-  getDataById (params = {}) {
+  getDataById(params = {}) {
     return Request.get(`${this.module}/task/plan/${params.id}`);
   }
 }

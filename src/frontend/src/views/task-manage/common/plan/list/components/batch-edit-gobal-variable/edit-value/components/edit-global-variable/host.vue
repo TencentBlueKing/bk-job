@@ -91,20 +91,20 @@
         default: () => new TaskHostNodeModel({}),
       },
     },
-    data () {
+    data() {
       return {
         isShowChooseIp: false,
         hostNodeInfo: {},
       };
     },
     computed: {
-      isValueEmpty () {
+      isValueEmpty() {
         return TaskHostNodeModel.isHostNodeInfoEmpty(this.value.hostNodeInfo);
       },
-      valueText  () {
+      valueText() {
         return new TaskHostNodeModel(this.value).text;
       },
-      descPopover () {
+      descPopover() {
         return {
           theme: 'light',
           extCls: 'variable-desc-tippy',
@@ -116,24 +116,24 @@
         };
       },
     },
-    created () {
+    created() {
       this.originalValue = _.cloneDeep(this.value.hostNodeInfo);
     },
     methods: {
-      handleRemove () {
+      handleRemove() {
         this.$emit('on-remove');
       },
-      handleChooseIp () {
+      handleChooseIp() {
         this.isShowChooseIp = true;
         this.hostNodeInfo = this.value.hostNodeInfo;
       },
-      handleCloseIpSelector () {
+      handleCloseIpSelector() {
         this.isShowChooseIp = false;
       },
-      handleClear () {
+      handleClear() {
         this.$emit('on-change', new TaskHostNodeModel({}));
       },
-      handleChange (hostNodeInfo) {
+      handleChange(hostNodeInfo) {
         this.$emit('on-change', {
           hostNodeInfo,
         });

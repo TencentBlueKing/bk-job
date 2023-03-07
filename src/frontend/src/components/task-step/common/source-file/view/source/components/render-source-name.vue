@@ -48,20 +48,20 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         fileSourceAlias: '',
       };
     },
-    created () {
+    created() {
       this.fetchSourceFileInfo();
     },
     methods: {
       /**
        * @desc 通过文件源id获取文件详细信息
        */
-      fetchSourceFileInfo () {
+      fetchSourceFileInfo() {
         FileManageService.getSourceInfo({
           id: this.fileSourceId,
         }).then((data) => {
@@ -71,7 +71,7 @@
       /**
        * @desc 新窗口打开文件源列表页面
        */
-      handleGoFileSource () {
+      handleGoFileSource() {
         const { href } = this.$router.resolve({
           name: 'fileList',
           query: {

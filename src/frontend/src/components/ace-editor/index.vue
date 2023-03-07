@@ -251,7 +251,7 @@
         default: () => Promise.resolve(),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         content: '',
@@ -268,7 +268,7 @@
        * @desc 脚本编辑器块的样式
        * @returns {Object}
        */
-      boxStyle () {
+      boxStyle() {
         const style = {
           position: 'absolute',
           top: 0,
@@ -287,7 +287,7 @@
        * @desc 脚本输入区的样式
        * @returns {Object}
        */
-      editorStyle () {
+      editorStyle() {
         const tabHeight = this.showTabHeader ? TAB_HEIGHT : 0;
         return {
           height: this.isFullScreen ? `calc(100vh - ${tabHeight}px)` : `${this.height - tabHeight}px`,
@@ -297,14 +297,14 @@
        * @desc 是否显示脚本类型切换 TAB, 当options 配置 String 时不显示
        * @returns {Boolean}
        */
-      showTabHeader () {
+      showTabHeader() {
         return typeof this.options !== 'string';
       },
       /**
        * @desc 显示类型显示列表
        * @returns {Object}
        */
-      tabList () {
+      tabList() {
         if (!Array.isArray(this.options)) {
           return [];
         }
@@ -319,13 +319,13 @@
        * @desc 脚本编辑器语言模式
        * @returns {String}
        */
-      mode () {
+      mode() {
         return `ace/mode/${LANG_MAP[this.currentLang]}`;
       },
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           this.editor.getSession().setAnnotations([]);
           // 只读模式没有默认值，直接使用输入值
           if (this.readonly) {
@@ -347,7 +347,7 @@
           }
         },
       },
-      lang (newLang) {
+      lang(newLang) {
         if (this.currentLang !== newLang) {
           this.currentLang = newLang;
           setTimeout(() => {
@@ -355,17 +355,17 @@
           });
         }
       },
-      readonly (readonly) {
+      readonly(readonly) {
         this.editor.setReadOnly(readonly);
       },
       constants: {
-        handler () {
+        handler() {
 
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.selfId = `ace_editor_${_.random(1, 1000)}_${Date.now()}`;
       this.valueMemo = {};
       this.hasChanged = false;
@@ -398,7 +398,7 @@
           }));
           callback(null, keywords);
         },
-        getDocTooltip (item) {
+        getDocTooltip(item) {
           if (item.meta === 'Global Variable' && item.description) {
             item.docHTML = [
               '<b>description</b>',
@@ -409,11 +409,11 @@
         },
       };
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.handleExitFullScreen();
       this.$store.commit('setScriptCheckError', null);
     },
-    mounted () {
+    mounted() {
       this.initEditor();
       languageTools.addCompleter(this.completer);
       document.body.addEventListener('click', this.handleHideHistory);
@@ -432,7 +432,7 @@
       /**
        * @desc 获取登陆用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
@@ -441,7 +441,7 @@
       /**
        * @desc 获取默认脚本
        */
-      fetchTemplate () {
+      fetchTemplate() {
         this.isLoading = true;
         const handlePromise = this.customEnable ? ScriptTemplateService.fetchTemplate() : Promise.resolve([]);
         handlePromise.then((data) => {
@@ -467,7 +467,7 @@
       /**
        * @desc 初始化脚本编辑器
        */
-      initEditor () {
+      initEditor() {
         const editor = ace.edit(this.selfId);
         editor.getSession().setMode(this.mode);
         editor.setOptions({
@@ -526,7 +526,7 @@
       /**
        * @desc 外部调用
        */
-      resize () {
+      resize() {
         this.$nextTick(() => {
           this.editor.resize();
         });
@@ -535,7 +535,7 @@
        * @desc 外部调用-设置脚本编辑器内容
        * @param {String} 经过 base64 编码的脚本内容
        */
-      setValue (value) {
+      setValue(value) {
         this.editor.setValue(Base64.decode(value));
         this.editor.clearSelection();
         this.editor.scrollToLine(Infinity);
@@ -543,7 +543,7 @@
       /**
        * @desc 外部调用-重置脚本编辑内容使用默认脚本
        */
-      resetValue () {
+      resetValue() {
         this.editor.setValue(this.defaultScriptMap[this.lang]);
         this.editor.clearSelection();
         this.editor.scrollToLine(Infinity);
@@ -553,7 +553,7 @@
        *
        * 每分钟自动缓存一次
        */
-      watchEditAction () {
+      watchEditAction() {
         if (this.readonly) {
           return;
         }
@@ -569,7 +569,7 @@
        * @desc 缓存脚本内容
        * @param {String} type 缓存类型（自动缓存、手动换粗）
        */
-      pushLocalStorage (type = I18n.t('自动保存')) {
+      pushLocalStorage(type = I18n.t('自动保存')) {
         // 当前脚本内容为空不缓存
         if (!this.value) {
           return;
@@ -597,7 +597,7 @@
        * @desc readonly模式下键盘操作提示
        * @param {Object} event keydown事件
        */
-      handleReadonlyWarning (event) {
+      handleReadonlyWarning(event) {
         if (!this.readonly) {
           return;
         }
@@ -629,7 +629,7 @@
        * @desc 脚本语言切换
        * @param {String} newLang 脚本语言
        */
-      handleLangChange (newLang) {
+      handleLangChange(newLang) {
         if (this.readonly || this.currentLang === newLang) {
           return;
         }
@@ -661,7 +661,7 @@
       /**
        * @desc 显示脚本缓存面板
        */
-      handleShowHistory () {
+      handleShowHistory() {
         const historyList = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
         if (_.isArray(historyList)) {
           this.historyList = Object.freeze(historyList);
@@ -673,14 +673,14 @@
       /**
        * @desc 隐藏脚本缓存面板
        */
-      handleHideHistory () {
+      handleHideHistory() {
         this.isShowHistoryPanel = false;
       },
       /**
        * @desc 使用缓存的脚本内容
        * @param {Object} payload 缓存的脚本信息
        */
-      handleChangeValueFromHistory (payload) {
+      handleChangeValueFromHistory(payload) {
         // 切换脚本类型tab
         this.$emit('on-mode-change', payload.lang);
         // 更新脚本内容
@@ -698,14 +698,14 @@
       /**
        * @desc 触发脚本上传
        */
-      handleUploadScript () {
+      handleUploadScript() {
         this.$refs.upload.click();
       },
       /**
        * @desc 开始上传
        * @param {Object} event input文件选中事件
        */
-      handleStartUpload (event) {
+      handleStartUpload(event) {
         const { files } = event.target;
         if (!files.length) {
           return;
@@ -745,7 +745,7 @@
        *
        * 全屏时需要把dom移动到body下面
        */
-      handleFullScreen () {
+      handleFullScreen() {
         this.isFullScreen = true;
         this.messageInfo(I18n.t('按 Esc 即可退出全屏模式'));
         document.body.appendChild(this.$refs.contentWrapper);
@@ -758,7 +758,7 @@
        *
        * 退出全屏时需要要把dom还原到原有位置
        */
-      handleExitFullScreen () {
+      handleExitFullScreen() {
         this.isFullScreen = false;
         this.$refs.aceEditor.appendChild(this.$refs.contentWrapper);
         this.$nextTick(() => {
@@ -768,7 +768,7 @@
       /**
        * @desc esc快捷键退出编辑的全屏状态
        */
-      handleExitByESC (event) {
+      handleExitByESC(event) {
         if (event.code !== 'Escape' || !this.isFullScreen) {
           return;
         }

@@ -52,7 +52,7 @@
         default: () => ({}),
       },
     },
-    created () {
+    created() {
       if (!this.preHost || !this.preHost.hostNodeInfo) {
         this.realPreHost = generatorHost();
       } else {

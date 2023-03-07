@@ -114,7 +114,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         relatedTemplateNums: 0,
         globalVariableMap: {},
@@ -123,25 +123,25 @@
       };
     },
     computed: {
-      isHasSelectedAll () {
+      isHasSelectedAll() {
         const selectNums = Object.values(this.selectVariableMap).length;
         if (selectNums < 1) {
           return false;
         }
         return selectNums === Object.values(this.globalVariableMap).length;
       },
-      isSelectNotEmpty () {
+      isSelectNotEmpty() {
         return Object.values(this.selectVariableMap).length > 0;
       },
     },
-    created () {
+    created() {
       this.traverPlanList();
     },
     methods: {
       /**
        * @desc 遍历执行方案全局变量
        */
-      traverPlanList () {
+      traverPlanList() {
         const templateIdMap = {};
         const globalVariableMap = {};
         this.planList.forEach((planData) => {
@@ -157,7 +157,7 @@
       /**
        * @desc 编辑全局变量值更新
        */
-      triggerChange () {
+      triggerChange() {
         window.changeFlag = true;
         this.$emit('on-edit-change', Object.assign({}, this.selectVariableValueMap));
       },
@@ -165,14 +165,14 @@
        * @desc 外部调用，获取需要更新的执行方案
        * @return {Object} 需要更新的执行方案列表
        */
-      getEditValue () {
+      getEditValue() {
         return Object.assign({}, this.selectVariableValueMap);
       },
       /**
        * @desc 单次选中全局变量
        * @param {String} key 全局变量的key
        */
-      handleVariableSelect (key) {
+      handleVariableSelect(key) {
         const selectVariableMap = Object.assign({}, this.selectVariableMap);
         const selectVariableValueMap = Object.assign({}, this.selectVariableValueMap);
         if (selectVariableMap[key]) {
@@ -197,7 +197,7 @@
       /**
        * @desc 全选全局变量
        */
-      handleSelectAll () {
+      handleSelectAll() {
         const selectVariableMap = {};
         const selectVariableValueMap = {};
         for (const key in this.globalVariableMap) {
@@ -217,7 +217,7 @@
       /**
        * @desc 取消全选全局变量
        */
-      handleCancleSelectAll () {
+      handleCancleSelectAll() {
         // 删除选择
         this.selectVariableMap = {};
         // 删除值
@@ -230,7 +230,7 @@
        *
        * 取消选择时需要清除已编辑的值
        */
-      handleRemoveSelect (key) {
+      handleRemoveSelect(key) {
         // 删除选择
         const selectVariableMap = Object.assign({}, this.selectVariableMap);
         delete selectVariableMap[key];
@@ -246,7 +246,7 @@
        * @param {String} key 全局变量的key
        * @param {Any} value 全局变量的value
        */
-      handleValueChange (key, value) {
+      handleValueChange(key, value) {
         this.selectVariableValueMap = Object.freeze(Object.assign({}, this.selectVariableValueMap, {
           [key]: value,
         }));

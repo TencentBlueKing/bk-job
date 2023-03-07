@@ -61,14 +61,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         executeBeforeNotify: false,
       };
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           if (this.formData.notifyOffset
             || this.formData.notifyChannel.length > 0
             || this.formData.notifyUser.roleList.length > 0

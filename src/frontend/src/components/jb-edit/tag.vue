@@ -140,7 +140,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isEditing: false,
         isLoading: false,
@@ -152,20 +152,20 @@
        * @desc 标签显示文本
        * @returns { String }
        */
-      text () {
+      text() {
         return this.localValue.map(_ => _.name).join('，');
       },
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           this.localValue = value;
           this.memoValue = [...this.value];
         },
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('click', this.hideEdit);
       this.$once('hook:beforeDestroy', () => {
         document.body.removeEventListener('click', this.hideEdit);
@@ -176,7 +176,7 @@
       /**
        * @desc 触发标签修改操作
        */
-      triggerRemote () {
+      triggerRemote() {
         this.isEditing = false;
 
         if (isEqual(this.memoValue, this.localValue)) {
@@ -201,7 +201,7 @@
       /**
        * @desc 切换编辑状态
        */
-      hideEdit (event) {
+      hideEdit(event) {
         if (!this.isEditing) return;
         const eventPath = event.composedPath();
         // eslint-disable-next-line no-plusplus
@@ -219,13 +219,13 @@
        * @desc tag 值更新
        * @param { Array } tagList
        */
-      handleTagValueChange (tagList) {
+      handleTagValueChange(tagList) {
         this.localValue = Object.freeze(tagList);
       },
       /**
        * @desc 编辑 tag
        */
-      handleEdit () {
+      handleEdit() {
         document.body.click();
         this.$nextTick(() => {
           this.isEditing = true;
@@ -237,7 +237,7 @@
       /**
        * @desc 点击 tag 文本开始编辑状态
        */
-      handleTextClick () {
+      handleTextClick() {
         if (!this.shortcurt) {
           return;
         }
@@ -246,7 +246,7 @@
       /**
        * @desc 复制 tag
        */
-      handleCopy () {
+      handleCopy() {
         if (this.localValue.length < 1) {
           this.$bkMessage({
             theme: 'warning',
@@ -260,7 +260,7 @@
       /**
        * @desc 粘贴 tag
        */
-      handlePaste () {
+      handlePaste() {
         if (copyMemo.length < 1) {
           this.$bkMessage({
             theme: 'warning',

@@ -76,7 +76,7 @@
   export default {
     name: '',
 
-    data () {
+    data() {
       return {
         isLoading: false,
         isSubmiting: false,
@@ -85,7 +85,7 @@
         },
       };
     },
-    created () {
+    created() {
       this.fetchData();
       this.memoDay = 0;
       this.rules = {
@@ -99,7 +99,7 @@
       };
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         GlobalSettingService.fetchHistroyExpire()
           .then((data) => {
@@ -110,7 +110,7 @@
             this.isLoading = false;
           });
       },
-      handleSave () {
+      handleSave() {
         this.$refs.form.validate().then(() => {
           this.isSubmiting = true;
           GlobalSettingService.updateHistroyExpire({
@@ -123,7 +123,7 @@
             });
         });
       },
-      handleReset () {
+      handleReset() {
         this.formData.days = this.memoDay;
       },
     },

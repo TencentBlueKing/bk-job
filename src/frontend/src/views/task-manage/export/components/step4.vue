@@ -84,7 +84,7 @@
 
   export default {
     name: 'Exporting',
-    data () {
+    data() {
       return {
         isLoading: true,
         isFinishing: false,
@@ -95,7 +95,7 @@
       };
     },
     computed: {
-      isExportSuccess () {
+      isExportSuccess() {
         return [
           TASK_STATUS_SUCCESS,
           TASK_STATUS_FAILED,
@@ -104,7 +104,7 @@
       },
     },
 
-    created () {
+    created() {
       // 自定义路由切换确认框
       this.$route.meta.leavaConfirm = () => new Promise((resolve, reject) => {
         if (!window.changeFlag) {
@@ -180,7 +180,7 @@
     },
 
     methods: {
-      fetchData () {
+      fetchData() {
         if (!this.id) {
           this.isLoading = false;
           return;
@@ -211,7 +211,7 @@
           });
       },
 
-      startTimer () {
+      startTimer() {
         if (this.isClearTimer) {
           return;
         }
@@ -224,11 +224,11 @@
         }, 2000);
       },
 
-      clearTimer () {
+      clearTimer() {
         this.isClearTimer = true;
       },
 
-      handleDownloadFile () {
+      handleDownloadFile() {
         BackupService.fetchExportFile({
           id: this.id,
         }).then(() => {
@@ -236,7 +236,7 @@
         });
       },
 
-      handleFinish () {
+      handleFinish() {
         this.isFinishing = true;
         BackupService.updateExportComplete({
           id: this.id,

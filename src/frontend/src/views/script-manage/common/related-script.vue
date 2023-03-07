@@ -141,7 +141,7 @@
     props: {
       from: {
         type: String,
-        validator (value) {
+        validator(value) {
           return [
             'scriptList',
             'scriptVersionList',
@@ -151,7 +151,7 @@
       },
       mode: {
         type: String,
-        validator (value) {
+        validator(value) {
           return [
             'template',
             'plan',
@@ -164,10 +164,10 @@
         required: true,
       },
     },
-    data () {
+    data() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
-            
+
       return {
         isLoading: true,
         list: [],
@@ -176,13 +176,13 @@
       };
     },
     computed: {
-      isPlanRelated () {
+      isPlanRelated() {
         return this.mode === 'plan';
       },
     },
     watch: {
       info: {
-        handler (info) {
+        handler(info) {
           if (!info.id && !info.scriptVersionId) {
             return;
           }
@@ -191,7 +191,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.searchSelect = [
         {
           name: I18n.t('script.名称'),
@@ -208,7 +208,7 @@
       /**
        * @desc 获取关联脚本列表
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         const params = {
           scriptId: this.info.id,
@@ -233,7 +233,7 @@
        * @desc 本地搜索
        * @param {Object} payload 搜索条件
        */
-      handleSearch (payload) {
+      handleSearch(payload) {
         let { list } = this;
         Object.keys(payload).forEach((key) => {
           const reg = new RegExp(encodeRegexp(payload[key]), 'i');
@@ -251,7 +251,7 @@
        *
        * 需要解析资源的 scopeType、scopeId
        */
-      handleGoPlanDetail (payload) {
+      handleGoPlanDetail(payload) {
         const { href } = this.$router.resolve({
           name: 'viewPlan',
           params: {
@@ -269,7 +269,7 @@
        *
        * 需要解析资源的 scopeType、scopeId
        */
-      handleGoTemplateDetail (payload) {
+      handleGoTemplateDetail(payload) {
         const { href } = this.$router.resolve({
           name: 'templateDetail',
           params: { id: payload.taskTemplateId },

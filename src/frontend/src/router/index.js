@@ -132,7 +132,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     {
       path: '/api_(execute|plan)/:id+',
       component: {
-        render () {
+        render() {
           return this._e(); // eslint-disable-line no-underscore-dangle
         },
       },
@@ -163,7 +163,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
   router = new VueRouter({
     mode: 'history',
     routes,
-    scrollBehavior () {
+    scrollBehavior() {
       return {
         x: 0, y: 0,
       };
@@ -263,7 +263,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
 
 let isRouteWatch = false;
 export const useRoute = () => customRef((track, trigger) => ({
-  get () {
+  get() {
     setTimeout(() => {
       if (isRouteWatch) {
         return;

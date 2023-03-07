@@ -63,13 +63,13 @@
     components: {
       AskPermission,
     },
-    data () {
+    data() {
       return {
         isAppleFlag: true,
         isNotPermission: false,
       };
     },
-    created () {
+    created() {
       this.applyText = I18n.t('去申请');
       this.appliedText = I18n.t('已申请');
       EventBus.$once('permission-catch', this.permissionHold);
@@ -81,24 +81,24 @@
       /**
        * @desc 捕获权限异常
        */
-      permissionHold (authResult) {
+      permissionHold(authResult) {
         this.isNotPermission = true;
         this.authResult = authResult;
       },
       /**
        * @desc 跳转权限中心
        */
-      handleApply () {
+      handleApply() {
         window.open(this.authResult.applyUrl, '_blank');
         this.isAppleFlag = false;
       },
       /**
        * @desc 已申请刷新页面
        */
-      handleReload () {
+      handleReload() {
         location.reload();
       },
-            
+
     },
   };
 </script>

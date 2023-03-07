@@ -65,7 +65,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         inputLength: 0,
         localValue: '',
@@ -73,23 +73,23 @@
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           this.localValue = value;
           this.inputLength = value.length;
         },
         immediate: true,
       },
-      inputLength () {
+      inputLength() {
         this.init();
       },
     },
-    mounted () {
+    mounted() {
       this.timer = '';
       this.inputHander = this.$refs.jbInput.querySelector('.bk-form-input');
       this.init();
     },
     methods: {
-      init () {
+      init() {
         if (!this.$refs.number || this.maxlength < 1) {
           return;
         }
@@ -98,12 +98,12 @@
           this.inputHander.style.paddingRight = `${numberText.length - 1}em`;
         });
       },
-      handleBlur () {
+      handleBlur() {
         setTimeout(() => {
           this.$refs.input && this.$refs.input.setCurValue(this.localValue);
         });
       },
-      handleKeyup (value, event) {
+      handleKeyup(value, event) {
         if (event.isComposing || !this.enterTrigger) {
           // 跳过输入法复合事件
           return;
@@ -117,7 +117,7 @@
           });
         }
       },
-      handleInput (str) {
+      handleInput(str) {
         let value = str.trim();
         if (this.maxlength > 0 && value.length > this.maxlength) {
           value = value.slice(0, this.maxlength);

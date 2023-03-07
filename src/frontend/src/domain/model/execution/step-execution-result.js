@@ -128,8 +128,8 @@ export default class StepExecutionResult {
   static MODE_ONCE = MODE_ONCE;
   static MODE_ROLLING_ALL = MODE_ROLLING_ALL;
   static MODE_ROLLING_BATCH = MODE_ROLLING_BATCH;
-    
-  constructor (payload) {
+
+  constructor(payload) {
     this.gseTaskId = payload.gseTaskId;
     this.finished = payload.finished;
     this.isLastStep = payload.isLastStep;
@@ -143,7 +143,7 @@ export default class StepExecutionResult {
     this.status = payload.status;
     this.statusDesc = payload.statusDesc;
     this.runMode = payload.runMode || MODE_ONCE;
-        
+
     this.resultGroups = this.initResultGroup(payload.resultGroups);
     this.rollingTasks = this.initRollingTasks(payload.rollingTasks);
   }
@@ -152,7 +152,7 @@ export default class StepExecutionResult {
      * @desc 步骤执行总耗时
      * @returns { String }
      */
-  get totalTimeText () {
+  get totalTimeText() {
     return transformTimeFriendly(this.totalTime);
   }
 
@@ -160,11 +160,11 @@ export default class StepExecutionResult {
      * @desc 分发文件类型的步骤
      * @returns { Boolean }
      */
-  get isFile () {
+  get isFile() {
     return this.type === TYPE_FILE;
   }
 
-  get isRollingTask () {
+  get isRollingTask() {
     return [
       MODE_ROLLING_ALL,
       MODE_ROLLING_BATCH,
@@ -175,7 +175,7 @@ export default class StepExecutionResult {
      * @desc 步骤执行状态展示css对应的class
      * @returns { String }
      */
-  get displayStyle () {
+  get displayStyle() {
     const styleMap = {
       success: 'success',
       ingore: 'ingore',
@@ -195,7 +195,7 @@ export default class StepExecutionResult {
      * @desc 步骤详情可以被强制终止(步骤执行详情页面通过步骤的状态来判断作业是否可以强制终止)
      * @returns { Boolean }
      */
-  get isForcedEnable () {
+  get isForcedEnable() {
     return [
       STATUS_DOING,
       STATUS_MANUAL_CONFIRM,
@@ -206,7 +206,7 @@ export default class StepExecutionResult {
      * @desc 步骤当前状态支持的操作
      * @returns { Array }
      */
-  get actions () {
+  get actions() {
     const actionMap = {
       success: [],
       ingore: [],
@@ -240,7 +240,7 @@ export default class StepExecutionResult {
     if (!this.isApproval) {
       actionMap.confirm = [];
     }
-        
+
     return actionMap[checkStatus(this.status)];
   }
 
@@ -251,7 +251,7 @@ export default class StepExecutionResult {
      * - 非滚动执行返回 Null
      * - 滚动执行返回批次排序位置
      */
-  get runningBatchOrder () {
+  get runningBatchOrder() {
     const index = _.findIndex(this.rollingTasks, ({ latestBatch }) => latestBatch);
     return index < 0 ? undefined : index + 1;
   }
@@ -261,7 +261,7 @@ export default class StepExecutionResult {
      * @param { Array } resultGroups
      * @returns { Array }
      */
-  initResultGroup (resultGroups) {
+  initResultGroup(resultGroups) {
     if (!Array.isArray(resultGroups)) {
       return [];
     }
@@ -273,7 +273,7 @@ export default class StepExecutionResult {
      * @param { Array } rollingTasks
      * @returns { Array }
      */
-  initRollingTasks (rollingTasks) {
+  initRollingTasks(rollingTasks) {
     if (!Array.isArray(rollingTasks)) {
       return [];
     }

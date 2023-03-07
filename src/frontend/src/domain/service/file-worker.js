@@ -29,7 +29,7 @@ import FileWorkerModel from '@model/file/file-worker';
 import fileWorker from '../source/file-worker';
 
 export default {
-  workersList (params) {
+  workersList(params) {
     return fileWorker.getList(params)
       .then((data) => {
         data.data = data.data.map(work => Object.freeze(new FileWorkerModel(work)));

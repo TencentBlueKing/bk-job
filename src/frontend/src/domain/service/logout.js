@@ -27,7 +27,7 @@
 import LogoutSource from '../source/logout';
 
 export default {
-  logout () {
+  logout() {
     return LogoutSource.logout()
       .then(({ data }) => data);
   },

@@ -68,13 +68,13 @@
 
   export default {
     name: '',
-    data () {
+    data() {
       return {
         tab: 'global',
       };
     },
     computed: {
-      contentHtml () {
+      contentHtml() {
         const contentMap = {
           global: globalVariableEN,
           magic: magicVariableEN,
@@ -89,10 +89,10 @@
       },
     },
     methods: {
-      handleTabToggle (tab) {
+      handleTabToggle(tab) {
         this.tab = tab;
       },
-      handleClose () {
+      handleClose() {
         this.$emit('on-close');
       },
     },

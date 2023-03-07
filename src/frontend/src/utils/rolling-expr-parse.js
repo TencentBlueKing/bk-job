@@ -34,42 +34,42 @@ export default function (exprStr) {
   if (batchStack.length < 1) {
     return '';
   }
-  
+
   let lastFixedNum = 0;
   let lastPerNum = '';
 
   const lastBatchPre = batchStack.length > 1 ? '后面' : '';
-  
+
   const translateSequence = (value) => {
     const batchTotal = value.length;
-      
+
     const parse = (atoms, batchNum) => {
       const fixedData = atoms.match(fixed);
       if (fixedData) {
         const fixedNum = parseInt(fixedData[1], 10);
-  
+
         lastPerNum = '';
         lastFixedNum = fixedNum;
-  
+
         if (batchNum === batchTotal) {
           return [`${lastBatchPre}按每${fixedNum}台一批直至结束`];
         }
         return [`第${batchNum}批${fixedNum}台`];
       }
-  
+
       const perData = atoms.match(per);
       if (perData) {
         const perNum = parseInt(perData[1], 10);
-  
+
         lastFixedNum = 0;
         lastPerNum = perNum;
-  
+
         if (batchNum === batchTotal) {
           return [`${lastBatchPre}按每${perNum}%台一批直至结束`];
         }
         return [`第${batchNum}批${perNum}%台`];
       }
-  
+
       const fixedInData = atoms.match(fixedIn);
       if (fixedInData) {
         if (batchNum === 1) {
@@ -78,7 +78,7 @@ export default function (exprStr) {
         if (batchNum < batchTotal) {
           throw new Error(`${atoms} 必须出现在最后一位`);
         }
-  
+
         const step = parseInt(fixedInData[1], 10);
 
         const textQueue = [];
@@ -92,7 +92,7 @@ export default function (exprStr) {
         textQueue.push(`...之后“每批增加${step}”台直至结束`);
         return textQueue;
       }
-  
+
       const fixedMuData = atoms.match(fixedMu);
       if (fixedMuData) {
         if (batchNum === 1) {
@@ -114,7 +114,7 @@ export default function (exprStr) {
         textQueue.push(`...之后“每批乘于${rate}”台直至结束`);
         return textQueue;
       }
-  
+
       if (all.test(atoms)) {
         if (batchNum < batchTotal) {
           throw new Error(`${atoms} 必须出现在最后一位`);
@@ -122,18 +122,19 @@ export default function (exprStr) {
         if (batchNum === 1) {
           return ['全部执行'];
         }
-                
+
         return [`第${batchNum}批执行所有剩余主机`];
       }
-  
+
       throw new Error(`不支持的配置规则 ${atoms}`);
     };
     const result = [];
     value.forEach((atoms, index) => {
+      // eslint-disable-next-line prefer-spread
       result.push.apply(result, parse(atoms, index + 1));
     });
     return result.join('，');
   };
-  
+
   return translateSequence(batchStack);
 }

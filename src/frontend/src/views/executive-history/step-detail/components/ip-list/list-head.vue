@@ -111,7 +111,7 @@
        * @param { Boolean } payload
        * @returns { undefined }
        */
-      handleSort (payload) {
+      handleSort(payload) {
         if (payload.label === 'IP') {
           return;
         }
@@ -120,19 +120,19 @@
       /**
        * @desc 复制IP
        */
-      handleCopyIP () {
+      handleCopyIP() {
         this.$emit('on-copy', 'ip');
       },
       /**
        * @desc 复制IPv6
        */
-      handleCopyIPv6 () {
+      handleCopyIPv6() {
         this.$emit('on-copy', 'ipv6');
       },
       /**
        * @desc 显示表格配置
        */
-      handleShowSetting () {
+      handleShowSetting() {
         this.$emit('on-show-setting');
       },
     },

@@ -78,7 +78,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -92,11 +92,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    created () {
+    created() {
       this.typeList = [
         'Bat',
         'Shell',
@@ -106,11 +106,11 @@
         'SQL',
       ];
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
 
         StatisticsService.fetchDistributionMetrics({
@@ -124,7 +124,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         this.myChart = echarts.init(this.$refs.dashboard);
         const data = [];
         let maxType = this.typeList[0];// eslint-disable-line prefer-destructuring
@@ -191,7 +191,7 @@
           this.handleMouseover(params.data.name);
         });
       },
-      calcItemCircleStyles (type) {
+      calcItemCircleStyles(type) {
         return {
           width: '8px',
           height: '8px',
@@ -200,7 +200,7 @@
           backgroundColor: colorMap[type],
         };
       },
-      handleMouseover (type) {
+      handleMouseover(type) {
         const others = _.filter(this.typeList, _ => _ !== type);
         this.myChart.dispatchAction({ type: 'highlight', name: type });
         this.myChart.dispatchAction({ type: 'downplay', name: others });

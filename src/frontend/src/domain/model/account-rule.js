@@ -30,7 +30,7 @@ const OS_TYPE_WINDOWS = 2;
 const OS_TYPE_DB = 3;
 
 export default class AccountRule {
-  constructor (payload) {
+  constructor(payload) {
     this.osType = payload.osType;
     this.expression = payload.expression;
     this.description = payload.description;
@@ -40,7 +40,7 @@ export default class AccountRule {
      * @desc 操作系统关键标识
      * @returns { String }
      */
-  get osTypeKey () {
+  get osTypeKey() {
     const textMap = {
       [OS_TYPE_LINUX]: 'linux',
       [OS_TYPE_WINDOWS]: 'windows',
@@ -53,7 +53,7 @@ export default class AccountRule {
      * @desc 操作系统类型显示文本
      * @returns { String }
      */
-  get osTypeText () {
+  get osTypeText() {
     const textMap = {
       [OS_TYPE_LINUX]: I18n.t('Linux 账号'),
       [OS_TYPE_WINDOWS]: I18n.t('Windows 账号'),

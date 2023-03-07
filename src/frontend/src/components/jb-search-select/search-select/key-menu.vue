@@ -33,23 +33,23 @@
   export default {
     name: 'BKSearchKey',
     mixins: [Mixin],
-    data () {
+    data() {
       return {
         condition: {},
         list: [],
         activeIndex: -1,
       };
     },
-        
+
     computed: {
-      needRender () {
+      needRender() {
         // 没有选中key，且输入框中没有输入值
         if (!this.searchSelect.menu.id && this.searchSelect.localValue === '') {
           return true;
         }
         return false;
       },
-      isCondition () {
+      isCondition() {
         const { searchSelect } = this;
         if (searchSelect.chipList.length < 1) {
           // 条件筛选不能作为第一项
@@ -63,19 +63,19 @@
         return this.searchSelect.showCondition;
       },
     },
-    created () {
+    created() {
       // eslint-disable-next-line no-underscore-dangle
       this.generatorList = _.debounce(this._generatorList, 100);
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('keydown', this.handleKeydown);
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.activeIndex = -1;
       document.body.removeEventListener('keydown', this.handleKeydown);
     },
     methods: {
-      _generatorList () {
+      _generatorList() {
         const {
           primaryKey,
           data,
@@ -95,7 +95,7 @@
         });
         this.list = Object.freeze(stack);
       },
-      handleKeydown (event) {
+      handleKeydown(event) {
         if (!this.needRender) {
           return;
         }
@@ -111,16 +111,16 @@
         }
         this.scrollActiveToView(event);
       },
-            
-      handleClick (item, index) {
+
+      handleClick(item, index) {
         this.$emit('select', item, index);
       },
-            
-      handleCondition () {
+
+      handleCondition() {
         this.$emit('select-conditon', this.condition);
       },
     },
-    render (h) {
+    render(h) {
       if (!this.needRender) {
         return null;
       }

@@ -313,7 +313,7 @@
       TagPanel,
       BatchEditTag,
     },
-    data () {
+    data() {
       return {
         showRelated: false,
         isShowBatchEditTag: false,
@@ -327,10 +327,10 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      isBatchEditTagDisabled () {
+      isBatchEditTagDisabled() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.listSelect.length; i++) {
           const current = this.listSelect[i];
@@ -340,14 +340,14 @@
         }
         return this.listSelect.length < 1;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
     },
-    created () {
+    created() {
       // 公共脚本
       this.isPublicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.isPublicScript ? PublicScriptService : ScriptService;
@@ -478,7 +478,7 @@
       /**
        * @desc 获取列表数据
        */
-      fetchData () {
+      fetchData() {
         // 合并左侧分类和右侧搜索的查询条件
         const searchParams = { ...this.searchParams };
         if (this.searchClass.panelType) {
@@ -495,20 +495,20 @@
        * @desc 切换分类
        * @param {String} searchClass 最新分类
        */
-      handleTagPlanChange (searchClass) {
+      handleTagPlanChange(searchClass) {
         this.searchClass = searchClass;
         this.fetchData();
       },
       /**
        * @desc 批量编辑 tag
        */
-      handleBatchEditTag () {
+      handleBatchEditTag() {
         this.isShowBatchEditTag = true;
       },
       /**
        * @desc tag 批量编辑完成需要刷新列表和 tag 面板数据
        */
-      handleBatchEditChange () {
+      handleBatchEditChange() {
         this.fetchData();
         this.$refs.tagPanelRef.init();
       },
@@ -516,14 +516,14 @@
        * @desc 列表搜索
        * @param {Object} params 搜索条件
        */
-      handleSearch (params) {
+      handleSearch(params) {
         this.searchParams = params;
         this.fetchData();
       },
       /**
        * @desc 新建脚本
        */
-      handleCreate () {
+      handleCreate() {
         if (this.isPublicScript) {
           this.$router.push({
             name: 'createPublicScript',
@@ -539,7 +539,7 @@
        * @param {String} id 脚本id
        * @param {Object} payload 字段名和值
        */
-      handleUpdateScript (id, payload) {
+      handleUpdateScript(id, payload) {
         return this.serviceHandler.scriptUpdateMeta({
           id,
           ...payload,
@@ -554,13 +554,13 @@
        * @desc 选择脚本
        * @param {Array} selectScriptList 选择的脚本
        */
-      handleSelection (selectScriptList) {
+      handleSelection(selectScriptList) {
         this.listSelect = Object.freeze(selectScriptList);
       },
       /**
        * @desc 自定义列表配置
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -572,7 +572,7 @@
        * @desc 脚本版本列表
        * @param {Object} scriptData 脚本数据
        */
-      handleVersion (scriptData) {
+      handleVersion(scriptData) {
         if (this.isPublicScript) {
           this.$router.push({
             name: 'publicScriptVersion',
@@ -593,7 +593,7 @@
        * @desc 执行脚本
        * @param {Object} scriptData 脚本数据
        */
-      handleExec (scriptData) {
+      handleExec(scriptData) {
         this.serviceHandler.getOneOnlineScript({
           id: scriptData.id,
           publicScript: this.isPublicScript,
@@ -619,7 +619,7 @@
        * @desc 删除脚本
        * @param {Object} scriptData 脚本数据
        */
-      handleDelete (scriptData) {
+      handleDelete(scriptData) {
         if (!scriptData.isEnableRemove) {
           this.messageError(I18n.t('script.脚本正被作业引用中，无法删除'));
           return false;
@@ -638,14 +638,14 @@
        * @param {String} mode 引用的模板、执行方案
        * @param {Object} scriptData 脚本数据
        */
-      handleShowRelated (scriptData) {
+      handleShowRelated(scriptData) {
         this.showRelated = true;
         this.relatedScriptInfo = scriptData;
       },
       /**
        * @desc 自定义表头
        */
-      renderHeader (h, data) {
+      renderHeader(h, data) {
         return (
                     <span>
                         <span>{ data.column.label }</span>

@@ -67,15 +67,15 @@
       },
     },
     computed: {
-      paramType () {
+      paramType() {
         return this.formData[this.secureField] ? 'password' : 'text';
       },
     },
     methods: {
-      handleParamChange (value) {
+      handleParamChange(value) {
         this.$emit('on-change', this.paramField, value);
       },
-      handleSecureParam (value) {
+      handleSecureParam(value) {
         this.$emit('on-change', this.secureField, value);
       },
     },

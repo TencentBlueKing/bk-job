@@ -149,7 +149,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         activePanel: [],
         showDetail: false,
@@ -161,13 +161,13 @@
       };
     },
     computed: {
-      needRender () {
+      needRender() {
         if (this.renderWithEmpty) {
           return true;
         }
         return this.nodeInfo.length || this.hostList.length || this.groupList.length;
       },
-      classes () {
+      classes() {
         const stack = [];
         if (this.searchMode) {
           stack.push('show-search');
@@ -177,7 +177,7 @@
     },
     watch: {
       hostNodeInfo: {
-        handler (hostNodeInfo) {
+        handler(hostNodeInfo) {
           const {
             dynamicGroupList,
             ipList,
@@ -206,7 +206,7 @@
        *
        * 获取面板中的所有ip(主机)，根据ip去重
        */
-      getAllIP (returnErrorIP = false) {
+      getAllIP(returnErrorIP = false) {
         const allHostList = [];
         if (this.$refs.host) {
           allHostList.push(...this.$refs.host.getAllHost());
@@ -238,7 +238,7 @@
        *
        * 获取主机面板中的所有主机信息，根据（ip + 云区域）去重
        */
-      getAllHost (filter = '') {
+      getAllHost(filter = '') {
         if (filter.trim() === '') {
           return this.$refs.host.getAllHost();
         }
@@ -262,7 +262,7 @@
       /**
        * @desc 外部调用——移除无效主机
        */
-      removeAllInvalidHost () {
+      removeAllInvalidHost() {
         this.$refs.host && this.$refs.host.removeAllInvalidHost();
         this.$refs.node && this.$refs.node.removeAllInvalidHost();
         this.$refs.group && this.$refs.group.removeAllInvalidHost();
@@ -272,7 +272,7 @@
        *
        * 获取主机面板中的所有主机（主机），根据（ip + 云区域）去重
        */
-      refresh () {
+      refresh() {
         this.$refs.host && this.$refs.host.refresh();
         this.$refs.node && this.$refs.node.refresh();
         this.$refs.group && this.$refs.group.refresh();
@@ -280,7 +280,7 @@
       /**
        * @desc 触发值的改变
        */
-      triggerChange () {
+      triggerChange() {
         console.log('from server panel = ', {
           ipList: this.hostList,
           topoNodeList: this.nodeInfo,
@@ -296,7 +296,7 @@
        * @desc 面板的loading状态
        * @param {Boolean} loading 每个面板的loading状态
        */
-      handleLoading (loading) {
+      handleLoading(loading) {
         if (loading) {
           this.requestQueue.push(true);
         } else {
@@ -307,7 +307,7 @@
        * @desc 查看分组和节点下的主机列表
        * @param {Boolean} payload 查看详情的数据
        */
-      handleView (payload) {
+      handleView(payload) {
         this.showDetail = true;
         this.viewInfo = Object.freeze(payload);
       },
@@ -315,7 +315,7 @@
        * @desc 更新主机
        * @param {Array} hostList 最新的主机列表
        */
-      handleHostChange (hostList) {
+      handleHostChange(hostList) {
         this.hostList = Object.freeze(hostList);
         this.triggerChange();
       },
@@ -323,7 +323,7 @@
        * @desc 更新节点
        * @param {Array} nodeInfo 最新的节点列表
        */
-      handleNodeChange (nodeInfo) {
+      handleNodeChange(nodeInfo) {
         this.nodeInfo = Object.freeze(nodeInfo);
         this.triggerChange();
       },
@@ -331,7 +331,7 @@
        * @desc 更新分组
        * @param {Array} groupList 最新的分组列表
        */
-      handleGroupChange (groupList) {
+      handleGroupChange(groupList) {
         this.groupList = Object.freeze(groupList);
         this.triggerChange();
       },
@@ -339,7 +339,7 @@
        * @desc 搜索主机面板删除了主机
        * @param {Array} removeHostList 在搜索面板中被删除的主机
        */
-      handleSearchRemove (removeHostInfoList) {
+      handleSearchRemove(removeHostInfoList) {
         const removeHostMap = {};
         removeHostInfoList.forEach((hostInfo) => {
           removeHostMap[hostInfo.hostId] = true;

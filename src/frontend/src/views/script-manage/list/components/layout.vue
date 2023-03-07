@@ -62,20 +62,20 @@
   const TASK_TAG_PANEL_TOGGLE = 'script_list_tag_panel_toggle';
 
   export default {
-    data () {
+    data() {
       let isOpen = localStorage.getItem(TASK_TAG_PANEL_TOGGLE);
       if (!isOpen) {
         isOpen = true;
       } else {
         isOpen = JSON.parse(isOpen);
       }
-            
+
       return {
         isOpen,
         styles: {},
       };
     },
-    mounted () {
+    mounted() {
       const {
         top,
       } = getOffset(this.$refs.handler);
@@ -84,7 +84,7 @@
       };
     },
     methods: {
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
         localStorage.setItem(TASK_TAG_PANEL_TOGGLE, JSON.stringify(this.isOpen));
       },

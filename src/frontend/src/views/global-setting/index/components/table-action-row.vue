@@ -89,7 +89,7 @@
   });
 
   export default {
-    data () {
+    data() {
       return {
         isEdit: false,
         isSubmiting: false,
@@ -97,24 +97,24 @@
         scriptTypeList: [],
       };
     },
-    created () {
+    created() {
       this.fetchScriptType();
     },
     methods: {
-      fetchScriptType () {
+      fetchScriptType() {
         PublicScriptManageService.scriptTypeList()
           .then((data) => {
             this.scriptTypeList = data;
           });
       },
-      handleToggle () {
+      handleToggle() {
         this.isEdit = true;
       },
-      handleCancel () {
+      handleCancel() {
         this.isEdit = false;
         this.formData = generatorDefautlData();
       },
-      handleSubmit () {
+      handleSubmit() {
         if (this.isSubmiting) {
           return;
         }

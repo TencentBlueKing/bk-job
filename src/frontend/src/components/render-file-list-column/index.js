@@ -44,7 +44,7 @@ export const parseCondition = (action, data) => {
     AND: (pre, last) => pre && last,
     OR: (pre, last) => pre || last,
   };
-        
+
   const {
     operation,
     expressions,
@@ -66,16 +66,16 @@ export const parseCondition = (action, data) => {
 };
 
 const parseTarget = (target, data) => parseVariableValue(target, data);
-    
+
 const parseParams = (params, data) => {
   const paramsTemplate = JSON.parse(params);
-    
+
   Object.keys(paramsTemplate).forEach((key) => {
     paramsTemplate[key] = parseVariableValue(paramsTemplate[key], data);
   });
   return paramsTemplate;
 };
-    
+
 export const checkIsCheckboxColumn = type => type === 'checkbox';
 const checkIsButtonGroupColumn = type => type === 'buttonGroup';
 const checkIsLinkAction = type => [
@@ -101,7 +101,7 @@ export default {
      *  - actionHandler 文件操作回调
      *  - selectHandler 行选择回调
     */
-  render (h, context) {
+  render(h, context) {
     const {
       fileSourceId = '',
       column = {},
@@ -173,7 +173,7 @@ export default {
                   },
                 };
               }
-                            
+
               // 需要二次确认按钮
               if (action.displayType === 'Confirm') {
                 return (
@@ -205,7 +205,7 @@ export default {
           }} />
       );
     }
-            
+
     return (
       <bk-table-column
         label={label}
@@ -225,7 +225,7 @@ export default {
                   </div>
                 );
               }
-                                
+
               return (
                 <bk-button
                   text

@@ -43,18 +43,18 @@
         default: '#siteHeaderStatusBar',
       },
     },
-    created () {
+    created() {
       this.childNodeSet = new Set();
       // eslint-disable-next-line no-underscore-dangle
       this.move = _.debounce(this._move, 30);
     },
-    updated () {
+    updated() {
       this.move();
     },
-    mounted () {
+    mounted() {
       this.move();
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.remove();
       this.childNodeSet.clear();
     },
@@ -62,12 +62,12 @@
       /**
        * @desc 组件销毁时同步删除 slot
        */
-      remove () {
+      remove() {
         const $targetParent = document.querySelector(this.target);
         if (!$targetParent) {
           return;
         }
-                
+
         this.childNodeSet.forEach((item) => {
           if ($targetParent.contains(item)) {
             if (this.$refs.source) {
@@ -75,7 +75,7 @@
             } else {
               $targetParent.removeChild(item);
             }
-                        
+
             this.childNodeSet.delete(item);
           }
         });
@@ -83,7 +83,7 @@
       /**
        * @desc 移动 slot 到指定的 target
        */
-      _move () {
+      _move() {
         this.remove();
         if (!this.$refs.source) {
           return;

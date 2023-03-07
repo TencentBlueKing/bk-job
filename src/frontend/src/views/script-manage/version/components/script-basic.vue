@@ -176,13 +176,13 @@
       JbEditTag,
       JbEditTextarea,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {},
       };
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
       this.scriptId = this.$route.params.id;
@@ -192,7 +192,7 @@
       /**
        * @desc 获取脚本基本信息
        */
-      fetchScriptBasic () {
+      fetchScriptBasic() {
         this.isLoading = true;
         this.serviceHandler.fetchBasicInfo({
           id: this.scriptId,
@@ -207,7 +207,7 @@
       /**
        * @desc 计算脚本lable的宽度
        */
-      calcLableWidth () {
+      calcLableWidth() {
         this.$refs.wraper.querySelectorAll('.detail-column').forEach((columnEl) => {
           const $lableEles = columnEl.querySelectorAll('.item-label');
           let maxWidth = 0;
@@ -225,7 +225,7 @@
        * @param {String} field 指定更新的字段名
        * @param {Object} payload 更新的字段key和value
        */
-      handleUpdateScript (field, payload) {
+      handleUpdateScript(field, payload) {
         return this.serviceHandler.scriptUpdateMeta({
           id: this.scriptId,
           ...payload,

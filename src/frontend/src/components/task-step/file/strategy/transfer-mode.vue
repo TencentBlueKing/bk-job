@@ -65,7 +65,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         radioValue: 2,
       };
@@ -73,14 +73,14 @@
     computed: {
       // radio 选择框的值是-1表示是保险模式
       // 保险模式有两种类型可选
-      showSelectCheck () {
+      showSelectCheck() {
         return this.radioValue === -1;
       },
     },
     watch: {
       formData: {
         // 值是3、4归类为保险模式
-        handler  (formData) {
+        handler(formData) {
           const transferMode = parseInt(formData[this.field], 10);
           if ([
             3,
@@ -95,7 +95,7 @@
         deep: true,
       },
     },
-    created () {
+    created() {
       this.strictTips = {
         content: I18n.t('严谨判断目标路径是否存在，若不存在将直接终止任务。'),
         width: 180,
@@ -110,11 +110,11 @@
       };
     },
     methods: {
-      handleChange (transferMode) {
+      handleChange(transferMode) {
         const realValue = transferMode === -1 ? 3 : transferMode;
         this.$emit('on-change', this.field, realValue);
       },
-      handleSelectChange (transferMode) {
+      handleSelectChange(transferMode) {
         this.$emit('on-change', this.field, transferMode);
       },
     },
