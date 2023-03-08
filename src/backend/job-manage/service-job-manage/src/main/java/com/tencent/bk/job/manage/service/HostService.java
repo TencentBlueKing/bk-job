@@ -200,4 +200,12 @@ public interface HostService {
      * @return 主机
      */
     List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
+
+    /**
+     * 更新主机状态
+     * @param bizId 业务ID
+     * @param hostInfoList 主机列表
+     * @return 更新成功的条数
+     */
+    List<Long> updateHostsStatusInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList);
 }

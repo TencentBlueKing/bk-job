@@ -1459,6 +1459,53 @@ public class HostServiceImpl implements HostService {
         return resultHosts;
     }
 
+    @Override
+    public List<Long> updateHostsStatusInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList) {
+        StopWatch watch = new StopWatch();
+        long updateCount = 0L;
+        List<Long> updateHostIds = new ArrayList<>();
+        long errorCount = 0L;
+        List<Long> errorHostIds = new ArrayList<>();
+        boolean batchUpdated = false;
+        try {
+            // 尝试批量更新
+            if (!hostInfoList.isEmpty()) {
+                watch.start("updateHostsStatusInBiz");
+                applicationHostDAO.batchUpdateHostStatusByHostId(dslContext, hostInfoList);
+                watch.stop();
+                watch.start("updateHostsStatusCache");
+                hostInfoList.forEach(hostCache::addOrUpdateHost);
+                watch.stop();
+            }
+            batchUpdated = true;
+            updateCount = hostInfoList.size();
+        } catch (Throwable throwable) {
+            log.warn("Fail to batchupdateHostsStatusInBizByHostId, try to update one by one..", throwable);
+            // 批量更新失败，尝试逐条更新
+            for (ApplicationHostDTO hostInfoDTO : hostInfoList) {
+                try {
+                    applicationHostDAO.updateHostStatusByHostId(dslContext, hostInfoDTO);
+                    hostCache.addOrUpdateHost(hostInfoDTO);
+                    updateCount++;
+                    updateHostIds.add(hostInfoDTO.getHostId());
+                } catch (Throwable t) {
+                    log.error(String.format("updateHostStatus fail:appId=%d,hostInfo=%s", bizId, hostInfoDTO), t);
+                    errorCount += 1;
+                    errorHostIds.add(hostInfoDTO.getHostId());
+                }
+            }
+        }
+        if (!batchUpdated) {
+            watch.start("log updateAppHostStatus");
+            log.info("Update host of appId={},errorCount={}," +
+                    "updateCount={},errorHostIds={},updateHostIds={}",
+                bizId, errorCount, updateCount, errorHostIds, updateHostIds);
+            watch.stop();
+        }
+        log.debug("Performance:updateHostsStatus:appId={},{}", bizId, watch);
+        return errorHostIds;
+    }
+
     @Data
     private static class BasicAppHost {
         private Long bizId;

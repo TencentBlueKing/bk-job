@@ -72,6 +72,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -94,6 +95,14 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.OS,
         TABLE.OS_TYPE,
         TABLE.MODULE_TYPE,
+        TABLE.IS_AGENT_ALIVE,
+        TABLE.CLOUD_IP
+    };
+    private static final TableField<?, ?>[] SIMPLE_FIELDS = {
+        TABLE.HOST_ID,
+        TABLE.APP_ID,
+        TABLE.IP,
+        TABLE.CLOUD_AREA_ID,
         TABLE.IS_AGENT_ALIVE,
         TABLE.CLOUD_IP
     };
@@ -972,6 +981,63 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return queryHostsByCondition(conditions);
     }
 
+    @Override
+    public List<ApplicationHostDTO> listHostSimpleInfo(long bizId) {
+        List<Condition> conditions = buildBizIdCondition(bizId);
+        if (conditions == null) {
+            conditions = Collections.emptyList();
+        }
+        val query = context.select(SIMPLE_FIELDS)
+            .from(TABLE)
+            .where(conditions)
+            .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
+        Result<Record> records = query.fetch();
+        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(records)) {
+            records.map(record -> hostInfoList.add(extractSimpleData(record)));
+        }
+        return hostInfoList;
+    }
+
+    @Override
+    public int batchUpdateHostStatusByHostId(DSLContext dslContext, List<ApplicationHostDTO> hostInfoList) {
+        // MySql5.7为例默认单条SQL最大为4M
+        int batchSize = 50000;
+        int size = hostInfoList.size();
+        int start = 0;
+        int end;
+        do {
+            end = start + batchSize;
+            end = Math.min(end, size);
+            List<ApplicationHostDTO> subList = hostInfoList.subList(start, end);
+            Map<Integer, List<Long>> statusMap = subList.stream()
+                .collect(Collectors.groupingBy(ApplicationHostDTO::getAgentStatusValue,
+                    Collectors.mapping(ApplicationHostDTO::getHostId, Collectors.toList())));
+            for (Integer status : statusMap.keySet()) {
+                if (status != null && statusMap.get(status).size() > 0) {
+                    dslContext.update(TABLE)
+                        .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(status))
+                        .where(TABLE.HOST_ID.in(statusMap.get(status)))
+                        .execute();
+                }
+            }
+            start += batchSize;
+        } while (end < size);
+        return size;
+    }
+
+    @Override
+    public int updateHostStatusByHostId(DSLContext dslContext, ApplicationHostDTO hostInfoDTO) {
+        if(hostInfoDTO!=null && hostInfoDTO.getHostId()!=0){
+            log.debug("fail to update host status, hostInfoDTO is invalid");
+            return 0;
+        }
+        return dslContext.update(TABLE)
+            .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(hostInfoDTO.getAgentStatusValue()))
+            .where(TABLE.HOST_ID.eq(ULong.valueOf(hostInfoDTO.getHostId())))
+            .execute();
+    }
+
     private List<ApplicationHostDTO> queryHostsByCondition(List<Condition> conditions) {
         Result<Record> result =
             context.select(ALL_FIELDS)
@@ -1016,6 +1082,20 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         applicationHostDTO.setOs(record.get(TABLE.OS));
         applicationHostDTO.setOsType(record.get(TABLE.OS_TYPE));
         applicationHostDTO.setModuleType(StringUtil.strToList(record.get(TABLE.MODULE_TYPE), Long.class, ","));
+        applicationHostDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
+        applicationHostDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
+        return applicationHostDTO;
+    }
+
+    public static ApplicationHostDTO extractSimpleData(Record record) {
+        if (record == null) {
+            return null;
+        }
+        ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
+        applicationHostDTO.setBizId(record.get(TABLE.APP_ID).longValue());
+        applicationHostDTO.setIp(record.get(TABLE.IP));
+        applicationHostDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue() == 1);
+        applicationHostDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
         applicationHostDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
         applicationHostDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
         return applicationHostDTO;
