@@ -36,7 +36,7 @@
       </div>
       <jb-sideslider
         :is-show.sync="isShow"
-        :quick-close="true"
+        quick-close
         :show-footer="false"
         :title="$t('history.操作记录')"
         :width="900">
@@ -61,16 +61,16 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShow: false,
       };
     },
     methods: {
-      handleShowOperationRecord () {
+      handleShowOperationRecord() {
         this.isShow = true;
       },
-      handleOperationRecordChange () {
+      handleOperationRecordChange() {
         this.isShow = false;
       },
     },

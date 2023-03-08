@@ -106,7 +106,7 @@
         default: true,
       },
     },
-    data () {
+    data() {
       return {
         // 日志loading，切换主机的时候才显示
         isLoading: true,
@@ -123,7 +123,7 @@
        * 日志目标改变，重置页面操作的数据
        */
       name: {
-        handler () {
+        handler() {
           // 日志自动滚动
           this.isLoading = true;
           this.autoScrollTimeout();
@@ -135,12 +135,12 @@
        * @desc 字体大小改变时虚拟滚动重新计算
        */
       fontSize: {
-        handler (fontSize) {
+        handler(fontSize) {
           this.editor.setFontSize(fontSize);
         },
       },
       lineFeed: {
-        handler (lineFeed) {
+        handler(lineFeed) {
           setTimeout(() => {
             this.editor && this.editor.setOptions({
               wrap: lineFeed ? 'free' : 'none',
@@ -150,7 +150,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.backTopTips = {
         content: I18n.t('history.回到顶部'),
         placements: [
@@ -166,14 +166,14 @@
         theme: 'light',
       };
     },
-    mounted () {
+    mounted() {
       this.initEditor();
     },
     methods: {
       /**
        * @desc 获取脚本日志
        */
-      fetchLogContent () {
+      fetchLogContent() {
         if (!this.host.ip && !this.host.hostId) {
           this.isLoading = false;
           if (this.editor) {
@@ -211,7 +211,7 @@
             this.isLoading = false;
           });
       },
-      initEditor () {
+      initEditor() {
         const editor = ace.edit('executeScriptLog');
         editor.getSession().setMode('ace/mode/text');
         editor.setTheme('ace/theme/monokai');
@@ -247,7 +247,7 @@
       /**
        * @desc 外部调用
        */
-      resize () {
+      resize() {
         this.$nextTick(() => {
           this.editor.resize();
         });
@@ -255,7 +255,7 @@
       /**
        * @desc 日志滚动定时器
        */
-      autoScrollTimeout () {
+      autoScrollTimeout() {
         if (this.isWillAutoScroll && !this.isLoading) {
           this.handleScrollBottom();
         }
@@ -266,13 +266,13 @@
       /**
        * @desc 回到日志顶部
        */
-      handleScrollTop () {
+      handleScrollTop() {
         this.editor.scrollToLine(0);
       },
       /**
        * @desc 回到日志底部
        */
-      handleScrollBottom () {
+      handleScrollBottom() {
         this.isWillAutoScroll = true;
         this.editor.scrollToLine(Infinity);
       },

@@ -105,7 +105,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         templateList: [],
         formData: {
@@ -115,7 +115,7 @@
     },
     watch: {
       value: {
-        handler  (value) {
+        handler(value) {
           if (value) {
             this.fetchData();
           }
@@ -123,7 +123,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.rules = {
         templateId: [
           {
@@ -135,7 +135,7 @@
       };
     },
     methods: {
-      fetchData (search) {
+      fetchData(search) {
         TaskManageService.taskList({
           name: search,
           start: 0,
@@ -144,13 +144,13 @@
           this.templateList = Object.freeze(data.data);
         });
       },
-      handleCreate () {
+      handleCreate() {
         const router = this.$router.resolve({
           name: 'templateCreate',
         });
         window.open(router.href);
       },
-      handleSubmit () {
+      handleSubmit() {
         this.$refs.form.validate()
           .then(() => {
             window.changeFlag = false;
@@ -158,7 +158,7 @@
             this.$emit('on-change', this.formData.templateId);
           });
       },
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => {
             this.$emit('input', false);

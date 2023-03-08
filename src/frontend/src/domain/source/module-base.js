@@ -26,11 +26,11 @@
 import _ from 'lodash';
 
 export default class ModuleBase {
-  constructor () {
+  constructor() {
     this.module = '';
   }
 
-  get path () {
+  get path() {
     const {
       SCOPE_TYPE,
       SCOPE_ID,

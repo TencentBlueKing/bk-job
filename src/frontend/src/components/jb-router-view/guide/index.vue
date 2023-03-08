@@ -45,14 +45,14 @@
 
   export default {
     name: '',
-    data () {
+    data() {
       return {
         isEmpty: false,
         page: '',
       };
     },
     computed: {
-      com () {
+      com() {
         if (!this.isEmpty) {
           return '';
         }
@@ -61,14 +61,14 @@
     },
     watch: {
       $route: {
-        handler  (route) {
+        handler(route) {
           this.page = route.name;
           this.isEmpty = false;
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       EventBus.$on('page-empty', () => {
         this.isEmpty = true;
       });

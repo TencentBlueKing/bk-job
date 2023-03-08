@@ -41,7 +41,7 @@
     <jb-form-item
       :label="$t('template.确认人')"
       property="approvalUser"
-      :required="true">
+      required>
       <jb-user-selector
         class="input"
         :filter-list="['JOB_EXTRA_OBSERVER']"
@@ -119,20 +119,20 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
         channleList: [],
       };
     },
     computed: {
-      isChannelAll () {
+      isChannelAll() {
         if (this.channleList.length < 1) {
           return false;
         }
         return this.formData.notifyChannel.length === this.channleList.length;
       },
-      isChannelIndeterminate () {
+      isChannelIndeterminate() {
         if (this.formData.notifyChannel.length < 1) {
           return false;
         }
@@ -141,7 +141,7 @@
     },
     watch: {
       data: {
-        handler (newData) {
+        handler(newData) {
           // 本地新建的步骤id为-1，已提交后端保存的id大于0
           this.formData = Object.assign({}, this.formData, newData);
           // 有数据需要自动验证一次
@@ -154,7 +154,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.rules = {
         approvalUser: [
           {
@@ -167,7 +167,7 @@
       this.fetchAllChannel();
     },
     methods: {
-      fetchAllChannel () {
+      fetchAllChannel() {
         QueryGlobalSettingService.fetchActiveNotifyChannel()
           .then((data) => {
             this.channleList = data;
@@ -176,22 +176,22 @@
             this.isLoading = false;
           });
       },
-      handleToggleAllChannel () {
+      handleToggleAllChannel() {
         if (this.isChannelAll) {
           this.formData.notifyChannel = [];
         } else {
           this.formData.notifyChannel = this.channleList.map(_ => _.code);
         }
       },
-      handleNameChange (field, name) {
+      handleNameChange(field, name) {
         this.formData[field] = name.trim();
       },
-            
-      handleApprovalUserChange (user, role) {
+
+      handleApprovalUserChange(user, role) {
         this.formData.approvalUser.roleList = role;
         this.formData.approvalUser.userList = user;
       },
-      submit () {
+      submit() {
         const {
           name,
           id,

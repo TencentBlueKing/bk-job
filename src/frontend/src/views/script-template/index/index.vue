@@ -123,7 +123,7 @@
       RenderVariable,
       PreviewTemplate,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isSubmiting: false,
@@ -136,7 +136,7 @@
       };
     },
     computed: {
-      renderSideComponent () {
+      renderSideComponent() {
         const com = {
           previewTemplate: PreviewTemplate,
           renderVariable: RenderVariable,
@@ -144,12 +144,12 @@
         return com[this.sidePanelComponentName];
       },
     },
-    created () {
+    created() {
       // 已经存储的脚本模板
       this.templateMap = Object.assign({}, builtInScript);
       this.fetchOriginalTemplate();
     },
-    mounted () {
+    mounted() {
       this.calcEditorSize();
       window.addEventListener('resize', this.calcEditorSize);
       this.$once('hook:beforeDestroy', () => {
@@ -160,7 +160,7 @@
       /**
        * @desc 获取用户自定义模板
        */
-      fetchOriginalTemplate () {
+      fetchOriginalTemplate() {
         this.isLoading = true;
         ScriptTemplateService.fetchOriginalTemplate()
           .then((data) => {
@@ -179,7 +179,7 @@
       /**
        * @desc 计算编辑器的尺寸
        */
-      calcEditorSize () {
+      calcEditorSize() {
         const {
           top: offsetTop,
         } = getOffset(this.$refs.container);
@@ -191,7 +191,7 @@
        * @desc 脚本预览类型切换编辑状态检测
        * @return {Object} 切换二次确认
        */
-      beforeLangChange () {
+      beforeLangChange() {
         window.changeFlag = this.scriptContent !== this.templateMap[this.scriptLanguage];
         return leaveConfirm();
       },
@@ -199,7 +199,7 @@
        * @desc 切换脚本模板语言
        * @param {String} scriptLanguage 脚本语言
        */
-      handleLangChange (scriptLanguage) {
+      handleLangChange(scriptLanguage) {
         this.scriptLanguage = scriptLanguage;
         setTimeout(() => {
           if (_.has(this.templateMap, this.scriptLanguage)) {
@@ -211,14 +211,14 @@
        * @desc 编辑脚本模板内容
        * @param {String} content 脚本语言
        */
-      handleContentChange (content) {
+      handleContentChange(content) {
         this.scriptContent = content;
       },
       /**
        * @desc 显示编辑器右侧面板
        * @param {String} componentName 脚本语言
        */
-      handleSidePanelShow (componentName) {
+      handleSidePanelShow(componentName) {
         if (this.sidePanelComponentName === componentName) {
           this.sidePanelComponentName = '';
         } else {
@@ -228,19 +228,19 @@
       /**
        * @desc 关闭编辑器右侧面板
        */
-      handleSidePanelHide () {
+      handleSidePanelHide() {
         this.sidePanelComponentName = '';
       },
       /**
        * @desc 脚本编辑器 resize
        */
-      handleSidePanelResize () {
+      handleSidePanelResize() {
         this.$refs.editor.resize();
       },
       /**
        * @desc 保存用户自定义模板
        */
-      handleSave () {
+      handleSave() {
         this.isSubmiting = true;
         ScriptTemplateService.updateOriginalTemplate({
           scriptLanguage: formatScriptTypeValue(this.scriptLanguage),
@@ -257,14 +257,14 @@
       /**
        * @desc 重置用户编辑状态
        */
-      handleEditReset () {
+      handleEditReset() {
         this.$refs.editor.setValue(this.templateMap[this.scriptLanguage]);
         this.messageSuccess(I18n.t('scriptTemplate.重置成功'));
       },
       /**
        * @desc 还原脚本模板为默认脚本
        */
-      handleUseDefault () {
+      handleUseDefault() {
         this.$refs.editor.resetValue();
         this.messageSuccess(I18n.t('scriptTemplate.还原默认成功'));
       },

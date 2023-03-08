@@ -122,7 +122,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         newVal: this.value,
         error: '',
@@ -131,21 +131,21 @@
       };
     },
     computed: {
-      styles () {
+      styles() {
         return {
           width: this.width,
         };
       },
-      isBlock () {
+      isBlock() {
         return this.mode === 'block';
       },
     },
     watch: {
-      value (newVal) {
+      value(newVal) {
         this.newVal = newVal;
       },
     },
-    mounted () {
+    mounted() {
       this.isValidatoring = false;
       document.body.addEventListener('click', this.handleHideEdit);
       this.$once('hook:beforeDestroy', () => {
@@ -156,7 +156,7 @@
       /**
        * @desc 值验证
        */
-      doValidator () {
+      doValidator() {
         const checkValidator = (rule, value) => new Promise((resolve, reject) => {
           if (rule.required && !value) {
             reject(rule.message);
@@ -192,7 +192,7 @@
       /**
        * @desc 提交编辑
        */
-      triggerChange () {
+      triggerChange() {
         this.doValidator()
           .then(() => {
             this.isEditing = false;
@@ -219,7 +219,7 @@
             this.error = error;
           });
       },
-      handleBlockShowEdit () {
+      handleBlockShowEdit() {
         if (!this.isBlock) {
           return;
         }
@@ -228,7 +228,7 @@
       /**
        * @desc 显示input
        */
-      handleShowEdit () {
+      handleShowEdit() {
         document.body.click();
         this.isEditing = true;
         this.$nextTick(() => {
@@ -239,13 +239,13 @@
        * @desc input 值更新
        * @param {String} value 最新输入值
        */
-      handleInputChange (value) {
+      handleInputChange(value) {
         this.newVal = value.trim();
       },
       /**
        * @desc input 失去焦点开始提交
        */
-      handleInputBlur () {
+      handleInputBlur() {
         this.triggerChange();
       },
       /**
@@ -253,7 +253,7 @@
        * @param {String} value 最新输入值
        * @param {Object} event dom 事件
        */
-      handleInputEnter (value, event) {
+      handleInputEnter(value, event) {
         if (!this.isEditing) return;
         if (event.key === 'Enter' && event.keyCode === 13) {
           this.triggerChange();
@@ -263,7 +263,7 @@
        * @desc 隐藏 input 框
        * @param {Object} event dom 事件
        */
-      handleHideEdit (event) {
+      handleHideEdit(event) {
         const eventPath = event.composedPath();
         if (this.isValidatoring || this.error) {
           return;

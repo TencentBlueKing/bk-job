@@ -129,7 +129,7 @@
       SmartAction,
       JbInput,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isSubmitting: false,
@@ -138,7 +138,7 @@
         defaultTitleFooter: {},
       };
     },
-    created () {
+    created() {
       this.fetchTitleAndFooter();
       this.rules = {
         titleHead: [
@@ -158,7 +158,7 @@
       };
     },
     methods: {
-      fetchTitleAndFooter () {
+      fetchTitleAndFooter() {
         this.isLoading = true;
         GlobalSettingService.fetchTitleAndFooterConfig()
           .then((data) => {
@@ -170,13 +170,13 @@
             this.isLoading = false;
           });
       },
-      handleRestore () {
+      handleRestore() {
         this.formData = _.cloneDeep(this.defaultTitleFooter);
       },
-      handleReset () {
+      handleReset() {
         this.formData = _.cloneDeep(this.currentTitleFooter);
       },
-      handleSave () {
+      handleSave() {
         this.$refs.platformForm.validate()
           .then((validator) => {
             this.isSubmitting = true;

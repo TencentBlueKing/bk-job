@@ -32,7 +32,7 @@ import {
 import BaseModel from './base';
 
 export default class Script extends BaseModel {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.scopeType = payload.scopeType;
     this.scopeId = payload.scopeId;
@@ -70,7 +70,7 @@ export default class Script extends BaseModel {
      * @desc 脚本版本显示文本
      * @returns { String }
      */
-  get versionText () {
+  get versionText() {
     return this.getDefaultValue(this.version);
   }
 
@@ -78,7 +78,7 @@ export default class Script extends BaseModel {
      * @desc 已上线
      * @returns { Boolean }
      */
-  get isOnline () {
+  get isOnline() {
     return this.status === Script.STATUS_ONLINE;
   }
 
@@ -86,7 +86,7 @@ export default class Script extends BaseModel {
      * @desc 未上线
      * @returns { Boolean }
      */
-  get isDraft () {
+  get isDraft() {
     return this.status === Script.STATUS_DRAFT;
   }
 
@@ -94,7 +94,7 @@ export default class Script extends BaseModel {
      * @desc 禁用
      * @returns { Boolean }
      */
-  get isDisabled () {
+  get isDisabled() {
     return this.status === Script.STATUS_DISABLED;
   }
 
@@ -102,7 +102,7 @@ export default class Script extends BaseModel {
      * @desc 无法执行上线操作
      * @returns { Boolean }
      */
-  get isDisabledOnline () {
+  get isDisabledOnline() {
     return [
       Script.STATUS_ONLINE, Script.STATUS_DISABLED,
     ].includes(this.status);
@@ -112,7 +112,7 @@ export default class Script extends BaseModel {
      * @desc 脚本是否可以被删除
      * @returns { Boolean }
      */
-  get isEnableRemove () {
+  get isEnableRemove() {
     return this.relatedTaskPlanNum < 1 && this.relatedTaskTemplateNum < 1;
   }
 
@@ -120,7 +120,7 @@ export default class Script extends BaseModel {
      * @desc 脚本版本是否可以本删除
      * @returns { Boolean }
      */
-  get isVersionEnableRemove () {
+  get isVersionEnableRemove() {
     return ![
       Script.STATUS_ONLINE,
     ].includes(this.status);
@@ -130,7 +130,7 @@ export default class Script extends BaseModel {
      * @desc 是否可以执行
      * @returns { Boolean }
      */
-  get isExecuteDisable () {
+  get isExecuteDisable() {
     return !this.version;
   }
 
@@ -138,7 +138,7 @@ export default class Script extends BaseModel {
      * @desc 是否可禁用
      * @returns { Boolean }
      */
-  get isBanable () {
+  get isBanable() {
     return [
       Script.STATUS_ONLINE,
       Script.STATUS_OFFLINE,
@@ -149,7 +149,7 @@ export default class Script extends BaseModel {
      * @desc tag 显示文本
      * @returns { String }
      */
-  get tagsText () {
+  get tagsText() {
     return this.getDefaultValue(this.tags.map(tag => tag.name).join('，'));
   }
 
@@ -157,7 +157,7 @@ export default class Script extends BaseModel {
      * @desc 脚本状态 TAG
      * @returns { HTMLElement }
      */
-  get statusHtml () {
+  get statusHtml() {
     let styles = 'display: inline-block; padding: 0 8px; line-height: 18px; font-size: 12px; border-radius: 2px;';
 
     switch (this.status) {
@@ -182,7 +182,7 @@ export default class Script extends BaseModel {
      * @param { Array } tags
      * @returns { Array }
      */
-  initTag (tags) {
+  initTag(tags) {
     if (!tags) {
       return [];
     }
@@ -194,7 +194,7 @@ export default class Script extends BaseModel {
      * @param { Array } versions
      * @returns { Array }
      */
-  initScriptVersion (versions) {
+  initScriptVersion(versions) {
     if (!versions) {
       return [];
     }

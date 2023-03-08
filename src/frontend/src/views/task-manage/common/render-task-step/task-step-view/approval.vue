@@ -78,7 +78,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         stepInfo: {},
@@ -86,7 +86,7 @@
         renderChannel: '',
       };
     },
-    created () {
+    created() {
       this.stepInfo = Object.freeze(this.data.approvalStepInfo);
       Promise.all([
         this.fetchRoleList(),
@@ -96,7 +96,7 @@
       });
     },
     methods: {
-      fetchRoleList () {
+      fetchRoleList() {
         NotifyService.fetchRoleList()
           .then((data) => {
             const roleMap = {};
@@ -112,7 +112,7 @@
             }, []);
           });
       },
-      fetchAllChannel () {
+      fetchAllChannel() {
         if (this.stepInfo.notifyChannel.length < 1) {
           this.renderChannel = '--';
           return Promise.resolve();

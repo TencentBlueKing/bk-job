@@ -32,7 +32,7 @@
     <bk-input
       v-model="value"
       class="search-input"
-      :clearable="true"
+      clearable
       :placeholder="$t('script.搜索作业模板')"
       right-icon="bk-icon icon-search"
       @change="handleInputChange" />
@@ -79,7 +79,7 @@
       </bk-table-column>
       <bk-table-column
         :filter-method="statusFilterMethod"
-        :filter-multiple="true"
+        filter-multiple
         :filters="statusFilters"
         :label="$t('script.引用版本状态')"
         prop="status">
@@ -148,7 +148,7 @@
       ScriptDetail,
       Diff,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         data: [],
@@ -164,14 +164,14 @@
       };
     },
     computed: {
-      tableData () {
+      tableData() {
         if (this.value.length) {
           return this.filterData;
         }
         return this.data;
       },
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
       this.scriptId = this.$route.params.scriptId;
@@ -189,7 +189,7 @@
       /**
        * @desc 获取引用脚本的模板
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         this.serviceHandler.scriptRefTemplateSteps({
           id: this.scriptId,
@@ -204,7 +204,7 @@
       /**
        * @desc 最新脚本版本数据
        */
-      fetchLastScriptVersionDetail () {
+      fetchLastScriptVersionDetail() {
         this.serviceHandler.versionDetail({
           id: this.$route.params.scriptVersionId,
         }).then((data) => {
@@ -221,7 +221,7 @@
        * @desc 跳转模板详情
        * @param {Number} id 模板ID
        */
-      handleGoTemplateDetail (id) {
+      handleGoTemplateDetail(id) {
         const routerUrl = this.$router.resolve({
           name: 'templateDetail',
           params: {
@@ -233,14 +233,14 @@
       /**
        * @desc 列表行选择
        */
-      handleSelectionChange (selection) {
+      handleSelectionChange(selection) {
         this.selectedList = Object.freeze(selection);
       },
       /**
        * @desc 脚本对比
        * @param {Object}  row 脚本数据
        */
-      handleComparison (row) {
+      handleComparison(row) {
         this.serviceHandler.versionDetail({
           id: row.scriptVersionId,
         }).then((data) => {
@@ -255,19 +255,19 @@
       /**
        * @desc 关闭脚本对比
        */
-      handleDiffClose () {
+      handleDiffClose() {
         this.showDiff = false;
       },
       /**
        * @desc 取消
        */
-      handleCancel () {
+      handleCancel() {
         this.routerBack();
       },
       /**
        * @desc 跳转到同步任务页面
        */
-      handleSync () {
+      handleSync() {
         const stepList = this.selectedList.map(({ templateId, stepId }) => ({
           templateId,
           stepId,
@@ -285,21 +285,21 @@
       /**
        * @desc 列表过滤
        */
-      statusFilterMethod (value, row, column) {
+      statusFilterMethod(value, row, column) {
         return row.scriptStatus === value;
       },
       /**
        * @desc 显示脚本详情
        * @param {Number} scriptVersionId 脚本版本id
        */
-      handleShowScriptDetail (scriptVersionId) {
+      handleShowScriptDetail(scriptVersionId) {
         this.selectScriptVersionId = scriptVersionId;
         this.showSideslider = true;
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const routerName = this.publicScript ? 'publicScriptVersion' : 'scriptVersion';
         this.$router.push({
           name: routerName,

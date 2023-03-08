@@ -48,13 +48,13 @@ export default {
     scopeType: String,
     scopeId: String,
   },
-  data () {
+  data() {
     return {
       hasPermission: false,
     };
   },
   computed: {
-    showRaw () {
+    showRaw() {
       if (this.permission) {
         return true;
       }
@@ -65,14 +65,14 @@ export default {
     },
   },
   watch: {
-    resourceId (resourceId) {
+    resourceId(resourceId) {
       if (!resourceId) {
         return;
       }
       this.checkPermission();
     },
   },
-  created () {
+  created() {
     this.checkPermission();
     this.authResult = {};
   },
@@ -80,7 +80,7 @@ export default {
     /**
          * @desc 主动鉴权，指定资源和资源权限
         */
-    fetchPermission () {
+    fetchPermission() {
       this.isLoading = true;
       PermissionCheckService.fetchPermission({
         operation: this.auth,
@@ -101,7 +101,7 @@ export default {
     /**
          * @desc 判断预鉴权逻辑
         */
-    checkPermission () {
+    checkPermission() {
       if (this.permission === '' && this.auth) {
         this.fetchPermission();
       }
@@ -109,7 +109,7 @@ export default {
     /**
          * @desc 无权限时弹框提示资源权限申请
         */
-    handleCheckPermission (event) {
+    handleCheckPermission(event) {
       event.stopPropagation();
       permissionDialog({
         operation: this.auth,
@@ -119,8 +119,8 @@ export default {
       }, this.authResult);
     },
   },
-    
-  render (h) {
+
+  render(h) {
     if (this.showRaw) {
       if (this.$slots.default) {
         return this.$slots.default[0];

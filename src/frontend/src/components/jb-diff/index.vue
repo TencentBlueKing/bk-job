@@ -100,17 +100,17 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         html: '',
       };
     },
     computed: {
-      classes () {
+      classes() {
         return [this.theme, `format-${this.format}`];
       },
     },
-    created () {
+    created() {
       const unwatch = this.$watch(() => `（${this.language}）${this.oldContent + this.newContent}`, () => {
         const oldContent = `${this.oldContent}\n// --end--`;
         const newContent = `${this.newContent}\n// -- end--`;

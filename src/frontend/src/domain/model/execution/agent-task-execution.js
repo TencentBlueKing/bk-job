@@ -31,7 +31,7 @@ const AGENT_STATUS_WAITING = 5;
 const AGENT_STATUS_LAST_SUCCESS = 3;
 
 export default class AgentTaskExecutionDetail extends Model {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.agentId = payload.agentId;
     this.batch = payload.batch;
@@ -57,7 +57,7 @@ export default class AgentTaskExecutionDetail extends Model {
      * @desc 表示 agent 的唯一 key
      * @returns { String }
      */
-  get key () {
+  get key() {
     return `${this.hostId}_${this.ip}_${this.ipv6}`;
   }
 
@@ -65,7 +65,7 @@ export default class AgentTaskExecutionDetail extends Model {
      * @desc agent 的状态
      * @returns { String }
      */
-  get result () {
+  get result() {
     if ([
       AGENT_STATUS_SUCCESS,
       AGENT_STATUS_LAST_SUCCESS,

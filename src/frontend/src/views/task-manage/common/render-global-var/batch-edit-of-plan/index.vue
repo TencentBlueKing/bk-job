@@ -72,7 +72,7 @@
         default: () => [],
       },
     },
-    created () {
+    created() {
       const selectedNameMap = this.selectedList.reduce((result, name) => {
         result[name] = true;
         return result;
@@ -90,7 +90,7 @@
       });
     },
     methods: {
-      submit () {
+      submit() {
         const validateQueue = [];
         if (this.$refs.used) {
           this.$refs.used.forEach((instance) => {

@@ -158,7 +158,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isShowPreviewSend: false,
         isShowVariable: false,
@@ -168,11 +168,11 @@
       };
     },
     watch: {
-      data (newVal) {
+      data(newVal) {
         if (newVal) this.formData = newVal;
       },
     },
-    created () {
+    created() {
       this.formData = this.data || {};
       this.rules = {
         content: [
@@ -186,16 +186,16 @@
       }
     },
     methods: {
-      toggleShowVariable (isShow) {
+      toggleShowVariable(isShow) {
         this.isShowVariable = isShow;
       },
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', value);
       },
-      handleApprovalUserChange (user, role) {
+      handleApprovalUserChange(user, role) {
         this.reciverList = user;
       },
-      handleSend () {
+      handleSend() {
         const { code, messageTypeCode, content, title } = this.formData;
         const params = {
           channelCode: code,

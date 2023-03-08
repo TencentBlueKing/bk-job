@@ -56,7 +56,7 @@ export default class SourceFile extends Model {
   // 文件名前缀默认值
   static FILE_PERFIX_UUID = '${UUID}'; // 文件前缀：后台自动生成UUID
 
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.id = payload.id;
     this.alias = payload.alias;
@@ -89,7 +89,7 @@ export default class SourceFile extends Model {
      * @desc 文件源访问是否正常
      * @returns { Boolean }
      */
-  get isAvailable () {
+  get isAvailable() {
     return this.status === STATUS_NORMAL;
   }
 
@@ -97,7 +97,7 @@ export default class SourceFile extends Model {
      * @desc 文件源状态展示文本
      * @returns { String }
      */
-  get statusText () {
+  get statusText() {
     return SourceFile.STATUS_TEXT_MAP[this.status];
   }
 
@@ -105,7 +105,7 @@ export default class SourceFile extends Model {
      * @desc 文件源状态显示 icon 名
      * @returns { String }
      */
-  get statusIcon () {
+  get statusIcon() {
     return SourceFile.STATUS_ICON_MAP[this.status];
   }
 
@@ -113,7 +113,7 @@ export default class SourceFile extends Model {
      * @desc 存储类型显示文本
      * @returns { String }
      */
-  get storageTypeText () {
+  get storageTypeText() {
     return SourceFile.STORAGE_TYPE_MAP[this.storageType];
   }
 
@@ -121,7 +121,7 @@ export default class SourceFile extends Model {
      * @desc 公共文件源标识
      * @returns { String }
      */
-  get publicFlagHtml () {
+  get publicFlagHtml() {
     let styles = 'display: inline-block; font-size: 12px; padding: 0 3px;';
     if (this.publicFlag) {
       styles += 'background: #EBF2FF; color: #699DF4;';

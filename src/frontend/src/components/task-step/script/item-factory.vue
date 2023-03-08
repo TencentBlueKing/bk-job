@@ -55,7 +55,7 @@
       },
     },
     computed: {
-      itemCom () {
+      itemCom() {
         const comMap = {
           scriptName: ScriptName,
           scriptSourceOfExecution: ScriptSourceOfExecution,

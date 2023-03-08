@@ -162,7 +162,7 @@
         default: 0,
       },
     },
-    data () {
+    data() {
       return {
         showContent: !this.loading,
         layoutOffsetTop: 0,
@@ -172,17 +172,17 @@
       };
     },
     computed: {
-      layoutStyles () {
+      layoutStyles() {
         return {
           height: `calc(100vh - ${this.layoutOffsetTop}px - ${this.bottomOffset}px)`,
         };
       },
-      contentStyles () {
+      contentStyles() {
         return {
           'max-height': `calc(100vh - ${this.contentOffsetTop}px - 60px - ${this.bottomOffset}px)`,
         };
       },
-      footerStyles () {
+      footerStyles() {
         const styles = {
           'padding-left': `${this.footerOffsetLeft}px`,
         };
@@ -196,23 +196,23 @@
       },
     },
     watch: {
-      loading (loading) {
+      loading(loading) {
         if (loading) {
           this.showContent = false;
           this.time = Date.now();
           return;
         }
-                
+
         const spaceTime = Date.now() - this.time;
         setTimeout(() => {
           this.showContent = true;
         }, spaceTime > 800 ? 0 : 1000 - spaceTime);
       },
     },
-    created () {
+    created() {
       this.time = Date.now();
     },
-    mounted () {
+    mounted() {
       window.addEventListener('resize', this.init);
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', this.init);
@@ -223,7 +223,7 @@
       this.init();
     }, 500),
     methods: {
-      init () {
+      init() {
         if (!this.$refs.layout || !this.$refs.content || !document.querySelector('#templateStepRender')) {
           return;
         }
@@ -239,7 +239,7 @@
           this.footerOffsetLeft = offsetTargetOffsetLeft - layoutOffsetLeft;
         });
       },
-      getBackTopTarget () {
+      getBackTopTarget() {
         return this.$refs.content;
       },
     },

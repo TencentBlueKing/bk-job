@@ -186,7 +186,7 @@
     components: {
       ActionBar,
     },
-    data () {
+    data() {
       return {
         isShowPassword: false,
         isShowLog: false,
@@ -209,12 +209,12 @@
     },
 
     computed: {
-      isUploadSuccess () {
+      isUploadSuccess() {
         return this.importInfo.status === TASK_STATUS_PACKAGE_PARSE_SUCCESS;
       },
     },
 
-    created () {
+    created() {
       this.fileMemo = null;
       this.uploadErrorMsg = '';
       this.pollingQueue = [];
@@ -235,12 +235,12 @@
       }
     },
 
-    beforeDestroy () {
+    beforeDestroy() {
       this.clearTimer();
     },
 
     methods: {
-      fetchImportInfo () {
+      fetchImportInfo() {
         this.isShowLog = true;
         this.$request(BackupService.fetchImportInfo({
           id: this.id,
@@ -274,7 +274,7 @@
           });
       },
 
-      renderLogRow (row, index, list) {
+      renderLogRow(row, index, list) {
         // eslint-disable-next-line max-len
         const logContent = `<span class="log-header">[ ${escapeHTML(row.timestamp)} ]</span> ${escapeHTML(row.content)}`;
         const errorTypeMap = {
@@ -296,7 +296,7 @@
         return logContent;
       },
 
-      startTimer () {
+      startTimer() {
         if (this.isClearTimer) {
           return;
         }
@@ -309,11 +309,11 @@
         }, 1000);
       },
 
-      clearTimer () {
+      clearTimer() {
         this.isClearTimer = true;
       },
 
-      handleUploadRequest (option) {
+      handleUploadRequest(option) {
         this.uploadFilename = option.fileObj.name;
 
         if (!/\.jobexport$/.test(option.fileObj.name)) {
@@ -348,11 +348,11 @@
           });
       },
 
-      handleFileRefresh () {
+      handleFileRefresh() {
         this.handleUploadRequest(this.fileMemo);
       },
 
-      hanleFileDelete () {
+      hanleFileDelete() {
         if (this.uploadRequestCancelSource) {
           this.uploadRequestCancelSource.cancel(I18n.t('template.上传任务已取消'));
         }
@@ -368,11 +368,11 @@
         this.isShowLog = false;
         taskImport.clearItem();
       },
-      handleInputPassword () {
+      handleInputPassword() {
         this.passwordFormData.password = '';
         this.isShowPassword = true;
       },
-      handleClosePassword () {
+      handleClosePassword() {
         this.isShowPassword = false;
         window.changeFlag = false;
         this.$refs.passwordForm.clearError();
@@ -386,7 +386,7 @@
           type: LOG_TYPE_ERROR_PASSWORD,
         });
       },
-      handleEnter (value, event) {
+      handleEnter(value, event) {
         if (event.isComposing) {
           // 跳过输入发复合时间
           return;
@@ -397,7 +397,7 @@
         }
         this.handleSubmitPassword();
       },
-      handleSubmitPassword () {
+      handleSubmitPassword() {
         this.isPasswordSubmiting = true;
         this.$refs.passwordForm.validate()
           .then(() => BackupService.checkImportPassword({
@@ -412,7 +412,7 @@
             this.isPasswordSubmiting = false;
           });
       },
-      handleLogAction (event) {
+      handleLogAction(event) {
         const $target = event.target;
         if (!$target.classList.contains('action')) {
           return;
@@ -428,14 +428,14 @@
         default:
         }
       },
-      handleCancel () {
+      handleCancel() {
         this.hanleFileDelete();
         this.$emit('on-cancle');
       },
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 1);
       },
-      handleNext () {
+      handleNext() {
         this.$emit('on-change', 3);
       },
     },

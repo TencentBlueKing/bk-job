@@ -50,7 +50,7 @@ export default class DangerousRecord {
     3: 'Cron',
   };
 
-  constructor (payload) {
+  constructor(payload) {
     this.action = payload.action;
     this.scopeType = payload.scopeType;
     this.scopeId = payload.scopeId;
@@ -67,11 +67,11 @@ export default class DangerousRecord {
     this.startupMode = payload.startupMode;
   }
 
-  get getSctiptTypeHtml () {
+  get getSctiptTypeHtml() {
     return DangerousRecord.scriptTypeMap[this.scriptLanguage];
   }
 
-  get getActionHtml () {
+  get getActionHtml() {
     let styles = 'display: inline-block; padding: 0 5px; line-height: 16px; font-size: 12px;';
     if (this.action === 1) {
       styles += 'background: #f0f1f5; color: #979ba5';
@@ -81,11 +81,11 @@ export default class DangerousRecord {
     return `<span style="${styles}">${DangerousRecord.actionMap[this.action]}<span>`;
   }
 
-  get getCreatTimes () {
+  get getCreatTimes() {
     return prettyDateTimeFormat(this.createTime);
   }
 
-  get getStartupModeHtml () {
+  get getStartupModeHtml() {
     return DangerousRecord.startupModeMap[this.startupMode];
   }
 }

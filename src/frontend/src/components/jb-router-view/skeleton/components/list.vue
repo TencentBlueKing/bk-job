@@ -117,7 +117,7 @@
       },
     },
     computed: {
-      leftBlockPosition () {
+      leftBlockPosition() {
         return this.maxWidth - 420;
       },
     },

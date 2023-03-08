@@ -31,13 +31,13 @@ export default {
     isLocalFileUploadFailed: false,
   },
   mutations: {
-    editNewSourceFile (state, payload) {
+    editNewSourceFile(state, payload) {
       state.isEditNewSourceFile = payload;
     },
-    updateFileUploading (state, value) {
+    updateFileUploading(state, value) {
       state.isLocalFileUploading = value;
     },
-    updateFileUploadFailed (state, value) {
+    updateFileUploadFailed(state, value) {
       state.isLocalFileUploadFailed = value;
     },
   },

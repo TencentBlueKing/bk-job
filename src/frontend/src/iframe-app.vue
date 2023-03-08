@@ -51,7 +51,7 @@
     components: {
       RouterBack,
     },
-    data () {
+    data() {
       return {
         loading: true,
         routerTitle: '',
@@ -59,7 +59,7 @@
     },
     watch: {
       $route: {
-        handler (route) {
+        handler(route) {
           this.routerTitle = (route.meta.title || route.meta.pageTitle);
         },
         immediate: true,
@@ -70,7 +70,7 @@
      *
      * loading用于控制页面切换效果
      */
-    mounted () {
+    mounted() {
       setTimeout(() => {
         this.loading = false;
       }, 100);

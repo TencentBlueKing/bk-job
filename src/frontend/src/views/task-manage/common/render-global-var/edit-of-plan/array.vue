@@ -105,12 +105,12 @@
     props: {
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         arrayType: 5,
         formData: getDefaultData(),
@@ -118,7 +118,7 @@
     },
     watch: {
       data: {
-        handler (value) {
+        handler(value) {
           if (Object.keys(value).length) {
             const { name, defaultValue, description, changeable, required, id, type } = value;
             this.formData = {
@@ -137,14 +137,14 @@
       },
     },
     methods: {
-      submit () {
+      submit() {
         return Promise.resolve({
           ...this.formData,
           type: this.arrayType,
         });
       },
 
-      reset () {
+      reset() {
         this.formData = getDefaultData();
       },
     },

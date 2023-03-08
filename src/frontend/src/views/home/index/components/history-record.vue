@@ -93,7 +93,7 @@
     components: {
       Empty,
     },
-    data () {
+    data() {
       return {
         userInfo: {},
         isLoading: true,
@@ -101,7 +101,7 @@
         recordList: [],
       };
     },
-    created () {
+    created() {
       this.fetchUserInfo();
       this.fetchExecuteHistory();
     },
@@ -109,7 +109,7 @@
       /**
        * @desc 获取登录用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.userInfo = Object.freeze(data);
@@ -120,7 +120,7 @@
        *
        * 时间返回默认是 30 天
        */
-      fetchExecuteHistory () {
+      fetchExecuteHistory() {
         this.isLoading = true;
 
         const params = {
@@ -142,7 +142,7 @@
        * @desc 筛选登录用户执行列表
        * @param {String} operator 登录用户名
        */
-      handleRecordFilterChange (operator) {
+      handleRecordFilterChange(operator) {
         this.recordOperator = operator;
         this.fetchExecuteHistory();
       },
@@ -150,7 +150,7 @@
        * @desc 跳转任务执行详情页面
        * @param {Object} taskInstance 任务执行实例
        */
-      handleViewExecuteDetail (taskInstance) {
+      handleViewExecuteDetail(taskInstance) {
         if (taskInstance.isTask) {
           this.$router.push({
             name: 'historyTask',

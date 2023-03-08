@@ -134,7 +134,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isVarLoading: false,
@@ -143,8 +143,8 @@
         currentPlanVariableList: [],
       };
     },
-        
-    created () {
+
+    created() {
       Promise.all([
         this.fetchData(),
         this.fetchRoleList(),
@@ -157,7 +157,7 @@
       /**
        * @desc 获取定时人详情
        */
-      fetchData () {
+      fetchData() {
         TaskPlanService.fetchPlanDetailInfo({
           templateId: this.data.taskTemplateId,
           id: this.data.taskPlanId,
@@ -186,7 +186,7 @@
       /**
        * @desc 通知人列表
        */
-      fetchRoleList () {
+      fetchRoleList() {
         NotifyService.fetchRoleList()
           .then((data) => {
             const roleMap = {};
@@ -199,7 +199,7 @@
       /**
        * @desc 通知渠道
        */
-      fetchAllChannel () {
+      fetchAllChannel() {
         QueryGlobalSettingService.fetchActiveNotifyChannel()
           .then((data) => {
             const channelMap = {};

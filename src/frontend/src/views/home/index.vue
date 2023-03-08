@@ -34,7 +34,7 @@
   import {
     loadLanguage,
   } from '@/i18n';
-    
+
   loadLanguage(Local);
 
   export default {};

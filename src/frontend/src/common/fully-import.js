@@ -177,7 +177,7 @@ Vue.use(Test);
 
 marked.use({
   renderer: {
-    link (link, title, text) {
+    link(link, title, text) {
       return `<a href="${link}" target="_blank">${text}</a>`;
     },
   },

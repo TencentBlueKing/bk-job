@@ -36,7 +36,7 @@ import Request from './lib/request';
 const request = new Request(Cache);
 
 export default new Proxy(request, {
-  get (target, key) {
+  get(target, key) {
     return (url, config = {}) => {
       if (key === 'download') {
         // eslint-disable-next-line  max-len

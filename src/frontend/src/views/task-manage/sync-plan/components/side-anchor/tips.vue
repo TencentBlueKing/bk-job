@@ -49,7 +49,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         position: 'left',
         top: 0,
@@ -57,7 +57,7 @@
       };
     },
     computed: {
-      styles () {
+      styles() {
         return {
           position: 'absolute',
           top: `${this.top}px`,
@@ -66,7 +66,7 @@
         };
       },
     },
-    mounted () {
+    mounted() {
       this.$target = document.querySelector('.sync-plan-side-anchor').querySelector(`[data-anchor="${this.data.target}"]`);
       const scrollParent = getScrollParent(this.$target);
       if (scrollParent) {
@@ -75,24 +75,26 @@
           scrollParent.removeEventListener('scroll', this.calcPosition);
         });
       }
-            
+
       this.init();
     },
-    beforeDestroy () {
+    beforeDestroy() {
       try {
         if (this.$refs.detail) {
           document.body.removeChild(this.$refs.detail);
         }
-      } catch (error) {}
+      } catch (error) {
+        console.log(error);
+      }
     },
     methods: {
-      init () {
+      init() {
         this.$nextTick(() => {
           this.calcPosition();
         });
         document.body.appendChild(this.$refs.tips);
       },
-      calcPosition () {
+      calcPosition() {
         const tipsHeight = this.$refs.tips.getBoundingClientRect().height;
         const { top, left, height } = this.$target.getBoundingClientRect();
         this.top = top - (tipsHeight - height) / 2;

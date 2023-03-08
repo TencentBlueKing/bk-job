@@ -76,7 +76,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       const { hostNodeInfo } = new TaskHostNodeModel({});
       return {
         isShowDetail: false,
@@ -85,11 +85,11 @@
     },
 
     methods: {
-      handlerView () {
+      handlerView() {
         this.hostNodeInfo = this.data.host.hostNodeInfo;
         this.isShowDetail = true;
       },
-      handleClose () {
+      handleClose() {
         this.isShowDetail = false;
       },
     },

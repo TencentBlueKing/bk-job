@@ -29,7 +29,7 @@ import AccountRuleModel from '@model/account-rule';
 import QueryGlobalSettingSource from '../source/query-global-setting';
 
 export default {
-  fetchAllNameRule () {
+  fetchAllNameRule() {
     return QueryGlobalSettingSource.getAllNameRule()
       .then(({ data }) => {
         let { currentRules, defaultRules } = data;
@@ -44,31 +44,31 @@ export default {
         };
       });
   },
-  fetchActiveNotifyChannel () {
+  fetchActiveNotifyChannel() {
     return QueryGlobalSettingSource.getAllNotifyChannel()
       .then(({ data }) => data.filter(_ => _.isActive));
   },
-  fetchDangerousRules () {
+  fetchDangerousRules() {
     return QueryGlobalSettingSource.getAllDangerousRules()
       .then(({ data }) => data);
   },
-  fetchAdminIdentity () {
+  fetchAdminIdentity() {
     return QueryGlobalSettingSource.getAdminIdentity()
       .then(({ data }) => data);
   },
-  fetchApplyBusinessUrl (params) {
+  fetchApplyBusinessUrl(params) {
     return QueryGlobalSettingSource.getApplyBusinessUrl(params)
       .then(({ data }) => data);
   },
-  fetchCMDBAppIndexUrl () {
+  fetchCMDBAppIndexUrl() {
     return QueryGlobalSettingSource.getCMDBAppIndexUrl()
       .then(({ data }) => data);
   },
-  fetchCMDBUrl () {
+  fetchCMDBUrl() {
     return QueryGlobalSettingSource.getCMDBUrl()
       .then(({ data }) => data);
   },
-  fetchFooterConfig () {
+  fetchFooterConfig() {
     return QueryGlobalSettingSource.getTitleAndFooter()
       .then(({ data }) => {
         const { footerLink, footerCopyRight } = data;
@@ -78,7 +78,7 @@ export default {
         };
       });
   },
-  fetchTitleConfig () {
+  fetchTitleConfig() {
     return QueryGlobalSettingSource.getTitleAndFooter()
       .then(({ data }) => {
         const { titleHead, titleSeparator } = data;
@@ -88,14 +88,14 @@ export default {
         };
       });
   },
-  fetchRelatedSystemUrls () {
+  fetchRelatedSystemUrls() {
     return QueryGlobalSettingSource.getRelatedSystemUrls()
       .then(({ data }) => ({
         ...data,
         BK_CMDB_APP_INDEX_URL: data.BK_CMDB_APP_INDEX_URL.replace('{appId}', window.PROJECT_CONFIG.SCOPE_ID),
       }));
   },
-  fetchJobConfig (params = {}) {
+  fetchJobConfig(params = {}) {
     return QueryGlobalSettingSource.getJobConfig(params)
       .then(({ data }) => data);
   },

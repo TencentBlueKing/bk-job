@@ -28,34 +28,34 @@ import Request from '@utils/request';
 import ModuleBase from './module-base';
 
 class AppManage extends ModuleBase {
-  constructor () {
+  constructor() {
     super();
     this.module = 'job-manage/web';
   }
 
   // 获取用户的业务列表
-  getAllApp () {
+  getAllApp() {
     return Request.get(`/${this.module}/app/list`, {
       cache: true,
     });
   }
 
   // 获取完整的业务列表
-  getWholeAppList () {
+  getWholeAppList() {
     return Request.get(`/${this.module}/app/list/favor`, {
       cache: true,
     });
   }
 
   // 收藏业务
-  updateFavorApp (params = {}) {
+  updateFavorApp(params = {}) {
     return Request.post(`${this.path}/favor`, {
       params,
     });
   }
 
   // 取消收藏业务
-  updateCancelFavorApp (params = {}) {
+  updateCancelFavorApp(params = {}) {
     return Request.post(`${this.path}/cancelFavor`, {
       params,
     });

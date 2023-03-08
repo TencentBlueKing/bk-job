@@ -67,7 +67,7 @@ const parseLanguagePackage = (localPackage) => {
         msgCn[key] = key;
       }
     });
-        
+
     return msgCn;
   };
 

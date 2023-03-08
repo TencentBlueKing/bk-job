@@ -26,7 +26,7 @@
 import I18n from '@/i18n';
 
 export default class TaskHostNode {
-  static isHostNodeInfoEmpty (hostNodeInfo) {
+  static isHostNodeInfoEmpty(hostNodeInfo) {
     const {
       dynamicGroupList,
       hostList,
@@ -36,13 +36,13 @@ export default class TaskHostNode {
             && hostList.length < 1
             && nodeList.length < 1;
   }
-    
-  constructor (payload = {}) {
+
+  constructor(payload = {}) {
     this.variable = payload.variable || '';
     this.hostNodeInfo = this.initHostNodeInfo(payload.hostNodeInfo || {});
   }
-    
-  get isEmpty () {
+
+  get isEmpty() {
     const {
       dynamicGroupList,
       hostList,
@@ -55,7 +55,7 @@ export default class TaskHostNode {
             && nodeList.length < 1;
   }
 
-  get text () {
+  get text() {
     const {
       dynamicGroupList,
       hostList,
@@ -74,7 +74,7 @@ export default class TaskHostNode {
     return strs.length > 0 ? strs.join('，') : '--';
   }
 
-  initHostNodeInfo (hostNodeInfo) {
+  initHostNodeInfo(hostNodeInfo) {
     const {
       hostList,
       dynamicGroupList,

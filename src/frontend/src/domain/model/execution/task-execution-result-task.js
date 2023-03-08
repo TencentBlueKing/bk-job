@@ -100,7 +100,7 @@ const checkStatus = (status) => {
 // 作业执行详情页
 // 作业实例
 export default class TaskExecutionResultStep {
-  constructor (payload) {
+  constructor(payload) {
     this.endTime = payload.endTime;
     this.name = payload.name;
     this.startTime = payload.startTime;
@@ -118,7 +118,7 @@ export default class TaskExecutionResultStep {
      * @desc 是作业执行的任务
      * @returns { Boolean }
      */
-  get isTask () {
+  get isTask() {
     return this.type === TASK_TYPE_TASK;
   }
 
@@ -126,7 +126,7 @@ export default class TaskExecutionResultStep {
      * @desc 快速执行脚本的任务
      * @returns { Boolean }
      */
-  get isScript () {
+  get isScript() {
     return this.type === TASK_TYPE_SCRIPT;
   }
 
@@ -134,7 +134,7 @@ export default class TaskExecutionResultStep {
      * @desc 快速分发文件的任务
      * @returns { Boolean }
      */
-  get isFile () {
+  get isFile() {
     return this.type === TASK_TYPE_FILE;
   }
 
@@ -142,7 +142,7 @@ export default class TaskExecutionResultStep {
      * @desc 任务执行时间
      * @returns { String }
      */
-  get totalTimeText () {
+  get totalTimeText() {
     return transformTimeFriendly(this.totalTime);
   }
 
@@ -150,7 +150,7 @@ export default class TaskExecutionResultStep {
      * @desc 任务正在执行
      * @returns { Boolean }
      */
-  get isDoing () {
+  get isDoing() {
     return [
       STATUS_DOING,
       STATUS_FORCEDING,
@@ -161,7 +161,7 @@ export default class TaskExecutionResultStep {
      * @desc 任务执行成功
      * @returns { Boolean }
      */
-  get isSuccess () {
+  get isSuccess() {
     return [
       STATUS_SUCCESS,
     ].includes(this.status);
@@ -171,7 +171,7 @@ export default class TaskExecutionResultStep {
      * @desc 任务可以被强制终止
      * @returns { Boolean }
      */
-  get isForcedEnable () {
+  get isForcedEnable() {
     return [
       STATUS_DOING,
     ].includes(this.status);
@@ -181,7 +181,7 @@ export default class TaskExecutionResultStep {
      * @desc 任务状态的 css 对应的 class
      * @returns { String }
      */
-  get displayStyle () {
+  get displayStyle() {
     const styleMap = {
       success: 'success',
       ingore: 'ingore',

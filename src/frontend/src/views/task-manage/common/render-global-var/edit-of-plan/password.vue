@@ -78,19 +78,19 @@
     props: {
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
       };
     },
     watch: {
       data: {
-        handler (value) {
+        handler(value) {
           if (Object.keys(value).length) {
             const { name, defaultValue, description, required, id } = value;
             const del = value.delete;
@@ -102,14 +102,14 @@
       },
     },
     methods: {
-      submit () {
+      submit() {
         return Promise.resolve({
           ...this.formData,
           type: 4,
         });
       },
 
-      reset () {
+      reset() {
         this.formData = getDefaultData();
       },
     },

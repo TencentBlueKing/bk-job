@@ -31,7 +31,7 @@
     class="push-file-page">
     <resize-layout
       class="push-file-content"
-      :right-fixed="true"
+      right-fixed
       :right-width="366">
       <smart-action offset-target="bk-form-content">
         <jb-form
@@ -219,7 +219,7 @@
       ItemFactory,
       ResizeLayout,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         formData: getDefaultData(),
@@ -234,11 +234,11 @@
         isEditNewSourceFile: state => state.isEditNewSourceFile,
       }),
     },
-    created () {
+    created() {
       this.init();
       this.calcTargetPathTipsPlacement();
     },
-    mounted () {
+    mounted() {
       window.IPInputScope = 'FILE_DISTRIBUTION';
       window.addEventListener('resize', this.calcTargetPathTipsPlacement);
       this.$once('hook:beforeDestroy', () => {
@@ -252,7 +252,7 @@
        *
        * 通过任务taskInstanceId获取任务的详情
        */
-      fetchData () {
+      fetchData() {
         this.$request(TaskExecuteService.fetchTaskInstance({
           id: this.taskInstanceId,
         }), () => {
@@ -307,7 +307,7 @@
        *     -- 路由回退重做
        *     -- 执行历史指定任务重做
        */
-      init () {
+      init() {
         this.taskInstanceId = parseInt(this.$route.params.taskInstanceId, 10);
         this.timeTravel();
 
@@ -340,7 +340,7 @@
        * @desc 回溯执行历史
        *
        */
-      timeTravel () {
+      timeTravel() {
         this.historyList = Object.freeze(pushFileHistory.getItem());
       },
       /**
@@ -348,7 +348,7 @@
        * @param {Array} history 执行历史记录
        *
        */
-      pushLocalStorage (history) {
+      pushLocalStorage(history) {
         const historyList = pushFileHistory.getItem();
         historyList.unshift(history);
         pushFileHistory.setItem(historyList);
@@ -357,14 +357,14 @@
        * @desc 展开执行历史列表
        *
        */
-      handleShowHistory () {
+      handleShowHistory() {
         this.isShowHistory = !this.isShowHistory;
       },
       /**
        * @desc 查看执行历史记录任务详情
        *
        */
-      handleGoHistoryDetail (payload) {
+      handleGoHistoryDetail(payload) {
         this.$router.push({
           name: 'quickLaunchStep',
           params: {
@@ -381,14 +381,14 @@
        * @param {String} field 字段名
        * @param {Any} value  字段最新值
        */
-      handleChange (field, value) {
+      handleChange(field, value) {
         this.formData[field] = value;
       },
       /**
        * @desc 批量更新字段
        * @param {Object} payload 将要更新的字段值
        */
-      handleReset (payload) {
+      handleReset(payload) {
         this.formData = {
           ...this.formData,
           ...payload,
@@ -397,7 +397,7 @@
       /**
        * @desc 执行
        */
-      handleSubmit () {
+      handleSubmit() {
         this.isSubmiting = true;
         this.$refs.pushFileForm.validate()
           // 检测没有保存的源文件
@@ -540,7 +540,7 @@
       /**
        * @desc 重置
        */
-      handleCancel () {
+      handleCancel() {
         this.$refs.pushFileForm.clearError();
         this.formData = getDefaultData();
       },

@@ -43,7 +43,7 @@
     name: 'JbMenuItemGroup',
     inject: ['jbMenu'],
     computed: {
-      isFlod () {
+      isFlod() {
         return this.jbMenu.flod;
       },
     },

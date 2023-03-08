@@ -66,7 +66,7 @@
       },
     },
     computed: {
-      styles () {
+      styles() {
         if (this.width > 0) {
           return {
             width: `${this.width}px`,

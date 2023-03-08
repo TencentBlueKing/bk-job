@@ -78,13 +78,13 @@
         default: false,
       },
     },
-    created () {
+    created() {
       this.id = `action_extend_${Math.random()}_${Math.random()}`;
     },
-    mounted () {
+    mounted() {
       this.init();
     },
-    beforeDestroy () {
+    beforeDestroy() {
       instanceMap[this.id].hide();
       delete instanceMap[this.id];
     },
@@ -92,7 +92,7 @@
       /**
        * @desc 弹层面板初始化
        */
-      init () {
+      init() {
         instanceMap[this.id] = this.$bkPopover(this.$el, {
           theme: 'server-panel-action-extend-popover',
           interactive: true,
@@ -112,13 +112,13 @@
       /**
        * @desc 隐藏弹层面板
        */
-      handleWraperClick () {
+      handleWraperClick() {
         this.handleClose();
       },
       /**
        * @desc 鼠标操作隐藏弹层面板
        */
-      handleHide () {
+      handleHide() {
         this.leaveTimer = setTimeout(() => {
           this.handleClose();
         }, 3000);
@@ -126,7 +126,7 @@
       /**
        * @desc 复制所有主机
        */
-      handleCopyAll () {
+      handleCopyAll() {
         if (this.list.length < 1 && this.invalidList.length < 1) {
           this.messageWarn(I18n.t('你还未选择主机'));
           return;
@@ -141,7 +141,7 @@
       /**
        * @desc 复制异常主机
        */
-      handleCopyFail () {
+      handleCopyFail() {
         if (this.list.length < 1 && this.invalidList.length < 1) {
           this.messageWarn(I18n.t('你还未选择主机'));
           return;
@@ -162,10 +162,10 @@
         ];
         execCopy(allFailIp.join('\n'), `${I18n.t('复制成功')}（${allFailIp.length}${I18n.t('个异常IP')}）`);
       },
-      handleShow () {
+      handleShow() {
         clearTimeout(this.leaveTimer);
       },
-      handleClose () {
+      handleClose() {
         instanceMap[this.id] && instanceMap[this.id].hide();
       },
     },

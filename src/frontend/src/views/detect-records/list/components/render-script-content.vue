@@ -51,7 +51,7 @@
         require: true,
       },
     },
-    data () {
+    data() {
       return {
         lang: '',
         scriptContent: '',
@@ -59,7 +59,7 @@
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           this.scriptContent = data.scriptContent;
           this.lang = formatScriptTypeValue(data.scriptLanguage);
         },

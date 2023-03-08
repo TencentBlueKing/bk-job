@@ -57,7 +57,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         titleMaxWidth: 100,
         offsetRight: 'unset',
@@ -65,7 +65,7 @@
       };
     },
     computed: {
-      themeCom () {
+      themeCom() {
         const comMap = {
           task: Task,
           step: Step,
@@ -76,7 +76,7 @@
         return comMap[this.type];
       },
     },
-    mounted () {
+    mounted() {
       const $container = document.querySelector('#sitePageTitle');
       const containerWidth = $container.getBoundingClientRect().width;
       const $target = document.querySelector('#siteHeaderStatusBar');
@@ -86,7 +86,7 @@
       if (!this.initialStatusWidth) {
         this.initialStatusWidth = statusWidth;
       }
-            
+
       const titleMaxWidth = containerWidth - statusWidth - 40;
       this.titleMaxWidth = titleMaxWidth < 100 ? 100 : titleMaxWidth;
 
@@ -96,7 +96,9 @@
         }
         try {
           $target.removeChild(this.$el);
-        } catch {}
+        } catch {
+          console.log('error');
+        }
       });
     },
   };

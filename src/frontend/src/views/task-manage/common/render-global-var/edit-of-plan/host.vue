@@ -120,51 +120,51 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: {},
         isShowChooseIp: false,
       };
     },
     computed: {
-      isShowClear () {
+      isShowClear() {
         return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
       },
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           this.formData = new TaskGlobalVariableModel(data);
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
     },
     methods: {
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.formData.defaultTargetValue.hostNodeInfo = Object.freeze(hostNodeInfo);
       },
-      handleShowChooseIp () {
+      handleShowChooseIp() {
         this.isShowChooseIp = true;
       },
-      handleCloseIPSelector () {
+      handleCloseIPSelector() {
         this.isShowChooseIp = false;
       },
 
-      handleClear () {
+      handleClear() {
         const { hostNodeInfo } = new TaskHostNodeModel({});
         this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
       },
-      submit () {
+      submit() {
         return Promise.resolve({
           ...this.formData,
           type: TaskGlobalVariableModel.TYPE_HOST,
         });
       },
 
-      reset () {
+      reset() {
         this.formData = new TaskGlobalVariableModel(getDefaultData);
       },
     },

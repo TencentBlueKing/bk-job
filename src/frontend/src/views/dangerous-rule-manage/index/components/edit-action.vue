@@ -65,16 +65,16 @@
         require: true,
       },
     },
-    data () {
+    data() {
       return {
         isEditing: false,
       };
     },
     computed: {
-      text () {
+      text() {
         return _.find(this.actionList, _ => _.id === this.value).name;
       },
-      textClass () {
+      textClass() {
         const classMap = {
           1: 'normal',
           2: 'hight',
@@ -82,7 +82,7 @@
         return classMap[this.value];
       },
     },
-    created () {
+    created() {
       this.actionList = [
         {
           id: 1,
@@ -98,7 +98,7 @@
       /**
        * @desc 开始编辑
        */
-      handleEdit () {
+      handleEdit() {
         this.isEditing = true;
         this.$nextTick(() => {
           this.$refs.select.$el.querySelector('.bk-select-name').click();
@@ -107,7 +107,7 @@
       /**
        * @desc 下拉面板收起，取消编辑状态
        */
-      handleSelectToggle (toggle) {
+      handleSelectToggle(toggle) {
         if (!toggle) {
           this.isEditing = false;
         }
@@ -115,7 +115,7 @@
       /**
        * @desc 触发change 事件
        */
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', value);
       },
     },

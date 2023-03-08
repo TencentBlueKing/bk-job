@@ -41,7 +41,7 @@ export const ipStatistics = (hostNodeList) => {
   if (hostNodeList.dynamicGroupList.length > 0) {
     stack.push(`${hostNodeList.dynamicGroupList.length}${I18n.t('template.个分组')}`);
   }
-    
+
   return stack.join('，');
 };
 

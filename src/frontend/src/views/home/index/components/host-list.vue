@@ -69,7 +69,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         hostList: [],
@@ -80,11 +80,11 @@
         },
       };
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         const pageSize = this.pagination.limit;
         const start = parseInt(this.pagination.current - 1, 10) * pageSize;
         const params = {
@@ -105,11 +105,11 @@
             this.isLoading = false;
           });
       },
-      handlePageChange (value) {
+      handlePageChange(value) {
         this.pagination.current = value;
         this.fetchData();
       },
-      handleLimitChange (value) {
+      handleLimitChange(value) {
         this.pagination.current = 1;
         this.pagination.limit = value;
         this.fetchData();

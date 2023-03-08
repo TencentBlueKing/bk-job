@@ -40,7 +40,7 @@ export default class Ticket extends Model {
     [SECRET_KEY]: I18n.t('单一SecretKey'),
   };
 
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.description = payload.description;
     this.id = payload.id;

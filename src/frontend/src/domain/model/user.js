@@ -24,7 +24,7 @@
 */
 
 export default class User {
-  constructor (payload) {
+  constructor(payload) {
     this.id = payload.id;
     this.uid = payload.uid;
     this.username = payload.username;

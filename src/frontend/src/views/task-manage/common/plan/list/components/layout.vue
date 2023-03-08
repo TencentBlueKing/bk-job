@@ -76,7 +76,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isShowRight: false,
         isOpen: false,
@@ -84,7 +84,7 @@
       };
     },
     computed: {
-      styles () {
+      styles() {
         if (this.flod) {
           return {
             width: '370px',
@@ -97,7 +97,7 @@
     },
     watch: {
       flod: {
-        handler (flod) {
+        handler(flod) {
           if (flod) {
             setTimeout(() => {
               this.isShowRight = flod;
@@ -109,7 +109,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.calcWidth();
       window.addEventListener('resize', this.calcWidth);
       this.$once('hook:beforeDestroy', () => {
@@ -117,14 +117,14 @@
       });
     },
     methods: {
-      calcWidth () {
+      calcWidth() {
         const layoutWidth = this.$refs.layout.getBoundingClientRect().width;
         this.layoutWidth = `${layoutWidth}px`;
       },
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
       },
-      handleClose () {
+      handleClose() {
         leaveConfirm()
           .then(() => {
             this.isOpen = false;

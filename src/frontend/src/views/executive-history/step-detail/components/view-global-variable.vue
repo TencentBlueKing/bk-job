@@ -36,7 +36,7 @@
       </div>
       <jb-sideslider
         :is-show.sync="isShow"
-        :quick-close="true"
+        quick-close
         :show-footer="false"
         :title="$t('history.全局变量')"
         :width="960">
@@ -59,14 +59,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShow: false,
       };
     },
 
     methods: {
-      handleShowGlobalVariable () {
+      handleShowGlobalVariable() {
         this.isShow = true;
       },
     },

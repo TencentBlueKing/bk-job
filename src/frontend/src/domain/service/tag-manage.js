@@ -35,7 +35,7 @@ export default {
      * @param { Object } params 筛选参数
      * @returns { Promise }
      */
-  fetchTagList (params = {}) {
+  fetchTagList(params = {}) {
     return TagManageSource.getAll(params)
       .then(({ data }) => {
         data.data = data.data.map(tag => new TagModel(tag));
@@ -47,7 +47,7 @@ export default {
      * @param { Object } params 筛选参数
      * @returns { Promise }
      */
-  fetchWholeList (params = {}) {
+  fetchWholeList(params = {}) {
     return TagManageSource.getAllWithBasic(params)
       .then(({ data }) => data.map(item => new TagModel(item)));
   },
@@ -56,32 +56,32 @@ export default {
      * @param { Object } params 筛选参数
      * @returns { Promise }
      */
-  batchUpdate (params = {}) {
+  batchUpdate(params = {}) {
     return TagManageSource.batchUpdate(params)
       .then(({ data }) => data);
   },
-  fetchTagOfSearch (name) {
+  fetchTagOfSearch(name) {
     return TagManageSource.getAllWithBasic({
       name,
     }).then(({ data }) => data.map(tag => new TagModel(tag)));
   },
-  fetchTagTemplateNum (params = {}) {
+  fetchTagTemplateNum(params = {}) {
     return TagNumSource.getNum(params)
       .then(({ data }) => data);
   },
-  remove (params = {}) {
+  remove(params = {}) {
     return TagManageSource.remove(params)
       .then(({ data }) => data);
   },
-  updateTag (params = {}) {
+  updateTag(params = {}) {
     return TagManageSource.update(params)
       .then(({ data }) => data);
   },
-  createTag (params) {
+  createTag(params) {
     return TagManageSource.create(params)
       .then(({ data }) => data);
   },
-  checkName (params = {}) {
+  checkName(params = {}) {
     return TagManageSource.checkName(params)
       .then(({ data }) => data);
   },

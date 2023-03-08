@@ -27,12 +27,12 @@ import Request from '@utils/request';
 
 // 对接全业务场景的IP选择器
 class HostAllManage {
-  constructor () {
+  constructor() {
     this.path = 'job-manage/web/scope/biz_set/9991001';
   }
 
   // 获取动态分组
-  getAllDynamicGroup (params = {}) {
+  getAllDynamicGroup(params = {}) {
     return Request.post(`${this.path}/dynamicGroups`, {
       params,
       cache: 2000,
@@ -40,123 +40,123 @@ class HostAllManage {
   }
 
   // 获取动态分组主机列表
-  getHostByDynamicGroupId ({ id }) {
+  getHostByDynamicGroupId({ id }) {
     return Request.get(`${this.path}/dynamicGroup/${id}`);
   }
 
   // 根据节点id获取机器列表
-  getHostByNode (params) {
+  getHostByNode(params) {
     return Request.post(`${this.path}/host/node`, {
       params,
     });
   }
 
   // 获取节点详情
-  getNodeInfo (params = {}) {
+  getNodeInfo(params = {}) {
     return Request.post(`${this.path}/node/detail`, {
       params,
     });
   }
 
   // 获取节点拓扑路径
-  getNodePath (params = {}) {
+  getNodePath(params = {}) {
     return Request.post(`${this.path}/nodes/queryPath`, {
       params,
     });
   }
 
   // 根据输入 IP 获取机器信息
-  getHostByHost (params) {
+  getHostByHost(params) {
     return Request.post(`${this.path}/host/check`, {
       params,
     });
   }
 
   // 获取业务拓扑列表
-  getAllTopology () {
+  getAllTopology() {
     return Request.get(`${this.path}/topology`, {
       cache: 2000,
     });
   }
 
   // 获取业务拓扑列表（含各节点主机数）
-  getAllTopologyWithCount () {
+  getAllTopologyWithCount() {
     return Request.post(`${this.path}/topology/hostCount`, {
       cache: 2000,
     });
   }
 
   // 获取业务拓扑主机列表（包含主机）
-  getAllTopologyWithHost () {
+  getAllTopologyWithHost() {
     return Request.get(`${this.path}/topology/host`, {
       cache: 2000,
     });
   }
 
   // IP选择器根据拓扑节点集合获取机器列表(支持分页)
-  getTopologyHost (params = {}) {
+  getTopologyHost(params = {}) {
     return Request.post(`${this.path}/topology/hosts/nodes`, {
       params,
     });
   }
 
   // IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]
-  getTopologyNodeAllHostId (params = {}) {
+  getTopologyNodeAllHostId(params = {}) {
     return Request.post(`${this.path}/topology/hostIds/nodes`, {
       params,
     });
   }
 
   // IP选择器根据拓扑节点获取其子节点（仅获取一级，childs为空）
-  getChildOfNode (params) {
+  getChildOfNode(params) {
     return Request.post(`${this.path}/topology/nodes/children`, {
       params,
     });
   }
 
   // 根据主机、拓扑节点、分组获取主机统计信息
-  getHostStatistics (params = {}) {
+  getHostStatistics(params = {}) {
     return Request.post(`${this.path}/host/statistics`, {
       params,
     });
   }
 
   // 获取多个节点下的主机统计信息
-  getBatchNodeAgentStatistics (params = {}) {
+  getBatchNodeAgentStatistics(params = {}) {
     return Request.post(`${this.path}/host/agentStatistics/nodes`, {
       params,
     });
   }
 
   // 分页查询某个动态分组下的主机列表
-  getDynamicGroupHost (params = {}) {
+  getDynamicGroupHost(params = {}) {
     return Request.post(`${this.path}/hosts/dynamicGroup`, {
       params,
     });
   }
 
   // 通过分组ID获取多个动态分组的详情信息
-  getBatchGroupInfo (params = {}) {
+  getBatchGroupInfo(params = {}) {
     return Request.post(`${this.path}/hosts/dynamicGroup`, {
       params,
     });
   }
 
   // 获取多个动态分组下的主机Agent状态统计信息
-  getBatchGroupAgentStatistics (params = {}) {
+  getBatchGroupAgentStatistics(params = {}) {
     return Request.post(`${this.path}/host/agentStatistics/dynamicGroups`, {
       params,
     });
   }
 
-  getInputParseHostList (params = {}) {
+  getInputParseHostList(params = {}) {
     return Request.post(`${this.path}/host/check`, {
       params,
     });
   }
 
   // 根据hostId批量查询主机详情信息
-  getHostInfoByHostId (params = {}) {
+  getHostInfoByHostId(params = {}) {
     return Request.post(`${this.path}/hosts/details`, {
       params,
     });

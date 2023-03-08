@@ -51,7 +51,7 @@
       },
     },
     computed: {
-      com () {
+      com() {
         if (!Object.prototype.hasOwnProperty.call(itemMap, this.name)) {
           return 'div';
         }

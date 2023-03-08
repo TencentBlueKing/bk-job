@@ -149,7 +149,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isSubmiting: false,
         contentHeight: 0,
@@ -158,7 +158,7 @@
     },
     watch: {
       scriptInfo: {
-        handler (scriptInfo) {
+        handler(scriptInfo) {
           if (!scriptInfo.id) {
             return;
           }
@@ -188,7 +188,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptManageService : ScriptManageService;
 
@@ -219,7 +219,7 @@
         window.removeEventListener('resize', this.init);
       });
     },
-    mounted () {
+    mounted() {
       this.calcContentHeight();
       const handleResize = _.throttle(this.calcContentHeight, 60);
       window.addEventListener('resize', handleResize);
@@ -231,23 +231,23 @@
       /**
        * @desc 计算内容区高度
        */
-      calcContentHeight () {
+      calcContentHeight() {
         const contentOffsetTop = getOffset(this.$refs.content).top;
         this.contentHeight = window.innerHeight - contentOffsetTop - 26;
       },
-      handleUploadScript () {
+      handleUploadScript() {
         this.$refs.aceEditor.handleUploadScript();
       },
-      handleShowHistory () {
+      handleShowHistory() {
         this.$refs.aceEditor.handleShowHistory();
       },
-      handleFullScreen () {
+      handleFullScreen() {
         this.$refs.aceEditor.handleFullScreen();
       },
       /**
        * @desc 保存脚本
        */
-      handleSubmit () {
+      handleSubmit() {
         if (!this.formData.content) {
           this.messageError(I18n.t('script.脚本内容不能为空'));
           return;
@@ -274,7 +274,7 @@
       /**
        * @desc 跳转到快速执行脚本页面调试脚本
        */
-      handleDebugScript () {
+      handleDebugScript() {
         debugScriptCache.setItem(this.formData.content);
         const { href } = this.$router.resolve({
           name: 'fastExecuteScript',
@@ -287,7 +287,7 @@
       /**
        * @desc 取消编辑
        */
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => {
             this.$emit('on-edit-cancel', {

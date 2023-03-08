@@ -45,17 +45,17 @@
     components: {
       PlanList,
     },
-    data () {
+    data() {
       return {
         templateName: '',
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
     },
-    created () {
+    created() {
       this.templateId = this.$route.params.templateId;
       this.fetchData();
     },
@@ -63,7 +63,7 @@
       /**
        * @desc 获取作业模板名
        */
-      fetchData () {
+      fetchData() {
         TaskManageService.taskDetail({
           id: this.templateId,
         }, {
@@ -75,7 +75,7 @@
       /**
        * @desc 路由 回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'settingVar') {
           this.$router.push({

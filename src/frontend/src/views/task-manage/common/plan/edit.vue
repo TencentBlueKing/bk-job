@@ -171,7 +171,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         name: '',
         formData: getDefaultData(),
@@ -186,7 +186,7 @@
        * @desc 查找步骤中已使用的变量
        * @return {Array}
        */
-      selectedVariable () {
+      selectedVariable() {
         const selectedSteps = this.taskStepList.filter(step => this.formData.enableSteps.includes(step.id));
         return findUsedVariable(selectedSteps);
       },
@@ -194,27 +194,27 @@
        * @desc 已选中所有步骤
        * @return {Boolean}
        */
-      hasSelectAll () {
+      hasSelectAll() {
         return this.formData.enableSteps.length >= this.taskStepList.length;
       },
       /**
        * @desc 禁用提交按钮
        * @returns { Boolean }
        */
-      isSubmitDisable () {
+      isSubmitDisable() {
         return this.formData.enableSteps.length < 1;
       },
     },
     watch: {
       id: {
-        handler (value) {
+        handler(value) {
           this.formData.id = value;
           this.fetchData();
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -252,7 +252,7 @@
       /**
        * @desc 获取执行方案详情
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         TaskPlanService.fetchPlanEditInfo({
           id: this.formData.id,
@@ -286,14 +286,14 @@
       /**
        * @desc 外部调用——刷新接口数据
        */
-      refresh () {
+      refresh() {
         this.fetchData();
       },
       /**
        * @desc 检测执行方案是否重名
        * @param {String} name
        */
-      checkName (name) {
+      checkName(name) {
         return TaskPlanService.planCheckName({
           templateId: this.templateId,
           planId: this.formData.id,
@@ -304,27 +304,27 @@
        * @desc 编辑执行方案的变量
        * @param {Array} variables
        */
-      handleVariableChange (variables) {
+      handleVariableChange(variables) {
         window.changeFlag = true;
         this.formData.variables = variables;
       },
       /**
        * @desc 选中所有步骤
        */
-      handleSelectAll () {
+      handleSelectAll() {
         this.formData.enableSteps = this.taskStepList.map(item => item.id);
       },
       /**
        * @desc 清空步骤的选中状态
        */
-      handleDeselectAll () {
+      handleDeselectAll() {
         this.formData.enableSteps = [];
       },
       /**
        * @desc 选中步骤
        * @param {Object} stepData 步骤数据
        */
-      handleSelectStep (stepData) {
+      handleSelectStep(stepData) {
         const index = this.formData.enableSteps.findIndex(item => item === stepData.id);
 
         if (index > -1) {
@@ -341,7 +341,7 @@
       /**
        * @desc 提交新建执行方案
        */
-      handleSumbit () {
+      handleSumbit() {
         this.submitLoading = true;
         Promise.all([
           this.$refs.titleForm.validate(),
@@ -363,7 +363,7 @@
       /**
        * @desc 取消编辑
        */
-      handleCancle () {
+      handleCancle() {
         leaveConfirm()
           .then(() => {
             this.$emit('on-edit-cancle');

@@ -162,7 +162,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         displayName: this.name,
         isEditing: false,
@@ -174,14 +174,14 @@
        * @desc 重名检测
        * @returns { Array }
        */
-      checkRenameList () {
+      checkRenameList() {
         return this.tagList.filter(_ => _.name !== this.name);
       },
       /**
        * @desc 编辑时错误信息提示
        * @returns { Object }
        */
-      errorTipsConfig () {
+      errorTipsConfig() {
         const errorMap = {
           1: I18n.t('template.标签名不可为空'),
           2: I18n.t('template.标签名已存在，请重新输入'),
@@ -194,13 +194,13 @@
         };
       },
     },
-    created () {
+    created() {
       // 公共脚本
       this.isPublicScript = checkPublicScript(this.$route);
       this.isEditable = !this.isPublicScript && this.canEdit;
       this.sefId = `tag_${_.random(1, 1000)}_${Date.now()}`;
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('click', this.hideEdit);
       this.$once('hook:beforeDestroy', () => {
         document.body.removeEventListener('click', this.hideEdit);
@@ -211,13 +211,13 @@
        * @desc 选中当前 TAG
        * @returns { viod }
        */
-      handleSelect () {
+      handleSelect() {
         this.$emit('on-select', this.id, this.name);
       },
       /**
        * @desc 编辑状态值更新
        */
-      triggerChange () {
+      triggerChange() {
         if (this.displayName === this.name) {
           this.isEditing = false;
           return;
@@ -237,7 +237,7 @@
         this.error = '';
 
         this.isEditing = false;
-                
+
         this.$emit('on-edit', {
           id: this.id,
           name: this.displayName,
@@ -246,7 +246,7 @@
       /**
        * @desc 开始编辑
        */
-      handleEdit () {
+      handleEdit() {
         document.body.click();
         this.isEditing = true;
         this.$nextTick(() => {
@@ -256,19 +256,19 @@
       /**
        * @desc 输入框值更新
        */
-      handleChange (value) {
+      handleChange(value) {
         this.displayName = value.trim();
       },
       /**
        * @desc 输入框失去焦点
        */
-      handleBlur () {
+      handleBlur() {
         this.triggerChange();
       },
       /**
        * @desc Enter 触发值更新
        */
-      handleEnter (value, event) {
+      handleEnter(value, event) {
         if (!this.isEditing) return;
         if (event.key === 'Enter' && event.keyCode === 13) {
           this.triggerChange();
@@ -277,7 +277,7 @@
       /**
        * @desc 取消编辑状态
        */
-      hideEdit () {
+      hideEdit() {
         if (!this.isEditing) {
           return;
         }

@@ -216,7 +216,7 @@
       },
     },
     computed: {
-      leftBlockOffset () {
+      leftBlockOffset() {
         return (this.maxWidth - 40 - 559) / 4;
       },
     },

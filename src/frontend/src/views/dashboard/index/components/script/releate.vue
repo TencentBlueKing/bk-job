@@ -46,22 +46,22 @@
     components: {
       CardLayout,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         rate: '0 %',
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchScriptCiteInfo()
           .then((data) => {

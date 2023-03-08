@@ -28,7 +28,7 @@ import Model from '@model/model';
 import I18n from '@/i18n';
 
 export default class WhiteIp extends Model {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.actionScopeList = payload.actionScopeList;
     this.scopeList = payload.scopeList || [];
@@ -43,11 +43,11 @@ export default class WhiteIp extends Model {
     this.canManage = payload.canManage;
   }
 
-  get scopeText () {
+  get scopeText() {
     return this.actionScopeList.map(item => item.name).join('，');
   }
 
-  get appText () {
+  get appText() {
     if (this.scopeList.length < 1) {
       return I18n.t('全业务');
     }

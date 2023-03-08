@@ -50,10 +50,10 @@
       boundary: 'window',
       interactive: true,
       distance: 6,
-      onShow () {
+      onShow() {
         isActive.value = true;
       },
-      onHide () {
+      onHide() {
         isActive.value = false;
       },
     });

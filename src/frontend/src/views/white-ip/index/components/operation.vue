@@ -127,7 +127,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         formData: getDefaultData(),
@@ -140,7 +140,7 @@
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (!data.id) {
             return;
           }
@@ -169,7 +169,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       Promise.all([
         this.fetchAppList(),
         this.fetchActionScope(),
@@ -218,7 +218,7 @@
       /**
        * @desc 业务列表
        */
-      fetchAppList () {
+      fetchAppList() {
         return AppManageService.fetchAppList()
           .then((data) => {
             this.appList = data.map(item => ({
@@ -246,7 +246,7 @@
       /**
        * @desc 获取生效范围列表
        */
-      fetchActionScope () {
+      fetchActionScope() {
         return WhiteIpService.getScope()
           .then((data) => {
             this.actionScope = data;
@@ -254,29 +254,29 @@
       },
 
       // 切换全业务
-      handleAllAPP (value) {
+      handleAllAPP(value) {
         this.formData.allScope = value;
       },
-            
-      handleShowIpSelector () {
+
+      handleShowIpSelector() {
         this.isShowIpSelector = true;
       },
-      handleColseIpSelector () {
+      handleColseIpSelector() {
         this.isShowIpSelector = false;
       },
-      handleIpSelectorChange (data) {
+      handleIpSelectorChange(data) {
         this.formData.hostList = data.hostList;
         if (data.hostList.length > 0) {
           this.$refs.whiteIpForm.clearError('actionScopeIdList');
         }
       },
-      handleRangeChange (value) {
+      handleRangeChange(value) {
         if (value.length > 0) {
           this.$refs.whiteIpForm.clearError('hostList');
         }
       },
 
-      submit () {
+      submit() {
         return this.$refs.whiteIpForm.validate()
           .then(() => {
             const params = { ...this.formData };
@@ -298,7 +298,7 @@
                 };
               });
             }
-                        
+
             return WhiteIpService.whiteIpUpdate(params)
               .then(() => {
                 this.messageSuccess(this.formData.id ? I18n.t('whiteIP.编辑成功') : I18n.t('whiteIP.新建成功'));

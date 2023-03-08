@@ -163,7 +163,7 @@
       },
     },
     emit: ['on-change'],
-    setup (props, ctx) {
+    setup(props, ctx) {
       const { proxy } = getCurrentInstance();
       const state = reactive({
         isLoading: true,

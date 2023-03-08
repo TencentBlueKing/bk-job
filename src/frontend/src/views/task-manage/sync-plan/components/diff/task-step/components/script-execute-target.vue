@@ -45,19 +45,19 @@
     components: {
       IpDetail,
     },
-    data () {
+    data() {
       return {
         preHost: {},
         lastHost: {},
       };
     },
-    created () {
+    created() {
       const dataSourceParent = findParent(this, 'SyncPlanStep2');
       const currentStep = findParent(this, 'DiffTaskStep');
       const currentStepId = currentStep.data.realId;
       const currentPlanStep = findStep(dataSourceParent.planStepList, currentStepId);
       const currentTemplateStep = findStep(dataSourceParent.templateStepList, currentStepId);
-                
+
       this.preHost = Object.freeze(currentPlanStep.scriptStepInfo.executeTarget);
       this.lastHost = Object.freeze(currentTemplateStep.scriptStepInfo.executeTarget);
     },

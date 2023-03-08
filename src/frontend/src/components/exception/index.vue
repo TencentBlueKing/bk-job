@@ -67,7 +67,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       let message = '';
       let image = '';
 
@@ -103,7 +103,7 @@
         image,
       };
     },
-    created () {
+    created() {
       setTimeout(() => {
         this.show = true;
       }, this.delay);

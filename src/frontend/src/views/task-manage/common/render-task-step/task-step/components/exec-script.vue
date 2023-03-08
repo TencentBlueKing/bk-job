@@ -155,14 +155,14 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
       };
     },
     watch: {
       data: {
-        handler (newData) {
+        handler(newData) {
           // 本地新建的步骤id为-1，已提交后端保存的id大于0
           this.formData = Object.assign({}, this.formData, newData);
           // 有数据需要自动验证一次
@@ -175,23 +175,23 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       window.IPInputScope = 'SCRIPT_EXECUTE';
       this.$once('hook:beforeDestroy', () => {
         window.IPInputScope = '';
       });
     },
     methods: {
-      handleChange (field, value) {
+      handleChange(field, value) {
         this.formData[field] = value;
       },
-      handleScriptContentReset (payload) {
+      handleScriptContentReset(payload) {
         this.formData = {
           ...this.formData,
           ...payload,
         };
       },
-      submit () {
+      submit() {
         const {
           name,
           id,

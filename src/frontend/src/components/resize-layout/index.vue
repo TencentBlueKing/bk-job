@@ -81,13 +81,13 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         renderWidth: this.rightWidth,
       };
     },
     computed: {
-      leftStyles () {
+      leftStyles() {
         if (this.rightFixed) {
           if (this.renderWidth > this.rightWidth) {
             return {
@@ -99,7 +99,7 @@
           width: `calc(100% - ${this.renderWidth}px)`,
         };
       },
-      rightStyles () {
+      rightStyles() {
         if (this.rightFixed) {
           if (this.renderWidth > this.rightWidth) {
             return {
@@ -111,7 +111,7 @@
           width: `${this.renderWidth}px`,
         };
       },
-      passiveStyles () {
+      passiveStyles() {
         return {
           position: 'absolute',
           top: 0,
@@ -123,18 +123,18 @@
           background: 'inherit',
         };
       },
-      lineStyles () {
+      lineStyles() {
         return {
           right: `${this.renderWidth - 6}px`,
         };
       },
     },
-    created () {
+    created() {
       this.moveStartWidth = this.width;
       this.isResizeable = false;
       this.handleMousemove = _.throttle(this.eventMousemove, 30);
     },
-    mounted () {
+    mounted() {
       this.calcRightShowStatus();
 
       document.body.addEventListener('mousemove', this.handleMousemove);
@@ -178,7 +178,7 @@
        * @desc mousedown 事件，记录鼠标按下时容器的宽度
        * @param {Object} event
        */
-      handleMousedown (event) {
+      handleMousedown(event) {
         this.isResizeable = true;
         this.startClientX = event.clientX;
         this.parentWidth = this.$refs.root.getBoundingClientRect().width;
@@ -189,7 +189,7 @@
       /**
        * @desc mouseup 事件，取消可拖动特性
        */
-      handleMouseup () {
+      handleMouseup() {
         this.isResizeable = false;
         document.body.style.userSelect = '';
         this.$refs.left.style.pointerEvents = '';
@@ -198,7 +198,7 @@
        * @desc mousemove 事件，动态更新容器宽度
        * @param {Object} event
        */
-      eventMousemove (event) {
+      eventMousemove(event) {
         if (!this.isResizeable) {
           return;
         }

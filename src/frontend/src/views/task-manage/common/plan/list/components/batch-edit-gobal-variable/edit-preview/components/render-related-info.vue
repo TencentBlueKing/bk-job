@@ -106,16 +106,16 @@
       relateList: Array,
       latestValue: [String, Object],
     },
-    data () {
+    data() {
       return {
         isShowRelateList: false,
       };
     },
     computed: {
-      globalVariableInfo () {
+      globalVariableInfo() {
         return this.relateList[0].globalVariable;
       },
-      latestValueText () {
+      latestValueText() {
         const latestGlobalVariableData = { ...this.globalVariableInfo };
         if (this.globalVariableInfo.isHost) {
           latestGlobalVariableData.defaultTargetValue = this.latestValue;
@@ -126,7 +126,7 @@
       },
     },
     methods: {
-      handleToggle () {
+      handleToggle() {
         this.isShowRelateList = !this.isShowRelateList;
       },
     },

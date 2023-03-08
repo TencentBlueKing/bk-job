@@ -92,7 +92,7 @@
   import StatisticsService from '@service/statistics';
 
   import { prettyDateFormat } from '@utils/assist';
-    
+
   const styleMap = {
     up: {
       itemStyle: {
@@ -142,7 +142,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -153,11 +153,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    mounted () {
+    mounted() {
       this.trendData = [];
       this.fetchData();
       const resize = _.throttle(() => {
@@ -169,7 +169,7 @@
       });
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         Promise.all([
           StatisticsService.fetchTotalMetrics({
@@ -189,7 +189,7 @@
           this.isLoading = false;
         });
       },
-      initTrend (data) {
+      initTrend(data) {
         this.myChart = echarts.init(this.$refs.trend);
         const dateList = [];
         const valueList = [];

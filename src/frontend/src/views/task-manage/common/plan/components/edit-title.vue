@@ -87,7 +87,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isSubmiting: false,
         isEditing: false,
@@ -101,14 +101,14 @@
        * @desc 更新执行方案的名称
        */
       data: {
-        handler  () {
+        handler() {
           this.localValue = this.data.name || '';
           this.localValueMemo = this.localValue;
         },
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('click', this.hideCallback);
       this.$once('hook:beforeDestroy', () => {
         document.body.removeEventListener('click', this.hideCallback);
@@ -118,7 +118,7 @@
       /**
        * @desc 切换编辑状态
        */
-      hideCallback () {
+      hideCallback() {
         if (!this.isEditing) {
           return;
         }
@@ -127,7 +127,7 @@
       /**
        * @desc 开始编辑
        */
-      handleEdit () {
+      handleEdit() {
         this.isSubmiting = false;
         this.isEditing = true;
         this.errorInfo = '';
@@ -142,7 +142,7 @@
       /**
        * @desc 提交编辑值
        */
-      handleSubmit () {
+      handleSubmit() {
         this.errorInfo = '';
         // 值没变
         if (this.localValueMemo === this.localValue) {
@@ -158,7 +158,7 @@
         if (this.errorInfo) {
           return;
         }
-                
+
         this.isSubmiting = true;
         // 重名检测
         TaskPlanService.planCheckName({
@@ -171,7 +171,7 @@
             this.errorInfo = I18n.t('template.方案名称已存在，请重新输入');
             return;
           }
-                    
+
           TaskPlanService.planUpdate({
             id: this.data.id,
             templateId: this.data.templateId,

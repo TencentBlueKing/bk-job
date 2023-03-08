@@ -26,15 +26,15 @@
 import CustomSettingsSource from '../source/custom-settings';
 
 export default {
-  fetchAll (params) {
+  fetchAll(params) {
     return CustomSettingsSource.getAll(params)
       .then(({ data }) => data);
   },
-  update (params) {
+  update(params) {
     return CustomSettingsSource.update(params)
       .then(({ data }) => data);
   },
-  remove () {
+  remove() {
     return CustomSettingsSource.remove()
       .then(({ data }) => data);
   },

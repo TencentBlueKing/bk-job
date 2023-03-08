@@ -48,12 +48,12 @@
 <script>
   export default {
     inject: ['collapse'],
-    data () {
+    data() {
       return {
         iconType: 'arrow-full-right',
       };
     },
-    mounted () {
+    mounted() {
       const unwatch = this.$watch(() => this.$refs.collapseItem.isActive, (newValue) => {
         this.iconType = newValue ? 'arrow-full-down' : 'arrow-full-right';
       }, {

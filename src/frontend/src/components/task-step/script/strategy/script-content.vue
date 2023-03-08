@@ -84,20 +84,20 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         lang: 'Shell',
         isReadonly: false,
       };
     },
     computed: {
-      isContentLoading () {
+      isContentLoading() {
         return this.formData.isScriptContentLoading;
       },
     },
     watch: {
       formData: {
-        handler (newData) {
+        handler(newData) {
           this.isReadonly = newData[this.scriptSourceField] !== TaskStepModel.scriptStep.TYPE_SOURCE_LOCAL;
           this.lang = formatScriptTypeValue(newData[this.languageField]);
 
@@ -116,7 +116,7 @@
               trigger: 'blur',
             },
           ];
-                    
+
           if (!this.isReadonly) {
             rules.unshift({
               required: true,
@@ -129,20 +129,20 @@
         deep: true,
         immediate: true,
       },
-      'formData.content' (value) {
+      'formData.content'(value) {
         if (value) {
           this.$refs.item.clearValidator();
         }
       },
     },
-    created () {
+    created() {
       this.rules = [];
     },
     methods: {
-      handleTypeChange (lang) {
+      handleTypeChange(lang) {
         this.$emit('on-change', this.languageField, formatScriptTypeValue(lang));
       },
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.contentField, value);
       },
     },

@@ -137,7 +137,7 @@
   import I18n from '@/i18n';
 
   export default {
-    data () {
+    data() {
       return {
         isApplyLoading: false,
         relatedSystemUrls: {
@@ -147,25 +147,25 @@
         },
       };
     },
-    created () {
+    created() {
       this.fetchRelatedSystemUrls();
       document.title = I18n.t('无业务权限');
     },
     methods: {
-      fetchRelatedSystemUrls () {
+      fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
           });
       },
-      handleGoCreateApp () {
+      handleGoCreateApp() {
         if (!this.relatedSystemUrls.BK_CMDB_ROOT_URL) {
           alert(I18n.t('网络错误，请刷新页面重试'));
           return;
         }
         window.open(`${this.relatedSystemUrls.BK_CMDB_ROOT_URL}/#/resource/business`);
       },
-      handleGoApplyPermission () {
+      handleGoApplyPermission() {
         this.isApplyLoading = true;
         QueryGlobalSettingService.fetchApplyBusinessUrl({
           scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,

@@ -111,7 +111,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isSubmiting: false,
         ipInputText: '',
@@ -122,14 +122,14 @@
       };
     },
     computed: {
-      inputRows () {
+      inputRows() {
         const offsetTop = 65;
         const offsetBottom = 130;
         const inputPadding = 15;
 
         return Math.floor((this.dialogHeight - offsetTop - offsetBottom - inputPadding) / 18);
       },
-      isError () {
+      isError() {
         return this.invalidIPList.length > 0 || this.errorIPList.length > 0;
       },
     },
@@ -137,7 +137,7 @@
       /**
        * @desc 更新输入框内容
        */
-      updateInputValue () {
+      updateInputValue() {
         this.ipInputText = [
           ...this.invalidIPList,
           ...this.errorIPList,
@@ -150,13 +150,13 @@
       /**
        * @desc 用户点击输入框时切换选中文本样式
        */
-      handleInputClick () {
+      handleInputClick() {
         this.isFocusError = false;
       },
       /**
        * @desc 高亮输入框内无效的 IP 输入
        */
-      handleHighlightInvilad () {
+      handleHighlightInvilad() {
         this.isFocusError = true;
         const $inputEl = this.$refs.input.$el.querySelector('textarea');
         const errorText = this.invalidIPList.join('\n');
@@ -167,14 +167,14 @@
       /**
        * @desc 清空输入框内无效的 IP 输入
        */
-      handleRemoveInvalid () {
+      handleRemoveInvalid() {
         this.invalidIPList = [];
         this.updateInputValue();
       },
       /**
        * @desc 高亮输入框内错误格式的 IP 输入
        */
-      handleHightlightError () {
+      handleHightlightError() {
         this.isFocusError = true;
         const $inputEl = this.$refs.input.$el.querySelector('textarea');
         $inputEl.focus();
@@ -187,7 +187,7 @@
       /**
        * @desc 清空输入框内错误格式的 IP 输入
        */
-      handleRemoveError () {
+      handleRemoveError() {
         this.errorIPList = [];
         this.updateInputValue();
       },
@@ -213,7 +213,7 @@
       /**
        * @desc 提交输入结果
        */
-      handleAddHost () {
+      handleAddHost() {
         if (this.inputItemList.length < 1) {
           return;
         }
@@ -243,7 +243,7 @@
             errorIPList.push(IPText);
           }
         });
-                
+
         this.isSubmiting = true;
 
         const params = {
@@ -258,7 +258,7 @@
             // 输入的有效 IP
             const resultIPList = [];
             const hostIPMap = {};
-                        
+
             data.forEach((host) => {
               const {
                 hostId,
@@ -284,7 +284,7 @@
             this.errorIPList = errorIPList;
             // 提交成功后重置用户输入内容的分隔符解析
             this.inputItemList = [];
-                        
+
             this.updateInputValue();
             this.$emit('on-input-change', false);
           })

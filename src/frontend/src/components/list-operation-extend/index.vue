@@ -44,15 +44,15 @@
   const instanceMap = {};
 
   export default {
-    created () {
+    created() {
       this.id = `${_.random(1, 1000)}_${Date.now()}_PopoverRef`;
       this.timer = '';
     },
-    mounted () {
+    mounted() {
       this.init();
     },
     methods: {
-      init () {
+      init() {
         instanceMap[this.id] = this.$bkPopover(this.$el, {
           theme: 'list-operation-extend-popover light',
           interactive: true,
@@ -70,7 +70,7 @@
           },
         });
       },
-      handleClick () {
+      handleClick() {
         instanceMap[this.id].hide();
       },
     },
