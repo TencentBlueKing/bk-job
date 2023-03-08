@@ -2,6 +2,7 @@
   <div class="host-dropdown-menu">
     <div
       ref="handleRef"
+      @click="handleShow"
       @mouseenter="handleShow">
       <slot />
     </div>
