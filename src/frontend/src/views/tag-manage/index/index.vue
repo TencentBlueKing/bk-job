@@ -28,14 +28,14 @@
 <template>
     <div>
         <list-action-layout>
-            <bk-button
+            <auth-button
                 class="w120"
                 auth="tag/create"
                 theme="primary"
                 @click="handleCreate"
                 v-test="{ type: 'button', value: 'createTag' }">
                 {{ $t('tag.新建') }}
-            </bk-button>
+            </auth-button>
             <template #right>
                 <jb-search-select
                     ref="search"
