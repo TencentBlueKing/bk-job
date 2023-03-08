@@ -17,8 +17,8 @@ job:
       enabled: true
       # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
       strategy:
-        # 特性策略ID, 当前支持ResourceScopeToggleStrategy/WeightToggleStrategy（按照业务(集)特性开启策略
-        id: ResourceScopeToggleStrategy
+        # 特性策略ID
+        id: ResourceScopeWhiteListToggleStrategy
         # 特性策略初始化参数，kv结构，具体传入参数根据不同的StrategyId变化
         params: {}
 ```
