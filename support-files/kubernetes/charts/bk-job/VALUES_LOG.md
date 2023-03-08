@@ -37,7 +37,7 @@ job:
         # 按照资源范围(业务/业务集)白名单灰度
         id: ResourceScopeWhiteListToggleStrategy
         params: 
-          # 表示业务ID=2和业务集ID=9999001的两种资源范围
+          # 表示业务(ID=2)和业务集(ID=9999001)
           resourceScopeList: "biz:2,biz_set:9999001"
           
 # ResourceScopeBlackListToggleStrategy
