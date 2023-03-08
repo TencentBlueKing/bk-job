@@ -1,7 +1,7 @@
 package com.tencent.bk.job.common.util.feature;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeWhiteListToggleStrategy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +30,7 @@ public class FeatureExecutionContextBuilder {
     public FeatureExecutionContext build() {
         Map<String, Object> params = new HashMap<>();
         if (resourceScope != null) {
-            params.put(ResourceScopeToggleStrategy.CTX_PARAM_RESOURCE_SCOPE, resourceScope);
+            params.put(ResourceScopeWhiteListToggleStrategy.CTX_PARAM_RESOURCE_SCOPE, resourceScope);
         }
         return new FeatureExecutionContext(params);
     }

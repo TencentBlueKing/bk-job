@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.util.feature.strategy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Arrays;
@@ -10,6 +11,7 @@ import java.util.StringJoiner;
 /**
  * 特性开关开启策略基础实现抽象类
  */
+@Slf4j
 public abstract class AbstractToggleStrategy implements ToggleStrategy {
 
     private final Map<String, String> initParams;
@@ -44,7 +46,8 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
         if (!initParams.containsKey(paramName)) {
             String msg = MessageFormatter.format(
                 "Parameter {} is required for this ToggleStrategy", paramName).getMessage();
-            throw new IllegalArgumentException(msg);
+            log.error(msg);
+            throw new FeatureConfigParseException(msg);
         }
     }
 
@@ -53,7 +56,8 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
         if (!anyMatch) {
             String msg = MessageFormatter.format(
                 "Required at least one parameter({}) for this ToggleStrategy", paramNames).getMessage();
-            throw new IllegalArgumentException(msg);
+            log.error(msg);
+            throw new FeatureConfigParseException(msg);
         }
     }
 

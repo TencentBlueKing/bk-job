@@ -2,8 +2,8 @@
 ## 0.4.0
 1.增加特性开关相关配置
 
+- 特性开关配置说明
 ```yaml
-## job-file-gateway文件网关服务配置
 job:
   features:
     # 是否开启文件管理特性，容器化环境默认开启
@@ -17,11 +17,43 @@ job:
       enabled: true
       # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
       strategy:
-        # 特性策略ID, 当前支持ResourceScopeToggleStrategy/WeightToggleStrategy（按照业务(集)特性开启策略
-        id: ResourceScopeToggleStrategy
+        # 特性策略ID，支持ResourceScopeWhiteListToggleStrategy/ResourceScopeBlackListToggleStrategy
+        id: ResourceScopeWhiteListToggleStrategy
         # 特性策略初始化参数，kv结构，具体传入参数根据不同的StrategyId变化
-        params: {}
+        params: 
+          resourceScopeList: "biz:2,biz_set:9999001"
 ```
+
+- 特性灰度策略说明
+```yaml
+# 灰度策略使用说明
+# ResourceScopeWhiteListToggleStrategy
+job:
+  features:
+    gseV2:
+      enabled: true
+      # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
+      strategy:
+        # 按照资源范围(业务/业务集)白名单灰度
+        id: ResourceScopeWhiteListToggleStrategy
+        params: 
+          # 表示业务(ID=2)和业务集(ID=9999001)
+          resourceScopeList: "biz:2,biz_set:9999001"
+          
+# ResourceScopeBlackListToggleStrategy
+job:
+  features:
+    gseV2:
+      enabled: true
+      # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
+      strategy:
+        # 按照资源范围(业务/业务集)黑名单灰度
+        id: ResourceScopeBlackListToggleStrategy
+        params: 
+          # 表示业务(ID=2)和业务集(ID=9999001)
+          resourceScopeList: "biz:2,biz_set:9999001"
+```
+
 
 2. 新增GSE1.0 控制开关
 

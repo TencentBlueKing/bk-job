@@ -37,18 +37,18 @@ public class WeightToggleStrategy extends AbstractToggleStrategy {
         String weightValue = weightStrValue.trim();
         if (StringUtils.isBlank(weightStrValue)) {
             log.error("Weight is empty!");
-            throw new IllegalArgumentException("Weight is empty!");
+            throw new FeatureConfigParseException("Weight is empty!");
         }
         try {
             int weight = Integer.parseInt(weightValue);
             if (weight < 0 || weight > 100) {
                 log.error("Weight should be set between 0 and 100, value: {}", weight);
-                throw new IllegalArgumentException("Weight should be set between 0 and 100");
+                throw new FeatureConfigParseException("Weight should be set between 0 and 100");
             }
             return weight;
         } catch (NumberFormatException e) {
             log.error("Invalid weight value: {}, not a valid number", weightValue);
-            throw new IllegalArgumentException("Weight should be a number");
+            throw new FeatureConfigParseException("Weight should be a number");
         }
     }
 
