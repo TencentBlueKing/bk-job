@@ -145,8 +145,6 @@
              */
             const handleSubmit = () => {
                 state.isSubmiting = true;
-                currentInstance.messageSuccess(I18n.t('编辑标签成功'));
-                closeDialog();
 
                 return formRef.value.validate()
                     .then(() => {
