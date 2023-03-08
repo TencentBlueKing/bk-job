@@ -132,7 +132,7 @@
             const formRef = ref(null);
             const scrollRef = ref(null);
             const isSubmitDisable = computed(() => props.data.relatedTaskTemplateNum + props.data.relatedScriptNum < 1);
-            const { proxy } = getCurrentInstance();
+            const currentInstance = getCurrentInstance();
             // 表单验证规则
             const rules = {
                 resourceTypeList: [
@@ -157,7 +157,7 @@
              * @desc 获取 tag 列表
              */
             const fetchData = () => {
-                proxy.$request(TagManageService.fetchWholeList(), () => {
+                currentInstance.$request(TagManageService.fetchWholeList(), () => {
                     state.isLoading = true;
                 })
                     .then((data) => {
@@ -235,7 +235,7 @@
                         deleteTagIdList,
                     }))
                     .then(() => {
-                        proxy.messageSuccess(I18n.t('tag.批量流转关联项成功'));
+                        currentInstance.messageSuccess(I18n.t('tag.批量流转关联项成功'));
                         ctx.emit('on-change');
                     });
             };
