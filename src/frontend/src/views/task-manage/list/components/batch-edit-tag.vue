@@ -138,12 +138,12 @@
             // 所选作业关联 tag 的默认选中状态
             const tagCheckInfoMap = {};
 
-            const { proxy } = getCurrentInstance();
+            const currentInstance = getCurrentInstance();
 
             // 展示的 tag 列表
             const renderList = computed(() => {
                 const allTagList = [...state.newTagList, ...state.wholeTagList];
-                
+
                 if (!state.search) {
                     return allTagList;
                 }
@@ -182,7 +182,7 @@
                         }
                     });
                 });
-                    
+
                 state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
                 state.operationList = Object.values(memoCheckedMap);
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
@@ -289,13 +289,13 @@
                         deleteTagIdList.push(Number(tagId));
                     }
                 });
-                
+
                 return TaskManageService.batchUpdateTag({
                     addTagIdList,
                     deleteTagIdList,
                     idList: props.templateList.map(({ id }) => id),
                 }).then(() => {
-                    proxy.messageSuccess(I18n.t('template.编辑标签成功'));
+                    currentInstance.messageSuccess(I18n.t('template.编辑标签成功'));
                     ctx.emit('on-change');
                 });
             };

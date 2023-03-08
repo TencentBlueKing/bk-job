@@ -127,7 +127,7 @@
         },
         emit: ['on-change'],
         setup (props, ctx) {
-            const { proxy } = getCurrentInstance();
+            const currentInstance = getCurrentInstance();
             const state = reactive({
                 isLoading: true,
                 isShowCreate: false,
@@ -141,7 +141,7 @@
                 tagCheckInfoMap: {},
             });
             const scrollRef = ref(null);
-            const isPublicScript = checkPublicScript(proxy.$route);
+            const isPublicScript = checkPublicScript(currentInstance.$route);
             const scriptRequestService = isPublicScript ? PublicScriptManageService : ScriptManageService;
             const tagRequestHandler = isPublicScript ? PubliceTagManageService.fetchTagList : TagManageService.fetchWholeList;
             // 初始统计 tag 被模板使用的数量
@@ -163,7 +163,7 @@
                 const result = allTagList.filter(item => searchReg.test(item.name));
                 return Object.freeze(result);
             });
-            
+
             const fetchScriptList = () => scriptRequestService.fetchBatchBasicInfo({
                 ids: props.scriptList.map(({ id }) => id).join(','),
             }).then((data) => {
@@ -192,7 +192,7 @@
                         }
                     });
                 });
-            
+
                 state.tagRelateNumMap = Object.freeze(tagRelateNumMap);
                 state.operationList = Object.values(memoCheckedMap);
                 state.tagCheckInfoMap = Object.freeze(tagCheckInfoMap);
@@ -296,13 +296,13 @@
                         deleteTagIdList.push(Number(tagId));
                     }
                 });
-                
+
                 return scriptRequestService.batchUpdateTag({
                     addTagIdList,
                     deleteTagIdList,
                     idList: props.scriptList.map(({ id }) => id),
                 }).then(() => {
-                    proxy.messageSuccess(I18n.t('script.编辑标签成功'));
+                    currentInstance.messageSuccess(I18n.t('script.编辑标签成功'));
                     ctx.emit('on-change');
                 });
             };

@@ -94,7 +94,7 @@
                     okText: I18n.t('提交'),
                 };
             });
-            const { proxy } = getCurrentInstance();
+            const currentInstance = getCurrentInstance();
             // tag 验证规则
             const rules = {
                 name: [
@@ -145,7 +145,9 @@
              */
             const handleSubmit = () => {
                 state.isSubmiting = true;
-                
+                currentInstance.messageSuccess(I18n.t('编辑标签成功'));
+                closeDialog();
+
                 return formRef.value.validate()
                     .then(() => {
                         if (isEdit.value) {
@@ -155,7 +157,7 @@
                             }).then(() => {
                                 window.changeConfirm = false;
                                 ctx.emit('on-change');
-                                proxy.messageSuccess(I18n.t('编辑标签成功'));
+                                currentInstance.messageSuccess(I18n.t('编辑标签成功'));
                                 closeDialog();
                             });
                         }
@@ -163,7 +165,7 @@
                             .then((data) => {
                                 window.changeConfirm = false;
                                 ctx.emit('on-change', new TagModel(data));
-                                proxy.messageSuccess(I18n.t('新建标签成功'));
+                                currentInstance.messageSuccess(I18n.t('新建标签成功'));
                                 closeDialog();
                             });
                     })
@@ -180,7 +182,7 @@
                         closeDialog();
                     });
             };
-            
+
             return {
                 ...toRefs(state),
                 formRef,
