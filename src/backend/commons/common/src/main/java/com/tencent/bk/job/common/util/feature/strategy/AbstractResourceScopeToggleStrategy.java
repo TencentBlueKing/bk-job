@@ -1,7 +1,9 @@
 package com.tencent.bk.job.common.util.feature.strategy;
 
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -29,12 +31,56 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
         String resourceScopesValue = initParams.get(INIT_PARAM_RESOURCE_SCOPE_LIST);
         if (StringUtils.isNotEmpty(resourceScopesValue)) {
             String[] resourceScopes = resourceScopesValue.split(",");
+            if (resourceScopes.length == 0) {
+                String msg = MessageFormatter.format(
+                    "Parameter {} is invalid, value: {}",
+                    INIT_PARAM_RESOURCE_SCOPE_LIST, resourceScopesValue).getMessage();
+                throw new IllegalArgumentException(msg);
+            }
             for (String resourceScope : resourceScopes) {
-                String[] scopeTypeAndId = resourceScope.split(":");
-                AbstractResourceScopeToggleStrategy.resourceScopes.add(new ResourceScope(scopeTypeAndId[0].trim(),
-                    scopeTypeAndId[1].trim()));
+                AbstractResourceScopeToggleStrategy.resourceScopes.add(parseResourceScope(resourceScope));
             }
         }
+    }
+
+    private ResourceScope parseResourceScope(String resourceScope) {
+        String[] scopeTypeAndId = resourceScope.split(":");
+        if (scopeTypeAndId.length != 2) {
+            String msg = MessageFormatter.format(
+                "Parameter {} is invalid. Invalid resource scope: {}",
+                INIT_PARAM_RESOURCE_SCOPE_LIST, resourceScope).getMessage();
+            throw new IllegalArgumentException(msg);
+        }
+        String scopeType = scopeTypeAndId[0].trim();
+        if (!ResourceScopeTypeEnum.isValid(scopeType)) {
+            String msg = MessageFormatter.format(
+                "Parameter {} is invalid. Invalid resource scope: {}",
+                INIT_PARAM_RESOURCE_SCOPE_LIST, resourceScope).getMessage();
+            throw new IllegalArgumentException(msg);
+        }
+
+        String scopeId = scopeTypeAndId[1].trim();
+        if (!isValidScopeId(scopeId)) {
+            String msg = MessageFormatter.format(
+                "Parameter {} is invalid. Invalid resource scope: {}",
+                INIT_PARAM_RESOURCE_SCOPE_LIST, resourceScope).getMessage();
+            throw new IllegalArgumentException(msg);
+        }
+        return new ResourceScope(scopeType, scopeId);
+    }
+
+    private boolean isValidScopeId(String scopeId) {
+        if (StringUtils.isEmpty(scopeId)) {
+            return false;
+        }
+
+        try {
+            Long.parseLong(scopeId);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
     }
 
     protected Set<ResourceScope> getResourceScopes() {
