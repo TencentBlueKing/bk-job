@@ -28,12 +28,15 @@ import com.tencent.bk.job.common.config.FeatureConfig;
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.feature.strategy.FeatureConfigParseException;
 import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeBlackListToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeWhiteListToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.ToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.WeightToggleStrategy;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,48 +55,48 @@ public class FeatureToggle {
 
     public static void reload() {
         synchronized (FeatureToggle.class) {
-            if (load()) {
-                isInitial = true;
-            }
+            load();
+            isInitial = true;
         }
     }
 
-    public static boolean load() {
-        log.info("Load feature toggle start ..");
+    public static void load() {
+        log.info("Load feature toggle start ...");
         FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
 
         if (featureToggleConfig.getFeatures() == null || featureToggleConfig.getFeatures().isEmpty()) {
             log.info("Feature toggle config empty!");
-            return true;
+            return;
         }
 
-        // 加载特性配置是否成功
-        boolean loadSuccess = true;
         Map<String, Feature> tmpFeatures = new HashMap<>();
-        try {
-            featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
+        featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
+            try {
                 Feature feature = parseFeatureConfig(featureId, featureConfig);
                 tmpFeatures.put(featureId, feature);
-            });
-        } catch (Throwable e) {
-            log.error("Load feature toggle config caught exception", e);
-            loadSuccess = false;
-        }
+            } catch (Throwable e) {
+                String msg = MessageFormatter.format(
+                    "Load feature toggle config fail, skip update feature toggle config! featureId: {}, " +
+                        "featureConfig: {}", featureId, featureConfig).getMessage();
+                log.error(msg, e);
+                if (features.get(featureId) != null) {
+                    // 如果加载失败，那么使用原有的特性配置
+                    tmpFeatures.put(featureId, features.get(featureId));
+                }
+            }
+        });
 
-        // 只有特性的配置正确加载，才替换掉原来的配置
-        if (loadSuccess) {
-            // 使用新的配置完全替换老的配置
-            features = tmpFeatures;
-            log.info("Load feature toggle config successfully! features: {}", JsonUtils.toJson(features));
-        } else {
-            log.error("Load feature toggle config fail, skip update feature toggle config! features: {}",
-                JsonUtils.toJson(features));
-        }
-
-        return loadSuccess;
+        // 使用新的配置完全替换老的配置
+        features = tmpFeatures;
+        log.info("Load feature toggle config done! features: {}", JsonUtils.toJson(features));
     }
 
-    private static Feature parseFeatureConfig(String featureId, FeatureConfig featureConfig) {
+    private static Feature parseFeatureConfig(String featureId,
+                                              FeatureConfig featureConfig) throws FeatureConfigParseException {
+        if (StringUtils.isBlank(featureId)) {
+            log.error("FeatureId is blank");
+            throw new FeatureConfigParseException("FeatureId is blank");
+        }
         Feature feature = new Feature();
         feature.setId(featureId);
         feature.setEnabled(featureConfig.isEnabled());
@@ -140,9 +143,8 @@ public class FeatureToggle {
         if (!isInitial) {
             synchronized (FeatureConfig.class) {
                 if (!isInitial) {
-                    if (load()) {
-                        isInitial = true;
-                    }
+                    load();
+                    isInitial = true;
                 }
             }
         }
