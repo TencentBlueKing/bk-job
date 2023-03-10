@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/task-manage/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'task_manage',
   name: 'taskManage',
-  component: () => import('@views/task-manage'),
+  component: Entry,
   redirect: {
     name: 'taskList',
   },

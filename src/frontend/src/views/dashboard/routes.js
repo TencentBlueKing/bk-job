@@ -23,11 +23,13 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/dashboard/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'dashboard',
-  component: () => import('@views/dashboard/index.vue'),
+  component: Entry,
   meta: {
     group: 'operation',
   },

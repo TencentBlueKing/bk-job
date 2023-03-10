@@ -23,11 +23,13 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/dangerous-rule-manage/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'dangerous_rule_manage',
-  component: () => import('@views/dangerous-rule-manage/index.vue'),
+  component: Entry,
   name: 'dangerousRuleManage',
   redirect: {
     name: 'dangerousRuleList',

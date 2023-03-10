@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/tag-manage/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'tag_manage',
   name: 'tagManage',
-  component: () => import('@views/tag-manage/'),
+  component: Entry,
   meta: {
     title: I18n.t('标签'),
     group: 'business',

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "module": "commonjs",
+    "target": "es6",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "ace/*": ["ace-builds/src-noconflict/*"],
+      "lib/*": ["lib/*"],
+      "@bk-icon/*": ["lib/bk-icon/*"],
+      "@common/*": ["src/common/*"],
+      "@components/*": ["src/components/*"],
+      "@domain/*": ["src/domain/*"],
+      "@router/*": ["src/router/*"],
+      "@model/*": ["src/domain/model/*"],
+      "@service/*": ["src/domain/service/*"],
+      "@store/*": ["src/store/*"],
+      "@utils/*": ["src/utils/*"],
+      "@views/*": ["src/views/*"],
+    }
+  },
+  "exclude": [
+    "node_modules", "dist", "lib"
+  ],
+  "include": ["src/**/*"]
+}

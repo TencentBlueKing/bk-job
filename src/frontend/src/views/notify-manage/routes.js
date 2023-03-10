@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/notify-manage/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'notify',
   name: 'notifyManage',
-  component: () => import('@views/notify-manage/index'),
+  component: Entry,
   meta: {
     group: 'business',
   },

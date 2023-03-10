@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/plan-manage/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'plan_manage',
   name: 'planManage',
-  component: () => import('@views/plan-manage'),
+  component: Entry,
   redirect: {
     name: 'planList',
   },
