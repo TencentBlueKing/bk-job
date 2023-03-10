@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/ticket-manage/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'ticket_manage',
   name: 'ticketManage',
-  component: () => import('@views/ticket-manage/index'),
+  component: Entry,
   redirect: {
     name: 'ticketList',
   },

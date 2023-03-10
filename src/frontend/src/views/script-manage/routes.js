@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/script-manage/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'script_manage',
   name: 'scriptManage',
-  component: () => import('@views/script-manage/index'),
+  component: Entry,
   redirect: {
     name: 'scriptList',
   },

@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/script-template/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'script_template',
   name: 'scriptTemplate',
-  component: () => import('@views/script-template/'),
+  component: Entry,
   meta: {
     title: I18n.t('脚本模板'),
     group: 'personal',

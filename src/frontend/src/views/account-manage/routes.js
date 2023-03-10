@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/account-manage/index';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'account',
   name: 'accountManage',
-  component: () => import('@views/account-manage/index'),
+  component: Entry,
   meta: {
     title: I18n.t('账号管理'),
     group: 'business',
