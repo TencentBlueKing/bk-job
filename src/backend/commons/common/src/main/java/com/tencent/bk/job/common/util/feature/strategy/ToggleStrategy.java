@@ -9,6 +9,11 @@ import java.util.Map;
  */
 public interface ToggleStrategy {
     /**
+     * 获取特性开关开启策略ID
+     */
+    String getId();
+
+    /**
      * 获取特性ID
      */
     String getFeatureId();

@@ -15,7 +15,7 @@ public class ResourceScopeBlackListToggleStrategy extends AbstractResourceScopeT
     public static final String STRATEGY_ID = "ResourceScopeBlackListToggleStrategy";
 
     public ResourceScopeBlackListToggleStrategy(String featureId, Map<String, String> initParams) {
-        super(featureId, initParams);
+        super(featureId, STRATEGY_ID, initParams);
     }
 
     @Override

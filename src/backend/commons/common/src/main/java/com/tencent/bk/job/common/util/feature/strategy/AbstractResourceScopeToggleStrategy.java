@@ -26,8 +26,8 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
 
     private static final Set<ResourceScope> resourceScopes = new HashSet<>();
 
-    public AbstractResourceScopeToggleStrategy(String featureId, Map<String, String> initParams) {
-        super(featureId, initParams);
+    public AbstractResourceScopeToggleStrategy(String featureId, String strategyId, Map<String, String> initParams) {
+        super(featureId, strategyId, initParams);
         assertRequiredParameter(INIT_PARAM_RESOURCE_SCOPE_LIST);
 
         String resourceScopesValue = initParams.get(INIT_PARAM_RESOURCE_SCOPE_LIST);
