@@ -14,6 +14,7 @@ import java.util.StringJoiner;
 @Slf4j
 public abstract class AbstractToggleStrategy implements ToggleStrategy {
 
+    private final String id;
     private final Map<String, String> initParams;
     private final String featureId;
 
@@ -21,15 +22,22 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
      * 初始化特性开关
      *
      * @param featureId  特性ID
+     * @param strategyId 策略ID
      * @param initParams 初始化参数
      */
-    public AbstractToggleStrategy(String featureId, Map<String, String> initParams) {
+    public AbstractToggleStrategy(String featureId, String strategyId, Map<String, String> initParams) {
         this.featureId = featureId;
+        this.id = strategyId;
         if (initParams != null) {
             this.initParams = initParams;
         } else {
             this.initParams = new HashMap<>();
         }
+    }
+
+    @Override
+    public String getId() {
+        return id;
     }
 
     @Override
@@ -64,6 +72,8 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
     @Override
     public String toString() {
         return new StringJoiner(", ", AbstractToggleStrategy.class.getSimpleName() + "[", "]")
+            .add("id='" + id + "'")
+            .add("featureId='" + featureId + "'")
             .add("initParams=" + initParams)
             .toString();
     }
