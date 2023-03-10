@@ -1,4 +1,4 @@
-# Default values for bk-job.
+ # Default values for bk-job.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -1372,3 +1372,36 @@ waitForDependServices:
     requests:
       cpu: 125m
       memory: 256Mi
+
+## job-config-watcher 配置
+k8sConfigWatcherConfig:
+  image:
+    registry: docker.io
+    repository: springcloud/spring-cloud-kubernetes-configuration-watcher
+    tag: "3.0.0"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  hostAliases: []
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  resources:
+    limits:
+      cpu: 200m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi 

@@ -25,6 +25,5 @@
 dependencies {
     api project(':commons:common-discovery')
     api 'org.apache.httpcomponents:httpcore'
-    api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
-    api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-loadbalancer'
+    api "org.springframework.cloud:spring-cloud-starter-kubernetes-client-all"
 }

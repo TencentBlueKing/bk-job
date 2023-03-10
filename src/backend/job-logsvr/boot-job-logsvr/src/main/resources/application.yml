@@ -9,6 +9,9 @@ spring:
       name: ${job.security.actuator.user.name}
       password: ${job.security.actuator.user.password}
       roles: ENDPOINT_ADMIN
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 job:
   security:
     service:
@@ -24,10 +27,13 @@ management:
       enabled: true
     readinessstate:
       enabled: true
+    # 使用spring cloud stream rabbitmq, 禁用掉springboot的rabbitmq health检查
+    rabbit:
+      enabled: false
   endpoints:
     web:
       exposure:
-        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh,busrefresh,bindings
       base-path: /actuator
     enabled-by-default: false
   endpoint:
@@ -57,6 +63,8 @@ management:
     info:
       enabled: true
     refresh:
+      enabled: true
+    busrefresh:
       enabled: true
 server:
   port: 19806

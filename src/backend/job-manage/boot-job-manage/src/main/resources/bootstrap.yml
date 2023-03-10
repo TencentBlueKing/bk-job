@@ -11,3 +11,5 @@ spring:
             name: ${JOB_APPLICATION_CONFIGMAP_NAME}
           - namespace: ${KUBERNETES_NAMESPACE}
             name: ${JOB_COMMON_CONFIGMAP_NAME}
+          - namespace: ${KUBERNETES_NAMESPACE}
+            name: ${JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME}

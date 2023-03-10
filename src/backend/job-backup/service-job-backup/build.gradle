@@ -38,6 +38,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation "org.apache.commons:commons-collections4"
+    implementation "commons-io:commons-io"
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
     implementation "org.slf4j:slf4j-api"

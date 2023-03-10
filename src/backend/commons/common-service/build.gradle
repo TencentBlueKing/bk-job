@@ -36,11 +36,12 @@ dependencies {
     api 'org.springframework.cloud:spring-cloud-starter-openfeign'
     api 'org.springframework.cloud:spring-cloud-starter-sleuth'
     api 'org.springframework.cloud:spring-cloud-loadbalancer'
+    api 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+    api 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
     if (k8s) {
         println("Compile with kubernetes mode")
         api project(":commons:common-k8s")
         api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
-        api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-loadbalancer'
     } else {
         api project(":commons:common-consul")
         api 'org.springframework.cloud:spring-cloud-starter-config'
@@ -48,8 +49,7 @@ dependencies {
     }
     api 'ch.qos.logback:logback-core'
     api 'ch.qos.logback:logback-classic'
-    api 'io.springfox:springfox-swagger2'
-    api 'io.springfox:springfox-swagger-ui'
+    api 'io.springfox:springfox-boot-starter'
     api 'com.fasterxml.jackson.core:jackson-core'
     api 'com.fasterxml.jackson.core:jackson-databind'
     api 'com.fasterxml.jackson.core:jackson-annotations'

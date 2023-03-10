@@ -55,7 +55,7 @@ public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappin
         }
         if (app.getId() == null) {
             // 如果查询到的业务缺少ID参数，抛出异常避免缓存非法数据
-            log.error("Empty appId for application, reject cache!");
+            log.error("Empty appId for application, reject cache! query scope: {}", resourceScope);
             throw new InternalException("Empty appId for application", ErrorCode.INTERNAL_ERROR);
         }
         return app.getId();
@@ -70,7 +70,7 @@ public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappin
         }
         if (StringUtils.isEmpty(app.getScopeType()) || StringUtils.isEmpty(app.getScopeId())) {
             // 如果查询到的业务缺少scopeType|scopeId参数，抛出异常避免缓存非法数据
-            log.error("Empty scopeType|scopeId for application, reject cache!");
+            log.error("Empty scopeType|scopeId for application, reject cache! query appId: {}", appId);
             throw new InternalException("Empty scopeType|scopeId for application", ErrorCode.INTERNAL_ERROR);
         }
         return new ResourceScope(app.getScopeType(), app.getScopeId());

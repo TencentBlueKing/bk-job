@@ -171,7 +171,10 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         initExecutionContext();
         watch.stop();
 
-        startGseTaskIfNotAvailable(watch);
+        boolean startSuccess = startGseTaskIfNotAvailable(watch);
+        if (!startSuccess) {
+            return;
+        }
 
         // 添加执行结果处理后台任务
         watch.start("addResultHandleTask");
@@ -185,7 +188,13 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         }
     }
 
-    private void startGseTaskIfNotAvailable(StopWatch watch) {
+    /**
+     * 下发 GSE 任务。
+     *
+     * @param watch watch
+     * @return 如果任务下发成功/任务已下发，返回true;下发失败返回false
+     */
+    private boolean startGseTaskIfNotAvailable(StopWatch watch) {
         boolean isGseTaskStarted = StringUtils.isNotEmpty(gseTask.getGseTaskId());
         if (!isGseTaskStarted) {
             watch.start("sendGseTask");
@@ -196,12 +205,13 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
             watch.start("handleGseResponse");
             if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
+                log.error("[{}] Start gse task fail, response: {}", this.gseTaskUniqueName, gseTaskResponse);
                 handleStartGseTaskError(gseTaskResponse);
                 gseTasksExceptionCounter.increment();
                 taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
                     EventSource.buildGseTaskEventSource(stepInstanceId, executeCount, batch, gseTask.getId())));
                 watch.stop();
-                return;
+                return false;
             } else {
                 log.info("[{}] Start gse task successfully, gseTaskId: {}", this.gseTaskUniqueName,
                     gseTaskResponse.getGseTaskId());
@@ -209,9 +219,11 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                     System.currentTimeMillis(), null, null);
             }
             watch.stop();
+            return true;
         } else {
             // GSE 任务已经下发过，不做处理
             log.info("[{}] Gse Task had already started!", this.gseTaskUniqueName);
+            return true;
         }
     }
 

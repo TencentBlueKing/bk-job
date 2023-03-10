@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <contextName>logback</contextName>
+
+    <property name="APP_NAME" value="${APP_NAME:-job-manage}"/>
+    <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-manage}"/>
+    <property name="APP_LOG_NAME" value="manage.log"/>
+    <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
+    <property name="SYNC_APP_HOST_LOG_FILE" value="${APP_LOG_DIR}/sync_app_host.log"/>
+
+    <include resource="logback-default.xml"/>
+
+    <appender name="sync-app-host-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${SYNC_APP_HOST_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${SYNC_APP_HOST_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>120</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <springProfile name="dev &amp; !kubernetes">
+        <logger name="com.tencent.bk.job.manage.service.impl.sync" level="DEBUG" additivity="false">
+            <appender-ref ref="sync-app-host-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="prod &amp; !kubernetes">
+        <logger name="com.tencent.bk.job.manage.service.impl.sync" level="INFO" additivity="false">
+            <appender-ref ref="sync-app-host-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="dev &amp; kubernetes">
+        <logger name="com.tencent.bk.job.manage.service.impl.sync" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="sync-app-host-appender"/>
+        </logger>
+    </springProfile>
+    <springProfile name="prod &amp; kubernetes">
+        <logger name="com.tencent.bk.job.manage.service.impl.sync" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="sync-app-host-appender"/>
+        </logger>
+    </springProfile>
+</configuration>

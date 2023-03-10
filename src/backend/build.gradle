@@ -27,7 +27,7 @@ import com.dorongold.gradle.tasktree.TaskTreePlugin
 buildscript {
     ext {
         set('springDependencyManagePluginVersion', "1.0.11.RELEASE")
-        set("springBootVersion", "2.4.6")
+        set("springBootVersion", "2.6.13")
         set("gradleJooqVersion", "3.0.0")
     }
 
@@ -58,43 +58,42 @@ buildscript {
 plugins {
     id "java-library"
     id "io.spring.dependency-management" version '1.0.11.RELEASE' apply false
-    id 'org.springframework.boot' version '2.4.6' apply false
+    id 'org.springframework.boot' version '2.6.13' apply false
     id "idea"
     id 'nu.studer.jooq' version '3.0.0'
 }
 
 ext {
-    // https://mvnrepository.com/artifact/org.springframework/spring-jdbc
-    set("springVersion", "5.3.9")
+    set("springVersion", "5.3.25")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-    set("springBootVersion", "2.4.6")
+    set("springBootVersion", "2.6.13")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
-    set('springCloudVersion', "2020.0.3")
-    set('springCloudOtelVersion', "1.0.0-M13")
-    // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
-    set('swaggerVersion', "2.9.2")
+    set('springCloudVersion', "2021.0.5")
+    set('springCloudOtelVersion', "1.1.1")
+    set('swaggerVersion', "3.0.0")
     set('junitVersion', "5.5.2")
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
     set('lombokVersion', "1.18.10")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-    set('jacksonVersion', "2.11.0")
+    set('jacksonVersion', "2.13.4")
     set('jaxrsVersion', "2.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
     set('logbackVersion', "1.2.10")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     set('slf4jVersion', "1.7.30")
     set('servletVersion', "3.0.1")
+    // apache commons
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-    set('apacheCommonsVersion', "3.9")
+    set('apacheCommonsLang3Version', "3.12.0")
     // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
     set('apacheCommonsCollectionVersion', "4.4")
     // https://mvnrepository.com/artifact/org.apache.commons/commons-pool2
-    set('apacheCommonsPoolVersion', "2.8.0")
+    set('apacheCommonsPoolVersion', "2.11.1")
     set('apacheCommonsCodecVersion', "1.14")
     set('apacheCuratorFrameworkVersion', "5.4.0")
     set('apacheCuratorRecipesVersion', "5.4.0")
-    set('dozerVersion', "5.5.1")
     set('commonsCollectionsVersion', "3.2.2")
+    set('dozerVersion', "5.5.1")
     set('jedisVersion', "3.0.1")
     // https://mvnrepository.com/artifact/org.jooq/jooq
     set('jooqVersion', "3.14.8")
@@ -109,25 +108,24 @@ ext {
     set('jjwtVersion', "0.9.1")
     set('hibernateValidatorVersion', "6.1.4.Final")
     set('micrometerPrometheusVersion', "1.5.1")
-    set('flapdoodleEmbeddedMongdbDBVersion', "2.2.0")
+    set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.64")
     set('reflectionsVersion', "0.9.12")
     set('cronUtilsVersion', "9.1.6")
-    set('otelJdbcVersion', "1.9.2-alpha")
+    set('otelJdbcVersion', "1.22.0-alpha")
     set('commonsValidatorVersion', "1.6")
-    set('okHttpVersion', "4.9.0")
+    set('okHttpVersion', "4.9.1")
     set('jcommanderVersion', "1.71")
+    set('kubernetesJavaClientVersion', "11.0.4")
+    set('springCloudKubernetesVersion', "2.0.6")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
-        println "bkjobVersoin:" + bkjobVersion
+        println "bkjobVersion:" + bkjobVersion
     } else {
         set('bkjobVersion', "1.0.0")
-        println "bkjobVersoin:" + bkjobVersion
+        println "bkjobVersion:" + bkjobVersion
     }
-    // Fix Spring Cloud Function Spel表达式注入漏洞(CVE-2022-22963)
-    // Fix Spring Cloud Function 拒绝服务漏洞(CVE-2022-22979)
-    set('spring-cloud-function.version', "3.2.8")
 }
 
 group "com.tencent.bk.job"
@@ -198,6 +196,9 @@ subprojects {
     }
     task integrationTest(type: Test, dependsOn: test) {
         useJUnitPlatform()
+        testLogging {
+            events 'PASSED', 'FAILED', 'SKIPPED'
+        }
         include '**/*IntegrationTest.class'
     }
 
@@ -217,6 +218,19 @@ subprojects {
                 mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
                 mavenBom "org.springframework.cloud:spring-cloud-sleuth-otel-dependencies:${springCloudOtelVersion}"
             }
+            // 由于spring cloud (2021.0.5)的 kubernetes 组件在特性版本jdk(8u252）下会出现不兼容（http2协议)，并且由于历史原因jdk版本无法升级，所以把spring cloud kubernetes 降低版本
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-client-autoconfig:$springCloudKubernetesVersion"
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-client-config:$springCloudKubernetesVersion"
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-client-discovery:$springCloudKubernetesVersion"
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-client-loadbalancer:$springCloudKubernetesVersion"
+            dependency "org.springframework.cloud:spring-cloud-kubernetes-commons:$springCloudKubernetesVersion"
+            dependency "io.kubernetes:client-java:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-api:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-api-fluent:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-extended:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-proto:$kubernetesJavaClientVersion"
+            dependency "io.kubernetes:client-java-spring-integration:$kubernetesJavaClientVersion"
+
             dependency "org.junit.jupiter:junit-jupiter:$junitVersion"
             dependency "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
             dependency "org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion"
@@ -228,18 +242,19 @@ subprojects {
             dependency "org.projectlombok:lombok:$lombokVersion"
             dependency "javax.ws.rs:javax.ws.rs-api:$jaxrsVersion"
             dependency "org.slf4j:slf4j-api:$slf4jVersion"
-            dependency "io.springfox:springfox-swagger2:$swaggerVersion"
-            dependency "io.springfox:springfox-swagger-ui:$swaggerVersion"
+            dependency "io.springfox:springfox-boot-starter:$swaggerVersion"
+            // apache commons
             dependency "org.apache.commons:commons-collections4:$apacheCommonsCollectionVersion"
             dependency "org.apache.commons:commons-pool2:$apacheCommonsPoolVersion"
+            dependency "org.apache.commons:commons-lang3:$apacheCommonsLang3Version"
             dependency "org.apache.curator:curator-framework:$apacheCuratorFrameworkVersion"
             dependency "org.apache.curator:curator-recipes:$apacheCuratorRecipesVersion"
-            dependency "net.sf.dozer:dozer:$dozerVersion"
             dependency "commons-collections:commons-collections:$commonsCollectionsVersion"
-            dependency "org.jedis:jedis:$jedisVersion"
-            dependency "com.h2database:h2:$h2Version"
             dependency "commons-io:commons-io:$commonsIOVersion"
             dependency "commons-codec:commons-codec:$apacheCommonsCodecVersion"
+            dependency "net.sf.dozer:dozer:$dozerVersion"
+            dependency "org.jedis:jedis:$jedisVersion"
+            dependency "com.h2database:h2:$h2Version"
             dependency "javax.servlet:javax.servlet-api:$javaxServletVersion"
             // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
             dependencySet(group: 'org.apache.httpcomponents', version: "$apacheHttpClientVersion") {
@@ -252,6 +267,7 @@ subprojects {
             dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
             dependency "net.sourceforge.jchardet:jchardet:1.0"
             dependency "io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion"
+            dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring26x:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
             dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
@@ -272,12 +288,10 @@ subprojects {
                 entry "jackson-databind"
                 entry "jackson-annotations"
             }
+            dependency "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
             dependencySet(group: 'ch.qos.logback', version: "$logbackVersion") {
                 entry "logback-core"
                 entry "logback-classic"
-            }
-            dependencySet(group: 'org.apache.commons', version: "$apacheCommonsVersion") {
-                entry "commons-lang3"
             }
             dependencySet(group: 'org.hibernate.validator', version: "$hibernateValidatorVersion") {
                 entry "hibernate-validator"
@@ -292,4 +306,3 @@ subprojects {
     }
 }
 apply plugin: TaskTreePlugin
-

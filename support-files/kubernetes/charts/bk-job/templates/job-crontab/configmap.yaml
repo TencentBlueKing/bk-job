@@ -13,6 +13,24 @@ metadata:
 data:
   application.yaml: |-
     spring:
+      cloud:
+        stream:
+          defaultBinder: jobCommon
+          binders:
+            jobCommon:
+              type: rabbit
+              environment:
+                spring:
+                  rabbitmq:
+                    host: {{ include "job.rabbitmq.host" . }}
+                    port: {{ include "job.rabbitmq.port" . }}
+                    username: {{ include "job.rabbitmq.username" . }}
+                    {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+                    password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+                    {{- else -}}
+                    password: ${rabbitmq-password}
+                    {{- end }}
+                    virtual-host: {{ include "job.rabbitmq.vhost" . }}
       datasource:
         job-crontab:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -29,16 +47,6 @@ data:
           idle-timeout: 600000
           poolName: "job-crontab"
           validationTimeout: 5000
-      rabbitmq:
-        host: {{ include "job.rabbitmq.host" . }}
-        port: {{ include "job.rabbitmq.port" . }}
-        username: {{ include "job.rabbitmq.username" . }}
-        {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
-        password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
-        {{- else -}}
-        password: ${rabbitmq-password}
-        {{- end }}
-        virtual-host: {{ include "job.rabbitmq.vhost" . }}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -50,6 +58,11 @@ data:
             max-wait: 1ms
           shutdown-timeout: 100ms
       quartz:
+        # 使用数据库存储
+        job-store-type: jdbc
+        jdbc:
+          # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
+          initialize-schema: never
         thread-pool:
           thread-name-prefix: QuartzThreadPoolTaskExecutor-
           thread-priority: 5
@@ -63,7 +76,6 @@ data:
           waitfor-tasks-tocomplete-onshutdown: true
           await-termination-seconds: 900
         scheduler:
-          config-location: classpath:quartz.properties
           scheduler-name: quartz-scheduler
           application-context-scheduler-contextkey: applicationContext
           overwrite-existing-jobs: true
@@ -72,10 +84,27 @@ data:
         properties:
           org:
             quartz:
+              jobStore:
+                class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+                clusterCheckinInterval: 20000
+                driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+                isClustered: true
+                selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
+                tablePrefix: QRTZ_
+                useProperties: true
+              plugin:
+                shutdownhook:
+                  class: org.quartz.plugins.management.ShutdownHookPlugin
+                  cleanShutdown: true
+                triggHistory:
+                  class: org.quartz.plugins.history.LoggingJobHistoryPlugin
               scheduler:
-                batchTriggerAcquisitionMaxCount: 150
-              threadPool:
-                threadCount: 150
+                # 调度器实例名称
+                instanceName: quartz-scheduler
+                # 调度器实例编号自动生成
+                instanceId: AUTO
+                skipUpdateCheck: true
+                batchTriggerAcquisitionMaxCount: 50
     ribbon:
       ReadTimeout: 120000
       ConnectTimeout: 10000

@@ -749,7 +749,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
 
     private boolean isUsingGseV2(long appId) {
-        return FeatureToggle.getInstance().checkFeature(
+        return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_GSE_V2,
             FeatureExecutionContextBuilder.builder()
                 .resourceScope(appScopeMappingService.getScopeByAppId(appId))
@@ -1982,7 +1982,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (hostList != null && !hostList.isEmpty()) {
             List<HostDTO> staticIpList = new ArrayList<>();
             for (ServiceHostInfoDTO hostInfo : hostList) {
-                staticIpList.add(new HostDTO(hostInfo.getCloudAreaId(), hostInfo.getIp()));
+                staticIpList.add(
+                    HostDTO.fromHostIdOrCloudIp(hostInfo.getHostId(), hostInfo.getCloudAreaId(), hostInfo.getIp()));
             }
             servers.setStaticIpList(staticIpList);
         }

@@ -37,8 +37,7 @@ dependencies {
     implementation group: 'org.apache.thrift', name: 'libthrift'
     implementation "commons-io:commons-io"
     implementation "commons-codec:commons-codec"
-    implementation 'io.springfox:springfox-swagger2'
-    implementation 'io.springfox:springfox-swagger-ui'
+    implementation 'io.springfox:springfox-boot-starter'
     implementation 'joda-time:joda-time'
     implementation 'org.bouncycastle:bcprov-jdk15on'
     implementation 'io.micrometer:micrometer-registry-prometheus'

@@ -65,11 +65,7 @@ public class TemplateStatusUpdateService {
     private static final ScriptVersion SCRIPT_VERSION_TABLE = ScriptVersion.SCRIPT_VERSION;
     private static final LinkedBlockingQueue<ScriptStatusUpdateMessageDTO> UPDATE_MESSAGE_QUEUE =
         new LinkedBlockingQueue<>();
-    private DSLContext context;
-    @Autowired
-    private TemplateStatusUpdateService templateStatusUpdateService;
-
-    private AbstractTaskStepService taskStepService;
+    private final DSLContext context;
 
     @Autowired
     public TemplateStatusUpdateService(
@@ -78,7 +74,6 @@ public class TemplateStatusUpdateService {
         TaskTemplateDAO taskTemplateDAO
     ) {
         this.context = context;
-        this.taskStepService = taskStepService;
         this.taskTemplateDAO = taskTemplateDAO;
         TemplateStatusUpdateThread templateStatusUpdateThread = new TemplateStatusUpdateThread();
         templateStatusUpdateThread.start();
@@ -112,7 +107,7 @@ public class TemplateStatusUpdateService {
         log.debug("{}|Start process script status update message...|{}", uuid, scriptStatusUpdateMessage);
         if (scriptStatusUpdateMessage.getTemplateId() != null && scriptStatusUpdateMessage.getTemplateId() > 0) {
             log.debug("Processing template status...|{}", scriptStatusUpdateMessage);
-            templateStatusUpdateService.processTemplateStatus(ULong.valueOf(scriptStatusUpdateMessage.getTemplateId()));
+            processTemplateStatus(ULong.valueOf(scriptStatusUpdateMessage.getTemplateId()));
         } else if (StringUtils.isNotBlank(scriptStatusUpdateMessage.getScriptId())
             && scriptStatusUpdateMessage.getScriptVersionId() != null
             && scriptStatusUpdateMessage.getScriptVersionId() > 0 && scriptStatusUpdateMessage.getStatus() != null) {
@@ -131,7 +126,7 @@ public class TemplateStatusUpdateService {
                     log.debug("Processing template status...|{}|{}", scriptStatusUpdateMessage, templateIdSet);
                     templateIdSet.forEach(templateId -> {
                         try {
-                            templateStatusUpdateService.processTemplateStatus(templateId);
+                            processTemplateStatus(templateId);
                         } catch (Exception e) {
                             log.error("Error while processing template status!|{}", templateId, e);
                         }
@@ -192,20 +187,20 @@ public class TemplateStatusUpdateService {
                         scriptStatus |= 0b10;
                     }
 
-                    templateStatusUpdateService.updateTemplateStatus(templateId, scriptStatus);
+                    updateTemplateStatus(templateId, scriptStatus);
 
                     processScriptStepStatus(templateScriptVersionMap, offlineVersions, disabledVersions);
 
                 } else {
-                    templateStatusUpdateService.updateTemplateStatus(templateId, 0);
+                    updateTemplateStatus(templateId, 0);
                     log.warn("Getting script version info failed!|{}|{}", templateId, templateScriptVersionMap);
                 }
             } else {
-                templateStatusUpdateService.updateTemplateStatus(templateId, 0);
+                updateTemplateStatus(templateId, 0);
                 log.error("Error while process template status!|Convert records failed!|{}|{}", templateId, records);
             }
         } else {
-            templateStatusUpdateService.updateTemplateStatus(templateId, 0);
+            updateTemplateStatus(templateId, 0);
             log.warn("Error while process template status!|Fetch template step info failed!|{}", templateId);
         }
     }

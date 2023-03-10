@@ -56,6 +56,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,11 +84,13 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     private final AbstractTaskStepService taskPlanStepService;
     private final AbstractTaskVariableService taskTemplateVariableService;
     private final AbstractTaskVariableService taskPlanVariableService;
+    private TaskTemplateService taskTemplateService;
 
     @Autowired
-    private TaskTemplateService taskTemplateService;
-    @Autowired
-    private TaskPlanService taskPlanService;
+    @Lazy
+    public void setTaskTemplateService(TaskTemplateService taskTemplateService) {
+        this.taskTemplateService = taskTemplateService;
+    }
 
     @Autowired
     public TaskPlanServiceImpl(
@@ -299,7 +302,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         if (taskPlan != null) {
             if (!taskTemplateInfo.getVersion().equals(taskPlan.getVersion())) {
                 // 作业模板有更新，需要同步到调试执行方案（不含变量）
-                taskPlanService.sync(appId, templateId, taskPlan.getId(), taskTemplateInfo.getVersion());
+                sync(appId, templateId, taskPlan.getId(), taskTemplateInfo.getVersion());
                 taskPlan = taskPlanDAO.getDebugTaskPlan(appId, templateId);
             }
             List<TaskVariableDTO> templateVariableList =
@@ -330,7 +333,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         taskPlan.setLastModifyUser(username);
         taskPlan.setLastModifyTime(DateUtils.currentTimeSeconds());
         taskPlan.setDebug(true);
-        taskPlan.setId(taskPlanService.saveTaskPlan(taskPlan));
+        taskPlan.setId(saveTaskPlan(taskPlan));
 
         taskPlan = taskPlanDAO.getTaskPlanById(appId, templateId, taskPlan.getId(), TaskPlanTypeEnum.DEBUG);
         taskPlan.setStepList(taskPlanStepService.listStepsByParentId(taskPlan.getId()));
@@ -341,7 +344,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             taskStep.setEnable(1);
             taskPlan.getEnableStepList().add(taskStep.getId());
         }
-        taskPlanService.saveTaskPlan(taskPlan);
+        saveTaskPlan(taskPlan);
         return taskPlan;
     }
 
@@ -406,7 +409,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         if (!templateVersion.equals(taskTemplate.getVersion())) {
             return false;
         }
-        TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlanById(appId, planId);
+        TaskPlanInfoDTO taskPlan = getTaskPlanById(appId, planId);
         if (taskPlan == null) {
             return false;
         }
@@ -460,7 +463,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             taskPlan.setVariableList(Collections.emptyList());
         }
 
-        taskPlanService.syncPlan(taskPlan);
+        syncPlan(taskPlan);
         return true;
     }
 
@@ -567,7 +570,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             taskPlan.setLastStepId(taskTemplateInfo.getLastStepId());
             taskPlan.setNeedUpdate(false);
             taskPlan.setVersion(taskTemplateInfo.getVersion());
-            taskPlanService.saveTaskPlanWithId(taskPlan);
+            saveTaskPlanWithId(taskPlan);
 
             taskPlan = taskPlanDAO.getTaskPlanById(appId, templateId, taskPlan.getId(), TaskPlanTypeEnum.NORMAL);
             taskPlan.setStepList(taskTemplateInfo.getStepList());
@@ -588,7 +591,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
 
                 taskPlan.getEnableStepList().add(taskStep.getId());
             }
-            taskPlanService.saveTaskPlan(taskPlan);
+            saveTaskPlan(taskPlan);
             return planId;
         } catch (Exception e) {
             log.error("Error while creating debug plan", e);

@@ -25,13 +25,16 @@
 dependencies {
     api project(':commons:common-i18n')
     api project(':commons:common-utils')
+    api 'org.springframework.boot:spring-boot-autoconfigure'
     api 'com.fasterxml.jackson.core:jackson-core'
     api 'com.fasterxml.jackson.core:jackson-databind'
     api 'com.fasterxml.jackson.core:jackson-annotations'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'org.apache.commons:commons-lang3'
     api 'org.apache.commons:commons-collections4'
     api 'org.springframework.boot:spring-boot'
-    implementation 'io.springfox:springfox-swagger2'
+    api 'com.google.guava:guava'
+    implementation 'io.springfox:springfox-boot-starter'
     implementation 'net.sf.dozer:dozer'
     implementation 'net.sourceforge.jchardet:jchardet'
     api 'org.apache.httpcomponents:httpclient'

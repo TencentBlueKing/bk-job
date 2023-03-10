@@ -34,10 +34,7 @@ ext {
 version "${jobConfigVersion}"
 dependencies {
     api project(':commons:common')
-    api project(":commons:common-i18n")
     api project(":commons:common-consul")
-    implementation 'io.springfox:springfox-swagger2'
-    implementation 'io.springfox:springfox-swagger-ui'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -45,6 +42,8 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-config-server'
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+    implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'
@@ -59,4 +58,9 @@ springBoot {
     getMainClass().set("com.tencent.bk.job.config.JobConfigBootApplication")
     buildInfo()
 }
+
+configurations {
+    all*.exclude module : 'springfox-boot-starter'
+}
+
 apply from: "$rootDir/task_job_package.gradle"

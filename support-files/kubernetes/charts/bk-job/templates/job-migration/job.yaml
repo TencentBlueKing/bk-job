@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "common.names.fullname" . }}-migration-{{ .Release.Revision }}
+  name: {{ include "common.names.fullname" . }}-migration-{{ .Chart.Version }}
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-migration"

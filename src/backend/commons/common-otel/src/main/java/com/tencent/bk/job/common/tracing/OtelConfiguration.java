@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.tracing;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -45,14 +44,27 @@ import org.springframework.cloud.sleuth.autoconfig.otel.SpanProcessorProvider;
 import org.springframework.cloud.sleuth.otel.bridge.SpanExporterCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * Otel 配置
+ *
+ * <p>在跑测试用例启动时，会启动spring容器，会多次初始化OtelConfiguration。由于OtelConfiguration.otel()->OtelConfiguration.otel()
+ * .buildAndRegisterGlobal()-> GlobalOpenTelemetry.set多次调用，从而抛出异常"Failed to instantiate [io
+ * .opentelemetry.api.OpenTelemetry]: Factory method 'otel' threw exception; nested exception is java.lang
+ * .IllegalStateException: GlobalOpenTelemetry.set has already been called. GlobalOpenTelemetry.set must be called
+ * only once before any calls to GlobalOpenTelemetry.get"</p>
+ *
+ * @see io.opentelemetry.api.GlobalOpenTelemetry
+ */
 @Slf4j
 @Configuration(proxyBeanMethods = false)
+@Profile("!test")
 class OtelConfiguration {
 
     @Value("${spring.sleuth.otel.exporter.enabled:false}")
@@ -96,8 +108,11 @@ class OtelConfiguration {
     @Bean
     OpenTelemetry otel(SdkTracerProvider tracerProvider, ContextPropagators contextPropagators) {
         OpenTelemetry openTelemetry =
-            OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).setPropagators(contextPropagators).build();
-        GlobalOpenTelemetry.set(openTelemetry);
+            OpenTelemetrySdk
+                .builder()
+                .setTracerProvider(tracerProvider)
+                .setPropagators(contextPropagators)
+                .buildAndRegisterGlobal();
         log.info("GlobalOpenTelemetry has been set");
         return openTelemetry;
     }

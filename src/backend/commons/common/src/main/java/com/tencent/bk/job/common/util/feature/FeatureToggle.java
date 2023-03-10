@@ -24,14 +24,22 @@
 
 package com.tencent.bk.job.common.util.feature;
 
+import com.tencent.bk.job.common.config.FeatureConfig;
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.feature.strategy.FeatureConfigParseException;
+import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeBlackListToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeWhiteListToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.ToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.WeightToggleStrategy;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 特性开关
@@ -42,21 +50,18 @@ public class FeatureToggle {
     /**
      * key: featureId; value: Feature
      */
-    private final Map<String, Feature> features = new ConcurrentHashMap<>();
+    private static volatile Map<String, Feature> features = new HashMap<>();
+    private static volatile boolean isInitial = false;
 
-    private static class FeatureToggleHolder {
-        private static final FeatureToggle INSTANCE = new FeatureToggle();
+    public static void reload() {
+        synchronized (FeatureToggle.class) {
+            load();
+            isInitial = true;
+        }
     }
 
-    private FeatureToggle() {
-        reload();
-    }
-
-    public static FeatureToggle getInstance() {
-        return FeatureToggleHolder.INSTANCE;
-    }
-
-    public void reload() {
+    public static void load() {
+        log.info("Load feature toggle start ...");
         FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
 
         if (featureToggleConfig.getFeatures() == null || featureToggleConfig.getFeatures().isEmpty()) {
@@ -64,33 +69,66 @@ public class FeatureToggle {
             return;
         }
 
+        Map<String, Feature> tmpFeatures = new HashMap<>();
         featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
-            Feature feature = new Feature();
-            feature.setId(featureId);
-            feature.setEnabled(featureConfig.isEnabled());
+            try {
+                Feature feature = parseFeatureConfig(featureId, featureConfig);
+                tmpFeatures.put(featureId, feature);
+            } catch (Throwable e) {
+                String msg = MessageFormatter.format(
+                    "Load feature toggle config fail, skip update feature toggle config! featureId: {}, " +
+                        "featureConfig: {}", featureId, featureConfig).getMessage();
+                log.error(msg, e);
+                if (features.get(featureId) != null) {
+                    // 如果加载失败，那么使用原有的特性配置
+                    tmpFeatures.put(featureId, features.get(featureId));
+                }
+            }
+        });
 
+        // 使用新的配置完全替换老的配置
+        features = tmpFeatures;
+        log.info("Load feature toggle config done! features: {}", JsonUtils.toJson(features));
+    }
+
+    private static Feature parseFeatureConfig(String featureId,
+                                              FeatureConfig featureConfig) throws FeatureConfigParseException {
+        if (StringUtils.isBlank(featureId)) {
+            log.error("FeatureId is blank");
+            throw new FeatureConfigParseException("FeatureId is blank");
+        }
+        Feature feature = new Feature();
+        feature.setId(featureId);
+        feature.setEnabled(featureConfig.isEnabled());
+
+        if (featureConfig.isEnabled()) {
             ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
             if (strategyConfig != null) {
                 String strategyId = strategyConfig.getId();
                 ToggleStrategy toggleStrategy = null;
                 switch (strategyId) {
-                    case ResourceScopeToggleStrategy.STRATEGY_ID:
-                        toggleStrategy = new ResourceScopeToggleStrategy(featureId, strategyConfig.getParams());
+                    case ResourceScopeWhiteListToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new ResourceScopeWhiteListToggleStrategy(featureId,
+                            strategyConfig.getParams());
+                        break;
+                    case ResourceScopeBlackListToggleStrategy.STRATEGY_ID:
+                        toggleStrategy = new ResourceScopeBlackListToggleStrategy(featureId,
+                            strategyConfig.getParams());
                         break;
                     case WeightToggleStrategy.STRATEGY_ID:
                         toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
                         break;
                     default:
-                        log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId, featureId);
+                        log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId,
+                            featureId);
                         break;
                 }
                 if (toggleStrategy != null) {
                     feature.setStrategy(toggleStrategy);
                 }
             }
-            features.put(featureId, feature);
-        });
-        log.info("Load feature toggle config done! features: {}", JsonUtils.toJson(features));
+        }
+        return feature;
     }
 
 
@@ -101,7 +139,16 @@ public class FeatureToggle {
      * @param ctx       特性运行上下文
      * @return 是否开启
      */
-    public boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
+    public static boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
+        if (!isInitial) {
+            synchronized (FeatureConfig.class) {
+                if (!isInitial) {
+                    load();
+                    isInitial = true;
+                }
+            }
+        }
+
         Feature feature = features.get(featureId);
         if (feature == null) {
             log.debug("Feature: {} is not exist!", featureId);

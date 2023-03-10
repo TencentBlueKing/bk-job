@@ -32,9 +32,6 @@ dependencies {
     api("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation 'org.apache.commons:commons-collections4'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
-
-
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
     implementation "org.slf4j:slf4j-api"

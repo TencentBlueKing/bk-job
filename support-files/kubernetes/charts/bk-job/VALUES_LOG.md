@@ -1,9 +1,9 @@
 # chart values 更新日志
-## 0.4.0-rc.63
+## 0.4.0
 1.增加特性开关相关配置
 
-```shell script
-## job-file-gateway文件网关服务配置
+- 特性开关配置说明
+```yaml
 job:
   features:
     # 是否开启文件管理特性，容器化环境默认开启
@@ -17,15 +17,47 @@ job:
       enabled: true
       # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
       strategy:
-        # 特性策略ID, 当前支持ResourceScopeToggleStrategy/WeightToggleStrategy（按照业务(集)特性开启策略
-        id: ResourceScopeToggleStrategy
+        # 特性策略ID，支持ResourceScopeWhiteListToggleStrategy/ResourceScopeBlackListToggleStrategy
+        id: ResourceScopeWhiteListToggleStrategy
         # 特性策略初始化参数，kv结构，具体传入参数根据不同的StrategyId变化
-        params: {}
+        params: 
+          resourceScopeList: "biz:2,biz_set:9999001"
 ```
+
+- 特性灰度策略说明
+```yaml
+# 灰度策略使用说明
+# ResourceScopeWhiteListToggleStrategy
+job:
+  features:
+    gseV2:
+      enabled: true
+      # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
+      strategy:
+        # 按照资源范围(业务/业务集)白名单灰度
+        id: ResourceScopeWhiteListToggleStrategy
+        params: 
+          # 表示业务(ID=2)和业务集(ID=9999001)
+          resourceScopeList: "biz:2,biz_set:9999001"
+          
+# ResourceScopeBlackListToggleStrategy
+job:
+  features:
+    gseV2:
+      enabled: true
+      # 特性启用策略，当enabled=true的时候生效；如果不配置，那么仅判断enabled字段
+      strategy:
+        # 按照资源范围(业务/业务集)黑名单灰度
+        id: ResourceScopeBlackListToggleStrategy
+        params: 
+          # 表示业务(ID=2)和业务集(ID=9999001)
+          resourceScopeList: "biz:2,biz_set:9999001"
+```
+
 
 2. 新增GSE1.0 控制开关
 
-```
+```yaml
 gse:
   # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true
   enabled: true
@@ -33,15 +65,51 @@ gse:
 
 3. 新增GSE API Gateway URL
 
-```
+```yaml
 # 蓝鲸 GSE API Gateway url。格式:{网关访问地址}/{网关环境}，网关访问地址、网关环境的取值见bk-gse网关API文档。
 bkGseApiGatewayUrl: "https://bk-gse.apigw.com/prod"
 ```
 
+4. 新增job-k8s-config-watcher 配置，用于监听 Job 配置文件的变化并发送事件给涉及的微服务
+
+```yaml
+## job-k8s-config-watcher 配置
+k8sConfigWatcherConfig:
+  image:
+    registry: hub.bktencent.com
+    repository: springcloud/spring-cloud-kubernetes-configuration-watcher
+    tag: "3.0.0"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  hostAliases: []
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi 
+```
 
 ## 0.3.1-rc.7
 1.manageConfig现有配置项下增加CMDB资源同步与事件监听相关配置子项
-```shell script
+```yaml
 ## job-manage作业管理配置
 manageConfig:
   # CMDB资源（业务、业务集、主机等）同步与事件监听相关配置
@@ -62,12 +130,11 @@ manageConfig:
       handlerNum: 3
 ```
 
-
 ## 0.3.0-rc.46
 
 1.增加服务启动顺序控制相关配置
 
-```shell script
+```yaml
 ## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
 waitForDependServices:
   image:
@@ -110,7 +177,7 @@ waitForDependServices:
 ## 0.3.0-rc.37
 1.增加文件网关系统file-worker调度标签相关配置
 
-```shell script
+```yaml
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
   # 用于确定调度范围的worker标签
@@ -127,7 +194,7 @@ fileWorkerConfig:
 
 ## 0.3.0-rc.31
 1.增加Trace及数据上报至APM相关配置
-```shell script
+```yaml
 ## Trace配置
 job:
   trace:
@@ -142,7 +209,7 @@ job:
       ratio: 0.1
 ```
 2.fileWorker对应的Service端口默认值设置为与pod端口一致，避免混淆
-```shell script
+```yaml
 ## job-file-worker文件源接入点配置
 fileWorkerConfig:
   service:
@@ -151,7 +218,7 @@ fileWorkerConfig:
 
 ## 0.2.2-rc.7
 1.增加文档中心与问题反馈URL配置项
-```shell script
+```yaml
 # 文档中心 url
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url
@@ -160,7 +227,7 @@ bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
 
 ## 0.2.2-rc.1
 1.增加权限中心系统ID配置：
-```shell script
+```yaml
 ## 权限中心配置
 iam:
   # 作业平台注册到IAM的系统ID
@@ -169,14 +236,14 @@ iam:
 
 ## 0.1.53
 1.增加CMDB供应商配置：
-```shell script
+```yaml
 ## 对接蓝鲸CMDB参数配置
 cmdb:
   # 供应商，默认为0
   supplierAccount: 0
 ```
 2.增加各模块是否启用开关配置：
-```shell script
+```yaml
 ## job-gateway网关配置
 gatewayConfig:
   # 模块是否启用，默认启用
@@ -225,7 +292,7 @@ migration:
 1.更新微服务默认镜像版本；
 2.更新k8s-wait-for默认镜像版本；  
 **3.增加登录配置**  
-```shell script
+```yaml
 ## 登录配置
 login:
   ## 自定义登录配置

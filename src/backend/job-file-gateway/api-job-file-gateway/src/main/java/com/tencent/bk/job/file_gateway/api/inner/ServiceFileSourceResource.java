@@ -31,17 +31,15 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-file-gateway:service:FileSource"})
-@RequestMapping("/service/fileSource/")
 @RestController
 @InternalAPI
 public interface ServiceFileSourceResource {
 
     @ApiOperation(value = "获取文件源ID", produces = "application/json")
-    @GetMapping("getFileSourceIdByCode/codes/{code}")
+    @GetMapping("/service/fileSource/getFileSourceIdByCode/codes/{code}")
     InternalResponse<Integer> getFileSourceIdByCode(
         @ApiParam(value = "文件源标识", required = true) @PathVariable("code") String code);
 }

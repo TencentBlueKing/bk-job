@@ -37,6 +37,7 @@ import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.crontab.model.esb.response.EsbCronInfoResponse;
 import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
+import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.crontab.service.TaskPlanService;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
@@ -575,5 +576,30 @@ public class CronJobInfoDTO {
             return false;
         }
         return true;
+    }
+
+    public ServiceCronJobDTO toServiceCronJobDTO() {
+        ServiceCronJobDTO cronJob = new ServiceCronJobDTO();
+        cronJob.setId(id);
+        cronJob.setAppId(appId);
+        cronJob.setName(name);
+        cronJob.setCreator(creator);
+        cronJob.setLastModifyTime(lastModifyTime);
+        cronJob.setTaskPlanId(taskPlanId);
+        cronJob.setScriptId(scriptId);
+        cronJob.setScriptVersionId(scriptVersionId);
+        cronJob.setCronExpression(cronExpression);
+        cronJob.setExecuteTime(executeTime);
+        if (CollectionUtils.isNotEmpty(variableValue)) {
+            cronJob.setVariableValue(variableValue.stream().map(CronJobVariableDTO::toServiceCronJobVariableDTO)
+                .collect(Collectors.toList()));
+        } else {
+            cronJob.setVariableValue(Collections.emptyList());
+        }
+        cronJob.setLastExecuteStatus(lastExecuteStatus);
+        cronJob.setEnable(enable);
+        cronJob.setLastModifyUser(lastModifyUser);
+        cronJob.setLastModifyTime(lastModifyTime);
+        return cronJob;
     }
 }

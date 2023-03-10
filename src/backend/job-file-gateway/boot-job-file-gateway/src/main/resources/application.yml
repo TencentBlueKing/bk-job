@@ -1,14 +1,25 @@
 spring:
   profiles:
     active: prod
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 ribbon:
   ServerListRefreshInterval: 3000
 
 management:
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+    # 使用spring cloud stream rabbitmq, 禁用掉springboot的rabbitmq health检查
+    rabbit:
+      enabled: false
   endpoints:
     web:
       exposure:
-        include: shutdown,health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh
+        include: shutdown,health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh,busrefresh,bindings
       base-path: /actuator
     enabled-by-default: false
   endpoint:
@@ -16,6 +27,7 @@ management:
       enabled: true
     health:
       enabled: true
+      show-details: when_authorized
     configprops:
       enabled: true
     env:
@@ -37,6 +49,8 @@ management:
     info:
       enabled: true
     refresh:
+      enabled: true
+    busrefresh:
       enabled: true
   metrics:
     tags:

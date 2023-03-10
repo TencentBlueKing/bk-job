@@ -1,78 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
     <property name="LOG_PATTERN"
-              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}][%X{traceId}|%X{spanId}][%thread] %-5level %logger{36}:%method:%line - %msg%n"/>
-    <property name="BK_LOG_DIR" value="${job.log.dir:-logs/job}"/>
-    <property name="BK_LOGSVR_DIR_LOG" value="${BK_LOG_DIR}/job-logsvr"/>
-    <property name="LOGSVR_LOG_FILE" value="${BK_LOGSVR_DIR_LOG}/logsvr.log"/>
-    <property name="ERROR_LOG_FILE" value="${BK_LOGSVR_DIR_LOG}/error.log"/>
+              value="[%date{yyyy-MM-dd HH:mm:ss.SSS}] %-5level %logger{36}:%method:%line - %msg%n"/>
+
     <contextName>logback</contextName>
 
-    <appender name="logsvr-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOGSVR_LOG_FILE}</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOGSVR_LOG_FILE}-%d{yyyyMMdd_HH}.%i.log</fileNamePattern>
-            <maxFileSize>1GB</maxFileSize>
-            <maxHistory>15</maxHistory>
-            <totalSizeCap>10GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-    <appender name="error-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${ERROR_LOG_FILE}</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${ERROR_LOG_FILE}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>1GB</maxFileSize>
-            <maxHistory>15</maxHistory>
-            <totalSizeCap>10GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
-    <springProfile name="local">
+    <springProfile name="test">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
                 <pattern>${LOG_PATTERN}</pattern>
                 <charset>utf8</charset>
             </encoder>
         </appender>
-        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
-        <root level="INFO">
+        <root level="DEBUG">
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
 
-    <springProfile name="dev">
-        <logger name="com.tencent.bk.job" level="DEBUG" additivity="false">
-            <appender-ref ref="logsvr-appender"/>
-        </logger>
-        <logger name="org" level="INFO" additivity="false">
-            <appender-ref ref="logsvr-appender"/>
-        </logger>
-        <root level="ERROR">
-            <appender-ref ref="logsvr-appender"/>
-            <appender-ref ref="error-appender"/>
-        </root>
-    </springProfile>
-
-    <springProfile name="prod">
-        <logger name="com.tencent.bk.job" level="INFO" additivity="false">
-            <appender-ref ref="logsvr-appender"/>
-        </logger>
-        <logger name="org" level="INFO" additivity="false">
-            <appender-ref ref="logsvr-appender"/>
-        </logger>
-        <root level="ERROR">
-            <appender-ref ref="logsvr-appender"/>
-            <appender-ref ref="error-appender"/>
-        </root>
-    </springProfile>
 </configuration>

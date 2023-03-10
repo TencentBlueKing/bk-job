@@ -13,7 +13,6 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
   annotations:
-  {{ include "annotations.sha256sum.configmap" ( dict "service" "job-crontab" "context" . ) | nindent 4 }}
   {{- if .Values.commonAnnotations }}
   {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
@@ -32,6 +31,8 @@ spec:
         app.kubernetes.io/component: "job-crontab"
         {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
         {{ include "job.labelKeys.imageTag" . }}: {{ .Values.crontabConfig.image.tag | quote }}
+      annotations:
+        {{ include "annotations.sha256sum.configmap" ( dict "service" "job-crontab" "context" . ) | nindent 8 }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
@@ -80,6 +81,8 @@ spec:
               value: {{ include "common.names.fullname" . }}-crontab
             - name: JOB_COMMON_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-common
+            - name: JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common-refreshable
             - name: spring_cloud_kubernetes_secrets_paths
               value: /etc/secrets
             - name: KUBERNETES_NAMESPACE

@@ -24,6 +24,7 @@
 
 dependencies {
     api project(':commons:common')
+    api project(":commons:common-api")
     api project(':job-file-gateway:api-job-file-gateway-worker')
     implementation "org.springframework:spring-web"
     implementation "javax.ws.rs:javax.ws.rs-api"

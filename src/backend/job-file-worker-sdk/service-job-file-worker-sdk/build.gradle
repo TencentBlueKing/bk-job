@@ -35,8 +35,7 @@ dependencies {
     api group: 'org.apache.thrift', name: 'libthrift'
     api "commons-io:commons-io"
     api "commons-codec:commons-codec"
-    api 'io.springfox:springfox-swagger2'
-    api 'io.springfox:springfox-swagger-ui'
+    api 'io.springfox:springfox-boot-starter'
     api 'net.coobird:thumbnailator:0.4.14'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'

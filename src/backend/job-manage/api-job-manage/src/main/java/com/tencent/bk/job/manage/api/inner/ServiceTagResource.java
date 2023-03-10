@@ -31,20 +31,18 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @Api(tags = {"job-manage:Service:Tag"})
-@RequestMapping("/service/tag")
 @RestController
 @InternalAPI
 public interface ServiceTagResource {
 
     @ApiOperation(value = "获取业务下的所有标签", produces = "application/json")
-    @GetMapping("/list")
+    @GetMapping("/service/tag/list")
     InternalResponse<List<ServiceTagDTO>> listTags(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
@@ -52,7 +50,7 @@ public interface ServiceTagResource {
     );
 
     @ApiOperation(value = "获取所有公共标签", produces = "application/json")
-    @GetMapping("/list/public")
+    @GetMapping("/service/tag/list/public")
     InternalResponse<List<ServiceTagDTO>> listPublicTags();
 
 }

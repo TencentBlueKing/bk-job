@@ -40,7 +40,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 public class ServiceBatchGetHostsReq {
-    List<HostDTO> hosts;
+    private List<HostDTO> hosts;
 
     public ServiceBatchGetHostsReq(List<HostDTO> hosts) {
         this.hosts = hosts;

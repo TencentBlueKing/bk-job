@@ -3,16 +3,23 @@ spring:
     name: job-config
   profiles:
     active: prod,native
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   cloud:
     config:
       server:
         native:
           search-locations: file:///${BK_JOB_CONFIG_DIR}/job-common,file:///${BK_JOB_CONFIG_DIR}/job-gateway,file:///${BK_JOB_CONFIG_DIR}/job-manage,file:///${BK_JOB_CONFIG_DIR}/job-execute,file:///${BK_JOB_CONFIG_DIR}/job-logsvr,file:///${BK_JOB_CONFIG_DIR}/job-crontab,file:///${BK_JOB_CONFIG_DIR}/job-backup,file:///${BK_JOB_CONFIG_DIR}/job-file-gateway,file:///${BK_JOB_CONFIG_DIR}/job-ticket,file:///${BK_JOB_CONFIG_DIR}/job-analysis
 management:
+  health:
+    # 使用spring cloud stream rabbitmq, 禁用掉springboot的rabbitmq health检查
+    rabbit:
+      enabled: false
   endpoints:
     web:
       exposure:
-        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh,busrefresh,bindings
       base-path: /actuator
     enabled-by-default: false
   endpoint:
@@ -40,6 +47,10 @@ management:
     scheduledtasks:
       enabled: true
     info:
+      enabled: true
+    refresh:
+      enabled: true
+    busrefresh:
       enabled: true
 server:
   port: 19801
