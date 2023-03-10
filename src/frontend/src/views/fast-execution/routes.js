@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/fast-execution/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'execute',
   name: 'execute',
-  component: () => import('@views/fast-execution'),
+  component: Entry,
   redirect: {
     name: 'fastExecuteScript',
   },

@@ -23,11 +23,13 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/home/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'home',
-  component: () => import('@views/home/index'),
+  component: Entry,
   meta: {
     group: 'business',
   },

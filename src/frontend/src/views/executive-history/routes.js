@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/executive-history/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'execute',
   name: 'executiveHistory',
-  component: () => import('@views/executive-history'),
+  component: Entry,
   redirect: {
     name: 'historyList',
   },

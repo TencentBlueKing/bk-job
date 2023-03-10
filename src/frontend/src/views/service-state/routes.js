@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/service-state/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'service',
   name: 'service',
-  component: () => import('@views/service-state/index'),
+  component: Entry,
   redirect: {
     name: 'serviceStateList',
   },

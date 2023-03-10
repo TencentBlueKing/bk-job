@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/public-script-manage/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'public_script',
   name: 'publicScript',
-  component: () => import('@views/public-script-manage/index'),
+  component: Entry,
   meta: {
     title: I18n.t('公共脚本'),
     public: true,

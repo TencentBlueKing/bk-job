@@ -317,9 +317,10 @@
     for (let i = matched.length - 1; i >= 0; i--) {
       if (matched[i].meta.group) {
         routerGroup.value = matched[i].meta.group;
-        break;
+        return;
       }
     }
+    routerGroup.value = 'business';
   }, {
     immediate: true,
   });

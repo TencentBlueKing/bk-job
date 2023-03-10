@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/cron-job/index';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'cron',
   name: 'cronJob',
-  component: () => import('@views/cron-job'),
+  component: Entry,
   meta: {
     group: 'business',
   },

@@ -23,12 +23,14 @@
  * IN THE SOFTWARE.
 */
 
+import Entry from '@views/detect-records/index.vue';
+
 import I18n from '@/i18n';
 
 export default {
   path: 'detect_records',
   name: 'detectRecords',
-  component: () => import('@views/detect-records'),
+  component: Entry,
   redirect: {
     name: 'detectRecordsList',
   },
