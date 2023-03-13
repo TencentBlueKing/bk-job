@@ -25,7 +25,7 @@ public class WeightToggleStrategy extends AbstractToggleStrategy {
 
     private final int weight;
 
-    private static final Random RANDOM = new SecureRandom();
+    private final Random RANDOM = new SecureRandom();
 
     public WeightToggleStrategy(Map<String, String> initParams) {
         super(STRATEGY_ID, initParams);
