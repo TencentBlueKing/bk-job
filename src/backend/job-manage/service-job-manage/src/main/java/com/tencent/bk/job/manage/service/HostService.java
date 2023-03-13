@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -203,9 +204,11 @@ public interface HostService {
 
     /**
      * 更新主机状态
-     * @param bizId 业务ID
-     * @param hostInfoList 主机列表
+     *
+     * @param simpleHostList 主机列表
      * @return 更新成功的条数
      */
-    List<Long> updateHostsStatusInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList);
+    int updateHostsStatusInBiz(List<ApplicationHostSimpleDTO> simpleHostList);
+
+    void fillHostStatus(List<ApplicationHostSimpleDTO> hostList);
 }

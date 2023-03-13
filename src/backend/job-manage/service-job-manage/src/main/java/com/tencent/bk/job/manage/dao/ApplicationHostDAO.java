@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import org.jooq.DSLContext;
 
@@ -136,26 +137,17 @@ public interface ApplicationHostDAO {
     List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
 
     /**
-     * 查询某个业务下全部主机，主机对象只有主要属性
+     * 查询全部主机，主机对象只有主要属性
      *
-     * @param bizId 业务ID
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostSimpleInfo(long bizId);
+    List<ApplicationHostSimpleDTO> listAllHostSimpleInfo();
 
     /**
      * 批量更新主机状态
-     * @param dslContext DB操作上下文
-     * @param hostInfoList 主机列表
+     * @param status 主机状态
+     * @param hostIdList 主机id列表
      * @return 成功更新的条数
      */
-    int batchUpdateHostStatusByHostId(DSLContext dslContext, List<ApplicationHostDTO> hostInfoList);
-
-    /**
-     * 根据主机id更新主机状态
-     * @param dslContext DB操作上下文
-     * @param hostInfoDTO 主机信息
-     * @return 成功更新的条数
-     */
-    int updateHostStatusByHostId(DSLContext dslContext, ApplicationHostDTO hostInfoDTO);
+    int batchUpdateHostStatusByHostIds(int status, List<Long> hostIdList);
 }

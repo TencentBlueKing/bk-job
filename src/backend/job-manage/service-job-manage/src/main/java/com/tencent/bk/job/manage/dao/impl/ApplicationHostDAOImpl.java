@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
@@ -72,7 +73,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -101,8 +101,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     private static final TableField<?, ?>[] SIMPLE_FIELDS = {
         TABLE.HOST_ID,
         TABLE.APP_ID,
-        TABLE.IP,
-        TABLE.CLOUD_AREA_ID,
         TABLE.IS_AGENT_ALIVE,
         TABLE.CLOUD_IP
     };
@@ -982,17 +980,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostSimpleInfo(long bizId) {
-        List<Condition> conditions = buildBizIdCondition(bizId);
-        if (conditions == null) {
-            conditions = Collections.emptyList();
-        }
+    public List<ApplicationHostSimpleDTO> listAllHostSimpleInfo() {
         val query = context.select(SIMPLE_FIELDS)
-            .from(TABLE)
-            .where(conditions)
-            .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
+            .from(TABLE);
         Result<Record> records = query.fetch();
-        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
+        List<ApplicationHostSimpleDTO> hostInfoList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(records)) {
             records.map(record -> hostInfoList.add(extractSimpleData(record)));
         }
@@ -1000,41 +992,10 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public int batchUpdateHostStatusByHostId(DSLContext dslContext, List<ApplicationHostDTO> hostInfoList) {
-        // MySql5.7为例默认单条SQL最大为4M
-        int batchSize = 50000;
-        int size = hostInfoList.size();
-        int start = 0;
-        int end;
-        do {
-            end = start + batchSize;
-            end = Math.min(end, size);
-            List<ApplicationHostDTO> subList = hostInfoList.subList(start, end);
-            Map<Integer, List<Long>> statusMap = subList.stream()
-                .collect(Collectors.groupingBy(ApplicationHostDTO::getAgentStatusValue,
-                    Collectors.mapping(ApplicationHostDTO::getHostId, Collectors.toList())));
-            for (Integer status : statusMap.keySet()) {
-                if (status != null && statusMap.get(status).size() > 0) {
-                    dslContext.update(TABLE)
-                        .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(status))
-                        .where(TABLE.HOST_ID.in(statusMap.get(status)))
-                        .execute();
-                }
-            }
-            start += batchSize;
-        } while (end < size);
-        return size;
-    }
-
-    @Override
-    public int updateHostStatusByHostId(DSLContext dslContext, ApplicationHostDTO hostInfoDTO) {
-        if(hostInfoDTO!=null && hostInfoDTO.getHostId()!=0){
-            log.debug("fail to update host status, hostInfoDTO is invalid");
-            return 0;
-        }
-        return dslContext.update(TABLE)
-            .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(hostInfoDTO.getAgentStatusValue()))
-            .where(TABLE.HOST_ID.eq(ULong.valueOf(hostInfoDTO.getHostId())))
+    public int batchUpdateHostStatusByHostIds(int status, List<Long> hostIdList) {
+        return context.update(TABLE)
+            .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(status))
+            .where(TABLE.HOST_ID.in(hostIdList))
             .execute();
     }
 
@@ -1087,17 +1048,15 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return applicationHostDTO;
     }
 
-    public static ApplicationHostDTO extractSimpleData(Record record) {
+    public static ApplicationHostSimpleDTO extractSimpleData(Record record) {
         if (record == null) {
             return null;
         }
-        ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
-        applicationHostDTO.setBizId(record.get(TABLE.APP_ID).longValue());
-        applicationHostDTO.setIp(record.get(TABLE.IP));
-        applicationHostDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue() == 1);
-        applicationHostDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
-        applicationHostDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
-        applicationHostDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
-        return applicationHostDTO;
+        ApplicationHostSimpleDTO applicationHostSimpleDTO = new ApplicationHostSimpleDTO();
+        applicationHostSimpleDTO.setBizId(record.get(TABLE.APP_ID).longValue());
+        applicationHostSimpleDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue() == 1);
+        applicationHostSimpleDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
+        applicationHostSimpleDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
+        return applicationHostSimpleDTO;
     }
 }
