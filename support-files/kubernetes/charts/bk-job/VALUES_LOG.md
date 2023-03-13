@@ -216,6 +216,21 @@ fileWorkerConfig:
     port: 19810
 ```
 
+## 0.2.7
+1.增加对外暴露API的Ingress配置
+```shell script
+## 对外暴露API的Ingress配置
+apiConfig:
+  ingress:
+    # 对外暴露API的Ingress是否启用，默认启用
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      # 请求包大小限制
+      nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
+```
+
 ## 0.2.2-rc.7
 1.增加文档中心与问题反馈URL配置项
 ```yaml

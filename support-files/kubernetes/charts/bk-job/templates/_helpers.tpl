@@ -551,7 +551,7 @@ Return the Job Web URL
 Return the Job Web API URL
 */}}
 {{- define "job.web.api.url" -}}
-{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.apiDomain }}
+{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}
 {{- end -}}
 
 {{/*
