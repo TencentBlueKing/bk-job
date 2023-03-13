@@ -107,8 +107,8 @@ bitnami/rabbitmq
 | `job.encrypt.password`    | 加密DB密码/凭证的对称密钥    | `encrypt_password`       |
 | `job.migration.iamModel.enabled`    | 是否开启权限模型migration    | `true`       |
 | `job.migration.mysqlSchema.enabled`    | 是否开启Mysql数据库结构migration    | `true`       |
-| `job.web.domain` | 前端主站域名    | `job.example.com`       |
-| `job.web.apiDomain` | 暴露给前端的API地址    | `api.job.example.com`       |
+| `job.web.domain` | 主站域名（前端与Web API使用）    | `job.example.com`       |
+| `job.web.apiDomain` | 暴露给其他上层系统（ESB、ApiGW）的API地址    | `api.job.example.com`       |
 | `job.ingress.https.enabled` | 是否启用HTTPS    | `false`       |
 | `job.ingress.https.certBase64` | 开启HTTPS时使用的证书base64编码    | ``       |
 | `job.ingress.https.keyBase64` | 开启HTTPS时使用的证书私钥base64编码    | ``       |
