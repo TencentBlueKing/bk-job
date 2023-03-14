@@ -24,24 +24,24 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
      */
     public static final String CTX_PARAM_RESOURCE_SCOPE = "resourceScope";
 
-    private static final Set<ResourceScope> resourceScopes = new HashSet<>();
+    protected final Set<ResourceScope> resourceScopes = new HashSet<>();
 
-    public AbstractResourceScopeToggleStrategy(String featureId, String strategyId, Map<String, String> initParams) {
-        super(featureId, strategyId, initParams);
+    public AbstractResourceScopeToggleStrategy(String strategyId, Map<String, String> initParams) {
+        super(strategyId, initParams);
         assertRequiredParameter(INIT_PARAM_RESOURCE_SCOPE_LIST);
 
         String resourceScopesValue = initParams.get(INIT_PARAM_RESOURCE_SCOPE_LIST);
         if (StringUtils.isNotEmpty(resourceScopesValue)) {
-            String[] resourceScopes = resourceScopesValue.split(",");
-            if (resourceScopes.length == 0) {
+            String[] resourceScopeArray = resourceScopesValue.split(",");
+            if (resourceScopeArray.length == 0) {
                 String msg = MessageFormatter.format(
                     "Parameter {} is invalid, value: {}",
                     INIT_PARAM_RESOURCE_SCOPE_LIST, resourceScopesValue).getMessage();
                 log.error(msg);
                 throw new FeatureConfigParseException(msg);
             }
-            for (String resourceScope : resourceScopes) {
-                AbstractResourceScopeToggleStrategy.resourceScopes.add(parseResourceScope(resourceScope));
+            for (String resourceScope : resourceScopeArray) {
+                this.resourceScopes.add(parseResourceScope(resourceScope));
             }
         }
     }
@@ -87,9 +87,5 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
         }
 
         return true;
-    }
-
-    protected Set<ResourceScope> getResourceScopes() {
-        return resourceScopes;
     }
 }

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Random;
+import java.util.StringJoiner;
 
 /**
  * 根据权重灰度策略
@@ -24,10 +25,10 @@ public class WeightToggleStrategy extends AbstractToggleStrategy {
 
     private final int weight;
 
-    private static final Random RANDOM = new SecureRandom();
+    private final Random RANDOM = new SecureRandom();
 
-    public WeightToggleStrategy(String featureId, Map<String, String> initParams) {
-        super(featureId, STRATEGY_ID, initParams);
+    public WeightToggleStrategy(Map<String, String> initParams) {
+        super(STRATEGY_ID, initParams);
         assertRequiredParameter(INIT_PARAM_WEIGHT);
         String weightStrValue = initParams.get(INIT_PARAM_WEIGHT);
         this.weight = computeWeight(weightStrValue);
@@ -62,5 +63,14 @@ public class WeightToggleStrategy extends AbstractToggleStrategy {
             int random = RANDOM.nextInt(100) + 1;
             return random <= weight;
         }
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", WeightToggleStrategy.class.getSimpleName() + "[", "]")
+            .add("id='" + id + "'")
+            .add("initParams=" + initParams)
+            .add("weight=" + weight)
+            .toString();
     }
 }

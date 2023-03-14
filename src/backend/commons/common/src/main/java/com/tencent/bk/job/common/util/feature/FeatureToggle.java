@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeBlackListTog
 import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeWhiteListToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.ToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.WeightToggleStrategy;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
@@ -88,7 +87,7 @@ public class FeatureToggle {
 
         // 使用新的配置完全替换老的配置
         features = tmpFeatures;
-        log.info("Load feature toggle config done! features: {}", JsonUtils.toJson(features));
+        log.info("Load feature toggle config done! features: {}", features);
     }
 
     private static Feature parseFeatureConfig(String featureId,
@@ -108,15 +107,13 @@ public class FeatureToggle {
                 ToggleStrategy toggleStrategy = null;
                 switch (strategyId) {
                     case ResourceScopeWhiteListToggleStrategy.STRATEGY_ID:
-                        toggleStrategy = new ResourceScopeWhiteListToggleStrategy(featureId,
-                            strategyConfig.getParams());
+                        toggleStrategy = new ResourceScopeWhiteListToggleStrategy(strategyConfig.getParams());
                         break;
                     case ResourceScopeBlackListToggleStrategy.STRATEGY_ID:
-                        toggleStrategy = new ResourceScopeBlackListToggleStrategy(featureId,
-                            strategyConfig.getParams());
+                        toggleStrategy = new ResourceScopeBlackListToggleStrategy(strategyConfig.getParams());
                         break;
                     case WeightToggleStrategy.STRATEGY_ID:
-                        toggleStrategy = new WeightToggleStrategy(featureId, strategyConfig.getParams());
+                        toggleStrategy = new WeightToggleStrategy(strategyConfig.getParams());
                         break;
                     default:
                         log.error("Unsupported toggle strategy: {} for feature: {}, ignore it!", strategyId,
@@ -150,6 +147,9 @@ public class FeatureToggle {
         }
 
         Feature feature = features.get(featureId);
+        if (log.isDebugEnabled()) {
+            log.debug("Check feature, featureId: {}, config: {}", featureId, feature);
+        }
         if (feature == null) {
             log.debug("Feature: {} is not exist!", featureId);
             return false;
@@ -161,9 +161,16 @@ public class FeatureToggle {
 
         ToggleStrategy strategy = feature.getStrategy();
         if (strategy == null) {
+            log.debug("Feature:{} strategy is empty!", featureId);
             // 如果没有配置特性开启策略，且enabled=true，判定为特性开启
             return true;
         }
-        return strategy.evaluate(featureId, ctx);
+
+        boolean result = strategy.evaluate(featureId, ctx);
+        if (log.isDebugEnabled()) {
+            log.debug("Apply feature toggle strategy, featureId: {}, strategy: {}, context: {}, result: {}",
+                featureId, strategy, ctx, result);
+        }
+        return result;
     }
 }

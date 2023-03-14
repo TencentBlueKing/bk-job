@@ -4,6 +4,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * 根据资源范围白名单灰度策略
@@ -14,13 +15,22 @@ public class ResourceScopeWhiteListToggleStrategy extends AbstractResourceScopeT
      */
     public static final String STRATEGY_ID = "ResourceScopeWhiteListToggleStrategy";
 
-    public ResourceScopeWhiteListToggleStrategy(String featureId, Map<String, String> initParams) {
-        super(featureId, STRATEGY_ID, initParams);
+    public ResourceScopeWhiteListToggleStrategy(Map<String, String> initParams) {
+        super(STRATEGY_ID, initParams);
     }
 
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
         ResourceScope scope = (ResourceScope) ctx.getParam(CTX_PARAM_RESOURCE_SCOPE);
-        return getResourceScopes().contains(scope);
+        return this.resourceScopes.contains(scope);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScopeWhiteListToggleStrategy.class.getSimpleName() + "[", "]")
+            .add("id='" + id + "'")
+            .add("initParams=" + initParams)
+            .add("resourceScopes=" + resourceScopes)
+            .toString();
     }
 }

@@ -22,4 +22,6 @@ public class Feature {
      * 特性启用灰度策略
      */
     private ToggleStrategy strategy;
+
+
 }
