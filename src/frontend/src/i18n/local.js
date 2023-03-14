@@ -571,4 +571,5 @@ export default {
     复制: 'Copy',
     粘贴: 'Paste',
     快速执行详情: 'Quick Launch Details',
+    存在不同版本: 'different version detected',
 };

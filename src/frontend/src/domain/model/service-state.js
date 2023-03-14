@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
 */
 
-// import I18n from '@/i18n'
+import I18n from '@/i18n';
 import Model from '@model/model';
 
 // const STATUS_ABNORMAL = 0 // 异常
@@ -43,6 +43,6 @@ export default class SeverState extends Model {
     /* eslint-disable max-len */
         return this.versionConsistent
             ? `<span>${this.version}</span>`
-            : '<i class="job-icon job-icon-script-disable" style="color: #EA3636;" svg /><span style="color: #63656E;">存在不同版本</span>';
+            : `<i class="job-icon job-icon-script-disable" style="color: #EA3636;" svg /><span style="color: #63656E;">${I18n.t('存在不同版本')}</span>`;
     }
 }
