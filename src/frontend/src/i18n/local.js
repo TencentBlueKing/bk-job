@@ -575,4 +575,5 @@ export default {
   '没有可复制的 IPv6': 'IPv6 address({{host_count}} host) is empty',
   '没有可复制的异常 IPv4': 'IPv4 address of abnormal host({{host_count}} host) is empty',
   '没有可复制的异常 IPv6': 'IPv6 address of abnormal host({{host_count}} host) is empty',
+  存在不同版本: 'different version detected',
 };
