@@ -45,8 +45,8 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
@@ -80,7 +80,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -1462,7 +1461,7 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public int updateHostsStatusInBiz(List<ApplicationHostSimpleDTO> simpleHostList) {
+    public int updateHostsStatus(List<HostSimpleDTO> simpleHostList) {
         StopWatch watch = new StopWatch();
         int updateCount = 0;
         try {
@@ -1476,10 +1475,10 @@ public class HostServiceImpl implements HostService {
                 do {
                     end = start + batchSize;
                     end = Math.min(end, size);
-                    List<ApplicationHostSimpleDTO> subList = simpleHostList.subList(start, end);
+                    List<HostSimpleDTO> subList = simpleHostList.subList(start, end);
                     Map<Integer, List<Long>> statusGroupMap = subList.stream()
-                        .collect(Collectors.groupingBy(ApplicationHostSimpleDTO::getAgentStatusValue,
-                            Collectors.mapping(ApplicationHostSimpleDTO::getHostId, Collectors.toList())));
+                        .collect(Collectors.groupingBy(HostSimpleDTO::getGseAgentAlive,
+                            Collectors.mapping(HostSimpleDTO::getHostId, Collectors.toList())));
                     for (Integer status : statusGroupMap.keySet()) {
                         updateCount += applicationHostDAO.batchUpdateHostStatusByHostIds(status, statusGroupMap.get(status));
                     }
@@ -1488,35 +1487,31 @@ public class HostServiceImpl implements HostService {
                 watch.stop();
                 watch.start("updateHostsCache");
                 simpleHostList.forEach(simpleHost -> {
-                    Long cloudAreaId = Long.valueOf(simpleHost.getCloudIp().split(":")[0]);
-                    String ip = simpleHost.getCloudIp().split(":")[1];
-                    ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
-                    BeanUtils.copyProperties(simpleHost, applicationHostDTO);
-                    applicationHostDTO.setIp(ip);
-                    applicationHostDTO.setCloudAreaId(cloudAreaId);
-                    hostCache.addOrUpdateHost(applicationHostDTO);
+                    hostCache.addOrUpdateHost(simpleHost.convertToHostDTO());
                 });
                 watch.stop();
             }
         } catch (Throwable throwable) {
             log.error(String.format("updateHostStatus fail：hostSize=%s", simpleHostList.size()), throwable);
         }
+        if (watch.getTotalTimeMillis() > 180000) {
+            log.info("updateHostsStatus too slow, run statistics:{}", watch.prettyPrint());
+        }
         log.debug("Performance:updateHostsStatus:{}", watch);
         return updateCount;
     }
 
     @Override
-    public void fillHostStatus(List<ApplicationHostSimpleDTO> hostList) {
-        if (CollectionUtils.isNotEmpty(hostList)) {
-            List<String> cloudIpList =
-                hostList.stream().map(ApplicationHostSimpleDTO::getCloudIp).collect(Collectors.toList());
-            // 批量设置agent状态
-            Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
-                queryAgentStatusClient.batchGetAgentStatus(cloudIpList);
-            for (ApplicationHostSimpleDTO host : hostList) {
-                QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(host.getCloudIp());
-                host.setGseAgentAlive(agentStatus != null && agentStatus.status == 1);
-            }
+    public void fillHostStatus(List<HostSimpleDTO> hostList) {
+        if (hostList.isEmpty()) return;
+        List<String> cloudIpList =
+            hostList.stream().map(HostSimpleDTO::getCloudIp).collect(Collectors.toList());
+        // 批量设置agent状态
+        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
+            queryAgentStatusClient.batchGetAgentStatus(cloudIpList);
+        for (HostSimpleDTO host : hostList) {
+            QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(host.getCloudIp());
+            host.setGseAgentAlive(agentStatus.status);
         }
     }
 

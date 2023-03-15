@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostSimpleDTO;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import org.jooq.DSLContext;
 
@@ -141,7 +141,7 @@ public interface ApplicationHostDAO {
      *
      * @return 主机列表
      */
-    List<ApplicationHostSimpleDTO> listAllHostSimpleInfo();
+    List<HostSimpleDTO> listAllHostSimpleInfo();
 
     /**
      * 批量更新主机状态

@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostSimpleDTO;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
@@ -980,11 +980,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public List<ApplicationHostSimpleDTO> listAllHostSimpleInfo() {
+    public List<HostSimpleDTO> listAllHostSimpleInfo() {
         val query = context.select(SIMPLE_FIELDS)
             .from(TABLE);
         Result<Record> records = query.fetch();
-        List<ApplicationHostSimpleDTO> hostInfoList = new ArrayList<>();
+        List<HostSimpleDTO> hostInfoList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(records)) {
             records.map(record -> hostInfoList.add(extractSimpleData(record)));
         }
@@ -1048,13 +1048,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return applicationHostDTO;
     }
 
-    public static ApplicationHostSimpleDTO extractSimpleData(Record record) {
+    public static HostSimpleDTO extractSimpleData(Record record) {
         if (record == null) {
             return null;
         }
-        ApplicationHostSimpleDTO applicationHostSimpleDTO = new ApplicationHostSimpleDTO();
+        HostSimpleDTO applicationHostSimpleDTO = new HostSimpleDTO();
         applicationHostSimpleDTO.setBizId(record.get(TABLE.APP_ID).longValue());
-        applicationHostSimpleDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue() == 1);
+        applicationHostSimpleDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue());
         applicationHostSimpleDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
         applicationHostSimpleDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
         return applicationHostSimpleDTO;

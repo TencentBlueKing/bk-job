@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostSimpleDTO;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.HostService;
@@ -56,24 +56,27 @@ public class AgentStatusSyncService {
         this.hostService = hostService;
     }
 
-    private Pair<Long, Long> syncBizHostAgentStatus() {
+    private Pair<Long, Long> syncHostAgentStatus() {
         long gseInterfaceTimeConsuming = 0L;
         long writeToDBTimeConsuming = 0L;
-        StopWatch appHostAgentStatusWatch = new StopWatch();
-        appHostAgentStatusWatch.start("listAllHostSimpleInfo");
-        List<ApplicationHostSimpleDTO> localBizAppHosts = applicationHostDAO.listAllHostSimpleInfo();
-        appHostAgentStatusWatch.stop();
-        appHostAgentStatusWatch.start("getAgentStatusByAppInfo from GSE");
+        StopWatch hostAgentStatusWatch = new StopWatch();
+        hostAgentStatusWatch.start("listAllHostSimpleInfo");
+        List<HostSimpleDTO> localHosts = applicationHostDAO.listAllHostSimpleInfo();
+        hostAgentStatusWatch.stop();
+        hostAgentStatusWatch.start("getAgentStatusByAppInfo from GSE");
         long startTime = System.currentTimeMillis();
-        hostService.fillHostStatus(localBizAppHosts);
+        hostService.fillHostStatus(localHosts);
         gseInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
-        appHostAgentStatusWatch.stop();
-        appHostAgentStatusWatch.start("updateHostsStatus to local DB");
+        hostAgentStatusWatch.stop();
+        hostAgentStatusWatch.start("updateHostsStatus to local DB");
         startTime = System.currentTimeMillis();
-        hostService.updateHostsStatusInBiz(localBizAppHosts);
+        hostService.updateHostsStatus(localHosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
-        appHostAgentStatusWatch.stop();
-        log.debug("Performance:syncAppHostAgentStatus:{}", appHostAgentStatusWatch);
+        hostAgentStatusWatch.stop();
+        if (hostAgentStatusWatch.getTotalTimeMillis() > 180000) {
+            log.info("syncHostAgentStatus too slow, run statistics:{}", hostAgentStatusWatch.prettyPrint());
+        }
+        log.debug("Performance:syncHostAgentStatus:{}", hostAgentStatusWatch);
         return Pair.of(gseInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 
@@ -82,16 +85,16 @@ public class AgentStatusSyncService {
         long gseInterfaceTimeConsuming = 0L;
         long writeToDBTimeConsuming = 0L;
         try {
-            Pair<Long, Long> timeConsumingPair = syncBizHostAgentStatus();
+            Pair<Long, Long> timeConsumingPair = syncHostAgentStatus();
             gseInterfaceTimeConsuming += timeConsumingPair.getFirst();
             writeToDBTimeConsuming += timeConsumingPair.getSecond();
+            log.info(Thread.currentThread().getName() + ":Finished:sync agentStatus from GSE," +
+                    "gseInterfaceTimeConsuming={}ms,writeToDBTimeConsuming={}ms,rate={}",
+                gseInterfaceTimeConsuming, writeToDBTimeConsuming,
+                gseInterfaceTimeConsuming / (0. + writeToDBTimeConsuming));
         } catch (Throwable t) {
-            log.error("syncAgentStatus of app fail：", t);
+            log.error("syncAgentStatus from GSE fail：", t);
         }
-        log.info(Thread.currentThread().getName() + ":Finished:sync agentStatus from GSE," +
-                "gseInterfaceTimeConsuming={}ms,writeToDBTimeConsuming={}ms,rate={}",
-            gseInterfaceTimeConsuming, writeToDBTimeConsuming,
-            gseInterfaceTimeConsuming / (0. + writeToDBTimeConsuming));
     }
 
 }

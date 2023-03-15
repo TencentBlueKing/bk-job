@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.model.dto;
 
-import com.tencent.bk.job.common.constant.JobConstants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,7 +36,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApplicationHostSimpleDTO {
+public class HostSimpleDTO {
 
     /**
      * 主机ID
@@ -50,16 +49,22 @@ public class ApplicationHostSimpleDTO {
     /**
      * 主机Agent状态
      */
-    private Boolean gseAgentAlive;
+    private Integer gseAgentAlive;
     /**
      * 云区域+ip
      */
     private String cloudIp;
 
-    public int getAgentStatusValue() {
-        if (gseAgentAlive == null || !gseAgentAlive) {
-            return JobConstants.GSE_AGENT_STATUS_VALUE_NOT_ALIVE;
-        }
-        return JobConstants.GSE_AGENT_STATUS_VALUE_ALIVE;
+    public ApplicationHostDTO convertToHostDTO(){
+        ApplicationHostDTO hostDTO = new ApplicationHostDTO();
+        Long cloudAreaId = Long.valueOf(this.getCloudIp().split(":")[0]);
+        String ip = this.getCloudIp().split(":")[1];
+        hostDTO.setIp(ip);
+        hostDTO.setCloudAreaId(cloudAreaId);
+        hostDTO.setCloudIp(this.getCloudIp());
+        hostDTO.setGseAgentAlive(this.getGseAgentAlive().intValue() == 1);
+        hostDTO.setBizId(this.getBizId());
+        hostDTO.setHostId(this.getHostId());
+        return hostDTO;
     }
 }
