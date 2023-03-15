@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import org.jooq.DSLContext;
 
@@ -134,4 +135,11 @@ public interface ApplicationHostDAO {
     int syncHostTopo(DSLContext dslContext, Long hostId);
 
     List<ApplicationHostDTO> listHosts(Collection<IpDTO> hostIps);
+
+    /**
+     * 根据业务id统计主机状态数量
+     * @param bizIds 业务id
+     * @return 状态数量
+     */
+    List<HostStatusNumStatisticsDTO> countHostStatusNumByBizIds(List<Long> bizIds);
 }
