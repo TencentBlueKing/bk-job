@@ -51,8 +51,6 @@ public interface SyncService {
 
     ThreadPoolExecutor getSyncHostExecutor();
 
-    ThreadPoolExecutor getSyncAgentStatusExecutor();
-
     Boolean syncBizHosts(Long bizId);
 
     boolean addExtraSyncBizHostsTask(Long bizId);

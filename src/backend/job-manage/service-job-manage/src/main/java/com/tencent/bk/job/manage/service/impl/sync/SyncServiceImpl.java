@@ -101,7 +101,6 @@ public class SyncServiceImpl implements SyncService {
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final ThreadPoolExecutor syncAppExecutor;
     private final ThreadPoolExecutor syncHostExecutor;
-    private final ThreadPoolExecutor syncAgentStatusExecutor;
     private final JobManageConfig jobManageConfig;
     private final RedisTemplate<String, String> redisTemplate;
     private final String REDIS_KEY_SYNC_APP_JOB_RUNNING_MACHINE = "sync-app-job-running-machine";
@@ -174,13 +173,6 @@ public class SyncServiceImpl implements SyncService {
             log.error("syncHostExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
                 executor.getPoolSize(), executor.getQueue().size()));
         syncHostExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncHostExecutor-",
-            new AtomicInteger(1)));
-        // 同步主机Agent状态的线程池配置
-        syncAgentStatusExecutor = new ThreadPoolExecutor(5, 5, 1L,
-            TimeUnit.SECONDS, new ArrayBlockingQueue<>(5000),
-            (r, executor) -> log.error("syncAgentStatusExecutor Runnable rejected! executor.poolSize={}, executor"
-                + ".queueSize={}", executor.getPoolSize(), executor.getQueue().size()));
-        syncAgentStatusExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncAgentStatusExecutor-",
             new AtomicInteger(1)));
     }
 
@@ -284,11 +276,6 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public ThreadPoolExecutor getSyncHostExecutor() {
         return syncHostExecutor;
-    }
-
-    @Override
-    public ThreadPoolExecutor getSyncAgentStatusExecutor() {
-        return syncAgentStatusExecutor;
     }
 
     @Override
