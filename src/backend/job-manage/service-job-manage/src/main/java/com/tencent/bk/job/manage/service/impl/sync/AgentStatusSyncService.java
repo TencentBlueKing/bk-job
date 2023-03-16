@@ -70,13 +70,15 @@ public class AgentStatusSyncService {
         hostAgentStatusWatch.stop();
         hostAgentStatusWatch.start("updateHostsStatus to local DB");
         startTime = System.currentTimeMillis();
-        hostService.updateHostsStatus(localHosts);
+        int succUpdateHosts = hostService.updateHostsStatus(localHosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         hostAgentStatusWatch.stop();
         if (hostAgentStatusWatch.getTotalTimeMillis() > 180000) {
-            log.info("syncHostAgentStatus too slow, run statistics:{}", hostAgentStatusWatch.prettyPrint());
+            log.info("syncHostAgentStatus too slow, run statistics,totalHosts:{};succHosts:{};timeConsume:{}",
+                localHosts.size(), succUpdateHosts, hostAgentStatusWatch.prettyPrint());
         }
-        log.debug("Performance:syncHostAgentStatus:{}", hostAgentStatusWatch);
+        log.debug("syncHostAgentStatus Performance,totalHosts:{};succHosts:{};timeConsume:{}", localHosts.size(),
+            succUpdateHosts, hostAgentStatusWatch);
         return Pair.of(gseInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 

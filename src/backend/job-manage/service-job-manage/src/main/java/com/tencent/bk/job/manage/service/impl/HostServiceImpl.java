@@ -1468,7 +1468,7 @@ public class HostServiceImpl implements HostService {
             if (!simpleHostList.isEmpty()) {
                 watch.start("updateHostsStatus");
                 // MySql5.7为例默认单条SQL最大为4M
-                int batchSize = 50000;
+                int batchSize = 5000;
                 int size = simpleHostList.size();
                 int start = 0;
                 int end;
