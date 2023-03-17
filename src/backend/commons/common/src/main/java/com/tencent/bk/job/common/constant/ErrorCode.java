@@ -360,6 +360,8 @@ public class ErrorCode {
     public static final int SERVICE_UNAVAILABLE = 1240001;
     // 服务认证失败
     public static final int SERVICE_AUTH_FAIL = 1240005;
+    // 配置异常：{0}
+    public static final int INVALID_CONFIG = 1240006;
 
     // ========= 系统错误-API通用 ==================//
     // IP:{}无访问权限
