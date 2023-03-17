@@ -38,8 +38,6 @@ public class MetricsConstants {
     public static final String NAME_SYNC_APP_EXECUTOR_QUEUE_SIZE = "job.sync.app.executor.queue.size";
     public static final String NAME_SYNC_HOST_EXECUTOR_POOL_SIZE = "job.sync.host.executor.pool.size";
     public static final String NAME_SYNC_HOST_EXECUTOR_QUEUE_SIZE = "job.sync.host.executor.queue.size";
-    public static final String NAME_SYNC_AGENT_STATUS_EXECUTOR_POOL_SIZE = "job.sync.agentStatus.executor.pool.size";
-    public static final String NAME_SYNC_AGENT_STATUS_EXECUTOR_QUEUE_SIZE = "job.sync.agentStatus.executor.queue.size";
     // 运营指标：业务类
     // 业务总量
     public static final String NAME_APPLICATION_COUNT = "job.application.count";

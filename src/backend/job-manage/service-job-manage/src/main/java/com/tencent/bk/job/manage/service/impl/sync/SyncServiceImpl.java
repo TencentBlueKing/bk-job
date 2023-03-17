@@ -101,7 +101,6 @@ public class SyncServiceImpl implements SyncService {
     private final QueryAgentStatusClient queryAgentStatusClient;
     private final ThreadPoolExecutor syncAppExecutor;
     private final ThreadPoolExecutor syncHostExecutor;
-    private final ThreadPoolExecutor syncAgentStatusExecutor;
     private final JobManageConfig jobManageConfig;
     private final RedisTemplate<String, String> redisTemplate;
     private final String REDIS_KEY_SYNC_APP_JOB_RUNNING_MACHINE = "sync-app-job-running-machine";
@@ -174,13 +173,6 @@ public class SyncServiceImpl implements SyncService {
             log.error("syncHostExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
                 executor.getPoolSize(), executor.getQueue().size()));
         syncHostExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncHostExecutor-",
-            new AtomicInteger(1)));
-        // 同步主机Agent状态的线程池配置
-        syncAgentStatusExecutor = new ThreadPoolExecutor(5, 5, 1L,
-            TimeUnit.SECONDS, new ArrayBlockingQueue<>(5000),
-            (r, executor) -> log.error("syncAgentStatusExecutor Runnable rejected! executor.poolSize={}, executor"
-                + ".queueSize={}", executor.getPoolSize(), executor.getQueue().size()));
-        syncAgentStatusExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncAgentStatusExecutor-",
             new AtomicInteger(1)));
     }
 
@@ -284,11 +276,6 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public ThreadPoolExecutor getSyncHostExecutor() {
         return syncHostExecutor;
-    }
-
-    @Override
-    public ThreadPoolExecutor getSyncAgentStatusExecutor() {
-        return syncAgentStatusExecutor;
     }
 
     @Override
@@ -609,38 +596,36 @@ public class SyncServiceImpl implements SyncService {
                 log.info("syncAgentStatus thread already running on {}", runningMachine);
                 return 1L;
             }
-            syncAgentStatusExecutor.execute(() -> {
-                // 开一个心跳子线程，维护当前机器正在同步主机的状态
-                RedisKeyHeartBeatThread agentStatusSyncRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
-                    redisTemplate,
-                    REDIS_KEY_SYNC_AGENT_STATUS_JOB_RUNNING_MACHINE,
-                    machineIp,
-                    5000L,
-                    4000L
-                );
-                agentStatusSyncRedisKeyHeartBeatThread.setName(
-                    "[" + agentStatusSyncRedisKeyHeartBeatThread.getId()
-                        + "]-agentStatusSyncRedisKeyHeartBeatThread"
-                );
-                agentStatusSyncRedisKeyHeartBeatThread.start();
-                log.info("start sync agentStatus at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
-                    System.currentTimeMillis());
-                StopWatch watch = new StopWatch("syncAgentStatus");
-                watch.start("total");
-                try {
-                    // 从GSE同步Agent状态
-                    agentStatusSyncService.syncAgentStatusFromGSE();
-                    // 将最后同步时间写入Redis
-                    redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_AGENT_STATUS,
-                        "" + System.currentTimeMillis());
-                } catch (Throwable t) {
-                    log.error("syncAgentStatus thread fail", t);
-                } finally {
-                    agentStatusSyncRedisKeyHeartBeatThread.setRunFlag(false);
-                    watch.stop();
-                    log.info("syncAgentStatus time consuming:" + watch.prettyPrint());
-                }
-            });
+            // 开一个心跳子线程，维护当前机器正在同步主机的状态
+            RedisKeyHeartBeatThread agentStatusSyncRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
+                redisTemplate,
+                REDIS_KEY_SYNC_AGENT_STATUS_JOB_RUNNING_MACHINE,
+                machineIp,
+                5000L,
+                4000L
+            );
+            agentStatusSyncRedisKeyHeartBeatThread.setName(
+                "[" + agentStatusSyncRedisKeyHeartBeatThread.getId()
+                    + "]-agentStatusSyncRedisKeyHeartBeatThread"
+            );
+            agentStatusSyncRedisKeyHeartBeatThread.start();
+            log.info("start sync agentStatus at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
+                System.currentTimeMillis());
+            StopWatch watch = new StopWatch("syncAgentStatus");
+            watch.start("total");
+            try {
+                // 从GSE同步Agent状态
+                agentStatusSyncService.syncAgentStatusFromGSE();
+                // 将最后同步时间写入Redis
+                redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_AGENT_STATUS,
+                    "" + System.currentTimeMillis());
+            } catch (Throwable t) {
+                log.error("syncAgentStatus thread fail", t);
+            } finally {
+                agentStatusSyncRedisKeyHeartBeatThread.setRunFlag(false);
+                watch.stop();
+                log.info("syncAgentStatus time consuming:" + watch.prettyPrint());
+            }
         } finally {
             //释放锁
             LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_AGENT_STATUS_JOB_LOCK, machineIp);

@@ -87,7 +87,6 @@ public class MeasureServiceImpl implements MeasureService {
         measureWhiteIpCount();
         measureSyncAppExecutor();
         measureSyncHostExecutor();
-        measureSyncAgentStatusExecutor();
     }
 
     private void measureAppAndHostCount() {
@@ -254,22 +253,6 @@ public class MeasureServiceImpl implements MeasureService {
             Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
             this.syncService,
             syncService1 -> syncService1.getSyncHostExecutor().getQueue().size()
-        );
-    }
-
-    private void measureSyncAgentStatusExecutor() {
-        // 同步线程池监控：Agent状态
-        meterRegistry.gauge(
-            MetricsConstants.NAME_SYNC_AGENT_STATUS_EXECUTOR_POOL_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
-            this.syncService,
-            syncService1 -> syncService1.getSyncAgentStatusExecutor().getPoolSize()
-        );
-        meterRegistry.gauge(
-            MetricsConstants.NAME_SYNC_AGENT_STATUS_EXECUTOR_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_SYNC)),
-            this.syncService,
-            syncService1 -> syncService1.getSyncAgentStatusExecutor().getQueue().size()
         );
     }
 }

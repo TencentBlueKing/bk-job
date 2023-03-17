@@ -46,6 +46,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
@@ -1457,6 +1458,61 @@ public class HostServiceImpl implements HostService {
         }
 
         return resultHosts;
+    }
+
+    @Override
+    public int updateHostsStatus(List<HostSimpleDTO> simpleHostList) {
+        StopWatch watch = new StopWatch();
+        int updateCount = 0;
+        try {
+            if (!simpleHostList.isEmpty()) {
+                watch.start("updateHostsStatus");
+                // MySql5.7为例默认单条SQL最大为4M
+                int batchSize = 5000;
+                int size = simpleHostList.size();
+                int start = 0;
+                int end;
+                do {
+                    end = start + batchSize;
+                    end = Math.min(end, size);
+                    List<HostSimpleDTO> subList = simpleHostList.subList(start, end);
+                    Map<Integer, List<Long>> statusGroupMap = subList.stream()
+                        .collect(Collectors.groupingBy(HostSimpleDTO::getGseAgentAlive,
+                            Collectors.mapping(HostSimpleDTO::getHostId, Collectors.toList())));
+                    for (Integer status : statusGroupMap.keySet()) {
+                        updateCount += applicationHostDAO.batchUpdateHostStatusByHostIds(status, statusGroupMap.get(status));
+                    }
+                    start += batchSize;
+                } while (end < size);
+                watch.stop();
+                watch.start("updateHostsCache");
+                simpleHostList.forEach(simpleHost -> {
+                    hostCache.addOrUpdateHost(simpleHost.convertToHostDTO());
+                });
+                watch.stop();
+            }
+        } catch (Throwable throwable) {
+            log.error(String.format("updateHostStatus fail：hostSize=%s", simpleHostList.size()), throwable);
+        }
+        if (watch.getTotalTimeMillis() > 180000) {
+            log.info("updateHostsStatus too slow, run statistics:{}", watch.prettyPrint());
+        }
+        log.debug("Performance:updateHostsStatus:{}", watch);
+        return updateCount;
+    }
+
+    @Override
+    public void fillHostStatus(List<HostSimpleDTO> hostList) {
+        if (hostList.isEmpty()) return;
+        List<String> cloudIpList =
+            hostList.stream().map(HostSimpleDTO::getCloudIp).collect(Collectors.toList());
+        // 批量设置agent状态
+        Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
+            queryAgentStatusClient.batchGetAgentStatus(cloudIpList);
+        for (HostSimpleDTO host : hostList) {
+            QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(host.getCloudIp());
+            host.setGseAgentAlive(agentStatus.status);
+        }
     }
 
     @Data

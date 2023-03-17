@@ -22,59 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.common.model.dto;
 
-import org.springframework.data.util.Pair;
-
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
- * 同步服务
+ * 主机
  */
-public interface SyncService {
-    void init();
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class HostSimpleDTO {
 
-    Long syncApp();
+    /**
+     * 主机ID
+     */
+    private Long hostId;
+    /**
+     * cmdb业务ID
+     */
+    private Long bizId;
+    /**
+     * 主机Agent状态
+     */
+    private Integer gseAgentAlive;
+    /**
+     * 云区域+ip
+     */
+    private String cloudIp;
 
-    Long syncHost();
-
-    Long syncAgentStatus();
-
-    Long getLastFinishTimeSyncApp();
-
-    Long getLastFinishTimeSyncHost();
-
-    Long getLastFinishTimeSyncAgentStatus();
-
-    ThreadPoolExecutor getSyncAppExecutor();
-
-    ThreadPoolExecutor getSyncHostExecutor();
-
-    Boolean syncBizHosts(Long bizId);
-
-    boolean addExtraSyncBizHostsTask(Long bizId);
-
-    Future<Pair<Long, Long>> arrangeSyncBizHostsTask(Long bizId);
-
-    Boolean enableBizWatch();
-
-    Boolean disableBizWatch();
-
-    Boolean enableHostWatch();
-
-    Boolean disableHostWatch();
-
-    Boolean enableSyncApp();
-
-    Boolean disableSyncApp();
-
-    Boolean enableSyncHost();
-
-    Boolean disableSyncHost();
-
-    Boolean enableSyncAgentStatus();
-
-    Boolean disableSyncAgentStatus();
+    public ApplicationHostDTO convertToHostDTO(){
+        ApplicationHostDTO hostDTO = new ApplicationHostDTO();
+        Long cloudAreaId = Long.valueOf(this.getCloudIp().split(":")[0]);
+        String ip = this.getCloudIp().split(":")[1];
+        hostDTO.setIp(ip);
+        hostDTO.setCloudAreaId(cloudAreaId);
+        hostDTO.setCloudIp(this.getCloudIp());
+        hostDTO.setGseAgentAlive(this.getGseAgentAlive().intValue() == 1);
+        hostDTO.setBizId(this.getBizId());
+        hostDTO.setHostId(this.getHostId());
+        return hostDTO;
+    }
 }
-

@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
@@ -94,6 +95,12 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.OS,
         TABLE.OS_TYPE,
         TABLE.MODULE_TYPE,
+        TABLE.IS_AGENT_ALIVE,
+        TABLE.CLOUD_IP
+    };
+    private static final TableField<?, ?>[] SIMPLE_FIELDS = {
+        TABLE.HOST_ID,
+        TABLE.APP_ID,
         TABLE.IS_AGENT_ALIVE,
         TABLE.CLOUD_IP
     };
@@ -972,6 +979,26 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return queryHostsByCondition(conditions);
     }
 
+    @Override
+    public List<HostSimpleDTO> listAllHostSimpleInfo() {
+        val query = context.select(SIMPLE_FIELDS)
+            .from(TABLE);
+        Result<Record> records = query.fetch();
+        List<HostSimpleDTO> hostInfoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(records)) {
+            records.map(record -> hostInfoList.add(extractSimpleData(record)));
+        }
+        return hostInfoList;
+    }
+
+    @Override
+    public int batchUpdateHostStatusByHostIds(int status, List<Long> hostIdList) {
+        return context.update(TABLE)
+            .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(status))
+            .where(TABLE.HOST_ID.in(hostIdList))
+            .execute();
+    }
+
     private List<ApplicationHostDTO> queryHostsByCondition(List<Condition> conditions) {
         Result<Record> result =
             context.select(ALL_FIELDS)
@@ -1019,5 +1046,17 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         applicationHostDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
         applicationHostDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
         return applicationHostDTO;
+    }
+
+    public static HostSimpleDTO extractSimpleData(Record record) {
+        if (record == null) {
+            return null;
+        }
+        HostSimpleDTO applicationHostSimpleDTO = new HostSimpleDTO();
+        applicationHostSimpleDTO.setBizId(record.get(TABLE.APP_ID).longValue());
+        applicationHostSimpleDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue());
+        applicationHostSimpleDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
+        applicationHostSimpleDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
+        return applicationHostSimpleDTO;
     }
 }
