@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
@@ -60,9 +61,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand {
@@ -84,13 +87,10 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      * 任务下发请求ID,防止重复下发任务
      */
     protected String requestId;
-
-
     /**
      * GSE 目标 Agent 任务, Map<AgentId,AgentTask>
      */
     protected Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
-
     /**
      * 全局参数分析结果
      */
@@ -103,11 +103,18 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      * 全局变量参数定义与初始值
      */
     protected Map<String, TaskVariableDTO> globalVariables = new HashMap<>();
-
     /**
      * Agent ID 与 host 映射关系
      */
     protected Map<String, HostDTO> agentIdHostMap;
+    /**
+     * hostId 与 host 映射关系
+     */
+    protected Map<Long, HostDTO> hostIdHostMap;
+    /**
+     * Agent tasks
+     */
+    protected List<AgentTaskDTO> agentTasks;
 
 
     AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
@@ -154,9 +161,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.requestId = requestId;
         this.stepInstanceService = stepInstanceService;
-
-        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance,
-            host -> host.getAgentId() != null ? host.getAgentId() : host.toCloudIp());
+        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getAgentId);
+        this.hostIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
     }
 
 
@@ -167,10 +173,20 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     public void execute() {
         StopWatch watch = new StopWatch("startGseTask-" + this.gseTaskUniqueName);
 
+        // 初始化任务执行上下文
         watch.start("initExecutionContext");
         initExecutionContext();
         watch.stop();
 
+        // 检查任务
+        watch.start("checkGseTaskExecutable");
+        if (!checkGseTaskExecutable()) {
+            finishGseTask(RunStatusEnum.FAIL);
+            return;
+        }
+        watch.stop();
+
+        // 下发任务给GSE
         boolean startSuccess = startGseTaskIfNotAvailable(watch);
         if (!startSuccess) {
             return;
@@ -215,8 +231,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             } else {
                 log.info("[{}] Start gse task successfully, gseTaskId: {}", this.gseTaskUniqueName,
                     gseTaskResponse.getGseTaskId());
-                updateGseTaskExecutionInfo(gseTaskResponse.getGseTaskId(), RunStatusEnum.RUNNING,
-                    System.currentTimeMillis(), null, null);
+                updateGseTaskExecutionInfo(gseTaskResponse.getGseTaskId(), RunStatusEnum.RUNNING, null);
             }
             watch.stop();
             return true;
@@ -227,35 +242,27 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         }
     }
 
-    /**
-     * 初始化执行上下文，在GSE任务下发前调用
-     */
-    private void initExecutionContext() {
-        initTargetAgentTasks();
-        initVariables();
-        preExecute();
-    }
+    private void initAgentTasks() {
+        this.agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        logInvalidAgentTasks(agentTasks);
 
-    private void initTargetAgentTasks() {
-        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        fillIpForAgentTasks(agentTasks);
         agentTasks.stream()
             .filter(AgentTaskDTO::isTarget)
-            .forEach(agentTask -> this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask));
-    }
-
-    protected void fillIpForAgentTasks(List<AgentTaskDTO> agentTasks) {
-        Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
-        agentTasks.forEach(agentTask -> {
-            if (agentTask.getHostId() != null) {
-                HostDTO host = hosts.get(agentTask.getHostId());
-                if (host != null) {
-                    agentTask.setCloudIp(host.toCloudIp());
+            .forEach(agentTask -> {
+                if (StringUtils.isNotEmpty(agentTask.getAgentId())) {
+                    this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);
                 }
-            }
-        });
+            });
     }
 
+    protected void logInvalidAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+        List<AgentTaskDTO> invalidAgentTasks = agentTasks.stream()
+            .filter(agentTask -> StringUtils.isEmpty(agentTask.getAgentId()))
+            .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(invalidAgentTasks)) {
+            log.warn("{} contains invalid agent tasks: {}", gseTaskUniqueName, invalidAgentTasks);
+        }
+    }
 
     private void initVariables() {
         if (taskInstance.isPlanInstance()) {
@@ -282,29 +289,23 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      *
      * @param gseTaskId GSE返回的任务ID;如果不需要更新，传入null
      * @param status    任务状态;如果不需要更新，传入null
-     * @param startTime 任务开始时间;如果不需要更新，传入null
      * @param endTime   任务结束时间;如果不需要更新，传入null
-     * @param totalTime 任务耗时;如果不需要更新，传入null
      */
     protected void updateGseTaskExecutionInfo(String gseTaskId,
                                               RunStatusEnum status,
-                                              Long startTime,
-                                              Long endTime,
-                                              Long totalTime) {
+                                              Long endTime) {
         if (StringUtils.isNotEmpty(gseTaskId)) {
             gseTask.setGseTaskId(gseTaskId);
         }
         if (status != null) {
             gseTask.setStatus(status.getValue());
         }
-        if (startTime != null) {
+        if (gseTask.getStartTime() == null) {
             gseTask.setStartTime(System.currentTimeMillis());
         }
         if (endTime != null) {
             gseTask.setEndTime(endTime);
-        }
-        if (totalTime != null) {
-            gseTask.setTotalTime(totalTime);
+            gseTask.setTotalTime(endTime - gseTask.getStartTime());
         }
         gseTaskService.updateGseTask(gseTask);
     }
@@ -328,10 +329,26 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         return globalVarValueMap;
     }
 
+    private void finishGseTask(RunStatusEnum gseTaskStatus) {
+        updateGseTaskExecutionInfo(null, gseTaskStatus, DateUtils.currentTimeMillis());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
+            EventSource.buildGseTaskEventSource(stepInstanceId, executeCount, batch, gseTask.getId())));
+    }
+
     /**
-     * GSE任务下发前调用
+     * 初始化执行上下文，在GSE任务下发前调用
      */
-    protected abstract void preExecute();
+    protected void initExecutionContext() {
+        initAgentTasks();
+        initVariables();
+    }
+
+    /**
+     * 检查任务
+     *
+     * @return 是否可以执行
+     */
+    protected abstract boolean checkGseTaskExecutable();
 
     /**
      * 下发GSE任务

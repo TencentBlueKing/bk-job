@@ -156,7 +156,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                   Map<String, AgentTaskDTO> agentTaskMap,
                                   GseTaskDTO gseTask,
-                                  String requestId) {
+                                  String requestId,
+                                  List<AgentTaskDTO> agentTasks) {
         super(taskInstanceService,
             gseTaskService,
             logService,
@@ -173,7 +174,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             taskVariablesAnalyzeResult,
             agentTaskMap,
             gseTask,
-            requestId);
+            requestId,
+            agentTasks);
         initLogPullProcess(agentTaskMap.values());
     }
 
@@ -608,25 +610,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         progress.setAtomicTaskId(mid);
     }
 
-    /*
+    /**
      * 分析执行结果
+     *
      * @return 任务执行结果
      */
     private GseTaskExecuteResult analyseExecuteResult() {
         GseTaskExecuteResult rst;
-        if (this.notStartedTargetAgentIds.isEmpty() && this.runningTargetAgentIds.isEmpty()) {
-            int targetAgentNum = this.targetAgentIds.size();
-            int successTargetAgentNum = this.successTargetAgentIds.size();
-            boolean isSuccess = successTargetAgentNum == targetAgentNum;
-            if (isSuccess) {
-                rst = GseTaskExecuteResult.SUCCESS;
-            } else {
-                if (this.isTerminatedSuccess) {
-                    rst = GseTaskExecuteResult.STOP_SUCCESS;
-                } else {
-                    rst = GseTaskExecuteResult.FAILED;
-                }
-            }
+        if (isAllTargetAgentTasksDone()) {
+            rst = analyseFinishedExecuteResult();
         } else {
             rst = GseTaskExecuteResult.RUNNING;
         }

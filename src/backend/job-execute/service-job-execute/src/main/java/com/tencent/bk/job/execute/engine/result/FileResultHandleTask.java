@@ -121,7 +121,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * 上传文件任务数，key: agentId, value: 主机对应的文件任务数
      */
     private final Map<String, Integer> fileUploadTaskNumMap = new HashMap<>();
-
+    /**
+     * 文件任务进度表
+     */
     private final Map<String, Integer> processMap = new HashMap<>();
 
     private final Map<JobFile, FileDest> srcDestFileMap;
@@ -129,9 +131,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * 源文件
      */
     private final Map<String, JobFile> srcFilesMap = new HashMap<>();
-    /**
-     * 文件任务进度表
-     * /**
+
+     /**
      * 下载全部结束的时间
      */
     private long downloadFinishedTime = 0;
@@ -151,6 +152,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * 任务基本信息，用于日志输出
      */
     private String taskInfo;
+    /**
+     * 是否包含非法文件源主机
+     */
+    protected boolean hasInvalidSourceHost;
 
 
     public FileResultHandleTask(TaskInstanceService taskInstanceService,
@@ -171,7 +176,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 Map<String, AgentTaskDTO> sourceAgentTasks,
                                 GseTaskDTO gseTask,
                                 Map<JobFile, FileDest> srcDestFileMap,
-                                String requestId) {
+                                String requestId,
+                                List<AgentTaskDTO> agentTasks) {
         super(taskInstanceService,
             gseTaskService,
             logService,
@@ -188,9 +194,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             taskVariablesAnalyzeResult,
             targetAgentTasks,
             gseTask,
-            requestId);
+            requestId,
+            agentTasks);
         this.sourceAgentTasks = sourceAgentTasks;
         this.srcDestFileMap = srcDestFileMap;
+
         initSrcFilesMap(srcDestFileMap.keySet());
         initFileTaskNumMap();
         initSourceAgentIds();
@@ -426,7 +434,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         }
     }
 
-    /*
+    /**
      * 分析执行结果
      *
      * @return 任务执行结果
@@ -434,21 +442,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private GseTaskExecuteResult analyseExecuteResult() {
         GseTaskExecuteResult rst;
         // 目标下载全部完成
-        if (this.notStartedTargetAgentIds.isEmpty() && this.runningTargetAgentIds.isEmpty()) {
+        if (isAllTargetAgentTasksDone()) {
             // 源上传全部完成
-            if (this.notStartedFileSourceAgentIds.isEmpty() && this.runningFileSourceAgentIds.isEmpty()) {
-                int successTargetIpNum = this.successTargetAgentIds.size();
-                int targetIPNum = this.targetAgentIds.size();
-                boolean isSuccess = successTargetIpNum == targetIPNum;
-                if (isSuccess) {
-                    rst = GseTaskExecuteResult.SUCCESS;
-                } else {
-                    if (this.isTerminatedSuccess) {
-                        rst = GseTaskExecuteResult.STOP_SUCCESS;
-                    } else {
-                        rst = GseTaskExecuteResult.FAILED;
-                    }
-                }
+            if (isAllSourceAgentTasksDone()) {
+                rst = analyseFinishedExecuteResult();
                 log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed tasks",
                     this.stepInstanceId);
             } else {
@@ -457,10 +454,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                     this.downloadFinishedTime = System.currentTimeMillis();
                 }
                 if (System.currentTimeMillis() - this.downloadFinishedTime > 15_000L) {
-                    int targetIPNum = this.targetAgentIds.size();
-                    int successTargetIpNum = this.successTargetAgentIds.size();
-                    boolean isSuccess = successTargetIpNum == targetIPNum;
-                    rst = isSuccess ? GseTaskExecuteResult.SUCCESS : GseTaskExecuteResult.FAILED;
+                    rst = analyseFinishedExecuteResult();
                     log.info("[{}] AnalyseExecuteResult-> Result: finished. Download tasks are finished, " +
                             "but upload tasks are not finished after 15 seconds. Ignore upload tasks",
                         this.stepInstanceId);
@@ -477,6 +471,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 this.stepInstanceId);
         }
         return rst;
+    }
+
+    private boolean isAllSourceAgentTasksDone() {
+        return this.notStartedFileSourceAgentIds.isEmpty() && this.runningFileSourceAgentIds.isEmpty();
     }
 
     private boolean shouldAnalyse(AtomicFileTaskResult result) {
@@ -654,11 +652,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                     int successNum,
                                     boolean isDownload,
                                     AgentTaskDTO agentTask) {
+        // 文件任务成功数=任务总数
         if (successNum >= fileNum) {
-            // 每个文件都处理完了，才算任务完成执行
-            agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
-            if (isDownload) {
-                this.successTargetAgentIds.add(agentId);
+            if (hasInvalidSourceHost) {
+                // 如果包含了非法的源文件主机，即使GSE任务（已过滤非法主机)执行成功，那么对于这个主机来说，整体上任务状态是失败
+                agentTask.setStatus(AgentTaskStatusEnum.FAILED);
+            } else {
+                agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
+                if (isDownload) {
+                    this.successTargetAgentIds.add(agentId);
+                }
             }
         } else {
             AgentTaskStatusEnum agentTaskStatus = AgentTaskStatusEnum.FAILED;
