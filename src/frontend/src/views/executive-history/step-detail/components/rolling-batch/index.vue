@@ -183,7 +183,7 @@
         },
         mounted () {
             this.initRender();
-            
+
             setTimeout(() => {
                 this.handleGoBatch(this.selectBatch);
             });
@@ -196,7 +196,10 @@
             });
         },
         beforeDestroy () {
-            this.popperInstance && this.popperInstance.hide();
+            if (this.popperInstance) {
+                this.popperInstance.hide();
+                this.popperInstance.destroy();
+            }
         },
         methods: {
             /**
@@ -228,7 +231,7 @@
                     this.scrollNum = scrollNum - 2;
                     this.hasPagination = true;
                 }
-                
+
                 this.itemTotalWidth = itemTotalWidth;
                 this.contentWidth = this.hasPagination ? '100%' : `${itemTotalWidth + allBtnWidth}px`;
                 this.showConfirmActionPanel();
@@ -364,7 +367,7 @@
                     right: containerEnd,
                 } = $listEl.getBoundingClientRect();
                 const $itemListEl = $listEl.querySelectorAll('.batch-item');
-                
+
                 const $locationBatchItemEl = $itemListEl[selectBatch - 1];
                 const {
                     width: locationItemWidth,
@@ -392,7 +395,7 @@
                     // 定位批次居中
                     const achorPosition = containerWidth / 2 - locationItemWidth / 2;
                     const indexOffset = Math.floor((containerWidth / 2) / locationItemWidth);
-                
+
                     this.scrollPosition = Math.max(
                         Math.min(achorPosition - locationItemLeftPosition, 0),
                         maxOffset,

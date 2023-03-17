@@ -87,6 +87,12 @@
                 zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
             });
         },
+        beforeDestroy () {
+            if (this.popperInstance) {
+                this.popperInstance.hide();
+                this.popperInstance.destroy();
+            }
+        },
         methods: {
             handleVariableSelect () {
                 this.$emit('select');
