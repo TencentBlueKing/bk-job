@@ -317,35 +317,20 @@ public class GseStepEventHandler implements StepEventHandler {
                                                          Long gseTaskId,
                                                          List<HostDTO> hosts) {
         return hosts.stream()
-            .map(host -> buildGseAgentTask(
-                stepInstanceId,
-                executeCount,
-                actualExecuteCount,
-                batch,
-                gseTaskId,
-                host,
-                host.getAgentId() != null ? AgentTaskStatusEnum.WAITING : AgentTaskStatusEnum.AGENT_NOT_INSTALLED))
+            .map(host -> {
+                AgentTaskDTO agentTask = new AgentTaskDTO();
+                agentTask.setStepInstanceId(stepInstanceId);
+                agentTask.setExecuteCount(executeCount);
+                agentTask.setActualExecuteCount(actualExecuteCount);
+                agentTask.setBatch(batch);
+                agentTask.setGseTaskId(gseTaskId);
+                agentTask.setStatus(AgentTaskStatusEnum.WAITING);
+                agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
+                agentTask.setHostId(host.getHostId());
+                agentTask.setAgentId(host.getAgentId());
+                return agentTask;
+            })
             .collect(Collectors.toList());
-    }
-
-    private AgentTaskDTO buildGseAgentTask(long stepInstanceId,
-                                           int executeCount,
-                                           Integer actualExecuteCount,
-                                           int batch,
-                                           Long gseTaskId,
-                                           HostDTO host,
-                                           AgentTaskStatusEnum status) {
-        AgentTaskDTO agentTask = new AgentTaskDTO();
-        agentTask.setStepInstanceId(stepInstanceId);
-        agentTask.setExecuteCount(executeCount);
-        agentTask.setActualExecuteCount(actualExecuteCount);
-        agentTask.setBatch(batch);
-        agentTask.setGseTaskId(gseTaskId);
-        agentTask.setStatus(status);
-        agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
-        agentTask.setHostId(host.getHostId());
-        agentTask.setAgentId(host.getAgentId());
-        return agentTask;
     }
 
     /**

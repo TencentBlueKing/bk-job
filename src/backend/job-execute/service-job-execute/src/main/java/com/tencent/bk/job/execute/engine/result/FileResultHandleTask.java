@@ -613,6 +613,19 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         }
     }
 
+    private String buildErrorLogContent(JobAtomicFileTaskResult result) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(result.getResult().getErrorMsg()).append(".");
+        AtomicFileTaskResultContent content = result.getResult().getContent();
+        if (content != null && content.getStatus() != null) {
+            sb.append(" Status: ").append(content.getStatus());
+            if (StringUtils.isNotBlank(content.getStatusInfo())) {
+                sb.append(", StatusDesc: ").append(content.getStatusInfo());
+            }
+        }
+        return sb.toString();
+    }
+
 
     /**
      * 根据errorCode、fileNum、successNum更新successAgentIds状态集合与agentTask状态

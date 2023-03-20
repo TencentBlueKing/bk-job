@@ -357,7 +357,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             hostTaskLog.addFileTaskLog(
                 logService.buildUploadServiceFileTaskLogDTO(
                     file, status, "--", "--", "--",
-                    isAgentInstalled ? "Agent is not installed" : null));
+                    isAgentInstalled ? null : "Agent is not installed"));
         }
     }
 
@@ -410,7 +410,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     }
 
     private void writeLogs(Map<Long, ServiceHostLogDTO> executionLogs) {
-        log.debug("Write file task initial logs, executionLogs: {}", executionLogs);
+        if (log.isDebugEnabled()) {
+            log.debug("Write file task initial logs, executionLogs: {}", executionLogs);
+        }
         logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
     }
 

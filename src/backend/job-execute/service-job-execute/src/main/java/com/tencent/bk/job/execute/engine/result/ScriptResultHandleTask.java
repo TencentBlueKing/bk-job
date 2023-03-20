@@ -318,6 +318,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         batchSaveChangedGseAgentTasks(targetAgentTasks.values());
         watch.stop();
 
+        log.info("[{}] Analyse gse task result -> notFinishedTargetAgentIds={}, analyseFinishedTargetAgentIds={}",
+            this.gseTask.getTaskUniqueName(), this.notFinishedTargetAgentIds, this.analyseFinishedTargetAgentIds);
+
         GseTaskExecuteResult rst = analyseExecuteResult();
         if (!rst.getResultCode().equals(GseTaskExecuteResult.RESULT_CODE_RUNNING)) {
             watch.start("saveVariables");

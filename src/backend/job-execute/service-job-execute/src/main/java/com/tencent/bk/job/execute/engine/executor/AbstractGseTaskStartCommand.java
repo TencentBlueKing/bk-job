@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
@@ -244,7 +245,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
     private void initAgentTasks() {
         this.agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        logInvalidAgentTasks(agentTasks);
+        updateUninstalledAgentTasks(this.agentTasks);
 
         agentTasks.stream()
             .filter(AgentTaskDTO::isTarget)
@@ -255,12 +256,19 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             });
     }
 
-    protected void logInvalidAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+    private void updateUninstalledAgentTasks(Collection<AgentTaskDTO> agentTasks) {
         List<AgentTaskDTO> invalidAgentTasks = agentTasks.stream()
             .filter(agentTask -> StringUtils.isEmpty(agentTask.getAgentId()))
             .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(invalidAgentTasks)) {
             log.warn("{} contains invalid agent tasks: {}", gseTaskUniqueName, invalidAgentTasks);
+            invalidAgentTasks.forEach(agentTask -> {
+                agentTask.setStatus(AgentTaskStatusEnum.AGENT_NOT_INSTALLED);
+                agentTask.setStartTime(System.currentTimeMillis());
+                agentTask.setEndTime(System.currentTimeMillis());
+                agentTask.calculateTotalTime();
+            });
+            agentTaskService.batchUpdateAgentTasks(agentTasks);
         }
     }
 

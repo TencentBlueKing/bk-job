@@ -686,6 +686,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (isAllTargetAgentTasksSuccess()) {
             // 如果源/目标包含非法主机，设置任务状态为失败
             if (hasInvalidHost) {
+                log.info("Gse task contains invalid host, set execute result fail");
                 rst = GseTaskExecuteResult.FAILED;
             } else {
                 rst = GseTaskExecuteResult.SUCCESS;
