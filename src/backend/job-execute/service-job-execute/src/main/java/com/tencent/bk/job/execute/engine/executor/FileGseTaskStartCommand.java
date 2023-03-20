@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.gse.GseClient;
-import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
@@ -69,7 +68,6 @@ import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
-import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -357,25 +355,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             FileDistStatusEnum status = isAgentInstalled ?
                 FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
             hostTaskLog.addFileTaskLog(
-                new ServiceFileTaskLogDTO(
-                    FileDistModeEnum.UPLOAD.getValue(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    sourceHostId,
-                    file.getHost().toCloudIp(),
-                    file.getHost().toCloudIpv6(),
-                    file.getFileType().getType(),
-                    file.getStandardFilePath(),
-                    file.getDisplayFilePath(),
-                    "--",
-                    status.getValue(),
-                    status.getName(),
-                    "--",
-                    "--",
-                    isAgentInstalled ? "Agent is not installed" : null)
-            );
+                logService.buildUploadServiceFileTaskLogDTO(
+                    file, status, "--", "--", "--",
+                    isAgentInstalled ? "Agent is not installed" : null));
         }
     }
 
@@ -394,30 +376,21 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                     targetHost.getHostId(), targetHost.toCloudIp());
                 for (JobFile file : allSrcFiles) {
                     boolean isSourceAgentInstalled = isAgentInstalled(file.getHost().getAgentId());
-                    Long sourceHostId = file.getHost().getHostId();
                     FileDistStatusEnum status = isTargetAgentInstalled && isSourceAgentInstalled ?
                         FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
                     ipTaskLog.addFileTaskLog(
-                        new ServiceFileTaskLogDTO(
-                            FileDistModeEnum.DOWNLOAD.getValue(),
-                            targetAgentTask.getHostId(),
-                            targetHost.toCloudIp(),
-                            targetHost.toCloudIpv6(),
+                        logService.buildDownloadServiceFileTaskLogDTO(
+                            file,
+                            targetHost,
                             getDestPath(file),
-                            sourceHostId,
-                            file.getHost().toCloudIp(),
-                            file.getHost().toCloudIpv6(),
-                            file.getFileType().getType(),
-                            file.getStandardFilePath(),
-                            file.getDisplayFilePath(),
+                            status,
                             "--",
-                            status.getValue(),
-                            status.getName(),
                             "--",
                             "--",
                             isTargetAgentInstalled ? (isSourceAgentInstalled ? null : "Source agent is not installed")
                                 : "Agent is not installed"
-                        ));
+                        )
+                    );
                 }
             });
     }

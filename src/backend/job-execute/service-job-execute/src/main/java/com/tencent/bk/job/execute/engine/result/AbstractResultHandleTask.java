@@ -152,14 +152,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected Set<String> targetAgentIds = new HashSet<>();
     /**
-     * 未开始任务的目标服务器
+     * 未结束的目标服务器
      */
-    protected Set<String> notStartedTargetAgentIds = new HashSet<>();
-    /**
-     * 正在执行任务的目标服务器
-     */
-    protected Set<String> runningTargetAgentIds = new HashSet<>();
-
+    protected Set<String> notFinishedTargetAgentIds = new HashSet<>();
     /**
      * 已经分析结果完成的目标服务器
      */
@@ -260,7 +255,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.agentTasks = agentTasks;
 
         targetAgentTasks.values().forEach(agentTask -> this.targetAgentIds.add(agentTask.getAgentId()));
-        this.notStartedTargetAgentIds.addAll(targetAgentIds);
+        this.notFinishedTargetAgentIds.addAll(targetAgentIds);
 
         this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getAgentId);
 
@@ -526,8 +521,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         log.info("[{}]: Deal target agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
             gseTask.getTaskUniqueName(), agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
-        notStartedTargetAgentIds.remove(agentId);
-        runningTargetAgentIds.remove(agentId);
+        notFinishedTargetAgentIds.remove(agentId);
         analyseFinishedTargetAgentIds.add(agentId);
 
         if (endTime - startTime <= 0) {
@@ -608,14 +602,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
-        log.info("[{}]: Deal unfinished agent result| noStartJobAgentIds : {}| runningJobAgentIds : {}",
-            gseTask.getTaskUniqueName(), notStartedTargetAgentIds, runningTargetAgentIds);
-        Set<String> unfinishedAgentIds = new HashSet<>();
-        unfinishedAgentIds.addAll(notStartedTargetAgentIds);
-        unfinishedAgentIds.addAll(runningTargetAgentIds);
+        log.info("[{}]: Deal unfinished agent result| notFinishedTargetAgentIds : {}",
+            gseTask.getTaskUniqueName(), notFinishedTargetAgentIds);
         long startTime = (gseTask != null && gseTask.getStartTime() != null) ?
             gseTask.getStartTime() : System.currentTimeMillis();
-        for (String agentId : unfinishedAgentIds) {
+        for (String agentId : notFinishedTargetAgentIds) {
             AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
             agentTask.setStartTime(startTime);
             agentTask.setEndTime(System.currentTimeMillis());
@@ -677,7 +668,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * 是否所有目标Agent上的任务都完成
      */
     protected boolean isAllTargetAgentTasksDone() {
-        return this.notStartedTargetAgentIds.isEmpty() && this.runningTargetAgentIds.isEmpty();
+        return this.analyseFinishedTargetAgentIds.size() == this.targetAgentIds.size();
     }
 
     /**
