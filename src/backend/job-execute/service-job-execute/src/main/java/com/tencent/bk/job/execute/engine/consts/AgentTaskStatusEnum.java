@@ -83,7 +83,7 @@ public enum AgentTaskStatusEnum {
     /**
      * Agent未安装
      */
-    AGENT_NOT_INSTALLED(17),
+    AGENT_NOT_INSTALLED(18),
     /**
      * 脚本执行失败
      */

@@ -167,12 +167,22 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         resolveFileSource();
         // 解析文件传输的源文件, 得到List<JobFile>
         parseSrcFiles();
+        // 解析源<->目标文件映射
+        parseSrcDestFileMap();
         // 解析目标路径中的变量
         resolvedTargetPathWithVariable();
         // 初始化agent任务
         initFileSourceGseAgentTasks();
         // 保存文件子任务的初始状态
         saveInitialFileTaskLogs();
+    }
+
+    private void parseSrcDestFileMap() {
+        // 路径中变量解析与路径标准化预处理
+        String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
+        // 构造源路径与目标路径映射
+        srcDestFileMap = JobSrcFileUtils.buildSourceDestPathMapping(srcFiles, targetDir,
+            stepInstance.getFileTargetName());
     }
 
     /**
@@ -291,13 +301,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             log.error("Start gse task fail, account is null!");
             return GseTaskResponse.fail(GseTaskResponse.ERROR_CODE_FAIL, "account is empty");
         }
-
-        // 路径中变量解析与路径标准化预处理
-        String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
-        // 构造源路径与目标路径映射
-        srcDestFileMap = JobSrcFileUtils.buildSourceDestPathMapping(srcFiles, targetDir,
-            stepInstance.getFileTargetName());
-
 
         List<Agent> targetAgents = gseClient.buildAgents(targetAgentTaskMap.keySet(), accountInfo.getAccount(),
             accountInfo.getPassword());
