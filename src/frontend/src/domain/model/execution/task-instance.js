@@ -24,7 +24,7 @@
 */
 
 import {
-    transformTimeFriendly,
+  transformTimeFriendly,
 } from '@utils/assist';
 
 const TASK_TYPE_TASK = 0;
@@ -48,171 +48,171 @@ const STATUS_CONFIRM_FORCED = 13;
 const STATUS_EVICTED = 14;
 
 const calcStatusGroup = (status) => {
-    if ([
-        STATUS_SUCCESS,
-        STATUS_PASS,
-        STATUS_INGORE_ERROR,
-    ].includes(status)) {
-        return 'success';
-    }
-    if ([
-        STATUS_FAIL,
-        STATUS_STATE_EXCEPTION,
-        STATIS_MANUAL_END,
-        STATUS_FORCED_FAIL,
-    ].includes(status)) {
-        return 'fail';
-    }
-    if ([
-        STATUS_EVICTED,
-    ].includes(status)) {
-        return 'evicted';
-    }
-    if ([
-        STATUS_FORCED_SUCCESS,
-    ].includes(status)) {
-        return 'forced';
-    }
-    if ([
-        STATUS_DOING,
-        STATUS_FORCEDING,
-    ].includes(status)) {
-        return 'loading';
-    }
-    if ([
-        STATUS_MANUAL_CONFIRM,
-    ].includes(status)) {
-        return 'confirm';
-    }
-    if ([
-        STATUS_CONFIRM_FORCED,
-    ].includes(status)) {
-        return 'confirmForced';
-    }
-    if ([
-        STATUS_PENDING,
-    ].includes(status)) {
-        return 'disabled';
-    }
+  if ([
+    STATUS_SUCCESS,
+    STATUS_PASS,
+    STATUS_INGORE_ERROR,
+  ].includes(status)) {
+    return 'success';
+  }
+  if ([
+    STATUS_FAIL,
+    STATUS_STATE_EXCEPTION,
+    STATIS_MANUAL_END,
+    STATUS_FORCED_FAIL,
+  ].includes(status)) {
+    return 'fail';
+  }
+  if ([
+    STATUS_EVICTED,
+  ].includes(status)) {
+    return 'evicted';
+  }
+  if ([
+    STATUS_FORCED_SUCCESS,
+  ].includes(status)) {
+    return 'forced';
+  }
+  if ([
+    STATUS_DOING,
+    STATUS_FORCEDING,
+  ].includes(status)) {
+    return 'loading';
+  }
+  if ([
+    STATUS_MANUAL_CONFIRM,
+  ].includes(status)) {
+    return 'confirm';
+  }
+  if ([
+    STATUS_CONFIRM_FORCED,
+  ].includes(status)) {
+    return 'confirmForced';
+  }
+  if ([
+    STATUS_PENDING,
+  ].includes(status)) {
     return 'disabled';
+  }
+  return 'disabled';
 };
 
 // 执行历史列表
 // 任务实例信息
 export default class TaskInstance {
-    static STATUS_ICON_TYPE = {
+  static STATUS_ICON_TYPE = {
 
-    };
+  };
 
-    constructor (payload) {
-        this.id = payload.id;
-        this.taskId = payload.taskId;
-        this.cronTaskId = payload.cronTaskId;
-        this.templateId = payload.templateId;
-        this.debugTask = payload.debugTask;
-        this.scopeType = payload.scopeType;
-        this.scopeId = payload.scopeId;
-        this.name = payload.name;
-        this.operator = payload.operator;
-        this.startupMode = payload.startupMode;
-        this.startupModeDesc = payload.startupModeDesc;
-        this.currentStepId = payload.currentStepId;
-        this.status = payload.status;
-        this.statusDesc = payload.statusDesc;
-        this.startTime = payload.startTime;
-        this.endTime = payload.endTime;
-        this.totalTime = payload.totalTime;
-        this.createTime = payload.createTime;
-        this.type = payload.type;
-        this.typeDesc = payload.typeDesc;
-        this.canExecute = payload.canExecute;
-        this.canView = payload.canView;
-    }
+  constructor (payload) {
+    this.id = payload.id;
+    this.taskId = payload.taskId;
+    this.cronTaskId = payload.cronTaskId;
+    this.templateId = payload.templateId;
+    this.debugTask = payload.debugTask;
+    this.scopeType = payload.scopeType;
+    this.scopeId = payload.scopeId;
+    this.name = payload.name;
+    this.operator = payload.operator;
+    this.startupMode = payload.startupMode;
+    this.startupModeDesc = payload.startupModeDesc;
+    this.currentStepId = payload.currentStepId;
+    this.status = payload.status;
+    this.statusDesc = payload.statusDesc;
+    this.startTime = payload.startTime;
+    this.endTime = payload.endTime;
+    this.totalTime = payload.totalTime;
+    this.createTime = payload.createTime;
+    this.type = payload.type;
+    this.typeDesc = payload.typeDesc;
+    this.canExecute = payload.canExecute;
+    this.canView = payload.canView;
+  }
 
-    /**
+  /**
      * @desc 任务状态的 icon
      * @returns { String }
      */
-    get statusIconType () {
-        const iconMap = {
-            fail: 'sync-failed',
-            success: 'sync-success',
-            forced: 'sync-success',
-            confirm: 'sync-waiting-01',
-            confirmForced: 'sync-failed',
-            loading: 'sync-pending',
-            disabled: 'sync-default',
-            evicted: 'sync-failed',
-        };
-        return iconMap[calcStatusGroup(this.status)];
-    }
+  get statusIconType () {
+    const iconMap = {
+      fail: 'sync-failed',
+      success: 'sync-success',
+      forced: 'sync-success',
+      confirm: 'sync-waiting-01',
+      confirmForced: 'sync-failed',
+      loading: 'sync-pending',
+      disabled: 'sync-default',
+      evicted: 'sync-failed',
+    };
+    return iconMap[calcStatusGroup(this.status)];
+  }
 
-    /**
+  /**
      * @desc 任务正在执行
      * @returns { Boolean }
      */
-    get isDoing () {
-        return [
-            STATUS_DOING,
-            STATUS_FORCEDING,
-        ].includes(this.status);
-    }
+  get isDoing () {
+    return [
+      STATUS_DOING,
+      STATUS_FORCEDING,
+    ].includes(this.status);
+  }
 
-    /**
+  /**
      * @desc 表示任务状态 css 的 class
      * @returns { String }
      */
-    get statusClass () {
-        return calcStatusGroup(this.status);
-    }
+  get statusClass () {
+    return calcStatusGroup(this.status);
+  }
 
-    /**
+  /**
      * @desc 表示任务状态文本描述
      * @returns { String }
      */
-    get statusDescHtml () {
-        const statusColorMap = {
-            fail: '#EA3636',
-            success: '#2DCB8D',
-            forced: '#2DCB8D',
-            confirm: '#FF9C01',
-            confirmForced: '#EA3636',
-            loading: '#3A84FF',
-            disabled: '#C4C6CC',
-            evicted: '#EA3636',
-        };
-        return `<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`;
-    }
+  get statusDescHtml () {
+    const statusColorMap = {
+      fail: '#EA3636',
+      success: '#2DCB8D',
+      forced: '#2DCB8D',
+      confirm: '#FF9C01',
+      confirmForced: '#EA3636',
+      loading: '#3A84FF',
+      disabled: '#C4C6CC',
+      evicted: '#EA3636',
+    };
+    return `<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`;
+  }
 
-    /**
+  /**
      * @desc 任务执行总耗时
      * @returns { String }
      */
-    get totalTimeText () {
-        return transformTimeFriendly(this.totalTime);
-    }
+  get totalTimeText () {
+    return transformTimeFriendly(this.totalTime);
+  }
 
-    /**
+  /**
      * @desc 任务类型为作业执行
      * @returns { Boolean }
      */
-    get isTask () {
-        return this.type === TASK_TYPE_TASK;
-    }
+  get isTask () {
+    return this.type === TASK_TYPE_TASK;
+  }
 
-    /**
+  /**
      * @desc 任务类型为快速执行脚本
      * @returns { Boolean }
      */
-    get isScript () {
-        return this.type === TASK_TYPE_SCRIPT;
-    }
+  get isScript () {
+    return this.type === TASK_TYPE_SCRIPT;
+  }
 
-    /**
+  /**
      * @desc 任务类型为快速分发文件
      * @returns { Boolean }
      */
-    get isFile () {
-        return this.type === TASK_TYPE_FILE;
-    }
+  get isFile () {
+    return this.type === TASK_TYPE_FILE;
+  }
 }

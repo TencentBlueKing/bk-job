@@ -26,40 +26,40 @@
 import I18n from '@/i18n';
 
 const ERROR_MAP = {
-    1: 'info',
-    2: 'warning',
-    3: 'error',
+  1: 'info',
+  2: 'warning',
+  3: 'error',
 };
 
 const ACTION_SCAN = 1;
 // const ACTION_PREVENT = 2;
 export default class ScriptError {
-    constructor (payload) {
-        this.row = payload.line - 1;
-        this.column = 1;
-        this.level = payload.level;
-        this.type = ERROR_MAP[payload.level];
-        this.text = this.initText(payload);
-        this.action = payload.action;
-    }
+  constructor (payload) {
+    this.row = payload.line - 1;
+    this.column = 1;
+    this.level = payload.level;
+    this.type = ERROR_MAP[payload.level];
+    this.text = this.initText(payload);
+    this.action = payload.action;
+  }
 
-    /**
+  /**
      * @desc 是否是高危语句提示
      * @returns { Boolean }
      */
-    get isDangerous () {
-        return this.level === 3;
-    }
+  get isDangerous () {
+    return this.level === 3;
+  }
 
-    get isActionScan () {
-        return this.action === ACTION_SCAN;
-    }
+  get isActionScan () {
+    return this.action === ACTION_SCAN;
+  }
 
-    initText (payload) {
-        let text = '';
-        if (this.level === 3) {
-            text = `${I18n.t('检测到代码存在高危语句：')}\n${payload.matchContent}\n\n${I18n.t('详细说明：')}\n`;
-        }
-        return `${text}${payload.description}`;
+  initText (payload) {
+    let text = '';
+    if (this.level === 3) {
+      text = `${I18n.t('检测到代码存在高危语句：')}\n${payload.matchContent}\n\n${I18n.t('详细说明：')}\n`;
     }
+    return `${text}${payload.description}`;
+  }
 }

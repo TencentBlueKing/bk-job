@@ -26,61 +26,61 @@
 -->
 
 <template>
-    <render-list ref="list" ignore-url :data-source="fetchUnlaunchHistory">
-        <bk-table-column
-            :label="$t('cron.唤起时间')"
-            prop="scheduledTime"
-            key="scheduledTime"
-            width="180"
-            align="left" />
-        <bk-table-column
-            :label="$t('cron.执行人.colHead')"
-            prop="executor"
-            key="executor"
-            width="180"
-            align="left" />
-        <bk-table-column
-            :label="$t('cron.原因')"
-            prop="errorMsg"
-            key="errorMsg"
-            align="left">
-            <template slot-scope="{ row }">
-                {{ row.errorMsg || '--' }}
-            </template>
-        </bk-table-column>
-    </render-list>
+  <render-list ref="list" :data-source="fetchUnlaunchHistory" ignore-url>
+    <bk-table-column
+      key="scheduledTime"
+      align="left"
+      :label="$t('cron.唤起时间')"
+      prop="scheduledTime"
+      width="180" />
+    <bk-table-column
+      key="executor"
+      align="left"
+      :label="$t('cron.执行人.colHead')"
+      prop="executor"
+      width="180" />
+    <bk-table-column
+      key="errorMsg"
+      align="left"
+      :label="$t('cron.原因')"
+      prop="errorMsg">
+      <template slot-scope="{ row }">
+        {{ row.errorMsg || '--' }}
+      </template>
+    </bk-table-column>
+  </render-list>
 </template>
 <script>
-    import TimeTaskService from '@service/time-task';
-    import RenderList from '@components/render-list';
+  import TimeTaskService from '@service/time-task';
+  import RenderList from '@components/render-list';
 
-    export default {
-        name: '',
-        components: {
-            RenderList,
-        },
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                searchParams: {},
-            };
-        },
-        created () {
-            this.searchParams.cronTaskId = this.data.id;
-            this.fetchUnlaunchHistory = TimeTaskService.fetchUnlaunchHistory;
-        },
-        mounted () {
-            this.fetchData();
-        },
-        methods: {
-            fetchData () {
-                this.$refs.list.$emit('onFetch', this.searchParams);
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      RenderList,
+    },
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        searchParams: {},
+      };
+    },
+    created () {
+      this.searchParams.cronTaskId = this.data.id;
+      this.fetchUnlaunchHistory = TimeTaskService.fetchUnlaunchHistory;
+    },
+    mounted () {
+      this.fetchData();
+    },
+    methods: {
+      fetchData () {
+        this.$refs.list.$emit('onFetch', this.searchParams);
+      },
+    },
+  };
 </script>

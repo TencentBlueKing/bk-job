@@ -58,17 +58,17 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {
-    color: '#3A84FF',
-    failedColor: 'red',
-    height: '2px',
-    inverse: false,
-    transition: {
-        speed: '0.1s',
-        opacity: '0.6s',
-        termination: 100,
-    },
-    position: 'absolute',
-    autoFinish: false,
+  color: '#3A84FF',
+  failedColor: 'red',
+  height: '2px',
+  inverse: false,
+  transition: {
+    speed: '0.1s',
+    opacity: '0.6s',
+    termination: 100,
+  },
+  position: 'absolute',
+  autoFinish: false,
 });
 Vue.use(VueCompositionAPI);
 

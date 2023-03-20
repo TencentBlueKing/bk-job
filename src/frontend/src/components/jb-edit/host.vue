@@ -26,318 +26,318 @@
 -->
 
 <template>
-    <div class="jb-edit-host" :class="mode">
-        <div class="render-value-box" @click.stop="handleBlockShowEdit">
-            <div class="value-text">
-                <slot v-bind:value="localValue">
-                    <div v-html="renderHtml" style="margin-left: -4px;" />
-                </slot>
-            </div>
-            <div class="edit-action-box">
-                <Icon
-                    v-if="!isBlock && !isSubmiting"
-                    type="edit-2"
-                    class="edit-action"
-                    @click.self.stop="handleShowEdit" />
-                <Icon
-                    v-if="isSubmiting"
-                    type="loading-circle"
-                    class="edit-loading" />
-            </div>
-        </div>
-        <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="localValue.hostNodeInfo"
-            @on-change="handleHostChange" />
+  <div class="jb-edit-host" :class="mode">
+    <div class="render-value-box" @click.stop="handleBlockShowEdit">
+      <div class="value-text">
+        <slot v-bind:value="localValue">
+          <div style="margin-left: -4px;" v-html="renderHtml" />
+        </slot>
+      </div>
+      <div class="edit-action-box">
+        <Icon
+          v-if="!isBlock && !isSubmiting"
+          class="edit-action"
+          type="edit-2"
+          @click.self.stop="handleShowEdit" />
+        <Icon
+          v-if="isSubmiting"
+          class="edit-loading"
+          type="loading-circle" />
+      </div>
     </div>
+    <choose-ip
+      v-model="isShowChooseIp"
+      :host-node-info="localValue.hostNodeInfo"
+      @on-change="handleHostChange" />
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
+  import TaskHostNodeModel from '@model/task-host-node';
+  import ChooseIp from '@components/choose-ip';
 
-    export default {
-        name: 'JbEditHost',
-        components: {
-            ChooseIp,
+  export default {
+    name: 'JbEditHost',
+    components: {
+      ChooseIp,
+    },
+    props: {
+      /**
+       * @value block 块级交互
+       * @value ‘’ 默认鼠标点击编辑按钮
+       */
+      mode: {
+        type: String,
+        default: 'block',
+      },
+      /**
+       * @desc 编辑操作对应的字段名称
+       */
+      field: {
+        type: String,
+        required: true,
+      },
+      /**
+       * @desc 默认值
+       */
+      value: {
+        type: Object,
+        default: new TaskHostNodeModel({}),
+      },
+      /**
+       * @desc 宽度
+       */
+      width: {
+        type: String,
+        default: 'auto',
+      },
+      remoteHander: {
+        type: Function,
+        default: () => Promise.resolve(),
+      },
+      /**
+       * @desc 值验证规则
+       */
+      rules: {
+        type: Array,
+        default: () => [],
+      },
+    },
+    data () {
+      return {
+        localValue: this.value,
+        isShowChooseIp: false,
+        error: '',
+        isEditing: false,
+        isSubmiting: false,
+      };
+    },
+    computed: {
+      renderHtml () {
+        if (!this.localValue) {
+          return '--';
+        }
+        const {
+          dynamicGroupList,
+          ipList,
+          topoNodeList,
+        } = this.localValue.hostNodeInfo || {};
+        const strs = [];
+        if (ipList.length > 0) {
+          strs.push(`<span class="number strong">${ipList.length}</span>${I18n.t('台主机.result')}`);
+        }
+        if (topoNodeList.length > 0) {
+          strs.push(`<span class="number strong">${topoNodeList.length}</span>${I18n.t('个节点.result')}`);
+        }
+        if (dynamicGroupList.length > 0) {
+          strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组.result')}`);
+        }
+        return strs.length > 0 ? strs.join('\n') : '--';
+      },
+      styles () {
+        return {
+          width: this.width,
+        };
+      },
+      isBlock () {
+        return this.mode === 'block';
+      },
+    },
+    watch: {
+      value: {
+        handler (value) {
+          this.localValue = Object.freeze(_.cloneDeep(value));
         },
-        props: {
-            /**
-             * @value block 块级交互
-             * @value ‘’ 默认鼠标点击编辑按钮
-             */
-            mode: {
-                type: String,
-                default: 'block',
-            },
-            /**
-             * @desc 编辑操作对应的字段名称
-             */
-            field: {
-                type: String,
-                required: true,
-            },
-            /**
-             * @desc 默认值
-             */
-            value: {
-                type: Object,
-                default: new TaskHostNodeModel({}),
-            },
-            /**
-             * @desc 宽度
-             */
-            width: {
-                type: String,
-                default: 'auto',
-            },
-            remoteHander: {
-                type: Function,
-                default: () => Promise.resolve(),
-            },
-            /**
-             * @desc 值验证规则
-             */
-            rules: {
-                type: Array,
-                default: () => [],
-            },
-        },
-        data () {
-            return {
-                localValue: this.value,
-                isShowChooseIp: false,
-                error: '',
-                isEditing: false,
-                isSubmiting: false,
-            };
-        },
-        computed: {
-            renderHtml () {
-                if (!this.localValue) {
-                    return '--';
+        immediate: true,
+      },
+    },
+    methods: {
+      /**
+       * @desc 值验证
+       */
+      doValidator () {
+        const checkValidator = (rule, value) => new Promise((resolve, reject) => {
+          if (rule.required && !value) {
+            reject(rule.message);
+          }
+          // 通过自定义方法来检测
+          if (rule.validator && (typeof rule.validator === 'function')) {
+            const result = rule.validator(value);
+            if (result.then) {
+              result.then((data) => {
+                if (data) {
+                  return resolve();
                 }
-                const {
-                    dynamicGroupList,
-                    ipList,
-                    topoNodeList,
-                } = this.localValue.hostNodeInfo || {};
-                const strs = [];
-                if (ipList.length > 0) {
-                    strs.push(`<span class="number strong">${ipList.length}</span>${I18n.t('台主机.result')}`);
-                }
-                if (topoNodeList.length > 0) {
-                    strs.push(`<span class="number strong">${topoNodeList.length}</span>${I18n.t('个节点.result')}`);
-                }
-                if (dynamicGroupList.length > 0) {
-                    strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组.result')}`);
-                }
-                return strs.length > 0 ? strs.join('\n') : '--';
-            },
-            styles () {
-                return {
-                    width: this.width,
-                };
-            },
-            isBlock () {
-                return this.mode === 'block';
-            },
-        },
-        watch: {
-            value: {
-                handler (value) {
-                    this.localValue = Object.freeze(_.cloneDeep(value));
-                },
-                immediate: true,
-            },
-        },
-        methods: {
-            /**
-             * @desc 值验证
-             */
-            doValidator () {
-                const checkValidator = (rule, value) => new Promise((resolve, reject) => {
-                    if (rule.required && !value) {
-                        reject(rule.message);
-                    }
-                    // 通过自定义方法来检测
-                    if (rule.validator && (typeof rule.validator === 'function')) {
-                        const result = rule.validator(value);
-                        if (result.then) {
-                            result.then((data) => {
-                                if (data) {
-                                    return resolve();
-                                }
-                                return reject(rule.message);
-                            }).catch(() => {
-                                reject(rule.message);
-                            });
-                        } else if (result) {
-                            return resolve();
-                        } else {
-                            return reject(rule.message);
-                        }
-                    } else {
-                        resolve();
-                    }
-                });
+                return reject(rule.message);
+              }).catch(() => {
+                reject(rule.message);
+              });
+            } else if (result) {
+              return resolve();
+            } else {
+              return reject(rule.message);
+            }
+          } else {
+            resolve();
+          }
+        });
                 
-                const allPromise = this.rules.map(rule => checkValidator(rule, this.localValue));
-                this.isValidatoring = true;
-                return Promise.all(allPromise).finally(() => {
-                    this.isValidatoring = false;
-                });
-            },
-            /**
-             * @desc 提交编辑
-             */
-            triggerChange () {
-                this.doValidator()
-                    .then(() => {
-                        this.isEditing = false;
-                        if (this.localValue === this.value) {
-                            return;
-                        }
-                        this.isSubmiting = true;
-                        this.remoteHander({
-                            [this.field]: this.localValue,
-                        }).then(() => {
-                            this.$emit('on-change', {
-                                [this.field]: this.localValue,
-                            });
-                            this.messageSuccess(I18n.t('编辑成功'));
-                        })
-                            .catch(() => {
-                                this.localValue = this.value;
-                            })
-                            .finally(() => {
-                                this.isSubmiting = false;
-                            });
-                    })
-                    .catch((error) => {
-                        this.error = error;
-                    });
-            },
-            handleBlockShowEdit () {
-                if (!this.isBlock) {
-                    return;
-                }
-                this.handleShowEdit();
-            },
-            /**
-             * @desc 显示input
-             */
-            handleShowEdit () {
-                document.body.click();
-                this.isShowChooseIp = true;
-            },
+        const allPromise = this.rules.map(rule => checkValidator(rule, this.localValue));
+        this.isValidatoring = true;
+        return Promise.all(allPromise).finally(() => {
+          this.isValidatoring = false;
+        });
+      },
+      /**
+       * @desc 提交编辑
+       */
+      triggerChange () {
+        this.doValidator()
+          .then(() => {
+            this.isEditing = false;
+            if (this.localValue === this.value) {
+              return;
+            }
+            this.isSubmiting = true;
+            this.remoteHander({
+              [this.field]: this.localValue,
+            }).then(() => {
+              this.$emit('on-change', {
+                [this.field]: this.localValue,
+              });
+              this.messageSuccess(I18n.t('编辑成功'));
+            })
+              .catch(() => {
+                this.localValue = this.value;
+              })
+              .finally(() => {
+                this.isSubmiting = false;
+              });
+          })
+          .catch((error) => {
+            this.error = error;
+          });
+      },
+      handleBlockShowEdit () {
+        if (!this.isBlock) {
+          return;
+        }
+        this.handleShowEdit();
+      },
+      /**
+       * @desc 显示input
+       */
+      handleShowEdit () {
+        document.body.click();
+        this.isShowChooseIp = true;
+      },
             
-            handleHostChange (hostNodeInfo) {
-                this.localValue = Object.freeze({
-                    ...this.localValue,
-                    hostNodeInfo,
-                });
-                this.triggerChange();
-            },
-        },
-    };
+      handleHostChange (hostNodeInfo) {
+        this.localValue = Object.freeze({
+          ...this.localValue,
+          hostNodeInfo,
+        });
+        this.triggerChange();
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .jb-edit-host {
-        &.block {
-            position: relative;
-            cursor: pointer;
-
-            .render-value-box {
-                padding-top: 5px;
-                padding-left: 10px;
-                margin-left: -10px;
-
-                &:hover {
-                    background: #f0f1f5;
-                }
-            }
-
-            .edit-action-box {
-                position: absolute;
-                top: 0;
-                right: 10px;
-                width: 16px;
-            }
-        }
+      &.block {
+        position: relative;
+        cursor: pointer;
 
         .render-value-box {
-            position: relative;
-            display: flex;
-            min-width: 36px;
-            min-height: 28px;
+          padding-top: 5px;
+          padding-left: 10px;
+          margin-left: -10px;
 
-            &:hover {
-                .edit-action {
-                    opacity: 100%;
-                    transform: scale(1);
-                }
-            }
-        }
-
-        .value-text {
-            line-height: 18px;
-            white-space: pre;
+          &:hover {
+            background: #f0f1f5;
+          }
         }
 
         .edit-action-box {
-            display: flex;
-            align-items: center;
-            min-height: 1em;
-            margin-right: auto;
-            font-size: 16px;
-            color: #979ba5;
+          position: absolute;
+          top: 0;
+          right: 10px;
+          width: 16px;
+        }
+      }
 
-            .edit-action {
-                padding: 6px 0 6px 2px;
-                cursor: pointer;
-                opacity: 0%;
-                transform: scale(0);
-                transition: 0.15s;
-                transform-origin: left center;
+      .render-value-box {
+        position: relative;
+        display: flex;
+        min-width: 36px;
+        min-height: 28px;
 
-                &:hover {
-                    color: #3a84ff;
-                }
-            }
+        &:hover {
+          .edit-action {
+            opacity: 100%;
+            transform: scale(1);
+          }
+        }
+      }
 
-            .edit-loading {
-                position: absolute;
-                top: 9px;
-                margin-left: 2px;
-                animation: rotate-loading 1s linear infinite;
-            }
+      .value-text {
+        line-height: 18px;
+        white-space: pre;
+      }
+
+      .edit-action-box {
+        display: flex;
+        align-items: center;
+        min-height: 1em;
+        margin-right: auto;
+        font-size: 16px;
+        color: #979ba5;
+
+        .edit-action {
+          padding: 6px 0 6px 2px;
+          cursor: pointer;
+          opacity: 0%;
+          transform: scale(0);
+          transition: 0.15s;
+          transform-origin: left center;
+
+          &:hover {
+            color: #3a84ff;
+          }
         }
 
-        .edit-value-container {
-            position: relative;
-            width: 100%;
-            font-size: 0;
-
-            &.edit-error {
-                .bk-form-input {
-                    border-color: #ea3636 !important;
-                }
-            }
-
-            .input-edit-info {
-                position: absolute;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                padding: 0 10px;
-                font-size: 16px;
-                color: #ea3636;
-            }
+        .edit-loading {
+          position: absolute;
+          top: 9px;
+          margin-left: 2px;
+          animation: rotate-loading 1s linear infinite;
         }
+      }
+
+      .edit-value-container {
+        position: relative;
+        width: 100%;
+        font-size: 0;
+
+        &.edit-error {
+          .bk-form-input {
+            border-color: #ea3636 !important;
+          }
+        }
+
+        .input-edit-info {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          padding: 0 10px;
+          font-size: 16px;
+          color: #ea3636;
+        }
+      }
     }
 </style>

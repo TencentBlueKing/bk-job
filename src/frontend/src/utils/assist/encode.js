@@ -29,14 +29,14 @@
  * @returns { String }
  */
 export const encodeRegexp = (paramStr) => {
-    const regexpKeyword = [
-        '\\', '.', '*', '-', '{', '}', '[', ']', '^', '(', ')', '$', '+', '?', '|',
-    ];
-    const res = regexpKeyword.reduce(
-        (result, charItem) => result.replace(new RegExp(`\\${charItem}`, 'g'), `\\${charItem}`),
-        paramStr,
-    );
-    return res;
+  const regexpKeyword = [
+    '\\', '.', '*', '-', '{', '}', '[', ']', '^', '(', ')', '$', '+', '?', '|',
+  ];
+  const res = regexpKeyword.reduce(
+    (result, charItem) => result.replace(new RegExp(`\\${charItem}`, 'g'), `\\${charItem}`),
+    paramStr,
+  );
+  return res;
 };
 
 /**
@@ -45,7 +45,7 @@ export const encodeRegexp = (paramStr) => {
  * @returns { String }
  */
 export const encodeMult = (text) => {
-    const temp = document.createElement('textarea');
-    temp.value = text;
-    return temp.value;
+  const temp = document.createElement('textarea');
+  temp.value = text;
+  return temp.value;
 };
