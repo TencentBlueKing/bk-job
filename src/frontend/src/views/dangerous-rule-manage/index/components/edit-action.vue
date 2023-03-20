@@ -26,96 +26,96 @@
 -->
 
 <template>
-    <div class="dangerous-rule-edit-mode">
-        <bk-select
-            ref="select"
-            :value="value"
-            :clearable="false"
-            @toggle="handleSelectToggle"
-            @change="handleChange">
-            <bk-option
-                v-for="item in actionList"
-                :name="item.name"
-                :id="item.id"
-                :key="item.id" />
-        </bk-select>
-        <div v-show="!isEditing" class="value-box" @click.stop="handleEdit">
-            <div
-                class="action-text"
-                :class="textClass">
-                {{ text }}
-            </div>
-            <i class="bk-icon icon-angle-down value-box-arrow" />
-        </div>
+  <div class="dangerous-rule-edit-mode">
+    <bk-select
+      ref="select"
+      :clearable="false"
+      :value="value"
+      @change="handleChange"
+      @toggle="handleSelectToggle">
+      <bk-option
+        v-for="item in actionList"
+        :id="item.id"
+        :key="item.id"
+        :name="item.name" />
+    </bk-select>
+    <div v-show="!isEditing" class="value-box" @click.stop="handleEdit">
+      <div
+        class="action-text"
+        :class="textClass">
+        {{ text }}
+      </div>
+      <i class="bk-icon icon-angle-down value-box-arrow" />
     </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
 
-    export default {
-        name: '',
-        props: {
-            value: {
-                type: Number,
-                require: true,
-            },
+  export default {
+    name: '',
+    props: {
+      value: {
+        type: Number,
+        require: true,
+      },
+    },
+    data () {
+      return {
+        isEditing: false,
+      };
+    },
+    computed: {
+      text () {
+        return _.find(this.actionList, _ => _.id === this.value).name;
+      },
+      textClass () {
+        const classMap = {
+          1: 'normal',
+          2: 'hight',
+        };
+        return classMap[this.value];
+      },
+    },
+    created () {
+      this.actionList = [
+        {
+          id: 1,
+          name: I18n.t('dangerousRule.扫描'),
         },
-        data () {
-            return {
-                isEditing: false,
-            };
+        {
+          id: 2,
+          name: I18n.t('dangerousRule.拦截'),
         },
-        computed: {
-            text () {
-                return _.find(this.actionList, _ => _.id === this.value).name;
-            },
-            textClass () {
-                const classMap = {
-                    1: 'normal',
-                    2: 'hight',
-                };
-                return classMap[this.value];
-            },
-        },
-        created () {
-            this.actionList = [
-                {
-                    id: 1,
-                    name: I18n.t('dangerousRule.扫描'),
-                },
-                {
-                    id: 2,
-                    name: I18n.t('dangerousRule.拦截'),
-                },
-            ];
-        },
-        methods: {
-            /**
-             * @desc 开始编辑
-             */
-            handleEdit () {
-                this.isEditing = true;
-                this.$nextTick(() => {
-                    this.$refs.select.$el.querySelector('.bk-select-name').click();
-                });
-            },
-            /**
-             * @desc 下拉面板收起，取消编辑状态
-             */
-            handleSelectToggle (toggle) {
-                if (!toggle) {
-                    this.isEditing = false;
-                }
-            },
-            /**
-             * @desc 触发change 事件
-             */
-            handleChange (value) {
-                this.$emit('on-change', value);
-            },
-        },
-    };
+      ];
+    },
+    methods: {
+      /**
+       * @desc 开始编辑
+       */
+      handleEdit () {
+        this.isEditing = true;
+        this.$nextTick(() => {
+          this.$refs.select.$el.querySelector('.bk-select-name').click();
+        });
+      },
+      /**
+       * @desc 下拉面板收起，取消编辑状态
+       */
+      handleSelectToggle (toggle) {
+        if (!toggle) {
+          this.isEditing = false;
+        }
+      },
+      /**
+       * @desc 触发change 事件
+       */
+      handleChange (value) {
+        this.$emit('on-change', value);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .dangerous-rule-edit-mode {

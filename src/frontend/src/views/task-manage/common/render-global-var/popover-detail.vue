@@ -26,118 +26,118 @@
 -->
 
 <template>
-    <div
-        ref="detail"
-        class="global-variable-popover-detail"
-        :class="classes"
-        :style="styles">
-        <div class="wraper">
-            <div class="header">
-                <span>{{ data.name }}</span>
-                <span
-                    v-if="editOfPlan && !selectValue.includes(data.name)"
-                    class="tag">
-                    {{ $t('template.未引用') }}
-                </span>
-            </div>
-            <detail-layout>
-                <detail-item :label="$t('template.变量类型：')">
-                    {{ data.typeText }}
-                </detail-item>
-                <detail-item :label="`${defaultField}：`">
-                    {{ data.valueText }}
-                </detail-item>
-                <detail-item :label="$t('template.变量描述：')">
-                    {{ data.description || '--' }}
-                </detail-item>
-                <detail-item :label="$t('template.执行时必填：')">
-                    {{ data.requiredText }}
-                </detail-item>
-                <detail-item :label="$t('template.赋值可变：')">
-                    {{ data.changeableText }}
-                </detail-item>
-            </detail-layout>
-        </div>
+  <div
+    ref="detail"
+    class="global-variable-popover-detail"
+    :class="classes"
+    :style="styles">
+    <div class="wraper">
+      <div class="header">
+        <span>{{ data.name }}</span>
+        <span
+          v-if="editOfPlan && !selectValue.includes(data.name)"
+          class="tag">
+          {{ $t('template.未引用') }}
+        </span>
+      </div>
+      <detail-layout>
+        <detail-item :label="$t('template.变量类型：')">
+          {{ data.typeText }}
+        </detail-item>
+        <detail-item :label="`${defaultField}：`">
+          {{ data.valueText }}
+        </detail-item>
+        <detail-item :label="$t('template.变量描述：')">
+          {{ data.description || '--' }}
+        </detail-item>
+        <detail-item :label="$t('template.执行时必填：')">
+          {{ data.requiredText }}
+        </detail-item>
+        <detail-item :label="$t('template.赋值可变：')">
+          {{ data.changeableText }}
+        </detail-item>
+      </detail-layout>
     </div>
+  </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import DetailLayout from '@components/detail-layout';
-    import DetailItem from '@components/detail-layout/item';
+  import I18n from '@/i18n';
+  import DetailLayout from '@components/detail-layout';
+  import DetailItem from '@components/detail-layout/item';
 
-    export default {
-        name: 'GlobalVariablePopoverDetail',
-        components: {
-            DetailLayout,
-            DetailItem,
-        },
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-            selectValue: {
-                type: Array,
-                required: true,
-            },
-            editOfPlan: {
-                type: Boolean,
-                DEFAULT: false,
-            },
-            defaultField: {
-                type: String,
-                default: I18n.t('template.初始值'),
-            },
-        },
-        data () {
-            return {
-                position: 'left',
-                width: 300,
-                top: 0,
-                left: 0,
-            };
-        },
-        computed: {
-            classes () {
-                return {
-                    [`arrow-position-${this.position}`]: true,
-                };
-            },
-            styles () {
-                return {
-                    position: 'absolute',
-                    top: `${this.top}px`,
-                    left: `${this.left}px`,
-                    'z-index': window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-                    width: `${this.width}px`,
-                };
-            },
-        },
-        mounted () {
-            this.init();
-        },
-        beforeDestroy () {
-            try {
-                if (this.$refs.detail && document.body.hasChildNodes(this.$refs.detail)) {
-                    document.body.removeChild(this.$refs.detail);
-                }
-            } catch (error) {}
-        },
-        methods: {
-            init () {
-                const windowWidth = window.innerWidth;
-                const $target = document.querySelector(`#globalVariableWithName_${this.data.name}`);
-                const { top, left } = $target.getBoundingClientRect();
-                this.top = top + 50;
-                this.left = left - 11;
-                if (windowWidth <= left + this.width) {
-                    this.left = left - 150;
-                    this.position = 'right';
-                }
-                document.body.appendChild(this.$refs.detail);
-            },
-        },
-    };
+  export default {
+    name: 'GlobalVariablePopoverDetail',
+    components: {
+      DetailLayout,
+      DetailItem,
+    },
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+      selectValue: {
+        type: Array,
+        required: true,
+      },
+      editOfPlan: {
+        type: Boolean,
+        DEFAULT: false,
+      },
+      defaultField: {
+        type: String,
+        default: I18n.t('template.初始值'),
+      },
+    },
+    data () {
+      return {
+        position: 'left',
+        width: 300,
+        top: 0,
+        left: 0,
+      };
+    },
+    computed: {
+      classes () {
+        return {
+          [`arrow-position-${this.position}`]: true,
+        };
+      },
+      styles () {
+        return {
+          position: 'absolute',
+          top: `${this.top}px`,
+          left: `${this.left}px`,
+          'z-index': window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+          width: `${this.width}px`,
+        };
+      },
+    },
+    mounted () {
+      this.init();
+    },
+    beforeDestroy () {
+      try {
+        if (this.$refs.detail && document.body.hasChildNodes(this.$refs.detail)) {
+          document.body.removeChild(this.$refs.detail);
+        }
+      } catch (error) {}
+    },
+    methods: {
+      init () {
+        const windowWidth = window.innerWidth;
+        const $target = document.querySelector(`#globalVariableWithName_${this.data.name}`);
+        const { top, left } = $target.getBoundingClientRect();
+        this.top = top + 50;
+        this.left = left - 11;
+        if (windowWidth <= left + this.width) {
+          this.left = left - 150;
+          this.position = 'right';
+        }
+        document.body.appendChild(this.$refs.detail);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .global-variable-popover-detail {

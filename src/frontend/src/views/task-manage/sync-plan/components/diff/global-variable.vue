@@ -26,93 +26,93 @@
 -->
 
 <template>
-    <div class="diff-global-variable" :class="classes" :id="`${type}_variable_${data.id}_${data.name}`">
-        <div class="name">
-            <div class="type-flag">
-                <Icon :type="data.icon" />
-            </div>
-            <span>{{ data.name }}</span>
-        </div>
-        <div class="info">
-            <div :class="diffValue.type">
-                <span class="label">{{ $t('template.变量类型：') }}</span>
-                <span class="value">{{ data.typeText }}</span>
-            </div>
-            <div :class="diffValue.name">
-                <span class="label">{{ $t('template.变量名称：') }}</span>
-                <span class="value">{{ data.name }}</span>
-            </div>
-            <template v-if="data.isHost">
-                <div :class="diffValue.defaultTargetValue">
-                    <span class="label">{{ $t('template.变量值：') }}</span>
-                    <span class="value">{{ data.valueText }}</span>
-                    <host-detail
-                        class="host-value-detail"
-                        :diff-enable="diffValue.defaultTargetValue === 'changed'"
-                        :data="data.defaultTargetValue"
-                        :name="data.name" />
-                </div>
-            </template>
-            <template v-else>
-                <div :class="diffValue.defaultValue">
-                    <span class="label">{{ $t('template.变量值：') }}</span>
-                    <span class="value">{{ data.valueText }}</span>
-                </div>
-            </template>
-            <div :class="diffValue.description">
-                <span class="label">{{ $t('template.变量描述：') }}</span>
-                <span class="value">{{ data.description || '-' }}</span>
-            </div>
-            <div :class="diffValue.changeable">
-                <span class="label">{{ $t('template.赋值可变：') }}</span>
-                <span class="value">{{ data.changeableText }}</span>
-            </div>
-            <div :class="diffValue.required">
-                <span class="label">{{ $t('template.执行时必填：') }}</span>
-                <span class="value">{{ data.requiredText }}</span>
-            </div>
-        </div>
+  <div :id="`${type}_variable_${data.id}_${data.name}`" class="diff-global-variable" :class="classes">
+    <div class="name">
+      <div class="type-flag">
+        <Icon :type="data.icon" />
+      </div>
+      <span>{{ data.name }}</span>
     </div>
+    <div class="info">
+      <div :class="diffValue.type">
+        <span class="label">{{ $t('template.变量类型：') }}</span>
+        <span class="value">{{ data.typeText }}</span>
+      </div>
+      <div :class="diffValue.name">
+        <span class="label">{{ $t('template.变量名称：') }}</span>
+        <span class="value">{{ data.name }}</span>
+      </div>
+      <template v-if="data.isHost">
+        <div :class="diffValue.defaultTargetValue">
+          <span class="label">{{ $t('template.变量值：') }}</span>
+          <span class="value">{{ data.valueText }}</span>
+          <host-detail
+            class="host-value-detail"
+            :data="data.defaultTargetValue"
+            :diff-enable="diffValue.defaultTargetValue === 'changed'"
+            :name="data.name" />
+        </div>
+      </template>
+      <template v-else>
+        <div :class="diffValue.defaultValue">
+          <span class="label">{{ $t('template.变量值：') }}</span>
+          <span class="value">{{ data.valueText }}</span>
+        </div>
+      </template>
+      <div :class="diffValue.description">
+        <span class="label">{{ $t('template.变量描述：') }}</span>
+        <span class="value">{{ data.description || '-' }}</span>
+      </div>
+      <div :class="diffValue.changeable">
+        <span class="label">{{ $t('template.赋值可变：') }}</span>
+        <span class="value">{{ data.changeableText }}</span>
+      </div>
+      <div :class="diffValue.required">
+        <span class="label">{{ $t('template.执行时必填：') }}</span>
+        <span class="value">{{ data.requiredText }}</span>
+      </div>
+    </div>
+  </div>
 </template>
 <script>
-    import HostDetail from './host-detail';
+  import HostDetail from './host-detail';
 
-    export default {
-        name: '',
-        components: {
-            HostDetail,
-        },
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-            diff: {
-                type: Object,
-                default: () => ({}),
-            },
-            type: {
-                type: String,
-                default: '',
-            },
-        },
-        computed: {
-            classes () {
-                const diffKey = `${this.data.realId}`;
-                if (this.diff[diffKey]) {
-                    return this.diff[diffKey].type;
-                }
-                return '';
-            },
-            diffValue () {
-                const diffKey = `${this.data.realId}`;
-                if (this.diff[diffKey]) {
-                    return this.diff[diffKey].value || {};
-                }
-                return {};
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      HostDetail,
+    },
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+      diff: {
+        type: Object,
+        default: () => ({}),
+      },
+      type: {
+        type: String,
+        default: '',
+      },
+    },
+    computed: {
+      classes () {
+        const diffKey = `${this.data.realId}`;
+        if (this.diff[diffKey]) {
+          return this.diff[diffKey].type;
+        }
+        return '';
+      },
+      diffValue () {
+        const diffKey = `${this.data.realId}`;
+        if (this.diff[diffKey]) {
+          return this.diff[diffKey].value || {};
+        }
+        return {};
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     html[lang="en-US"] {

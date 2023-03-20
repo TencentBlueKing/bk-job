@@ -26,100 +26,100 @@
 -->
 
 <template>
-    <div
-        ref="popover"
-        class="task-execute-bar-step-confirm-popover-view"
-        :class="{
-            [data.displayStyle]: true,
-            'not-start': data.isNotStart,
-        }">
-        <div class="confirm-wraper">
-            <div class="step-name">{{ data.name }}</div>
-            <div class="approval-info">
-                <div v-if="data.roleNameList.length || data.userList.length" class="approval-person">
-                    <span class="persion-label">{{ $t('history.确认人') }}：</span>
-                    <div v-for="item in data.roleNameList" :key="`role_${item}`" class="person">
-                        <Icon type="user-group-gray" class="role-flag" />
-                        {{ item }}
-                    </div>
-                    <div v-for="item in data.userList" :key="`user_${item}`" class="person">
-                        <Icon type="user" class="role-flag" />
-                        {{ item }}
-                    </div>
-                </div>
-                <div v-if="data.notifyChannelNameList.length > 0" class="approval-channel">
-                    {{ $t('history.通知方式') }}：{{ data.notifyChannelNameList.join('，') }}
-                </div>
-            </div>
-            <div v-if="data.confirmMessage" class="step-desc">{{ data.confirmMessage }}</div>
-            <template v-if="!data.isNotStart">
-                <bk-input
-                    v-if="data.isApprovaling"
-                    v-model="confirmReason"
-                    class="confirm-reason"
-                    type="textarea"
-                    :rows="3"
-                    :maxlength="100"
-                    :placeholder="$t('history.可在此处输入确认或终止的因由')" />
-                <div v-else-if="data.operator" class="confirm-reason-text">
-                    <div class="person">{{ data.operator }}</div>
-                    <span v-html="data.confirmReasonHtml" />
-                </div>
-                <div v-if="data.actions.length > 0" class="step-action" @click.stop="">
-                    <step-action
-                        v-for="action in data.actions"
-                        :name="action"
-                        :key="action"
-                        :confirm-handler="operationCode => handleChangeStatus(operationCode)" />
-                </div>
-            </template>
+  <div
+    ref="popover"
+    class="task-execute-bar-step-confirm-popover-view"
+    :class="{
+      [data.displayStyle]: true,
+      'not-start': data.isNotStart,
+    }">
+    <div class="confirm-wraper">
+      <div class="step-name">{{ data.name }}</div>
+      <div class="approval-info">
+        <div v-if="data.roleNameList.length || data.userList.length" class="approval-person">
+          <span class="persion-label">{{ $t('history.确认人') }}：</span>
+          <div v-for="item in data.roleNameList" :key="`role_${item}`" class="person">
+            <Icon class="role-flag" type="user-group-gray" />
+            {{ item }}
+          </div>
+          <div v-for="item in data.userList" :key="`user_${item}`" class="person">
+            <Icon class="role-flag" type="user" />
+            {{ item }}
+          </div>
         </div>
-        <Icon v-if="data.displayStyle !== 'success'" type="close" class="approval-close" @click="handleClose" />
+        <div v-if="data.notifyChannelNameList.length > 0" class="approval-channel">
+          {{ $t('history.通知方式') }}：{{ data.notifyChannelNameList.join('，') }}
+        </div>
+      </div>
+      <div v-if="data.confirmMessage" class="step-desc">{{ data.confirmMessage }}</div>
+      <template v-if="!data.isNotStart">
+        <bk-input
+          v-if="data.isApprovaling"
+          v-model="confirmReason"
+          class="confirm-reason"
+          :maxlength="100"
+          :placeholder="$t('history.可在此处输入确认或终止的因由')"
+          :rows="3"
+          type="textarea" />
+        <div v-else-if="data.operator" class="confirm-reason-text">
+          <div class="person">{{ data.operator }}</div>
+          <span v-html="data.confirmReasonHtml" />
+        </div>
+        <div v-if="data.actions.length > 0" class="step-action" @click.stop="">
+          <step-action
+            v-for="action in data.actions"
+            :key="action"
+            :confirm-handler="operationCode => handleChangeStatus(operationCode)"
+            :name="action" />
+        </div>
+      </template>
     </div>
+    <Icon v-if="data.displayStyle !== 'success'" class="approval-close" type="close" @click="handleClose" />
+  </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskExecuteService from '@service/task-execute';
-    import StepAction from '../../../../common/step-action';
+  import I18n from '@/i18n';
+  import TaskExecuteService from '@service/task-execute';
+  import StepAction from '../../../../common/step-action';
 
-    export default {
-        name: '',
-        components: {
-            StepAction,
-        },
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                confirmReason: '',
-            };
-        },
+  export default {
+    name: '',
+    components: {
+      StepAction,
+    },
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        confirmReason: '',
+      };
+    },
 
-        methods: {
-            handleChangeStatus (operationCode) {
-                return TaskExecuteService.updateTaskExecutionStepOperate({
-                    id: this.data.stepInstanceId,
-                    operationCode,
-                    confirmReason: this.confirmReason,
-                }).then((data) => {
-                    this.$bkMessage({
-                        limit: 1,
-                        theme: 'success',
-                        message: I18n.t('history.操作成功'),
-                    });
-                    this.$emit('on-update', data);
-                    return true;
-                });
-            },
-            handleClose () {
-                this.$emit('on-close');
-            },
-        },
-    };
+    methods: {
+      handleChangeStatus (operationCode) {
+        return TaskExecuteService.updateTaskExecutionStepOperate({
+          id: this.data.stepInstanceId,
+          operationCode,
+          confirmReason: this.confirmReason,
+        }).then((data) => {
+          this.$bkMessage({
+            limit: 1,
+            theme: 'success',
+            message: I18n.t('history.操作成功'),
+          });
+          this.$emit('on-update', data);
+          return true;
+        });
+      },
+      handleClose () {
+        this.$emit('on-close');
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .task-execute-bar-step-confirm-popover-view {

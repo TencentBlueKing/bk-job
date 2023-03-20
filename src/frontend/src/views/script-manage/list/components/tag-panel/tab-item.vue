@@ -26,251 +26,251 @@
 -->
 
 <template>
-    <div
-        class="script-list-tag-edit"
-        :class="{
-            'active': value === id,
-            'display': !isEditable,
-            'edit': isEditable,
-            'edit-error': !!error,
+  <div
+    class="script-list-tag-edit"
+    :class="{
+      'active': value === id,
+      'display': !isEditable,
+      'edit': isEditable,
+      'edit-error': !!error,
+    }"
+    @click.stop="">
+    <Icon class="tag-flag" :type="icon" />
+    <template v-if="!isEditing">
+      <div
+        v-bk-tooltips="{
+          allowHtml: true,
+          width: 240,
+          distance: 15,
+          trigger: 'mouseenter',
+          theme: 'light',
+          content: `#${sefId}`,
+          placement: 'right-start',
+          boundary: 'window',
+          disabled: tooltipsDisabled,
         }"
-        @click.stop="">
-        <Icon :type="icon" class="tag-flag" />
-        <template v-if="!isEditing">
-            <div
-                class="tag-name"
-                v-bk-tooltips="{
-                    allowHtml: true,
-                    width: 240,
-                    distance: 15,
-                    trigger: 'mouseenter',
-                    theme: 'light',
-                    content: `#${sefId}`,
-                    placement: 'right-start',
-                    boundary: 'window',
-                    disabled: tooltipsDisabled,
-                }"
-                @click="handleSelect">
-                <div class="name-text">{{ displayName }}</div>
-            </div>
-            <div class="tag-num-box">
-                <span class="tag-num">{{ count }}</span>
-            </div>
-            <auth-component
-                v-if="isEditable"
-                auth="tag/edit"
-                :resource-id="id">
-                <div class="edit-action" @click="handleEdit">
-                    <Icon type="edit-2" />
-                </div>
-                <div slot="forbid" class="edit-action">
-                    <Icon type="edit-2" />
-                </div>
-            </auth-component>
-        </template>
-        <template v-else>
-            <bk-input
-                ref="input"
-                :placeholder="$t('template.请输入标签名...')"
-                :value="displayName"
-                @change="handleChange"
-                @blur="handleBlur"
-                @keyup="handleEnter" />
-            <div v-if="error" class="input-edit-info" v-bk-tooltips="errorTipsConfig">
-                <Icon type="info" />
-            </div>
-        </template>
-        <div style="display: none;">
-            <table
-                :id="sefId"
-                style="font-size: 12px; line-height: 24px; color: #63656e;">
-                <tr>
-                    <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
-                        {{ $t('script.标签名称：') }}
-                    </td>
-                    <td style="word-break: break-all; vertical-align: top;">{{ displayName }}</td>
-                </tr>
-                <tr>
-                    <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
-                        {{ $t('script.标签描述：') }}
-                    </td>
-                    <td style="word-break: break-all; vertical-align: top;">{{ description || '--' }}</td>
-                </tr>
-            </table>
+        class="tag-name"
+        @click="handleSelect">
+        <div class="name-text">{{ displayName }}</div>
+      </div>
+      <div class="tag-num-box">
+        <span class="tag-num">{{ count }}</span>
+      </div>
+      <auth-component
+        v-if="isEditable"
+        auth="tag/edit"
+        :resource-id="id">
+        <div class="edit-action" @click="handleEdit">
+          <Icon type="edit-2" />
         </div>
+        <div slot="forbid" class="edit-action">
+          <Icon type="edit-2" />
+        </div>
+      </auth-component>
+    </template>
+    <template v-else>
+      <bk-input
+        ref="input"
+        :placeholder="$t('template.请输入标签名...')"
+        :value="displayName"
+        @blur="handleBlur"
+        @change="handleChange"
+        @keyup="handleEnter" />
+      <div v-if="error" v-bk-tooltips="errorTipsConfig" class="input-edit-info">
+        <Icon type="info" />
+      </div>
+    </template>
+    <div style="display: none;">
+      <table
+        :id="sefId"
+        style="font-size: 12px; line-height: 24px; color: #63656e;">
+        <tr>
+          <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
+            {{ $t('script.标签名称：') }}
+          </td>
+          <td style="word-break: break-all; vertical-align: top;">{{ displayName }}</td>
+        </tr>
+        <tr>
+          <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
+            {{ $t('script.标签描述：') }}
+          </td>
+          <td style="word-break: break-all; vertical-align: top;">{{ description || '--' }}</td>
+        </tr>
+      </table>
     </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import { tagNameRule } from '@utils/validator';
-    import { checkPublicScript } from '@utils/assist';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
+  import { tagNameRule } from '@utils/validator';
+  import { checkPublicScript } from '@utils/assist';
 
-    export default {
-        name: '',
-        props: {
-            icon: {
-                type: String,
-                default: 'tag',
-            },
-            loading: {
-                type: Boolean,
-                default: true,
-            },
-            count: {
-                type: Number,
-                default: 0,
-            },
-            name: {
-                type: String,
-                default: '',
-            },
-            value: {
-                type: Number,
-            },
-            description: String,
-            tooltipsDisabled: {
-                type: Boolean,
-                default: false,
-            },
-            id: {
-                type: Number,
-            },
-            canEdit: {
-                type: Boolean,
-                default: false,
-            },
-            tagList: {
-                type: Array,
-                default: () => [],
-            },
-        },
-        data () {
-            return {
-                displayName: this.name,
-                isEditing: false,
-                error: '',
-            };
-        },
-        computed: {
-            /**
-             * @desc 重名检测
-             * @returns { Array }
-             */
-            checkRenameList () {
-                return this.tagList.filter(_ => _.name !== this.name);
-            },
-            /**
-             * @desc 编辑时错误信息提示
-             * @returns { Object }
-             */
-            errorTipsConfig () {
-                const errorMap = {
-                    1: I18n.t('template.标签名不可为空'),
-                    2: I18n.t('template.标签名已存在，请重新输入'),
-                    3: tagNameRule.message,
-                };
-                return {
-                    placement: 'top-left',
-                    content: errorMap[this.error],
-                    width: this.error === 3 ? 200 : '',
-                };
-            },
-        },
-        created () {
-            // 公共脚本
-            this.isPublicScript = checkPublicScript(this.$route);
-            this.isEditable = !this.isPublicScript && this.canEdit;
-            this.sefId = `tag_${_.random(1, 1000)}_${Date.now()}`;
-        },
-        mounted () {
-            document.body.addEventListener('click', this.hideEdit);
-            this.$once('hook:beforeDestroy', () => {
-                document.body.removeEventListener('click', this.hideEdit);
-            });
-        },
-        methods: {
-            /**
-             * @desc 选中当前 TAG
-             * @returns { viod }
-             */
-            handleSelect () {
-                this.$emit('on-select', this.id, this.name);
-            },
-            /**
-             * @desc 编辑状态值更新
-             */
-            triggerChange () {
-                if (this.displayName === this.name) {
-                    this.isEditing = false;
-                    return;
-                }
-                if (this.displayName === '') {
-                    this.error = 1;
-                    return;
-                }
-                if (_.find(this.checkRenameList, _ => _.name === this.displayName)) {
-                    this.error = 2;
-                    return;
-                }
-                if (!tagNameRule.validator(this.displayName)) {
-                    this.error = 3;
-                    return;
-                }
-                this.error = '';
+  export default {
+    name: '',
+    props: {
+      icon: {
+        type: String,
+        default: 'tag',
+      },
+      loading: {
+        type: Boolean,
+        default: true,
+      },
+      count: {
+        type: Number,
+        default: 0,
+      },
+      name: {
+        type: String,
+        default: '',
+      },
+      value: {
+        type: Number,
+      },
+      description: String,
+      tooltipsDisabled: {
+        type: Boolean,
+        default: false,
+      },
+      id: {
+        type: Number,
+      },
+      canEdit: {
+        type: Boolean,
+        default: false,
+      },
+      tagList: {
+        type: Array,
+        default: () => [],
+      },
+    },
+    data () {
+      return {
+        displayName: this.name,
+        isEditing: false,
+        error: '',
+      };
+    },
+    computed: {
+      /**
+       * @desc 重名检测
+       * @returns { Array }
+       */
+      checkRenameList () {
+        return this.tagList.filter(_ => _.name !== this.name);
+      },
+      /**
+       * @desc 编辑时错误信息提示
+       * @returns { Object }
+       */
+      errorTipsConfig () {
+        const errorMap = {
+          1: I18n.t('template.标签名不可为空'),
+          2: I18n.t('template.标签名已存在，请重新输入'),
+          3: tagNameRule.message,
+        };
+        return {
+          placement: 'top-left',
+          content: errorMap[this.error],
+          width: this.error === 3 ? 200 : '',
+        };
+      },
+    },
+    created () {
+      // 公共脚本
+      this.isPublicScript = checkPublicScript(this.$route);
+      this.isEditable = !this.isPublicScript && this.canEdit;
+      this.sefId = `tag_${_.random(1, 1000)}_${Date.now()}`;
+    },
+    mounted () {
+      document.body.addEventListener('click', this.hideEdit);
+      this.$once('hook:beforeDestroy', () => {
+        document.body.removeEventListener('click', this.hideEdit);
+      });
+    },
+    methods: {
+      /**
+       * @desc 选中当前 TAG
+       * @returns { viod }
+       */
+      handleSelect () {
+        this.$emit('on-select', this.id, this.name);
+      },
+      /**
+       * @desc 编辑状态值更新
+       */
+      triggerChange () {
+        if (this.displayName === this.name) {
+          this.isEditing = false;
+          return;
+        }
+        if (this.displayName === '') {
+          this.error = 1;
+          return;
+        }
+        if (_.find(this.checkRenameList, _ => _.name === this.displayName)) {
+          this.error = 2;
+          return;
+        }
+        if (!tagNameRule.validator(this.displayName)) {
+          this.error = 3;
+          return;
+        }
+        this.error = '';
 
-                this.isEditing = false;
+        this.isEditing = false;
                 
-                this.$emit('on-edit', {
-                    id: this.id,
-                    name: this.displayName,
-                });
-            },
-            /**
-             * @desc 开始编辑
-             */
-            handleEdit () {
-                document.body.click();
-                this.isEditing = true;
-                this.$nextTick(() => {
-                    this.$refs.input.focus();
-                });
-            },
-            /**
-             * @desc 输入框值更新
-             */
-            handleChange (value) {
-                this.displayName = value.trim();
-            },
-            /**
-             * @desc 输入框失去焦点
-             */
-            handleBlur () {
-                this.triggerChange();
-            },
-            /**
-             * @desc Enter 触发值更新
-             */
-            handleEnter (value, event) {
-                if (!this.isEditing) return;
-                if (event.key === 'Enter' && event.keyCode === 13) {
-                    this.triggerChange();
-                }
-            },
-            /**
-             * @desc 取消编辑状态
-             */
-            hideEdit () {
-                if (!this.isEditing) {
-                    return;
-                }
-                if (this.error) {
-                    return;
-                }
-                this.isEditing = false;
-            },
-        },
-    };
+        this.$emit('on-edit', {
+          id: this.id,
+          name: this.displayName,
+        });
+      },
+      /**
+       * @desc 开始编辑
+       */
+      handleEdit () {
+        document.body.click();
+        this.isEditing = true;
+        this.$nextTick(() => {
+          this.$refs.input.focus();
+        });
+      },
+      /**
+       * @desc 输入框值更新
+       */
+      handleChange (value) {
+        this.displayName = value.trim();
+      },
+      /**
+       * @desc 输入框失去焦点
+       */
+      handleBlur () {
+        this.triggerChange();
+      },
+      /**
+       * @desc Enter 触发值更新
+       */
+      handleEnter (value, event) {
+        if (!this.isEditing) return;
+        if (event.key === 'Enter' && event.keyCode === 13) {
+          this.triggerChange();
+        }
+      },
+      /**
+       * @desc 取消编辑状态
+       */
+      hideEdit () {
+        if (!this.isEditing) {
+          return;
+        }
+        if (this.error) {
+          return;
+        }
+        this.isEditing = false;
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     @keyframes ani-rotate {

@@ -26,355 +26,355 @@
 -->
 
 <template>
-    <div class="step-execute-host-list" :style="styles">
-        <list-head
-            class="ip-list-head"
-            :columns="columnList"
-            :show-columns="allShowColumn"
-            @on-sort="handleSort"
-            @on-copy="handleCopyIP"
-            @on-show-setting="handleShowSetting" />
-        <div ref="list" class="ip-list-body">
-            <scroll-faker @on-scroll="handleScroll">
-                <list-body
-                    :columns="columnList"
-                    :show-columns="allShowColumn"
-                    :data="list"
-                    @on-row-select="handleSelect" />
-                <div
-                    v-if="hasMore"
-                    ref="loading"
-                    class="list-loading">
-                    <div class="loading-flag">
-                        <Icon type="loading-circle" />
-                    </div>
-                    <div>{{ $t('history.加载中') }}</div>
-                </div>
-                <template v-if="list.length < 1 && !listLoading">
-                    <Empty v-if="!searchValue" style="height: 100%;" />
-                    <Empty v-else type="search" style="height: 100%;">
-                        <div style="font-size: 14px; color: #63656e;">
-                            {{ $t('搜索结果为空') }}
-                        </div>
-                        <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
-                            <span>{{ $t('可以尝试调整关键词') }}</span>
-                            <template>
-                                <span>{{ $t('或') }}</span>
-                                <bk-button
-                                    text
-                                    @click="handleClearSearch">
-                                    {{ $t('清空搜索条件') }}
-                                </bk-button>
-                            </template>
-                        </div>
-                    </Empty>
-                </template>
-            </scroll-faker>
-        </div>
+  <div class="step-execute-host-list" :style="styles">
+    <list-head
+      class="ip-list-head"
+      :columns="columnList"
+      :show-columns="allShowColumn"
+      @on-copy="handleCopyIP"
+      @on-show-setting="handleShowSetting"
+      @on-sort="handleSort" />
+    <div ref="list" class="ip-list-body">
+      <scroll-faker @on-scroll="handleScroll">
+        <list-body
+          :columns="columnList"
+          :data="list"
+          :show-columns="allShowColumn"
+          @on-row-select="handleSelect" />
         <div
-            v-show="isSetting"
-            class="list-column-select">
-            <div class="select-body">
-                <div class="title">{{ $t('history.字段显示设置') }}</div>
-                <bk-checkbox
-                    @click.native="handleToggleAll"
-                    :indeterminate="isIndeterminate"
-                    :checked="isAllColumn">
-                    {{ $t('history.全选') }}
-                </bk-checkbox>
-                <bk-checkbox-group v-model="tempAllShowColumn">
-                    <bk-checkbox
-                        class="select-column"
-                        v-for="item in columnList"
-                        :key="item.name"
-                        :checked="item.checked"
-                        :disabled="item.disabled"
-                        :value="item.name">
-                        {{ item.label }}
-                    </bk-checkbox>
-                </bk-checkbox-group>
-            </div>
-            <div class="select-footer">
-                <bk-button
-                    theme="primary"
-                    @click="handleSubmitSetting">
-                    {{ $t('history.确定') }}
-                </bk-button>
-                <bk-button @click="handleHideSetting">
-                    {{ $t('history.取消') }}
-                </bk-button>
-            </div>
+          v-if="hasMore"
+          ref="loading"
+          class="list-loading">
+          <div class="loading-flag">
+            <Icon type="loading-circle" />
+          </div>
+          <div>{{ $t('history.加载中') }}</div>
         </div>
+        <template v-if="list.length < 1 && !listLoading">
+          <Empty v-if="!searchValue" style="height: 100%;" />
+          <Empty v-else style="height: 100%;" type="search">
+            <div style="font-size: 14px; color: #63656e;">
+              {{ $t('搜索结果为空') }}
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
+              <span>{{ $t('可以尝试调整关键词') }}</span>
+              <template>
+                <span>{{ $t('或') }}</span>
+                <bk-button
+                  text
+                  @click="handleClearSearch">
+                  {{ $t('清空搜索条件') }}
+                </bk-button>
+              </template>
+            </div>
+          </Empty>
+        </template>
+      </scroll-faker>
     </div>
+    <div
+      v-show="isSetting"
+      class="list-column-select">
+      <div class="select-body">
+        <div class="title">{{ $t('history.字段显示设置') }}</div>
+        <bk-checkbox
+          :checked="isAllColumn"
+          :indeterminate="isIndeterminate"
+          @click.native="handleToggleAll">
+          {{ $t('history.全选') }}
+        </bk-checkbox>
+        <bk-checkbox-group v-model="tempAllShowColumn">
+          <bk-checkbox
+            v-for="item in columnList"
+            :key="item.name"
+            :checked="item.checked"
+            class="select-column"
+            :disabled="item.disabled"
+            :value="item.name">
+            {{ item.label }}
+          </bk-checkbox>
+        </bk-checkbox-group>
+      </div>
+      <div class="select-footer">
+        <bk-button
+          theme="primary"
+          @click="handleSubmitSetting">
+          {{ $t('history.确定') }}
+        </bk-button>
+        <bk-button @click="handleHideSetting">
+          {{ $t('history.取消') }}
+        </bk-button>
+      </div>
+    </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import {
-        getOffset,
-    } from '@utils/assist';
-    import Empty from '@components/empty';
-    import ListHead from './list-head';
-    import ListBody from './list-body';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
+  import {
+    getOffset,
+  } from '@utils/assist';
+  import Empty from '@components/empty';
+  import ListHead from './list-head';
+  import ListBody from './list-body';
 
-    const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN';
-    const LIST_ROW_HEIGHT = 40; // 每列高度
+  const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN';
+  const LIST_ROW_HEIGHT = 40; // 每列高度
 
-    export default {
-        name: '',
-        components: {
-            Empty,
-            ListHead,
-            ListBody,
-        },
-        props: {
-            name: {
-                type: [
-                    String,
-                    Number,
-                ],
-                required: true,
-            },
-            data: {
-                type: Array,
-                default: () => [],
-            },
-            listLoading: {
-                type: Boolean,
-                default: false,
-            },
-            paginationLoading: {
-                type: Boolean,
-                default: false,
-            },
-            total: {
-                type: Number,
-                default: 0,
-            },
-            searchValue: String,
-        },
-        data () {
-            let allShowColumn = [
-                'displayIp',
-                'totalTime',
-                'cloudAreaName',
-                'exitCode',
-            ];
-            if (localStorage.getItem(COLUMN_CACHE_KEY)) {
-                allShowColumn = JSON.parse(localStorage.getItem(COLUMN_CACHE_KEY));
-            }
-            return {
-                list: [],
-                columnList: Object.freeze([
-                    {
-                        label: I18n.t('history.IP'),
-                        name: 'displayIp',
-                        width: '140',
-                        checked: true,
-                        disabled: true,
-                    },
-                    {
-                        label: I18n.t('history.耗时(s)'),
-                        name: 'totalTime',
-                        orderField: 'totalTime',
-                        order: '',
-                        width: '120',
-                        checked: true,
-                    },
-                    {
-                        label: I18n.t('history.云区域'),
-                        name: 'cloudAreaName',
-                        orderField: 'cloudAreaId',
-                        order: '',
-                        width: '',
-                        checked: true,
-                    },
-                    {
-                        label: I18n.t('history.返回码'),
-                        name: 'exitCode',
-                        orderField: 'exitCode',
-                        order: '',
-                        width: '114',
-                        checked: true,
-                    },
-                ]),
-                page: 1,
-                pageSize: 0,
-                isSetting: false,
-                allShowColumn,
-                tempAllShowColumn: allShowColumn,
-            };
-        },
-        computed: {
-            /**
-             * @desc 列选择是否半选状态
-             * @return {Boolean}
-             */
-            isIndeterminate () {
-                return this.tempAllShowColumn.length !== this.columnList.length;
-            },
-            /**
-             * @desc 列选择是否全选状态
-             * @return {Boolean}
-             */
-            isAllColumn () {
-                return this.tempAllShowColumn.length === this.columnList.length;
-            },
-            /**
-             * @desc IP 列表样式判断
-             * @return {Object}
-             */
-            styles () {
-                const width = 217 + (this.allShowColumn.length - 1) * 94;
-                return {
-                    width: `${width}px`,
-                };
-            },
-            /**
-             * @desc 列选择是否半选状态
-             * @return {Boolean}
-             */
-            hasMore () {
-                return this.page * this.pageSize < this.total;
-            },
-        },
+  export default {
+    name: '',
+    components: {
+      Empty,
+      ListHead,
+      ListBody,
+    },
+    props: {
+      name: {
+        type: [
+          String,
+          Number,
+        ],
+        required: true,
+      },
+      data: {
+        type: Array,
+        default: () => [],
+      },
+      listLoading: {
+        type: Boolean,
+        default: false,
+      },
+      paginationLoading: {
+        type: Boolean,
+        default: false,
+      },
+      total: {
+        type: Number,
+        default: 0,
+      },
+      searchValue: String,
+    },
+    data () {
+      let allShowColumn = [
+        'displayIp',
+        'totalTime',
+        'cloudAreaName',
+        'exitCode',
+      ];
+      if (localStorage.getItem(COLUMN_CACHE_KEY)) {
+        allShowColumn = JSON.parse(localStorage.getItem(COLUMN_CACHE_KEY));
+      }
+      return {
+        list: [],
+        columnList: Object.freeze([
+          {
+            label: I18n.t('history.IP'),
+            name: 'displayIp',
+            width: '140',
+            checked: true,
+            disabled: true,
+          },
+          {
+            label: I18n.t('history.耗时(s)'),
+            name: 'totalTime',
+            orderField: 'totalTime',
+            order: '',
+            width: '120',
+            checked: true,
+          },
+          {
+            label: I18n.t('history.云区域'),
+            name: 'cloudAreaName',
+            orderField: 'cloudAreaId',
+            order: '',
+            width: '',
+            checked: true,
+          },
+          {
+            label: I18n.t('history.返回码'),
+            name: 'exitCode',
+            orderField: 'exitCode',
+            order: '',
+            width: '114',
+            checked: true,
+          },
+        ]),
+        page: 1,
+        pageSize: 0,
+        isSetting: false,
+        allShowColumn,
+        tempAllShowColumn: allShowColumn,
+      };
+    },
+    computed: {
+      /**
+       * @desc 列选择是否半选状态
+       * @return {Boolean}
+       */
+      isIndeterminate () {
+        return this.tempAllShowColumn.length !== this.columnList.length;
+      },
+      /**
+       * @desc 列选择是否全选状态
+       * @return {Boolean}
+       */
+      isAllColumn () {
+        return this.tempAllShowColumn.length === this.columnList.length;
+      },
+      /**
+       * @desc IP 列表样式判断
+       * @return {Object}
+       */
+      styles () {
+        const width = 217 + (this.allShowColumn.length - 1) * 94;
+        return {
+          width: `${width}px`,
+        };
+      },
+      /**
+       * @desc 列选择是否半选状态
+       * @return {Boolean}
+       */
+      hasMore () {
+        return this.page * this.pageSize < this.total;
+      },
+    },
         
-        watch: {
-            /**
-             * @desc IP 列表名称变化时重置翻页
-             */
-            name () {
-                this.page = 1;
-            },
-            data: {
-                handler (data) {
-                    // 切换分组时最新的分组数据一定来自API返回数据
-                    // listLoading为false说明是本地切换不更新列表
-                    if (!this.listLoading) {
-                        return;
-                    }
-                    this.list = Object.freeze(data);
-                },
-                immediate: true,
-            },
+    watch: {
+      /**
+       * @desc IP 列表名称变化时重置翻页
+       */
+      name () {
+        this.page = 1;
+      },
+      data: {
+        handler (data) {
+          // 切换分组时最新的分组数据一定来自API返回数据
+          // listLoading为false说明是本地切换不更新列表
+          if (!this.listLoading) {
+            return;
+          }
+          this.list = Object.freeze(data);
         },
-        mounted () {
-            this.calcPageSize();
-            window.addEventListener('resize', this.handleScroll);
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('resize', this.handleScroll);
-            });
-        },
-        methods: {
-            /**
-             * @desc 根据屏幕高度计算单页 pageSize
-             */
-            calcPageSize () {
-                const { top } = getOffset(this.$refs.list);
-                const windowHeight = window.innerHeight;
-                const listHeight = windowHeight - top - 20;
-                this.pageSize = parseInt(listHeight / LIST_ROW_HEIGHT + 6, 10);
-                this.$emit('on-pagination-change', this.pageSize);
-            },
-            /**
-             * @desc 滚动加载
-             */
-            handleScroll: _.throttle(function () {
-                if (!this.hasMore) {
-                    return;
-                }
-                const windowHeight = window.innerHeight;
-                const { top } = this.$refs.loading.getBoundingClientRect();
+        immediate: true,
+      },
+    },
+    mounted () {
+      this.calcPageSize();
+      window.addEventListener('resize', this.handleScroll);
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('resize', this.handleScroll);
+      });
+    },
+    methods: {
+      /**
+       * @desc 根据屏幕高度计算单页 pageSize
+       */
+      calcPageSize () {
+        const { top } = getOffset(this.$refs.list);
+        const windowHeight = window.innerHeight;
+        const listHeight = windowHeight - top - 20;
+        this.pageSize = parseInt(listHeight / LIST_ROW_HEIGHT + 6, 10);
+        this.$emit('on-pagination-change', this.pageSize);
+      },
+      /**
+       * @desc 滚动加载
+       */
+      handleScroll: _.throttle(function () {
+        if (!this.hasMore) {
+          return;
+        }
+        const windowHeight = window.innerHeight;
+        const { top } = this.$refs.loading.getBoundingClientRect();
                 
-                if (top - 80 < windowHeight) {
-                    // 增加分页
-                    this.page += 1;
-                    this.$emit('on-pagination-change', this.page * this.pageSize);
-                }
-            }, 80),
-            /**
-             * @desc 复制ip
-             */
-            handleCopyIP () {
-                this.$emit('on-copy');
-            },
-            /**
-             * @desc 显示列配置面板
-             */
-            handleShowSetting () {
-                this.isSetting = true;
-            },
-            /**
-             * @desc 隐藏列配置面板
-             */
-            handleHideSetting () {
-                this.isSetting = false;
-            },
-            /**
-             * @desc 列配置面板全选状态切换
-             */
-            handleToggleAll () {
-                if (this.isAllColumn) {
-                    this.tempAllShowColumn = this.columnList.reduce((result, item) => {
-                        if (item.disabled) {
-                            result.push(item.name);
-                        }
-                        return result;
-                    }, []);
-                } else {
-                    this.tempAllShowColumn = this.columnList.map(item => item.name);
-                }
-            },
-            /**
-             * @desc 保存列配置
-             */
-            handleSubmitSetting () {
-                this.allShowColumn = [
-                    ...this.tempAllShowColumn,
-                ];
-                this.isSetting = false;
-                localStorage.setItem(COLUMN_CACHE_KEY, JSON.stringify(this.allShowColumn));
-            },
-            /**
-             * @desc 表格排序
-             * @param {Object} column 操作列数据
-             */
-            handleSort (column) {
-                const {
-                    orderField,
-                    order,
-                } = column;
-                const newOrder = order === 1 ? 0 : 1;
-                column.order = newOrder;
+        if (top - 80 < windowHeight) {
+          // 增加分页
+          this.page += 1;
+          this.$emit('on-pagination-change', this.page * this.pageSize);
+        }
+      }, 80),
+      /**
+       * @desc 复制ip
+       */
+      handleCopyIP () {
+        this.$emit('on-copy');
+      },
+      /**
+       * @desc 显示列配置面板
+       */
+      handleShowSetting () {
+        this.isSetting = true;
+      },
+      /**
+       * @desc 隐藏列配置面板
+       */
+      handleHideSetting () {
+        this.isSetting = false;
+      },
+      /**
+       * @desc 列配置面板全选状态切换
+       */
+      handleToggleAll () {
+        if (this.isAllColumn) {
+          this.tempAllShowColumn = this.columnList.reduce((result, item) => {
+            if (item.disabled) {
+              result.push(item.name);
+            }
+            return result;
+          }, []);
+        } else {
+          this.tempAllShowColumn = this.columnList.map(item => item.name);
+        }
+      },
+      /**
+       * @desc 保存列配置
+       */
+      handleSubmitSetting () {
+        this.allShowColumn = [
+          ...this.tempAllShowColumn,
+        ];
+        this.isSetting = false;
+        localStorage.setItem(COLUMN_CACHE_KEY, JSON.stringify(this.allShowColumn));
+      },
+      /**
+       * @desc 表格排序
+       * @param {Object} column 操作列数据
+       */
+      handleSort (column) {
+        const {
+          orderField,
+          order,
+        } = column;
+        const newOrder = order === 1 ? 0 : 1;
+        column.order = newOrder;
                 
-                this.columnList = Object.freeze(this.columnList.map((item) => {
-                    item.order = '';
-                    if (item.orderField === orderField) {
-                        item.order = newOrder;
-                    }
-                    return { ...item };
-                }));
-                this.$emit('on-sort', {
-                    orderField,
-                    order: newOrder,
-                });
-                this.$emit('on-pagination-change', this.pageSize);
-            },
-            /**
-             * @desc 选择表格一行数据
-             * @param {Object} row 选择数据
-             */
-            handleSelect (row) {
-                this.$emit('on-change', row);
-            },
-            /**
-             * @desc 清空搜索
-             */
-            handleClearSearch () {
-                this.$emit('on-clear-search');
-            },
-        },
-    };
+        this.columnList = Object.freeze(this.columnList.map((item) => {
+          item.order = '';
+          if (item.orderField === orderField) {
+            item.order = newOrder;
+          }
+          return { ...item };
+        }));
+        this.$emit('on-sort', {
+          orderField,
+          order: newOrder,
+        });
+        this.$emit('on-pagination-change', this.pageSize);
+      },
+      /**
+       * @desc 选择表格一行数据
+       * @param {Object} row 选择数据
+       */
+      handleSelect (row) {
+        this.$emit('on-change', row);
+      },
+      /**
+       * @desc 清空搜索
+       */
+      handleClearSearch () {
+        this.$emit('on-clear-search');
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     @keyframes list-loading-ani {

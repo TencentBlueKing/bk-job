@@ -26,42 +26,42 @@
 -->
 
 <template>
-    <div class="sync-plan-layout" v-bkloading="{ isLoading: loading }">
-        <div class="wraper" :class="{ loading }">
-            <Empty v-if="empty" class="layout-empty">
-                <div class="empty-text">{{ $t('template.暂无关联的定时任务') }}</div>
-                <div>
-                    <slot name="empty" />
-                </div>
-            </Empty>
-            <template v-else>
-                <slot />
-            </template>
-            <div class="layout-footer">
-                <slot name="footer" />
-            </div>
+  <div v-bkloading="{ isLoading: loading }" class="sync-plan-layout">
+    <div class="wraper" :class="{ loading }">
+      <Empty v-if="empty" class="layout-empty">
+        <div class="empty-text">{{ $t('template.暂无关联的定时任务') }}</div>
+        <div>
+          <slot name="empty" />
         </div>
+      </Empty>
+      <template v-else>
+        <slot />
+      </template>
+      <div class="layout-footer">
+        <slot name="footer" />
+      </div>
     </div>
+  </div>
 </template>
 <script>
-    import Empty from '@components/empty';
+  import Empty from '@components/empty';
 
-    export default {
-        name: '',
-        components: {
-            Empty,
-        },
-        props: {
-            loading: {
-                type: Boolean,
-                default: false,
-            },
-            empty: {
-                type: Boolean,
-                default: false,
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      Empty,
+    },
+    props: {
+      loading: {
+        type: Boolean,
+        default: false,
+      },
+      empty: {
+        type: Boolean,
+        default: false,
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .sync-plan-layout {

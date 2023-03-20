@@ -26,126 +26,126 @@
 -->
 
 <template>
-    <div class="sync-plan-side-anchor">
-        <scroll-faker ref="scroll">
-            <div class="anchor-wraper" ref="anchor">
-                <div class="item-title">{{ $t('template.全局变量.label') }}</div>
-                <div
-                    v-for="item in variable"
-                    class="item"
-                    :class="{
-                        active: active === `variable_${item.id}_${item.name}`,
-                    }"
-                    :key="`variable_${item.id}_${item.name}`"
-                    :data-anchor="`variable_${item.id}_${item.name}`"
-                    @mouseenter="handleShowTips(item.name, `variable_${item.id}_${item.name}`)"
-                    @mouseleave="handleShowTips('', '')"
-                    @click="handleChoose(`variable_${item.id}_${item.name}`)">
-                    <div class="anchor-text">{{ item.name }}</div>
-                </div>
-                <div class="item-title">{{ $t('template.作业步骤.label') }}</div>
-                <div
-                    v-for="item in step"
-                    class="item"
-                    :class="{
-                        active: active === `step_${item.id}`,
-                    }"
-                    :key="`step_${item.id}`"
-                    :data-anchor="`step_${item.id}`"
-                    @mouseenter="handleShowTips(item.name, `step_${item.id}`)"
-                    @mouseleave="handleShowTips('', '')"
-                    @click="handleChoose(`step_${item.id}`)">
-                    <div class="anchor-text">{{ item.name }}</div>
-                </div>
-            </div>
-            <tips v-if="tips.name" :data="tips" :key="tips.name" />
-        </scroll-faker>
-    </div>
+  <div class="sync-plan-side-anchor">
+    <scroll-faker ref="scroll">
+      <div ref="anchor" class="anchor-wraper">
+        <div class="item-title">{{ $t('template.全局变量.label') }}</div>
+        <div
+          v-for="item in variable"
+          :key="`variable_${item.id}_${item.name}`"
+          class="item"
+          :class="{
+            active: active === `variable_${item.id}_${item.name}`,
+          }"
+          :data-anchor="`variable_${item.id}_${item.name}`"
+          @click="handleChoose(`variable_${item.id}_${item.name}`)"
+          @mouseenter="handleShowTips(item.name, `variable_${item.id}_${item.name}`)"
+          @mouseleave="handleShowTips('', '')">
+          <div class="anchor-text">{{ item.name }}</div>
+        </div>
+        <div class="item-title">{{ $t('template.作业步骤.label') }}</div>
+        <div
+          v-for="item in step"
+          :key="`step_${item.id}`"
+          class="item"
+          :class="{
+            active: active === `step_${item.id}`,
+          }"
+          :data-anchor="`step_${item.id}`"
+          @click="handleChoose(`step_${item.id}`)"
+          @mouseenter="handleShowTips(item.name, `step_${item.id}`)"
+          @mouseleave="handleShowTips('', '')">
+          <div class="anchor-text">{{ item.name }}</div>
+        </div>
+      </div>
+      <tips v-if="tips.name" :key="tips.name" :data="tips" />
+    </scroll-faker>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import { scrollTopSmooth } from '@utils/assist';
-    import Tips from './tips';
+  import _ from 'lodash';
+  import { scrollTopSmooth } from '@utils/assist';
+  import Tips from './tips';
 
-    export default {
-        name: '',
-        components: {
-            Tips,
+  export default {
+    name: '',
+    components: {
+      Tips,
+    },
+    props: {
+      variable: {
+        type: Array,
+        required: true,
+      },
+      step: {
+        type: Array,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        active: '',
+        tips: {
+          name: '',
+          target: '',
         },
-        props: {
-            variable: {
-                type: Array,
-                required: true,
-            },
-            step: {
-                type: Array,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                active: '',
-                tips: {
-                    name: '',
-                    target: '',
-                },
-            };
-        },
-        created () {
-            if (this.variable.length > 0) {
-                const [{ id, name }] = this.variable;
-                this.active = `variable_${id}_${name}`;
-            } else {
-                this.active = `${this.step[0].id}_${this.step[0].name}`;
-            }
-            this.scrollNum = 0;
-            this.offsetTopMap = {};
-        },
-        mounted () {
-            const $scrollContent = document.querySelector('#asynContent').querySelector('.scroll-faker-content');
-            $scrollContent.addEventListener('scroll', this.setActive);
-            this.$once('hook:beforeDestroy', () => {
-                $scrollContent.removeEventListener('scroll', this.setActive);
-            });
-            this.init();
-        },
-        methods: {
-            init () {
-                this.$refs.anchor.querySelectorAll('.item').forEach((item) => {
-                    const anchorTarget = `${item.getAttribute('data-anchor')}`;
-                    this.offsetTopMap[anchorTarget] = document.querySelector(`#sync-after_${anchorTarget}`).offsetTop;
-                });
-            },
-            setActive: _.throttle(function (event) {
-                this.scrollNum = 0;
-                const $target = event.target;
-                const { scrollTop } = $target;
-                for (const key in this.offsetTopMap) {
-                    if (this.offsetTopMap[key] < scrollTop + 60) {
-                        this.active = key;
-                        this.scrollNum += 1;
-                    } else {
-                        break;
-                    }
-                }
-                this.$nextTick(() => {
-                    this.$refs.scroll.scrollTo(26 * this.scrollNum);
-                });
-            }, 50),
-            handleShowTips (name, target) {
-                this.tips = {
-                    name,
-                    target,
-                };
-            },
-            handleChoose (active) {
-                const target = document.querySelector(`#sync-after_${active}`);
-                const scrollTop = target.offsetTop - 24;
-                this.active = active;
-                scrollTopSmooth(document.querySelector('#asynContent').querySelector('.scroll-faker-content'), scrollTop);
-            },
-        },
-    };
+      };
+    },
+    created () {
+      if (this.variable.length > 0) {
+        const [{ id, name }] = this.variable;
+        this.active = `variable_${id}_${name}`;
+      } else {
+        this.active = `${this.step[0].id}_${this.step[0].name}`;
+      }
+      this.scrollNum = 0;
+      this.offsetTopMap = {};
+    },
+    mounted () {
+      const $scrollContent = document.querySelector('#asynContent').querySelector('.scroll-faker-content');
+      $scrollContent.addEventListener('scroll', this.setActive);
+      this.$once('hook:beforeDestroy', () => {
+        $scrollContent.removeEventListener('scroll', this.setActive);
+      });
+      this.init();
+    },
+    methods: {
+      init () {
+        this.$refs.anchor.querySelectorAll('.item').forEach((item) => {
+          const anchorTarget = `${item.getAttribute('data-anchor')}`;
+          this.offsetTopMap[anchorTarget] = document.querySelector(`#sync-after_${anchorTarget}`).offsetTop;
+        });
+      },
+      setActive: _.throttle(function (event) {
+        this.scrollNum = 0;
+        const $target = event.target;
+        const { scrollTop } = $target;
+        for (const key in this.offsetTopMap) {
+          if (this.offsetTopMap[key] < scrollTop + 60) {
+            this.active = key;
+            this.scrollNum += 1;
+          } else {
+            break;
+          }
+        }
+        this.$nextTick(() => {
+          this.$refs.scroll.scrollTo(26 * this.scrollNum);
+        });
+      }, 50),
+      handleShowTips (name, target) {
+        this.tips = {
+          name,
+          target,
+        };
+      },
+      handleChoose (active) {
+        const target = document.querySelector(`#sync-after_${active}`);
+        const scrollTop = target.offsetTop - 24;
+        this.active = active;
+        scrollTopSmooth(document.querySelector('#asynContent').querySelector('.scroll-faker-content'), scrollTop);
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .sync-plan-side-anchor {

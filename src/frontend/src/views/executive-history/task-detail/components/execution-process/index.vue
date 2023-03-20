@@ -26,54 +26,54 @@
 -->
 
 <template>
-    <div
-        v-bk-tooltips="$t('history.定位到当前步骤')"
-        class="task-exeution-process"
-        @click="handleScrollToCurrentStep">
-        {{ current }} / {{ total }}
-    </div>
+  <div
+    v-bk-tooltips="$t('history.定位到当前步骤')"
+    class="task-exeution-process"
+    @click="handleScrollToCurrentStep">
+    {{ current }} / {{ total }}
+  </div>
 </template>
 <script>
-    import {
-        scrollTopSmooth,
-        getOffset,
-    } from '@utils/assist';
+  import {
+    scrollTopSmooth,
+    getOffset,
+  } from '@utils/assist';
 
-    export default {
-        name: '',
-        props: {
-            total: {
-                type: Number,
-                required: true,
-            },
-            current: {
-                type: Number,
-                required: true,
-            },
-        },
-        mounted () {
-            this.timer = setTimeout(() => {
-                this.handleScrollToCurrentStep();
-            }, 1000);
-        },
-        beforeDestroy () {
-            clearTimeout(this.timer);
-        },
-        methods: {
-            handleScrollToCurrentStep () {
-                const $srollContainer = document.querySelector('.container-content');
-                if (!$srollContainer) {
-                    return;
-                }
-                const $currentStep = document.querySelectorAll('.execution-step-box')[this.current];
-                const { top } = getOffset($currentStep);
-                const windowHeight = window.innerHeight;
-                const targetHieght = $currentStep.getBoundingClientRect().height;
-                const offset = (windowHeight - targetHieght) / 2;
-                scrollTopSmooth($srollContainer, top - offset);
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      total: {
+        type: Number,
+        required: true,
+      },
+      current: {
+        type: Number,
+        required: true,
+      },
+    },
+    mounted () {
+      this.timer = setTimeout(() => {
+        this.handleScrollToCurrentStep();
+      }, 1000);
+    },
+    beforeDestroy () {
+      clearTimeout(this.timer);
+    },
+    methods: {
+      handleScrollToCurrentStep () {
+        const $srollContainer = document.querySelector('.container-content');
+        if (!$srollContainer) {
+          return;
+        }
+        const $currentStep = document.querySelectorAll('.execution-step-box')[this.current];
+        const { top } = getOffset($currentStep);
+        const windowHeight = window.innerHeight;
+        const targetHieght = $currentStep.getBoundingClientRect().height;
+        const offset = (windowHeight - targetHieght) / 2;
+        scrollTopSmooth($srollContainer, top - offset);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .task-exeution-process {

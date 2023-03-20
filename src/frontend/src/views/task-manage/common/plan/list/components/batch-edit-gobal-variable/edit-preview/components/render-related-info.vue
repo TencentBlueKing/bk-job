@@ -26,79 +26,79 @@
 -->
 
 <template>
-    <div class="preview-render-ralated">
-        <div class="header" @click="handleToggle">
-            <div class="toggle-flag">
-                <Icon v-if="isShowRelateList" type="arrow-full-down" />
-                <Icon v-else type="arrow-full-right" />
-            </div>
-            <div class="type">
-                <Icon :type="globalVariableInfo.icon" />
-            </div>
-            <div class="name">{{ globalVariableInfo.name }}</div>
-        </div>
-        <table v-if="isShowRelateList">
-            <thead>
-                <tr>
-                    <th style="width: 230px;">{{ $t('template.执行方案.colHead') }}</th>
-                    <th style="width: 205px;">{{ $t('template.作业模板') }}</th>
-                    <th style="width: 185px;">{{ $t('template.原始值') }}</th>
-                    <th>{{ $t('template.更新值') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="relateData in relateList" :key="relateData.id">
-                    <td>
-                        <div v-bk-overflow-tips class="cell-text">{{ relateData.plan.name }}</div>
-                    </td>
-                    <td>
-                        <div v-bk-overflow-tips class="cell-text">{{ relateData.plan.templateName }}</div>
-                    </td>
-                    <td>
-                        <div v-bk-overflow-tips class="cell-text">{{ relateData.globalVariable.valueText }}</div>
-                    </td>
-                    <td>
-                        <div v-bk-overflow-tips class="cell-text">{{ latestValueText }}</div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+  <div class="preview-render-ralated">
+    <div class="header" @click="handleToggle">
+      <div class="toggle-flag">
+        <Icon v-if="isShowRelateList" type="arrow-full-down" />
+        <Icon v-else type="arrow-full-right" />
+      </div>
+      <div class="type">
+        <Icon :type="globalVariableInfo.icon" />
+      </div>
+      <div class="name">{{ globalVariableInfo.name }}</div>
     </div>
+    <table v-if="isShowRelateList">
+      <thead>
+        <tr>
+          <th style="width: 230px;">{{ $t('template.执行方案.colHead') }}</th>
+          <th style="width: 205px;">{{ $t('template.作业模板') }}</th>
+          <th style="width: 185px;">{{ $t('template.原始值') }}</th>
+          <th>{{ $t('template.更新值') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="relateData in relateList" :key="relateData.id">
+          <td>
+            <div v-bk-overflow-tips class="cell-text">{{ relateData.plan.name }}</div>
+          </td>
+          <td>
+            <div v-bk-overflow-tips class="cell-text">{{ relateData.plan.templateName }}</div>
+          </td>
+          <td>
+            <div v-bk-overflow-tips class="cell-text">{{ relateData.globalVariable.valueText }}</div>
+          </td>
+          <td>
+            <div v-bk-overflow-tips class="cell-text">{{ latestValueText }}</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 <script>
-    import GlobalVariableModel from '@model/task/global-variable';
+  import GlobalVariableModel from '@model/task/global-variable';
 
-    export default {
-        name: '',
-        props: {
-            relateList: Array,
-            latestValue: [String, Object],
-        },
-        data () {
-            return {
-                isShowRelateList: false,
-            };
-        },
-        computed: {
-            globalVariableInfo () {
-                return this.relateList[0].globalVariable;
-            },
-            latestValueText () {
-                const latestGlobalVariableData = { ...this.globalVariableInfo };
-                if (this.globalVariableInfo.isHost) {
-                    latestGlobalVariableData.defaultTargetValue = this.latestValue;
-                } else {
-                    latestGlobalVariableData.defaultValue = this.latestValue;
-                }
-                return new GlobalVariableModel(latestGlobalVariableData).valueText;
-            },
-        },
-        methods: {
-            handleToggle () {
-                this.isShowRelateList = !this.isShowRelateList;
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      relateList: Array,
+      latestValue: [String, Object],
+    },
+    data () {
+      return {
+        isShowRelateList: false,
+      };
+    },
+    computed: {
+      globalVariableInfo () {
+        return this.relateList[0].globalVariable;
+      },
+      latestValueText () {
+        const latestGlobalVariableData = { ...this.globalVariableInfo };
+        if (this.globalVariableInfo.isHost) {
+          latestGlobalVariableData.defaultTargetValue = this.latestValue;
+        } else {
+          latestGlobalVariableData.defaultValue = this.latestValue;
+        }
+        return new GlobalVariableModel(latestGlobalVariableData).valueText;
+      },
+    },
+    methods: {
+      handleToggle () {
+        this.isShowRelateList = !this.isShowRelateList;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .preview-render-ralated {

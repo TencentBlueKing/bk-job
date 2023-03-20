@@ -26,49 +26,49 @@
 -->
 
 <template>
-    <div class="dashboard-card-layout">
-        <div class="card-title">
-            <span
-                :tippy-tips="titleTips"
-                class="card-title-text"
-                :class="{
-                    'hover-tips': needRenderTips,
-                }">
-                {{ title }}
-            </span>
-        </div>
-        <div class="card-content">
-            <slot />
-        </div>
-        <div class="card-extend">
-            <slot name="extend" />
-        </div>
+  <div class="dashboard-card-layout">
+    <div class="card-title">
+      <span
+        class="card-title-text"
+        :class="{
+          'hover-tips': needRenderTips,
+        }"
+        :tippy-tips="titleTips">
+        {{ title }}
+      </span>
     </div>
+    <div class="card-content">
+      <slot />
+    </div>
+    <div class="card-extend">
+      <slot name="extend" />
+    </div>
+  </div>
 </template>
 <script>
-    import I18n from '@/i18n';
+  import I18n from '@/i18n';
 
-    export default {
-        name: '',
-        props: {
-            title: {
-                type: String,
-                default: I18n.t('dashboard.接入业务量'),
-            },
-            titleTips: {
-                type: String,
-            },
-        },
-        data () {
-            return {};
-        },
-        computed: {
-            needRenderTips () {
-                return !!this.titleTips;
-            },
-        },
-        methods: {},
-    };
+  export default {
+    name: '',
+    props: {
+      title: {
+        type: String,
+        default: I18n.t('dashboard.接入业务量'),
+      },
+      titleTips: {
+        type: String,
+      },
+    },
+    data () {
+      return {};
+    },
+    computed: {
+      needRenderTips () {
+        return !!this.titleTips;
+      },
+    },
+    methods: {},
+  };
 </script>
 <style lang='postcss' scoped>
     .dashboard-card-layout {

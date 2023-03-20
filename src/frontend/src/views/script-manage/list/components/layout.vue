@@ -26,68 +26,68 @@
 -->
 
 <template>
-    <div ref="handler" class="script-manage-list-layout">
-        <div
-            v-if="$slots.tag"
-            :class="{
-                'layout-left': true,
-                expended: isOpen,
-            }">
-            <scroll-faker :style="styles">
-                <slot name="tag" />
-            </scroll-faker>
-        </div>
-        <div
-            class="layout-right"
-            :class="{
-                'no-tag': !$slots.tag,
-            }">
-            <div
-                v-if="$slots.tag"
-                class="toggle-button"
-                @click="handleToggle">
-                <Icon
-                    type="down-small"
-                    class="toggle-arrow"
-                    :class="{ open: isOpen }" />
-            </div>
-            <slot />
-        </div>
+  <div ref="handler" class="script-manage-list-layout">
+    <div
+      v-if="$slots.tag"
+      :class="{
+        'layout-left': true,
+        expended: isOpen,
+      }">
+      <scroll-faker :style="styles">
+        <slot name="tag" />
+      </scroll-faker>
     </div>
+    <div
+      class="layout-right"
+      :class="{
+        'no-tag': !$slots.tag,
+      }">
+      <div
+        v-if="$slots.tag"
+        class="toggle-button"
+        @click="handleToggle">
+        <Icon
+          class="toggle-arrow"
+          :class="{ open: isOpen }"
+          type="down-small" />
+      </div>
+      <slot />
+    </div>
+  </div>
 </template>
 <script>
-    import { getOffset } from '@utils/assist';
-    const TASK_TAG_PANEL_TOGGLE = 'script_list_tag_panel_toggle';
+  import { getOffset } from '@utils/assist';
+  const TASK_TAG_PANEL_TOGGLE = 'script_list_tag_panel_toggle';
 
-    export default {
-        data () {
-            let isOpen = localStorage.getItem(TASK_TAG_PANEL_TOGGLE);
-            if (!isOpen) {
-                isOpen = true;
-            } else {
-                isOpen = JSON.parse(isOpen);
-            }
+  export default {
+    data () {
+      let isOpen = localStorage.getItem(TASK_TAG_PANEL_TOGGLE);
+      if (!isOpen) {
+        isOpen = true;
+      } else {
+        isOpen = JSON.parse(isOpen);
+      }
             
-            return {
-                isOpen,
-                styles: {},
-            };
-        },
-        mounted () {
-            const {
-                top,
-            } = getOffset(this.$refs.handler);
-            this.styles = {
-                height: `calc(100vh  - ${top}px)`,
-            };
-        },
-        methods: {
-            handleToggle () {
-                this.isOpen = !this.isOpen;
-                localStorage.setItem(TASK_TAG_PANEL_TOGGLE, JSON.stringify(this.isOpen));
-            },
-        },
-    };
+      return {
+        isOpen,
+        styles: {},
+      };
+    },
+    mounted () {
+      const {
+        top,
+      } = getOffset(this.$refs.handler);
+      this.styles = {
+        height: `calc(100vh  - ${top}px)`,
+      };
+    },
+    methods: {
+      handleToggle () {
+        this.isOpen = !this.isOpen;
+        localStorage.setItem(TASK_TAG_PANEL_TOGGLE, JSON.stringify(this.isOpen));
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     @import "@/css/mixins/media";

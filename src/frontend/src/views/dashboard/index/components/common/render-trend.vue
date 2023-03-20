@@ -26,196 +26,196 @@
 -->
 
 <template>
-    <div class="render-trend-box" v-bkloading="{ isLoading, opacity: 0.8 }">
-        <div class="data-wraper">
-            <div class="total">{{ data.count }}</div>
-            <div
-                class="data-row"
-                :class="{
-                    'down': data.yoyTrend < 0,
-                    'up': data.yoyTrend > 0,
-                    'equal': data.yoyTrend === 0,
-                }"
-                style="margin-top: 12px;">
-                <span class="label">{{ $t('dashboard.同比') }}</span>
-                <span>
-                    <Icon v-if="data.yoyTrend < 0" type="decrease-line" />
-                    <Icon v-if="data.yoyTrend === 0" type="equally" />
-                    <Icon v-if="data.yoyTrend > 0" type="increase-line" />
-                </span>
-                <span>{{ data.yoyValue }}</span>
-            </div>
-            <div
-                class="data-row"
-                :class="{
-                    'down': data.momTrend < 0,
-                    'up': data.momTrend > 0,
-                    'equal': data.momTrend === 0,
-                }"
-                style="margin-top: 10px;">
-                <span class="label">{{ $t('dashboard.环比') }}</span>
-                <span>
-                    <Icon v-if="data.momTrend < 0" type="decrease-line" />
-                    <Icon v-if="data.momTrend === 0" type="equally" />
-                    <Icon v-if="data.momTrend > 0" type="increase-line" />
-                </span>
-                <span>{{ data.momValue }}</span>
-            </div>
-        </div>
-        <div class="data-chart">
-            <div ref="trend" style="width: 100%; height: 60px;" />
-        </div>
+  <div v-bkloading="{ isLoading, opacity: 0.8 }" class="render-trend-box">
+    <div class="data-wraper">
+      <div class="total">{{ data.count }}</div>
+      <div
+        class="data-row"
+        :class="{
+          'down': data.yoyTrend < 0,
+          'up': data.yoyTrend > 0,
+          'equal': data.yoyTrend === 0,
+        }"
+        style="margin-top: 12px;">
+        <span class="label">{{ $t('dashboard.同比') }}</span>
+        <span>
+          <Icon v-if="data.yoyTrend < 0" type="decrease-line" />
+          <Icon v-if="data.yoyTrend === 0" type="equally" />
+          <Icon v-if="data.yoyTrend > 0" type="increase-line" />
+        </span>
+        <span>{{ data.yoyValue }}</span>
+      </div>
+      <div
+        class="data-row"
+        :class="{
+          'down': data.momTrend < 0,
+          'up': data.momTrend > 0,
+          'equal': data.momTrend === 0,
+        }"
+        style="margin-top: 10px;">
+        <span class="label">{{ $t('dashboard.环比') }}</span>
+        <span>
+          <Icon v-if="data.momTrend < 0" type="decrease-line" />
+          <Icon v-if="data.momTrend === 0" type="equally" />
+          <Icon v-if="data.momTrend > 0" type="increase-line" />
+        </span>
+        <span>{{ data.momValue }}</span>
+      </div>
     </div>
+    <div class="data-chart">
+      <div ref="trend" style="width: 100%; height: 60px;" />
+    </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import echarts from 'lib/echarts.min.js';
-    import StatisticsService from '@service/statistics';
-    import { prettyDateFormat } from '@utils/assist';
+  import _ from 'lodash';
+  import echarts from 'lib/echarts.min.js';
+  import StatisticsService from '@service/statistics';
+  import { prettyDateFormat } from '@utils/assist';
     
-    const styleMap = {
-        up: {
-            itemStyle: {
-                color: '#4BC7AD',
-            },
-            areaStyle: {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    {
-                        offset: 0,
-                        color: 'rgba(75, 199, 173, 0.32)',
-                    },
-                    {
-                        offset: 1,
-                        color: 'rgba(75, 199, 173, 0)',
-                    },
-                ]),
-            },
-        },
-        down: {
-            itemStyle: {
-                color: '#FF5656',
-            },
-            areaStyle: {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    {
-                        offset: 0,
-                        color: 'rgba(255, 86, 86, 0.28)',
-                    },
-                    {
-                        offset: 1,
-                        color: 'rgba(255, 86, 86, 0)',
-                    },
-                ]),
-            },
-        },
-    };
+  const styleMap = {
+    up: {
+      itemStyle: {
+        color: '#4BC7AD',
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgba(75, 199, 173, 0.32)',
+          },
+          {
+            offset: 1,
+            color: 'rgba(75, 199, 173, 0)',
+          },
+        ]),
+      },
+    },
+    down: {
+      itemStyle: {
+        color: '#FF5656',
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgba(255, 86, 86, 0.28)',
+          },
+          {
+            offset: 1,
+            color: 'rgba(255, 86, 86, 0)',
+          },
+        ]),
+      },
+    },
+  };
 
-    export default {
-        name: '',
-        props: {
-            metric: {
-                type: String,
-                required: true,
-            },
-            date: {
-                type: String,
-                required: true,
-            },
+  export default {
+    name: '',
+    props: {
+      metric: {
+        type: String,
+        required: true,
+      },
+      date: {
+        type: String,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isLoading: true,
+        data: {
+          count: 0,
+          momRate: 0,
+          yoyRate: 0,
         },
-        data () {
-            return {
-                isLoading: true,
-                data: {
-                    count: 0,
-                    momRate: 0,
-                    yoyRate: 0,
-                },
-            };
-        },
-        watch: {
-            date () {
-                this.fetchData();
-            },
-        },
-        mounted () {
-            this.trendData = [];
-            this.fetchData();
-            const resize = _.throttle(() => {
-                this.myChart && this.myChart.resize();
-            }, 300);
-            window.addEventListener('resize', resize);
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('resize', resize);
-            });
-        },
-        methods: {
-            fetchData () {
-                this.isLoading = true;
-                Promise.all([
-                    StatisticsService.fetchTotalMetrics({
-                        date: this.date,
-                        metric: this.metric,
-                    }).then((data) => {
-                        this.data = data || {};
-                    }),
-                    StatisticsService.fetchTrendsMetrics({
-                        endDate: this.date,
-                        startDate: prettyDateFormat(new Date(this.date) - 6 * 86400000),
-                        metric: this.metric,
-                    }).then((data) => {
-                        this.initTrend(data);
-                    }),
-                ]).finally(() => {
-                    this.isLoading = false;
-                });
-            },
-            initTrend (data) {
-                this.myChart = echarts.init(this.$refs.trend);
-                const dateList = [];
-                const valueList = [];
-                data.forEach(({ date, value }) => {
-                    dateList.push(date);
-                    valueList.push(value);
-                });
+      };
+    },
+    watch: {
+      date () {
+        this.fetchData();
+      },
+    },
+    mounted () {
+      this.trendData = [];
+      this.fetchData();
+      const resize = _.throttle(() => {
+        this.myChart && this.myChart.resize();
+      }, 300);
+      window.addEventListener('resize', resize);
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('resize', resize);
+      });
+    },
+    methods: {
+      fetchData () {
+        this.isLoading = true;
+        Promise.all([
+          StatisticsService.fetchTotalMetrics({
+            date: this.date,
+            metric: this.metric,
+          }).then((data) => {
+            this.data = data || {};
+          }),
+          StatisticsService.fetchTrendsMetrics({
+            endDate: this.date,
+            startDate: prettyDateFormat(new Date(this.date) - 6 * 86400000),
+            metric: this.metric,
+          }).then((data) => {
+            this.initTrend(data);
+          }),
+        ]).finally(() => {
+          this.isLoading = false;
+        });
+      },
+      initTrend (data) {
+        this.myChart = echarts.init(this.$refs.trend);
+        const dateList = [];
+        const valueList = [];
+        data.forEach(({ date, value }) => {
+          dateList.push(date);
+          valueList.push(value);
+        });
 
-                const styles = _.head(valueList) <= _.last(valueList) ? 'up' : 'down';
+        const styles = _.head(valueList) <= _.last(valueList) ? 'up' : 'down';
 
-                this.myChart.setOption({
-                    grid: {
-                        top: 5,
-                        right: 5,
-                        bottom: 5,
-                        left: 5,
-                    },
-                    xAxis: {
-                        boundaryGap: false,
-                        data: dateList,
-                        show: false,
-                    },
-                    yAxis: {
-                        type: 'value',
-                        min: 'dataMin',
-                        max: 'dataMax',
-                        boundaryGap: [
-                            0,
-                            '100%',
-                        ],
-                        show: false,
-                    },
-                    series: [
-                        {
-                            name: 'trend',
-                            type: 'line',
-                            symbol: 'none',
-                            sampling: 'average',
-                            ...styleMap[styles],
-                            data: valueList,
-                        },
-                    ],
-                });
+        this.myChart.setOption({
+          grid: {
+            top: 5,
+            right: 5,
+            bottom: 5,
+            left: 5,
+          },
+          xAxis: {
+            boundaryGap: false,
+            data: dateList,
+            show: false,
+          },
+          yAxis: {
+            type: 'value',
+            min: 'dataMin',
+            max: 'dataMax',
+            boundaryGap: [
+              0,
+              '100%',
+            ],
+            show: false,
+          },
+          series: [
+            {
+              name: 'trend',
+              type: 'line',
+              symbol: 'none',
+              sampling: 'average',
+              ...styleMap[styles],
+              data: valueList,
             },
-        },
-    };
+          ],
+        });
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .render-trend-box {

@@ -26,115 +26,115 @@
 -->
 
 <template>
-    <div
-        ref="layout"
-        class="script-version-page-layout"
-        :class="{
-            'is-flod': flod,
-            toggled: isOpen,
-        }">
-        <div class="layout-left">
-            <div class="left-wraper" :style="styles">
-                <slot />
-            </div>
-            <div v-if="isShowRight" class="toggle-button" @click="handleToggle">
-                <Icon type="down-small" class="toggle-arrow" />
-            </div>
-        </div>
-        <div v-if="flod" class="layout-right" :style="rightStyles">
-            <div class="right-wraper" :class="{ active: isShowRight }">
-                <slot v-if="isShowRight" name="flod" />
-            </div>
-            <div class="close-btn" @click="handleClose">
-                <Icon type="close-big" />
-            </div>
-        </div>
+  <div
+    ref="layout"
+    class="script-version-page-layout"
+    :class="{
+      'is-flod': flod,
+      toggled: isOpen,
+    }">
+    <div class="layout-left">
+      <div class="left-wraper" :style="styles">
+        <slot />
+      </div>
+      <div v-if="isShowRight" class="toggle-button" @click="handleToggle">
+        <Icon class="toggle-arrow" type="down-small" />
+      </div>
     </div>
+    <div v-if="flod" class="layout-right" :style="rightStyles">
+      <div class="right-wraper" :class="{ active: isShowRight }">
+        <slot v-if="isShowRight" name="flod" />
+      </div>
+      <div class="close-btn" @click="handleClose">
+        <Icon type="close-big" />
+      </div>
+    </div>
+  </div>
 </template>
 <script>
-    import {
-        getOffset,
-        leaveConfirm,
-    } from '@utils/assist';
+  import {
+    getOffset,
+    leaveConfirm,
+  } from '@utils/assist';
 
-    export default {
-        name: '',
-        props: {
-            flod: {
-                type: Boolean,
-                default: false,
-            },
+  export default {
+    name: '',
+    props: {
+      flod: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        isShowRight: false,
+        isOpen: false,
+        layoutWidth: 'auto',
+        layoutOffsetTop: 0,
+      };
+    },
+    computed: {
+      styles () {
+        if (this.flod) {
+          return {
+            width: '360px',
+          };
+        }
+        return {
+          width: this.layoutWidth,
+        };
+      },
+      rightStyles () {
+        const paddingBottom = 20;
+        return {
+          height: `calc(100vh -  ${this.layoutOffsetTop + paddingBottom}px)`,
+        };
+      },
+    },
+    watch: {
+      flod: {
+        handler (flod) {
+          if (flod) {
+            setTimeout(() => {
+              this.isShowRight = flod;
+            }, 110);
+          } else {
+            this.isShowRight = false;
+          }
         },
-        data () {
-            return {
-                isShowRight: false,
-                isOpen: false,
-                layoutWidth: 'auto',
-                layoutOffsetTop: 0,
-            };
-        },
-        computed: {
-            styles () {
-                if (this.flod) {
-                    return {
-                        width: '360px',
-                    };
-                }
-                return {
-                    width: this.layoutWidth,
-                };
-            },
-            rightStyles () {
-                const paddingBottom = 20;
-                return {
-                    height: `calc(100vh -  ${this.layoutOffsetTop + paddingBottom}px)`,
-                };
-            },
-        },
-        watch: {
-            flod: {
-                handler (flod) {
-                    if (flod) {
-                        setTimeout(() => {
-                            this.isShowRight = flod;
-                        }, 110);
-                    } else {
-                        this.isShowRight = false;
-                    }
-                },
-                immediate: true,
-            },
-        },
-        mounted () {
-            this.init();
-            window.addEventListener('resize', this.init);
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('resize', this.init);
-            });
-        },
-        methods: {
-            /**
-             * @desc 根据屏幕尺寸动态计算 layout 的位置信息
-             */
-            init () {
-                const layoutWidth = this.$refs.layout.getBoundingClientRect().width;
-                this.layoutWidth = `${layoutWidth}px`;
-                const offsetTop = getOffset(this.$refs.layout).top;
-                this.layoutOffsetTop = offsetTop;
-            },
-            handleToggle () {
-                this.isOpen = !this.isOpen;
-            },
-            handleClose () {
-                leaveConfirm()
-                    .then(() => {
-                        this.isOpen = false;
-                        this.$emit('on-flod');
-                        this.$emit('update:flod', false);
-                    });
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    mounted () {
+      this.init();
+      window.addEventListener('resize', this.init);
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('resize', this.init);
+      });
+    },
+    methods: {
+      /**
+       * @desc 根据屏幕尺寸动态计算 layout 的位置信息
+       */
+      init () {
+        const layoutWidth = this.$refs.layout.getBoundingClientRect().width;
+        this.layoutWidth = `${layoutWidth}px`;
+        const offsetTop = getOffset(this.$refs.layout).top;
+        this.layoutOffsetTop = offsetTop;
+      },
+      handleToggle () {
+        this.isOpen = !this.isOpen;
+      },
+      handleClose () {
+        leaveConfirm()
+          .then(() => {
+            this.isOpen = false;
+            this.$emit('on-flod');
+            this.$emit('update:flod', false);
+          });
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .script-version-page-layout {

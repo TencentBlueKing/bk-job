@@ -26,29 +26,29 @@
 -->
 
 <template>
-    <div class="detail-item" :class="`design-layout-${layout}`">
-        <div class="detail-label">
-            <span>{{ label }}</span>
-        </div>
-        <div class="detail-content">
-            <slot />
-        </div>
+  <div class="detail-item" :class="`design-layout-${layout}`">
+    <div class="detail-label">
+      <span>{{ label }}</span>
     </div>
+    <div class="detail-content">
+      <slot />
+    </div>
+  </div>
 </template>
 <script>
-    export default {
-        name: '',
-        props: {
-            label: {
-                type: String,
-                default: '',
-            },
-            layout: {
-                type: String,
-                default: '', // horizontal, vertical
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      label: {
+        type: String,
+        default: '',
+      },
+      layout: {
+        type: String,
+        default: '', // horizontal, vertical
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .detail-item {

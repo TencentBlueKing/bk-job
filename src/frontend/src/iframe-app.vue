@@ -26,52 +26,52 @@
 -->
 
 <template>
-    <div class="iframe-navigation-container" :class="{ loading }">
-        <div class="container-header">
-            <div id="sitePageTitle" class="container-header-title">
-                <router-back mode="iframe" />
-                <span>{{ routerTitle }}</span>
-                <div id="siteHeaderStatusBar" />
-            </div>
-        </div>
-        <div class="container-content">
-            <router-view />
-        </div>
+  <div class="iframe-navigation-container" :class="{ loading }">
+    <div class="container-header">
+      <div id="sitePageTitle" class="container-header-title">
+        <router-back mode="iframe" />
+        <span>{{ routerTitle }}</span>
+        <div id="siteHeaderStatusBar" />
+      </div>
     </div>
+    <div class="container-content">
+      <router-view />
+    </div>
+  </div>
 </template>
 <script>
-    import RouterBack from '@components/router-back';
+  import RouterBack from '@components/router-back';
 
-    export default {
-        name: 'App',
-        components: {
-            RouterBack,
+  export default {
+    name: 'App',
+    components: {
+      RouterBack,
+    },
+    data () {
+      return {
+        loading: true,
+        routerTitle: '',
+      };
+    },
+    watch: {
+      $route: {
+        handler (route) {
+          this.routerTitle = (route.meta.title || route.meta.pageTitle);
         },
-        data () {
-            return {
-                loading: true,
-                routerTitle: '',
-            };
-        },
-        watch: {
-            $route: {
-                handler (route) {
-                    this.routerTitle = (route.meta.title || route.meta.pageTitle);
-                },
-                immediate: true,
-            },
-        },
-        /**
-         * @desc 页面渲染完成
-         *
-         * loading用于控制页面切换效果
-         */
-        mounted () {
-            setTimeout(() => {
-                this.loading = false;
-            }, 100);
-        },
-    };
+        immediate: true,
+      },
+    },
+    /**
+     * @desc 页面渲染完成
+     *
+     * loading用于控制页面切换效果
+     */
+    mounted () {
+      setTimeout(() => {
+        this.loading = false;
+      }, 100);
+    },
+  };
 </script>
 <style lang="postcss" scoped>
     @import "@/css/mixins/scroll";

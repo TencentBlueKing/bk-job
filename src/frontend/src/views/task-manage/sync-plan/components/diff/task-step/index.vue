@@ -26,88 +26,88 @@
 -->
 
 <template>
-    <div class="diff-task-step" :class="classes" :id="`${type}_step_${data.id}`">
-        <div class="name">
-            <div class="type-flag">
-                <Icon :type="data.icon" />
-            </div>
-            {{ data.name }}
-        </div>
-        <div class="info">
-            <div class="row" :class="diffValue.type">
-                <span class="label">{{ $t('template.步骤类型：') }}</span>
-                <span class="value">{{ data.typeText }}</span>
-            </div>
-            <div class="row" :class="diffValue.name">
-                <span class="label">{{ $t('template.步骤名称：') }}</span>
-                <span class="value">{{ data.name }}</span>
-            </div>
-            <component
-                :is="infoCom"
-                :id="data.realId"
-                :data="info"
-                :diff="diffValue"
-                v-bind="$attrs" />
-        </div>
+  <div :id="`${type}_step_${data.id}`" class="diff-task-step" :class="classes">
+    <div class="name">
+      <div class="type-flag">
+        <Icon :type="data.icon" />
+      </div>
+      {{ data.name }}
     </div>
+    <div class="info">
+      <div class="row" :class="diffValue.type">
+        <span class="label">{{ $t('template.步骤类型：') }}</span>
+        <span class="value">{{ data.typeText }}</span>
+      </div>
+      <div class="row" :class="diffValue.name">
+        <span class="label">{{ $t('template.步骤名称：') }}</span>
+        <span class="value">{{ data.name }}</span>
+      </div>
+      <component
+        :is="infoCom"
+        :id="data.realId"
+        :data="info"
+        :diff="diffValue"
+        v-bind="$attrs" />
+    </div>
+  </div>
 </template>
 <script>
-    import TaskStepModel from '@model/task/task-step';
-    import TypeScript from './script';
-    import TypeFile from './file';
-    import TypeApproval from './approval';
+  import TaskStepModel from '@model/task/task-step';
+  import TypeScript from './script';
+  import TypeFile from './file';
+  import TypeApproval from './approval';
 
-    const comMap = {
-        [TaskStepModel.TYPE_SCRIPT]: TypeScript,
-        [TaskStepModel.TYPE_FILE]: TypeFile,
-        [TaskStepModel.TYPE_APPROVAL]: TypeApproval,
-    };
+  const comMap = {
+    [TaskStepModel.TYPE_SCRIPT]: TypeScript,
+    [TaskStepModel.TYPE_FILE]: TypeFile,
+    [TaskStepModel.TYPE_APPROVAL]: TypeApproval,
+  };
 
-    export default {
-        name: 'DiffTaskStep',
-        inheritAttrs: false,
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-            diff: {
-                type: Object,
-                default: () => ({}),
-            },
-            type: {
-                type: String,
-                default: '',
-            },
-        },
-        computed: {
-            infoCom () {
-                return comMap[this.data.type];
-            },
-            info () {
-                const fieldMap = {
-                    [TaskStepModel.TYPE_SCRIPT]: 'scriptStepInfo',
-                    [TaskStepModel.TYPE_FILE]: 'fileStepInfo',
-                    [TaskStepModel.TYPE_APPROVAL]: 'approvalStepInfo',
-                };
-                return this.data[fieldMap[this.data.type]];
-            },
-            classes () {
-                const diffKey = `${this.data.realId}`;
-                if (this.diff[diffKey]) {
-                    return this.diff[diffKey].type;
-                }
-                return '';
-            },
-            diffValue () {
-                const diffKey = `${this.data.realId}`;
-                if (this.diff[diffKey]) {
-                    return this.diff[diffKey].value || {};
-                }
-                return {};
-            },
-        },
-    };
+  export default {
+    name: 'DiffTaskStep',
+    inheritAttrs: false,
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+      diff: {
+        type: Object,
+        default: () => ({}),
+      },
+      type: {
+        type: String,
+        default: '',
+      },
+    },
+    computed: {
+      infoCom () {
+        return comMap[this.data.type];
+      },
+      info () {
+        const fieldMap = {
+          [TaskStepModel.TYPE_SCRIPT]: 'scriptStepInfo',
+          [TaskStepModel.TYPE_FILE]: 'fileStepInfo',
+          [TaskStepModel.TYPE_APPROVAL]: 'approvalStepInfo',
+        };
+        return this.data[fieldMap[this.data.type]];
+      },
+      classes () {
+        const diffKey = `${this.data.realId}`;
+        if (this.diff[diffKey]) {
+          return this.diff[diffKey].type;
+        }
+        return '';
+      },
+      diffValue () {
+        const diffKey = `${this.data.realId}`;
+        if (this.diff[diffKey]) {
+          return this.diff[diffKey].value || {};
+        }
+        return {};
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     html[lang="en-US"] {

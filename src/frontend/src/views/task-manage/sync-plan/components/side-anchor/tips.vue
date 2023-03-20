@@ -26,75 +26,75 @@
 -->
 
 <template>
-    <div class="sync-plan-side-anchor-tips" :style="styles" ref="tips">
-        <div class="wraper" ref="content">
-            {{ data.name }}
-        </div>
+  <div ref="tips" class="sync-plan-side-anchor-tips" :style="styles">
+    <div ref="content" class="wraper">
+      {{ data.name }}
     </div>
+  </div>
 </template>
 <script>
-    import {
-        getScrollParent,
-    } from '@utils/assist';
+  import {
+    getScrollParent,
+  } from '@utils/assist';
 
-    export default {
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                position: 'left',
-                top: 0,
-                left: 0,
-            };
-        },
-        computed: {
-            styles () {
-                return {
-                    position: 'absolute',
-                    top: `${this.top}px`,
-                    left: `${this.left}px`,
-                    'z-index': window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-                };
-            },
-        },
-        mounted () {
-            this.$target = document.querySelector('.sync-plan-side-anchor').querySelector(`[data-anchor="${this.data.target}"]`);
-            const scrollParent = getScrollParent(this.$target);
-            if (scrollParent) {
-                scrollParent.addEventListener('scroll', this.calcPosition);
-                this.$once('hook:beforeDestroy', () => {
-                    scrollParent.removeEventListener('scroll', this.calcPosition);
-                });
-            }
+  export default {
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        position: 'left',
+        top: 0,
+        left: 0,
+      };
+    },
+    computed: {
+      styles () {
+        return {
+          position: 'absolute',
+          top: `${this.top}px`,
+          left: `${this.left}px`,
+          'z-index': window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+        };
+      },
+    },
+    mounted () {
+      this.$target = document.querySelector('.sync-plan-side-anchor').querySelector(`[data-anchor="${this.data.target}"]`);
+      const scrollParent = getScrollParent(this.$target);
+      if (scrollParent) {
+        scrollParent.addEventListener('scroll', this.calcPosition);
+        this.$once('hook:beforeDestroy', () => {
+          scrollParent.removeEventListener('scroll', this.calcPosition);
+        });
+      }
             
-            this.init();
-        },
-        beforeDestroy () {
-            try {
-                if (this.$refs.detail) {
-                    document.body.removeChild(this.$refs.detail);
-                }
-            } catch (error) {}
-        },
-        methods: {
-            init () {
-                this.$nextTick(() => {
-                    this.calcPosition();
-                });
-                document.body.appendChild(this.$refs.tips);
-            },
-            calcPosition () {
-                const tipsHeight = this.$refs.tips.getBoundingClientRect().height;
-                const { top, left, height } = this.$target.getBoundingClientRect();
-                this.top = top - (tipsHeight - height) / 2;
-                this.left = left;
-            },
-        },
-    };
+      this.init();
+    },
+    beforeDestroy () {
+      try {
+        if (this.$refs.detail) {
+          document.body.removeChild(this.$refs.detail);
+        }
+      } catch (error) {}
+    },
+    methods: {
+      init () {
+        this.$nextTick(() => {
+          this.calcPosition();
+        });
+        document.body.appendChild(this.$refs.tips);
+      },
+      calcPosition () {
+        const tipsHeight = this.$refs.tips.getBoundingClientRect().height;
+        const { top, left, height } = this.$target.getBoundingClientRect();
+        this.top = top - (tipsHeight - height) / 2;
+        this.left = left;
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .sync-plan-side-anchor-tips {

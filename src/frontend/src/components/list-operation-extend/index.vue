@@ -26,53 +26,53 @@
 -->
 
 <template>
-    <div class="list-operation-extend">
-        <Icon type="more" class="icon" />
-        <div
-            ref="content"
-            class="list-operation-extend-wrapper"
-            @click="handleClick">
-            <slot />
-        </div>
+  <div class="list-operation-extend">
+    <Icon class="icon" type="more" />
+    <div
+      ref="content"
+      class="list-operation-extend-wrapper"
+      @click="handleClick">
+      <slot />
     </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
+  import _ from 'lodash';
 
-    const instanceMap = {};
+  const instanceMap = {};
 
-    export default {
-        created () {
-            this.id = `${_.random(1, 1000)}_${Date.now()}_PopoverRef`;
-            this.timer = '';
-        },
-        mounted () {
-            this.init();
-        },
-        methods: {
-            init () {
-                instanceMap[this.id] = this.$bkPopover(this.$el, {
-                    theme: 'list-operation-extend-popover light',
-                    interactive: true,
-                    placement: 'bottom',
-                    content: this.$refs.content,
-                    trigger: 'click',
-                    arrow: true,
-                    size: 'small',
-                    onShow: () => {
-                        Object.keys(instanceMap).forEach((key) => {
-                            if (key !== this.id) {
-                                instanceMap[key].hide();
-                            }
-                        });
-                    },
-                });
-            },
-            handleClick () {
-                instanceMap[this.id].hide();
-            },
-        },
-    };
+  export default {
+    created () {
+      this.id = `${_.random(1, 1000)}_${Date.now()}_PopoverRef`;
+      this.timer = '';
+    },
+    mounted () {
+      this.init();
+    },
+    methods: {
+      init () {
+        instanceMap[this.id] = this.$bkPopover(this.$el, {
+          theme: 'list-operation-extend-popover light',
+          interactive: true,
+          placement: 'bottom',
+          content: this.$refs.content,
+          trigger: 'click',
+          arrow: true,
+          size: 'small',
+          onShow: () => {
+            Object.keys(instanceMap).forEach((key) => {
+              if (key !== this.id) {
+                instanceMap[key].hide();
+              }
+            });
+          },
+        });
+      },
+      handleClick () {
+        instanceMap[this.id].hide();
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .list-operation-extend {

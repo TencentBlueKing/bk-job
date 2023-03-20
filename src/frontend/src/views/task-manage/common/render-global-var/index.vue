@@ -26,448 +26,448 @@
 -->
 
 <template>
-    <div id="templateVariableRender">
-        <div v-if="showEmpty">--</div>
-        <template v-else>
-            <div class="variable-batch-action">
-                <bk-button
-                    v-if="isOperation"
-                    text
-                    @click="handleShowBatchOperation">
-                    <Icon type="bulk-edit" />
-                    {{ $t('template.批量编辑') }}
-                </bk-button>
-                <bk-button
-                    v-if="isEditOfPlan"
-                    text
-                    @click="handleShowBatchEditOfPlan">
-                    <Icon type="bulk-edit" />
-                    {{ $t('template.批量编辑变量值') }}
-                </bk-button>
-            </div>
-            <div class="task-global-variable-box">
-                <template v-for="(item, index) in variable">
-                    <div
-                        v-if="item.delete !== 1"
-                        :key="`${item.name}_${index}`"
-                        class="render-global-variable"
-                        :class="[
-                            {
-                                'step-mode-diff': isDiff,
-                            },
-                            isSelect ?
-                                selectValue.includes(item.name) ? 'selected' : 'not-selected'
-                                : '',
-                        ]">
-                        <div
-                            class="global-variable-content"
-                            :class="[diff[item.id] && diff[item.id].type]"
-                            @mouseenter="handleShowPopoverDetail(item)"
-                            @mouseleave="handleHidePopoverDetail"
-                            @click="handlerOperation(item, index)">
-                            <div
-                                :id="`globalVariableWithName_${item.name}`"
-                                class="variable-type">
-                                <Icon :type="item.icon" />
-                            </div>
-                            <div class="variable-info">
-                                <div class="variable-name">{{ item.name }}</div>
-                                <div class="variable-description">{{ item.valueText }}</div>
-                            </div>
-                            <Icon
-                                v-if="isOperation"
-                                type="close"
-                                class="variable-delete-btn"
-                                @click.stop="handleDelete(index)" />
-                        </div>
-                    </div>
-                </template>
-                <div
-                    v-if="isOperation"
-                    key="create"
-                    class="global-variable-new">
-                    <div
-                        class="new-btn"
-                        v-test="{ type: 'button', value: 'create_global_variable' }"
-                        @click="handleCreate">
-                        <Icon type="plus" class="create-flag" />
-                        <span>{{ $t('template.全局变量.label') }}</span>
-                    </div>
-                    <div
-                        class="use-guide"
-                        :class="{
-                            active: isShowUseGuide,
-                        }"
-                        v-bk-tooltips="$t('template.使用指引')"
-                        @click.stop="handleUseGuideToggle">
-                        <Icon type="help-document-fill" />
-                    </div>
-                </div>
-            </div>
-            <popover-detail
-                v-if="currentPopoverDetail.name"
-                :data="currentPopoverDetail"
-                :select-value="selectValue"
-                :edit-of-plan="isEditOfPlan"
-                :default-field="defaultField" />
-            <element-teleport
-                v-if="isOperation && isShowUseGuide"
-                target="#globalVariableGuide">
-                <variable-use-guide
-                    @on-close="handleUseGuideClose" />
-            </element-teleport>
-            <jb-sideslider
-                v-if="isView || isEditOfPlan"
-                :is-show.sync="isShowDetail"
-                :title="$t('template.查看全局变量')"
-                :show-footer="false"
-                ref="variableView"
-                :media="detailMedia">
-                <detail
-                    v-if="isShowDetail"
-                    :data="currentData"
-                    :default-field="defaultField" />
-            </jb-sideslider>
-            <jb-sideslider
-                v-if="isEditOfPlan"
-                :is-show.sync="isShowEditOfPlan"
-                :title="$t('template.编辑全局变量')"
-                :width="960">
-                <edit-of-plan
-                    v-if="isShowEditOfPlan"
-                    ref="planGlobalVar"
-                    :data="currentData"
-                    @on-change="handlePlanEditSubmit" />
-            </jb-sideslider>
-            <jb-sideslider
-                v-if="isEditOfPlan"
-                :is-show.sync="isShowBatchEditOfPlan"
-                :title="$t('template.批量编辑变量值')"
-                :width="960"
-                :ok-text="$t('template.确定')"
-                footer-offset-target="variable-value">
-                <batch-edit-of-plan
-                    v-if="isShowBatchEditOfPlan"
-                    ref="planGlobalVar"
-                    :selected-list="selectValue"
-                    :variable-list="variable"
-                    @on-change="handleBatchPlanEditSubmit" />
-            </jb-sideslider>
-            <jb-sideslider
+  <div id="templateVariableRender">
+    <div v-if="showEmpty">--</div>
+    <template v-else>
+      <div class="variable-batch-action">
+        <bk-button
+          v-if="isOperation"
+          text
+          @click="handleShowBatchOperation">
+          <Icon type="bulk-edit" />
+          {{ $t('template.批量编辑') }}
+        </bk-button>
+        <bk-button
+          v-if="isEditOfPlan"
+          text
+          @click="handleShowBatchEditOfPlan">
+          <Icon type="bulk-edit" />
+          {{ $t('template.批量编辑变量值') }}
+        </bk-button>
+      </div>
+      <div class="task-global-variable-box">
+        <template v-for="(item, index) in variable">
+          <div
+            v-if="item.delete !== 1"
+            :key="`${item.name}_${index}`"
+            class="render-global-variable"
+            :class="[
+              {
+                'step-mode-diff': isDiff,
+              },
+              isSelect ?
+                selectValue.includes(item.name) ? 'selected' : 'not-selected'
+                : '',
+            ]">
+            <div
+              class="global-variable-content"
+              :class="[diff[item.id] && diff[item.id].type]"
+              @click="handlerOperation(item, index)"
+              @mouseenter="handleShowPopoverDetail(item)"
+              @mouseleave="handleHidePopoverDetail">
+              <div
+                :id="`globalVariableWithName_${item.name}`"
+                class="variable-type">
+                <Icon :type="item.icon" />
+              </div>
+              <div class="variable-info">
+                <div class="variable-name">{{ item.name }}</div>
+                <div class="variable-description">{{ item.valueText }}</div>
+              </div>
+              <Icon
                 v-if="isOperation"
-                :is-show.sync="isShowOperation"
-                v-bind="operationSideSliderInfo"
-                :width="960">
-                <operation
-                    v-if="isShowOperation"
-                    ref="globalVar"
-                    :variable="realVariable"
-                    :data="currentData"
-                    @on-change="handleOperationSubmit" />
-            </jb-sideslider>
-            <jb-sideslider
-                v-if="isOperation"
-                :is-show.sync="isShowBatchOperation"
-                :title="$t('template.批量编辑变量')"
-                :media="batchOperationMediaQuery">
-                <batch-operation
-                    v-if="isShowBatchOperation"
-                    :variable="variable"
-                    @on-change="handleBatchOperationSubmit" />
-            </jb-sideslider>
+                class="variable-delete-btn"
+                type="close"
+                @click.stop="handleDelete(index)" />
+            </div>
+          </div>
         </template>
-    </div>
+        <div
+          v-if="isOperation"
+          key="create"
+          class="global-variable-new">
+          <div
+            v-test="{ type: 'button', value: 'create_global_variable' }"
+            class="new-btn"
+            @click="handleCreate">
+            <Icon class="create-flag" type="plus" />
+            <span>{{ $t('template.全局变量.label') }}</span>
+          </div>
+          <div
+            v-bk-tooltips="$t('template.使用指引')"
+            class="use-guide"
+            :class="{
+              active: isShowUseGuide,
+            }"
+            @click.stop="handleUseGuideToggle">
+            <Icon type="help-document-fill" />
+          </div>
+        </div>
+      </div>
+      <popover-detail
+        v-if="currentPopoverDetail.name"
+        :data="currentPopoverDetail"
+        :default-field="defaultField"
+        :edit-of-plan="isEditOfPlan"
+        :select-value="selectValue" />
+      <element-teleport
+        v-if="isOperation && isShowUseGuide"
+        target="#globalVariableGuide">
+        <variable-use-guide
+          @on-close="handleUseGuideClose" />
+      </element-teleport>
+      <jb-sideslider
+        v-if="isView || isEditOfPlan"
+        ref="variableView"
+        :is-show.sync="isShowDetail"
+        :media="detailMedia"
+        :show-footer="false"
+        :title="$t('template.查看全局变量')">
+        <detail
+          v-if="isShowDetail"
+          :data="currentData"
+          :default-field="defaultField" />
+      </jb-sideslider>
+      <jb-sideslider
+        v-if="isEditOfPlan"
+        :is-show.sync="isShowEditOfPlan"
+        :title="$t('template.编辑全局变量')"
+        :width="960">
+        <edit-of-plan
+          v-if="isShowEditOfPlan"
+          ref="planGlobalVar"
+          :data="currentData"
+          @on-change="handlePlanEditSubmit" />
+      </jb-sideslider>
+      <jb-sideslider
+        v-if="isEditOfPlan"
+        footer-offset-target="variable-value"
+        :is-show.sync="isShowBatchEditOfPlan"
+        :ok-text="$t('template.确定')"
+        :title="$t('template.批量编辑变量值')"
+        :width="960">
+        <batch-edit-of-plan
+          v-if="isShowBatchEditOfPlan"
+          ref="planGlobalVar"
+          :selected-list="selectValue"
+          :variable-list="variable"
+          @on-change="handleBatchPlanEditSubmit" />
+      </jb-sideslider>
+      <jb-sideslider
+        v-if="isOperation"
+        :is-show.sync="isShowOperation"
+        v-bind="operationSideSliderInfo"
+        :width="960">
+        <operation
+          v-if="isShowOperation"
+          ref="globalVar"
+          :data="currentData"
+          :variable="realVariable"
+          @on-change="handleOperationSubmit" />
+      </jb-sideslider>
+      <jb-sideslider
+        v-if="isOperation"
+        :is-show.sync="isShowBatchOperation"
+        :media="batchOperationMediaQuery"
+        :title="$t('template.批量编辑变量')">
+        <batch-operation
+          v-if="isShowBatchOperation"
+          :variable="variable"
+          @on-change="handleBatchOperationSubmit" />
+      </jb-sideslider>
+    </template>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import VariableModel from '@model/task/global-variable';
-    import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
-    import Operation from './operation';
-    import BatchOperation from './batch-operation';
-    import Detail from './detail';
-    import EditOfPlan from './edit-of-plan';
-    import BatchEditOfPlan from './batch-edit-of-plan';
-    import PopoverDetail from './popover-detail';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
+  import VariableModel from '@model/task/global-variable';
+  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
+  import Operation from './operation';
+  import BatchOperation from './batch-operation';
+  import Detail from './detail';
+  import EditOfPlan from './edit-of-plan';
+  import BatchEditOfPlan from './batch-edit-of-plan';
+  import PopoverDetail from './popover-detail';
 
-    export default {
-        name: 'RenderGlobalVar',
-        components: {
-            VariableUseGuide,
-            Operation,
-            BatchOperation,
-            Detail,
-            EditOfPlan,
-            BatchEditOfPlan,
-            PopoverDetail,
+  export default {
+    name: 'RenderGlobalVar',
+    components: {
+      VariableUseGuide,
+      Operation,
+      BatchOperation,
+      Detail,
+      EditOfPlan,
+      BatchEditOfPlan,
+      PopoverDetail,
+    },
+    props: {
+      list: {
+        type: Array,
+        required: true,
+      },
+      /*
+       * @value ''：仅可查看详情
+       * @value 'operate': 可编辑可新建可删除
+       * @value 'select': 选择模式
+       * @value 'editOfPlan'：不可删除，使用执行方案的编辑功能
+       * @value 'viewOfPlan': 执行方案的查看功能
+       * @value 'diff'：diff场景
+       */
+      mode: {
+        type: String,
+        default: '',
+      },
+      selectValue: {
+        type: Array,
+        default: () => [],
+      },
+      defaultField: {
+        type: String,
+        default: I18n.t('template.初始值'),
+      },
+      diff: {
+        type: Object,
+        default: () => ({}),
+      },
+    },
+    data () {
+      return {
+        isShowDetail: false,
+        isShowUseGuide: false,
+        isShowOperation: false,
+        isShowBatchOperation: false,
+        isShowEditOfPlan: false,
+        isShowBatchEditOfPlan: false,
+        variable: [],
+        currentPopoverDetail: {},
+        currentData: {},
+        currentIndex: -1,
+        currentOperation: 'create',
+        detailMedia: [],
+      };
+    },
+    computed: {
+      /**
+       * @desc 展示数据为空时的文本
+       * @returns { Boolean }
+       */
+      showEmpty () {
+        if (this.isOperation) {
+          return false;
+        }
+        return this.variable.length < 1;
+      },
+      /**
+       * @desc 新建、编辑全局变量
+       * @returns { Boolean }
+       */
+      isOperation () {
+        return this.mode === 'operate';
+      },
+      /**
+       * @desc 选择全局变量
+       * @returns { Boolean }
+       */
+      isSelect () {
+        return this.mode === 'select' || this.mode === 'editOfPlan';
+      },
+      /**
+       * @desc 编辑执行方案中的全局变量
+       * @returns { Boolean }
+       */
+      isEditOfPlan () {
+        return this.mode === 'editOfPlan';
+      },
+      /**
+       * @desc 查看全局变量
+       * @returns { Boolean }
+       */
+      isView () {
+        return !this.mode;
+      },
+      /**
+       * @desc 插卡全局变量同步对比差异
+       * @returns { Boolean }
+       */
+      isDiff () {
+        return this.mode === 'diff';
+      },
+      /**
+       * @desc 展示的全局变量不包含已删除
+       * @returns { Array }
+       */
+      realVariable () {
+        // 过滤掉已经删除的变量
+        const validVariable = this.variable.filter(item => !item.delete);
+        // 编辑操作不包含正在编辑的变量
+        if (this.currentOperation === 'edit') {
+          return validVariable.filter(item => item.name !== this.currentData.name);
+        }
+        return validVariable;
+      },
+      /**
+       * @desc 变量编辑侧栏的展示信息
+       * @returns { Object }
+       */
+      operationSideSliderInfo () {
+        if (Object.keys(this.currentData).length < 1) {
+          return {
+            title: I18n.t('template.新建全局变量'),
+            okText: I18n.t('template.提交'),
+          };
+        }
+        return {
+          title: I18n.t('template.编辑全局变量'),
+          okText: I18n.t('template.保存'),
+        };
+      },
+    },
+    watch: {
+      list: {
+        handler (value) {
+          this.variable = _.cloneDeep(value);
         },
-        props: {
-            list: {
-                type: Array,
-                required: true,
-            },
-            /*
-             * @value ''：仅可查看详情
-             * @value 'operate': 可编辑可新建可删除
-             * @value 'select': 选择模式
-             * @value 'editOfPlan'：不可删除，使用执行方案的编辑功能
-             * @value 'viewOfPlan': 执行方案的查看功能
-             * @value 'diff'：diff场景
-             */
-            mode: {
-                type: String,
-                default: '',
-            },
-            selectValue: {
-                type: Array,
-                default: () => [],
-            },
-            defaultField: {
-                type: String,
-                default: I18n.t('template.初始值'),
-            },
-            diff: {
-                type: Object,
-                default: () => ({}),
-            },
-        },
-        data () {
-            return {
-                isShowDetail: false,
-                isShowUseGuide: false,
-                isShowOperation: false,
-                isShowBatchOperation: false,
-                isShowEditOfPlan: false,
-                isShowBatchEditOfPlan: false,
-                variable: [],
-                currentPopoverDetail: {},
-                currentData: {},
-                currentIndex: -1,
-                currentOperation: 'create',
-                detailMedia: [],
-            };
-        },
-        computed: {
-            /**
-             * @desc 展示数据为空时的文本
-             * @returns { Boolean }
-             */
-            showEmpty () {
-                if (this.isOperation) {
-                    return false;
-                }
-                return this.variable.length < 1;
-            },
-            /**
-             * @desc 新建、编辑全局变量
-             * @returns { Boolean }
-             */
-            isOperation () {
-                return this.mode === 'operate';
-            },
-            /**
-             * @desc 选择全局变量
-             * @returns { Boolean }
-             */
-            isSelect () {
-                return this.mode === 'select' || this.mode === 'editOfPlan';
-            },
-            /**
-             * @desc 编辑执行方案中的全局变量
-             * @returns { Boolean }
-             */
-            isEditOfPlan () {
-                return this.mode === 'editOfPlan';
-            },
-            /**
-             * @desc 查看全局变量
-             * @returns { Boolean }
-             */
-            isView () {
-                return !this.mode;
-            },
-            /**
-             * @desc 插卡全局变量同步对比差异
-             * @returns { Boolean }
-             */
-            isDiff () {
-                return this.mode === 'diff';
-            },
-            /**
-             * @desc 展示的全局变量不包含已删除
-             * @returns { Array }
-             */
-            realVariable () {
-                // 过滤掉已经删除的变量
-                const validVariable = this.variable.filter(item => !item.delete);
-                // 编辑操作不包含正在编辑的变量
-                if (this.currentOperation === 'edit') {
-                    return validVariable.filter(item => item.name !== this.currentData.name);
-                }
-                return validVariable;
-            },
-            /**
-             * @desc 变量编辑侧栏的展示信息
-             * @returns { Object }
-             */
-            operationSideSliderInfo () {
-                if (Object.keys(this.currentData).length < 1) {
-                    return {
-                        title: I18n.t('template.新建全局变量'),
-                        okText: I18n.t('template.提交'),
-                    };
-                }
-                return {
-                    title: I18n.t('template.编辑全局变量'),
-                    okText: I18n.t('template.保存'),
-                };
-            },
-        },
-        watch: {
-            list: {
-                handler (value) {
-                    this.variable = _.cloneDeep(value);
-                },
-                immediate: true,
-            },
-        },
-        created () {
-            this.batchOperationMediaQuery = [1080, 1280, 1520, 1800];
-        },
-        methods: {
-            /**
-             * @desc 更新外部数据
-             */
-            triggerChange () {
-                this.$emit('on-change', this.variable);
-            },
-            /**
-             * @desc 显示全局变量详情tips
-             * @param {Object} variableInfo 全局变量详情
-             */
-            handleShowPopoverDetail (variableInfo) {
-                this.currentPopoverDetail = variableInfo;
-            },
-            /**
-             * @desc 隐藏全局变量详情tips
-             */
-            handleHidePopoverDetail () {
-                this.currentPopoverDetail = {};
-            },
-            /**
-             * @desc 批量编辑
-             */
-            handleShowBatchOperation () {
-                this.isShowBatchOperation = true;
-            },
-            /**
-             * @desc 批量编辑执行方案中变量值
-             */
-            handleShowBatchEditOfPlan () {
-                this.isShowBatchEditOfPlan = true;
-            },
-            /**
-             * @desc 点击全局变量
-             * @param {Object} variableInfo 全局变量详情
-             * @param {Index} index 点击变量的索引
-             */
-            handlerOperation (variableInfo, index) {
-                this.currentData = variableInfo;
-                if (this.isView) {
-                    this.detailMedia = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
-                    this.isShowDetail = true;
-                    return;
-                }
-                this.currentOperation = 'edit';
-                this.currentIndex = index;
-                if (this.isEditOfPlan) {
-                    this.isShowEditOfPlan = true;
-                    return;
-                }
-                this.isShowOperation = true;
-            },
-            /**
-             * @desc 删除全局变量
-             * @param {Number} index 删除变量的索引
-             */
-            handleDelete (index) {
-                this.$bkInfo({
-                    title: I18n.t('template.确定删除该全局变量？'),
-                    subTitle: I18n.t('template.若该变量被步骤引用，请及时检查并更新步骤设置'),
-                    confirmFn: () => {
-                        const currentVar = this.variable[index];
-                        if (currentVar.id > 0) {
-                            // 删除已存在的变量
-                            //  —设置delete
-                            currentVar.delete = 1;
-                        } else {
-                            // 删除新建的变量
-                            //  —直接删除
-                            this.variable.splice(index, 1);
-                        }
-                        this.triggerChange();
-                    },
-                });
-            },
-            /**
-             * @desc 显示新建全局变量弹层
-             */
-            handleCreate () {
-                this.currentOperation = 'create';
-                this.currentData = {};
-                this.isShowOperation = true;
-                this.$refs.globalVar && this.$refs.globalVar.reset();
-            },
-            /**
-             * @desc 执行方案全局变量编辑
-             * @param {Object} payload 全局变量数据
-             */
-            handlePlanEditSubmit (payload) {
-                const variable = new VariableModel(payload);
-                this.variable.splice(this.currentIndex, 1, variable);
-                this.triggerChange();
-            },
-            /**
-             * @desc 批量编辑执行方案全局变量
-             * @param {Array} variableList 全局变量列表
-             */
-            handleBatchPlanEditSubmit (variableList) {
-                const variables = variableList.map(item => new VariableModel(item));
-                this.variable = variables;
-                this.triggerChange();
-            },
-            /**
-             * @desc 全局变量编辑
-             * @param {Object} payload 全局变量数据
-             */
-            handleOperationSubmit (payload) {
-                const payloadModel = new VariableModel(payload);
-                if (this.currentOperation === 'create') {
-                    // 新建变量——追加
-                    this.variable.push(payloadModel);
-                } else {
-                    // 编辑变量——替换
-                    this.variable.splice(this.currentIndex, 1, payloadModel);
-                }
-                this.triggerChange();
-                this.currentOperation = '';
-            },
-            /**
-             * @desc 全局变量批量编辑
-             * @param {Array} variableList 全局变量数据
-             */
-            handleBatchOperationSubmit (variableList) {
-                this.variable = variableList;
-                this.triggerChange();
-            },
-            handleUseGuideToggle () {
-                this.isShowUseGuide = !this.isShowUseGuide;
-            },
-            handleUseGuideClose () {
-                this.isShowUseGuide = false;
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    created () {
+      this.batchOperationMediaQuery = [1080, 1280, 1520, 1800];
+    },
+    methods: {
+      /**
+       * @desc 更新外部数据
+       */
+      triggerChange () {
+        this.$emit('on-change', this.variable);
+      },
+      /**
+       * @desc 显示全局变量详情tips
+       * @param {Object} variableInfo 全局变量详情
+       */
+      handleShowPopoverDetail (variableInfo) {
+        this.currentPopoverDetail = variableInfo;
+      },
+      /**
+       * @desc 隐藏全局变量详情tips
+       */
+      handleHidePopoverDetail () {
+        this.currentPopoverDetail = {};
+      },
+      /**
+       * @desc 批量编辑
+       */
+      handleShowBatchOperation () {
+        this.isShowBatchOperation = true;
+      },
+      /**
+       * @desc 批量编辑执行方案中变量值
+       */
+      handleShowBatchEditOfPlan () {
+        this.isShowBatchEditOfPlan = true;
+      },
+      /**
+       * @desc 点击全局变量
+       * @param {Object} variableInfo 全局变量详情
+       * @param {Index} index 点击变量的索引
+       */
+      handlerOperation (variableInfo, index) {
+        this.currentData = variableInfo;
+        if (this.isView) {
+          this.detailMedia = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
+          this.isShowDetail = true;
+          return;
+        }
+        this.currentOperation = 'edit';
+        this.currentIndex = index;
+        if (this.isEditOfPlan) {
+          this.isShowEditOfPlan = true;
+          return;
+        }
+        this.isShowOperation = true;
+      },
+      /**
+       * @desc 删除全局变量
+       * @param {Number} index 删除变量的索引
+       */
+      handleDelete (index) {
+        this.$bkInfo({
+          title: I18n.t('template.确定删除该全局变量？'),
+          subTitle: I18n.t('template.若该变量被步骤引用，请及时检查并更新步骤设置'),
+          confirmFn: () => {
+            const currentVar = this.variable[index];
+            if (currentVar.id > 0) {
+              // 删除已存在的变量
+              //  —设置delete
+              currentVar.delete = 1;
+            } else {
+              // 删除新建的变量
+              //  —直接删除
+              this.variable.splice(index, 1);
+            }
+            this.triggerChange();
+          },
+        });
+      },
+      /**
+       * @desc 显示新建全局变量弹层
+       */
+      handleCreate () {
+        this.currentOperation = 'create';
+        this.currentData = {};
+        this.isShowOperation = true;
+        this.$refs.globalVar && this.$refs.globalVar.reset();
+      },
+      /**
+       * @desc 执行方案全局变量编辑
+       * @param {Object} payload 全局变量数据
+       */
+      handlePlanEditSubmit (payload) {
+        const variable = new VariableModel(payload);
+        this.variable.splice(this.currentIndex, 1, variable);
+        this.triggerChange();
+      },
+      /**
+       * @desc 批量编辑执行方案全局变量
+       * @param {Array} variableList 全局变量列表
+       */
+      handleBatchPlanEditSubmit (variableList) {
+        const variables = variableList.map(item => new VariableModel(item));
+        this.variable = variables;
+        this.triggerChange();
+      },
+      /**
+       * @desc 全局变量编辑
+       * @param {Object} payload 全局变量数据
+       */
+      handleOperationSubmit (payload) {
+        const payloadModel = new VariableModel(payload);
+        if (this.currentOperation === 'create') {
+          // 新建变量——追加
+          this.variable.push(payloadModel);
+        } else {
+          // 编辑变量——替换
+          this.variable.splice(this.currentIndex, 1, payloadModel);
+        }
+        this.triggerChange();
+        this.currentOperation = '';
+      },
+      /**
+       * @desc 全局变量批量编辑
+       * @param {Array} variableList 全局变量数据
+       */
+      handleBatchOperationSubmit (variableList) {
+        this.variable = variableList;
+        this.triggerChange();
+      },
+      handleUseGuideToggle () {
+        this.isShowUseGuide = !this.isShowUseGuide;
+      },
+      handleUseGuideClose () {
+        this.isShowUseGuide = false;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     @import "@/css/mixins/media";

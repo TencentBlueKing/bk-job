@@ -26,61 +26,61 @@
 -->
 
 <template>
-    <div ref="layout" class="script-version-manage-layout">
-        <div class="layout-header">
-            <div class="header-title">
-                <slot name="title" />
-            </div>
-            <div class="sub-header">
-                <slot name="sub-header" />
-            </div>
-        </div>
-        <div
-            ref="content"
-            class="layout-container"
-            :style="contentStyles">
-            <resizeable-box
-                v-if="$slots.left"
-                class="left"
-                free-position="right">
-                <slot name="left" />
-            </resizeable-box>
-            <div class="right">
-                <slot />
-            </div>
-        </div>
-        <div class="layout-footer">
-            <slot name="footer" />
-        </div>
+  <div ref="layout" class="script-version-manage-layout">
+    <div class="layout-header">
+      <div class="header-title">
+        <slot name="title" />
+      </div>
+      <div class="sub-header">
+        <slot name="sub-header" />
+      </div>
     </div>
+    <div
+      ref="content"
+      class="layout-container"
+      :style="contentStyles">
+      <resizeable-box
+        v-if="$slots.left"
+        class="left"
+        free-position="right">
+        <slot name="left" />
+      </resizeable-box>
+      <div class="right">
+        <slot />
+      </div>
+    </div>
+    <div class="layout-footer">
+      <slot name="footer" />
+    </div>
+  </div>
 </template>
 <script>
-    import { getOffset } from '@utils/assist';
+  import { getOffset } from '@utils/assist';
 
-    const PAGE_PADDING_BOTTOM = 20;
+  const PAGE_PADDING_BOTTOM = 20;
 
-    export default {
-        name: '',
-        data () {
-            return {
-                showContent: !this.loading,
-                offsetLeft: 0,
-                contentOffsetTop: 0,
-                footerHeight: 46,
-            };
-        },
-        computed: {
-            contentStyles () {
-                const offset = this.contentOffsetTop + PAGE_PADDING_BOTTOM + this.footerHeight;
-                return {
-                    height: `calc(100vh - ${offset}px)`,
-                };
-            },
-        },
-        mounted () {
-            this.contentOffsetTop = getOffset(this.$refs.content).top;
-        },
-    };
+  export default {
+    name: '',
+    data () {
+      return {
+        showContent: !this.loading,
+        offsetLeft: 0,
+        contentOffsetTop: 0,
+        footerHeight: 46,
+      };
+    },
+    computed: {
+      contentStyles () {
+        const offset = this.contentOffsetTop + PAGE_PADDING_BOTTOM + this.footerHeight;
+        return {
+          height: `calc(100vh - ${offset}px)`,
+        };
+      },
+    },
+    mounted () {
+      this.contentOffsetTop = getOffset(this.$refs.content).top;
+    },
+  };
 </script>
 <style lang='postcss'>
     .script-version-manage-layout {

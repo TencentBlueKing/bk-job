@@ -26,241 +26,241 @@
 -->
 
 <template>
-    <div class="render-related-script" v-bkloading="{ isLoading }">
-        <div class="tab-wraper">
-            <div
-                class="tab-item"
-                :class="{ active: listTab === 'template' }"
-                @click="handleTabChange('template')">
-                <div class="tab-name">{{ $t('script.作业模板引用') }}</div>
-                <Icon
-                    v-if="isLaunchLoading"
-                    type="sync-pending"
-                    svg
-                    class="loading-flag" />
-                <div v-else class="tab-nums">{{ launchNums }}</div>
-            </div>
-            <div
-                class="tab-item"
-                :class="{ active: listTab === 'plan' }"
-                @click="handleTabChange('plan')">
-                <div class="tab-name">{{ $t('script.执行方案引用') }}</div>
-                <Icon
-                    v-if="isUnlaunchLoading"
-                    type="sync-pending"
-                    svg
-                    class="loading-flag" />
-                <div v-else class="tab-nums">{{ unLaunchNums }}</div>
-            </div>
-        </div>
-        <div class="search">
-            <jb-search-select
-                @on-change="handleSearch"
-                :data="searchSelect"
-                :popover-zindex="99999"
-                :placeholder="$t('script.搜索名称，版本号')"
-                style="width: 100%;" />
-        </div>
-        <bk-table :data="renderList">
-            <!-- 执行方案引用 -->
-            <bk-table-column
-                v-if="isPlanRelated"
-                :label="$t('script.执行方案')"
-                align="left"
-                show-overflow-tooltip>
-                <template slot-scope="{ row }">
-                    <bk-button
-                        text
-                        @click="handleGoPlanDetail(row)">
-                        {{ row.taskPlanName }}
-                    </bk-button>
-                </template>
-            </bk-table-column>
-            <!-- 作业模板引用 -->
-            <bk-table-column
-                v-if="!isPlanRelated"
-                :label="$t('script.作业模板')"
-                align="left"
-                show-overflow-tooltip>
-                <template slot-scope="{ row }">
-                    <bk-button
-                        text
-                        @click="handleGoTemplateDetail(row)">
-                        {{ row.taskTemplateName }}
-                    </bk-button>
-                </template>
-            </bk-table-column>
-            <bk-table-column
-                :label="$t('script.引用的版本号')"
-                prop="scriptVersion"
-                align="left" />
-            <bk-table-column
-                :label="$t('script.状态')"
-                prop="scriptStatusDesc"
-                align="left"
-                width="120">
-                <template slot-scope="{ row }">
-                    <span v-html="row.statusHtml" />
-                </template>
-            </bk-table-column>
-        </bk-table>
+  <div v-bkloading="{ isLoading }" class="render-related-script">
+    <div class="tab-wraper">
+      <div
+        class="tab-item"
+        :class="{ active: listTab === 'template' }"
+        @click="handleTabChange('template')">
+        <div class="tab-name">{{ $t('script.作业模板引用') }}</div>
+        <Icon
+          v-if="isLaunchLoading"
+          class="loading-flag"
+          svg
+          type="sync-pending" />
+        <div v-else class="tab-nums">{{ launchNums }}</div>
+      </div>
+      <div
+        class="tab-item"
+        :class="{ active: listTab === 'plan' }"
+        @click="handleTabChange('plan')">
+        <div class="tab-name">{{ $t('script.执行方案引用') }}</div>
+        <Icon
+          v-if="isUnlaunchLoading"
+          class="loading-flag"
+          svg
+          type="sync-pending" />
+        <div v-else class="tab-nums">{{ unLaunchNums }}</div>
+      </div>
     </div>
+    <div class="search">
+      <jb-search-select
+        :data="searchSelect"
+        :placeholder="$t('script.搜索名称，版本号')"
+        :popover-zindex="99999"
+        style="width: 100%;"
+        @on-change="handleSearch" />
+    </div>
+    <bk-table :data="renderList">
+      <!-- 执行方案引用 -->
+      <bk-table-column
+        v-if="isPlanRelated"
+        align="left"
+        :label="$t('script.执行方案')"
+        show-overflow-tooltip>
+        <template slot-scope="{ row }">
+          <bk-button
+            text
+            @click="handleGoPlanDetail(row)">
+            {{ row.taskPlanName }}
+          </bk-button>
+        </template>
+      </bk-table-column>
+      <!-- 作业模板引用 -->
+      <bk-table-column
+        v-if="!isPlanRelated"
+        align="left"
+        :label="$t('script.作业模板')"
+        show-overflow-tooltip>
+        <template slot-scope="{ row }">
+          <bk-button
+            text
+            @click="handleGoTemplateDetail(row)">
+            {{ row.taskTemplateName }}
+          </bk-button>
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        align="left"
+        :label="$t('script.引用的版本号')"
+        prop="scriptVersion" />
+      <bk-table-column
+        align="left"
+        :label="$t('script.状态')"
+        prop="scriptStatusDesc"
+        width="120">
+        <template slot-scope="{ row }">
+          <span v-html="row.statusHtml" />
+        </template>
+      </bk-table-column>
+    </bk-table>
+  </div>
 </template>
 <script>
-    import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
-    import I18n from '@/i18n';
-    import {
-        checkPublicScript,
-        encodeRegexp,
-    } from '@utils/assist';
-    import JbSearchSelect from '@components/jb-search-select';
+  import ScriptService from '@service/script-manage';
+  import PublicScriptService from '@service/public-script-manage';
+  import I18n from '@/i18n';
+  import {
+    checkPublicScript,
+    encodeRegexp,
+  } from '@utils/assist';
+  import JbSearchSelect from '@components/jb-search-select';
 
-    export default {
-        name: 'RenderRelatedScript',
-        components: {
-            JbSearchSelect,
+  export default {
+    name: 'RenderRelatedScript',
+    components: {
+      JbSearchSelect,
+    },
+    props: {
+      from: {
+        type: String,
+        validator (value) {
+          return [
+            'scriptList',
+            'scriptVersionList',
+          ].includes(value);
         },
-        props: {
-            from: {
-                type: String,
-                validator (value) {
-                    return [
-                        'scriptList',
-                        'scriptVersionList',
-                    ].includes(value);
-                },
-                required: true,
-            },
-            mode: {
-                type: String,
-                validator (value) {
-                    return [
-                        'template',
-                        'plan',
-                    ].includes(value);
-                },
-                required: true,
-            },
-            info: {
-                type: Object,
-                required: true,
-            },
+        required: true,
+      },
+      mode: {
+        type: String,
+        validator (value) {
+          return [
+            'template',
+            'plan',
+          ].includes(value);
         },
-        data () {
-            this.publicScript = checkPublicScript(this.$route);
-            this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
+        required: true,
+      },
+      info: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      this.publicScript = checkPublicScript(this.$route);
+      this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
             
-            return {
-                isLoading: true,
-                list: [],
-                listTab: 'template',
-                renderList: [],
-            };
+      return {
+        isLoading: true,
+        list: [],
+        listTab: 'template',
+        renderList: [],
+      };
+    },
+    computed: {
+      isPlanRelated () {
+        return this.mode === 'plan';
+      },
+    },
+    watch: {
+      info: {
+        handler (info) {
+          if (!info.id && !info.scriptVersionId) {
+            return;
+          }
+          this.fetchData();
         },
-        computed: {
-            isPlanRelated () {
-                return this.mode === 'plan';
-            },
+        immediate: true,
+      },
+    },
+    created () {
+      this.searchSelect = [
+        {
+          name: I18n.t('script.名称'),
+          id: 'name',
+          default: true,
         },
-        watch: {
-            info: {
-                handler (info) {
-                    if (!info.id && !info.scriptVersionId) {
-                        return;
-                    }
-                    this.fetchData();
-                },
-                immediate: true,
-            },
+        {
+          name: I18n.t('script.版本号.colHead'),
+          id: 'scriptVersion',
         },
-        created () {
-            this.searchSelect = [
-                {
-                    name: I18n.t('script.名称'),
-                    id: 'name',
-                    default: true,
-                },
-                {
-                    name: I18n.t('script.版本号.colHead'),
-                    id: 'scriptVersion',
-                },
-            ];
-        },
-        methods: {
-            /**
-             * @desc 获取关联脚本列表
-             */
-            fetchData () {
-                this.isLoading = true;
-                const params = {
-                    scriptId: this.info.id,
-                };
-                if (this.from === 'scriptVersionList') {
-                    params.scriptVersionId = this.info.scriptVersionId;
-                }
-                this.serviceHandler.citeInfo(params)
-                    .then(({ citedTaskPlanList, citedTemplateList }) => {
-                        if (this.isPlanRelated) {
-                            this.list = Object.freeze(citedTaskPlanList);
-                        } else {
-                            this.list = Object.freeze(citedTemplateList);
-                        }
-                        this.renderList = this.list;
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            /**
-             * @desc 本地搜索
-             * @param {Object} payload 搜索条件
-             */
-            handleSearch (payload) {
-                let { list } = this;
-                Object.keys(payload).forEach((key) => {
-                    const reg = new RegExp(encodeRegexp(payload[key]), 'i');
-                    let realKey = key;
-                    if (key === 'name') {
-                        realKey = this.isPlanRelated ? 'taskPlanName' : 'taskTemplateName';
-                    }
-                    list = list.filter(item => reg.test(item[realKey]));
-                });
-                this.renderList = Object.freeze(list);
-            },
-            /**
-             * @desc 查看引用脚本的执行方案详情
-             * @param {Object} payload 应用字段数据
-             *
-             * 需要解析资源的 scopeType、scopeId
-             */
-            handleGoPlanDetail (payload) {
-                const { href } = this.$router.resolve({
-                    name: 'viewPlan',
-                    params: {
-                        templateId: payload.taskTemplateId,
-                    },
-                    query: {
-                        viewPlanId: payload.taskPlanId,
-                    },
-                });
-                window.open(href.replace(/^\/[^/]+\/\d+/, `/${payload.scopeType}/${payload.scopeId}`));
-            },
-            /**
-             * @desc 查看引用脚本的作业模板详情
-             * @param {Object} payload 应用字段数据
-             *
-             * 需要解析资源的 scopeType、scopeId
-             */
-            handleGoTemplateDetail (payload) {
-                const { href } = this.$router.resolve({
-                    name: 'templateDetail',
-                    params: { id: payload.taskTemplateId },
-                });
-                window.open(href.replace(/^\/[^/]+\/\d+/, `/${payload.scopeType}/${payload.scopeId}`));
-            },
-        },
-    };
+      ];
+    },
+    methods: {
+      /**
+       * @desc 获取关联脚本列表
+       */
+      fetchData () {
+        this.isLoading = true;
+        const params = {
+          scriptId: this.info.id,
+        };
+        if (this.from === 'scriptVersionList') {
+          params.scriptVersionId = this.info.scriptVersionId;
+        }
+        this.serviceHandler.citeInfo(params)
+          .then(({ citedTaskPlanList, citedTemplateList }) => {
+            if (this.isPlanRelated) {
+              this.list = Object.freeze(citedTaskPlanList);
+            } else {
+              this.list = Object.freeze(citedTemplateList);
+            }
+            this.renderList = this.list;
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      /**
+       * @desc 本地搜索
+       * @param {Object} payload 搜索条件
+       */
+      handleSearch (payload) {
+        let { list } = this;
+        Object.keys(payload).forEach((key) => {
+          const reg = new RegExp(encodeRegexp(payload[key]), 'i');
+          let realKey = key;
+          if (key === 'name') {
+            realKey = this.isPlanRelated ? 'taskPlanName' : 'taskTemplateName';
+          }
+          list = list.filter(item => reg.test(item[realKey]));
+        });
+        this.renderList = Object.freeze(list);
+      },
+      /**
+       * @desc 查看引用脚本的执行方案详情
+       * @param {Object} payload 应用字段数据
+       *
+       * 需要解析资源的 scopeType、scopeId
+       */
+      handleGoPlanDetail (payload) {
+        const { href } = this.$router.resolve({
+          name: 'viewPlan',
+          params: {
+            templateId: payload.taskTemplateId,
+          },
+          query: {
+            viewPlanId: payload.taskPlanId,
+          },
+        });
+        window.open(href.replace(/^\/[^/]+\/\d+/, `/${payload.scopeType}/${payload.scopeId}`));
+      },
+      /**
+       * @desc 查看引用脚本的作业模板详情
+       * @param {Object} payload 应用字段数据
+       *
+       * 需要解析资源的 scopeType、scopeId
+       */
+      handleGoTemplateDetail (payload) {
+        const { href } = this.$router.resolve({
+          name: 'templateDetail',
+          params: { id: payload.taskTemplateId },
+        });
+        window.open(href.replace(/^\/[^/]+\/\d+/, `/${payload.scopeType}/${payload.scopeId}`));
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .render-related-script {

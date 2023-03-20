@@ -26,312 +26,312 @@
 -->
 
 <template>
-    <div ref="infoBox" class="step-execution-info-box" :style="boxStyles">
-        <div class="tab-container">
-            <div class="tab-title" :class="host.result">
-                <span class="host-ip">{{ host.displayIp || '--' }}</span>
-            </div>
-            <div class="split-line" />
-            <div
-                v-if="!isFile"
-                class="tab-item"
-                :class="{ active: activePanel === 'scriptLog' }"
-                @click="handleTogglePanel('scriptLog')">
-                {{ $t('history.执行日志') }}
-            </div>
-            <template v-if="isFile">
-                <div
-                    class="tab-item"
-                    :class="{ active: activePanel === 'download' }"
-                    @click="handleTogglePanel('download')">
-                    {{ $t('history.下载信息') }}
-                </div>
-                <div
-                    class="tab-item"
-                    :class="{ active: activePanel === 'upload' }"
-                    @click="handleTogglePanel('upload')">
-                    {{ $t('history.上传源信息') }}
-                </div>
-            </template>
-            <div
-                v-if="isTask && !isFile"
-                class="tab-item"
-                :class="{ active: activePanel === 'variable' }"
-                @click="handleTogglePanel('variable')">
-                {{ $t('history.变量明细') }}
-            </div>
-            <div class="extend-box">
-                <div
-                    v-if="activePanel === 'scriptLog'"
-                    class="extend-item"
-                    v-bk-tooltips="$t('history.下载日志')"
-                    @click="handleDownload">
-                    <Icon type="download" />
-                </div>
-                <div
-                    v-if="activePanel === 'scriptLog'"
-                    class="extend-item"
-                    @mouseenter="handleShowSetFont"
-                    @mouseleave="handleHideSetFont">Aa</div>
-                <div
-                    v-if="!isFullscreen"
-                    class="extend-item"
-                    v-bk-tooltips="$t('history.全屏')"
-                    @click="handleFullscreen">
-                    <Icon type="full-screen" />
-                </div>
-                <div
-                    v-if="isFullscreen"
-                    class="extend-item"
-                    v-bk-tooltips="$t('history.还原')"
-                    @click="handleExitFullscreen">
-                    <Icon type="un-full-screen" />
-                </div>
-                <div
-                    v-if="activePanel === 'scriptLog'"
-                    class="extend-item"
-                    style="padding-left: 16px; border-left: 1px solid #262626;">
-                    <bk-switcher
-                        :value="isScriptLogLineFeed"
-                        theme="primary"
-                        size="small"
-                        @change="handleScriptLogLineFeedChange" />
-                    <span style="padding-left: 7px; font-size: 12px; color: #979ba5;">{{ $t('history.自动换行') }}</span>
-                </div>
-            </div>
-        </div>
-        <div class="tab-content-wraper" :style="contentStyles">
-            <component
-                ref="view"
-                :key="activePanel"
-                :is="renderCom"
-                :name="`${stepInstanceId}_${host.ip}_${retryCount}`"
-                :step-instance-id="stepInstanceId"
-                :ip="host.ip"
-                :batch="host.batch"
-                :retry-count="retryCount"
-                :font-size="fontSize"
-                :mode="activePanel"
-                :line-feed="isScriptLogLineFeed"
-                v-bind="$attrs"
-                v-on="$listeners" />
+  <div ref="infoBox" class="step-execution-info-box" :style="boxStyles">
+    <div class="tab-container">
+      <div class="tab-title" :class="host.result">
+        <span class="host-ip">{{ host.displayIp || '--' }}</span>
+      </div>
+      <div class="split-line" />
+      <div
+        v-if="!isFile"
+        class="tab-item"
+        :class="{ active: activePanel === 'scriptLog' }"
+        @click="handleTogglePanel('scriptLog')">
+        {{ $t('history.执行日志') }}
+      </div>
+      <template v-if="isFile">
+        <div
+          class="tab-item"
+          :class="{ active: activePanel === 'download' }"
+          @click="handleTogglePanel('download')">
+          {{ $t('history.下载信息') }}
         </div>
         <div
-            class="font-setting"
-            :class="{ active: isFontSet }"
-            @mouseenter="handleShowSetFont"
-            @mouseleave="handleHideSetFont">
-            <div class="font-setting-wraper">
-                <div
-                    class="font-item"
-                    :class="{ active: fontSize === 12 }"
-                    style="font-size: 12px;"
-                    @click="handleFontChange(12)">Aa</div>
-                <div class="line" />
-                <div
-                    class="font-item"
-                    :class="{ active: fontSize === 13 }"
-                    style="font-size: 13px;"
-                    @click="handleFontChange(13)">Aa</div>
-                <div class="line" />
-                <div
-                    class="font-item"
-                    :class="{ active: fontSize === 14 }"
-                    style="font-size: 14px;"
-                    @click="handleFontChange(14)">Aa</div>
-            </div>
+          class="tab-item"
+          :class="{ active: activePanel === 'upload' }"
+          @click="handleTogglePanel('upload')">
+          {{ $t('history.上传源信息') }}
         </div>
+      </template>
+      <div
+        v-if="isTask && !isFile"
+        class="tab-item"
+        :class="{ active: activePanel === 'variable' }"
+        @click="handleTogglePanel('variable')">
+        {{ $t('history.变量明细') }}
+      </div>
+      <div class="extend-box">
+        <div
+          v-if="activePanel === 'scriptLog'"
+          v-bk-tooltips="$t('history.下载日志')"
+          class="extend-item"
+          @click="handleDownload">
+          <Icon type="download" />
+        </div>
+        <div
+          v-if="activePanel === 'scriptLog'"
+          class="extend-item"
+          @mouseenter="handleShowSetFont"
+          @mouseleave="handleHideSetFont">Aa</div>
+        <div
+          v-if="!isFullscreen"
+          v-bk-tooltips="$t('history.全屏')"
+          class="extend-item"
+          @click="handleFullscreen">
+          <Icon type="full-screen" />
+        </div>
+        <div
+          v-if="isFullscreen"
+          v-bk-tooltips="$t('history.还原')"
+          class="extend-item"
+          @click="handleExitFullscreen">
+          <Icon type="un-full-screen" />
+        </div>
+        <div
+          v-if="activePanel === 'scriptLog'"
+          class="extend-item"
+          style="padding-left: 16px; border-left: 1px solid #262626;">
+          <bk-switcher
+            size="small"
+            theme="primary"
+            :value="isScriptLogLineFeed"
+            @change="handleScriptLogLineFeedChange" />
+          <span style="padding-left: 7px; font-size: 12px; color: #979ba5;">{{ $t('history.自动换行') }}</span>
+        </div>
+      </div>
     </div>
+    <div class="tab-content-wraper" :style="contentStyles">
+      <component
+        :is="renderCom"
+        :key="activePanel"
+        ref="view"
+        :batch="host.batch"
+        :font-size="fontSize"
+        :ip="host.ip"
+        :line-feed="isScriptLogLineFeed"
+        :mode="activePanel"
+        :name="`${stepInstanceId}_${host.ip}_${retryCount}`"
+        :retry-count="retryCount"
+        :step-instance-id="stepInstanceId"
+        v-bind="$attrs"
+        v-on="$listeners" />
+    </div>
+    <div
+      class="font-setting"
+      :class="{ active: isFontSet }"
+      @mouseenter="handleShowSetFont"
+      @mouseleave="handleHideSetFont">
+      <div class="font-setting-wraper">
+        <div
+          class="font-item"
+          :class="{ active: fontSize === 12 }"
+          style="font-size: 12px;"
+          @click="handleFontChange(12)">Aa</div>
+        <div class="line" />
+        <div
+          class="font-item"
+          :class="{ active: fontSize === 13 }"
+          style="font-size: 13px;"
+          @click="handleFontChange(13)">Aa</div>
+        <div class="line" />
+        <div
+          class="font-item"
+          :class="{ active: fontSize === 14 }"
+          style="font-size: 14px;"
+          @click="handleFontChange(14)">Aa</div>
+      </div>
+    </div>
+  </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskExecuteService from '@service/task-execute';
-    import ScriptLog from './script-log';
-    import FileLog from './file-log';
-    import VariableView from './variable-view';
+  import I18n from '@/i18n';
+  import TaskExecuteService from '@service/task-execute';
+  import ScriptLog from './script-log';
+  import FileLog from './file-log';
+  import VariableView from './variable-view';
 
-    const STEP_FONT_SIZE_KEY = 'step_execution_font_size';
-    const SCRIPT_LOG_AUTO_LINE_FEED = 'script_log_line_feed';
+  const STEP_FONT_SIZE_KEY = 'step_execution_font_size';
+  const SCRIPT_LOG_AUTO_LINE_FEED = 'script_log_line_feed';
 
-    export default {
-        name: '',
-        inheritAttrs: false,
-        props: {
-            name: String,
-            host: {
-                type: Object,
-                required: true,
-            },
-            stepInstanceId: {
-                type: Number,
-            },
-            retryCount: {
-                type: Number,
-                required: true,
-            },
-            isTask: {
-                type: Boolean,
-                default: false,
-            },
-            isFile: {
-                type: Boolean,
-                default: false, // 展示文件日志
-            },
-        },
-        data () {
-            let fontSize = parseInt(localStorage.getItem(STEP_FONT_SIZE_KEY), 10);
-            if (!fontSize || fontSize < 12) {
-                fontSize = 12;
-            } else if (fontSize > 14) {
-                fontSize = 14;
-            }
+  export default {
+    name: '',
+    inheritAttrs: false,
+    props: {
+      name: String,
+      host: {
+        type: Object,
+        required: true,
+      },
+      stepInstanceId: {
+        type: Number,
+      },
+      retryCount: {
+        type: Number,
+        required: true,
+      },
+      isTask: {
+        type: Boolean,
+        default: false,
+      },
+      isFile: {
+        type: Boolean,
+        default: false, // 展示文件日志
+      },
+    },
+    data () {
+      let fontSize = parseInt(localStorage.getItem(STEP_FONT_SIZE_KEY), 10);
+      if (!fontSize || fontSize < 12) {
+        fontSize = 12;
+      } else if (fontSize > 14) {
+        fontSize = 14;
+      }
 
-            return {
-                activePanel: '',
-                isFullscreen: false,
-                isFontSet: false,
-                fontSize,
-                isScriptLogLineFeed: Boolean(localStorage.getItem(SCRIPT_LOG_AUTO_LINE_FEED)),
-            };
+      return {
+        activePanel: '',
+        isFullscreen: false,
+        isFontSet: false,
+        fontSize,
+        isScriptLogLineFeed: Boolean(localStorage.getItem(SCRIPT_LOG_AUTO_LINE_FEED)),
+      };
+    },
+    computed: {
+      renderCom () {
+        const comMap = {
+          scriptLog: ScriptLog,
+          download: FileLog,
+          upload: FileLog,
+          variable: VariableView,
+        };
+        return comMap[this.activePanel];
+      },
+      boxStyles () {
+        if (this.isFullscreen) {
+          return {
+            position: 'fixed',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+          };
+        }
+        return {};
+      },
+      contentStyles () {
+        const lineHeightMap = {
+          12: 20,
+          13: 21,
+          14: 22,
+        };
+        return {
+          fontSize: `${this.fontSize}px`,
+          lineHeight: `${lineHeightMap[this.fontSize]}px`,
+        };
+      },
+    },
+    watch: {
+      isFile: {
+        handler (isFile) {
+          this.activePanel = isFile ? 'download' : 'scriptLog';
         },
-        computed: {
-            renderCom () {
-                const comMap = {
-                    scriptLog: ScriptLog,
-                    download: FileLog,
-                    upload: FileLog,
-                    variable: VariableView,
-                };
-                return comMap[this.activePanel];
-            },
-            boxStyles () {
-                if (this.isFullscreen) {
-                    return {
-                        position: 'fixed',
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        left: 0,
-                        zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-                    };
-                }
-                return {};
-            },
-            contentStyles () {
-                const lineHeightMap = {
-                    12: 20,
-                    13: 21,
-                    14: 22,
-                };
-                return {
-                    fontSize: `${this.fontSize}px`,
-                    lineHeight: `${lineHeightMap[this.fontSize]}px`,
-                };
-            },
-        },
-        watch: {
-            isFile: {
-                handler (isFile) {
-                    this.activePanel = isFile ? 'download' : 'scriptLog';
-                },
-                immediate: true,
-            },
-        },
-        beforeDestroy () {
-            this.handleExitFullscreen();
-        },
-        mounted () {
-            window.addEventListener('keyup', this.handleExitByESC);
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('keyup', this.handleExitByESC);
-            });
-        },
-        methods: {
-            /**
-             * @desc 切换面板
-             * @param {String} panel 选中的面板
-             */
-            handleTogglePanel (panel) {
-                this.activePanel = panel;
-            },
-            /**
-             * @desc 下载主机日志
-             */
-            handleDownload () {
-                TaskExecuteService.fetchStepExecutionLogFile({
-                    id: this.stepInstanceId,
-                    ip: this.host.ip,
-                }).then(() => {
-                    this.$bkMessage({
-                        theme: 'success',
-                        message: I18n.t('history.导出日志操作成功'),
-                    });
-                });
-            },
-            /**
-             * @desc 显示字体大小设置面板
-             */
-            handleShowSetFont () {
-                this.isFontSet = true;
-            },
-            /**
-             * @desc 隐藏字体大小设置面板
-             */
-            handleHideSetFont () {
-                this.isFontSet = false;
-            },
-            /**
-             * @desc 更新日志字体大小
-             */
-            handleFontChange (fontSize) {
-                this.fontSize = fontSize;
-                localStorage.setItem(STEP_FONT_SIZE_KEY, fontSize);
-            },
-            /**
-             * @desc 日志全屏
-             */
-            handleFullscreen () {
-                this.isFullscreen = true;
-                this.messageInfo(I18n.t('history.按 Esc 即可退出全屏模式'));
-                this.infoBoxParentNode = this.$refs.infoBox.parentNode;
-                document.body.appendChild(this.$refs.infoBox);
-                this.$refs.view && this.$refs.view.resize();
-            },
-            /**
-             * @desc 退出日志全屏
-             */
-            handleExitFullscreen (event) {
-                this.isFullscreen = false;
-                if (this.infoBoxParentNode) {
-                    this.infoBoxParentNode.appendChild(this.$refs.infoBox);
-                    this.infoBoxParentNode = null;
-                }
-                setTimeout(() => {
-                    this.$refs.view && this.$refs.view.resize();
-                });
-            },
-            /**
-             * @desc esc键退出日志全屏
-             */
-            handleExitByESC (event) {
-                if (event.keyCode === 27) {
-                    this.handleExitFullscreen();
-                }
-            },
-            /**
-             * @desc 脚本日志自动换行
-             * @param {Boolean} lineFeed
-             */
-            handleScriptLogLineFeedChange  (lineFeed) {
-                this.isScriptLogLineFeed = lineFeed;
-                if (lineFeed) {
-                    localStorage.setItem(SCRIPT_LOG_AUTO_LINE_FEED, true);
-                } else {
-                    localStorage.removeItem(SCRIPT_LOG_AUTO_LINE_FEED);
-                }
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    beforeDestroy () {
+      this.handleExitFullscreen();
+    },
+    mounted () {
+      window.addEventListener('keyup', this.handleExitByESC);
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('keyup', this.handleExitByESC);
+      });
+    },
+    methods: {
+      /**
+       * @desc 切换面板
+       * @param {String} panel 选中的面板
+       */
+      handleTogglePanel (panel) {
+        this.activePanel = panel;
+      },
+      /**
+       * @desc 下载主机日志
+       */
+      handleDownload () {
+        TaskExecuteService.fetchStepExecutionLogFile({
+          id: this.stepInstanceId,
+          ip: this.host.ip,
+        }).then(() => {
+          this.$bkMessage({
+            theme: 'success',
+            message: I18n.t('history.导出日志操作成功'),
+          });
+        });
+      },
+      /**
+       * @desc 显示字体大小设置面板
+       */
+      handleShowSetFont () {
+        this.isFontSet = true;
+      },
+      /**
+       * @desc 隐藏字体大小设置面板
+       */
+      handleHideSetFont () {
+        this.isFontSet = false;
+      },
+      /**
+       * @desc 更新日志字体大小
+       */
+      handleFontChange (fontSize) {
+        this.fontSize = fontSize;
+        localStorage.setItem(STEP_FONT_SIZE_KEY, fontSize);
+      },
+      /**
+       * @desc 日志全屏
+       */
+      handleFullscreen () {
+        this.isFullscreen = true;
+        this.messageInfo(I18n.t('history.按 Esc 即可退出全屏模式'));
+        this.infoBoxParentNode = this.$refs.infoBox.parentNode;
+        document.body.appendChild(this.$refs.infoBox);
+        this.$refs.view && this.$refs.view.resize();
+      },
+      /**
+       * @desc 退出日志全屏
+       */
+      handleExitFullscreen (event) {
+        this.isFullscreen = false;
+        if (this.infoBoxParentNode) {
+          this.infoBoxParentNode.appendChild(this.$refs.infoBox);
+          this.infoBoxParentNode = null;
+        }
+        setTimeout(() => {
+          this.$refs.view && this.$refs.view.resize();
+        });
+      },
+      /**
+       * @desc esc键退出日志全屏
+       */
+      handleExitByESC (event) {
+        if (event.keyCode === 27) {
+          this.handleExitFullscreen();
+        }
+      },
+      /**
+       * @desc 脚本日志自动换行
+       * @param {Boolean} lineFeed
+       */
+      handleScriptLogLineFeedChange  (lineFeed) {
+        this.isScriptLogLineFeed = lineFeed;
+        if (lineFeed) {
+          localStorage.setItem(SCRIPT_LOG_AUTO_LINE_FEED, true);
+        } else {
+          localStorage.removeItem(SCRIPT_LOG_AUTO_LINE_FEED);
+        }
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .step-execution-info-box {

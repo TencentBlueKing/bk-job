@@ -26,108 +26,108 @@
 -->
 
 <template>
-    <div class="cron-job-history-record">
-        <div class="record-tab-wraper">
-            <div
-                class="tab-item"
-                :class="{ active: listTab === 'launch' }"
-                @click="handleTabChange('launch')">
-                <div class="tab-name">{{ $t('cron.任务正常启动') }}</div>
-                <Icon
-                    v-if="isLaunchLoading"
-                    type="sync-pending"
-                    svg
-                    class="loading-flag" />
-                <div v-else class="tab-nums">{{ launchNums }}</div>
-            </div>
-            <div
-                class="tab-item"
-                :class="{ active: listTab === 'unlaunch' }"
-                @click="handleTabChange('unlaunch')">
-                <div class="tab-name">{{ $t('cron.任务未能启动') }}</div>
-                <Icon
-                    v-if="isUnlaunchLoading"
-                    type="sync-pending"
-                    svg
-                    class="loading-flag" />
-                <div v-else class="tab-nums">{{ unLaunchNums }}</div>
-            </div>
-        </div>
-        <component
-            :is="listCom"
-            :data="data"
-            v-bind="$attrs"
-            v-on="$listeners" />
+  <div class="cron-job-history-record">
+    <div class="record-tab-wraper">
+      <div
+        class="tab-item"
+        :class="{ active: listTab === 'launch' }"
+        @click="handleTabChange('launch')">
+        <div class="tab-name">{{ $t('cron.任务正常启动') }}</div>
+        <Icon
+          v-if="isLaunchLoading"
+          class="loading-flag"
+          svg
+          type="sync-pending" />
+        <div v-else class="tab-nums">{{ launchNums }}</div>
+      </div>
+      <div
+        class="tab-item"
+        :class="{ active: listTab === 'unlaunch' }"
+        @click="handleTabChange('unlaunch')">
+        <div class="tab-name">{{ $t('cron.任务未能启动') }}</div>
+        <Icon
+          v-if="isUnlaunchLoading"
+          class="loading-flag"
+          svg
+          type="sync-pending" />
+        <div v-else class="tab-nums">{{ unLaunchNums }}</div>
+      </div>
     </div>
+    <component
+      :is="listCom"
+      :data="data"
+      v-bind="$attrs"
+      v-on="$listeners" />
+  </div>
 </template>
 <script>
-    import TaskExecuteService from '@service/task-execute';
-    import TimeTaskService from '@service/time-task';
-    import LaunchList from './launch-list';
-    import UnlaunchList from './unlaunch-list';
+  import TaskExecuteService from '@service/task-execute';
+  import TimeTaskService from '@service/time-task';
+  import LaunchList from './launch-list';
+  import UnlaunchList from './unlaunch-list';
 
-    const listComMap = {
-        launch: LaunchList,
-        unlaunch: UnlaunchList,
-    };
+  const listComMap = {
+    launch: LaunchList,
+    unlaunch: UnlaunchList,
+  };
 
-    export default {
-        name: '',
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                listTab: 'launch',
-                isLaunchLoading: true,
-                isUnlaunchLoading: true,
-                launchNums: 0,
-                unLaunchNums: 0,
-            };
-        },
-        computed: {
-            listCom () {
-                return listComMap[this.listTab];
-            },
-        },
-        created () {
-            this.fetchData();
-        },
-        methods: {
-            handleTabChange (value) {
-                this.listTab = value;
-            },
-            fetchData () {
-                TaskExecuteService.fetchExecutionHistoryList({
-                    cronTaskId: this.data.id,
-                    startTime: '',
-                    endTime: '',
-                    start: 0,
-                    pageSize: 1,
-                    timeRange: 30,
-                }).then((data) => {
-                    this.launchNums = data.total;
-                })
-                    .finally(() => {
-                        this.isLaunchLoading = false;
-                    });
-                TimeTaskService.fetchUnlaunchHistory({
-                    cronTaskId: this.data.id,
-                    start: 0,
-                    pageSize: 1,
-                    timeRange: 30,
-                }).then((data) => {
-                    this.unLaunchNums = data.total;
-                })
-                    .finally(() => {
-                        this.isUnlaunchLoading = false;
-                    });
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        listTab: 'launch',
+        isLaunchLoading: true,
+        isUnlaunchLoading: true,
+        launchNums: 0,
+        unLaunchNums: 0,
+      };
+    },
+    computed: {
+      listCom () {
+        return listComMap[this.listTab];
+      },
+    },
+    created () {
+      this.fetchData();
+    },
+    methods: {
+      handleTabChange (value) {
+        this.listTab = value;
+      },
+      fetchData () {
+        TaskExecuteService.fetchExecutionHistoryList({
+          cronTaskId: this.data.id,
+          startTime: '',
+          endTime: '',
+          start: 0,
+          pageSize: 1,
+          timeRange: 30,
+        }).then((data) => {
+          this.launchNums = data.total;
+        })
+          .finally(() => {
+            this.isLaunchLoading = false;
+          });
+        TimeTaskService.fetchUnlaunchHistory({
+          cronTaskId: this.data.id,
+          start: 0,
+          pageSize: 1,
+          timeRange: 30,
+        }).then((data) => {
+          this.unLaunchNums = data.total;
+        })
+          .finally(() => {
+            this.isUnlaunchLoading = false;
+          });
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .cron-job-history-record {

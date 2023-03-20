@@ -26,34 +26,34 @@
 -->
 
 <template>
-    <div class="template-dashboard">
-        <div class="layout-left">
-            <template-count v-bind="$attrs" />
-            <plan-count v-bind="$attrs" />
-        </div>
-        <div class="layout-right">
-            <template-step v-bind="$attrs" />
-        </div>
+  <div class="template-dashboard">
+    <div class="layout-left">
+      <template-count v-bind="$attrs" />
+      <plan-count v-bind="$attrs" />
     </div>
+    <div class="layout-right">
+      <template-step v-bind="$attrs" />
+    </div>
+  </div>
 </template>
 <script>
-    import TemplateCount from './template-count';
-    import PlanCount from './plan-count';
-    import TemplateStep from './template-step';
+  import TemplateCount from './template-count';
+  import PlanCount from './plan-count';
+  import TemplateStep from './template-step';
 
-    export default {
-        name: '',
-        components: {
-            TemplateCount,
-            PlanCount,
-            TemplateStep,
-        },
-        data () {
-            return {};
-        },
+  export default {
+    name: '',
+    components: {
+      TemplateCount,
+      PlanCount,
+      TemplateStep,
+    },
+    data () {
+      return {};
+    },
 
-        methods: {},
-    };
+    methods: {},
+  };
 </script>
 <style lang='postcss' scoped>
     @import "@/css/mixins/media";

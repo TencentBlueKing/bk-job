@@ -26,72 +26,72 @@
 -->
 
 <template>
-    <component
-        :is="themeCom"
-        v-bind="$attrs"
-        :data="data"
-        :choose="handleChoose"
-        :handle-change-status="handleChangeStatus" />
+  <component
+    :is="themeCom"
+    v-bind="$attrs"
+    :choose="handleChoose"
+    :data="data"
+    :handle-change-status="handleChangeStatus" />
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskExecuteService from '@service/task-execute';
-    import ThemeNormal from './theme/normal';
-    import ThemeApproval from './theme/approval';
-    import StepAction from '../../../common/step-action';
+  import I18n from '@/i18n';
+  import TaskExecuteService from '@service/task-execute';
+  import ThemeNormal from './theme/normal';
+  import ThemeApproval from './theme/approval';
+  import StepAction from '../../../common/step-action';
 
-    export default {
-        name: 'TaskStep',
-        components: {
-            StepAction,
-        },
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-        },
-        computed: {
-            themeCom () {
-                if (this.data.isApproval && !this.data.isNotStart) {
-                    return ThemeApproval;
-                }
-                return ThemeNormal;
-            },
-        },
-        methods: {
-            handleChoose () {
-                if (this.data.isApproval) {
-                    return;
-                }
-                if (this.data.isNotStart) {
-                    this.$bkMessage({
-                        theme: 'warning',
-                        message: I18n.t('history.该步骤还未执行'),
-                        limit: 1,
-                    });
-                    return;
-                }
+  export default {
+    name: 'TaskStep',
+    components: {
+      StepAction,
+    },
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+    computed: {
+      themeCom () {
+        if (this.data.isApproval && !this.data.isNotStart) {
+          return ThemeApproval;
+        }
+        return ThemeNormal;
+      },
+    },
+    methods: {
+      handleChoose () {
+        if (this.data.isApproval) {
+          return;
+        }
+        if (this.data.isNotStart) {
+          this.$bkMessage({
+            theme: 'warning',
+            message: I18n.t('history.该步骤还未执行'),
+            limit: 1,
+          });
+          return;
+        }
                 
-                this.$emit('on-select', this.data);
-            },
-            handleChangeStatus (operationCode, confirmReason) {
-                return TaskExecuteService.updateTaskExecutionStepOperate({
-                    id: this.data.stepInstanceId,
-                    operationCode,
-                    confirmReason,
-                }).then(() => {
-                    this.$bkMessage({
-                        limit: 1,
-                        theme: 'success',
-                        message: I18n.t('history.操作成功'),
-                    });
-                    this.$emit('on-update');
-                    return true;
-                });
-            },
-        },
-    };
+        this.$emit('on-select', this.data);
+      },
+      handleChangeStatus (operationCode, confirmReason) {
+        return TaskExecuteService.updateTaskExecutionStepOperate({
+          id: this.data.stepInstanceId,
+          operationCode,
+          confirmReason,
+        }).then(() => {
+          this.$bkMessage({
+            limit: 1,
+            theme: 'success',
+            message: I18n.t('history.操作成功'),
+          });
+          this.$emit('on-update');
+          return true;
+        });
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     @keyframes ani-rotate {

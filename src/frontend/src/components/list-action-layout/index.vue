@@ -26,14 +26,14 @@
 -->
 
 <template functional>
-    <div class="list-action-layout">
-        <div class="right-box">
-            <slot />
-        </div>
-        <div class="left-box">
-            <slot name="right" />
-        </div>
+  <div class="list-action-layout">
+    <div class="right-box">
+      <slot />
     </div>
+    <div class="left-box">
+      <slot name="right" />
+    </div>
+  </div>
 </template>
 <style lang="postcss">
     .list-action-layout {

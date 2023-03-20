@@ -26,54 +26,54 @@
 -->
 
 <template>
-    <div class="jb-menu">
-        <slot />
-    </div>
+  <div class="jb-menu">
+    <slot />
+  </div>
 </template>
 <script>
-    export default {
-        name: 'JbMenu',
-        provide () {
-            return {
-                jbMenu: this,
-            };
-        },
-        props: {
-            defaultActive: String,
-            flod: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        data () {
-            return {
-                activeIndex: this.defaultActive,
-            };
-        },
-        watch: {
-            defaultActive (defaultActive) {
-                if (!this.items[defaultActive]) {
-                    this.activeIndex = null;
-                }
-            },
-        },
-        created () {
-            this.items = {};
-            this.$on('item-click', this.handleItemClick);
-        },
-        mounted () {
+  export default {
+    name: 'JbMenu',
+    provide () {
+      return {
+        jbMenu: this,
+      };
+    },
+    props: {
+      defaultActive: String,
+      flod: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        activeIndex: this.defaultActive,
+      };
+    },
+    watch: {
+      defaultActive (defaultActive) {
+        if (!this.items[defaultActive]) {
+          this.activeIndex = null;
+        }
+      },
+    },
+    created () {
+      this.items = {};
+      this.$on('item-click', this.handleItemClick);
+    },
+    mounted () {
             
-        },
-        methods: {
-            addItem (item) {
-                this.items[item.index] = item;
-            },
-            handleItemClick (item) {
-                this.activeIndex = item.index;
-                this.$emit('select', item.index);
-            },
-        },
-    };
+    },
+    methods: {
+      addItem (item) {
+        this.items[item.index] = item;
+      },
+      handleItemClick (item) {
+        this.activeIndex = item.index;
+        this.$emit('select', item.index);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .jb-menu {

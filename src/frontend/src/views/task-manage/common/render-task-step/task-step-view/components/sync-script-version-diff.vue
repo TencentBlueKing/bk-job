@@ -26,236 +26,236 @@
 -->
 
 <template>
-    <div
-        class="sync-script-version-diff"
-        :style="{
-            'z-index': zIndex,
-        }">
-        <div v-bkloading="{ isLoading }">
-            <div class="header">
-                <div class="title">
-                    {{ oldVersionScript.name }}
-                </div>
-                <div class="diff-info">
-                    <div
-                        class="diff-del"
-                        @click="handleViewDel">
-                        <span class="before" />
-                        <span class="after" />
-                        <span>{{ $t('删除') }}（{{ del }}）</span>
-                    </div>
-                    <div
-                        class="diff-change"
-                        @click="handleViewChange">
-                        <span class="before" />
-                        <span class="after" />
-                        <span>{{ $t('变换') }}（{{ change }}）</span>
-                    </div>
-                    <div
-                        class="diff-ins"
-                        @click="handleViewIns">
-                        <span class="before" />
-                        <span class="after" />
-                        <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
-                    </div>
-                </div>
-            </div>
-            <div style="padding: 0 16px;">
-                <div class="version-select-layout">
-                    <div class="version-left">
-                        引用脚本版本（{{ oldVersionScript.version }}）
-                    </div>
-                    <div class="version-right">
-                        最新脚本版本（{{ lastVersionScript.version }}）
-                    </div>
-                </div>
-                <scroll-faker class="content-wraper">
-                    <jb-diff
-                        ref="diff"
-                        class="diff-details"
-                        :context="Infinity"
-                        format="side-by-side"
-                        :language="language"
-                        :new-content="lastVersionScript.content"
-                        :old-content="oldContent"
-                        theme="dark" />
-                </scroll-faker>
-            </div>
+  <div
+    class="sync-script-version-diff"
+    :style="{
+      'z-index': zIndex,
+    }">
+    <div v-bkloading="{ isLoading }">
+      <div class="header">
+        <div class="title">
+          {{ oldVersionScript.name }}
         </div>
-        <i
-            class="bk-icon icon-close"
-            @click="handleClose" />
+        <div class="diff-info">
+          <div
+            class="diff-del"
+            @click="handleViewDel">
+            <span class="before" />
+            <span class="after" />
+            <span>{{ $t('删除') }}（{{ del }}）</span>
+          </div>
+          <div
+            class="diff-change"
+            @click="handleViewChange">
+            <span class="before" />
+            <span class="after" />
+            <span>{{ $t('变换') }}（{{ change }}）</span>
+          </div>
+          <div
+            class="diff-ins"
+            @click="handleViewIns">
+            <span class="before" />
+            <span class="after" />
+            <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
+          </div>
+        </div>
+      </div>
+      <div style="padding: 0 16px;">
+        <div class="version-select-layout">
+          <div class="version-left">
+            引用脚本版本（{{ oldVersionScript.version }}）
+          </div>
+          <div class="version-right">
+            最新脚本版本（{{ lastVersionScript.version }}）
+          </div>
+        </div>
+        <scroll-faker class="content-wraper">
+          <jb-diff
+            ref="diff"
+            class="diff-details"
+            :context="Infinity"
+            format="side-by-side"
+            :language="language"
+            :new-content="lastVersionScript.content"
+            :old-content="oldContent"
+            theme="dark" />
+        </scroll-faker>
+      </div>
     </div>
+    <i
+      class="bk-icon icon-close"
+      @click="handleClose" />
+  </div>
 </template>
 <script>
-    import { Base64 } from 'js-base64';
-    import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
+  import { Base64 } from 'js-base64';
+  import ScriptService from '@service/script-manage';
+  import PublicScriptService from '@service/public-script-manage';
 
-    export default {
-        props: {
-            oldVersionScript: {
-                type: Object,
-            },
-        },
-        data () {
-            return {
-                isLoading: true,
-                oldContent: '',
-                newContent: '',
-                lastVersionScript: {},
-                zIndex: 'auto',
-                del: 0,
-                ins: 0,
-                change: 0,
-            };
-        },
-        created () {
-            this.scrollTopMemo = 0;
-            this.insElements = [];
-            this.insIndex = 0;
-            this.delElements = [];
-            this.delIndex = 0;
-            this.changeElements = [];
-            this.changeIndex = 0;
-            this.fetchData();
-        },
-        mounted () {
-            this.zIndex = window.__bk_zIndex_manager.nextZIndex(); // eslint-disable-line no-underscore-dangle
-            document.body.append(this.$el);
-            window.addEventListener('keydown', this.handleEsc);
-            this.resetBodyStyle();
+  export default {
+    props: {
+      oldVersionScript: {
+        type: Object,
+      },
+    },
+    data () {
+      return {
+        isLoading: true,
+        oldContent: '',
+        newContent: '',
+        lastVersionScript: {},
+        zIndex: 'auto',
+        del: 0,
+        ins: 0,
+        change: 0,
+      };
+    },
+    created () {
+      this.scrollTopMemo = 0;
+      this.insElements = [];
+      this.insIndex = 0;
+      this.delElements = [];
+      this.delIndex = 0;
+      this.changeElements = [];
+      this.changeIndex = 0;
+      this.fetchData();
+    },
+    mounted () {
+      this.zIndex = window.__bk_zIndex_manager.nextZIndex(); // eslint-disable-line no-underscore-dangle
+      document.body.append(this.$el);
+      window.addEventListener('keydown', this.handleEsc);
+      this.resetBodyStyle();
 
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('keydown', this.handleEsc);
-                try {
-                    document.body.removeChild(this.$el);
-                } catch {}
-            });
-        },
-        methods: {
-            fetchData () {
-                this.isLoading = true;
-                this.oldContent = Base64.decode(this.oldVersionScript.content);
-                this.language = this.oldVersionScript.typeName;
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('keydown', this.handleEsc);
+        try {
+          document.body.removeChild(this.$el);
+        } catch {}
+      });
+    },
+    methods: {
+      fetchData () {
+        this.isLoading = true;
+        this.oldContent = Base64.decode(this.oldVersionScript.content);
+        this.language = this.oldVersionScript.typeName;
 
-                const requestHandler = this.oldVersionScript.publicScript ? PublicScriptService : ScriptService;
-                requestHandler.getOneOnlineScript({
-                    id: this.oldVersionScript.id,
-                    publicScript: this.oldVersionScript.publicScript,
-                })
-                    .then((data) => {
-                        this.lastVersionScript = data;
-                        this.statisticsDiff();
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            statisticsDiff () {
-                this.$nextTick(() => {
-                    const $contentTarget = this.$refs.diff.$el.querySelectorAll('.d2h-file-side-diff');
-                    const $newTarget = $contentTarget[1];// eslint-disable-line prefer-destructuring
-                    const $allChangeElemennts = Array.from($newTarget.querySelectorAll('td.d2h-code-side-linenumber.d2h-ins'));
-                    $allChangeElemennts.pop();
+        const requestHandler = this.oldVersionScript.publicScript ? PublicScriptService : ScriptService;
+        requestHandler.getOneOnlineScript({
+          id: this.oldVersionScript.id,
+          publicScript: this.oldVersionScript.publicScript,
+        })
+          .then((data) => {
+            this.lastVersionScript = data;
+            this.statisticsDiff();
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      statisticsDiff () {
+        this.$nextTick(() => {
+          const $contentTarget = this.$refs.diff.$el.querySelectorAll('.d2h-file-side-diff');
+          const $newTarget = $contentTarget[1];// eslint-disable-line prefer-destructuring
+          const $allChangeElemennts = Array.from($newTarget.querySelectorAll('td.d2h-code-side-linenumber.d2h-ins'));
+          $allChangeElemennts.pop();
 
-                    this.insElements = [];
-                    this.ins = 0;
-                    this.insIndex = 0;
-                    this.changeElements = [];
-                    this.change = 0;
-                    this.changeIndex = 0;
+          this.insElements = [];
+          this.ins = 0;
+          this.insIndex = 0;
+          this.changeElements = [];
+          this.change = 0;
+          this.changeIndex = 0;
 
-                    $allChangeElemennts.forEach((ele) => {
-                        if (ele.classList.contains('d2h-change')) {
-                            this.changeElements.push(ele);
-                            this.change += 1;
-                        } else {
-                            this.insElements.push(ele);
-                            this.ins += 1;
-                        }
-                    });
+          $allChangeElemennts.forEach((ele) => {
+            if (ele.classList.contains('d2h-change')) {
+              this.changeElements.push(ele);
+              this.change += 1;
+            } else {
+              this.insElements.push(ele);
+              this.ins += 1;
+            }
+          });
 
-                    const $dels = $newTarget.querySelectorAll('td.d2h-code-side-linenumber.d2h-code-side-emptyplaceholder');
-                    this.delElements = $dels;
-                    this.del = $dels.length;
-                    this.delIndex = 0;
+          const $dels = $newTarget.querySelectorAll('td.d2h-code-side-linenumber.d2h-code-side-emptyplaceholder');
+          this.delElements = $dels;
+          this.del = $dels.length;
+          this.delIndex = 0;
 
-                    this.lineElements = $newTarget.querySelectorAll('td.d2h-code-side-linenumber');
-                });
-            },
-            lineViewReset () {
-                this.lineElements.forEach((item) => {
-                    item.classList.remove('active');
-                });
-            },
-            handleViewDel () {
-                this.lineViewReset();
-                if (this.del < 1) {
-                    return;
-                }
-                const $target = this.delElements[this.delIndex];
-                $target.scrollIntoView();
-                $target.classList.add('active');
-                this.changeIndex = 0;
-                this.insIndex = 0;
-                this.delIndex += 1;
-                if (this.delIndex >= this.del) {
-                    this.delIndex = 0;
-                }
-            },
-            handleViewChange () {
-                this.lineViewReset();
-                if (this.change < 1) {
-                    return;
-                }
-                const $target = this.changeElements[this.changeIndex];
-                $target.scrollIntoView();
-                $target.classList.add('active');
-                this.insIndex = 0;
-                this.delIndex = 0;
-                this.changeIndex += 1;
-                if (this.changeIndex >= this.change) {
-                    this.changeIndex = 0;
-                }
-            },
-            handleViewIns () {
-                this.lineViewReset();
-                if (this.ins < 1) {
-                    return;
-                }
-                const $target = this.insElements[this.insIndex];
-                $target.scrollIntoView();
-                $target.classList.add('active');
-                this.delIndex = 0;
-                this.changeIndex = 0;
-                this.insIndex += 1;
-                if (this.insIndex >= this.ins) {
-                    this.insIndex = 0;
-                }
-            },
-            handleEsc (event) {
-                if (event && event.code === 'Escape') {
-                    this.handleClose();
-                }
-            },
-            handleClose () {
-                this.$emit('on-change', {
-                    [this.oldVersion]: true,
-                    [this.newVersion]: true,
-                });
-                this.$emit('close');
-            },
-            resetBodyStyle () {
-                this.scrollTopMemo = document.scrollingElement.scrollTop;
-                document.scrollingElement.style.overflow = 'hidden';
-            },
-            recoveryBodyStyle () {
-                document.scrollingElement.style.overflow = 'initial';
-                document.scrollingElement.scrollTop = this.scrollTopMemo;
-            },
-        },
-    };
+          this.lineElements = $newTarget.querySelectorAll('td.d2h-code-side-linenumber');
+        });
+      },
+      lineViewReset () {
+        this.lineElements.forEach((item) => {
+          item.classList.remove('active');
+        });
+      },
+      handleViewDel () {
+        this.lineViewReset();
+        if (this.del < 1) {
+          return;
+        }
+        const $target = this.delElements[this.delIndex];
+        $target.scrollIntoView();
+        $target.classList.add('active');
+        this.changeIndex = 0;
+        this.insIndex = 0;
+        this.delIndex += 1;
+        if (this.delIndex >= this.del) {
+          this.delIndex = 0;
+        }
+      },
+      handleViewChange () {
+        this.lineViewReset();
+        if (this.change < 1) {
+          return;
+        }
+        const $target = this.changeElements[this.changeIndex];
+        $target.scrollIntoView();
+        $target.classList.add('active');
+        this.insIndex = 0;
+        this.delIndex = 0;
+        this.changeIndex += 1;
+        if (this.changeIndex >= this.change) {
+          this.changeIndex = 0;
+        }
+      },
+      handleViewIns () {
+        this.lineViewReset();
+        if (this.ins < 1) {
+          return;
+        }
+        const $target = this.insElements[this.insIndex];
+        $target.scrollIntoView();
+        $target.classList.add('active');
+        this.delIndex = 0;
+        this.changeIndex = 0;
+        this.insIndex += 1;
+        if (this.insIndex >= this.ins) {
+          this.insIndex = 0;
+        }
+      },
+      handleEsc (event) {
+        if (event && event.code === 'Escape') {
+          this.handleClose();
+        }
+      },
+      handleClose () {
+        this.$emit('on-change', {
+          [this.oldVersion]: true,
+          [this.newVersion]: true,
+        });
+        this.$emit('close');
+      },
+      resetBodyStyle () {
+        this.scrollTopMemo = document.scrollingElement.scrollTop;
+        document.scrollingElement.style.overflow = 'hidden';
+      },
+      recoveryBodyStyle () {
+        document.scrollingElement.style.overflow = 'initial';
+        document.scrollingElement.scrollTop = this.scrollTopMemo;
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .sync-script-version-diff {

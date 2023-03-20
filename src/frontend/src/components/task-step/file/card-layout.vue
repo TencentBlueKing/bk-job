@@ -26,17 +26,17 @@
 -->
 
 <template>
-    <div class="card-layout">
-        <div class="card-layout-title">{{ title }}</div>
-        <slot />
-    </div>
+  <div class="card-layout">
+    <div class="card-layout-title">{{ title }}</div>
+    <slot />
+  </div>
 </template>
 <script>
-    export default {
-        props: {
-            title: String,
-        },
-    };
+  export default {
+    props: {
+      title: String,
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .card-layout {

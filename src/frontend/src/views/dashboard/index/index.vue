@@ -26,162 +26,162 @@
 -->
 
 <template>
-    <div class="dashboard-page">
-        <div class="operation-bar">
-            <div class="app-select">
-                <bk-button theme="primary" @click="handleScreenshot">{{ $t('dashboard.截图') }}</bk-button>
-            </div>
-            <div class="date-setting">
-                <div class="date-info">
-                    <p>{{ $t('dashboard.数据初始时间') }}：{{ dateInfo.STATISTICS_DATA_START_DATE }}</p>
-                    <p>{{ $t('dashboard.最近更新时间') }}：{{ dateInfo.STATISTICS_DATA_UPDATE_TIME }}</p>
-                </div>
-                <bk-date-picker
-                    class="date-picker"
-                    :value="date"
-                    :placeholder="$t('dashboard.选择日期')"
-                    :clearable="false"
-                    @change="handleDateChange" />
-            </div>
+  <div class="dashboard-page">
+    <div class="operation-bar">
+      <div class="app-select">
+        <bk-button theme="primary" @click="handleScreenshot">{{ $t('dashboard.截图') }}</bk-button>
+      </div>
+      <div class="date-setting">
+        <div class="date-info">
+          <p>{{ $t('dashboard.数据初始时间') }}：{{ dateInfo.STATISTICS_DATA_START_DATE }}</p>
+          <p>{{ $t('dashboard.最近更新时间') }}：{{ dateInfo.STATISTICS_DATA_UPDATE_TIME }}</p>
         </div>
-        <scroll-faker
-            v-if="!isLoading"
-            ref="scroll"
-            class="dashboard-container"
-            style="height: calc(100vh - 161px);">
-            <div ref="content" class="dashboard-wraper">
-                <div class="section-block">
-                    <div class="section-title">{{ $t('dashboard.业务类') }}</div>
-                    <div class="section-content">
-                        <div class="content-left">
-                            <app-dashboard :date="date" />
-                        </div>
-                        <div class="content-right">
-                            <platform-dashboard :date="date" />
-                        </div>
-                    </div>
-                </div>
-                <lower-component>
-                    <div class="section-block">
-                        <div class="section-title">{{ $t('dashboard.资源类') }}</div>
-                        <div class="section-content">
-                            <div class="content-left">
-                                <template-dashboard :date="date" />
-                            </div>
-                            <div class="content-right">
-                                <script-dashboard :date="date" />
-                            </div>
-                        </div>
-                    </div>
-                </lower-component>
-                <lower-component>
-                    <div class="section-block">
-                        <div class="section-content">
-                            <div class="content-left">
-                                <crontab-dashboard :date="date" />
-                            </div>
-                            <div class="content-center">
-                                <tag-dashboard :date="date" />
-                            </div>
-                            <div class="content-right">
-                                <account-dashboard :date="date" />
-                            </div>
-                        </div>
-                    </div>
-                </lower-component>
-                <lower-component>
-                    <div class="section-block">
-                        <div class="section-title">{{ $t('dashboard.执行类') }}</div>
-                        <div class="section-content">
-                            <execute-dashboard :date="date" />
-                        </div>
-                    </div>
-                </lower-component>
-            </div>
-        </scroll-faker>
+        <bk-date-picker
+          class="date-picker"
+          :clearable="false"
+          :placeholder="$t('dashboard.选择日期')"
+          :value="date"
+          @change="handleDateChange" />
+      </div>
     </div>
+    <scroll-faker
+      v-if="!isLoading"
+      ref="scroll"
+      class="dashboard-container"
+      style="height: calc(100vh - 161px);">
+      <div ref="content" class="dashboard-wraper">
+        <div class="section-block">
+          <div class="section-title">{{ $t('dashboard.业务类') }}</div>
+          <div class="section-content">
+            <div class="content-left">
+              <app-dashboard :date="date" />
+            </div>
+            <div class="content-right">
+              <platform-dashboard :date="date" />
+            </div>
+          </div>
+        </div>
+        <lower-component>
+          <div class="section-block">
+            <div class="section-title">{{ $t('dashboard.资源类') }}</div>
+            <div class="section-content">
+              <div class="content-left">
+                <template-dashboard :date="date" />
+              </div>
+              <div class="content-right">
+                <script-dashboard :date="date" />
+              </div>
+            </div>
+          </div>
+        </lower-component>
+        <lower-component>
+          <div class="section-block">
+            <div class="section-content">
+              <div class="content-left">
+                <crontab-dashboard :date="date" />
+              </div>
+              <div class="content-center">
+                <tag-dashboard :date="date" />
+              </div>
+              <div class="content-right">
+                <account-dashboard :date="date" />
+              </div>
+            </div>
+          </div>
+        </lower-component>
+        <lower-component>
+          <div class="section-block">
+            <div class="section-title">{{ $t('dashboard.执行类') }}</div>
+            <div class="section-content">
+              <execute-dashboard :date="date" />
+            </div>
+          </div>
+        </lower-component>
+      </div>
+    </scroll-faker>
+  </div>
 </template>
 <script>
-    import html2canvas from 'html2canvas';
-    import StatisticsService from '@service/statistics';
-    import { prettyDateFormat } from '@utils/assist';
-    import AppDashboard from './components/app';
-    import PlatformDashboard from './components/platform';
-    import TemplateDashboard from './components/template';
-    import ScriptDashboard from './components/script';
-    import CrontabDashboard from './components/crontab';
-    import TagDashboard from './components/tag';
-    import AccountDashboard from './components/account';
-    import ExecuteDashboard from './components/execute';
+  import html2canvas from 'html2canvas';
+  import StatisticsService from '@service/statistics';
+  import { prettyDateFormat } from '@utils/assist';
+  import AppDashboard from './components/app';
+  import PlatformDashboard from './components/platform';
+  import TemplateDashboard from './components/template';
+  import ScriptDashboard from './components/script';
+  import CrontabDashboard from './components/crontab';
+  import TagDashboard from './components/tag';
+  import AccountDashboard from './components/account';
+  import ExecuteDashboard from './components/execute';
 
-    export default {
-        name: '',
-        components: {
-            AppDashboard,
-            PlatformDashboard,
-            TemplateDashboard,
-            ScriptDashboard,
-            CrontabDashboard,
-            TagDashboard,
-            AccountDashboard,
-            ExecuteDashboard,
-        },
-        data () {
-            return {
-                isLoading: true,
-                date: prettyDateFormat(Date.now()),
-                dateInfo: {},
-            };
-        },
-        computed: {
-            isSkeletonLoading () {
-                return this.isLoading;
-            },
-        },
-        created () {
-            this.fetchDateInfo();
-        },
-        methods: {
-            fetchDateInfo () {
-                this.isLoading = true;
-                StatisticsService.fetchDateInfo({}, {
-                    permission: 'page',
-                }).then((data) => {
-                    this.dateInfo = data;
-                })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            handleScreenshot () {
-                const {
-                    top,
-                    width,
-                    height,
-                } = this.$refs.content.getBoundingClientRect();
-                const {
-                    scrollTop,
-                } = this.$refs.scroll.getScroll();
-                const scrollY = scrollTop > 0 ? top : 0;
-                html2canvas(this.$refs.content, {
-                    width,
-                    height,
-                    windowHeight: height,
-                    scrollY,
-                    backgroundColor: '#f5f6fa',
-                }).then((canvas) => {
-                    const a = document.createElement('a');
-                    a.href = canvas.toDataURL('image/png');
-                    a.download = this.title;
-                    a.download = `${document.title}_${this.date}`;
-                    a.click();
-                });
-            },
-            handleDateChange (date) {
-                this.date = date;
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      AppDashboard,
+      PlatformDashboard,
+      TemplateDashboard,
+      ScriptDashboard,
+      CrontabDashboard,
+      TagDashboard,
+      AccountDashboard,
+      ExecuteDashboard,
+    },
+    data () {
+      return {
+        isLoading: true,
+        date: prettyDateFormat(Date.now()),
+        dateInfo: {},
+      };
+    },
+    computed: {
+      isSkeletonLoading () {
+        return this.isLoading;
+      },
+    },
+    created () {
+      this.fetchDateInfo();
+    },
+    methods: {
+      fetchDateInfo () {
+        this.isLoading = true;
+        StatisticsService.fetchDateInfo({}, {
+          permission: 'page',
+        }).then((data) => {
+          this.dateInfo = data;
+        })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      handleScreenshot () {
+        const {
+          top,
+          width,
+          height,
+        } = this.$refs.content.getBoundingClientRect();
+        const {
+          scrollTop,
+        } = this.$refs.scroll.getScroll();
+        const scrollY = scrollTop > 0 ? top : 0;
+        html2canvas(this.$refs.content, {
+          width,
+          height,
+          windowHeight: height,
+          scrollY,
+          backgroundColor: '#f5f6fa',
+        }).then((canvas) => {
+          const a = document.createElement('a');
+          a.href = canvas.toDataURL('image/png');
+          a.download = this.title;
+          a.download = `${document.title}_${this.date}`;
+          a.click();
+        });
+      },
+      handleDateChange (date) {
+        this.date = date;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .dashboard-page {

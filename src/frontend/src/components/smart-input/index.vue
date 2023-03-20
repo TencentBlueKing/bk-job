@@ -26,109 +26,109 @@
 -->
 
 <template>
-    <div class="job-smart-input">
-        <div
-            ref="input"
-            class="job-smart-input-area"
-            contenteditable="true"
-            spellcheck="false"
-            :style="stylees"
-            @input="handleInput"
-            @focus="handleFocus"
-            @blur="handleBlur"
-            @paste="handlePaste" />
-        <div v-if="showPlaceholder" class="job-smart-input-placeholder" @click="handleInputFocus">{{ placeholder }}</div>
-    </div>
+  <div class="job-smart-input">
+    <div
+      ref="input"
+      class="job-smart-input-area"
+      contenteditable="true"
+      spellcheck="false"
+      :style="stylees"
+      @blur="handleBlur"
+      @focus="handleFocus"
+      @input="handleInput"
+      @paste="handlePaste" />
+    <div v-if="showPlaceholder" class="job-smart-input-placeholder" @click="handleInputFocus">{{ placeholder }}</div>
+  </div>
 </template>
 <script>
-    export default {
-        name: '',
-        props: {
-            value: {
-                type: String,
-                default: '',
-            },
-            placeholder: String,
-            resize: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        data () {
-            return {
-                localValue: this.value,
-                focused: false,
-            };
-        },
-        computed: {
-            stylees () {
-                const styles = {};
-                if (this.focused) {
-                    styles['z-index'] = 1999;
-                } else {
-                    styles.height = '30px';
-                    styles.overflow = 'hidden';
-                    styles['white-space'] = 'pre';
-                    styles['text-overflow'] = 'ellipsis';
-                }
-                return styles;
-            },
-            showPlaceholder () {
-                if (this.focused) {
-                    return false;
-                }
-                return !this.localValue;
-            },
-        },
-        mounted () {
-            this.init();
-        },
-        methods: {
-            init () {
-                this.$refs.input.innerText = this.value;
-            },
-            focus () {
-                this.$refs.input.focus();
-            },
-            handleInputFocus () {
-                this.focus();
-                setTimeout(() => {
-                    this.$refs.input.selectionStart = this.localValue.length;
-                    this.$refs.input.selectionEnd = this.localValue.length;
-                });
-            },
-            handleInput (event) {
-                const value = event.target.outerText;
-                this.localValue = value.trim();
-                this.$emit('input', this.localValue);
-                this.$emit('change', this.localValue);
-            },
-            handleFocus () {
-                this.focused = true;
-            },
-            handleBlur () {
-                this.focused = false;
-                this.$refs.input.scrollTop = 0;
-                this.$emit('blur', this.localValue);
-            },
-            handlePaste (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                let text = '';
-                const event = (e.originalEvent || e);
-                if (event.clipboardData && event.clipboardData.getData) {
-                    text = event.clipboardData.getData('text/plain');
-                } else if (window.clipboardData && window.clipboardData.getData) {
-                    text = window.clipboardData.getData('Text');
-                }
-                if (document.queryCommandSupported('insertText')) {
-                    document.execCommand('insertText', false, text);
-                } else {
-                    document.execCommand('paste', false, text);
-                }
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      value: {
+        type: String,
+        default: '',
+      },
+      placeholder: String,
+      resize: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        localValue: this.value,
+        focused: false,
+      };
+    },
+    computed: {
+      stylees () {
+        const styles = {};
+        if (this.focused) {
+          styles['z-index'] = 1999;
+        } else {
+          styles.height = '30px';
+          styles.overflow = 'hidden';
+          styles['white-space'] = 'pre';
+          styles['text-overflow'] = 'ellipsis';
+        }
+        return styles;
+      },
+      showPlaceholder () {
+        if (this.focused) {
+          return false;
+        }
+        return !this.localValue;
+      },
+    },
+    mounted () {
+      this.init();
+    },
+    methods: {
+      init () {
+        this.$refs.input.innerText = this.value;
+      },
+      focus () {
+        this.$refs.input.focus();
+      },
+      handleInputFocus () {
+        this.focus();
+        setTimeout(() => {
+          this.$refs.input.selectionStart = this.localValue.length;
+          this.$refs.input.selectionEnd = this.localValue.length;
+        });
+      },
+      handleInput (event) {
+        const value = event.target.outerText;
+        this.localValue = value.trim();
+        this.$emit('input', this.localValue);
+        this.$emit('change', this.localValue);
+      },
+      handleFocus () {
+        this.focused = true;
+      },
+      handleBlur () {
+        this.focused = false;
+        this.$refs.input.scrollTop = 0;
+        this.$emit('blur', this.localValue);
+      },
+      handlePaste (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        let text = '';
+        const event = (e.originalEvent || e);
+        if (event.clipboardData && event.clipboardData.getData) {
+          text = event.clipboardData.getData('text/plain');
+        } else if (window.clipboardData && window.clipboardData.getData) {
+          text = window.clipboardData.getData('Text');
+        }
+        if (document.queryCommandSupported('insertText')) {
+          document.execCommand('insertText', false, text);
+        } else {
+          document.execCommand('paste', false, text);
+        }
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     @import "@/css/mixins/scroll";

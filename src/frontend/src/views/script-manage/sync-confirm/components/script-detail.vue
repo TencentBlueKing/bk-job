@@ -26,75 +26,75 @@
 -->
 
 <template>
-    <jb-sideslider
-        :is-show="isShow"
-        :show-footer="false"
-        @update:isShow="handleCancel"
-        :quick-close="true"
-        :width="900"
-        :title="$t('script.查看脚本')">
-        <div v-if="isShow" v-bkloading="{ isLoading }">
-            <script-detail v-if="!isLoading" :script-info="scriptInfo" :offset-bottom="0" />
-        </div>
-    </jb-sideslider>
+  <jb-sideslider
+    :is-show="isShow"
+    :quick-close="true"
+    :show-footer="false"
+    :title="$t('script.查看脚本')"
+    :width="900"
+    @update:isShow="handleCancel">
+    <div v-if="isShow" v-bkloading="{ isLoading }">
+      <script-detail v-if="!isLoading" :offset-bottom="0" :script-info="scriptInfo" />
+    </div>
+  </jb-sideslider>
 </template>
 <script>
-    import ScriptService from '@service/script-manage';
-    import PublicScriptService from '@service/public-script-manage';
-    import {
-        checkPublicScript,
-    } from '@utils/assist';
-    import ScriptDetail from '../../common/detail';
+  import ScriptService from '@service/script-manage';
+  import PublicScriptService from '@service/public-script-manage';
+  import {
+    checkPublicScript,
+  } from '@utils/assist';
+  import ScriptDetail from '../../common/detail';
 
-    export default {
-        name: '',
-        components: {
-            ScriptDetail,
-        },
-        props: {
-            isShow: {
-                type: Boolean,
-                default: false,
-            },
-            scriptVersionId: {
-                type: Number,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isLoading: false,
-                scriptInfo: {},
-            };
-        },
-        watch: {
-            isShow (isShow) {
-                if (isShow && this.scriptVersionId > 0) {
-                    this.fetchScriptDetail();
-                }
-            },
-        },
-        created () {
-            this.publicScript = checkPublicScript(this.$route);
-            this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
-        },
-        methods: {
-            fetchScriptDetail () {
-                this.isLoading = true;
-                this.serviceHandler.versionDetail({
-                    id: this.scriptVersionId,
-                }).then((data) => {
-                    this.scriptInfo = Object.freeze(data);
-                })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            handleCancel () {
-                this.$emit('update:isShow', false);
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      ScriptDetail,
+    },
+    props: {
+      isShow: {
+        type: Boolean,
+        default: false,
+      },
+      scriptVersionId: {
+        type: Number,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isLoading: false,
+        scriptInfo: {},
+      };
+    },
+    watch: {
+      isShow (isShow) {
+        if (isShow && this.scriptVersionId > 0) {
+          this.fetchScriptDetail();
+        }
+      },
+    },
+    created () {
+      this.publicScript = checkPublicScript(this.$route);
+      this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
+    },
+    methods: {
+      fetchScriptDetail () {
+        this.isLoading = true;
+        this.serviceHandler.versionDetail({
+          id: this.scriptVersionId,
+        }).then((data) => {
+          this.scriptInfo = Object.freeze(data);
+        })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      handleCancel () {
+        this.$emit('update:isShow', false);
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     %tab-item {

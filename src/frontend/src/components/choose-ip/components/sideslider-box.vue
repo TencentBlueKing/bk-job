@@ -26,68 +26,68 @@
 -->
 
 <template>
-    <transition name="host-sideslider" :duration="300">
-        <div v-if="value">
-            <div class="sideslider-box" :style="styles">
-                <div class="container" @click.stop="">
-                    <div class="box-header">
-                        <div class="toggle-btn" @click="handleClose">
-                            <Icon class="btn-flag" type="down-small" />
-                        </div>
-                        <div class="box-title">
-                            <slot name="title" />
-                            <div class="desc">
-                                <slot name="desc" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="box-content">
-                        <scroll-faker>
-                            <slot />
-                        </scroll-faker>
-                    </div>
-                    <div class="box-footer">
-                        <bk-button theme="primary" @click="handleClose">{{ $t('关闭') }}</bk-button>
-                    </div>
-                </div>
-                <div class="box-mask" @click="handleClose" />
+  <transition :duration="300" name="host-sideslider">
+    <div v-if="value">
+      <div class="sideslider-box" :style="styles">
+        <div class="container" @click.stop="">
+          <div class="box-header">
+            <div class="toggle-btn" @click="handleClose">
+              <Icon class="btn-flag" type="down-small" />
             </div>
+            <div class="box-title">
+              <slot name="title" />
+              <div class="desc">
+                <slot name="desc" />
+              </div>
+            </div>
+          </div>
+          <div class="box-content">
+            <scroll-faker>
+              <slot />
+            </scroll-faker>
+          </div>
+          <div class="box-footer">
+            <bk-button theme="primary" @click="handleClose">{{ $t('关闭') }}</bk-button>
+          </div>
         </div>
-    </transition>
+        <div class="box-mask" @click="handleClose" />
+      </div>
+    </div>
+  </transition>
 </template>
 <script>
-    export default {
-        name: '',
-        props: {
-            value: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        data () {
-            return {
-                styles: {},
+  export default {
+    name: '',
+    props: {
+      value: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        styles: {},
+      };
+    },
+    watch: {
+      value: {
+        handler (value) {
+          if (value) {
+            this.styles = {
+              'z-index': window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
             };
+          }
         },
-        watch: {
-            value: {
-                handler (value) {
-                    if (value) {
-                        this.styles = {
-                            'z-index': window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-                        };
-                    }
-                },
-                immediate: true,
-            },
-        },
-        methods: {
-            handleClose () {
-                this.$emit('input', false);
-                this.$emit('change', false);
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    methods: {
+      handleClose () {
+        this.$emit('input', false);
+        this.$emit('change', false);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .host-sideslider-enter-active,

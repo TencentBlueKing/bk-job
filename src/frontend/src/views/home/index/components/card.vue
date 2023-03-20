@@ -26,20 +26,20 @@
 -->
 
 <template>
-    <div>
-        <div class="home-card-layout">
-            <div v-if="title" class="card-title">{{ title }}</div>
-            <slot />
-        </div>
+  <div>
+    <div class="home-card-layout">
+      <div v-if="title" class="card-title">{{ title }}</div>
+      <slot />
     </div>
+  </div>
 </template>
 <script>
-    export default {
-        name: '',
-        props: {
-            title: String,
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      title: String,
+    },
+  };
 </script>
 <style lang='postcss'>
     .home-card-layout {

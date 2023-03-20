@@ -1,110 +1,110 @@
 <template>
+  <div
+    class="render-global-variable-box"
+    :class="{ active }"
+    @click="handleVariableSelect"
+    @mouseenter="handleShowDetail"
+    @mouseleave="handleHideDetail">
     <div
-        class="render-global-variable-box"
-        :class="{ active }"
-        @click="handleVariableSelect"
-        @mouseenter="handleShowDetail"
-        @mouseleave="handleHideDetail">
-        <div
-            ref="type"
-            class="variable-type">
-            <Icon :type="data.icon" />
-        </div>
-        <div class="variable-name">
-            {{ data.name }}
-        </div>
-        <div class="select-checked" />
-        <div style="display: none;">
-            <div
-                ref="detail"
-                class="batch-global-variable-popover-detail">
-                <table>
-                    <tr>
-                        <td>{{ $t('template.变量名称：') }}</td>
-                        <td>{{ data.name }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('template.变量类型：') }}</td>
-                        <td>{{ data.typeText }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('template.初始值：') }}</td>
-                        <td>{{ data.valueText }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('template.变量描述：') }}</td>
-                        <td>{{ data.description || '--' }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('template.执行时必填：') }}</td>
-                        <td>{{ data.requiredText }}</td>
-                    </tr>
-                    <tr>
-                        <td>{{ $t('template.赋值可变：') }}</td>
-                        <td>{{ data.changeableText }}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+      ref="type"
+      class="variable-type">
+      <Icon :type="data.icon" />
     </div>
+    <div class="variable-name">
+      {{ data.name }}
+    </div>
+    <div class="select-checked" />
+    <div style="display: none;">
+      <div
+        ref="detail"
+        class="batch-global-variable-popover-detail">
+        <table>
+          <tr>
+            <td>{{ $t('template.变量名称：') }}</td>
+            <td>{{ data.name }}</td>
+          </tr>
+          <tr>
+            <td>{{ $t('template.变量类型：') }}</td>
+            <td>{{ data.typeText }}</td>
+          </tr>
+          <tr>
+            <td>{{ $t('template.初始值：') }}</td>
+            <td>{{ data.valueText }}</td>
+          </tr>
+          <tr>
+            <td>{{ $t('template.变量描述：') }}</td>
+            <td>{{ data.description || '--' }}</td>
+          </tr>
+          <tr>
+            <td>{{ $t('template.执行时必填：') }}</td>
+            <td>{{ data.requiredText }}</td>
+          </tr>
+          <tr>
+            <td>{{ $t('template.赋值可变：') }}</td>
+            <td>{{ data.changeableText }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
 </template>
 <script>
-    import Tippy from 'bk-magic-vue/lib/utils/tippy';
+  import Tippy from 'bk-magic-vue/lib/utils/tippy';
 
-    export default {
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-            active: {
-                type: Boolean,
-                default: false,
-            },
+  export default {
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+      active: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        descPopover: {
+          disable: true,
         },
-        data () {
-            return {
-                descPopover: {
-                    disable: true,
-                },
-                isShowDetail: false,
-            };
-        },
-        mounted () {
-            this.popperInstance = Tippy(this.$refs.type, {
-                arrow: true,
-                placement: 'bottom-start',
-                theme: 'light',
-                hideOnClick: true,
-                animateFill: false,
-                animation: 'slide-toggle',
-                width: 330,
-                lazy: false,
-                ignoreAttributes: true,
-                boundary: 'window',
-                distance: 28,
-                content: this.$refs.detail,
-                zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-            });
-        },
-        beforeDestroy () {
-            if (this.popperInstance) {
-                this.popperInstance.hide();
-                this.popperInstance.destroy();
-            }
-        },
-        methods: {
-            handleVariableSelect () {
-                this.$emit('select');
-            },
-            handleShowDetail () {
-                this.popperInstance.show();
-            },
-            handleHideDetail () {
-                this.popperInstance.hide();
-            },
-        },
-    };
+        isShowDetail: false,
+      };
+    },
+    mounted () {
+      this.popperInstance = Tippy(this.$refs.type, {
+        arrow: true,
+        placement: 'bottom-start',
+        theme: 'light',
+        hideOnClick: true,
+        animateFill: false,
+        animation: 'slide-toggle',
+        width: 330,
+        lazy: false,
+        ignoreAttributes: true,
+        boundary: 'window',
+        distance: 28,
+        content: this.$refs.detail,
+        zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+      });
+    },
+    beforeDestroy () {
+      if (this.popperInstance) {
+        this.popperInstance.hide();
+        this.popperInstance.destroy();
+      }
+    },
+    methods: {
+      handleVariableSelect () {
+        this.$emit('select');
+      },
+      handleShowDetail () {
+        this.popperInstance.show();
+      },
+      handleHideDetail () {
+        this.popperInstance.hide();
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .render-global-variable-box {

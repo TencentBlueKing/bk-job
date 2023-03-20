@@ -26,27 +26,27 @@
 -->
 
 <template>
-    <div class="jb-apply-permission-page">
-        <div class="wraper">
-            <apply-page :auth-result="authResult" />
-        </div>
+  <div class="jb-apply-permission-page">
+    <div class="wraper">
+      <apply-page :auth-result="authResult" />
     </div>
+  </div>
 </template>
 <script>
-    import ApplyPage from '@components/apply-permission/apply-page';
+  import ApplyPage from '@components/apply-permission/apply-page';
     
-    export default {
-        name: '',
-        components: {
-            ApplyPage,
-        },
-        props: {
-            authResult: {
-                type: Object,
-                required: true,
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      ApplyPage,
+    },
+    props: {
+      authResult: {
+        type: Object,
+        required: true,
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .jb-apply-permission-page {

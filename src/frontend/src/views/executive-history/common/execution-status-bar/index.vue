@@ -26,75 +26,75 @@
 -->
 
 <template>
-    <div class="exection-status-bar" :class="[data.displayStyle]">
-        <component :is="themeCom" :data="data" :title-max-width="titleMaxWidth">
-            <slot />
-        </component>
-    </div>
+  <div class="exection-status-bar" :class="[data.displayStyle]">
+    <component :is="themeCom" :data="data" :title-max-width="titleMaxWidth">
+      <slot />
+    </component>
+  </div>
 </template>
 <script>
-    import Task from './task';
-    import Step from './step';
+  import Task from './task';
+  import Step from './step';
 
-    export default {
-        name: '',
-        components: {
-            Task,
-            Step,
-        },
-        props: {
-            type: {
-                type: String,
-                required: true,
-            },
-            data: {
-                type: Object,
-                default: () => ({}),
-            },
-        },
-        data () {
-            return {
-                titleMaxWidth: 100,
-                offsetRight: 'unset',
-                initialStatusWidth: 0,
-            };
-        },
-        computed: {
-            themeCom () {
-                const comMap = {
-                    task: Task,
-                    step: Step,
-                };
-                if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
-                    return 'div';
-                }
-                return comMap[this.type];
-            },
-        },
-        mounted () {
-            const $container = document.querySelector('#sitePageTitle');
-            const containerWidth = $container.getBoundingClientRect().width;
-            const $target = document.querySelector('#siteHeaderStatusBar');
+  export default {
+    name: '',
+    components: {
+      Task,
+      Step,
+    },
+    props: {
+      type: {
+        type: String,
+        required: true,
+      },
+      data: {
+        type: Object,
+        default: () => ({}),
+      },
+    },
+    data () {
+      return {
+        titleMaxWidth: 100,
+        offsetRight: 'unset',
+        initialStatusWidth: 0,
+      };
+    },
+    computed: {
+      themeCom () {
+        const comMap = {
+          task: Task,
+          step: Step,
+        };
+        if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
+          return 'div';
+        }
+        return comMap[this.type];
+      },
+    },
+    mounted () {
+      const $container = document.querySelector('#sitePageTitle');
+      const containerWidth = $container.getBoundingClientRect().width;
+      const $target = document.querySelector('#siteHeaderStatusBar');
 
-            $target.appendChild(this.$el);
-            const statusWidth = $target.getBoundingClientRect().width;
-            if (!this.initialStatusWidth) {
-                this.initialStatusWidth = statusWidth;
-            }
+      $target.appendChild(this.$el);
+      const statusWidth = $target.getBoundingClientRect().width;
+      if (!this.initialStatusWidth) {
+        this.initialStatusWidth = statusWidth;
+      }
             
-            const titleMaxWidth = containerWidth - statusWidth - 40;
-            this.titleMaxWidth = titleMaxWidth < 100 ? 100 : titleMaxWidth;
+      const titleMaxWidth = containerWidth - statusWidth - 40;
+      this.titleMaxWidth = titleMaxWidth < 100 ? 100 : titleMaxWidth;
 
-            this.$once('hook:beforeDestroy', () => {
-                if (!this.$el) {
-                    return;
-                }
-                try {
-                    $target.removeChild(this.$el);
-                } catch {}
-            });
-        },
-    };
+      this.$once('hook:beforeDestroy', () => {
+        if (!this.$el) {
+          return;
+        }
+        try {
+          $target.removeChild(this.$el);
+        } catch {}
+      });
+    },
+  };
 </script>
 <style lang='postcss'>
     .exection-status-bar {

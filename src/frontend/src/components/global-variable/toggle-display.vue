@@ -26,47 +26,47 @@
 -->
 
 <template>
-    <div class="toggle-display">
-        <div
-            class="action"
-            :class="{
-                open: isOpen,
-            }"
-            @click="handleToggle">
-            <div v-show="isOpen">
-                <Icon type="angle-double-up" class="toggle-arrow" />
-                <span>{{ $t('收起未引用的变量') }} ({{ count }})</span>
-            </div>
-            <div v-show="!isOpen">
-                <Icon type="angle-double-down" class="toggle-arrow" />
-                <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
-            </div>
-        </div>
-        <div v-if="isOpen">
-            <slot />
-        </div>
+  <div class="toggle-display">
+    <div
+      class="action"
+      :class="{
+        open: isOpen,
+      }"
+      @click="handleToggle">
+      <div v-show="isOpen">
+        <Icon class="toggle-arrow" type="angle-double-up" />
+        <span>{{ $t('收起未引用的变量') }} ({{ count }})</span>
+      </div>
+      <div v-show="!isOpen">
+        <Icon class="toggle-arrow" type="angle-double-down" />
+        <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
+      </div>
     </div>
+    <div v-if="isOpen">
+      <slot />
+    </div>
+  </div>
 </template>
 <script>
-    export default {
-        name: 'globalVariableToggleDisplay',
-        props: {
-            count: {
-                type: Number,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isOpen: false,
-            };
-        },
-        methods: {
-            handleToggle () {
-                this.isOpen = !this.isOpen;
-            },
-        },
-    };
+  export default {
+    name: 'globalVariableToggleDisplay',
+    props: {
+      count: {
+        type: Number,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isOpen: false,
+      };
+    },
+    methods: {
+      handleToggle () {
+        this.isOpen = !this.isOpen;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .toggle-display {

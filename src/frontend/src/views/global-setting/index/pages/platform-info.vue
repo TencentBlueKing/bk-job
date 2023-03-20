@@ -26,152 +26,152 @@
 -->
 
 <template>
-    <div class="page-platform-info" v-bkloading="{ isLoading }">
-        <smart-action offset-target="bk-form-content">
-            <div class="wraper">
-                <jb-form ref="platformForm" :model="formData" :rules="rules">
-                    <bk-popover placement="top" :width="320" theme="light" :distance="-10">
-                        <div class="backlist block-title">
-                            <span>{{ $t('setting.网页 Title 设置:') }}</span>
-                        </div>
-                        <div slot="content" class="title-example-popover">
-                            <img src="/static/images/title-example.png" class="example-image">
-                        </div>
-                    </bk-popover>
-                    <hgroup>
-                        <jb-form-item
-                            :label="$t('setting.平台名称')"
-                            required
-                            property="titleHead">
-                            <jb-input
-                                style="width: 240px;"
-                                v-model="formData.titleHead" />
-                        </jb-form-item>
-                        <jb-form-item
-                            :label="$t('setting.分隔符')"
-                            required
-                            property="titleSeparator"
-                            class="title-separator-item">
-                            <jb-input
-                                style="width: 240px;"
-                                v-model="formData.titleSeparator" />
-                        </jb-form-item>
-                        <bk-button
-                            text
-                            size="small"
-                            class="reset"
-                            @click="handleRestore">
-                            {{ $t('setting.恢复默认') }}
-                        </bk-button>
-                    </hgroup>
-                    <div class="block-title">
-                        <span>{{ $t('setting.页脚信息设置') }}:</span>
-                    </div>
-                    <jb-form-item :label="$t('setting.联系方式')">
-                        <jb-input
-                            style="width: 680px;"
-                            v-model="formData.footerLink" />
-                    </jb-form-item>
-                    <jb-form-item :label="$t('setting.版权信息')">
-                        <jb-input
-                            v-model="formData.footerCopyRight" />
-                    </jb-form-item>
-                </jb-form>
+  <div v-bkloading="{ isLoading }" class="page-platform-info">
+    <smart-action offset-target="bk-form-content">
+      <div class="wraper">
+        <jb-form ref="platformForm" :model="formData" :rules="rules">
+          <bk-popover :distance="-10" placement="top" theme="light" :width="320">
+            <div class="backlist block-title">
+              <span>{{ $t('setting.网页 Title 设置:') }}</span>
             </div>
-            <template #action>
-                <bk-button
-                    theme="primary"
-                    :loading="isSubmitting"
-                    class="w120 mr10"
-                    @click="handleSave">{{ $t('setting.保存') }}</bk-button>
-                <bk-button @click="handleReset">{{ $t('setting.重置') }}</bk-button>
-            </template>
-        </smart-action>
-    </div>
+            <div slot="content" class="title-example-popover">
+              <img class="example-image" src="/static/images/title-example.png">
+            </div>
+          </bk-popover>
+          <hgroup>
+            <jb-form-item
+              :label="$t('setting.平台名称')"
+              property="titleHead"
+              required>
+              <jb-input
+                v-model="formData.titleHead"
+                style="width: 240px;" />
+            </jb-form-item>
+            <jb-form-item
+              class="title-separator-item"
+              :label="$t('setting.分隔符')"
+              property="titleSeparator"
+              required>
+              <jb-input
+                v-model="formData.titleSeparator"
+                style="width: 240px;" />
+            </jb-form-item>
+            <bk-button
+              class="reset"
+              size="small"
+              text
+              @click="handleRestore">
+              {{ $t('setting.恢复默认') }}
+            </bk-button>
+          </hgroup>
+          <div class="block-title">
+            <span>{{ $t('setting.页脚信息设置') }}:</span>
+          </div>
+          <jb-form-item :label="$t('setting.联系方式')">
+            <jb-input
+              v-model="formData.footerLink"
+              style="width: 680px;" />
+          </jb-form-item>
+          <jb-form-item :label="$t('setting.版权信息')">
+            <jb-input
+              v-model="formData.footerCopyRight" />
+          </jb-form-item>
+        </jb-form>
+      </div>
+      <template #action>
+        <bk-button
+          class="w120 mr10"
+          :loading="isSubmitting"
+          theme="primary"
+          @click="handleSave">{{ $t('setting.保存') }}</bk-button>
+        <bk-button @click="handleReset">{{ $t('setting.重置') }}</bk-button>
+      </template>
+    </smart-action>
+  </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import _ from 'lodash';
-    import GlobalSettingService from '@service/global-setting';
-    import SmartAction from '@components/smart-action';
-    import JbInput from '@components/jb-input';
+  import I18n from '@/i18n';
+  import _ from 'lodash';
+  import GlobalSettingService from '@service/global-setting';
+  import SmartAction from '@components/smart-action';
+  import JbInput from '@components/jb-input';
 
-    const getDefaultData = () => ({
-        titleHead: '',
-        titleSeparator: '',
-        footerLink: '',
-        footerCopyRight: '',
-    });
+  const getDefaultData = () => ({
+    titleHead: '',
+    titleSeparator: '',
+    footerLink: '',
+    footerCopyRight: '',
+  });
 
-    export default {
-        name: '',
-        components: {
-            SmartAction,
-            JbInput,
-        },
-        data () {
-            return {
-                isLoading: false,
-                isSubmitting: false,
-                formData: getDefaultData(),
-                currentTitleFooter: {},
-                defaultTitleFooter: {},
-            };
-        },
-        created () {
-            this.fetchTitleAndFooter();
-            this.rules = {
-                titleHead: [
-                    {
-                        required: true,
-                        message: I18n.t('setting.平台名称必填'),
-                        trigger: 'blur',
-                    },
-                ],
-                titleSeparator: [
-                    {
-                        required: true,
-                        message: I18n.t('setting.分隔符必填'),
-                        trigger: 'blur',
-                    },
-                ],
-            };
-        },
-        methods: {
-            fetchTitleAndFooter () {
-                this.isLoading = true;
-                GlobalSettingService.fetchTitleAndFooterConfig()
-                    .then((data) => {
-                        this.defaultTitleFooter = _.cloneDeep(data.defaultTitleFooter);
-                        this.currentTitleFooter = _.cloneDeep(data.currentTitleFooter);
-                        this.formData = { ...this.formData, ...data.currentTitleFooter };
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            handleRestore () {
-                this.formData = _.cloneDeep(this.defaultTitleFooter);
-            },
-            handleReset () {
-                this.formData = _.cloneDeep(this.currentTitleFooter);
-            },
-            handleSave () {
-                this.$refs.platformForm.validate()
-                    .then((validator) => {
-                        this.isSubmitting = true;
-                        GlobalSettingService.updateTitleAndFooterConfig(this.formData)
-                            .then(() => {
-                                window.changeFlag = false;
-                                this.messageSuccess(I18n.t('setting.保存成功'));
-                            })
-                            .finally(() => {
-                                this.isSubmitting = false;
-                            });
-                    });
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      SmartAction,
+      JbInput,
+    },
+    data () {
+      return {
+        isLoading: false,
+        isSubmitting: false,
+        formData: getDefaultData(),
+        currentTitleFooter: {},
+        defaultTitleFooter: {},
+      };
+    },
+    created () {
+      this.fetchTitleAndFooter();
+      this.rules = {
+        titleHead: [
+          {
+            required: true,
+            message: I18n.t('setting.平台名称必填'),
+            trigger: 'blur',
+          },
+        ],
+        titleSeparator: [
+          {
+            required: true,
+            message: I18n.t('setting.分隔符必填'),
+            trigger: 'blur',
+          },
+        ],
+      };
+    },
+    methods: {
+      fetchTitleAndFooter () {
+        this.isLoading = true;
+        GlobalSettingService.fetchTitleAndFooterConfig()
+          .then((data) => {
+            this.defaultTitleFooter = _.cloneDeep(data.defaultTitleFooter);
+            this.currentTitleFooter = _.cloneDeep(data.currentTitleFooter);
+            this.formData = { ...this.formData, ...data.currentTitleFooter };
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      handleRestore () {
+        this.formData = _.cloneDeep(this.defaultTitleFooter);
+      },
+      handleReset () {
+        this.formData = _.cloneDeep(this.currentTitleFooter);
+      },
+      handleSave () {
+        this.$refs.platformForm.validate()
+          .then((validator) => {
+            this.isSubmitting = true;
+            GlobalSettingService.updateTitleAndFooterConfig(this.formData)
+              .then(() => {
+                window.changeFlag = false;
+                this.messageSuccess(I18n.t('setting.保存成功'));
+              })
+              .finally(() => {
+                this.isSubmitting = false;
+              });
+          });
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .page-platform-info {

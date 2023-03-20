@@ -26,190 +26,190 @@
 -->
 
 <template>
-    <div
-        id="app"
-        :class="{
-            'viewport-full': isViewportFull,
-            fixed: sideFixed,
-        }">
-        <div class="jb-navigation">
-            <div class="jb-navigation-header">
-                <div class="header-left" :style="headerLeftStyles">
-                    <slot name="header" />
-                </div>
-                <div class="header-center">
-                    <slot name="headerCenter" />
-                </div>
-                <div class="header-right">
-                    <slot name="headerRight" />
-                </div>
-            </div>
-            <div
-                class="jb-navigation-side"
-                :style="sideStyles"
-                @mouseenter="handleSideMouseenter"
-                @mouseleave="handleSideMouseleave">
-                <slot name="sideAppendBefore" />
-                <div class="side-wrapper">
-                    <scroll-faker theme="dark">
-                        <slot name="side" />
-                    </scroll-faker>
-                </div>
-                <div class="side-footer">
-                    <Icon
-                        class="fixed-flag"
-                        type="expand-line"
-                        @click="handleSideFixedToggle" />
-                </div>
-            </div>
-            <div class="jb-navigation-main" :style="mainStyles">
-                <div
-                    class="jb-navigation-body-header"
-                    :style="bodyHeaderStyles">
-                    <slot name="contentHeader" />
-                </div>
-                <scroll-faker
-                    ref="contentScroll"
-                    :style="scrollStyles">
-                    <div class="jb-navigation-content" :style="contentStyles">
-                        <div class="navigation-content-wrapper">
-                            <slot />
-                        </div>
-                    </div>
-                </scroll-faker>
-            </div>
+  <div
+    id="app"
+    :class="{
+      'viewport-full': isViewportFull,
+      fixed: sideFixed,
+    }">
+    <div class="jb-navigation">
+      <div class="jb-navigation-header">
+        <div class="header-left" :style="headerLeftStyles">
+          <slot name="header" />
         </div>
+        <div class="header-center">
+          <slot name="headerCenter" />
+        </div>
+        <div class="header-right">
+          <slot name="headerRight" />
+        </div>
+      </div>
+      <div
+        class="jb-navigation-side"
+        :style="sideStyles"
+        @mouseenter="handleSideMouseenter"
+        @mouseleave="handleSideMouseleave">
+        <slot name="sideAppendBefore" />
+        <div class="side-wrapper">
+          <scroll-faker theme="dark">
+            <slot name="side" />
+          </scroll-faker>
+        </div>
+        <div class="side-footer">
+          <Icon
+            class="fixed-flag"
+            type="expand-line"
+            @click="handleSideFixedToggle" />
+        </div>
+      </div>
+      <div class="jb-navigation-main" :style="mainStyles">
+        <div
+          class="jb-navigation-body-header"
+          :style="bodyHeaderStyles">
+          <slot name="contentHeader" />
+        </div>
+        <scroll-faker
+          ref="contentScroll"
+          :style="scrollStyles">
+          <div class="jb-navigation-content" :style="contentStyles">
+            <div class="navigation-content-wrapper">
+              <slot />
+            </div>
+          </div>
+        </scroll-faker>
+      </div>
     </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
+  import _ from 'lodash';
 
-    const PAGE_MIN_WIDTH = 1366;
-    const PAGE_MIDDLE_WIDTH = 1920;
-    const SIDE_LEFT_EXPAND_SMALL_WIDTH = 220;
-    const SIDE_LEFT_EXPAND_BIG_WIDTH = 280;
-    const SIDE_LEFT_INEXPAND_WIDTH = 60;
+  const PAGE_MIN_WIDTH = 1366;
+  const PAGE_MIDDLE_WIDTH = 1920;
+  const SIDE_LEFT_EXPAND_SMALL_WIDTH = 220;
+  const SIDE_LEFT_EXPAND_BIG_WIDTH = 280;
+  const SIDE_LEFT_INEXPAND_WIDTH = 60;
 
-    export default {
-        name: 'job-site-frame',
-        props: {
-            sideFixed: {
-                type: Boolean,
-                default: false,
-            },
+  export default {
+    name: 'job-site-frame',
+    props: {
+      sideFixed: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        isViewportFull: false,
+        isSideHover: false,
+        pageWidth: PAGE_MIN_WIDTH,
+        sideLeftExpandWidth: 0,
+      };
+    },
+    computed: {
+      realSideWidth () {
+        return this.sideFixed ? this.sideLeftExpandWidth : SIDE_LEFT_INEXPAND_WIDTH;
+      },
+      headerLeftStyles () {
+        return {
+          width: `${this.sideLeftExpandWidth}px`,
+        };
+      },
+      sideStyles () {
+        if (this.isSideHover) {
+          return {
+            width: `${this.sideLeftExpandWidth}px`,
+            zIndex: 2000,
+          };
+        }
+        return {
+          width: `${this.realSideWidth}px`,
+        };
+      },
+      mainStyles () {
+        return {
+          marginLeft: `${this.realSideWidth}px`,
+          zIndex: 1999,
+        };
+      },
+      bodyHeaderStyles () {
+        return {
+          left: `${this.realSideWidth}px`,
+        };
+      },
+      scrollStyles () {
+        const navigationHeaderHeight = 52;
+        const contentHeaderHeight = 52;
+        return {
+          width: `calc(100vw - ${this.realSideWidth}px)`,
+          height: `calc(100vh - ${navigationHeaderHeight + contentHeaderHeight}px)`,
+        };
+      },
+      contentStyles () {
+        return {
+          width: `${this.pageWidth - this.realSideWidth}px`,
+        };
+      },
+    },
+    watch: {
+      /**
+       * @desc 页面标题
+       */
+      $route: {
+        handler (route) {
+          this.isViewportFull = Boolean(route.meta.full);
+          setTimeout(() => {
+            this.$refs.contentScroll.scrollTo(0, 0);
+          });
         },
-        data () {
-            return {
-                isViewportFull: false,
-                isSideHover: false,
-                pageWidth: PAGE_MIN_WIDTH,
-                sideLeftExpandWidth: 0,
-            };
-        },
-        computed: {
-            realSideWidth () {
-                return this.sideFixed ? this.sideLeftExpandWidth : SIDE_LEFT_INEXPAND_WIDTH;
-            },
-            headerLeftStyles () {
-                return {
-                    width: `${this.sideLeftExpandWidth}px`,
-                };
-            },
-            sideStyles () {
-                if (this.isSideHover) {
-                    return {
-                        width: `${this.sideLeftExpandWidth}px`,
-                        zIndex: 2000,
-                    };
-                }
-                return {
-                    width: `${this.realSideWidth}px`,
-                };
-            },
-            mainStyles () {
-                return {
-                    marginLeft: `${this.realSideWidth}px`,
-                    zIndex: 1999,
-                };
-            },
-            bodyHeaderStyles () {
-                return {
-                    left: `${this.realSideWidth}px`,
-                };
-            },
-            scrollStyles () {
-                const navigationHeaderHeight = 52;
-                const contentHeaderHeight = 52;
-                return {
-                    width: `calc(100vw - ${this.realSideWidth}px)`,
-                    height: `calc(100vh - ${navigationHeaderHeight + contentHeaderHeight}px)`,
-                };
-            },
-            contentStyles () {
-                return {
-                    width: `${this.pageWidth - this.realSideWidth}px`,
-                };
-            },
-        },
-        watch: {
-            /**
-             * @desc 页面标题
-             */
-            $route: {
-                handler (route) {
-                    this.isViewportFull = Boolean(route.meta.full);
-                    setTimeout(() => {
-                        this.$refs.contentScroll.scrollTo(0, 0);
-                    });
-                },
-                immediate: true,
-            },
-        },
-        mounted () {
-            this.init();
-            const resizeHandler = _.throttle(this.init, 100);
-            window.addEventListener('resize', resizeHandler);
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('resize', resizeHandler);
-            });
-        },
-        methods: {
-            /**
-             * @desc 初始化动态计算布局尺寸
-             */
-            init () {
-                const windowInnerWidth = window.innerWidth;
-                this.pageWidth = windowInnerWidth < PAGE_MIN_WIDTH ? PAGE_MIN_WIDTH : windowInnerWidth;
-                this.sideLeftExpandWidth = windowInnerWidth < PAGE_MIDDLE_WIDTH ? SIDE_LEFT_EXPAND_SMALL_WIDTH : SIDE_LEFT_EXPAND_BIG_WIDTH;
-            },
-            /**
-             * @desc 鼠标移入
-             */
-            handleSideMouseenter () {
-                clearTimeout(this.hoverTimer);
-                this.hoverTimer = setTimeout(() => {
-                    this.isSideHover = true;
-                    this.$emit('on-side-expand', this.isSideHover);
-                }, 50);
-            },
-            /**
-             * @desc 鼠标移出
-             */
-            handleSideMouseleave () {
-                clearTimeout(this.hoverTimer);
-                this.hoverTimer = setTimeout(() => {
-                    this.isSideHover = false;
-                    this.$emit('on-side-expand', this.isSideHover);
-                }, 50);
-            },
-            /**
-             * @desc 切换左侧面板是否固定的状态
-             */
-            handleSideFixedToggle () {
-                this.$emit('on-side-fixed');
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    mounted () {
+      this.init();
+      const resizeHandler = _.throttle(this.init, 100);
+      window.addEventListener('resize', resizeHandler);
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('resize', resizeHandler);
+      });
+    },
+    methods: {
+      /**
+       * @desc 初始化动态计算布局尺寸
+       */
+      init () {
+        const windowInnerWidth = window.innerWidth;
+        this.pageWidth = windowInnerWidth < PAGE_MIN_WIDTH ? PAGE_MIN_WIDTH : windowInnerWidth;
+        this.sideLeftExpandWidth = windowInnerWidth < PAGE_MIDDLE_WIDTH ? SIDE_LEFT_EXPAND_SMALL_WIDTH : SIDE_LEFT_EXPAND_BIG_WIDTH;
+      },
+      /**
+       * @desc 鼠标移入
+       */
+      handleSideMouseenter () {
+        clearTimeout(this.hoverTimer);
+        this.hoverTimer = setTimeout(() => {
+          this.isSideHover = true;
+          this.$emit('on-side-expand', this.isSideHover);
+        }, 50);
+      },
+      /**
+       * @desc 鼠标移出
+       */
+      handleSideMouseleave () {
+        clearTimeout(this.hoverTimer);
+        this.hoverTimer = setTimeout(() => {
+          this.isSideHover = false;
+          this.$emit('on-side-expand', this.isSideHover);
+        }, 50);
+      },
+      /**
+       * @desc 切换左侧面板是否固定的状态
+       */
+      handleSideFixedToggle () {
+        this.$emit('on-side-fixed');
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     #app {

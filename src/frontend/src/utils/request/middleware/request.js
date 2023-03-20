@@ -24,5 +24,5 @@
 */
 
 export default (interceptors) => {
-    interceptors.use(request => request, undefined);
+  interceptors.use(request => request, undefined);
 };

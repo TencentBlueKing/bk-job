@@ -26,51 +26,51 @@
 -->
 
 <template>
-    <div class="internal-variable-wrapper">
-        <Icon type="close" class="close-dialog" @click.stop="handleClose(false)" />
-        <header>{{ $t('setting.内置变量列表') }}</header>
-        <bk-tab :active="variableType"
-            type="unborder-card"
-            class="variable-tab"
-            :before-toggle="handleTabChange">
-            <bk-tab-panel name="general" :label="$t('setting.通用变量')" />
-            <bk-tab-panel name="job" :label="$t('setting.作业变量')" />
-            <bk-tab-panel name="cron" :label="$t('setting.定时任务变量')" />
-        </bk-tab>
-        <bk-table class="variable-table" :data="renderList">
-            <bk-table-column :label="$t('setting.变量名称')" prop="name" />
-            <bk-table-column :label="$t('setting.含义')" prop="meaning" />
-            <bk-table-column :label="$t('setting.示例')" :width="320" prop="examples" />
-        </bk-table>
-    </div>
+  <div class="internal-variable-wrapper">
+    <Icon class="close-dialog" type="close" @click.stop="handleClose(false)" />
+    <header>{{ $t('setting.内置变量列表') }}</header>
+    <bk-tab :active="variableType"
+      :before-toggle="handleTabChange"
+      class="variable-tab"
+      type="unborder-card">
+      <bk-tab-panel :label="$t('setting.通用变量')" name="general" />
+      <bk-tab-panel :label="$t('setting.作业变量')" name="job" />
+      <bk-tab-panel :label="$t('setting.定时任务变量')" name="cron" />
+    </bk-tab>
+    <bk-table class="variable-table" :data="renderList">
+      <bk-table-column :label="$t('setting.变量名称')" prop="name" />
+      <bk-table-column :label="$t('setting.含义')" prop="meaning" />
+      <bk-table-column :label="$t('setting.示例')" prop="examples" :width="320" />
+    </bk-table>
+  </div>
 </template>
 <script>
-    import {
-        InternalVariables,
-    } from './variables';
+  import {
+    InternalVariables,
+  } from './variables';
 
-    export default {
-        props: {
-            handleClose: {
-                type: Function,
-            },
-        },
-        data () {
-            return {
-                variableType: 'general',
-            };
-        },
-        computed: {
-            renderList () {
-                return InternalVariables[this.variableType];
-            },
-        },
-        methods: {
-            handleTabChange (tab) {
-                this.variableType = tab;
-            },
-        },
-    };
+  export default {
+    props: {
+      handleClose: {
+        type: Function,
+      },
+    },
+    data () {
+      return {
+        variableType: 'general',
+      };
+    },
+    computed: {
+      renderList () {
+        return InternalVariables[this.variableType];
+      },
+    },
+    methods: {
+      handleTabChange (tab) {
+        this.variableType = tab;
+      },
+    },
+  };
 </script>
 
 <style lang="postcss">

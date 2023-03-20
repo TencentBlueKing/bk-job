@@ -26,38 +26,38 @@
 -->
 
 <template>
-    <div class="notify-collapse-item">
-        <bk-collapse-item ref="collapseItem" v-bind="$attrs" v-on="$listeners" hide-arrow>
-            <template #default>
-                <Icon :type="iconType" style="color: #979ba5;" />
-                <span style="display: none;">{{ iconType }}</span>
-                <slot />
-            </template>
-            <template #content>
-                <slot name="content" />
-            </template>
-        </bk-collapse-item>
-    </div>
+  <div class="notify-collapse-item">
+    <bk-collapse-item ref="collapseItem" v-bind="$attrs" hide-arrow v-on="$listeners">
+      <template #default>
+        <Icon style="color: #979ba5;" :type="iconType" />
+        <span style="display: none;">{{ iconType }}</span>
+        <slot />
+      </template>
+      <template #content>
+        <slot name="content" />
+      </template>
+    </bk-collapse-item>
+  </div>
 </template>
 <script>
-    export default {
-        inject: ['collapse'],
-        data () {
-            return {
-                iconType: 'arrow-full-right',
-            };
-        },
-        mounted () {
-            const unwatch = this.$watch(() => this.$refs.collapseItem.isActive, (newValue) => {
-                this.iconType = newValue ? 'arrow-full-down' : 'arrow-full-right';
-            }, {
-                immediate: true,
-            });
-            this.$once('hook:beforeDestroy', () => {
-                unwatch();
-            });
-        },
-    };
+  export default {
+    inject: ['collapse'],
+    data () {
+      return {
+        iconType: 'arrow-full-right',
+      };
+    },
+    mounted () {
+      const unwatch = this.$watch(() => this.$refs.collapseItem.isActive, (newValue) => {
+        this.iconType = newValue ? 'arrow-full-down' : 'arrow-full-right';
+      }, {
+        immediate: true,
+      });
+      this.$once('hook:beforeDestroy', () => {
+        unwatch();
+      });
+    },
+  };
 </script>
 <style lang='postcss'>
     .notify-collapse-item {

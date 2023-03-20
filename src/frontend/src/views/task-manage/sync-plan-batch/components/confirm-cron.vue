@@ -26,83 +26,83 @@
 -->
 
 <template>
-    <jb-dialog
-        :value="isShow"
-        fullscreen
-        class="plan-confirm-cron-dialog"
-        @cancel="handleClose">
-        <div class="confirm-cron-wraper" v-bkloading="{ isLoading }" @keyup.esc="handleClose">
-            <confirm-cron
-                v-if="!isLoading"
-                :template-info="templateInfo"
-                :plan-id="planId"
-                :cron-job-list="cronJobInfoList"
-                @on-change="handleConfirmCron" />
-        </div>
-    </jb-dialog>
+  <jb-dialog
+    class="plan-confirm-cron-dialog"
+    fullscreen
+    :value="isShow"
+    @cancel="handleClose">
+    <div v-bkloading="{ isLoading }" class="confirm-cron-wraper" @keyup.esc="handleClose">
+      <confirm-cron
+        v-if="!isLoading"
+        :cron-job-list="cronJobInfoList"
+        :plan-id="planId"
+        :template-info="templateInfo"
+        @on-change="handleConfirmCron" />
+    </div>
+  </jb-dialog>
 </template>
 <script>
-    import TaskManageService from '@service/task-manage';
-    import ConfirmCron from '../../common/plan/confirm-cron';
+  import TaskManageService from '@service/task-manage';
+  import ConfirmCron from '../../common/plan/confirm-cron';
 
-    export default {
-        name: '',
-        components: {
-            ConfirmCron,
-        },
-        props: {
-            isShow: {
-                type: Boolean,
-                default: false,
-            },
-            templateId: {
-                type: Number,
-                required: true,
-            },
-            planId: {
-                type: Number,
-                required: true,
-            },
-            cronJobInfoList: {
-                type: Array,
-                default: () => [],
-            },
-        },
-        data () {
-            return {
-                isShowDialog: false,
-                isLoading: true,
-                templateInfo: {},
-            };
-        },
-        watch: {
-            templateId (templateId) {
-                if (templateId < 0) {
-                    return;
-                }
-                this.fetchData();
-            },
-        },
-        methods: {
-            fetchData () {
-                this.isLoading = true;
-                TaskManageService.taskDetail({
-                    id: this.templateId,
-                }).then((data) => {
-                    this.templateInfo = Object.freeze(data);
-                })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            handleClose () {
-                this.$emit('on-close');
-            },
-            handleConfirmCron (cronJonList) {
-                this.$emit('on-change', cronJonList);
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      ConfirmCron,
+    },
+    props: {
+      isShow: {
+        type: Boolean,
+        default: false,
+      },
+      templateId: {
+        type: Number,
+        required: true,
+      },
+      planId: {
+        type: Number,
+        required: true,
+      },
+      cronJobInfoList: {
+        type: Array,
+        default: () => [],
+      },
+    },
+    data () {
+      return {
+        isShowDialog: false,
+        isLoading: true,
+        templateInfo: {},
+      };
+    },
+    watch: {
+      templateId (templateId) {
+        if (templateId < 0) {
+          return;
+        }
+        this.fetchData();
+      },
+    },
+    methods: {
+      fetchData () {
+        this.isLoading = true;
+        TaskManageService.taskDetail({
+          id: this.templateId,
+        }).then((data) => {
+          this.templateInfo = Object.freeze(data);
+        })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      handleClose () {
+        this.$emit('on-close');
+      },
+      handleConfirmCron (cronJonList) {
+        this.$emit('on-change', cronJonList);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .plan-confirm-cron-dialog {

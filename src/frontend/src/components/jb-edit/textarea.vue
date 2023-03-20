@@ -26,307 +26,307 @@
 -->
 
 <template>
-    <div class="jb-edit-textarea" :class="mode">
-        <div
-            v-if="!isEditing"
-            class="render-value-box"
-            @click.stop="handleBlockShowEdit">
-            <div
-                class="render-text-box"
-                ref="valueTextBox"
-                v-bk-overflow-tips="renderText"
-                @copy="handleCopy"
-                :style="boxStyles">
-                <slot v-bind:value="newVal">{{ renderText }}</slot>
-                <span
-                    v-if="isShowMore"
-                    class="text-whole"
-                    @click.stop="handleExpandAll">
-                    <template v-if="isExpand">
-                        <Icon type="angle-double-up" style="font-size: 12px;" />
-                        <span>收起</span>
-                    </template>
-                    <template v-else>
-                        <Icon type="angle-double-down" style="font-size: 12px;" />
-                        <span>展开</span>
-                    </template>
-                </span>
-            </div>
-            <div v-if="!readonly" class="edit-action-box">
-                <Icon
-                    v-if="!isBlock && !isSubmiting"
-                    type="edit-2"
-                    class="edit-action"
-                    @click.self.stop="handleShowInput" />
-                <Icon
-                    v-if="isSubmiting"
-                    type="loading-circle"
-                    class="edit-loading" />
-            </div>
-        </div>
-        <div v-else @click.stop="">
-            <jb-textarea
-                v-model="newVal"
-                class="edit-value-box"
-                ref="input"
-                :rows="rows"
-                v-bind="$attrs"
-                @blur="handleInputBlur" />
-        </div>
+  <div class="jb-edit-textarea" :class="mode">
+    <div
+      v-if="!isEditing"
+      class="render-value-box"
+      @click.stop="handleBlockShowEdit">
+      <div
+        ref="valueTextBox"
+        v-bk-overflow-tips="renderText"
+        class="render-text-box"
+        :style="boxStyles"
+        @copy="handleCopy">
+        <slot v-bind:value="newVal">{{ renderText }}</slot>
+        <span
+          v-if="isShowMore"
+          class="text-whole"
+          @click.stop="handleExpandAll">
+          <template v-if="isExpand">
+            <Icon style="font-size: 12px;" type="angle-double-up" />
+            <span>收起</span>
+          </template>
+          <template v-else>
+            <Icon style="font-size: 12px;" type="angle-double-down" />
+            <span>展开</span>
+          </template>
+        </span>
+      </div>
+      <div v-if="!readonly" class="edit-action-box">
+        <Icon
+          v-if="!isBlock && !isSubmiting"
+          class="edit-action"
+          type="edit-2"
+          @click.self.stop="handleShowInput" />
+        <Icon
+          v-if="isSubmiting"
+          class="edit-loading"
+          type="loading-circle" />
+      </div>
     </div>
+    <div v-else @click.stop="">
+      <jb-textarea
+        ref="input"
+        v-model="newVal"
+        class="edit-value-box"
+        :rows="rows"
+        v-bind="$attrs"
+        @blur="handleInputBlur" />
+    </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import JbTextarea from '@components/jb-textarea';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
+  import JbTextarea from '@components/jb-textarea';
 
-    export default {
-        name: 'JbEditTextarea',
-        components: {
-            JbTextarea,
+  export default {
+    name: 'JbEditTextarea',
+    components: {
+      JbTextarea,
+    },
+    props: {
+      /**
+       * @value block 块级交互
+       * @value ‘’ 默认鼠标点击编辑按钮
+       */
+      mode: {
+        type: String,
+        default: '',
+      },
+      field: {
+        type: String,
+        required: true,
+      },
+      value: {
+        type: String,
+        default: '',
+      },
+      // 忽略换行强制文本在一行显示
+      singleRowRender: {
+        type: Boolean,
+        default: false,
+      },
+      rows: {
+        type: Number,
+        default: 3,
+      },
+      remoteHander: {
+        type: Function,
+        default: () => Promise.resolve(),
+      },
+      rules: {
+        type: Array,
+        default: () => [],
+      },
+      readonly: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        isEditing: false,
+        isSubmiting: false,
+        isExpand: false,
+        newVal: this.value,
+        renderLength: 0,
+      };
+    },
+    computed: {
+      renderText () {
+        if (this.newVal.length === this.renderLength) {
+          return this.newVal;
+        }
+        if (this.isExpand) {
+          return this.newVal;
+        }
+        if (this.renderLength < 1) {
+          if (!this.newVal) {
+            return '--';
+          }
+          return this.newVal;
+        }
+        return `${this.newVal.slice(0, this.renderLength)}...`;
+      },
+      isShowMore () {
+        return this.newVal.length > this.renderLength && this.renderLength > 0;
+      },
+      boxStyles () {
+        const styles = {
+          'max-height': this.isExpand ? 'unset' : '78px',
+        };
+        if (this.singleRowRender) {
+          styles.height = '26px';
+          styles['max-width'] = '100%';
+          styles['text-overflow'] = 'ellipsis';
+          styles['white-space'] = 'nowrap';
+        }
+        return styles;
+      },
+      isBlock () {
+        return this.mode === 'block';
+      },
+    },
+    watch: {
+      value: {
+        handler (newVal) {
+          this.newVal = newVal;
+          if (this.newVal) {
+            this.calcEllTextLength();
+          }
         },
-        props: {
-            /**
-             * @value block 块级交互
-             * @value ‘’ 默认鼠标点击编辑按钮
-             */
-            mode: {
-                type: String,
-                default: '',
-            },
-            field: {
-                type: String,
-                required: true,
-            },
-            value: {
-                type: String,
-                default: '',
-            },
-            // 忽略换行强制文本在一行显示
-            singleRowRender: {
-                type: Boolean,
-                default: false,
-            },
-            rows: {
-                type: Number,
-                default: 3,
-            },
-            remoteHander: {
-                type: Function,
-                default: () => Promise.resolve(),
-            },
-            rules: {
-                type: Array,
-                default: () => [],
-            },
-            readonly: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        data () {
-            return {
-                isEditing: false,
-                isSubmiting: false,
-                isExpand: false,
-                newVal: this.value,
-                renderLength: 0,
-            };
-        },
-        computed: {
-            renderText () {
-                if (this.newVal.length === this.renderLength) {
-                    return this.newVal;
-                }
-                if (this.isExpand) {
-                    return this.newVal;
-                }
-                if (this.renderLength < 1) {
-                    if (!this.newVal) {
-                        return '--';
-                    }
-                    return this.newVal;
-                }
-                return `${this.newVal.slice(0, this.renderLength)}...`;
-            },
-            isShowMore () {
-                return this.newVal.length > this.renderLength && this.renderLength > 0;
-            },
-            boxStyles () {
-                const styles = {
-                    'max-height': this.isExpand ? 'unset' : '78px',
-                };
-                if (this.singleRowRender) {
-                    styles.height = '26px';
-                    styles['max-width'] = '100%';
-                    styles['text-overflow'] = 'ellipsis';
-                    styles['white-space'] = 'nowrap';
-                }
-                return styles;
-            },
-            isBlock () {
-                return this.mode === 'block';
-            },
-        },
-        watch: {
-            value: {
-                handler (newVal) {
-                    this.newVal = newVal;
-                    if (this.newVal) {
-                        this.calcEllTextLength();
-                    }
-                },
-                immediate: true,
-            },
-        },
-        mounted () {
-            document.body.addEventListener('click', this.handleHideInput);
-            this.$once('hook:beforeDestroy', () => {
-                document.body.removeEventListener('click', this.handleHideInput);
-            });
-        },
-        methods: {
-            /**
-             * @desc 计算默认展示的文本宽度
-             *
-             * settimeout 保证计算过程在组件渲染之后
-             */
-            calcEllTextLength () {
-                if (this.$slots.default) {
-                    return;
-                }
-                if (this.isExpand) {
-                    return;
-                }
-                setTimeout(() => {
-                    const valLength = this.newVal.length;
-                    const $el = document.createElement('div');
-                    $el.style.opacity = 0;
-                    $el.style.zIndex = '-1';
-                    if (this.singleRowRender) {
-                        $el.style.wordBreak = 'keep-all';
-                        $el.style.whiteSpace = 'pre';
-                    }
+        immediate: true,
+      },
+    },
+    mounted () {
+      document.body.addEventListener('click', this.handleHideInput);
+      this.$once('hook:beforeDestroy', () => {
+        document.body.removeEventListener('click', this.handleHideInput);
+      });
+    },
+    methods: {
+      /**
+       * @desc 计算默认展示的文本宽度
+       *
+       * settimeout 保证计算过程在组件渲染之后
+       */
+      calcEllTextLength () {
+        if (this.$slots.default) {
+          return;
+        }
+        if (this.isExpand) {
+          return;
+        }
+        setTimeout(() => {
+          const valLength = this.newVal.length;
+          const $el = document.createElement('div');
+          $el.style.opacity = 0;
+          $el.style.zIndex = '-1';
+          if (this.singleRowRender) {
+            $el.style.wordBreak = 'keep-all';
+            $el.style.whiteSpace = 'pre';
+          }
 
-                    this.$refs.valueTextBox.appendChild($el);
+          this.$refs.valueTextBox.appendChild($el);
 
-                    const lineHeight = 24;
-                    const maxLine = 3;
-                    const maxHeight = lineHeight * maxLine;
-                    let realHeight = 0;
-                    let realLength = 1;
+          const lineHeight = 24;
+          const maxLine = 3;
+          const maxHeight = lineHeight * maxLine;
+          let realHeight = 0;
+          let realLength = 1;
 
-                    const calcLength = () => {
-                        const text = this.newVal.slice(0, realLength);
-                        $el.innerText = `${text} 展开展开`;
-                        Promise.resolve()
-                            .then(() => {
-                                realHeight = $el.getBoundingClientRect().height;
-                                if (realHeight <= maxHeight && realLength < valLength) {
-                                    realLength += 2;
-                                    calcLength();
-                                }
-                            });
-                    };
-                    calcLength();
-                    setTimeout(() => {
-                        this.renderLength = 0;
-                        if (realHeight > lineHeight) {
-                            this.renderLength = realLength >= valLength ? valLength : realLength - 4;
-                        }
-                        this.$refs.valueTextBox.removeChild($el);
-                    });
-                });
-            },
-            /**
-             * @desc 切换编辑状态
-             */
-            handleBlockShowEdit () {
-                if (!this.isBlock) {
-                    return;
+          const calcLength = () => {
+            const text = this.newVal.slice(0, realLength);
+            $el.innerText = `${text} 展开展开`;
+            Promise.resolve()
+              .then(() => {
+                realHeight = $el.getBoundingClientRect().height;
+                if (realHeight <= maxHeight && realLength < valLength) {
+                  realLength += 2;
+                  calcLength();
                 }
-                this.handleShowInput();
-            },
-            /**
-             * @desc 开始编辑
-             *
-             * 阻止事件的冒泡
-             * 手动触发body的 click 事件，
-             */
-            handleShowInput () {
-                document.body.click();
-                this.isEditing = true;
-                this.$nextTick(() => {
-                    this.$refs.input.focus();
-                });
-            },
-            /**
-             * @desc 输入框失去焦点
-             *
-             * 值没有改变不需要提交
-             */
-            handleInputBlur () {
-                this.isEditing = false;
-                if (this.newVal === this.value) {
-                    return;
-                }
-                this.isSubmiting = true;
-                this.remoteHander({
-                    [this.field]: this.newVal,
-                }).then(() => {
-                    this.$emit('on-change', {
-                        [this.field]: this.newVal,
-                    });
-                    this.calcEllTextLength();
-                    this.messageSuccess(I18n.t('编辑成功'));
-                })
-                    .finally(() => {
-                        this.isSubmiting = false;
-                    });
-            },
-            /**
-             * @desc 退出编辑状态
-             */
-            handleHideInput (event) {
-                if (event.path && event.path.length > 0) {
-                    // eslint-disable-next-line no-plusplus
-                    for (let i = 0; i < event.path.length; i++) {
-                        const target = event.path[i];
-                        if (target.className === 'jb-edit-textarea') {
-                            return;
-                        }
-                    }
-                }
-                this.isEditing = false;
-            },
-            /**
-             * @desc 复制内容
-             * @param { Object } event 复制事件
-             *
-             * 删除内容的开头和结尾的换行符
-             */
-            handleCopy (event) {
-                const clipboardData = event.clipboardData || window.clipboardData;
-                if (!clipboardData) {
-                    return;
-                }
-                let text = window.getSelection().toString();
-                if (text && text.indexOf(this.renderText) > -1) {
-                    text = this.value;
-                }
-                if (text) {
-                    event.preventDefault();
-                    clipboardData.setData('text/plain', _.trim(text, '\n'));
-                }
-            },
-            /**
-             * @desc 查看态的文本展开收起
-             */
-            handleExpandAll () {
-                this.isExpand = !this.isExpand;
-            },
-        },
-    };
+              });
+          };
+          calcLength();
+          setTimeout(() => {
+            this.renderLength = 0;
+            if (realHeight > lineHeight) {
+              this.renderLength = realLength >= valLength ? valLength : realLength - 4;
+            }
+            this.$refs.valueTextBox.removeChild($el);
+          });
+        });
+      },
+      /**
+       * @desc 切换编辑状态
+       */
+      handleBlockShowEdit () {
+        if (!this.isBlock) {
+          return;
+        }
+        this.handleShowInput();
+      },
+      /**
+       * @desc 开始编辑
+       *
+       * 阻止事件的冒泡
+       * 手动触发body的 click 事件，
+       */
+      handleShowInput () {
+        document.body.click();
+        this.isEditing = true;
+        this.$nextTick(() => {
+          this.$refs.input.focus();
+        });
+      },
+      /**
+       * @desc 输入框失去焦点
+       *
+       * 值没有改变不需要提交
+       */
+      handleInputBlur () {
+        this.isEditing = false;
+        if (this.newVal === this.value) {
+          return;
+        }
+        this.isSubmiting = true;
+        this.remoteHander({
+          [this.field]: this.newVal,
+        }).then(() => {
+          this.$emit('on-change', {
+            [this.field]: this.newVal,
+          });
+          this.calcEllTextLength();
+          this.messageSuccess(I18n.t('编辑成功'));
+        })
+          .finally(() => {
+            this.isSubmiting = false;
+          });
+      },
+      /**
+       * @desc 退出编辑状态
+       */
+      handleHideInput (event) {
+        if (event.path && event.path.length > 0) {
+          // eslint-disable-next-line no-plusplus
+          for (let i = 0; i < event.path.length; i++) {
+            const target = event.path[i];
+            if (target.className === 'jb-edit-textarea') {
+              return;
+            }
+          }
+        }
+        this.isEditing = false;
+      },
+      /**
+       * @desc 复制内容
+       * @param { Object } event 复制事件
+       *
+       * 删除内容的开头和结尾的换行符
+       */
+      handleCopy (event) {
+        const clipboardData = event.clipboardData || window.clipboardData;
+        if (!clipboardData) {
+          return;
+        }
+        let text = window.getSelection().toString();
+        if (text && text.indexOf(this.renderText) > -1) {
+          text = this.value;
+        }
+        if (text) {
+          event.preventDefault();
+          clipboardData.setData('text/plain', _.trim(text, '\n'));
+        }
+      },
+      /**
+       * @desc 查看态的文本展开收起
+       */
+      handleExpandAll () {
+        this.isExpand = !this.isExpand;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .jb-edit-textarea {

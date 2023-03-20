@@ -26,28 +26,28 @@
 -->
 
 <template>
-    <div class="task-execute-bar-step-description-popover">
-        <div>
-            {{ data.typeDesc }}:<span class="value">{{ data.name }}</span>
-        </div>
-        <div>
-            {{ $t('history.步骤状态') }}:<span class="value" :class="[data.displayStyle]">{{ data.statusDesc }}</span>
-        </div>
-        <div>
-            {{ $t('history.步骤耗时') }}:<span class="value">{{ data.totalTimeText }}</span>
-        </div>
+  <div class="task-execute-bar-step-description-popover">
+    <div>
+      {{ data.typeDesc }}:<span class="value">{{ data.name }}</span>
     </div>
+    <div>
+      {{ $t('history.步骤状态') }}:<span class="value" :class="[data.displayStyle]">{{ data.statusDesc }}</span>
+    </div>
+    <div>
+      {{ $t('history.步骤耗时') }}:<span class="value">{{ data.totalTimeText }}</span>
+    </div>
+  </div>
 </template>
 <script>
-    export default {
-        name: '',
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .task-execute-bar-step-description-popover {

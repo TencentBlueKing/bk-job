@@ -26,59 +26,59 @@
 -->
 
 <template>
-    <div class="server-panel-dropdown-menu" @click.stop="" @mouseleave="handleHide">
-        <slot />
-        <div class="server-dropdown-menu-content" ref="popoverContent" @mouseover="handleShow" @mouseleave="handleClose">
-            <slot name="menu" />
-        </div>
+  <div class="server-panel-dropdown-menu" @click.stop="" @mouseleave="handleHide">
+    <slot />
+    <div ref="popoverContent" class="server-dropdown-menu-content" @mouseleave="handleClose" @mouseover="handleShow">
+      <slot name="menu" />
     </div>
+  </div>
 </template>
 <script>
-    const instanceMap = {};
+  const instanceMap = {};
 
-    export default {
-        name: 'JbPopoverConfirm',
-        created () {
-            this.id = `dropdown_menu_${Math.random()}_${Math.random()}`;
-        },
-        mounted () {
-            this.init();
-        },
-        beforeDestroy () {
-            instanceMap[this.id].hide();
-            delete instanceMap[this.id];
-        },
-        methods: {
-            init () {
-                instanceMap[this.id] = this.$bkPopover(this.$el, {
-                    theme: 'server-panel-dropdown-menu-popover',
-                    interactive: true,
-                    placement: 'bottom-start',
-                    content: this.$refs.popoverContent,
-                    trigger: 'mouseover',
-                    arrow: true,
-                    onShow: () => {
-                        Object.keys(instanceMap).forEach((key) => {
-                            if (key !== this.id) {
-                                instanceMap[key].hide();
-                            }
-                        });
-                    },
-                });
-            },
-            handleHide () {
-                this.leaveTimer = setTimeout(() => {
-                    instanceMap[this.id].hide();
-                }, 2000);
-            },
-            handleShow () {
-                clearTimeout(this.leaveTimer);
-            },
-            handleClose () {
-                instanceMap[this.id].hide();
-            },
-        },
-    };
+  export default {
+    name: 'JbPopoverConfirm',
+    created () {
+      this.id = `dropdown_menu_${Math.random()}_${Math.random()}`;
+    },
+    mounted () {
+      this.init();
+    },
+    beforeDestroy () {
+      instanceMap[this.id].hide();
+      delete instanceMap[this.id];
+    },
+    methods: {
+      init () {
+        instanceMap[this.id] = this.$bkPopover(this.$el, {
+          theme: 'server-panel-dropdown-menu-popover',
+          interactive: true,
+          placement: 'bottom-start',
+          content: this.$refs.popoverContent,
+          trigger: 'mouseover',
+          arrow: true,
+          onShow: () => {
+            Object.keys(instanceMap).forEach((key) => {
+              if (key !== this.id) {
+                instanceMap[key].hide();
+              }
+            });
+          },
+        });
+      },
+      handleHide () {
+        this.leaveTimer = setTimeout(() => {
+          instanceMap[this.id].hide();
+        }, 2000);
+      },
+      handleShow () {
+        clearTimeout(this.leaveTimer);
+      },
+      handleClose () {
+        instanceMap[this.id].hide();
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .server-panel-dropdown-menu {

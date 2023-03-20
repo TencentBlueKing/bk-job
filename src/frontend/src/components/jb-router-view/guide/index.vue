@@ -26,51 +26,51 @@
 -->
 
 <template>
-    <component class="guide-page" :is="com" />
+  <component :is="com" class="guide-page" />
 </template>
 <script>
-    import EventBus from '@utils/event-bus';
-    import TaskList from './task-list';
-    import ScriptList from './script-list';
-    import CrontabList from './corntab-list';
+  import EventBus from '@utils/event-bus';
+  import TaskList from './task-list';
+  import ScriptList from './script-list';
+  import CrontabList from './corntab-list';
 
-    const comMap = {
-        taskList: TaskList,
-        scriptList: ScriptList,
-        cronList: CrontabList,
-    };
+  const comMap = {
+    taskList: TaskList,
+    scriptList: ScriptList,
+    cronList: CrontabList,
+  };
 
-    export default {
-        name: '',
-        data () {
-            return {
-                isEmpty: false,
-                page: '',
-            };
+  export default {
+    name: '',
+    data () {
+      return {
+        isEmpty: false,
+        page: '',
+      };
+    },
+    computed: {
+      com () {
+        if (!this.isEmpty) {
+          return '';
+        }
+        return Object.prototype.hasOwnProperty.call(comMap, this.page) ? comMap[this.page] : '';
+      },
+    },
+    watch: {
+      $route: {
+        handler  (route) {
+          this.page = route.name;
+          this.isEmpty = false;
         },
-        computed: {
-            com () {
-                if (!this.isEmpty) {
-                    return '';
-                }
-                return Object.prototype.hasOwnProperty.call(comMap, this.page) ? comMap[this.page] : '';
-            },
-        },
-        watch: {
-            $route: {
-                handler  (route) {
-                    this.page = route.name;
-                    this.isEmpty = false;
-                },
-                immediate: true,
-            },
-        },
-        created () {
-            EventBus.$on('page-empty', () => {
-                this.isEmpty = true;
-            });
-        },
-    };
+        immediate: true,
+      },
+    },
+    created () {
+      EventBus.$on('page-empty', () => {
+        this.isEmpty = true;
+      });
+    },
+  };
 </script>
 <style lang="postcss">
     .guide-page {

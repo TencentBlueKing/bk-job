@@ -26,72 +26,72 @@
 -->
 
 <template>
-    <div class="job-variable-detail">
-        <table class="info-table">
-            <tr
-                v-for="(item, index) in describeMap"
-                :key="index"
-                class="variable-item">
-                <td class="info-label">{{ item.label }}</td>
-                <td class="info-value">
-                    <jb-edit-textarea :field="item.filed" :value="data[item.filed]" readonly />
-                </td>
-            </tr>
-        </table>
-        <template v-if="data.isHost">
-            <server-panel
-                style="margin-top: 20px;"
-                detail-fullscreen
-                :host-node-info="data.defaultTargetValue.hostNodeInfo" />
-        </template>
-    </div>
+  <div class="job-variable-detail">
+    <table class="info-table">
+      <tr
+        v-for="(item, index) in describeMap"
+        :key="index"
+        class="variable-item">
+        <td class="info-label">{{ item.label }}</td>
+        <td class="info-value">
+          <jb-edit-textarea :field="item.filed" readonly :value="data[item.filed]" />
+        </td>
+      </tr>
+    </table>
+    <template v-if="data.isHost">
+      <server-panel
+        detail-fullscreen
+        :host-node-info="data.defaultTargetValue.hostNodeInfo"
+        style="margin-top: 20px;" />
+    </template>
+  </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import GlobalVariableModel from '@model/task/global-variable';
-    import ServerPanel from '@components/choose-ip/server-panel';
-    import JbEditTextarea from '@components/jb-edit/textarea';
+  import I18n from '@/i18n';
+  import GlobalVariableModel from '@model/task/global-variable';
+  import ServerPanel from '@components/choose-ip/server-panel';
+  import JbEditTextarea from '@components/jb-edit/textarea';
 
-    const type = () => ({ label: I18n.t('template.变量类型'), filed: 'typeText' });
-    const name = () => ({ label: I18n.t('template.变量名称'), filed: 'name' });
-    const defaultValue = (defaultField = I18n.t('template.初始值')) => ({ label: defaultField, filed: 'valueText' });
-    const description = () => ({ label: I18n.t('template.变量描述'), filed: 'description' });
-    const changeable = () => ({ label: I18n.t('template.赋值可变'), filed: 'changeableText' });
-    const required = () => ({ label: I18n.t('template.执行时必填'), filed: 'requiredText' });
+  const type = () => ({ label: I18n.t('template.变量类型'), filed: 'typeText' });
+  const name = () => ({ label: I18n.t('template.变量名称'), filed: 'name' });
+  const defaultValue = (defaultField = I18n.t('template.初始值')) => ({ label: defaultField, filed: 'valueText' });
+  const description = () => ({ label: I18n.t('template.变量描述'), filed: 'description' });
+  const changeable = () => ({ label: I18n.t('template.赋值可变'), filed: 'changeableText' });
+  const required = () => ({ label: I18n.t('template.执行时必填'), filed: 'requiredText' });
 
-    const generateVariableDescribeMap = (defaultField = I18n.t('template.初始值')) => ({
-        [GlobalVariableModel.TYPE_STRING]: [type(), name(), defaultValue(defaultField), description(), changeable(), required()],
-        [GlobalVariableModel.TYPE_NAMESPACE]: [type(), name(), defaultValue(defaultField), description(), required()],
-        [GlobalVariableModel.TYPE_HOST]: [type(), name(), defaultValue(defaultField), description(), required()],
-        [GlobalVariableModel.TYPE_PASSWORD]: [type(), name(), defaultValue(defaultField), description(), required()],
-        [GlobalVariableModel.TYPE_RELATE_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
-        [GlobalVariableModel.TYPE_INDEX_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
-    });
+  const generateVariableDescribeMap = (defaultField = I18n.t('template.初始值')) => ({
+    [GlobalVariableModel.TYPE_STRING]: [type(), name(), defaultValue(defaultField), description(), changeable(), required()],
+    [GlobalVariableModel.TYPE_NAMESPACE]: [type(), name(), defaultValue(defaultField), description(), required()],
+    [GlobalVariableModel.TYPE_HOST]: [type(), name(), defaultValue(defaultField), description(), required()],
+    [GlobalVariableModel.TYPE_PASSWORD]: [type(), name(), defaultValue(defaultField), description(), required()],
+    [GlobalVariableModel.TYPE_RELATE_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
+    [GlobalVariableModel.TYPE_INDEX_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
+  });
     
-    export default {
-        name: 'GlobalVarView',
-        components: {
-            ServerPanel,
-            JbEditTextarea,
+  export default {
+    name: 'GlobalVarView',
+    components: {
+      ServerPanel,
+      JbEditTextarea,
+    },
+    props: {
+      data: {
+        type: Object,
+        default () {
+          return {};
         },
-        props: {
-            data: {
-                type: Object,
-                default () {
-                    return {};
-                },
-            },
-            defaultField: {
-                type: String,
-                default: I18n.t('template.初始值'),
-            },
-        },
-        computed: {
-            describeMap () {
-                return generateVariableDescribeMap(this.defaultField)[this.data.type];
-            },
-        },
-    };
+      },
+      defaultField: {
+        type: String,
+        default: I18n.t('template.初始值'),
+      },
+    },
+    computed: {
+      describeMap () {
+        return generateVariableDescribeMap(this.defaultField)[this.data.type];
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .job-variable-detail {

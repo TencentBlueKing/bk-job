@@ -26,229 +26,229 @@
 -->
 
 <template>
-    <div class="step-view-global-variable" @click="handlerView">
-        <Icon class="type-flag" type="audit" />
-        <jb-dialog
-            v-model="isShowDetail"
-            :title="title"
-            :width="1020"
-            :ok-text="$t('template.关闭')"
-            class="host-variable-detail-dialog">
-            <template #header>
-                <div>{{ title }}</div>
-                <div class="display-diff">
-                    <template v-if="diffEnable">
-                        <bk-switcher
-                            :value="isShowDiff"
-                            theme="primary"
-                            size="large"
-                            @change="handleToggleDiff" />
-                    </template>
-                    <template v-else>
-                        <bk-switcher
-                            :value="false"
-                            v-bk-tooltips="$t('template.无差异')"
-                            disabled
-                            theme="primary"
-                            size="large" />
-                    </template>
-                    {{ $t('template.显示差异') }}
-                </div>
-            </template>
-            <div class="content-wraper">
-                <scroll-faker>
-                    <server-panel
-                        detail-mode="dialog"
-                        :host-node-info="hostNodeInfo"
-                        :node-diff="nodeDiff"
-                        :host-diff="hostDiff"
-                        :group-diff="groupDiff" />
-                </scroll-faker>
-            </div>
-        </jb-dialog>
-    </div>
+  <div class="step-view-global-variable" @click="handlerView">
+    <Icon class="type-flag" type="audit" />
+    <jb-dialog
+      v-model="isShowDetail"
+      class="host-variable-detail-dialog"
+      :ok-text="$t('template.关闭')"
+      :title="title"
+      :width="1020">
+      <template #header>
+        <div>{{ title }}</div>
+        <div class="display-diff">
+          <template v-if="diffEnable">
+            <bk-switcher
+              size="large"
+              theme="primary"
+              :value="isShowDiff"
+              @change="handleToggleDiff" />
+          </template>
+          <template v-else>
+            <bk-switcher
+              v-bk-tooltips="$t('template.无差异')"
+              disabled
+              size="large"
+              theme="primary"
+              :value="false" />
+          </template>
+          {{ $t('template.显示差异') }}
+        </div>
+      </template>
+      <div class="content-wraper">
+        <scroll-faker>
+          <server-panel
+            detail-mode="dialog"
+            :group-diff="groupDiff"
+            :host-diff="hostDiff"
+            :host-node-info="hostNodeInfo"
+            :node-diff="nodeDiff" />
+        </scroll-faker>
+      </div>
+    </jb-dialog>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import TaskHostNodeModel from '@model/task-host-node';
-    import {
-        findParent,
-    } from '@utils/vdom';
-    import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
+  import TaskHostNodeModel from '@model/task-host-node';
+  import {
+    findParent,
+  } from '@utils/vdom';
+  import ScrollFaker from '@components/scroll-faker';
+  import ServerPanel from '@components/choose-ip/server-panel';
 
-    export default {
-        name: 'StepViewGlobalVariable',
-        components: {
-            ScrollFaker,
-            ServerPanel,
+  export default {
+    name: 'StepViewGlobalVariable',
+    components: {
+      ScrollFaker,
+      ServerPanel,
+    },
+    props: {
+      type: {
+        type: String,
+        default: '',
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      data: {
+        type: Object,
+        default: () => ({}),
+      },
+      diffEnable: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        isShowDetail: false,
+        isShowDiff: false,
+        hostNodeInfo: {
+          dynamicGroupList: [],
+          ipList: [],
+          topoNodeList: [],
         },
-        props: {
-            type: {
-                type: String,
-                default: '',
+        nodeDiff: {},
+        hostDiff: {},
+        groupDiff: {},
+      };
+    },
+    computed: {
+      title () {
+        if (this.type) {
+          return this.type;
+        }
+        return `${I18n.t('template.全局变量.label')} - ${this.name}`;
+      },
+    },
+    mounted () {
+      this.composeNode = [];
+      this.diffNodeMemo = {};
+      this.composeHost = [];
+      this.diffHostMemo = {};
+      this.composeGroup = [];
+      this.diffGroupMemo = {};
+      this.checkDiff();
+    },
+    methods: {
+      checkDiff () {
+        const createVariable = () => {
+          const {
+            hostNodeInfo,
+          } = new TaskHostNodeModel({});
+          return {
+            defaultTargetValue: {
+              hostNodeInfo,
             },
-            name: {
-                type: String,
-                required: true,
-            },
-            data: {
-                type: Object,
-                default: () => ({}),
-            },
-            diffEnable: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        data () {
-            return {
-                isShowDetail: false,
-                isShowDiff: false,
-                hostNodeInfo: {
-                    dynamicGroupList: [],
-                    ipList: [],
-                    topoNodeList: [],
-                },
-                nodeDiff: {},
-                hostDiff: {},
-                groupDiff: {},
-            };
-        },
-        computed: {
-            title () {
-                if (this.type) {
-                    return this.type;
-                }
-                return `${I18n.t('template.全局变量.label')} - ${this.name}`;
-            },
-        },
-        mounted () {
-            this.composeNode = [];
-            this.diffNodeMemo = {};
-            this.composeHost = [];
-            this.diffHostMemo = {};
-            this.composeGroup = [];
-            this.diffGroupMemo = {};
-            this.checkDiff();
-        },
-        methods: {
-            checkDiff () {
-                const createVariable = () => {
-                    const {
-                        hostNodeInfo,
-                    } = new TaskHostNodeModel({});
-                    return {
-                        defaultTargetValue: {
-                            hostNodeInfo,
-                        },
-                    };
-                };
-                const dataSourceParent = findParent(this, 'SyncPlanStep2');
-                let currentPlanVariable = _.find(dataSourceParent.planVariableList, _ => _.name === this.name);
-                if (!currentPlanVariable) {
-                    currentPlanVariable = createVariable();
-                }
-                let currentTemplateVariable = _.find(dataSourceParent.templateVariableList, _ => _.name === this.name);
-                if (!currentTemplateVariable) {
-                    currentTemplateVariable = createVariable();
-                }
+          };
+        };
+        const dataSourceParent = findParent(this, 'SyncPlanStep2');
+        let currentPlanVariable = _.find(dataSourceParent.planVariableList, _ => _.name === this.name);
+        if (!currentPlanVariable) {
+          currentPlanVariable = createVariable();
+        }
+        let currentTemplateVariable = _.find(dataSourceParent.templateVariableList, _ => _.name === this.name);
+        if (!currentTemplateVariable) {
+          currentTemplateVariable = createVariable();
+        }
 
-                const planValue = currentPlanVariable.defaultTargetValue.hostNodeInfo;
-                const templateValue = currentTemplateVariable.defaultTargetValue.hostNodeInfo;
+        const planValue = currentPlanVariable.defaultTargetValue.hostNodeInfo;
+        const templateValue = currentTemplateVariable.defaultTargetValue.hostNodeInfo;
                 
-                // 对比节点
-                const nodeDiffMap = {};
-                const topoNodeList = [];
-                const genNodeId = node => `${node.type}_${node.id}`;
-                templateValue.topoNodeList.forEach((node) => {
-                    nodeDiffMap[genNodeId(node)] = 'new';
-                    topoNodeList.push(node);
-                });
-                planValue.topoNodeList.forEach((node) => {
-                    if (nodeDiffMap[genNodeId(node)]) {
-                        nodeDiffMap[genNodeId(node)] = 'normal';
-                    } else {
-                        nodeDiffMap[genNodeId(node)] = 'delete';
-                        topoNodeList.push(node);
-                    }
-                });
-                this.composeNode = Object.freeze(topoNodeList);
-                this.diffNodeMemo = Object.freeze(nodeDiffMap);
+        // 对比节点
+        const nodeDiffMap = {};
+        const topoNodeList = [];
+        const genNodeId = node => `${node.type}_${node.id}`;
+        templateValue.topoNodeList.forEach((node) => {
+          nodeDiffMap[genNodeId(node)] = 'new';
+          topoNodeList.push(node);
+        });
+        planValue.topoNodeList.forEach((node) => {
+          if (nodeDiffMap[genNodeId(node)]) {
+            nodeDiffMap[genNodeId(node)] = 'normal';
+          } else {
+            nodeDiffMap[genNodeId(node)] = 'delete';
+            topoNodeList.push(node);
+          }
+        });
+        this.composeNode = Object.freeze(topoNodeList);
+        this.diffNodeMemo = Object.freeze(nodeDiffMap);
                 
-                // 对比主机
-                const hostDiffMap = {};
-                const ipList = [];
-                const genHostId = host => `${host.cloudAreaInfo.id}_${host.ip}`;
-                templateValue.ipList.forEach((host) => {
-                    hostDiffMap[genHostId(host)] = 'new';
-                    ipList.push(host);
-                });
-                planValue.ipList.forEach((host) => {
-                    if (hostDiffMap[genHostId(host)]) {
-                        hostDiffMap[genHostId(host)] = 'normal';
-                    } else {
-                        hostDiffMap[genHostId(host)] = 'delete';
-                        ipList.push(host);
-                    }
-                });
-                this.composeHost = Object.freeze(ipList);
-                this.diffHostMemo = Object.freeze(hostDiffMap);
+        // 对比主机
+        const hostDiffMap = {};
+        const ipList = [];
+        const genHostId = host => `${host.cloudAreaInfo.id}_${host.ip}`;
+        templateValue.ipList.forEach((host) => {
+          hostDiffMap[genHostId(host)] = 'new';
+          ipList.push(host);
+        });
+        planValue.ipList.forEach((host) => {
+          if (hostDiffMap[genHostId(host)]) {
+            hostDiffMap[genHostId(host)] = 'normal';
+          } else {
+            hostDiffMap[genHostId(host)] = 'delete';
+            ipList.push(host);
+          }
+        });
+        this.composeHost = Object.freeze(ipList);
+        this.diffHostMemo = Object.freeze(hostDiffMap);
 
-                // 对比分组
-                const groupDiffMap = {};
-                const dynamicGroupList = [];
-                templateValue.dynamicGroupList.forEach((group) => {
-                    groupDiffMap[group] = 'new';
-                    dynamicGroupList.push(group);
-                });
-                planValue.dynamicGroupList.forEach((group) => {
-                    if (groupDiffMap[group]) {
-                        groupDiffMap[group] = 'normal';
-                    } else {
-                        groupDiffMap[group] = 'delete';
-                        dynamicGroupList.push(group);
-                    }
-                });
+        // 对比分组
+        const groupDiffMap = {};
+        const dynamicGroupList = [];
+        templateValue.dynamicGroupList.forEach((group) => {
+          groupDiffMap[group] = 'new';
+          dynamicGroupList.push(group);
+        });
+        planValue.dynamicGroupList.forEach((group) => {
+          if (groupDiffMap[group]) {
+            groupDiffMap[group] = 'normal';
+          } else {
+            groupDiffMap[group] = 'delete';
+            dynamicGroupList.push(group);
+          }
+        });
                 
-                this.composeGroup = Object.freeze(dynamicGroupList);
-                this.diffGroupMemo = Object.freeze(groupDiffMap);
-            },
-            handlerView () {
-                // const {
-                //     dynamicGroupList,
-                //     ipList,
-                //     topoNodeList
-                // } = this.data.hostNodeInfo
-                // this.node = Object.freeze(topoNodeList)
-                // this.host = Object.freeze(ipList)
-                // this.dynamicGroup = Object.freeze(dynamicGroupList)
-                this.hostNodeInfo = Object.freeze(this.data.hostNodeInfo);
-                this.nodeDiff = {};
-                this.hostDiff = {};
-                this.groupDiff = {};
-                this.isShowDetail = true;
-            },
-            handleToggleDiff (value) {
-                if (value) {
-                    this.hostNodeInfo = Object.freeze({
-                        dynamicGroupList: this.composeGroup,
-                        ipList: this.composeHost,
-                        topoNodeList: this.composeNode,
-                    });
-                    // this.node = this.composeNode
-                    this.nodeDiff = this.diffNodeMemo;
-                    // this.host = this.composeHost
-                    this.hostDiff = this.diffHostMemo;
-                    // this.dynamicGroup = this.composeGroup
-                    this.groupDiff = this.diffGroupMemo;
-                } else {
-                    this.handlerView();
-                }
-            },
-        },
-    };
+        this.composeGroup = Object.freeze(dynamicGroupList);
+        this.diffGroupMemo = Object.freeze(groupDiffMap);
+      },
+      handlerView () {
+        // const {
+        //     dynamicGroupList,
+        //     ipList,
+        //     topoNodeList
+        // } = this.data.hostNodeInfo
+        // this.node = Object.freeze(topoNodeList)
+        // this.host = Object.freeze(ipList)
+        // this.dynamicGroup = Object.freeze(dynamicGroupList)
+        this.hostNodeInfo = Object.freeze(this.data.hostNodeInfo);
+        this.nodeDiff = {};
+        this.hostDiff = {};
+        this.groupDiff = {};
+        this.isShowDetail = true;
+      },
+      handleToggleDiff (value) {
+        if (value) {
+          this.hostNodeInfo = Object.freeze({
+            dynamicGroupList: this.composeGroup,
+            ipList: this.composeHost,
+            topoNodeList: this.composeNode,
+          });
+          // this.node = this.composeNode
+          this.nodeDiff = this.diffNodeMemo;
+          // this.host = this.composeHost
+          this.hostDiff = this.diffHostMemo;
+          // this.dynamicGroup = this.composeGroup
+          this.groupDiff = this.diffGroupMemo;
+        } else {
+          this.handlerView();
+        }
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .host-variable-detail-dialog {

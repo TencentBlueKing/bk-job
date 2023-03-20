@@ -26,35 +26,35 @@
 -->
 
 <template>
-    <div class="rolling-expr-guides">
-        <div class="content" v-html="contentHtml" />
-        <div class="close-btn" @click="handleClose">
-            <Icon type="close" />
-        </div>
+  <div class="rolling-expr-guides">
+    <div class="content" v-html="contentHtml" />
+    <div class="close-btn" @click="handleClose">
+      <Icon type="close" />
     </div>
+  </div>
 </template>
 <script>
-    import 'highlight.js/styles/googlecode.css';
-    import expr from './expr.md';
-    import exprEN from './expr.en.md';
+  import 'highlight.js/styles/googlecode.css';
+  import expr from './expr.md';
+  import exprEN from './expr.en.md';
 
-    export default {
-        name: '',
-        data () {
-            return {
-            };
-        },
-        computed: {
-            contentHtml () {
-                return this.$i18n.locale === 'zh-CN' ? expr : exprEN;
-            },
-        },
-        methods: {
-            handleClose () {
-                this.$emit('on-close');
-            },
-        },
-    };
+  export default {
+    name: '',
+    data () {
+      return {
+      };
+    },
+    computed: {
+      contentHtml () {
+        return this.$i18n.locale === 'zh-CN' ? expr : exprEN;
+      },
+    },
+    methods: {
+      handleClose () {
+        this.$emit('on-close');
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .rolling-expr-guides {

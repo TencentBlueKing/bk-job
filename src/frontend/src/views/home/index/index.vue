@@ -26,107 +26,107 @@
 -->
 
 <template>
-    <div class="page-home">
+  <div class="page-home">
+    <div class="layout-row">
+      <div class="layout-left">
+        <div class="layout-row content-top">
+          <layout-card class="user-card">
+            <user />
+          </layout-card>
+          <layout-card class="agent-card" :title="$t('home.Agent 状态分布')">
+            <agent />
+          </layout-card>
+        </div>
         <div class="layout-row">
-            <div class="layout-left">
-                <div class="layout-row content-top">
-                    <layout-card class="user-card">
-                        <user />
-                    </layout-card>
-                    <layout-card class="agent-card" :title="$t('home.Agent 状态分布')">
-                        <agent />
-                    </layout-card>
-                </div>
-                <div class="layout-row">
-                    <layout-card :title="$t('home.我收藏的作业')" class="my-task">
-                        <favor-task />
-                    </layout-card>
-                </div>
-            </div>
-            <div class="layout-right">
-                <div class="layout-row content-top">
-                    <layout-card class="work-statistics-card">
-                        <work-statistics type="job-statistics" link="taskList">
-                            <template #default="{ jobNum }">
-                                <span>{{ jobNum }}</span>
-                            </template>
-                            <span slot="name">{{ $t('home.作业量') }}</span>
-                        </work-statistics>
-                    </layout-card>
-                    <layout-card class="work-statistics-card">
-                        <work-statistics type="script-statistics" link="scriptList">
-                            <template #default="{ scriptNum }">
-                                <span>{{ scriptNum }}</span>
-                            </template>
-                            <span slot="name">{{ $t('home.脚本量') }}</span>
-                        </work-statistics>
-                    </layout-card>
-                </div>
-                <div class="layout-row">
-                    <layout-card :title="$t('home.最近执行记录')" class="record-card">
-                        <history-record />
-                    </layout-card>
-                </div>
-            </div>
+          <layout-card class="my-task" :title="$t('home.我收藏的作业')">
+            <favor-task />
+          </layout-card>
         </div>
-        <div class="page-footer">
-            <div v-html="footerLink" />
-            <div v-html="footerCopyRight" />
+      </div>
+      <div class="layout-right">
+        <div class="layout-row content-top">
+          <layout-card class="work-statistics-card">
+            <work-statistics link="taskList" type="job-statistics">
+              <template #default="{ jobNum }">
+                <span>{{ jobNum }}</span>
+              </template>
+              <span slot="name">{{ $t('home.作业量') }}</span>
+            </work-statistics>
+          </layout-card>
+          <layout-card class="work-statistics-card">
+            <work-statistics link="scriptList" type="script-statistics">
+              <template #default="{ scriptNum }">
+                <span>{{ scriptNum }}</span>
+              </template>
+              <span slot="name">{{ $t('home.脚本量') }}</span>
+            </work-statistics>
+          </layout-card>
         </div>
+        <div class="layout-row">
+          <layout-card class="record-card" :title="$t('home.最近执行记录')">
+            <history-record />
+          </layout-card>
+        </div>
+      </div>
     </div>
+    <div class="page-footer">
+      <div v-html="footerLink" />
+      <div v-html="footerCopyRight" />
+    </div>
+  </div>
 </template>
 <script>
-    import marked from 'marked';
-    import xss from 'xss';
-    import QueryGlobalSettingService from '@service/query-global-setting';
-    import LayoutCard from './components/card';
-    import User from './components/user';
-    import Agent from './components/agent';
-    import WorkStatistics from './components/work-statistics';
-    import FavorTask from './components/favor-task';
-    import HistoryRecord from './components/history-record';
+  import marked from 'marked';
+  import xss from 'xss';
+  import QueryGlobalSettingService from '@service/query-global-setting';
+  import LayoutCard from './components/card';
+  import User from './components/user';
+  import Agent from './components/agent';
+  import WorkStatistics from './components/work-statistics';
+  import FavorTask from './components/favor-task';
+  import HistoryRecord from './components/history-record';
 
-    const xssHTML = (html) => {
-        const attrs = ['class', 'title', 'target', 'style'];
-        return xss(html, {
-            onTagAttr: (tag, name, value, isWhiteAttr) => {
-                if (attrs.includes(name)) {
-                    return `${name}=${value}`;
-                }
-            },
-        });
-    };
+  const xssHTML = (html) => {
+    const attrs = ['class', 'title', 'target', 'style'];
+    return xss(html, {
+      onTagAttr: (tag, name, value, isWhiteAttr) => {
+        if (attrs.includes(name)) {
+          return `${name}=${value}`;
+        }
+      },
+    });
+  };
 
-    export default {
-        name: '',
-        components: {
-            LayoutCard,
-            User,
-            Agent,
-            WorkStatistics,
-            FavorTask,
-            HistoryRecord,
-        },
-        data () {
-            return {
-                footerLink: '',
-                footerCopyRight: '',
-            };
-        },
-        created () {
-            this.fetchTitleAndFooter();
-        },
-        methods: {
-            fetchTitleAndFooter () {
-                const formatLink = link => link.replace(/(?=( href))/g, ' target="_blank"');
-                QueryGlobalSettingService.fetchFooterConfig()
-                    .then((data) => {
-                        this.footerLink = xssHTML(formatLink(marked(`${data.footerLink}`)));
-                        this.footerCopyRight = xssHTML(marked(data.footerCopyRight));
-                    });
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      LayoutCard,
+      User,
+      Agent,
+      WorkStatistics,
+      FavorTask,
+      HistoryRecord,
+    },
+    data () {
+      return {
+        footerLink: '',
+        footerCopyRight: '',
+      };
+    },
+    created () {
+      this.fetchTitleAndFooter();
+    },
+    methods: {
+      fetchTitleAndFooter () {
+        const formatLink = link => link.replace(/(?=( href))/g, ' target="_blank"');
+        QueryGlobalSettingService.fetchFooterConfig()
+          .then((data) => {
+            this.footerLink = xssHTML(formatLink(marked(`${data.footerLink}`)));
+            this.footerCopyRight = xssHTML(marked(data.footerCopyRight));
+          });
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .page-home {

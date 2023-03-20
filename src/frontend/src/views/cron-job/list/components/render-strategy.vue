@@ -26,19 +26,19 @@
 -->
 
 <template>
-    <div class="cron-item">
-        <div class="triangle" :style="{ left: `${left}px` }" />
-        <div>
-            <slot />
-        </div>
+  <div class="cron-item">
+    <div class="triangle" :style="{ left: `${left}px` }" />
+    <div>
+      <slot />
     </div>
+  </div>
 </template>
 <script>
-    export default {
-        props: {
-            left: String,
-        },
-    };
+  export default {
+    props: {
+      left: String,
+    },
+  };
 </script>
 <style lang="postcss">
     .cron-item {

@@ -26,9 +26,9 @@
 -->
 
 <template functional>
-    <div class="import-action-bar">
-        <slot />
-    </div>
+  <div class="import-action-bar">
+    <slot />
+  </div>
 </template>
 <style lang='postcss' scoped>
     .import-action-bar {

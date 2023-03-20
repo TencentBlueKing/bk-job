@@ -26,290 +26,290 @@
 -->
 
 <template>
-    <div class="task-export-step2-page">
-        <div class="layout-wraper">
-            <div class="layout-left" v-bkloading="{ isLoading }">
-                <scroll-faker>
-                    <div
-                        v-for="item in jobList"
-                        class="job-list"
-                        :key="item.id">
-                        <div
-                            class="job-item"
-                            :class="{ active: currentTemplateId === item.id }"
-                            @click="handlePlanBasic(item.id)">
-                            <div class="text">[{{ item.id }}] {{ item.name }}</div>
-                        </div>
-                    </div>
-                </scroll-faker>
+  <div class="task-export-step2-page">
+    <div class="layout-wraper">
+      <div v-bkloading="{ isLoading }" class="layout-left">
+        <scroll-faker>
+          <div
+            v-for="item in jobList"
+            :key="item.id"
+            class="job-list">
+            <div
+              class="job-item"
+              :class="{ active: currentTemplateId === item.id }"
+              @click="handlePlanBasic(item.id)">
+              <div class="text">[{{ item.id }}] {{ item.name }}</div>
             </div>
-            <div class="layout-right" v-bkloading="{ isLoading: isPlanLoading }">
-                <scroll-faker>
-                    <div
-                        v-if="currentTemplateId"
-                        class="content">
-                        <p class="title">{{ templateTitle }}</p>
-                        <div
-                            v-if="renderPlanList.length > 0"
-                            class="export-project">
-                            <div class="project-select">
-                                <p class="select-title">
-                                    {{ $t('template.选择要导出的作业执行方案') }}
-                                </p>
-                                <div class="all-select-btn">
-                                    <bk-button
-                                        v-if="templateInfoMap[currentTemplateId].exportAll"
-                                        text
-                                        @click="handleCancelSelect">
-                                        {{ $t('template.取消全选') }}
-                                    </bk-button>
-                                    <bk-button
-                                        v-else
-                                        @click="handleAllSelect"
-                                        text>
-                                        {{ $t('template.全选') }}
-                                    </bk-button>
-                                </div>
-                            </div>
-                            <div class="project-list">
-                                <div
-                                    class="item"
-                                    v-for="item in renderPlanList"
-                                    :key="item.id"
-                                    @click="handlePlanCheck(item.id)">
-                                    <div
-                                        class="top-middle"
-                                        @click.stop="handleGoPlanDetail(item)">
-                                        <span
-                                            class="plan"
-                                            :tippy-tips="$t('template.新窗口打开该执行方案')">
-                                            {{ item.name }}
-                                        </span>
-                                    </div>
-                                    <div
-                                        class="plan-check"
-                                        :class="{
-                                            active: templateInfoMap[currentTemplateId].planSelectedMap[item.id],
-                                        }" />
-                                </div>
-                            </div>
-                        </div>
-                        <empty
-                            v-if="renderPlanList.length < 1 && !isPlanLoading"
-                            :title="$t('template.暂无执行方案')"
-                            style="margin-top: 100px;" />
-                    </div>
-                </scroll-faker>
+          </div>
+        </scroll-faker>
+      </div>
+      <div v-bkloading="{ isLoading: isPlanLoading }" class="layout-right">
+        <scroll-faker>
+          <div
+            v-if="currentTemplateId"
+            class="content">
+            <p class="title">{{ templateTitle }}</p>
+            <div
+              v-if="renderPlanList.length > 0"
+              class="export-project">
+              <div class="project-select">
+                <p class="select-title">
+                  {{ $t('template.选择要导出的作业执行方案') }}
+                </p>
+                <div class="all-select-btn">
+                  <bk-button
+                    v-if="templateInfoMap[currentTemplateId].exportAll"
+                    text
+                    @click="handleCancelSelect">
+                    {{ $t('template.取消全选') }}
+                  </bk-button>
+                  <bk-button
+                    v-else
+                    text
+                    @click="handleAllSelect">
+                    {{ $t('template.全选') }}
+                  </bk-button>
+                </div>
+              </div>
+              <div class="project-list">
+                <div
+                  v-for="item in renderPlanList"
+                  :key="item.id"
+                  class="item"
+                  @click="handlePlanCheck(item.id)">
+                  <div
+                    class="top-middle"
+                    @click.stop="handleGoPlanDetail(item)">
+                    <span
+                      class="plan"
+                      :tippy-tips="$t('template.新窗口打开该执行方案')">
+                      {{ item.name }}
+                    </span>
+                  </div>
+                  <div
+                    class="plan-check"
+                    :class="{
+                      active: templateInfoMap[currentTemplateId].planSelectedMap[item.id],
+                    }" />
+                </div>
+              </div>
             </div>
-        </div>
-        <div class="action-footer">
-            <bk-button
-                class="mr10"
-                @click="handleCancel">
-                {{ $t('template.取消') }}
-            </bk-button>
-            <bk-button
-                class="mr10"
-                @click="handleLast">
-                {{ $t('template.上一步') }}
-            </bk-button>
-            <bk-button
-                class="w120"
-                theme="primary"
-                @click="handleNext">
-                {{ $t('template.下一步') }}
-            </bk-button>
-        </div>
+            <empty
+              v-if="renderPlanList.length < 1 && !isPlanLoading"
+              style="margin-top: 100px;"
+              :title="$t('template.暂无执行方案')" />
+          </div>
+        </scroll-faker>
+      </div>
     </div>
+    <div class="action-footer">
+      <bk-button
+        class="mr10"
+        @click="handleCancel">
+        {{ $t('template.取消') }}
+      </bk-button>
+      <bk-button
+        class="mr10"
+        @click="handleLast">
+        {{ $t('template.上一步') }}
+      </bk-button>
+      <bk-button
+        class="w120"
+        theme="primary"
+        @click="handleNext">
+        {{ $t('template.下一步') }}
+      </bk-button>
+    </div>
+  </div>
 </template>
 <script>
-    import TaskManageService from '@service/task-manage';
-    import TaskPlanService from '@service/task-plan';
-    import { taskExport } from '@utils/cache-helper';
-    import Empty from '@components/empty';
+  import TaskManageService from '@service/task-manage';
+  import TaskPlanService from '@service/task-plan';
+  import { taskExport } from '@utils/cache-helper';
+  import Empty from '@components/empty';
 
-    export default {
-        components: {
-            Empty,
-        },
-        data () {
-            return {
-                isLoading: false,
-                isPlanLoading: false,
-                taskIds: taskExport.getItem('ids') || [],
-                currentTemplateId: 0,
-                jobList: [],
-                planList: [],
-                templateInfoMap: {},
+  export default {
+    components: {
+      Empty,
+    },
+    data () {
+      return {
+        isLoading: false,
+        isPlanLoading: false,
+        taskIds: taskExport.getItem('ids') || [],
+        currentTemplateId: 0,
+        jobList: [],
+        planList: [],
+        templateInfoMap: {},
+      };
+    },
+    computed: {
+      renderPlanList () {
+        if (!this.currentTemplateId) {
+          return [];
+        }
+        return this.templateInfoMap[this.currentTemplateId].planList;
+      },
+      templateTitle () {
+        let titleStr = '';
+        this.jobList.forEach((item) => {
+          if (item.id === this.currentTemplateId) {
+            titleStr = `[${item.id}] ${item.name}`;
+          }
+        });
+        return titleStr;
+      },
+    },
+    created () {
+      this.fetchData();
+    },
+    methods: {
+      /**
+       * @desc 批量获取选中模板的基本数据
+       */
+      fetchData () {
+        this.$request(TaskManageService.fetchBasic({
+          ids: this.taskIds.join(','),
+        }), () => {
+          this.isLoading = true;
+        }).then((data) => {
+          if (data.length < 1) {
+            return;
+          }
+          this.jobList = data;
+          this.templateInfoMap = Object.freeze(data.reduce((result, item) => {
+            result[item.id] = {
+              id: item.id,
+              planSelectedMap: {},
+              planList: [],
+              exportAll: 1,
             };
-        },
-        computed: {
-            renderPlanList () {
-                if (!this.currentTemplateId) {
-                    return [];
-                }
-                return this.templateInfoMap[this.currentTemplateId].planList;
-            },
-            templateTitle () {
-                let titleStr = '';
-                this.jobList.forEach((item) => {
-                    if (item.id === this.currentTemplateId) {
-                        titleStr = `[${item.id}] ${item.name}`;
-                    }
-                });
-                return titleStr;
-            },
-        },
-        created () {
-            this.fetchData();
-        },
-        methods: {
-            /**
-             * @desc 批量获取选中模板的基本数据
-             */
-            fetchData () {
-                this.$request(TaskManageService.fetchBasic({
-                    ids: this.taskIds.join(','),
-                }), () => {
-                    this.isLoading = true;
-                }).then((data) => {
-                    if (data.length < 1) {
-                        return;
-                    }
-                    this.jobList = data;
-                    this.templateInfoMap = Object.freeze(data.reduce((result, item) => {
-                        result[item.id] = {
-                            id: item.id,
-                            planSelectedMap: {},
-                            planList: [],
-                            exportAll: 1,
-                        };
-                        return result;
-                    }, {}));
-                    this.currentTemplateId = data[0].id;
-                    this.fetchPlanList();
-                })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            /**
-             * @desc 获取指定模板的执行方案数据
-             */
-            fetchPlanList () {
-                this.isPlanLoading = true;
-                TaskPlanService.fetchTaskPlan({
-                    id: this.currentTemplateId,
-                }).then((data) => {
-                    const templateInfoMap = { ...this.templateInfoMap };
-                    const currentTemplate = templateInfoMap[this.currentTemplateId];
-                    currentTemplate.planList = Object.freeze(data);
-                    currentTemplate.planSelectedMap = {};
-                    data.forEach((plan) => {
-                        currentTemplate.planSelectedMap[plan.id] = true;
-                    });
-                    this.templateInfoMap = Object.freeze(templateInfoMap);
-                })
-                    .finally(() => {
-                        this.isPlanLoading = false;
-                    });
-            },
-            /**
-             * @desc 查看执行方案详情
-             * @param { Object } planData
-             */
-            handleGoPlanDetail (planData) {
-                const routerUrl = this.$router.resolve({
-                    name: 'viewPlan',
-                    params: {
-                        templateId: planData.templateId,
-                    },
-                    query: {
-                        from: 'taskExport',
-                        viewTemplateId: planData.templateId,
-                        viewPlanId: planData.id,
-                    },
-                });
-                window.open(routerUrl.href, '_blank');
-            },
-            /**
-             * @desc 获取模板的执行方案详情
-             * @params { Number } 作业模板ID
-             */
-            handlePlanBasic (currentTemplateId) {
-                this.currentTemplateId = currentTemplateId;
-                // 已经请求过执行方案列表
-                if (this.templateInfoMap[currentTemplateId].planList.length > 0) {
-                    return;
-                }
-                this.fetchPlanList();
-            },
-            /**
-             * @desc 选中执行方案
-             * @param { Boolean } name
-             */
-            handlePlanCheck (planId) {
-                const templateInfoMap = { ...this.templateInfoMap };
-                const currentTemplate = templateInfoMap[this.currentTemplateId];
-                if (currentTemplate.planSelectedMap[planId]) {
-                    delete currentTemplate.planSelectedMap[planId];
-                    currentTemplate.exportAll = 0;
-                } else {
-                    currentTemplate.planSelectedMap[planId] = true;
-                    currentTemplate.exportAll
-                        = Object.keys(currentTemplate.planSelectedMap).length === currentTemplate.planList.length ? 1 : 0;
-                }
-                this.templateInfoMap = Object.freeze(templateInfoMap);
-            },
-            /**
-             * @desc 选中所有执行方案
-             */
-            handleAllSelect () {
-                const templateInfoMap = { ...this.templateInfoMap };
-                const currTemplate = templateInfoMap[this.currentTemplateId];
-                currTemplate.planList.forEach((planItem) => {
-                    currTemplate.planSelectedMap[planItem.id] = true;
-                });
-                currTemplate.exportAll = 1;
-                this.templateInfoMap = Object.freeze(templateInfoMap);
-            },
-            /**
-             * @desc 取消选中
-             */
-            handleCancelSelect () {
-                const templateInfoMap = { ...this.templateInfoMap };
-                const currTemplate = templateInfoMap[this.currentTemplateId];
-                currTemplate.planSelectedMap = {};
-                currTemplate.exportAll = 0;
-                this.templateInfoMap = Object.freeze(templateInfoMap);
-            },
-            /**
-             * @desc 下一步
-             */
-            handleNext () {
-                const templateInfo = [];
-                for (const templteId in this.templateInfoMap) {
-                    const currentTemplate = this.templateInfoMap[templteId];
-                    templateInfo.push({
-                        exportAll: currentTemplate.exportAll,
-                        id: currentTemplate.id,
-                        planId: Object.keys(currentTemplate.planSelectedMap),
-                    });
-                }
-                taskExport.setItem('templateInfo', templateInfo);
-                this.$emit('on-change', 3);
-            },
-            /**
-             * @desc 上一步
-             */
-            handleLast () {
-                this.$emit('on-change', 1);
-            },
-            handleCancel () {
-                this.$emit('on-cancle');
-            },
-        },
-    };
+            return result;
+          }, {}));
+          this.currentTemplateId = data[0].id;
+          this.fetchPlanList();
+        })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      /**
+       * @desc 获取指定模板的执行方案数据
+       */
+      fetchPlanList () {
+        this.isPlanLoading = true;
+        TaskPlanService.fetchTaskPlan({
+          id: this.currentTemplateId,
+        }).then((data) => {
+          const templateInfoMap = { ...this.templateInfoMap };
+          const currentTemplate = templateInfoMap[this.currentTemplateId];
+          currentTemplate.planList = Object.freeze(data);
+          currentTemplate.planSelectedMap = {};
+          data.forEach((plan) => {
+            currentTemplate.planSelectedMap[plan.id] = true;
+          });
+          this.templateInfoMap = Object.freeze(templateInfoMap);
+        })
+          .finally(() => {
+            this.isPlanLoading = false;
+          });
+      },
+      /**
+       * @desc 查看执行方案详情
+       * @param { Object } planData
+       */
+      handleGoPlanDetail (planData) {
+        const routerUrl = this.$router.resolve({
+          name: 'viewPlan',
+          params: {
+            templateId: planData.templateId,
+          },
+          query: {
+            from: 'taskExport',
+            viewTemplateId: planData.templateId,
+            viewPlanId: planData.id,
+          },
+        });
+        window.open(routerUrl.href, '_blank');
+      },
+      /**
+       * @desc 获取模板的执行方案详情
+       * @params { Number } 作业模板ID
+       */
+      handlePlanBasic (currentTemplateId) {
+        this.currentTemplateId = currentTemplateId;
+        // 已经请求过执行方案列表
+        if (this.templateInfoMap[currentTemplateId].planList.length > 0) {
+          return;
+        }
+        this.fetchPlanList();
+      },
+      /**
+       * @desc 选中执行方案
+       * @param { Boolean } name
+       */
+      handlePlanCheck (planId) {
+        const templateInfoMap = { ...this.templateInfoMap };
+        const currentTemplate = templateInfoMap[this.currentTemplateId];
+        if (currentTemplate.planSelectedMap[planId]) {
+          delete currentTemplate.planSelectedMap[planId];
+          currentTemplate.exportAll = 0;
+        } else {
+          currentTemplate.planSelectedMap[planId] = true;
+          currentTemplate.exportAll
+            = Object.keys(currentTemplate.planSelectedMap).length === currentTemplate.planList.length ? 1 : 0;
+        }
+        this.templateInfoMap = Object.freeze(templateInfoMap);
+      },
+      /**
+       * @desc 选中所有执行方案
+       */
+      handleAllSelect () {
+        const templateInfoMap = { ...this.templateInfoMap };
+        const currTemplate = templateInfoMap[this.currentTemplateId];
+        currTemplate.planList.forEach((planItem) => {
+          currTemplate.planSelectedMap[planItem.id] = true;
+        });
+        currTemplate.exportAll = 1;
+        this.templateInfoMap = Object.freeze(templateInfoMap);
+      },
+      /**
+       * @desc 取消选中
+       */
+      handleCancelSelect () {
+        const templateInfoMap = { ...this.templateInfoMap };
+        const currTemplate = templateInfoMap[this.currentTemplateId];
+        currTemplate.planSelectedMap = {};
+        currTemplate.exportAll = 0;
+        this.templateInfoMap = Object.freeze(templateInfoMap);
+      },
+      /**
+       * @desc 下一步
+       */
+      handleNext () {
+        const templateInfo = [];
+        for (const templteId in this.templateInfoMap) {
+          const currentTemplate = this.templateInfoMap[templteId];
+          templateInfo.push({
+            exportAll: currentTemplate.exportAll,
+            id: currentTemplate.id,
+            planId: Object.keys(currentTemplate.planSelectedMap),
+          });
+        }
+        taskExport.setItem('templateInfo', templateInfo);
+        this.$emit('on-change', 3);
+      },
+      /**
+       * @desc 上一步
+       */
+      handleLast () {
+        this.$emit('on-change', 1);
+      },
+      handleCancel () {
+        this.$emit('on-cancle');
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .task-export-step2-page {

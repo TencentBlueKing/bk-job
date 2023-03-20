@@ -26,93 +26,93 @@
 -->
 
 <template>
-    <div class="step-view-global-variable" @click="handlerView">
-        <div class="flag">
-            <Icon type="host" />
-        </div>
-        <div class="name" :title="name">{{ name }}</div>
-        <jb-dialog
-            v-model="isShowDetail"
-            :title="title"
-            :width="1020"
-            :ok-text="$t('template.关闭')"
-            class="global-host-variable-detail-dialog">
-            <template #header>
-                <div class="variable-title">
-                    <span>{{ title }}</span>
-                    <i class="global-variable-dialog-close bk-icon icon-close" @click="handleClose" />
-                </div>
-            </template>
-            <div class="content-wraper">
-                <Empty v-if="isEmpty" :title="$t('template.变量值为空')" style="height: 100%;" />
-                <scroll-faker v-else>
-                    <server-panel
-                        detail-mode="dialog"
-                        :host-node-info="hostNodeInfo" />
-                </scroll-faker>
-            </div>
-        </jb-dialog>
+  <div class="step-view-global-variable" @click="handlerView">
+    <div class="flag">
+      <Icon type="host" />
     </div>
+    <div class="name" :title="name">{{ name }}</div>
+    <jb-dialog
+      v-model="isShowDetail"
+      class="global-host-variable-detail-dialog"
+      :ok-text="$t('template.关闭')"
+      :title="title"
+      :width="1020">
+      <template #header>
+        <div class="variable-title">
+          <span>{{ title }}</span>
+          <i class="global-variable-dialog-close bk-icon icon-close" @click="handleClose" />
+        </div>
+      </template>
+      <div class="content-wraper">
+        <Empty v-if="isEmpty" style="height: 100%;" :title="$t('template.变量值为空')" />
+        <scroll-faker v-else>
+          <server-panel
+            detail-mode="dialog"
+            :host-node-info="hostNodeInfo" />
+        </scroll-faker>
+      </div>
+    </jb-dialog>
+  </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskHostNodeModel from '@model/task-host-node';
-    import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
-    import Empty from '@components/empty';
+  import I18n from '@/i18n';
+  import TaskHostNodeModel from '@model/task-host-node';
+  import ScrollFaker from '@components/scroll-faker';
+  import ServerPanel from '@components/choose-ip/server-panel';
+  import Empty from '@components/empty';
 
-    export default {
-        name: 'StepViewGlobalVariable',
-        components: {
-            ScrollFaker,
-            ServerPanel,
-            Empty,
-        },
-        props: {
-            type: {
-                type: String,
-                default: '',
-            },
-            name: {
-                type: String,
-                required: true,
-            },
-            data: {
-                type: Array,
-                default: () => [],
-            },
-        },
-        data () {
-            const { hostNodeInfo } = new TaskHostNodeModel({});
+  export default {
+    name: 'StepViewGlobalVariable',
+    components: {
+      ScrollFaker,
+      ServerPanel,
+      Empty,
+    },
+    props: {
+      type: {
+        type: String,
+        default: '',
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      data: {
+        type: Array,
+        default: () => [],
+      },
+    },
+    data () {
+      const { hostNodeInfo } = new TaskHostNodeModel({});
             
-            return {
-                isShowDetail: false,
-                hostNodeInfo,
-            };
-        },
-        computed: {
-            title () {
-                if (this.type) {
-                    return this.type;
-                }
-                return `${I18n.t('template.全局变量.label')} - ${this.name}`;
-            },
-            isEmpty () {
-                return TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
-            },
-        },
-        methods: {
-            handlerView () {
-                const curVariable = this.data.find(item => item.name === this.name);
-                this.hostNodeInfo = Object.freeze(curVariable.defaultTargetValue.hostNodeInfo);
+      return {
+        isShowDetail: false,
+        hostNodeInfo,
+      };
+    },
+    computed: {
+      title () {
+        if (this.type) {
+          return this.type;
+        }
+        return `${I18n.t('template.全局变量.label')} - ${this.name}`;
+      },
+      isEmpty () {
+        return TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
+      },
+    },
+    methods: {
+      handlerView () {
+        const curVariable = this.data.find(item => item.name === this.name);
+        this.hostNodeInfo = Object.freeze(curVariable.defaultTargetValue.hostNodeInfo);
                 
-                this.isShowDetail = true;
-            },
-            handleClose () {
-                this.isShowDetail = false;
-            },
-        },
-    };
+        this.isShowDetail = true;
+      },
+      handleClose () {
+        this.isShowDetail = false;
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .global-host-variable-detail-dialog {

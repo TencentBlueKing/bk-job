@@ -26,151 +26,151 @@
 -->
 
 <template>
-    <div
-        class="task-execute-bar-step"
-        :class="{
-            [data.displayStyle]: true,
-            active: data.stepInstanceId === activeId,
-        }"
-        @mouseenter="handleShowPopover"
-        @mouseleave="handleHidePopover"
-        @click="handleSelect">
-        <div class="step-wraper">
-            <div class="step-icon">
-                <Icon :type="data.icon" />
-            </div>
-            <img
-                v-if="data.isDoing"
-                class="loading-progress"
-                src="/static/images/task-loading.png">
-        </div>
-        <Icon :type="data.lastStepIcon" svg class="step-next" />
-        <component
-            v-show="isShowPopover"
-            ref="popover"
-            :is="popoverCom"
-            :data="data"
-            :class="['task-status-bar-step-popover', arrowPlacement]"
-            :style="popoverStyles"
-            @on-update="handleTaskStatusUpdate"
-            @on-close="handleClosePopover" />
+  <div
+    class="task-execute-bar-step"
+    :class="{
+      [data.displayStyle]: true,
+      active: data.stepInstanceId === activeId,
+    }"
+    @click="handleSelect"
+    @mouseenter="handleShowPopover"
+    @mouseleave="handleHidePopover">
+    <div class="step-wraper">
+      <div class="step-icon">
+        <Icon :type="data.icon" />
+      </div>
+      <img
+        v-if="data.isDoing"
+        class="loading-progress"
+        src="/static/images/task-loading.png">
     </div>
+    <Icon class="step-next" svg :type="data.lastStepIcon" />
+    <component
+      :is="popoverCom"
+      v-show="isShowPopover"
+      ref="popover"
+      :class="['task-status-bar-step-popover', arrowPlacement]"
+      :data="data"
+      :style="popoverStyles"
+      @on-close="handleClosePopover"
+      @on-update="handleTaskStatusUpdate" />
+  </div>
 </template>
 <script>
-    import ApprovalView from './view/approval';
-    import NormalView from './view/normal';
-    import NotStartView from './view/no-start';
+  import ApprovalView from './view/approval';
+  import NormalView from './view/normal';
+  import NotStartView from './view/no-start';
 
-    let activeHandler = null;
+  let activeHandler = null;
 
-    export default {
-        props: {
-            activeId: {
-                type: [String, Number],
-            },
-            data: {
-                type: Object,
-                required: true,
-            },
+  export default {
+    props: {
+      activeId: {
+        type: [String, Number],
+      },
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isShowPopover: false,
+        confirmReason: '',
+        popoverPosition: {
+          top: 0,
+          left: 0,
         },
-        data () {
-            return {
-                isShowPopover: false,
-                confirmReason: '',
-                popoverPosition: {
-                    top: 0,
-                    left: 0,
-                },
-                arrowPlacement: 'top',
-            };
-        },
-        computed: {
-            popoverCom () {
-                if (this.data.isApproval) {
-                    return ApprovalView;
-                }
-                if (this.data.isNotStart) {
-                    return NotStartView;
-                }
-                return NormalView;
-            },
-            popoverStyles () {
-                const { top, left, zIndex } = this.popoverPosition;
-                return {
-                    position: 'absolute',
-                    top: `${top}px`,
-                    left: `${left + 72}px`,
-                    'z-index': zIndex,
-                };
-            },
-        },
-        beforeDestroy () {
-            this.destroyePopover();
-        },
-        methods: {
-            handleSelect () {
-                this.$emit('on-select', this.data);
-            },
-            handleTaskStatusUpdate (payload) {
-                this.$emit('on-update', payload);
-            },
-            handleShowPopover () {
-                if (activeHandler) {
-                    activeHandler.handleClosePopover();
-                }
+        arrowPlacement: 'top',
+      };
+    },
+    computed: {
+      popoverCom () {
+        if (this.data.isApproval) {
+          return ApprovalView;
+        }
+        if (this.data.isNotStart) {
+          return NotStartView;
+        }
+        return NormalView;
+      },
+      popoverStyles () {
+        const { top, left, zIndex } = this.popoverPosition;
+        return {
+          position: 'absolute',
+          top: `${top}px`,
+          left: `${left + 72}px`,
+          'z-index': zIndex,
+        };
+      },
+    },
+    beforeDestroy () {
+      this.destroyePopover();
+    },
+    methods: {
+      handleSelect () {
+        this.$emit('on-select', this.data);
+      },
+      handleTaskStatusUpdate (payload) {
+        this.$emit('on-update', payload);
+      },
+      handleShowPopover () {
+        if (activeHandler) {
+          activeHandler.handleClosePopover();
+        }
                 
-                this.isShowPopover = true;
-                activeHandler = this;
-                let offset = 0;
-                if (this.data.isApproval) {
-                    offset = 15;
-                }
-                this.$nextTick(() => {
-                    this.arrowPlacement = 'top';
-                    const position = {
-                        top: 0,
-                        left: 0,
-                        zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-                    };
-                    const $popoverTarget = this.$refs.popover.$el;
-                    const windowHeight = window.innerHeight;
-                    const { height } = $popoverTarget.getBoundingClientRect();
-                    const { top, left } = this.$el.getBoundingClientRect();
-                    position.left = left;
-                    position.top = top + offset;
-                    if (top + height + 20 > windowHeight) {
-                        this.arrowPlacement = 'bottom';
-                        position.top = top - height + 60;
-                    }
-                    if (position.top < 20) {
-                        this.arrowPlacement = 'middle';
-                        position.top = top - height / 2 + 30;
-                    }
-                    document.body.appendChild($popoverTarget);
-                    this.popoverPosition = position;
-                });
-            },
-            // 人工确认步骤——如果没有确认需要手动关闭
-            // 其它步骤鼠标离开自动关闭
-            handleHidePopover () {
-                if (this.data.isApproval && this.data.displayStyle !== 'success') {
-                    return;
-                }
-                this.isShowPopover = false;
-            },
-            handleClosePopover () {
-                this.isShowPopover = false;
-            },
-            destroyePopover () {
-                try {
-                    activeHandler = null;
-                    if (this.$refs.popover.$el && document.body.hasChildNodes(this.$refs.popover.$el)) {
-                        document.body.removeChild(this.$refs.popover.$el);
-                    }
-                } catch {}
-            },
-        },
-    };
+        this.isShowPopover = true;
+        activeHandler = this;
+        let offset = 0;
+        if (this.data.isApproval) {
+          offset = 15;
+        }
+        this.$nextTick(() => {
+          this.arrowPlacement = 'top';
+          const position = {
+            top: 0,
+            left: 0,
+            zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+          };
+          const $popoverTarget = this.$refs.popover.$el;
+          const windowHeight = window.innerHeight;
+          const { height } = $popoverTarget.getBoundingClientRect();
+          const { top, left } = this.$el.getBoundingClientRect();
+          position.left = left;
+          position.top = top + offset;
+          if (top + height + 20 > windowHeight) {
+            this.arrowPlacement = 'bottom';
+            position.top = top - height + 60;
+          }
+          if (position.top < 20) {
+            this.arrowPlacement = 'middle';
+            position.top = top - height / 2 + 30;
+          }
+          document.body.appendChild($popoverTarget);
+          this.popoverPosition = position;
+        });
+      },
+      // 人工确认步骤——如果没有确认需要手动关闭
+      // 其它步骤鼠标离开自动关闭
+      handleHidePopover () {
+        if (this.data.isApproval && this.data.displayStyle !== 'success') {
+          return;
+        }
+        this.isShowPopover = false;
+      },
+      handleClosePopover () {
+        this.isShowPopover = false;
+      },
+      destroyePopover () {
+        try {
+          activeHandler = null;
+          if (this.$refs.popover.$el && document.body.hasChildNodes(this.$refs.popover.$el)) {
+            document.body.removeChild(this.$refs.popover.$el);
+          }
+        } catch {}
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .task-execute-bar-step {

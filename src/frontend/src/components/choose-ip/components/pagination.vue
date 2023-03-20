@@ -26,108 +26,108 @@
 -->
 
 <template>
-    <div class="server-pagination">
-        <div class="pagination-total">{{ $t('共计') }} {{ total }} {{ $t('条.total') }}</div>
-        <div class="pagination-change">
-            <div class="page-last" @click="handlePageChange(-1)">
-                <Icon type="down-small" />
-            </div>
-            <input
-                class="page-current"
-                :value="current"
-                @blur="handleInputSubmit"
-                @change="handleInputSubmit">
-            <div class="page-line">/</div>
-            <div class="page-count">{{ totalPage }}</div>
-            <div class="page-next" @click="handlePageChange(1)">
-                <Icon type="down-small" />
-            </div>
-        </div>
+  <div class="server-pagination">
+    <div class="pagination-total">{{ $t('共计') }} {{ total }} {{ $t('条.total') }}</div>
+    <div class="pagination-change">
+      <div class="page-last" @click="handlePageChange(-1)">
+        <Icon type="down-small" />
+      </div>
+      <input
+        class="page-current"
+        :value="current"
+        @blur="handleInputSubmit"
+        @change="handleInputSubmit">
+      <div class="page-line">/</div>
+      <div class="page-count">{{ totalPage }}</div>
+      <div class="page-next" @click="handlePageChange(1)">
+        <Icon type="down-small" />
+      </div>
     </div>
+  </div>
 </template>
 <script>
-    export default {
-        name: '',
-        props: {
-            pageSize: {
-                type: Number,
-                default: 10,
-            },
-            total: Number,
-            page: {
-                type: Number,
-                default: 0,
-            },
+  export default {
+    name: '',
+    props: {
+      pageSize: {
+        type: Number,
+        default: 10,
+      },
+      total: Number,
+      page: {
+        type: Number,
+        default: 0,
+      },
+    },
+    data () {
+      return {
+        current: 1,
+      };
+    },
+    computed: {
+      totalPage () {
+        return Math.ceil(this.total / this.pageSize);
+      },
+    },
+    watch: {
+      page: {
+        handler (newPage) {
+          this.current = newPage;
         },
-        data () {
-            return {
-                current: 1,
-            };
-        },
-        computed: {
-            totalPage () {
-                return Math.ceil(this.total / this.pageSize);
-            },
-        },
-        watch: {
-            page: {
-                handler (newPage) {
-                    this.current = newPage;
-                },
-                immediate: true,
-            },
-        },
-        methods: {
-            handleInput (event) {
-                const $target = event.target;
-                let value = parseInt($target.value, 10);
-                if (!value) {
-                    value = 1;
-                }
-                if (value < 1) {
-                    value = 1;
-                }
-                if (value > this.totalPage) {
-                    value = this.totalPage;
-                }
-                this.current = value;
-                this.$nextTick(() => {
-                    $target.value = value;
-                });
-            },
-            handleInputSubmit (event) {
-                const $target = event.target;
-                let value = parseInt($target.value, 10);
-                if (!value) {
-                    value = 1;
-                }
-                if (value < 1) {
-                    value = 1;
-                }
-                if (value > this.totalPage) {
-                    value = this.totalPage;
-                }
-                this.current = value;
-                this.$nextTick(() => {
-                    $target.value = value;
-                });
-                if (this.current === this.page) {
-                    return;
-                }
-                this.$emit('on-change', this.current);
-            },
-            handlePageChange (step) {
-                const newPage = this.page + step;
-                if (newPage < 1) {
-                    return;
-                }
-                if (newPage > this.totalPage) {
-                    return;
-                }
-                this.$emit('on-change', newPage);
-            },
-        },
-    };
+        immediate: true,
+      },
+    },
+    methods: {
+      handleInput (event) {
+        const $target = event.target;
+        let value = parseInt($target.value, 10);
+        if (!value) {
+          value = 1;
+        }
+        if (value < 1) {
+          value = 1;
+        }
+        if (value > this.totalPage) {
+          value = this.totalPage;
+        }
+        this.current = value;
+        this.$nextTick(() => {
+          $target.value = value;
+        });
+      },
+      handleInputSubmit (event) {
+        const $target = event.target;
+        let value = parseInt($target.value, 10);
+        if (!value) {
+          value = 1;
+        }
+        if (value < 1) {
+          value = 1;
+        }
+        if (value > this.totalPage) {
+          value = this.totalPage;
+        }
+        this.current = value;
+        this.$nextTick(() => {
+          $target.value = value;
+        });
+        if (this.current === this.page) {
+          return;
+        }
+        this.$emit('on-change', this.current);
+      },
+      handlePageChange (step) {
+        const newPage = this.page + step;
+        if (newPage < 1) {
+          return;
+        }
+        if (newPage > this.totalPage) {
+          return;
+        }
+        this.$emit('on-change', newPage);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .server-pagination {

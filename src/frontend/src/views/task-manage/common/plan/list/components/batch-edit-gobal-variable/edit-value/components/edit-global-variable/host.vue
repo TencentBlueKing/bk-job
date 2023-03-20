@@ -26,100 +26,100 @@
 -->
 
 <template>
+  <div>
+    <div class="name">
+      <span>{{ data.name }}</span>
+      <span class="remove-flag" @click="handleRemove">
+        <Icon type="reduce-fill" />
+      </span>
+    </div>
     <div>
-        <div class="name">
-            <span>{{ data.name }}</span>
-            <span class="remove-flag" @click="handleRemove">
-                <Icon type="reduce-fill" />
-            </span>
+      <bk-button
+        v-if="isValueEmpty"
+        v-bk-tooltips="descPopover"
+        style="width: 160px;"
+        @click="handleChooseIp">
+        <Icon type="plus" />
+        {{ $t('template.添加服务器') }}
+      </bk-button>
+      <div v-else class="host-value-text" @click="handleChooseIp">
+        <div class="host-type">
+          <Icon type="host" />
         </div>
         <div>
-            <bk-button
-                v-if="isValueEmpty"
-                @click="handleChooseIp"
-                style="width: 160px;"
-                v-bk-tooltips="descPopover">
-                <Icon type="plus" />
-                {{ $t('template.添加服务器') }}
-            </bk-button>
-            <div v-else class="host-value-text" @click="handleChooseIp">
-                <div class="host-type">
-                    <Icon type="host" />
-                </div>
-                <div>
-                    {{ valueText }}
-                </div>
-                <Icon class="host-edit" type="edit-2" />
-            </div>
+          {{ valueText }}
         </div>
-        <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="hostNodeInfo"
-            @on-change="handleChange" />
+        <Icon class="host-edit" type="edit-2" />
+      </div>
     </div>
+    <choose-ip
+      v-model="isShowChooseIp"
+      :host-node-info="hostNodeInfo"
+      @on-change="handleChange" />
+  </div>
 </template>
 <script>
-    import TaskHostNodeModel from '@model/task-host-node';
-    import ChooseIp from '@components/choose-ip';
+  import TaskHostNodeModel from '@model/task-host-node';
+  import ChooseIp from '@components/choose-ip';
 
-    export default {
-        components: {
-            ChooseIp,
-        },
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-            value: {
-                type: Object,
-                default: () => new TaskHostNodeModel({}),
-            },
-        },
-        data () {
-            return {
-                isShowChooseIp: false,
-                hostNodeInfo: {},
-            };
-        },
-        computed: {
-            isValueEmpty () {
-                return TaskHostNodeModel.isHostNodeInfoEmpty(this.value.hostNodeInfo);
-            },
-            valueText  () {
-                return new TaskHostNodeModel(this.value).text;
-            },
-            descPopover () {
-                return {
-                    theme: 'light',
-                    extCls: 'variable-desc-tippy',
-                    trigger: 'click mouseenter',
-                    placement: 'left',
-                    hideOnClick: false,
-                    content: this.data.description,
-                    disabled: !this.data.description,
-                };
-            },
-        },
+  export default {
+    components: {
+      ChooseIp,
+    },
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+      value: {
+        type: Object,
+        default: () => new TaskHostNodeModel({}),
+      },
+    },
+    data () {
+      return {
+        isShowChooseIp: false,
+        hostNodeInfo: {},
+      };
+    },
+    computed: {
+      isValueEmpty () {
+        return TaskHostNodeModel.isHostNodeInfoEmpty(this.value.hostNodeInfo);
+      },
+      valueText  () {
+        return new TaskHostNodeModel(this.value).text;
+      },
+      descPopover () {
+        return {
+          theme: 'light',
+          extCls: 'variable-desc-tippy',
+          trigger: 'click mouseenter',
+          placement: 'left',
+          hideOnClick: false,
+          content: this.data.description,
+          disabled: !this.data.description,
+        };
+      },
+    },
         
-        methods: {
-            handleRemove () {
-                this.$emit('on-remove');
-            },
-            handleChooseIp () {
-                this.isShowChooseIp = true;
-                this.hostNodeInfo = this.value.hostNodeInfo;
-            },
-            handleClear () {
-                this.$emit('on-change', new TaskHostNodeModel({}));
-            },
-            handleChange (hostNodeInfo) {
-                this.$emit('on-change', {
-                    hostNodeInfo,
-                });
-            },
-        },
-    };
+    methods: {
+      handleRemove () {
+        this.$emit('on-remove');
+      },
+      handleChooseIp () {
+        this.isShowChooseIp = true;
+        this.hostNodeInfo = this.value.hostNodeInfo;
+      },
+      handleClear () {
+        this.$emit('on-change', new TaskHostNodeModel({}));
+      },
+      handleChange (hostNodeInfo) {
+        this.$emit('on-change', {
+          hostNodeInfo,
+        });
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .host-value-text {

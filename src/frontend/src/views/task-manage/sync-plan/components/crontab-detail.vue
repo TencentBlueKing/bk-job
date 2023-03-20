@@ -26,179 +26,179 @@
 -->
 
 <template>
-    <div
-        class="job-detail"
-        :class="{
-            'is-loading': isLoading,
-        }"
-        v-bkloading="{ isLoading }">
-        <bk-alert :title="$t('template.同步执行方案需要重新确认定时任务的全局变量，不使用的定时任务可以直接停用。')" />
-        <div class="title">
-            <span>「{{ info.name }}」{{ $t('template.的全局变量') }}</span>
-            <span v-if="!data.enable" class="disable">{{ $t('template.已停用') }}</span>
-            <span v-else-if="data.hasConfirm" class="confirm">{{ $t('template.已确认') }}</span>
-            <span v-else class="waiting">{{ $t('template.待确认') }}</span>
-        </div>
-        <div v-if="!isLoading">
-            <empty v-if="isEmpty">
-                <p>{{ $t('template.无关联的全局变量') }}</p>
-                <p style="margin-top: 8px;">{{ $t('template.已直接确认') }}</p>
-            </empty>
-            <global-variable-layout v-else>
-                <div>
-                    <global-variable
-                        v-for="variable in info.variableValue"
-                        ref="variable"
-                        :type="variable.type"
-                        :key="variable.id"
-                        :readonly="readonly"
-                        :data="variable" />
-                </div>
-                <div class="global-variable-action">
-                    <div class="variable-name">
-                        <span />
-                    </div>
-                    <div class="variable-value">
-                        <template v-if="isEditing">
-                            <bk-button
-                                theme="primary"
-                                class="job-button"
-                                :disabled="!data.enable"
-                                @click="handleSubmit">
-                                {{ $t('template.确认') }}
-                            </bk-button>
-                            <bk-button
-                                class="job-button"
-                                :disabled="!data.enable"
-                                @click="handleReset">
-                                {{ $t('template.重置') }}
-                            </bk-button>
-                        </template>
-                        <bk-button
-                            v-else
-                            theme="primary"
-                            class="job-button"
-                            :disabled="!data.enable"
-                            @click="handleToggleEdit">
-                            {{ $t('template.编辑') }}
-                        </bk-button>
-                    </div>
-                </div>
-            </global-variable-layout>
-        </div>
+  <div
+    v-bkloading="{ isLoading }"
+    class="job-detail"
+    :class="{
+      'is-loading': isLoading,
+    }">
+    <bk-alert :title="$t('template.同步执行方案需要重新确认定时任务的全局变量，不使用的定时任务可以直接停用。')" />
+    <div class="title">
+      <span>「{{ info.name }}」{{ $t('template.的全局变量') }}</span>
+      <span v-if="!data.enable" class="disable">{{ $t('template.已停用') }}</span>
+      <span v-else-if="data.hasConfirm" class="confirm">{{ $t('template.已确认') }}</span>
+      <span v-else class="waiting">{{ $t('template.待确认') }}</span>
     </div>
+    <div v-if="!isLoading">
+      <empty v-if="isEmpty">
+        <p>{{ $t('template.无关联的全局变量') }}</p>
+        <p style="margin-top: 8px;">{{ $t('template.已直接确认') }}</p>
+      </empty>
+      <global-variable-layout v-else>
+        <div>
+          <global-variable
+            v-for="variable in info.variableValue"
+            :key="variable.id"
+            ref="variable"
+            :data="variable"
+            :readonly="readonly"
+            :type="variable.type" />
+        </div>
+        <div class="global-variable-action">
+          <div class="variable-name">
+            <span />
+          </div>
+          <div class="variable-value">
+            <template v-if="isEditing">
+              <bk-button
+                class="job-button"
+                :disabled="!data.enable"
+                theme="primary"
+                @click="handleSubmit">
+                {{ $t('template.确认') }}
+              </bk-button>
+              <bk-button
+                class="job-button"
+                :disabled="!data.enable"
+                @click="handleReset">
+                {{ $t('template.重置') }}
+              </bk-button>
+            </template>
+            <bk-button
+              v-else
+              class="job-button"
+              :disabled="!data.enable"
+              theme="primary"
+              @click="handleToggleEdit">
+              {{ $t('template.编辑') }}
+            </bk-button>
+          </div>
+        </div>
+      </global-variable-layout>
+    </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import TimeTaskService from '@service/time-task';
-    import GlobalVariableLayout from '@components/global-variable/layout';
-    import GlobalVariable from '@components/global-variable/edit';
-    import Empty from '@components/empty';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
+  import TimeTaskService from '@service/time-task';
+  import GlobalVariableLayout from '@components/global-variable/layout';
+  import GlobalVariable from '@components/global-variable/edit';
+  import Empty from '@components/empty';
 
-    export default {
-        name: '',
-        components: {
-            GlobalVariableLayout,
-            GlobalVariable,
-            Empty,
+  export default {
+    name: '',
+    components: {
+      GlobalVariableLayout,
+      GlobalVariable,
+      Empty,
+    },
+    props: {
+      data: {
+        type: Object,
+        default: () => ({}),
+      },
+      variableList: {
+        type: Array,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isLoading: false,
+        isEmpty: false,
+        isEditing: false,
+        isSubmiting: false,
+        info: {
+          name: '',
+          enable: true,
+          hasConfirm: false,
+          variableValue: [],
         },
-        props: {
-            data: {
-                type: Object,
-                default: () => ({}),
-            },
-            variableList: {
-                type: Array,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isLoading: false,
-                isEmpty: false,
-                isEditing: false,
-                isSubmiting: false,
-                info: {
-                    name: '',
-                    enable: true,
-                    hasConfirm: false,
-                    variableValue: [],
-                },
-            };
-        },
-        computed: {
-            readonly () {
-                if (!this.data.enable) {
-                    return true;
-                }
-                return this.isEditing ? false : this.info.hasConfirm;
-            },
-        },
-        created () {
-            if (!this.data.id) {
-                return;
+      };
+    },
+    computed: {
+      readonly () {
+        if (!this.data.enable) {
+          return true;
+        }
+        return this.isEditing ? false : this.info.hasConfirm;
+      },
+    },
+    created () {
+      if (!this.data.id) {
+        return;
+      }
+      this.info = { ...this.data };
+      this.isEditing = !this.info.hasConfirm;
+      // 没有确认的定时任务，通过接口获取定时任务的name和变量
+      // 默认展示模板的变量
+      if (!this.info.hasConfirm) {
+        this.info.variableValue = Object.freeze(_.cloneDeep(this.variableList));
+        this.fetchData();
+      }
+    },
+    methods: {
+      fetchData () {
+        this.isLoading = true;
+        TimeTaskService.getDetail({
+          id: this.data.id,
+        }).then(({ name, variableValue }) => {
+          this.info.name = name;
+          // 作业模板中没有变量
+          if (this.variableList.length < 1) {
+            this.isEmpty = true;
+            this.$emit('on-change', []);
+            return;
+          }
+          // 同步作业模板中变量到定时任务
+          // 作业模板和定时任务相同的变量——保留定时任务中的变量值
+          const crontabVariableMap = variableValue.reduce((result, item) => {
+            result[item.id] = item;
+            return result;
+          }, {});
+          this.info.variableValue.forEach((variable) => {
+            if (crontabVariableMap[variable.id]) {
+              const { value, targetValue } = crontabVariableMap[variable.id];
+              variable.defaultValue = value;
+              variable.defaultTargetValue = targetValue;
             }
-            this.info = { ...this.data };
-            this.isEditing = !this.info.hasConfirm;
-            // 没有确认的定时任务，通过接口获取定时任务的name和变量
-            // 默认展示模板的变量
-            if (!this.info.hasConfirm) {
-                this.info.variableValue = Object.freeze(_.cloneDeep(this.variableList));
-                this.fetchData();
-            }
-        },
-        methods: {
-            fetchData () {
-                this.isLoading = true;
-                TimeTaskService.getDetail({
-                    id: this.data.id,
-                }).then(({ name, variableValue }) => {
-                    this.info.name = name;
-                    // 作业模板中没有变量
-                    if (this.variableList.length < 1) {
-                        this.isEmpty = true;
-                        this.$emit('on-change', []);
-                        return;
-                    }
-                    // 同步作业模板中变量到定时任务
-                    // 作业模板和定时任务相同的变量——保留定时任务中的变量值
-                    const crontabVariableMap = variableValue.reduce((result, item) => {
-                        result[item.id] = item;
-                        return result;
-                    }, {});
-                    this.info.variableValue.forEach((variable) => {
-                        if (crontabVariableMap[variable.id]) {
-                            const { value, targetValue } = crontabVariableMap[variable.id];
-                            variable.defaultValue = value;
-                            variable.defaultTargetValue = targetValue;
-                        }
-                    });
-                })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            handleToggleEdit () {
-                this.isEditing = true;
-                this.$emit('on-update-confirm', false);
-            },
-            handleSubmit () {
-                Promise.all(this.$refs.variable.map(item => item.validate()))
-                    .then((variableValue) => {
-                        window.changeFlag = false;
-                        this.isEditing = false;
-                        this.info.hasConfirm = true;
-                        this.info.variableValue = Object.freeze(variableValue);
-                        this.messageSuccess(I18n.t('template.定时任务确认成功'));
-                        this.$emit('on-change', Object.freeze(variableValue));
-                    });
-            },
-            handleReset () {
-                this.$refs.variable.forEach(item => item.reset());
-            },
-        },
-    };
+          });
+        })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      handleToggleEdit () {
+        this.isEditing = true;
+        this.$emit('on-update-confirm', false);
+      },
+      handleSubmit () {
+        Promise.all(this.$refs.variable.map(item => item.validate()))
+          .then((variableValue) => {
+            window.changeFlag = false;
+            this.isEditing = false;
+            this.info.hasConfirm = true;
+            this.info.variableValue = Object.freeze(variableValue);
+            this.messageSuccess(I18n.t('template.定时任务确认成功'));
+            this.$emit('on-change', Object.freeze(variableValue));
+          });
+      },
+      handleReset () {
+        this.$refs.variable.forEach(item => item.reset());
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .job-detail {

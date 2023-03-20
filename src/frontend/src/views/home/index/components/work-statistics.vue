@@ -26,53 +26,53 @@
 -->
 
 <template>
-    <router-link class="work-statistics-box" :to="{ name: link }">
-        <div class="work-flag">
-            <Icon class="hexagon" type="hexagon" svg />
-            <Icon class="statistics" :type="type" svg />
-        </div>
-        <div class="work-total">
-            <slot v-bind:job-num="jobNum" v-bind:script-num="scriptNum" />
-        </div>
-        <div class="work-name">
-            <slot name="name" />
-        </div>
-    </router-link>
+  <router-link class="work-statistics-box" :to="{ name: link }">
+    <div class="work-flag">
+      <Icon class="hexagon" svg type="hexagon" />
+      <Icon class="statistics" svg :type="type" />
+    </div>
+    <div class="work-total">
+      <slot v-bind:job-num="jobNum" v-bind:script-num="scriptNum" />
+    </div>
+    <div class="work-name">
+      <slot name="name" />
+    </div>
+  </router-link>
 </template>
 <script>
-    import HomeService from '@service/home';
+  import HomeService from '@service/home';
 
-    export default {
-        name: '',
-        props: {
-            type: {
-                type: String,
-                default: '',
-            },
-            link: {
-                type: String,
-                default: '',
-            },
-        },
-        data () {
-            return {
-                jobNum: 0,
-                scriptNum: 0,
-            };
-        },
-        created () {
-            this.fetchStatisticsJobAndScript();
-        },
-        methods: {
-            fetchStatisticsJobAndScript () {
-                HomeService.fetchStatisticsJobAndScript()
-                    .then(({ jobNum, scriptNum }) => {
-                        this.jobNum = jobNum;
-                        this.scriptNum = scriptNum;
-                    });
-            },
-        },
-    };
+  export default {
+    name: '',
+    props: {
+      type: {
+        type: String,
+        default: '',
+      },
+      link: {
+        type: String,
+        default: '',
+      },
+    },
+    data () {
+      return {
+        jobNum: 0,
+        scriptNum: 0,
+      };
+    },
+    created () {
+      this.fetchStatisticsJobAndScript();
+    },
+    methods: {
+      fetchStatisticsJobAndScript () {
+        HomeService.fetchStatisticsJobAndScript()
+          .then(({ jobNum, scriptNum }) => {
+            this.jobNum = jobNum;
+            this.scriptNum = scriptNum;
+          });
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     @keyframes hexagon-scale {

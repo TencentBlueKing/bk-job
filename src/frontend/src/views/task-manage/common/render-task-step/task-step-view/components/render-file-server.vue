@@ -26,64 +26,64 @@
 -->
 
 <template>
-    <div class="render-file-server">
-        <div class="server-agent-text" v-html="data.serverDesc" @click="handlerView" />
-        <jb-dialog
-            v-model="isShowDetail"
-            :width="1020"
-            :ok-text="$t('template.关闭')"
-            class="step-view-server-detail-dialog">
-            <template #header>
-                <div class="variable-title">
-                    <span>{{ $t('template.服务器文件-服务器列表') }}</span>
-                    <i class="server-detail-close bk-icon icon-close" @click="handleClose" />
-                </div>
-            </template>
-            <div class="content-wraper">
-                <scroll-faker>
-                    <server-panel
-                        detail-mode="dialog"
-                        :host-node-info="hostNodeInfo" />
-                </scroll-faker>
-            </div>
-        </jb-dialog>
-    </div>
+  <div class="render-file-server">
+    <div class="server-agent-text" @click="handlerView" v-html="data.serverDesc" />
+    <jb-dialog
+      v-model="isShowDetail"
+      class="step-view-server-detail-dialog"
+      :ok-text="$t('template.关闭')"
+      :width="1020">
+      <template #header>
+        <div class="variable-title">
+          <span>{{ $t('template.服务器文件-服务器列表') }}</span>
+          <i class="server-detail-close bk-icon icon-close" @click="handleClose" />
+        </div>
+      </template>
+      <div class="content-wraper">
+        <scroll-faker>
+          <server-panel
+            detail-mode="dialog"
+            :host-node-info="hostNodeInfo" />
+        </scroll-faker>
+      </div>
+    </jb-dialog>
+  </div>
 </template>
 <script>
-    import TaskHostNodeModel from '@model/task-host-node';
-    import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
+  import TaskHostNodeModel from '@model/task-host-node';
+  import ScrollFaker from '@components/scroll-faker';
+  import ServerPanel from '@components/choose-ip/server-panel';
 
-    export default {
-        name: '',
-        components: {
-            ScrollFaker,
-            ServerPanel,
-        },
-        props: {
-            data: {
-                type: Object,
-                required: true,
-            },
-        },
-        data () {
-            const { hostNodeInfo } = new TaskHostNodeModel({});
-            return {
-                isShowDetail: false,
-                hostNodeInfo,
-            };
-        },
+  export default {
+    name: '',
+    components: {
+      ScrollFaker,
+      ServerPanel,
+    },
+    props: {
+      data: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      const { hostNodeInfo } = new TaskHostNodeModel({});
+      return {
+        isShowDetail: false,
+        hostNodeInfo,
+      };
+    },
 
-        methods: {
-            handlerView () {
-                this.hostNodeInfo = this.data.host.hostNodeInfo;
-                this.isShowDetail = true;
-            },
-            handleClose () {
-                this.isShowDetail = false;
-            },
-        },
-    };
+    methods: {
+      handlerView () {
+        this.hostNodeInfo = this.data.host.hostNodeInfo;
+        this.isShowDetail = true;
+      },
+      handleClose () {
+        this.isShowDetail = false;
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .render-file-server {

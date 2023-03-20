@@ -26,34 +26,34 @@
 -->
 
 <template>
-    <div class="execute-dashboard">
-        <div class="layout-left">
-            <total-count v-bind="$attrs" />
-            <fail-count v-bind="$attrs" />
-        </div>
-        <div class="layout-right">
-            <statistics v-bind="$attrs" />
-        </div>
+  <div class="execute-dashboard">
+    <div class="layout-left">
+      <total-count v-bind="$attrs" />
+      <fail-count v-bind="$attrs" />
     </div>
+    <div class="layout-right">
+      <statistics v-bind="$attrs" />
+    </div>
+  </div>
 </template>
 <script>
-    import TotalCount from './total-count';
-    import FailCount from './fail-count';
-    import Statistics from './statistics';
+  import TotalCount from './total-count';
+  import FailCount from './fail-count';
+  import Statistics from './statistics';
 
-    export default {
-        name: '',
-        components: {
-            TotalCount,
-            FailCount,
-            Statistics,
-        },
-        data () {
-            return {};
-        },
+  export default {
+    name: '',
+    components: {
+      TotalCount,
+      FailCount,
+      Statistics,
+    },
+    data () {
+      return {};
+    },
 
-        methods: {},
-    };
+    methods: {},
+  };
 </script>
 <style lang='postcss'>
     @import "@/css/mixins/media";

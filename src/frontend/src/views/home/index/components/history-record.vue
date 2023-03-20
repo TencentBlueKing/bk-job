@@ -26,133 +26,133 @@
 -->
 
 <template>
-    <div class="history-record-box" v-bkloading="{ isLoading }">
-        <div v-if="!isLoading" class="history-record">
-            <template v-if="recordList.length > 0">
-                <scroll-faker>
-                    <div
-                        v-for="record in recordList"
-                        :key="record.id"
-                        class="record-item"
-                        :class="record.statusClass"
-                        @click="handleViewExecuteDetail(record)">
-                        <div class="item-header">
-                            <div class="record-name">{{ record.name }}</div>
-                            <div class="record-label" v-html="record.statusDescHtml" />
-                        </div>
-                        <div class="item-body">
-                            <span>{{ record.startTime }}</span>
-                            <span class="record-operator">{{ record.operator }}</span>
-                            <div class="record-total-time">{{ record.totalTimeText }}</div>
-                        </div>
-                    </div>
-                </scroll-faker>
-            </template>
-            <Empty v-else :title="$t('home.暂无执行记录')" class="record-empty" />
-            <div class="record-actions">
-                <bk-radio-group
-                    :value="recordOperator"
-                    @change="handleRecordFilterChange"
-                    class="record-filter">
-                    <bk-radio-button value="">
-                        {{ $t('home.全部') }}
-                    </bk-radio-button>
-                    <bk-radio-button :value="userInfo.username">
-                        {{ $t('home.我执行') }}
-                    </bk-radio-button>
-                </bk-radio-group>
-                <router-link :to="{ name: 'historyList' }" class="action-btn">
-                    {{ $t('home.更多') }}
-                </router-link>
+  <div v-bkloading="{ isLoading }" class="history-record-box">
+    <div v-if="!isLoading" class="history-record">
+      <template v-if="recordList.length > 0">
+        <scroll-faker>
+          <div
+            v-for="record in recordList"
+            :key="record.id"
+            class="record-item"
+            :class="record.statusClass"
+            @click="handleViewExecuteDetail(record)">
+            <div class="item-header">
+              <div class="record-name">{{ record.name }}</div>
+              <div class="record-label" v-html="record.statusDescHtml" />
             </div>
-        </div>
+            <div class="item-body">
+              <span>{{ record.startTime }}</span>
+              <span class="record-operator">{{ record.operator }}</span>
+              <div class="record-total-time">{{ record.totalTimeText }}</div>
+            </div>
+          </div>
+        </scroll-faker>
+      </template>
+      <Empty v-else class="record-empty" :title="$t('home.暂无执行记录')" />
+      <div class="record-actions">
+        <bk-radio-group
+          class="record-filter"
+          :value="recordOperator"
+          @change="handleRecordFilterChange">
+          <bk-radio-button value="">
+            {{ $t('home.全部') }}
+          </bk-radio-button>
+          <bk-radio-button :value="userInfo.username">
+            {{ $t('home.我执行') }}
+          </bk-radio-button>
+        </bk-radio-group>
+        <router-link class="action-btn" :to="{ name: 'historyList' }">
+          {{ $t('home.更多') }}
+        </router-link>
+      </div>
     </div>
+  </div>
 </template>
 <script>
-    import TaskExecuteService from '@service/task-execute';
-    import UserService from '@service/user';
-    import Empty from '@components/empty';
+  import TaskExecuteService from '@service/task-execute';
+  import UserService from '@service/user';
+  import Empty from '@components/empty';
 
-    export default {
-        components: {
-            Empty,
-        },
-        data () {
-            return {
-                userInfo: {},
-                isLoading: true,
-                recordOperator: '',
-                recordList: [],
-            };
-        },
-        created () {
-            this.fetchUserInfo();
-            this.fetchExecuteHistory();
-        },
-        methods: {
-            /**
-             * @desc 获取登录用户信息
-            */
-            fetchUserInfo () {
-                UserService.fetchUserInfo()
-                    .then((data) => {
-                        this.userInfo = Object.freeze(data);
-                    });
-            },
-            /**
-             * @desc 获取任务执行历史
-             *
-             * 时间返回默认是 30 天
-            */
-            fetchExecuteHistory () {
-                this.isLoading = true;
+  export default {
+    components: {
+      Empty,
+    },
+    data () {
+      return {
+        userInfo: {},
+        isLoading: true,
+        recordOperator: '',
+        recordList: [],
+      };
+    },
+    created () {
+      this.fetchUserInfo();
+      this.fetchExecuteHistory();
+    },
+    methods: {
+      /**
+       * @desc 获取登录用户信息
+       */
+      fetchUserInfo () {
+        UserService.fetchUserInfo()
+          .then((data) => {
+            this.userInfo = Object.freeze(data);
+          });
+      },
+      /**
+       * @desc 获取任务执行历史
+       *
+       * 时间返回默认是 30 天
+       */
+      fetchExecuteHistory () {
+        this.isLoading = true;
 
-                const params = {
-                    timeRange: 30,
-                };
-                if (this.recordOperator) {
-                    params.operator = this.recordOperator;
-                    params.startupModes = '1,2';
-                }
-                TaskExecuteService.fetchExecutionHistoryList(params)
-                    .then((data) => {
-                        this.recordList = Object.freeze(data.data);
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
+        const params = {
+          timeRange: 30,
+        };
+        if (this.recordOperator) {
+          params.operator = this.recordOperator;
+          params.startupModes = '1,2';
+        }
+        TaskExecuteService.fetchExecutionHistoryList(params)
+          .then((data) => {
+            this.recordList = Object.freeze(data.data);
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      /**
+       * @desc 筛选登录用户执行列表
+       * @param {String} operator 登录用户名
+       */
+      handleRecordFilterChange (operator) {
+        this.recordOperator = operator;
+        this.fetchExecuteHistory();
+      },
+      /**
+       * @desc 跳转任务执行详情页面
+       * @param {Object} taskInstance 任务执行实例
+       */
+      handleViewExecuteDetail (taskInstance) {
+        if (taskInstance.isTask) {
+          this.$router.push({
+            name: 'historyTask',
+            params: {
+              id: taskInstance.id,
             },
-            /**
-             * @desc 筛选登录用户执行列表
-             * @param {String} operator 登录用户名
-            */
-            handleRecordFilterChange (operator) {
-                this.recordOperator = operator;
-                this.fetchExecuteHistory();
-            },
-            /**
-             * @desc 跳转任务执行详情页面
-             * @param {Object} taskInstance 任务执行实例
-            */
-            handleViewExecuteDetail (taskInstance) {
-                if (taskInstance.isTask) {
-                    this.$router.push({
-                        name: 'historyTask',
-                        params: {
-                            id: taskInstance.id,
-                        },
-                    });
-                    return;
-                }
-                this.$router.push({
-                    name: 'historyStep',
-                    params: {
-                        taskInstanceId: taskInstance.id,
-                    },
-                });
-            },
-        },
-    };
+          });
+          return;
+        }
+        this.$router.push({
+          name: 'historyStep',
+          params: {
+            taskInstanceId: taskInstance.id,
+          },
+        });
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .history-record-box {

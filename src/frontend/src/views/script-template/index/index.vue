@@ -26,237 +26,237 @@
 -->
 
 <template>
-    <div
-        ref="container"
-        class="script-template-page"
-        v-bkloading="{ isLoading }">
-        <ace-editor
-            ref="editor"
-            class="script-template-editor"
-            :lang="scriptLanguage"
-            :height="editorHeight"
-            :custom-enable="false"
-            :before-lang-change="beforeLangChange"
-            @change="handleContentChange"
-            @on-mode-change="handleLangChange">
-            <template slot="action">
-                <Icon
-                    type="variable"
-                    v-bk-tooltips="$t('scriptTemplate.内置变量')"
-                    @click="handleSidePanelShow('renderVariable')" />
-            </template>
-            <div
-                v-if="sidePanelComponentName"
-                slot="side"
-                class="script-editor-right-panel">
-                <component
-                    :is="renderSideComponent"
-                    :parent-width="editorWidth"
-                    @on-resize="handleSidePanelResize"
-                    :script-language="scriptLanguage"
-                    :script-content="scriptContent" />
-                <div
-                    class="panel-close"
-                    @click="handleSidePanelHide">
-                    <Icon type="close" />
-                </div>
-            </div>
-        </ace-editor>
-        <div class="action-box">
-            <bk-button
-                theme="primary"
-                class="mr10"
-                style="width: 86px;"
-                :loading="isSubmiting"
-                @click="handleSave">
-                {{ $t('scriptTemplate.保存') }}
-            </bk-button>
-            <div class="action-btn mr10" @click="handleEditReset">{{ $t('scriptTemplate.重置') }}</div>
-            <div class="action-btn" @click="handleUseDefault">{{ $t('scriptTemplate.还原默认') }}</div>
-            <div
-                class="action-btn"
-                :class="{
-                    active: sidePanelComponentName === 'previewTemplate',
-                }"
-                style="margin-left: 60px;"
-                @click="handleSidePanelShow('previewTemplate')">
-                {{ $t('scriptTemplate.渲染预览') }}
-            </div>
+  <div
+    ref="container"
+    v-bkloading="{ isLoading }"
+    class="script-template-page">
+    <ace-editor
+      ref="editor"
+      :before-lang-change="beforeLangChange"
+      class="script-template-editor"
+      :custom-enable="false"
+      :height="editorHeight"
+      :lang="scriptLanguage"
+      @change="handleContentChange"
+      @on-mode-change="handleLangChange">
+      <template slot="action">
+        <Icon
+          v-bk-tooltips="$t('scriptTemplate.内置变量')"
+          type="variable"
+          @click="handleSidePanelShow('renderVariable')" />
+      </template>
+      <div
+        v-if="sidePanelComponentName"
+        slot="side"
+        class="script-editor-right-panel">
+        <component
+          :is="renderSideComponent"
+          :parent-width="editorWidth"
+          :script-content="scriptContent"
+          :script-language="scriptLanguage"
+          @on-resize="handleSidePanelResize" />
+        <div
+          class="panel-close"
+          @click="handleSidePanelHide">
+          <Icon type="close" />
         </div>
-        <element-teleport to="#siteHeaderStatusBar">
-            <span style="padding-left: 12px; font-size: 12px; color: #979ba5;">
-                {{ $t('scriptTemplate.脚本模板仅对当前用户在新建脚本相关场景下有效（如快速执行脚本、新建脚本、作业脚本步骤）') }}
-            </span>
-        </element-teleport>
+      </div>
+    </ace-editor>
+    <div class="action-box">
+      <bk-button
+        class="mr10"
+        :loading="isSubmiting"
+        style="width: 86px;"
+        theme="primary"
+        @click="handleSave">
+        {{ $t('scriptTemplate.保存') }}
+      </bk-button>
+      <div class="action-btn mr10" @click="handleEditReset">{{ $t('scriptTemplate.重置') }}</div>
+      <div class="action-btn" @click="handleUseDefault">{{ $t('scriptTemplate.还原默认') }}</div>
+      <div
+        class="action-btn"
+        :class="{
+          active: sidePanelComponentName === 'previewTemplate',
+        }"
+        style="margin-left: 60px;"
+        @click="handleSidePanelShow('previewTemplate')">
+        {{ $t('scriptTemplate.渲染预览') }}
+      </div>
     </div>
+    <element-teleport to="#siteHeaderStatusBar">
+      <span style="padding-left: 12px; font-size: 12px; color: #979ba5;">
+        {{ $t('scriptTemplate.脚本模板仅对当前用户在新建脚本相关场景下有效（如快速执行脚本、新建脚本、作业脚本步骤）') }}
+      </span>
+    </element-teleport>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import I18n from '@/i18n';
-    import ScriptTemplateService from '@service/script-template';
-    import {
-        getOffset,
-        leaveConfirm,
-        formatScriptTypeValue,
-    } from '@utils/assist';
-    import AceEditor, { builtInScript } from '@components/ace-editor';
-    import RenderVariable from './components/render-variable';
-    import PreviewTemplate from './components/preview-template';
+  import _ from 'lodash';
+  import I18n from '@/i18n';
+  import ScriptTemplateService from '@service/script-template';
+  import {
+    getOffset,
+    leaveConfirm,
+    formatScriptTypeValue,
+  } from '@utils/assist';
+  import AceEditor, { builtInScript } from '@components/ace-editor';
+  import RenderVariable from './components/render-variable';
+  import PreviewTemplate from './components/preview-template';
 
-    export default {
-        name: '',
-        components: {
-            AceEditor,
-            RenderVariable,
-            PreviewTemplate,
-        },
-        data () {
-            return {
-                isLoading: false,
-                isSubmiting: false,
-                editorHeight: 0,
-                editorWidth: 0,
-                isShowVariable: false,
-                scriptLanguage: 'Shell',
-                scriptContent: '',
-                sidePanelComponentName: '',
-            };
-        },
-        computed: {
-            renderSideComponent () {
-                const com = {
-                    previewTemplate: PreviewTemplate,
-                    renderVariable: RenderVariable,
-                };
-                return com[this.sidePanelComponentName];
-            },
-        },
-        created () {
-            // 已经存储的脚本模板
-            this.templateMap = Object.assign({}, builtInScript);
-            this.fetchOriginalTemplate();
-        },
-        mounted () {
-            this.calcEditorSize();
-            window.addEventListener('resize', this.calcEditorSize);
-            this.$once('hook:beforeDestroy', () => {
-                window.removeEventListener('resize', this.calcEditorSize);
+  export default {
+    name: '',
+    components: {
+      AceEditor,
+      RenderVariable,
+      PreviewTemplate,
+    },
+    data () {
+      return {
+        isLoading: false,
+        isSubmiting: false,
+        editorHeight: 0,
+        editorWidth: 0,
+        isShowVariable: false,
+        scriptLanguage: 'Shell',
+        scriptContent: '',
+        sidePanelComponentName: '',
+      };
+    },
+    computed: {
+      renderSideComponent () {
+        const com = {
+          previewTemplate: PreviewTemplate,
+          renderVariable: RenderVariable,
+        };
+        return com[this.sidePanelComponentName];
+      },
+    },
+    created () {
+      // 已经存储的脚本模板
+      this.templateMap = Object.assign({}, builtInScript);
+      this.fetchOriginalTemplate();
+    },
+    mounted () {
+      this.calcEditorSize();
+      window.addEventListener('resize', this.calcEditorSize);
+      this.$once('hook:beforeDestroy', () => {
+        window.removeEventListener('resize', this.calcEditorSize);
+      });
+    },
+    methods: {
+      /**
+       * @desc 获取用户自定义模板
+       */
+      fetchOriginalTemplate () {
+        this.isLoading = true;
+        ScriptTemplateService.fetchOriginalTemplate()
+          .then((data) => {
+            data.forEach((item) => {
+              this.templateMap[formatScriptTypeValue(item.scriptLanguage)] = item.scriptContent;
             });
-        },
-        methods: {
-            /**
-             * @desc 获取用户自定义模板
-             */
-            fetchOriginalTemplate () {
-                this.isLoading = true;
-                ScriptTemplateService.fetchOriginalTemplate()
-                    .then((data) => {
-                        data.forEach((item) => {
-                            this.templateMap[formatScriptTypeValue(item.scriptLanguage)] = item.scriptContent;
-                        });
-                        // 如果有自定义脚本模板，通过编辑器 setValue 方法设置值
-                        if (_.has(this.templateMap, this.scriptLanguage)) {
-                            this.$refs.editor.setValue(this.templateMap[this.scriptLanguage]);
-                        }
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            /**
-             * @desc 计算编辑器的尺寸
-             */
-            calcEditorSize () {
-                const {
-                    top: offsetTop,
-                } = getOffset(this.$refs.container);
-                const windowHeight = window.innerHeight;
-                this.editorHeight = windowHeight - offsetTop - 72;
-                this.editorWidth = this.$refs.container.getBoundingClientRect().width;
-            },
-            /**
-             * @desc 脚本预览类型切换编辑状态检测
-             * @return {Object} 切换二次确认
-             */
-            beforeLangChange () {
-                window.changeFlag = this.scriptContent !== this.templateMap[this.scriptLanguage];
-                return leaveConfirm();
-            },
-            /**
-             * @desc 切换脚本模板语言
-             * @param {String} scriptLanguage 脚本语言
-             */
-            handleLangChange (scriptLanguage) {
-                this.scriptLanguage = scriptLanguage;
-                setTimeout(() => {
-                    if (_.has(this.templateMap, this.scriptLanguage)) {
-                        this.$refs.editor.setValue(this.templateMap[this.scriptLanguage]);
-                    }
-                });
-            },
-            /**
-             * @desc 编辑脚本模板内容
-             * @param {String} content 脚本语言
-             */
-            handleContentChange (content) {
-                this.scriptContent = content;
-            },
-            /**
-             * @desc 显示编辑器右侧面板
-             * @param {String} componentName 脚本语言
-             */
-            handleSidePanelShow (componentName) {
-                if (this.sidePanelComponentName === componentName) {
-                    this.sidePanelComponentName = '';
-                } else {
-                    this.sidePanelComponentName = componentName;
-                }
-            },
-            /**
-             * @desc 关闭编辑器右侧面板
-             */
-            handleSidePanelHide () {
-                this.sidePanelComponentName = '';
-            },
-            /**
-             * @desc 脚本编辑器 resize
-             */
-            handleSidePanelResize () {
-                this.$refs.editor.resize();
-            },
-            /**
-             * @desc 保存用户自定义模板
-             */
-            handleSave () {
-                this.isSubmiting = true;
-                ScriptTemplateService.updateOriginalTemplate({
-                    scriptLanguage: formatScriptTypeValue(this.scriptLanguage),
-                    scriptContent: this.scriptContent,
-                }).then(() => {
-                    window.changeFlag = false;
-                    this.templateMap[this.scriptLanguage] = this.scriptContent;
-                    this.messageSuccess(I18n.t('scriptTemplate.保存成功'));
-                })
-                    .finally(() => {
-                        this.isSubmiting = false;
-                    });
-            },
-            /**
-             * @desc 重置用户编辑状态
-             */
-            handleEditReset () {
-                this.$refs.editor.setValue(this.templateMap[this.scriptLanguage]);
-                this.messageSuccess(I18n.t('scriptTemplate.重置成功'));
-            },
-            /**
-             * @desc 还原脚本模板为默认脚本
-             */
-            handleUseDefault () {
-                this.$refs.editor.resetValue();
-                this.messageSuccess(I18n.t('scriptTemplate.还原默认成功'));
-            },
-        },
-    };
+            // 如果有自定义脚本模板，通过编辑器 setValue 方法设置值
+            if (_.has(this.templateMap, this.scriptLanguage)) {
+              this.$refs.editor.setValue(this.templateMap[this.scriptLanguage]);
+            }
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      /**
+       * @desc 计算编辑器的尺寸
+       */
+      calcEditorSize () {
+        const {
+          top: offsetTop,
+        } = getOffset(this.$refs.container);
+        const windowHeight = window.innerHeight;
+        this.editorHeight = windowHeight - offsetTop - 72;
+        this.editorWidth = this.$refs.container.getBoundingClientRect().width;
+      },
+      /**
+       * @desc 脚本预览类型切换编辑状态检测
+       * @return {Object} 切换二次确认
+       */
+      beforeLangChange () {
+        window.changeFlag = this.scriptContent !== this.templateMap[this.scriptLanguage];
+        return leaveConfirm();
+      },
+      /**
+       * @desc 切换脚本模板语言
+       * @param {String} scriptLanguage 脚本语言
+       */
+      handleLangChange (scriptLanguage) {
+        this.scriptLanguage = scriptLanguage;
+        setTimeout(() => {
+          if (_.has(this.templateMap, this.scriptLanguage)) {
+            this.$refs.editor.setValue(this.templateMap[this.scriptLanguage]);
+          }
+        });
+      },
+      /**
+       * @desc 编辑脚本模板内容
+       * @param {String} content 脚本语言
+       */
+      handleContentChange (content) {
+        this.scriptContent = content;
+      },
+      /**
+       * @desc 显示编辑器右侧面板
+       * @param {String} componentName 脚本语言
+       */
+      handleSidePanelShow (componentName) {
+        if (this.sidePanelComponentName === componentName) {
+          this.sidePanelComponentName = '';
+        } else {
+          this.sidePanelComponentName = componentName;
+        }
+      },
+      /**
+       * @desc 关闭编辑器右侧面板
+       */
+      handleSidePanelHide () {
+        this.sidePanelComponentName = '';
+      },
+      /**
+       * @desc 脚本编辑器 resize
+       */
+      handleSidePanelResize () {
+        this.$refs.editor.resize();
+      },
+      /**
+       * @desc 保存用户自定义模板
+       */
+      handleSave () {
+        this.isSubmiting = true;
+        ScriptTemplateService.updateOriginalTemplate({
+          scriptLanguage: formatScriptTypeValue(this.scriptLanguage),
+          scriptContent: this.scriptContent,
+        }).then(() => {
+          window.changeFlag = false;
+          this.templateMap[this.scriptLanguage] = this.scriptContent;
+          this.messageSuccess(I18n.t('scriptTemplate.保存成功'));
+        })
+          .finally(() => {
+            this.isSubmiting = false;
+          });
+      },
+      /**
+       * @desc 重置用户编辑状态
+       */
+      handleEditReset () {
+        this.$refs.editor.setValue(this.templateMap[this.scriptLanguage]);
+        this.messageSuccess(I18n.t('scriptTemplate.重置成功'));
+      },
+      /**
+       * @desc 还原脚本模板为默认脚本
+       */
+      handleUseDefault () {
+        this.$refs.editor.resetValue();
+        this.messageSuccess(I18n.t('scriptTemplate.还原默认成功'));
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .script-template-page {

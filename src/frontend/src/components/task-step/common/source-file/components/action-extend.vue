@@ -26,67 +26,67 @@
 -->
 
 <template>
-    <div class="source-file-action-extend" @click.stop="" @mouseleave="handleHide">
-        <Icon type="more" />
-        <div
-            ref="popoverContent"
-            class="source-file-action-content"
-            @click="handleWraperClick"
-            @mouseover="handleShow"
-            @mouseleave="handleClose">
-            <slot />
-        </div>
+  <div class="source-file-action-extend" @click.stop="" @mouseleave="handleHide">
+    <Icon type="more" />
+    <div
+      ref="popoverContent"
+      class="source-file-action-content"
+      @click="handleWraperClick"
+      @mouseleave="handleClose"
+      @mouseover="handleShow">
+      <slot />
     </div>
+  </div>
 </template>
 <script>
-    const instanceMap = {};
+  const instanceMap = {};
 
-    export default {
-        name: 'SourceFileExtendAction',
-        created () {
-            this.id = `action_extend_${Math.random()}_${Date.now()}`;
-        },
-        mounted () {
-            this.init();
-        },
-        beforeDestroy () {
-            instanceMap[this.id].hide();
-            delete instanceMap[this.id];
-        },
-        methods: {
-            init () {
-                instanceMap[this.id] = this.$bkPopover(this.$el, {
-                    theme: 'source-file-action-extend-popover',
-                    interactive: true,
-                    placement: 'bottom',
-                    content: this.$refs.popoverContent,
-                    trigger: 'mouseover',
-                    arrow: true,
-                    onShow: () => {
-                        Object.keys(instanceMap).forEach((key) => {
-                            if (key !== this.id) {
-                                instanceMap[key].hide();
-                            }
-                        });
-                    },
-                });
-            },
-            handleWraperClick () {
-                this.handleClose();
-            },
-            handleHide () {
-                this.leaveTimer = setTimeout(() => {
-                    this.handleClose();
-                }, 3000);
-            },
-            handleShow () {
-                clearTimeout(this.leaveTimer);
-            },
-            handleClose () {
-                instanceMap[this.id] && instanceMap[this.id].hide();
-            },
-        },
-    };
+  export default {
+    name: 'SourceFileExtendAction',
+    created () {
+      this.id = `action_extend_${Math.random()}_${Date.now()}`;
+    },
+    mounted () {
+      this.init();
+    },
+    beforeDestroy () {
+      instanceMap[this.id].hide();
+      delete instanceMap[this.id];
+    },
+    methods: {
+      init () {
+        instanceMap[this.id] = this.$bkPopover(this.$el, {
+          theme: 'source-file-action-extend-popover',
+          interactive: true,
+          placement: 'bottom',
+          content: this.$refs.popoverContent,
+          trigger: 'mouseover',
+          arrow: true,
+          onShow: () => {
+            Object.keys(instanceMap).forEach((key) => {
+              if (key !== this.id) {
+                instanceMap[key].hide();
+              }
+            });
+          },
+        });
+      },
+      handleWraperClick () {
+        this.handleClose();
+      },
+      handleHide () {
+        this.leaveTimer = setTimeout(() => {
+          this.handleClose();
+        }, 3000);
+      },
+      handleShow () {
+        clearTimeout(this.leaveTimer);
+      },
+      handleClose () {
+        instanceMap[this.id] && instanceMap[this.id].hide();
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     html[lang="en-US"] {

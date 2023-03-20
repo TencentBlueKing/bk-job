@@ -26,72 +26,72 @@
 -->
 
 <template>
-    <table class="notify-channel-table">
-        <thead>
-            <tr>
-                <th>
-                    <div class="split-header">
-                        <span class="split-item channel">{{ $t('setting.渠道') }}</span>
-                        <span class="split-item template">{{ $t('setting.模板') }}</span>
-                    </div>
-                </th>
-                <th v-for="(channel, index) in channleList" :key="index" @click.stop="handleToggleChannel(channel.code)"
-                    :class="['channel-item', { 'un-selected': !channelCode.includes(channel.code) }]">
-                    <div class="channel-wraper">
-                        <img class="channel-icon" :src="channel.icon" alt="">
-                        <p class="channel-name">{{ channel.name }}</p>
-                    </div>
-                    <bk-checkbox class="channel-check" :checked="channelCode.includes(channel.code)" />
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="(template, index) in templateList" :key="index">
-                <td>{{ template.name }}</td>
-                <td v-for="(channl, colIndex) in channleList" :key="colIndex"
-                    :class="{ 'un-selected': !channelCode.includes(channl.code) }">
-                    <div class="setting-detail">
-                        <Icon v-if="getConfigStatus(channl.templateInfoList, template.code)" type="check" class="setting-flag" />
-                        <span v-else class="un-set-up">{{ $t('setting.未设置') }}</span>
-                        <span class="edit-btn" @click.stop="handleEditTemplate(channl.code, template.code)">
-                            <Icon type="edit-2" class="edit-icon" />{{ $t('setting.编辑模板') }}
-                        </span>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+  <table class="notify-channel-table">
+    <thead>
+      <tr>
+        <th>
+          <div class="split-header">
+            <span class="split-item channel">{{ $t('setting.渠道') }}</span>
+            <span class="split-item template">{{ $t('setting.模板') }}</span>
+          </div>
+        </th>
+        <th v-for="(channel, index) in channleList" :key="index" :class="['channel-item', { 'un-selected': !channelCode.includes(channel.code) }]"
+          @click.stop="handleToggleChannel(channel.code)">
+          <div class="channel-wraper">
+            <img alt="" class="channel-icon" :src="channel.icon">
+            <p class="channel-name">{{ channel.name }}</p>
+          </div>
+          <bk-checkbox :checked="channelCode.includes(channel.code)" class="channel-check" />
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="(template, index) in templateList" :key="index">
+        <td>{{ template.name }}</td>
+        <td v-for="(channl, colIndex) in channleList" :key="colIndex"
+          :class="{ 'un-selected': !channelCode.includes(channl.code) }">
+          <div class="setting-detail">
+            <Icon v-if="getConfigStatus(channl.templateInfoList, template.code)" class="setting-flag" type="check" />
+            <span v-else class="un-set-up">{{ $t('setting.未设置') }}</span>
+            <span class="edit-btn" @click.stop="handleEditTemplate(channl.code, template.code)">
+              <Icon class="edit-icon" type="edit-2" />{{ $t('setting.编辑模板') }}
+            </span>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </template>
 
 <script>
-    export default {
-        props: {
-            channleList: {
-                type: Array,
-                default: () => [],
-            },
-            channelCode: {
-                type: Array,
-                default: () => [],
-            },
-            handleToggleChannel: {
-                type: Function,
-            },
-            handleEditTemplate: {
-                type: Function,
-            },
-        },
-        computed: {
-            templateList () {
-                return this.channleList.length && (this.channleList[0].templateInfoList || []);
-            },
-        },
-        methods: {
-            getConfigStatus (templateList, code) {
-                return templateList.some(template => template.code === code && template.isConfiged);
-            },
-        },
-    };
+  export default {
+    props: {
+      channleList: {
+        type: Array,
+        default: () => [],
+      },
+      channelCode: {
+        type: Array,
+        default: () => [],
+      },
+      handleToggleChannel: {
+        type: Function,
+      },
+      handleEditTemplate: {
+        type: Function,
+      },
+    },
+    computed: {
+      templateList () {
+        return this.channleList.length && (this.channleList[0].templateInfoList || []);
+      },
+    },
+    methods: {
+      getConfigStatus (templateList, code) {
+        return templateList.some(template => template.code === code && template.isConfiged);
+      },
+    },
+  };
 </script>
 
 <style lang='postcss' scoped>

@@ -26,80 +26,80 @@
 -->
 
 <template>
-    <div class="render-related-script">
-        <div class="tab-wraper">
-            <div
-                class="tab-item"
-                :class="{ active: listTab === 'template' }"
-                @click="handleTabChange('template')">
-                <div class="tab-name">{{ $t('script.作业模板引用') }}</div>
-                <div class="tab-nums">{{ info.relatedTaskTemplateNum }}</div>
-            </div>
-            <div
-                class="tab-item"
-                :class="{ active: listTab === 'plan' }"
-                @click="handleTabChange('plan')">
-                <div class="tab-name">{{ $t('script.执行方案引用') }}</div>
-                <div class="tab-nums">{{ info.relatedTaskPlanNum }}</div>
-            </div>
-        </div>
-        <component
-            :is="listCom"
-            :params="params" />
+  <div class="render-related-script">
+    <div class="tab-wraper">
+      <div
+        class="tab-item"
+        :class="{ active: listTab === 'template' }"
+        @click="handleTabChange('template')">
+        <div class="tab-name">{{ $t('script.作业模板引用') }}</div>
+        <div class="tab-nums">{{ info.relatedTaskTemplateNum }}</div>
+      </div>
+      <div
+        class="tab-item"
+        :class="{ active: listTab === 'plan' }"
+        @click="handleTabChange('plan')">
+        <div class="tab-name">{{ $t('script.执行方案引用') }}</div>
+        <div class="tab-nums">{{ info.relatedTaskPlanNum }}</div>
+      </div>
     </div>
+    <component
+      :is="listCom"
+      :params="params" />
+  </div>
 </template>
 <script>
-    import TemplateList from './template-list.vue';
-    import PlanList from './plan-list.vue';
+  import TemplateList from './template-list.vue';
+  import PlanList from './plan-list.vue';
 
-    export default {
-        name: 'RenderRelatedScript',
+  export default {
+    name: 'RenderRelatedScript',
         
-        props: {
-            mode: {
-                type: String,
-                validator (value) {
-                    return [
-                        'scriptList',
-                        'scriptVersionList',
-                    ].includes(value);
-                },
-                default: 'scriptList',
-            },
-            info: {
-                type: Object,
-                required: true,
-            },
+    props: {
+      mode: {
+        type: String,
+        validator (value) {
+          return [
+            'scriptList',
+            'scriptVersionList',
+          ].includes(value);
         },
-        data () {
-            return {
-                listTab: 'template',
-            };
-        },
-        computed: {
-            listCom () {
-                const componentMap = {
-                    template: TemplateList,
-                    plan: PlanList,
-                };
-                return componentMap[this.listTab];
-            },
-            params () {
-                const params = {
-                    scriptId: this.info.id,
-                };
-                if (this.mode === 'scriptVersionList') {
-                    params.scriptVersionId = this.info.scriptVersionId;
-                }
-                return params;
-            },
-        },
-        methods: {
-            handleTabChange (tab) {
-                this.listTab = tab;
-            },
-        },
-    };
+        default: 'scriptList',
+      },
+      info: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        listTab: 'template',
+      };
+    },
+    computed: {
+      listCom () {
+        const componentMap = {
+          template: TemplateList,
+          plan: PlanList,
+        };
+        return componentMap[this.listTab];
+      },
+      params () {
+        const params = {
+          scriptId: this.info.id,
+        };
+        if (this.mode === 'scriptVersionList') {
+          params.scriptVersionId = this.info.scriptVersionId;
+        }
+        return params;
+      },
+    },
+    methods: {
+      handleTabChange (tab) {
+        this.listTab = tab;
+      },
+    },
+  };
 </script>
 <style lang='postcss' scoped>
     .render-related-script {

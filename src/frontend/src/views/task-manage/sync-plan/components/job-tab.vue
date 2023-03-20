@@ -26,22 +26,22 @@
 -->
 
 <template>
-    <div class="job-tab">
-        asdasd
-        <Icon type="check" class="job-check" />
-        <bk-switcher class="job-switch" size="min" theme="primary" />
-    </div>
+  <div class="job-tab">
+    asdasd
+    <Icon class="job-check" type="check" />
+    <bk-switcher class="job-switch" size="min" theme="primary" />
+  </div>
 </template>
 <script>
-    export default {
-        name: '',
+  export default {
+    name: '',
 
-        data () {
-            return {};
-        },
+    data () {
+      return {};
+    },
 
-        methods: {},
-    };
+    methods: {},
+  };
 </script>
 <style lang='postcss' scoped>
     .job-tab {

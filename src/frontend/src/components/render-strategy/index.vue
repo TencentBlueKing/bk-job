@@ -26,20 +26,20 @@
 -->
 
 <template>
-    <div class="strategy-item" :style="{ width: `${width}px` }">
-        <div class="triangle" :style="{ left: `${left}px` }" />
-        <div>
-            <slot />
-        </div>
+  <div class="strategy-item" :style="{ width: `${width}px` }">
+    <div class="triangle" :style="{ left: `${left}px` }" />
+    <div>
+      <slot />
     </div>
+  </div>
 </template>
 <script>
-    export default {
-        props: {
-            width: String,
-            left: String,
-        },
-    };
+  export default {
+    props: {
+      width: String,
+      left: String,
+    },
+  };
 </script>
 <style lang="postcss">
     .strategy-item {

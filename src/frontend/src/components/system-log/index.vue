@@ -26,198 +26,198 @@
 -->
 
 <template>
-    <jb-dialog
-        :value="value"
-        class="system-log-dialog"
-        :show-footer="false"
-        close-icon
-        :width="1105"
-        mask-close
-        esc-close
-        @cancel="handleClose">
-        <div
-            ref="log"
-            class="system-log-layout"
-            v-bkloading="{ isLoading }">
-            <div class="layout-left">
-                <scroll-faker class="version-wraper">
-                    <div
-                        v-for="(log, index) in list"
-                        :key="log.version"
-                        class="log-tab"
-                        :class="{ active: index === activeIndex }"
-                        @click="handleTabChange(index)">
-                        <div class="title">{{ log.version }}</div>
-                        <div class="date">{{ log.time }}</div>
-                        <div v-if="index === 0" class="new-flag">{{ $t('当前版本') }}</div>
-                    </div>
-                </scroll-faker>
-            </div>
-            <div class="layout-right">
-                <scroll-faker class="content-wraper">
-                    <div v-html="logContent" class="markdowm-container" />
-                </scroll-faker>
-            </div>
-        </div>
-    </jb-dialog>
+  <jb-dialog
+    class="system-log-dialog"
+    close-icon
+    esc-close
+    mask-close
+    :show-footer="false"
+    :value="value"
+    :width="1105"
+    @cancel="handleClose">
+    <div
+      ref="log"
+      v-bkloading="{ isLoading }"
+      class="system-log-layout">
+      <div class="layout-left">
+        <scroll-faker class="version-wraper">
+          <div
+            v-for="(log, index) in list"
+            :key="log.version"
+            class="log-tab"
+            :class="{ active: index === activeIndex }"
+            @click="handleTabChange(index)">
+            <div class="title">{{ log.version }}</div>
+            <div class="date">{{ log.time }}</div>
+            <div v-if="index === 0" class="new-flag">{{ $t('当前版本') }}</div>
+          </div>
+        </scroll-faker>
+      </div>
+      <div class="layout-right">
+        <scroll-faker class="content-wraper">
+          <div class="markdowm-container" v-html="logContent" />
+        </scroll-faker>
+      </div>
+    </div>
+  </jb-dialog>
 </template>
 <script>
-    import marked from 'marked';
-    import Cookie from 'js-cookie';
-    import Tippy from 'bk-magic-vue/lib/utils/tippy';
-    import WebGlobalService from '@service/web-global';
-    import ScrollFaker from '@components/scroll-faker';
+  import marked from 'marked';
+  import Cookie from 'js-cookie';
+  import Tippy from 'bk-magic-vue/lib/utils/tippy';
+  import WebGlobalService from '@service/web-global';
+  import ScrollFaker from '@components/scroll-faker';
 
-    export default {
-        name: 'SystemVersionLog',
-        components: {
-            ScrollFaker,
-        },
-        props: {
-            value: {
-                type: Boolean,
-                default: false,
-            },
-        },
-        data () {
-            return {
-                isLoading: true,
-                activeIndex: 0,
-                list: [],
-            };
-        },
-        computed: {
-            logContent () {
-                if (this.list.length < 1) {
-                    return '';
-                }
-                return marked(this.list[this.activeIndex].content);
-            },
-        },
+  export default {
+    name: 'SystemVersionLog',
+    components: {
+      ScrollFaker,
+    },
+    props: {
+      value: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data () {
+      return {
+        isLoading: true,
+        activeIndex: 0,
+        list: [],
+      };
+    },
+    computed: {
+      logContent () {
+        if (this.list.length < 1) {
+          return '';
+        }
+        return marked(this.list[this.activeIndex].content);
+      },
+    },
         
-        created () {
-            this.fetchData();
-            // 对比版本号，每次版本更新自动显示版本日志
-            this.isDefaultShow = false;
-            const currentVersion = process.env.JOB_VERSION;
-            this.isDefaultShow = !Cookie.get('job_supermen') || Cookie.get('job_supermen') !== currentVersion;
-            if (this.isDefaultShow) {
-                this.$emit('input', true);
-                this.$emit('change', true);
-            }
-        },
-        methods: {
-            /**
-             * @desc 或版本日志数据
-             */
-            fetchData () {
-                this.isLoading = true;
-                const requestHandler = this.$i18n.locale === 'en-US'
-                    ? WebGlobalService.fetchVersionENLog
-                    : WebGlobalService.fetchVersionLog;
-                requestHandler()
-                    .then((data) => {
-                        this.list = data;
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            /**
-             * @desc 日志收起时显示 tips
-             */
-            showTips () {
-                if (!this.popperInstance) {
-                    this.popperInstance = Tippy(document.querySelector('#siteHelp'), {
-                        arrow: true,
-                        placement: 'bottom-end',
-                        trigger: 'manual',
-                        theme: 'light',
-                        hideOnClick: false,
-                        animateFill: false,
-                        animation: 'slide-toggle',
-                        lazy: false,
-                        ignoreAttributes: true,
-                        boundary: 'window',
-                        distance: 30,
-                        zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-                    });
-                }
-                this.popperInstance.setContent(`
+    created () {
+      this.fetchData();
+      // 对比版本号，每次版本更新自动显示版本日志
+      this.isDefaultShow = false;
+      const currentVersion = process.env.JOB_VERSION;
+      this.isDefaultShow = !Cookie.get('job_supermen') || Cookie.get('job_supermen') !== currentVersion;
+      if (this.isDefaultShow) {
+        this.$emit('input', true);
+        this.$emit('change', true);
+      }
+    },
+    methods: {
+      /**
+       * @desc 或版本日志数据
+       */
+      fetchData () {
+        this.isLoading = true;
+        const requestHandler = this.$i18n.locale === 'en-US'
+          ? WebGlobalService.fetchVersionENLog
+          : WebGlobalService.fetchVersionLog;
+        requestHandler()
+          .then((data) => {
+            this.list = data;
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      /**
+       * @desc 日志收起时显示 tips
+       */
+      showTips () {
+        if (!this.popperInstance) {
+          this.popperInstance = Tippy(document.querySelector('#siteHelp'), {
+            arrow: true,
+            placement: 'bottom-end',
+            trigger: 'manual',
+            theme: 'light',
+            hideOnClick: false,
+            animateFill: false,
+            animation: 'slide-toggle',
+            lazy: false,
+            ignoreAttributes: true,
+            boundary: 'window',
+            distance: 30,
+            zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+          });
+        }
+        this.popperInstance.setContent(`
                     <div style="width: 220px; font-size: 12px; line-height: 20px; color: #63656E;">
                         <div style="color: #979BA5">JOB 小贴士：</div>
                         <div> 想要再次查阅「版本日志」也可以从此处进入喔～</div>
                     </div>
                 `);
-                this.popperInstance.show();
-            },
-            /**
-             * @desc 关闭日志收起 tips
-             */
-            hideTips () {
-                this.popperInstance && this.popperInstance.hide();
-            },
-            /**
-             * @desc 切换版本日志内容
-             * @param { Number } index 日志索引
-             */
-            handleTabChange (index) {
-                this.activeIndex = index;
-            },
-            /**
-             * @desc 关闭日志弹框
-             *
-             * 写入cookie版本号标记，每次发版自动弹出
-             * 关闭时有收起动画，显示tips，动画持续事件400ms
-             */
-            handleClose () {
-                this.$emit('input', false);
-                this.$emit('change', false);
-                Cookie.set('job_supermen', process.env.JOB_VERSION, { expires: 3600 });
+        this.popperInstance.show();
+      },
+      /**
+       * @desc 关闭日志收起 tips
+       */
+      hideTips () {
+        this.popperInstance && this.popperInstance.hide();
+      },
+      /**
+       * @desc 切换版本日志内容
+       * @param { Number } index 日志索引
+       */
+      handleTabChange (index) {
+        this.activeIndex = index;
+      },
+      /**
+       * @desc 关闭日志弹框
+       *
+       * 写入cookie版本号标记，每次发版自动弹出
+       * 关闭时有收起动画，显示tips，动画持续事件400ms
+       */
+      handleClose () {
+        this.$emit('input', false);
+        this.$emit('change', false);
+        Cookie.set('job_supermen', process.env.JOB_VERSION, { expires: 3600 });
 
-                const animateTimes = 400;
+        const animateTimes = 400;
 
-                const $sourceEle = this.$refs.log.cloneNode(true);
-                const {
-                    top: sourceTop,
-                    left: sourceLeft,
-                    width: sourceWidth,
-                    height: sourceHeight,
-                } = this.$refs.log.getBoundingClientRect();
-                $sourceEle.classList.add('hide');
-                const styles = $sourceEle.style;
-                styles.position = 'fixed';
-                styles.top = `${sourceTop}px`;
-                styles.left = `${sourceLeft}px`;
-                styles.width = `${sourceWidth}px`;
-                styles.height = `${sourceHeight}px`;
-                styles.zIndex = window.__bk_zIndex_manager.nextZIndex(); // eslint-disable-line no-underscore-dangle
-                document.body.appendChild($sourceEle);
-                setTimeout(() => {
-                    const $targetEle = document.querySelector('#siteHelp');
-                    const {
-                        top: targetTop,
-                        left: targetLeft,
-                        width: targetWidth,
-                        height: targetHeight,
-                    } = $targetEle.getBoundingClientRect();
-                    const translateX = targetLeft + targetWidth / 2 - (sourceLeft + sourceWidth / 2);
-                    const translateY = -(sourceTop + sourceHeight / 2 - (targetTop + targetHeight / 2));
-                    styles.transform = `translate(${translateX}px, ${translateY}px) scale(0)`;
-                    setTimeout(() => {
-                        document.body.removeChild($sourceEle);
-                        if (this.isDefaultShow) {
-                            this.showTips();
-                            this.isDefaultShow = false;
-                            setTimeout(() => {
-                                this.hideTips();
-                            }, 3000);
-                        }
-                    }, animateTimes);
-                });
-            },
-        },
-    };
+        const $sourceEle = this.$refs.log.cloneNode(true);
+        const {
+          top: sourceTop,
+          left: sourceLeft,
+          width: sourceWidth,
+          height: sourceHeight,
+        } = this.$refs.log.getBoundingClientRect();
+        $sourceEle.classList.add('hide');
+        const styles = $sourceEle.style;
+        styles.position = 'fixed';
+        styles.top = `${sourceTop}px`;
+        styles.left = `${sourceLeft}px`;
+        styles.width = `${sourceWidth}px`;
+        styles.height = `${sourceHeight}px`;
+        styles.zIndex = window.__bk_zIndex_manager.nextZIndex(); // eslint-disable-line no-underscore-dangle
+        document.body.appendChild($sourceEle);
+        setTimeout(() => {
+          const $targetEle = document.querySelector('#siteHelp');
+          const {
+            top: targetTop,
+            left: targetLeft,
+            width: targetWidth,
+            height: targetHeight,
+          } = $targetEle.getBoundingClientRect();
+          const translateX = targetLeft + targetWidth / 2 - (sourceLeft + sourceWidth / 2);
+          const translateY = -(sourceTop + sourceHeight / 2 - (targetTop + targetHeight / 2));
+          styles.transform = `translate(${translateX}px, ${translateY}px) scale(0)`;
+          setTimeout(() => {
+            document.body.removeChild($sourceEle);
+            if (this.isDefaultShow) {
+              this.showTips();
+              this.isDefaultShow = false;
+              setTimeout(() => {
+                this.hideTips();
+              }, 3000);
+            }
+          }, animateTimes);
+        });
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .system-log-dialog {

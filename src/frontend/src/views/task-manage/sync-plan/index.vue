@@ -26,151 +26,151 @@
 -->
 
 <template>
-    <div class="do-sync-plan" v-bkloading="{ isLoading }">
-        <div class="sync-plan-step">
-            <bk-steps class="step-process" :steps="stepList" :cur-step.sync="curStep" />
-        </div>
-        <div class="step-wraper">
-            <component
-                v-if="!isLoading"
-                :is="stepCom"
-                :template-info="templateInfo"
-                :plan-info="planInfo"
-                @on-change="handleStepChange"
-                @on-cancel="handleCancel" />
-        </div>
+  <div v-bkloading="{ isLoading }" class="do-sync-plan">
+    <div class="sync-plan-step">
+      <bk-steps class="step-process" :cur-step.sync="curStep" :steps="stepList" />
     </div>
+    <div class="step-wraper">
+      <component
+        :is="stepCom"
+        v-if="!isLoading"
+        :plan-info="planInfo"
+        :template-info="templateInfo"
+        @on-cancel="handleCancel"
+        @on-change="handleStepChange" />
+    </div>
+  </div>
 </template>
 <script>
-    import I18n from '@/i18n';
-    import TaskPlanService from '@service/task-plan';
-    import Step1 from './pages/step1';
-    import Step2 from './pages/step2';
-    import Step3 from './pages/step3';
+  import I18n from '@/i18n';
+  import TaskPlanService from '@service/task-plan';
+  import Step1 from './pages/step1';
+  import Step2 from './pages/step2';
+  import Step3 from './pages/step3';
 
-    export default {
-        name: '',
-        components: {
-            Step1,
-            Step2,
-            Step3,
-        },
-        data () {
-            return {
-                isLoading: true,
-                curStep: 1,
-                templateInfo: {},
-                planInfo: {},
-            };
-        },
-        computed: {
-            stepCom () {
-                const comMap = {
-                    1: Step1,
-                    2: Step2,
-                    3: Step3,
-                };
-                return comMap[this.curStep];
-            },
-        },
-        created () {
-            this.id = this.$route.params.id;
-            this.templateId = this.$route.params.templateId;
+  export default {
+    name: '',
+    components: {
+      Step1,
+      Step2,
+      Step3,
+    },
+    data () {
+      return {
+        isLoading: true,
+        curStep: 1,
+        templateInfo: {},
+        planInfo: {},
+      };
+    },
+    computed: {
+      stepCom () {
+        const comMap = {
+          1: Step1,
+          2: Step2,
+          3: Step3,
+        };
+        return comMap[this.curStep];
+      },
+    },
+    created () {
+      this.id = this.$route.params.id;
+      this.templateId = this.$route.params.templateId;
             
-            this.stepList = [
-                { title: I18n.t('template.差异总览'), icon: 1 },
-                { title: I18n.t('template.差异明细'), icon: 2 },
-                { title: I18n.t('template.确认定时任务'), icon: 3 },
-            ];
-            // 只查看diff信息，不做确认定时任务操作
-            const isView = this.$route.query.mode === 'view';
-            if (isView) {
-                this.stepList.pop();
+      this.stepList = [
+        { title: I18n.t('template.差异总览'), icon: 1 },
+        { title: I18n.t('template.差异明细'), icon: 2 },
+        { title: I18n.t('template.确认定时任务'), icon: 3 },
+      ];
+      // 只查看diff信息，不做确认定时任务操作
+      const isView = this.$route.query.mode === 'view';
+      if (isView) {
+        this.stepList.pop();
+      }
+      this.fetchData();
+    },
+    methods: {
+      fetchData (id) {
+        this.$request(TaskPlanService.fetchSyncInfo({
+          id: this.id,
+          templateId: this.templateId,
+        }, {
+          permission: 'page',
+        }), () => {
+          this.isLoading = true;
+        }).then(({ templateInfo, planInfo }) => {
+          // 变量值不会同步
+          // 对比展示时以执行方案的变量值为准
+
+          const planVariableMap = {};
+          planInfo.variableList.forEach((variable) => {
+            variable.realId = variable.id;
+            planVariableMap[variable.realId] = {
+              defaultTargetValue: variable.defaultTargetValue,
+              defaultValue: variable.defaultValue,
+            };
+          });
+          planInfo.stepList.forEach((step) => {
+            step.realId = step.templateStepId;
+          });
+          this.planInfo = Object.freeze(planInfo);
+
+          templateInfo.variables.forEach((variable) => {
+            variable.realId = variable.id;
+            if (planVariableMap[variable.realId]) {
+              variable.defaultTargetValue = planVariableMap[variable.realId].defaultTargetValue;
+              variable.defaultValue = planVariableMap[variable.realId].defaultValue;
             }
-            this.fetchData();
-        },
-        methods: {
-            fetchData (id) {
-                this.$request(TaskPlanService.fetchSyncInfo({
-                    id: this.id,
-                    templateId: this.templateId,
-                }, {
-                    permission: 'page',
-                }), () => {
-                    this.isLoading = true;
-                }).then(({ templateInfo, planInfo }) => {
-                    // 变量值不会同步
-                    // 对比展示时以执行方案的变量值为准
-
-                    const planVariableMap = {};
-                    planInfo.variableList.forEach((variable) => {
-                        variable.realId = variable.id;
-                        planVariableMap[variable.realId] = {
-                            defaultTargetValue: variable.defaultTargetValue,
-                            defaultValue: variable.defaultValue,
-                        };
-                    });
-                    planInfo.stepList.forEach((step) => {
-                        step.realId = step.templateStepId;
-                    });
-                    this.planInfo = Object.freeze(planInfo);
-
-                    templateInfo.variables.forEach((variable) => {
-                        variable.realId = variable.id;
-                        if (planVariableMap[variable.realId]) {
-                            variable.defaultTargetValue = planVariableMap[variable.realId].defaultTargetValue;
-                            variable.defaultValue = planVariableMap[variable.realId].defaultValue;
-                        }
-                    });
-                    templateInfo.stepList.forEach((step) => {
-                        step.realId = step.id;
-                    });
-                    this.templateInfo = Object.freeze(templateInfo);
-                })
-                    .catch((error) => {
-                        if ([1241002, 400].includes(error.code)) {
-                            setTimeout(() => {
-                                this.$router.push({
-                                    name: 'taskList',
-                                });
-                            }, 3000);
-                        }
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
-                    });
-            },
-            handleStepChange (payload) {
-                this.curStep = payload;
-            },
-            handleCancel () {
-                this.routerBack();
-            },
-
-            routerBack () {
-                const { from } = this.$route.query;
-                if (from === 'viewPlan') {
-                    this.$router.push({
-                        name: 'viewPlan',
-                        params: {
-                            templateId: this.templateId,
-                        },
-                        query: {
-                            viewPlanId: this.id,
-                        },
-                    });
-                    return;
-                }
+          });
+          templateInfo.stepList.forEach((step) => {
+            step.realId = step.id;
+          });
+          this.templateInfo = Object.freeze(templateInfo);
+        })
+          .catch((error) => {
+            if ([1241002, 400].includes(error.code)) {
+              setTimeout(() => {
                 this.$router.push({
-                    name: 'planList',
-                    query: {
-                        viewTemplateId: this.templateId,
-                        viewPlanId: this.id,
-                    },
+                  name: 'taskList',
                 });
+              }, 3000);
+            }
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      handleStepChange (payload) {
+        this.curStep = payload;
+      },
+      handleCancel () {
+        this.routerBack();
+      },
+
+      routerBack () {
+        const { from } = this.$route.query;
+        if (from === 'viewPlan') {
+          this.$router.push({
+            name: 'viewPlan',
+            params: {
+              templateId: this.templateId,
             },
-        },
-    };
+            query: {
+              viewPlanId: this.id,
+            },
+          });
+          return;
+        }
+        this.$router.push({
+          name: 'planList',
+          query: {
+            viewTemplateId: this.templateId,
+            viewPlanId: this.id,
+          },
+        });
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .do-sync-plan {

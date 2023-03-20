@@ -26,78 +26,78 @@
 -->
 
 <template>
-    <bk-popover
-        :placement="placement"
-        :theme="theme"
-        :trigger="trigger"
-        :ref="id">
-        <div :class="['job-more-action', triggerCls]">
-            <Icon :type="icon" class="icon" />
-        </div>
-        <div slot="content" :class="['job-action-wrapper', actionCls]">
-            <slot />
-        </div>
-    </bk-popover>
+  <bk-popover
+    :ref="id"
+    :placement="placement"
+    :theme="theme"
+    :trigger="trigger">
+    <div :class="['job-more-action', triggerCls]">
+      <Icon class="icon" :type="icon" />
+    </div>
+    <div slot="content" :class="['job-action-wrapper', actionCls]">
+      <slot />
+    </div>
+  </bk-popover>
 </template>
 <script>
-    import _ from 'lodash';
+  import _ from 'lodash';
 
-    export default {
-        name: '',
-        props: {
-            displayKey: {
-                type: String,
-                default: 'name',
-            },
-            data: {
-                type: Object,
-                default () {
-                    return {};
-                },
-            },
-            icon: {
-                type: String,
-                default: 'more',
-            },
-            placement: {
-                type: String,
-                default: 'bottom',
-            },
-            theme: {
-                type: String,
-                default: 'light',
-                validator (value) {
-                    if (['light', 'dark'].indexOf(value) < 0) {
-                        console.error(`theme property is not valid: '${value}'`);
-                        return false;
-                    }
-                    return true;
-                },
-            },
-            trigger: {
-                type: String,
-                default: 'click',
-            },
-            triggerCls: {
-                type: String,
-                default: '',
-            },
-            actionCls: {
-                type: String,
-                default: '',
-            },
+  export default {
+    name: '',
+    props: {
+      displayKey: {
+        type: String,
+        default: 'name',
+      },
+      data: {
+        type: Object,
+        default () {
+          return {};
         },
-        created () {
-            this.id = `${_.random(1, 1000)}_${Date.now()}_PopoverRef`;
+      },
+      icon: {
+        type: String,
+        default: 'more',
+      },
+      placement: {
+        type: String,
+        default: 'bottom',
+      },
+      theme: {
+        type: String,
+        default: 'light',
+        validator (value) {
+          if (['light', 'dark'].indexOf(value) < 0) {
+            console.error(`theme property is not valid: '${value}'`);
+            return false;
+          }
+          return true;
         },
-        methods: {
-            handleMoreAction (actionId, payload) {
-                if (this.trigger === 'click') {
-                    this.$refs[`${this.id}PopoverRef`].instance.hide();
-                }
-            },
-        },
-    };
+      },
+      trigger: {
+        type: String,
+        default: 'click',
+      },
+      triggerCls: {
+        type: String,
+        default: '',
+      },
+      actionCls: {
+        type: String,
+        default: '',
+      },
+    },
+    created () {
+      this.id = `${_.random(1, 1000)}_${Date.now()}_PopoverRef`;
+    },
+    methods: {
+      handleMoreAction (actionId, payload) {
+        if (this.trigger === 'click') {
+          this.$refs[`${this.id}PopoverRef`].instance.hide();
+        }
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .job-more-action {

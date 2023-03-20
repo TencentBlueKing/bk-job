@@ -26,22 +26,22 @@
 -->
 
 <template>
-    <div class="app-dashboard">
-        <all-app ref="all" v-bind="$attrs" />
-        <active-app ref="active" v-bind="$attrs" />
-    </div>
+  <div class="app-dashboard">
+    <all-app ref="all" v-bind="$attrs" />
+    <active-app ref="active" v-bind="$attrs" />
+  </div>
 </template>
 <script>
-    import AllApp from './all-app';
-    import ActiveApp from './active-app';
+  import AllApp from './all-app';
+  import ActiveApp from './active-app';
 
-    export default {
-        name: '',
-        components: {
-            AllApp,
-            ActiveApp,
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      AllApp,
+      ActiveApp,
+    },
+  };
 </script>
 <style lang='postcss'>
     @import "@/css/mixins/media";

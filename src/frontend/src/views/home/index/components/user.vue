@@ -26,213 +26,213 @@
 -->
 
 <template>
-    <div class="user-box" v-bkloading="{ isLoading }">
-        <div class="user-name">Hi, {{ userInfo.username }}</div>
-        <greeting />
-        <div
-            class="work-tips"
-            @mousemove="handleStopSwiper"
-            @mouseleave="handleBeginSwiper">
-            <div class="work-tips-container" :style="workTipsStyles">
-                <div v-for="(analysis, index) in analysisList" :key="index" class="item">
-                    <div v-html="analysis.description" @click="handleShowList" />
-                </div>
-            </div>
+  <div v-bkloading="{ isLoading }" class="user-box">
+    <div class="user-name">Hi, {{ userInfo.username }}</div>
+    <greeting />
+    <div
+      class="work-tips"
+      @mouseleave="handleBeginSwiper"
+      @mousemove="handleStopSwiper">
+      <div class="work-tips-container" :style="workTipsStyles">
+        <div v-for="(analysis, index) in analysisList" :key="index" class="item">
+          <div @click="handleShowList" v-html="analysis.description" />
         </div>
-        <jb-dialog
-            v-model="isShowList"
-            :title="listInfo.dialogTitle"
-            :width="520"
-            class="home-analysis-detail-dialog">
-            <div class="list-wraper">
-                <div class="data-row-header">
-                    <div class="td-name">{{ listInfo.columnName }}</div>
-                    <div class="td-action">{{ $t('home.操作') }}</div>
-                </div>
-                <div
-                    v-for="(item, index) in listData"
-                    class="data-row"
-                    :key="`${item.id}_${index}`">
-                    <div class="td-name">{{ item.content }}</div>
-                    <div class="td-action" @click="handleGoDetail(item)">{{ $t('home.查看详情') }}</div>
-                </div>
-            </div>
-            <template #footer>
-                <bk-button
-                    class="list-close-btn"
-                    @click="handleHideList">
-                    {{ $t('home.关闭') }}
-                </bk-button>
-            </template>
-        </jb-dialog>
+      </div>
     </div>
+    <jb-dialog
+      v-model="isShowList"
+      class="home-analysis-detail-dialog"
+      :title="listInfo.dialogTitle"
+      :width="520">
+      <div class="list-wraper">
+        <div class="data-row-header">
+          <div class="td-name">{{ listInfo.columnName }}</div>
+          <div class="td-action">{{ $t('home.操作') }}</div>
+        </div>
+        <div
+          v-for="(item, index) in listData"
+          :key="`${item.id}_${index}`"
+          class="data-row">
+          <div class="td-name">{{ item.content }}</div>
+          <div class="td-action" @click="handleGoDetail(item)">{{ $t('home.查看详情') }}</div>
+        </div>
+      </div>
+      <template #footer>
+        <bk-button
+          class="list-close-btn"
+          @click="handleHideList">
+          {{ $t('home.关闭') }}
+        </bk-button>
+      </template>
+    </jb-dialog>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import marked from 'marked';
-    import I18n from '@/i18n';
-    import StatisticsIndexService from '@service/statistics-index';
-    import UserService from '@service/user';
-    import Greeting from './greeting';
+  import _ from 'lodash';
+  import marked from 'marked';
+  import I18n from '@/i18n';
+  import StatisticsIndexService from '@service/statistics-index';
+  import UserService from '@service/user';
+  import Greeting from './greeting';
 
-    const dialogTitleMap = {
-        ForbiddenScriptFinder: I18n.t('home.使用禁用脚本的作业模板/执行方案'),
-        TaskPlanTargetChecker: I18n.t('home.存在异常 Agent 的执行方案'),
-        TimerTaskFailRateWatcher: I18n.t('home.周期成功率低于60%的定时任务'),
-        TimerTaskFailWatcher: I18n.t('home.近期执行失败的定时任务'),
-    };
-    const columnNameMap = {
-        ForbiddenScriptFinder: I18n.t('home.作业模板/执行方案'),
-        TaskPlanTargetChecker: I18n.t('home.作业执行方案'),
-        TimerTaskFailRateWatcher: I18n.t('home.定时任务'),
-        TimerTaskFailWatcher: I18n.t('home.定时任务'),
-    };
+  const dialogTitleMap = {
+    ForbiddenScriptFinder: I18n.t('home.使用禁用脚本的作业模板/执行方案'),
+    TaskPlanTargetChecker: I18n.t('home.存在异常 Agent 的执行方案'),
+    TimerTaskFailRateWatcher: I18n.t('home.周期成功率低于60%的定时任务'),
+    TimerTaskFailWatcher: I18n.t('home.近期执行失败的定时任务'),
+  };
+  const columnNameMap = {
+    ForbiddenScriptFinder: I18n.t('home.作业模板/执行方案'),
+    TaskPlanTargetChecker: I18n.t('home.作业执行方案'),
+    TimerTaskFailRateWatcher: I18n.t('home.定时任务'),
+    TimerTaskFailWatcher: I18n.t('home.定时任务'),
+  };
 
-    export default {
-        components: {
-            Greeting,
-        },
-        data () {
-            return {
-                isLoading: true,
-                isShowList: false,
-                dialogTitle: '',
-                analysisIndex: 0,
-                userInfo: {},
-                analysisList: {},
-                greetingInfo: {},
-                listType: '',
-                listData: [],
-            };
-        },
-        computed: {
-            workTipsStyles () {
-                const classes = {
-                    transform: `translateY(${-100 * this.analysisIndex}%)`,
-                };
-                if (this.analysisIndex === 0) {
-                    classes.transition = 'unset';
-                }
-                return classes;
-            },
-            listInfo () {
-                return {
-                    dialogTitle: dialogTitleMap[this.listType],
-                    columnName: columnNameMap[this.listType],
-                };
-            },
-        },
-        created () {
-            this.analysisResultTimer = '';
-            this.analysisMap = {};
-            Promise.all([
-                this.fetchUserInfo(),
-                this.fetchAnalysisResult(),
-            ]).finally(() => {
-                this.isLoading = false;
+  export default {
+    components: {
+      Greeting,
+    },
+    data () {
+      return {
+        isLoading: true,
+        isShowList: false,
+        dialogTitle: '',
+        analysisIndex: 0,
+        userInfo: {},
+        analysisList: {},
+        greetingInfo: {},
+        listType: '',
+        listData: [],
+      };
+    },
+    computed: {
+      workTipsStyles () {
+        const classes = {
+          transform: `translateY(${-100 * this.analysisIndex}%)`,
+        };
+        if (this.analysisIndex === 0) {
+          classes.transition = 'unset';
+        }
+        return classes;
+      },
+      listInfo () {
+        return {
+          dialogTitle: dialogTitleMap[this.listType],
+          columnName: columnNameMap[this.listType],
+        };
+      },
+    },
+    created () {
+      this.analysisResultTimer = '';
+      this.analysisMap = {};
+      Promise.all([
+        this.fetchUserInfo(),
+        this.fetchAnalysisResult(),
+      ]).finally(() => {
+        this.isLoading = false;
+      });
+    },
+    methods: {
+      fetchUserInfo () {
+        return UserService.fetchUserInfo()
+          .then((data) => {
+            this.userInfo = Object.freeze(data);
+          });
+      },
+      fetchAnalysisResult () {
+        return StatisticsIndexService.fetchAnalysisResult()
+          .then((data) => {
+            const analysisList = [];
+            const analysisMap = {};
+            data.forEach((item) => {
+              const formatLink = link => link.replace(/(?=( href))/g, ' target="_blank"');
+              let description = _.trim(formatLink(marked(item.description)), '\n');
+              if (dialogTitleMap[item.analysisTaskCode]) {
+                description = description.replace(/(?=<\/p>$)/, `<span data-id="${item.id}" class="action-list">${I18n.t('home.查看列表')}</span>`);
+              }
+              const analysis = {
+                ...item,
+                description,
+              };
+              analysisList.push(analysis);
+              analysisMap[analysis.id] = analysis;
             });
-        },
-        methods: {
-            fetchUserInfo () {
-                return UserService.fetchUserInfo()
-                    .then((data) => {
-                        this.userInfo = Object.freeze(data);
-                    });
+            this.analysisList = Object.freeze(analysisList);
+            this.analysisMap = analysisMap;
+            this.swiperAnalysisResult();
+          });
+      },
+      handleHideList () {
+        this.isShowList = false;
+      },
+      handleShowList (event) {
+        const $target = event.target;
+        if ($target.className !== 'action-list') {
+          return;
+        }
+        const id = $target.getAttribute('data-id');
+        this.listType = this.analysisMap[id].analysisTaskCode;
+        this.listData = Object.freeze(this.analysisMap[id].contents);
+        this.isShowList = true;
+      },
+      handleGoDetail (payload) {
+        let router = {};
+        if (payload.type === 'TEMPLATE') {
+          router = this.$router.resolve({
+            name: 'templateDetail',
+            params: {
+              id: payload.location.content,
             },
-            fetchAnalysisResult () {
-                return StatisticsIndexService.fetchAnalysisResult()
-                    .then((data) => {
-                        const analysisList = [];
-                        const analysisMap = {};
-                        data.forEach((item) => {
-                            const formatLink = link => link.replace(/(?=( href))/g, ' target="_blank"');
-                            let description = _.trim(formatLink(marked(item.description)), '\n');
-                            if (dialogTitleMap[item.analysisTaskCode]) {
-                                description = description.replace(/(?=<\/p>$)/, `<span data-id="${item.id}" class="action-list">${I18n.t('home.查看列表')}</span>`);
-                            }
-                            const analysis = {
-                                ...item,
-                                description,
-                            };
-                            analysisList.push(analysis);
-                            analysisMap[analysis.id] = analysis;
-                        });
-                        this.analysisList = Object.freeze(analysisList);
-                        this.analysisMap = analysisMap;
-                        this.swiperAnalysisResult();
-                    });
+          });
+        }
+        if (payload.type === 'TASK_PLAN') {
+          const [templateId, planId] = payload.location.content.split(',');
+          router = this.$router.resolve({
+            name: 'viewPlan',
+            params: {
+              templateId,
             },
-            handleHideList () {
-                this.isShowList = false;
+            query: {
+              viewPlanId: planId,
             },
-            handleShowList (event) {
-                const $target = event.target;
-                if ($target.className !== 'action-list') {
-                    return;
-                }
-                const id = $target.getAttribute('data-id');
-                this.listType = this.analysisMap[id].analysisTaskCode;
-                this.listData = Object.freeze(this.analysisMap[id].contents);
-                this.isShowList = true;
+          });
+        }
+        if (payload.type === 'TIMER_TASK') {
+          router = this.$router.resolve({
+            name: 'cronList',
+            query: {
+              name: payload.location.content,
+              mode: 'detail',
             },
-            handleGoDetail (payload) {
-                let router = {};
-                if (payload.type === 'TEMPLATE') {
-                    router = this.$router.resolve({
-                        name: 'templateDetail',
-                        params: {
-                            id: payload.location.content,
-                        },
-                    });
-                }
-                if (payload.type === 'TASK_PLAN') {
-                    const [templateId, planId] = payload.location.content.split(',');
-                    router = this.$router.resolve({
-                        name: 'viewPlan',
-                        params: {
-                            templateId,
-                        },
-                        query: {
-                            viewPlanId: planId,
-                        },
-                    });
-                }
-                if (payload.type === 'TIMER_TASK') {
-                    router = this.$router.resolve({
-                        name: 'cronList',
-                        query: {
-                            name: payload.location.content,
-                            mode: 'detail',
-                        },
-                    });
-                }
-                window.open(router.href);
-            },
-            handleStopSwiper () {
-                clearTimeout(this.analysisResultTimer);
-            },
-            handleBeginSwiper () {
-                this.swiperAnalysisResult();
-            },
-            swiperAnalysisResult () {
-                if (this.analysisList.length < 1) {
-                    return;
-                }
-                clearTimeout(this.analysisResultTimer);
-                this.analysisResultTimer = setTimeout(() => {
-                    this.swiperAnalysisResult();
-                    if (this.isShowList) {
-                        return;
-                    }
-                    if (this.analysisIndex < this.analysisList.length - 1) {
-                        this.analysisIndex += 1;
-                    } else {
-                        this.analysisIndex = 0;
-                    }
-                }, 3000);
-            },
-        },
-    };
+          });
+        }
+        window.open(router.href);
+      },
+      handleStopSwiper () {
+        clearTimeout(this.analysisResultTimer);
+      },
+      handleBeginSwiper () {
+        this.swiperAnalysisResult();
+      },
+      swiperAnalysisResult () {
+        if (this.analysisList.length < 1) {
+          return;
+        }
+        clearTimeout(this.analysisResultTimer);
+        this.analysisResultTimer = setTimeout(() => {
+          this.swiperAnalysisResult();
+          if (this.isShowList) {
+            return;
+          }
+          if (this.analysisIndex < this.analysisList.length - 1) {
+            this.analysisIndex += 1;
+          } else {
+            this.analysisIndex = 0;
+          }
+        }, 3000);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     .user-box {

@@ -26,131 +26,131 @@
 -->
 
 <template>
-    <div
-        class="job-textarea"
-        :class="{
-            fouced: isFocused,
-        }"
-        :style="boxStyles">
-        <div ref="wraper" class="job-textarea-wraper" :style="wraperStyles">
-            <div style="min-height: 30px; word-break: break-all; white-space: pre-wrap; visibility: hidden;">{{ localValue }}</div>
-            <textarea
-                ref="textarea"
-                class="job-textarea-edit"
-                spellcheck="false"
-                resize="none"
-                :value="localValue"
-                @input="handleInputChange"
-                @focus="handleInputGetFocus"
-                @blur="handleBlur" />
-            <div v-if="maxlength > 0 && isFocused" class="value-length">
-                <span style="color: #63656e;">{{ localValue.length }}</span>
-                <span>/</span>
-                <span>{{ maxlength }}</span>
-            </div>
-        </div>
-        <div
-            v-if="showPlaceholder"
-            class="job-textarea-placeholder"
-            @click="handleInputGetFocus">
-            {{ placeholder }}
-        </div>
+  <div
+    class="job-textarea"
+    :class="{
+      fouced: isFocused,
+    }"
+    :style="boxStyles">
+    <div ref="wraper" class="job-textarea-wraper" :style="wraperStyles">
+      <div style="min-height: 30px; word-break: break-all; white-space: pre-wrap; visibility: hidden;">{{ localValue }}</div>
+      <textarea
+        ref="textarea"
+        class="job-textarea-edit"
+        resize="none"
+        spellcheck="false"
+        :value="localValue"
+        @blur="handleBlur"
+        @focus="handleInputGetFocus"
+        @input="handleInputChange" />
+      <div v-if="maxlength > 0 && isFocused" class="value-length">
+        <span style="color: #63656e;">{{ localValue.length }}</span>
+        <span>/</span>
+        <span>{{ maxlength }}</span>
+      </div>
     </div>
+    <div
+      v-if="showPlaceholder"
+      class="job-textarea-placeholder"
+      @click="handleInputGetFocus">
+      {{ placeholder }}
+    </div>
+  </div>
 </template>
 <script>
-    const rowHeight = 18;
+  const rowHeight = 18;
 
-    export default {
-        name: '',
-        props: {
-            value: {
-                type: String,
-                default: '',
-            },
-            placeholder: String,
-            resize: {
-                type: Boolean,
-                default: false,
-            },
-            // 默认展示多少行
-            rows: {
-                type: Number,
-                default: 1,
-            },
-            maxlength: Number,
-        },
-        data () {
-            return {
-                localValue: this.value,
-                isFocused: false,
-            };
-        },
-        computed: {
-            boxStyles () {
-                const styles = {};
-                const defaultHeight = this.rows * rowHeight + 12;
-                styles.height = `${defaultHeight}px`;
-                return styles;
-            },
-            wraperStyles () {
-                const styles = {
-                    // eslint-disable-next-line no-underscore-dangle
-                    zIndex: window.__bk_zIndex_manager.nextZIndex(),
-                };
+  export default {
+    name: '',
+    props: {
+      value: {
+        type: String,
+        default: '',
+      },
+      placeholder: String,
+      resize: {
+        type: Boolean,
+        default: false,
+      },
+      // 默认展示多少行
+      rows: {
+        type: Number,
+        default: 1,
+      },
+      maxlength: Number,
+    },
+    data () {
+      return {
+        localValue: this.value,
+        isFocused: false,
+      };
+    },
+    computed: {
+      boxStyles () {
+        const styles = {};
+        const defaultHeight = this.rows * rowHeight + 12;
+        styles.height = `${defaultHeight}px`;
+        return styles;
+      },
+      wraperStyles () {
+        const styles = {
+          // eslint-disable-next-line no-underscore-dangle
+          zIndex: window.__bk_zIndex_manager.nextZIndex(),
+        };
                 
-                if (!this.isFocused) {
-                    styles['max-height'] = '100%';
-                }
-                return styles;
-            },
-            showPlaceholder () {
-                if (this.isFocused) {
-                    return false;
-                }
-                return !this.localValue;
-            },
-        },
-        methods: {
-            /**
-             * @desc 输入框聚焦
-             */
-            focus () {
-                this.$refs.textarea.focus();
-            },
-            /**
-             * @desc 输入框获得焦点
-             */
-            handleInputGetFocus () {
-                this.isFocused = true;
-                setTimeout(() => {
-                    this.$refs.textarea.selectionStart = this.localValue.length;
-                    this.$refs.textarea.selectionEnd = this.localValue.length;
-                });
-            },
-            /**
-             * @desc 用户输入
-             */
-            handleInputChange (event) {
-                let localValue = event.target.value.trim();
-                if (this.maxlength > 0 && localValue.length > this.maxlength) {
-                    localValue = localValue.slice(0, this.maxlength);
-                    this.$nextTick(() => {
-                        this.$refs.textarea.value = localValue;
-                    });
-                }
-                this.localValue = localValue;
-                this.$emit('input', this.localValue);
-                this.$emit('change', this.localValue);
-            },
-            /**
-             * @desc 输入框失焦
-             */
-            handleBlur () {
-                this.isFocused = false;
-                this.$emit('blur', this.localValue);
-            },
-        },
-    };
+        if (!this.isFocused) {
+          styles['max-height'] = '100%';
+        }
+        return styles;
+      },
+      showPlaceholder () {
+        if (this.isFocused) {
+          return false;
+        }
+        return !this.localValue;
+      },
+    },
+    methods: {
+      /**
+       * @desc 输入框聚焦
+       */
+      focus () {
+        this.$refs.textarea.focus();
+      },
+      /**
+       * @desc 输入框获得焦点
+       */
+      handleInputGetFocus () {
+        this.isFocused = true;
+        setTimeout(() => {
+          this.$refs.textarea.selectionStart = this.localValue.length;
+          this.$refs.textarea.selectionEnd = this.localValue.length;
+        });
+      },
+      /**
+       * @desc 用户输入
+       */
+      handleInputChange (event) {
+        let localValue = event.target.value.trim();
+        if (this.maxlength > 0 && localValue.length > this.maxlength) {
+          localValue = localValue.slice(0, this.maxlength);
+          this.$nextTick(() => {
+            this.$refs.textarea.value = localValue;
+          });
+        }
+        this.localValue = localValue;
+        this.$emit('input', this.localValue);
+        this.$emit('change', this.localValue);
+      },
+      /**
+       * @desc 输入框失焦
+       */
+      handleBlur () {
+        this.isFocused = false;
+        this.$emit('blur', this.localValue);
+      },
+    },
+  };
 </script>
 <style lang='postcss'>
     @import "@/css/mixins/scroll";

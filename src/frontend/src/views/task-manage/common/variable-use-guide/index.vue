@@ -26,72 +26,72 @@
 -->
 
 <template>
-    <div class="variable-use-guide">
-        <div class="header">
-            <div>{{ $t('template.使用指引') }}</div>
-            <div class="tab-container">
-                <div
-                    class="tab-item"
-                    :class="{ active: tab === 'global' }"
-                    @click="handleTabToggle('global')">
-                    {{ $t('template.全局变量.tab') }}
-                </div>
-                <div
-                    class="tab-item"
-                    :class="{ active: tab === 'magic' }"
-                    @click="handleTabToggle('magic')">
-                    {{ $t('template.魔法变量') }}
-                </div>
-            </div>
+  <div class="variable-use-guide">
+    <div class="header">
+      <div>{{ $t('template.使用指引') }}</div>
+      <div class="tab-container">
+        <div
+          class="tab-item"
+          :class="{ active: tab === 'global' }"
+          @click="handleTabToggle('global')">
+          {{ $t('template.全局变量.tab') }}
         </div>
-        <scroll-faker style="height: calc(100% - 88px);">
-            <div class="content">
-                <div v-html="contentHtml" style="margin-top: -24px;" />
-            </div>
-        </scroll-faker>
-        <div class="close-btn" @click="handleClose">
-            <Icon type="close" />
+        <div
+          class="tab-item"
+          :class="{ active: tab === 'magic' }"
+          @click="handleTabToggle('magic')">
+          {{ $t('template.魔法变量') }}
         </div>
+      </div>
     </div>
+    <scroll-faker style="height: calc(100% - 88px);">
+      <div class="content">
+        <div style="margin-top: -24px;" v-html="contentHtml" />
+      </div>
+    </scroll-faker>
+    <div class="close-btn" @click="handleClose">
+      <Icon type="close" />
+    </div>
+  </div>
 </template>
 <script>
-    import 'highlight.js/styles/googlecode.css';
-    import globalVariable from './global-variable.md';
-    import globalVariableEN from './global-variable.en.md';
-    import magicVariable from './magic-variable.md';
-    import magicVariableEN from './magic-variable.en.md';
+  import 'highlight.js/styles/googlecode.css';
+  import globalVariable from './global-variable.md';
+  import globalVariableEN from './global-variable.en.md';
+  import magicVariable from './magic-variable.md';
+  import magicVariableEN from './magic-variable.en.md';
 
-    export default {
-        name: '',
-        data () {
-            return {
-                tab: 'global',
-            };
-        },
-        computed: {
-            contentHtml () {
-                const contentMap = {
-                    global: globalVariableEN,
-                    magic: magicVariableEN,
-                };
-                if (this.$i18n.locale === 'zh-CN') {
-                    Object.assign(contentMap, {
-                        global: globalVariable,
-                        magic: magicVariable,
-                    });
-                }
-                return contentMap[this.tab];
-            },
-        },
-        methods: {
-            handleTabToggle (tab) {
-                this.tab = tab;
-            },
-            handleClose () {
-                this.$emit('on-close');
-            },
-        },
-    };
+  export default {
+    name: '',
+    data () {
+      return {
+        tab: 'global',
+      };
+    },
+    computed: {
+      contentHtml () {
+        const contentMap = {
+          global: globalVariableEN,
+          magic: magicVariableEN,
+        };
+        if (this.$i18n.locale === 'zh-CN') {
+          Object.assign(contentMap, {
+            global: globalVariable,
+            magic: magicVariable,
+          });
+        }
+        return contentMap[this.tab];
+      },
+    },
+    methods: {
+      handleTabToggle (tab) {
+        this.tab = tab;
+      },
+      handleClose () {
+        this.$emit('on-close');
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     html[lang="en-US"] {

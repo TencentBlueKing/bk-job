@@ -26,27 +26,27 @@
 -->
 
 <template>
-    <div class="crontab-dashboard">
-        <crontab-status v-bind="$attrs" />
-        <crontab-type v-bind="$attrs" />
-    </div>
+  <div class="crontab-dashboard">
+    <crontab-status v-bind="$attrs" />
+    <crontab-type v-bind="$attrs" />
+  </div>
 </template>
 <script>
-    import CrontabStatus from './status';
-    import CrontabType from './type';
+  import CrontabStatus from './status';
+  import CrontabType from './type';
 
-    export default {
-        name: '',
-        components: {
-            CrontabStatus,
-            CrontabType,
-        },
-        data () {
-            return {};
-        },
+  export default {
+    name: '',
+    components: {
+      CrontabStatus,
+      CrontabType,
+    },
+    data () {
+      return {};
+    },
 
-        methods: {},
-    };
+    methods: {},
+  };
 </script>
 <style lang='postcss'>
     @import "@/css/mixins/media";

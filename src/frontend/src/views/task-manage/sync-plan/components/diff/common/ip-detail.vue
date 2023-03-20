@@ -26,276 +26,276 @@
 -->
 
 <template>
-    <div class="sync-plan-ip-detail">
-        <div v-if="variableName" class="sync-plan-step-variable" @click="handlerView">
-            <div class="variable-flag">
-                <Icon type="host" />
-            </div>
-            <div class="variable-name" :tippy-tips="variableName">{{ variableName }}</div>
-        </div>
-        <div v-else class="ip-text" v-bk-overflow-tips>{{ ipText }}</div>
-        <Icon v-if="isNotEmpty" class="look-ip-detail" type="audit" @click="handlerView" />
-        <jb-dialog
-            v-model="isShowDetail"
-            :width="1020"
-            :ok-text="$t('template.关闭')"
-            class="sync-ip-detail-dialog">
-            <template #header>
-                <div>{{ $t('template.执行目标') }}</div>
-                <div class="display-diff">
-                    <template v-if="diffEnable">
-                        <bk-switcher
-                            :value="isShowDiff"
-                            theme="primary"
-                            size="large"
-                            @change="handleToggleDiff" />
-                    </template>
-                    <template v-else>
-                        <bk-switcher
-                            :value="false"
-                            v-bk-tooltips="$t('template.无差异')"
-                            disabled
-                            theme="primary"
-                            size="large" />
-                    </template>
-                    {{ $t('template.显示差异') }}
-                </div>
-            </template>
-            <div class="content-wraper">
-                <scroll-faker>
-                    <server-panel
-                        detail-mode="dialog"
-                        :host-node-info="hostNodeInfo"
-                        :node-diff="nodeDiff"
-                        :host-diff="hostDiff"
-                        :group-diff="groupDiff" />
-                </scroll-faker>
-            </div>
-        </jb-dialog>
+  <div class="sync-plan-ip-detail">
+    <div v-if="variableName" class="sync-plan-step-variable" @click="handlerView">
+      <div class="variable-flag">
+        <Icon type="host" />
+      </div>
+      <div class="variable-name" :tippy-tips="variableName">{{ variableName }}</div>
     </div>
+    <div v-else v-bk-overflow-tips class="ip-text">{{ ipText }}</div>
+    <Icon v-if="isNotEmpty" class="look-ip-detail" type="audit" @click="handlerView" />
+    <jb-dialog
+      v-model="isShowDetail"
+      class="sync-ip-detail-dialog"
+      :ok-text="$t('template.关闭')"
+      :width="1020">
+      <template #header>
+        <div>{{ $t('template.执行目标') }}</div>
+        <div class="display-diff">
+          <template v-if="diffEnable">
+            <bk-switcher
+              size="large"
+              theme="primary"
+              :value="isShowDiff"
+              @change="handleToggleDiff" />
+          </template>
+          <template v-else>
+            <bk-switcher
+              v-bk-tooltips="$t('template.无差异')"
+              disabled
+              size="large"
+              theme="primary"
+              :value="false" />
+          </template>
+          {{ $t('template.显示差异') }}
+        </div>
+      </template>
+      <div class="content-wraper">
+        <scroll-faker>
+          <server-panel
+            detail-mode="dialog"
+            :group-diff="groupDiff"
+            :host-diff="hostDiff"
+            :host-node-info="hostNodeInfo"
+            :node-diff="nodeDiff" />
+        </scroll-faker>
+      </div>
+    </jb-dialog>
+  </div>
 </template>
 <script>
-    import TaskHostNodeModel from '@model/task-host-node';
-    import ScrollFaker from '@components/scroll-faker';
-    import ServerPanel from '@components/choose-ip/server-panel';
-    import {
-        findParent,
-    } from '@utils/vdom';
-    import {
-        findVariable,
-    } from './utils';
+  import TaskHostNodeModel from '@model/task-host-node';
+  import ScrollFaker from '@components/scroll-faker';
+  import ServerPanel from '@components/choose-ip/server-panel';
+  import {
+    findParent,
+  } from '@utils/vdom';
+  import {
+    findVariable,
+  } from './utils';
 
-    const isHostEmpty = (taskHostNode) => {
-        if (!taskHostNode) {
-            return true;
-        }
-        if (taskHostNode.variable) {
-            return false;
-        }
-        if (taskHostNode.hostNodeInfo.topoNodeList.length > 0) {
-            return false;
-        }
-        if (taskHostNode.hostNodeInfo.ipList.length > 0) {
-            return false;
-        }
-        if (taskHostNode.hostNodeInfo.dynamicGroupList.length > 0) {
-            return false;
-        }
-        return true;
-    };
+  const isHostEmpty = (taskHostNode) => {
+    if (!taskHostNode) {
+      return true;
+    }
+    if (taskHostNode.variable) {
+      return false;
+    }
+    if (taskHostNode.hostNodeInfo.topoNodeList.length > 0) {
+      return false;
+    }
+    if (taskHostNode.hostNodeInfo.ipList.length > 0) {
+      return false;
+    }
+    if (taskHostNode.hostNodeInfo.dynamicGroupList.length > 0) {
+      return false;
+    }
+    return true;
+  };
 
-    export default {
-        name: '',
-        components: {
-            ScrollFaker,
-            ServerPanel,
-        },
-        props: {
-            preHost: {
-                type: Object,
-                required: true,
-            },
-            lastHost: {
-                type: Object,
-                required: true,
-            },
-        },
-        data () {
-            return {
-                isShowDetail: false,
-                isShowDiff: false,
-                variableName: '',
-                ipText: '',
-                hostEqual: true,
-                hostNodeInfo: {},
-                nodeDiff: {},
-                hostDiff: {},
-                groupDiff: {},
-            };
-        },
-        computed: {
-            isNotEmpty () {
-                return this.variableName || this.ipText;
-            },
-            diffEnable () {
-                if (isHostEmpty(this.preHost) || isHostEmpty(this.lastHost)) {
-                    return false;
-                }
-                return !this.hostEqual;
-            },
-        },
-        created () {
-            const { hostNodeInfo } = new TaskHostNodeModel({});
-            this.originHostNodeInfo = Object.freeze(hostNodeInfo);
-            this.hostNodeInfo = Object.freeze(hostNodeInfo);
+  export default {
+    name: '',
+    components: {
+      ScrollFaker,
+      ServerPanel,
+    },
+    props: {
+      preHost: {
+        type: Object,
+        required: true,
+      },
+      lastHost: {
+        type: Object,
+        required: true,
+      },
+    },
+    data () {
+      return {
+        isShowDetail: false,
+        isShowDiff: false,
+        variableName: '',
+        ipText: '',
+        hostEqual: true,
+        hostNodeInfo: {},
+        nodeDiff: {},
+        hostDiff: {},
+        groupDiff: {},
+      };
+    },
+    computed: {
+      isNotEmpty () {
+        return this.variableName || this.ipText;
+      },
+      diffEnable () {
+        if (isHostEmpty(this.preHost) || isHostEmpty(this.lastHost)) {
+          return false;
+        }
+        return !this.hostEqual;
+      },
+    },
+    created () {
+      const { hostNodeInfo } = new TaskHostNodeModel({});
+      this.originHostNodeInfo = Object.freeze(hostNodeInfo);
+      this.hostNodeInfo = Object.freeze(hostNodeInfo);
 
-            this.composeNode = [];
-            this.diffNodeMemo = {};
-            this.composeHost = [];
-            this.diffHostMemo = {};
-            this.composeGroup = [];
-            this.diffGroupMemo = {};
-        },
-        mounted () {
-            this.stepParent = findParent(this, 'DiffTaskStep');
-            this.dataSourceParent = findParent(this, 'SyncPlanStep2');
-            this.init();
-            this.checkDiff();
-        },
-        methods: {
-            init () {
-                let host = this.preHost;
-                if (this.stepParent.type === 'sync-after') {
-                    host = this.lastHost;
-                }
-                // 优先判断是否使用全局主机变量，如果是全局变量从全局变量中找到这个变量并显示变量的主机信息
-                if (host.variable) {
-                    this.variableName = host.variable;
-                    const curVariable = findVariable(this.dataSourceParent.planVariableList, this.variableName);
+      this.composeNode = [];
+      this.diffNodeMemo = {};
+      this.composeHost = [];
+      this.diffHostMemo = {};
+      this.composeGroup = [];
+      this.diffGroupMemo = {};
+    },
+    mounted () {
+      this.stepParent = findParent(this, 'DiffTaskStep');
+      this.dataSourceParent = findParent(this, 'SyncPlanStep2');
+      this.init();
+      this.checkDiff();
+    },
+    methods: {
+      init () {
+        let host = this.preHost;
+        if (this.stepParent.type === 'sync-after') {
+          host = this.lastHost;
+        }
+        // 优先判断是否使用全局主机变量，如果是全局变量从全局变量中找到这个变量并显示变量的主机信息
+        if (host.variable) {
+          this.variableName = host.variable;
+          const curVariable = findVariable(this.dataSourceParent.planVariableList, this.variableName);
 
-                    this.originHostNodeInfo = Object.freeze(curVariable.defaultTargetValue.hostNodeInfo);
-                } else {
-                    this.originHostNodeInfo = Object.freeze(host.hostNodeInfo);
-                    this.ipText = host.text;
-                }
-                this.hostNodeInfo = this.originHostNodeInfo;
-            },
-            checkDiff () {
-                let preValue = this.preHost.hostNodeInfo;
-                let lastValue = this.lastHost.hostNodeInfo;
+          this.originHostNodeInfo = Object.freeze(curVariable.defaultTargetValue.hostNodeInfo);
+        } else {
+          this.originHostNodeInfo = Object.freeze(host.hostNodeInfo);
+          this.ipText = host.text;
+        }
+        this.hostNodeInfo = this.originHostNodeInfo;
+      },
+      checkDiff () {
+        let preValue = this.preHost.hostNodeInfo;
+        let lastValue = this.lastHost.hostNodeInfo;
                 
-                // 优先判断是否使用全局主机变量
-                if (this.preHost.variable) {
-                    const curVariable = findVariable(this.dataSourceParent.planVariableList, this.preHost.variable);
-                    if (curVariable) {
-                        preValue = curVariable.defaultTargetValue.hostNodeInfo;
-                    }
-                }
-                if (this.lastHost.variable) {
-                    const curVariable = findVariable(this.dataSourceParent.templateVariableList, this.lastHost.variable);
-                    if (curVariable) {
-                        lastValue = curVariable.defaultTargetValue.hostNodeInfo;
-                    }
-                }
+        // 优先判断是否使用全局主机变量
+        if (this.preHost.variable) {
+          const curVariable = findVariable(this.dataSourceParent.planVariableList, this.preHost.variable);
+          if (curVariable) {
+            preValue = curVariable.defaultTargetValue.hostNodeInfo;
+          }
+        }
+        if (this.lastHost.variable) {
+          const curVariable = findVariable(this.dataSourceParent.templateVariableList, this.lastHost.variable);
+          if (curVariable) {
+            lastValue = curVariable.defaultTargetValue.hostNodeInfo;
+          }
+        }
                 
-                // 对比节点
-                const nodeDiffMap = {};
-                const topoNodeList = [];
-                const genNodeId = node => `#${node.type}#${node.id}`;
-                lastValue.topoNodeList.forEach((node) => {
-                    nodeDiffMap[genNodeId(node)] = 'new';
-                    topoNodeList.push(node);
-                });
-                preValue.topoNodeList.forEach((node) => {
-                    const realNodeId = genNodeId(node);
-                    if (nodeDiffMap[realNodeId]) {
-                        nodeDiffMap[realNodeId] = 'same';
-                    } else {
-                        nodeDiffMap[realNodeId] = 'delete';
-                        topoNodeList.push(node);
-                    }
-                });
-                this.composeNode = Object.freeze(topoNodeList);
-                this.diffNodeMemo = Object.freeze(nodeDiffMap);
-                Object.values(this.diffNodeMemo).forEach((value) => {
-                    if (value !== 'same') {
-                        this.hostEqual = false;
-                    }
-                });
+        // 对比节点
+        const nodeDiffMap = {};
+        const topoNodeList = [];
+        const genNodeId = node => `#${node.type}#${node.id}`;
+        lastValue.topoNodeList.forEach((node) => {
+          nodeDiffMap[genNodeId(node)] = 'new';
+          topoNodeList.push(node);
+        });
+        preValue.topoNodeList.forEach((node) => {
+          const realNodeId = genNodeId(node);
+          if (nodeDiffMap[realNodeId]) {
+            nodeDiffMap[realNodeId] = 'same';
+          } else {
+            nodeDiffMap[realNodeId] = 'delete';
+            topoNodeList.push(node);
+          }
+        });
+        this.composeNode = Object.freeze(topoNodeList);
+        this.diffNodeMemo = Object.freeze(nodeDiffMap);
+        Object.values(this.diffNodeMemo).forEach((value) => {
+          if (value !== 'same') {
+            this.hostEqual = false;
+          }
+        });
                 
-                // 对比主机
-                const hostDiffMap = {};
-                const ipList = [];
-                const genHostId = host => `${host.cloudAreaInfo.id}:${host.ip}`;
-                lastValue.ipList.forEach((host) => {
-                    hostDiffMap[genHostId(host)] = 'new';
-                    ipList.push(host);
-                });
-                preValue.ipList.forEach((host) => {
-                    const realHostId = genHostId(host);
-                    if (hostDiffMap[realHostId]) {
-                        hostDiffMap[realHostId] = 'same';
-                    } else {
-                        hostDiffMap[realHostId] = 'delete';
-                        ipList.push(host);
-                    }
-                });
-                this.composeHost = Object.freeze(ipList);
-                this.diffHostMemo = Object.freeze(hostDiffMap);
-                Object.values(this.diffHostMemo).forEach((value) => {
-                    if (value !== 'same') {
-                        this.hostEqual = false;
-                    }
-                });
+        // 对比主机
+        const hostDiffMap = {};
+        const ipList = [];
+        const genHostId = host => `${host.cloudAreaInfo.id}:${host.ip}`;
+        lastValue.ipList.forEach((host) => {
+          hostDiffMap[genHostId(host)] = 'new';
+          ipList.push(host);
+        });
+        preValue.ipList.forEach((host) => {
+          const realHostId = genHostId(host);
+          if (hostDiffMap[realHostId]) {
+            hostDiffMap[realHostId] = 'same';
+          } else {
+            hostDiffMap[realHostId] = 'delete';
+            ipList.push(host);
+          }
+        });
+        this.composeHost = Object.freeze(ipList);
+        this.diffHostMemo = Object.freeze(hostDiffMap);
+        Object.values(this.diffHostMemo).forEach((value) => {
+          if (value !== 'same') {
+            this.hostEqual = false;
+          }
+        });
 
-                // 对比分组
-                const groupDiffMap = {};
-                const dynamicGroupList = [];
-                lastValue.dynamicGroupList.forEach((group) => {
-                    groupDiffMap[group] = 'new';
-                    dynamicGroupList.push(group);
-                });
-                preValue.dynamicGroupList.forEach((group) => {
-                    if (groupDiffMap[group]) {
-                        groupDiffMap[group] = 'same';
-                    } else {
-                        groupDiffMap[group] = 'delete';
-                        dynamicGroupList.push(group);
-                    }
-                });
+        // 对比分组
+        const groupDiffMap = {};
+        const dynamicGroupList = [];
+        lastValue.dynamicGroupList.forEach((group) => {
+          groupDiffMap[group] = 'new';
+          dynamicGroupList.push(group);
+        });
+        preValue.dynamicGroupList.forEach((group) => {
+          if (groupDiffMap[group]) {
+            groupDiffMap[group] = 'same';
+          } else {
+            groupDiffMap[group] = 'delete';
+            dynamicGroupList.push(group);
+          }
+        });
                 
-                this.composeGroup = Object.freeze(dynamicGroupList);
-                this.diffGroupMemo = Object.freeze(groupDiffMap);
-                Object.values(this.diffGroupMemo).forEach((value) => {
-                    if (value !== 'same') {
-                        this.hostEqual = false;
-                    }
-                });
-            },
-            handlerView () {
-                this.hostNodeInfo = this.originHostNodeInfo;
-                this.nodeDiff = {};
-                this.hostDiff = {};
-                this.groupDiff = {};
-                this.isShowDetail = true;
-                this.isShowDiff = false;
-            },
-            handleToggleDiff (value) {
-                if (value) {
-                    this.hostNodeInfo = Object.freeze({
-                        dynamicGroupList: this.composeGroup,
-                        ipList: this.composeHost,
-                        topoNodeList: this.composeNode,
-                    });
-                    this.nodeDiff = this.diffNodeMemo;
-                    this.hostDiff = this.diffHostMemo;
-                    this.groupDiff = this.diffGroupMemo;
-                } else {
-                    this.handlerView();
-                }
-            },
-        },
-    };
+        this.composeGroup = Object.freeze(dynamicGroupList);
+        this.diffGroupMemo = Object.freeze(groupDiffMap);
+        Object.values(this.diffGroupMemo).forEach((value) => {
+          if (value !== 'same') {
+            this.hostEqual = false;
+          }
+        });
+      },
+      handlerView () {
+        this.hostNodeInfo = this.originHostNodeInfo;
+        this.nodeDiff = {};
+        this.hostDiff = {};
+        this.groupDiff = {};
+        this.isShowDetail = true;
+        this.isShowDiff = false;
+      },
+      handleToggleDiff (value) {
+        if (value) {
+          this.hostNodeInfo = Object.freeze({
+            dynamicGroupList: this.composeGroup,
+            ipList: this.composeHost,
+            topoNodeList: this.composeNode,
+          });
+          this.nodeDiff = this.diffNodeMemo;
+          this.hostDiff = this.diffHostMemo;
+          this.groupDiff = this.diffGroupMemo;
+        } else {
+          this.handlerView();
+        }
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .sync-ip-detail-dialog {

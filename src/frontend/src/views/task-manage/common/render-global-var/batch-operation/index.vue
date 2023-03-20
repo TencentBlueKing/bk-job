@@ -26,164 +26,164 @@
 -->
 
 <template>
-    <div class="global-bariable-batch-operation">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 130px;">{{ $t('template.变量类型') }}<span class="require-flag" /></th>
-                    <th>{{ $t('template.变量名称') }}<span class="require-flag" /></th>
-                    <th>
-                        <span v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')" class="hover-tips">
-                            {{ $t('template.初始值') }}
-                        </span>
-                    </th>
-                    <th style="width: 320px;">{{ $t('template.变量描述') }}</th>
-                    <th style="width: 80px;">
-                        <span v-bk-tooltips="$t('template.变量的值在执行中可变')" class="hover-tips">
-                            {{ $t('template.赋值可变') }}
-                        </span>
-                    </th>
-                    <th style="width: 100px;">{{ $t('template.执行时必填') }}</th>
-                    <th style="width: 80px;">{{ $t('template.操作') }}</th>
-                </tr>
-            </thead>
-            <template v-for="(variableItem, index) in variableList">
-                <render-table-row
-                    v-if="variableItem.id > 0 && variableItem.delete !== 1"
-                    ref="variableEdit"
-                    :variable-name-list="calcExcludeNameList(variableItem)"
-                    :data="variableItem"
-                    :key="variableItem.id"
-                    @on-change="value => handleChange(index, value)"
-                    @on-delete="handleDelete(index)"
-                    @on-append="handleAppendVariable(index)" />
-                <create-table-row
-                    v-else-if="variableItem.id < 0"
-                    ref="variableCreate"
-                    :key="variableItem.id"
-                    :variable-name-list="calcExcludeNameList(variableItem)"
-                    :data="variableItem"
-                    @on-change="value => handleChange(index, value)"
-                    @on-delete="handleDelete(index)"
-                    @on-append="handleAppendVariable(index)" />
-            </template>
-        </table>
-        <div
-            v-if="isEmpty"
-            class="empty-box"
-            @click="handleAppendVariable(0)">
-            <Icon type="add-fill" />
-            <span>{{ $t('template.全局变量.label') }}</span>
-        </div>
+  <div class="global-bariable-batch-operation">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 130px;">{{ $t('template.变量类型') }}<span class="require-flag" /></th>
+          <th>{{ $t('template.变量名称') }}<span class="require-flag" /></th>
+          <th>
+            <span v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')" class="hover-tips">
+              {{ $t('template.初始值') }}
+            </span>
+          </th>
+          <th style="width: 320px;">{{ $t('template.变量描述') }}</th>
+          <th style="width: 80px;">
+            <span v-bk-tooltips="$t('template.变量的值在执行中可变')" class="hover-tips">
+              {{ $t('template.赋值可变') }}
+            </span>
+          </th>
+          <th style="width: 100px;">{{ $t('template.执行时必填') }}</th>
+          <th style="width: 80px;">{{ $t('template.操作') }}</th>
+        </tr>
+      </thead>
+      <template v-for="(variableItem, index) in variableList">
+        <render-table-row
+          v-if="variableItem.id > 0 && variableItem.delete !== 1"
+          :key="variableItem.id"
+          ref="variableEdit"
+          :data="variableItem"
+          :variable-name-list="calcExcludeNameList(variableItem)"
+          @on-append="handleAppendVariable(index)"
+          @on-change="value => handleChange(index, value)"
+          @on-delete="handleDelete(index)" />
+        <create-table-row
+          v-else-if="variableItem.id < 0"
+          :key="variableItem.id"
+          ref="variableCreate"
+          :data="variableItem"
+          :variable-name-list="calcExcludeNameList(variableItem)"
+          @on-append="handleAppendVariable(index)"
+          @on-change="value => handleChange(index, value)"
+          @on-delete="handleDelete(index)" />
+      </template>
+    </table>
+    <div
+      v-if="isEmpty"
+      class="empty-box"
+      @click="handleAppendVariable(0)">
+      <Icon type="add-fill" />
+      <span>{{ $t('template.全局变量.label') }}</span>
     </div>
+  </div>
 </template>
 <script>
-    import _ from 'lodash';
-    import GlobalVariableModel from '@model/task/global-variable';
-    import RenderTableRow from './render-table-row.vue';
-    import CreateTableRow from './create-table-row.vue';
-    import { createVariable } from '../util';
+  import _ from 'lodash';
+  import GlobalVariableModel from '@model/task/global-variable';
+  import RenderTableRow from './render-table-row.vue';
+  import CreateTableRow from './create-table-row.vue';
+  import { createVariable } from '../util';
 
-    export default {
-        name: '',
-        components: {
-            RenderTableRow,
-            CreateTableRow,
-        },
-        props: {
-            variable: {
-                type: Array,
-                default: () => [],
-            },
-        },
-        data () {
-            return {
-                variableList: _.cloneDeep(this.variable),
-            };
-        },
-        computed: {
-            isEmpty () {
-                // eslint-disable-next-line no-plusplus
-                for (let i = 0; i < this.variableList.length; i++) {
-                    if (!this.variableList[i].delete) {
-                        return false;
-                    }
-                }
-                return true;
-            },
-        },
-        methods: {
-            /**
-             * @desc 不包含当前索引变量的变量名列表
-             * @param { Object } variableData 变量数据
-             * @returns { Array }
-             *
-             * 不包含变量名为空和已删除的变量
-             */
-            calcExcludeNameList (variableData) {
-                return this.variableList.reduce((result, item) => {
-                    if (variableData.id !== item.id
-                        && item.name
-                        && item.delete !== 1) {
-                        result.push(item.name);
-                    }
-                    return result;
-                }, []);
-            },
-            /**
-             * @desc 更新变量信息
-             * @param {Number} index 编辑的变量索引
-             * @param {Object} variableData 全局变量数据
-             */
-            handleChange (index, variableData) {
-                const variableList = [...this.variableList];
-                const variable = new GlobalVariableModel(variableData);
-                variableList.splice(index, 1, variable);
-                this.variableList = variableList;
-                window.changeFlag = true;
-            },
-            /**
-             * @desc 删除指定索引的变量
-             * @param {Number} index 编辑的变量索引
-             */
-            handleDelete (index) {
-                const variableList = [...this.variableList];
-                const editVariable = variableList[index];
-                if (editVariable.id > 0) {
-                    // 删除已存在的变量——设置delete
-                    editVariable.delete = 1;
-                } else {
-                    // 删除新建的变量——直接删除
-                    variableList.splice(index, 1);
-                }
-                this.variableList = variableList;
-                window.changeFlag = true;
-            },
-            /**
-             * @desc 在指定索引位置添加一个新变量
-             * @param {Number} index 编辑的变量索引
-             */
-            handleAppendVariable (index) {
-                this.variableList.splice(index + 1, 0, createVariable());
-                window.changeFlag = true;
-            },
-            /**
-             * @desc 提交编辑
-             * @returns {Promise}
-             */
-            submit () {
-                const queue = [];
-                if (this.$refs.variableEdit) {
-                    queue.push(...this.$refs.variableEdit.map(item => item.validate()));
-                }
-                if (this.$refs.variableCreate) {
-                    queue.push(...this.$refs.variableCreate.map(item => item.validate()));
-                }
-                return Promise.all(queue)
-                    .then(() => this.$emit('on-change', this.variableList));
-            },
-        },
-    };
+  export default {
+    name: '',
+    components: {
+      RenderTableRow,
+      CreateTableRow,
+    },
+    props: {
+      variable: {
+        type: Array,
+        default: () => [],
+      },
+    },
+    data () {
+      return {
+        variableList: _.cloneDeep(this.variable),
+      };
+    },
+    computed: {
+      isEmpty () {
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < this.variableList.length; i++) {
+          if (!this.variableList[i].delete) {
+            return false;
+          }
+        }
+        return true;
+      },
+    },
+    methods: {
+      /**
+       * @desc 不包含当前索引变量的变量名列表
+       * @param { Object } variableData 变量数据
+       * @returns { Array }
+       *
+       * 不包含变量名为空和已删除的变量
+       */
+      calcExcludeNameList (variableData) {
+        return this.variableList.reduce((result, item) => {
+          if (variableData.id !== item.id
+            && item.name
+            && item.delete !== 1) {
+            result.push(item.name);
+          }
+          return result;
+        }, []);
+      },
+      /**
+       * @desc 更新变量信息
+       * @param {Number} index 编辑的变量索引
+       * @param {Object} variableData 全局变量数据
+       */
+      handleChange (index, variableData) {
+        const variableList = [...this.variableList];
+        const variable = new GlobalVariableModel(variableData);
+        variableList.splice(index, 1, variable);
+        this.variableList = variableList;
+        window.changeFlag = true;
+      },
+      /**
+       * @desc 删除指定索引的变量
+       * @param {Number} index 编辑的变量索引
+       */
+      handleDelete (index) {
+        const variableList = [...this.variableList];
+        const editVariable = variableList[index];
+        if (editVariable.id > 0) {
+          // 删除已存在的变量——设置delete
+          editVariable.delete = 1;
+        } else {
+          // 删除新建的变量——直接删除
+          variableList.splice(index, 1);
+        }
+        this.variableList = variableList;
+        window.changeFlag = true;
+      },
+      /**
+       * @desc 在指定索引位置添加一个新变量
+       * @param {Number} index 编辑的变量索引
+       */
+      handleAppendVariable (index) {
+        this.variableList.splice(index + 1, 0, createVariable());
+        window.changeFlag = true;
+      },
+      /**
+       * @desc 提交编辑
+       * @returns {Promise}
+       */
+      submit () {
+        const queue = [];
+        if (this.$refs.variableEdit) {
+          queue.push(...this.$refs.variableEdit.map(item => item.validate()));
+        }
+        if (this.$refs.variableCreate) {
+          queue.push(...this.$refs.variableCreate.map(item => item.validate()));
+        }
+        return Promise.all(queue)
+          .then(() => this.$emit('on-change', this.variableList));
+      },
+    },
+  };
 </script>
 <style lang="postcss">
     .global-bariable-batch-operation {

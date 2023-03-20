@@ -24,16 +24,16 @@
 */
 
 export default class DynamicGroupInfo {
-    constructor (payload) {
-        this.scopeType = payload.scopeType;
-        this.scopeId = payload.scopeId;
-        this.scopeName = payload.scopeName;
-        this.id = payload.id;
-        this.owner = payload.owner;
-        this.ownerName = payload.ownerName;
-        this.name = payload.name;
-        this.type = payload.type;
-        this.ipList = payload.ipList || [];
-        this.ipListStatus = payload.ipListStatus || [];
-    }
+  constructor (payload) {
+    this.scopeType = payload.scopeType;
+    this.scopeId = payload.scopeId;
+    this.scopeName = payload.scopeName;
+    this.id = payload.id;
+    this.owner = payload.owner;
+    this.ownerName = payload.ownerName;
+    this.name = payload.name;
+    this.type = payload.type;
+    this.ipList = payload.ipList || [];
+    this.ipListStatus = payload.ipListStatus || [];
+  }
 }
