@@ -90,6 +90,7 @@
 </template>
 <script>
   import _ from 'lodash';
+  import I18n from '@/i18n';
   import rollingExprParse from '@utils/rolling-expr-parse';
   import Guide from './guide';
 
@@ -134,12 +135,16 @@
         }
         return [
           {
-            required: true,
-            message: '滚动策略必填',
+            validator: (value) => {
+              this.errorMessage = '';
+              return Boolean(value);
+            },
+            message: I18n.t('滚动策略必填'),
             trigger: 'blur',
           },
           {
             validator: (value) => {
+              this.errorMessage = '';
               try {
                 rollingExprParse(value);
                 return true;
@@ -147,7 +152,7 @@
                 return false;
               }
             },
-            message: '滚动策略格式不正确',
+            message: I18n.t('滚动策略格式不正确'),
             trigger: 'blur',
           },
         ];
