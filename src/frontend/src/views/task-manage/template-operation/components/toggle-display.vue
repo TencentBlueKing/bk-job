@@ -61,17 +61,17 @@
 </script>
 <style lang='postcss' scoped>
     .toggle-display {
-        .action {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            color: #3a84ff;
-            cursor: pointer;
-        }
+      .action {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        color: #3a84ff;
+        cursor: pointer;
+      }
 
-        .toggle-arrow {
-            margin-right: 3px;
-            font-size: 12px;
-        }
+      .toggle-arrow {
+        margin-right: 3px;
+        font-size: 12px;
+      }
     }
 </style>

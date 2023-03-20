@@ -360,10 +360,10 @@
 </script>
 <style lang="postcss">
     .select-bucket {
-        padding-top: 14px;
+      padding-top: 14px;
 
-        .list-action-layout {
-            margin-bottom: 14px;
-        }
+      .list-action-layout {
+        margin-bottom: 14px;
+      }
     }
 </style>

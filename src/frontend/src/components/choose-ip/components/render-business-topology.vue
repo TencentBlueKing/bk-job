@@ -548,94 +548,94 @@
 </script>
 <style lang="postcss">
     .choose-ip-business-topology {
-        display: flex;
+      display: flex;
+      height: 100%;
+      padding-top: 20px;
+
+      .topology-data {
+        position: relative;
         height: 100%;
-        padding-top: 20px;
+        overflow: hidden;
+        border-right: 1px solid #dcdee5;
+        flex: 0 0 33%;
 
-        .topology-data {
-            position: relative;
-            height: 100%;
-            overflow: hidden;
-            border-right: 1px solid #dcdee5;
-            flex: 0 0 33%;
-
-            .topology-node-search {
-                position: relative;
-                z-index: 1;
-                padding: 0 24px 20px;
-            }
-
-            .topology-node-tree {
-                height: calc(100% - 72px);
-
-                .wraper {
-                    padding-right: 24px;
-                    margin-left: 24px;
-                }
-
-                .bk-big-tree {
-                    overflow: unset;
-
-                    .bk-big-tree-node .node-content {
-                        overflow: unset;
-                    }
-
-                    .node-name {
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                        flex: 0 1 auto;
-                    }
-                }
-            }
-
-            .topology-empty {
-                position: absolute;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                left: 0;
-            }
+        .topology-node-search {
+          position: relative;
+          z-index: 1;
+          padding: 0 24px 20px;
         }
 
-        .host-list {
-            flex: 2;
-            padding: 0 24px;
+        .topology-node-tree {
+          height: calc(100% - 72px);
 
-            table {
-                th,
-                td {
-                    &:first-child {
-                        padding-left: 15px;
-                    }
-                }
+          .wraper {
+            padding-right: 24px;
+            margin-left: 24px;
+          }
+
+          .bk-big-tree {
+            overflow: unset;
+
+            .bk-big-tree-node .node-content {
+              overflow: unset;
             }
 
-            .head-cell {
-                &.is-filtered {
-                    .filer-flag {
-                        color: #63656e;
-                    }
-                }
+            .node-name {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              flex: 0 1 auto;
             }
+          }
+        }
 
-            .host-search {
-                margin-bottom: 20px;
+        .topology-empty {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+        }
+      }
+
+      .host-list {
+        flex: 2;
+        padding: 0 24px;
+
+        table {
+          th,
+          td {
+            &:first-child {
+              padding-left: 15px;
             }
+          }
+        }
 
-            .check-flag {
-                font-size: 20px;
-                color: #63656e;
-            }
-
+        .head-cell {
+          &.is-filtered {
             .filer-flag {
-                font-size: 12px;
-                color: #c4c6cc;
+              color: #63656e;
             }
-
-            .host-row {
-                cursor: pointer;
-            }
+          }
         }
+
+        .host-search {
+          margin-bottom: 20px;
+        }
+
+        .check-flag {
+          font-size: 20px;
+          color: #63656e;
+        }
+
+        .filer-flag {
+          font-size: 12px;
+          color: #c4c6cc;
+        }
+
+        .host-row {
+          cursor: pointer;
+        }
+      }
     }
 </style>

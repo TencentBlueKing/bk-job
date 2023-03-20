@@ -95,31 +95,31 @@
 </script>
 <style lang='postcss' scoped>
     .job-variable-detail {
-        padding-bottom: 20px;
-        font-size: 14px;
-        color: #63656e;
+      padding-bottom: 20px;
+      font-size: 14px;
+      color: #63656e;
 
-        .info-table {
-            width: 100%;
-            line-height: 24px;
+      .info-table {
+        width: 100%;
+        line-height: 24px;
 
-            td {
-                padding-top: 9px;
-                padding-bottom: 9px;
-                border: 1px solid #dde4eb;
-            }
+        td {
+          padding-top: 9px;
+          padding-bottom: 9px;
+          border: 1px solid #dde4eb;
         }
+      }
 
-        .info-label {
-            width: 110px;
-            padding-right: 20px;
-            color: #b2b5bd;
-            text-align: right;
-        }
+      .info-label {
+        width: 110px;
+        padding-right: 20px;
+        color: #b2b5bd;
+        text-align: right;
+      }
 
-        .info-value {
-            padding-left: 21px;
-            word-break: break-all;
-        }
+      .info-value {
+        padding-left: 21px;
+        word-break: break-all;
+      }
     }
 </style>

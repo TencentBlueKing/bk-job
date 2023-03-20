@@ -375,13 +375,13 @@
 </script>
 <style lang="postcss">
     .server-panel-node-view {
-        .cell-text {
-            display: block !important;
-            height: 20px;
-            text-align: left;
-            white-space: nowrap !important;
-            direction: rtl;
-            -webkit-line-clamp: 1 !important;
-        }
+      .cell-text {
+        display: block !important;
+        height: 20px;
+        text-align: left;
+        white-space: nowrap !important;
+        direction: rtl;
+        -webkit-line-clamp: 1 !important;
+      }
     }
 </style>

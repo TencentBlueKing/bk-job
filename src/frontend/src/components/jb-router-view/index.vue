@@ -123,15 +123,15 @@
 </script>
 <style lang='postcss'>
     .job-router-view {
-        .view-pending {
-            max-height: 100%;
-            overflow: hidden;
-            opacity: 0%;
-            visibility: hidden;
-        }
+      .view-pending {
+        max-height: 100%;
+        overflow: hidden;
+        opacity: 0%;
+        visibility: hidden;
+      }
 
-        .permission-pending {
-            opacity: 0%;
-        }
+      .permission-pending {
+        opacity: 0%;
+      }
     }
 </style>

@@ -39,17 +39,17 @@
   };
 </script>
 <style lang='postcss' scoped>
-    .card-layout {
-        padding: 12px 20px 10px;
-        background: #fff;
-        border: 1px solid #dde4eb;
-    }
+  .card-layout {
+    padding: 12px 20px 10px;
+    background: #fff;
+    border: 1px solid #dde4eb;
+  }
 
-    .card-layout-title {
-        margin-bottom: 30px;
-        font-size: 14px;
-        font-weight: bold;
-        line-height: 1;
-        color: #63656e;
-    }
+  .card-layout-title {
+    margin-bottom: 30px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    color: #63656e;
+  }
 </style>

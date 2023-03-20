@@ -298,63 +298,63 @@
     @import "@/css/mixins/media";
 
     .dubug-exex-plan-page {
-        padding-bottom: 20px;
+      padding-bottom: 20px;
 
-        .detail-item-title {
-            font-size: 16px;
-            line-height: 21px;
-            color: #313238;
+      .detail-item-title {
+        font-size: 16px;
+        line-height: 21px;
+        color: #313238;
+      }
+
+      .task-step-item {
+        margin-top: 40px;
+        margin-bottom: 20px;
+      }
+
+      .task-step-selection {
+        display: flex;
+        width: 500px;
+
+        .step-check {
+          margin-left: auto;
+        }
+      }
+
+      .task-step-selection,
+      .action-wraper {
+        @media (--small-viewports) {
+          width: 500px;
         }
 
-        .task-step-item {
-            margin-top: 40px;
-            margin-bottom: 20px;
+        @media (--medium-viewports) {
+          width: 560px;
         }
 
-        .task-step-selection {
-            display: flex;
-            width: 500px;
-
-            .step-check {
-                margin-left: auto;
-            }
+        @media (--large-viewports) {
+          width: 620px;
         }
 
-        .task-step-selection,
-        .action-wraper {
-            @media (--small-viewports) {
-                width: 500px;
-            }
-
-            @media (--medium-viewports) {
-                width: 560px;
-            }
-
-            @media (--large-viewports) {
-                width: 620px;
-            }
-
-            @media (--huge-viewports) {
-                width: 680px;
-            }
+        @media (--huge-viewports) {
+          width: 680px;
         }
+      }
 
-        .action-wraper {
-            display: flex;
+      .action-wraper {
+        display: flex;
 
-            .plan-save {
-                margin-left: auto;
-            }
+        .plan-save {
+          margin-left: auto;
         }
+      }
     }
 
     .save-debug-plan-dialog {
-        .bk-dialog-header {
-            padding-bottom: 0 !important;
-        }
+      .bk-dialog-header {
+        padding-bottom: 0 !important;
+      }
 
-        .bk-form-item:last-child {
-            margin-bottom: 0 !important;
-        }
+      .bk-form-item:last-child {
+        margin-bottom: 0 !important;
+      }
     }
 </style>

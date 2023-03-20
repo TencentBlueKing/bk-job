@@ -109,16 +109,16 @@
 
 <style lang="postcss">
     .host-list-wrapper {
+      height: 100%;
+
+      .host-table {
         height: 100%;
+        overflow: auto;
+        border: none;
+      }
 
-        .host-table {
-            height: 100%;
-            overflow: auto;
-            border: none;
-        }
-
-        .ip-item {
-            padding-left: 40px;
-        }
+      .ip-item {
+        padding-left: 40px;
+      }
     }
 </style>

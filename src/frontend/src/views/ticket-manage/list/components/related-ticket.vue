@@ -155,9 +155,9 @@
 </script>
 <style lang="postcss">
     .related-ticket {
-        .search-select-style {
-            width: 480px;
-            margin-bottom: 20px;
-        }
+      .search-select-style {
+        width: 480px;
+        margin-bottom: 20px;
+      }
     }
 </style>

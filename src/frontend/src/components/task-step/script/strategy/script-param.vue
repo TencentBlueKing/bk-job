@@ -83,18 +83,18 @@
 </script>
 <style lang='postcss'>
     .muti-item {
+      display: flex;
+      width: 100%;
+
+      .jb-input {
+        flex: 1;
+      }
+
+      .muti-checkbox {
         display: flex;
-        width: 100%;
-
-        .jb-input {
-            flex: 1;
-        }
-
-        .muti-checkbox {
-            display: flex;
-            align-items: center;
-            flex: 0 0 auto;
-            margin-left: 10px;
-        }
+        align-items: center;
+        flex: 0 0 auto;
+        margin-left: 10px;
+      }
     }
 </style>

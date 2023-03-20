@@ -413,83 +413,83 @@
     @import "@/css/mixins/media";
 
     .task-template-detail {
-        .task-template-detail-layout {
-            margin-bottom: 30px;
+      .task-template-detail-layout {
+        margin-bottom: 30px;
+      }
+
+      .detail-item {
+        justify-content: flex-start;
+        margin-bottom: 8px;
+
+        .label {
+          width: 76px;
+        }
+      }
+
+      .gloval-var-item {
+        margin-top: 20px;
+        margin-bottom: 30px;
+      }
+
+      .task-step-item {
+        margin-bottom: 20px;
+      }
+
+      .input,
+      .action-box {
+        width: 500px;
+
+        @media (--small-viewports) {
+          width: 500px;
         }
 
-        .detail-item {
-            justify-content: flex-start;
-            margin-bottom: 8px;
-
-            .label {
-                width: 76px;
-            }
+        @media (--medium-viewports) {
+          width: 560px;
         }
 
-        .gloval-var-item {
-            margin-top: 20px;
-            margin-bottom: 30px;
+        @media (--large-viewports) {
+          width: 620px;
         }
 
-        .task-step-item {
-            margin-bottom: 20px;
+        @media (--huge-viewports) {
+          width: 680px;
         }
+      }
 
-        .input,
-        .action-box {
-            width: 500px;
+      .action-box {
+        display: flex;
+      }
 
-            @media (--small-viewports) {
-                width: 500px;
-            }
+      .action-button {
+        margin-right: 10px;
+      }
 
-            @media (--medium-viewports) {
-                width: 560px;
-            }
+      .action-del {
+        margin-left: auto;
+      }
 
-            @media (--large-viewports) {
-                width: 620px;
-            }
+      .action-sync {
+        position: relative;
 
-            @media (--huge-viewports) {
-                width: 680px;
-            }
+        .update-flag {
+          position: absolute;
+          top: -9px;
+          right: -9px;
+          font-size: 16px;
+          line-height: 0;
+          color: #ea3636;
+          background: #fff;
+          border: 1px solid #fff;
+          border-radius: 50%;
         }
+      }
 
-        .action-box {
-            display: flex;
+      .delete-btn {
+        &:hover {
+          color: #fff;
+          background: #ea3636;
+          border-color: transparent;
         }
-
-        .action-button {
-            margin-right: 10px;
-        }
-
-        .action-del {
-            margin-left: auto;
-        }
-
-        .action-sync {
-            position: relative;
-
-            .update-flag {
-                position: absolute;
-                top: -9px;
-                right: -9px;
-                font-size: 16px;
-                line-height: 0;
-                color: #ea3636;
-                background: #fff;
-                border: 1px solid #fff;
-                border-radius: 50%;
-            }
-        }
-
-        .delete-btn {
-            &:hover {
-                color: #fff;
-                background: #ea3636;
-                border-color: transparent;
-            }
-        }
+      }
     }
 </style>

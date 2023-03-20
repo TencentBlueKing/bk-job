@@ -44,34 +44,34 @@
   };
 </script>
 <style lang='postcss'>
-    @import "@/css/mixins/media";
+  @import "@/css/mixins/media";
 
-    .app-dashboard {
-        display: flex;
+  .app-dashboard {
+    display: flex;
 
-        .dashboard-card-layout {
-            width: 260px;
-            border: none;
+    .dashboard-card-layout {
+      width: 260px;
+      border: none;
 
-            @media (--huge-viewports) {
-                width: 400px;
-            }
+      @media (--huge-viewports) {
+        width: 400px;
+      }
 
-            @media (--large-viewports) {
-                width: 300px;
-            }
+      @media (--large-viewports) {
+        width: 300px;
+      }
 
-            @media (--medium-viewports) {
-                width: 280px;
-            }
+      @media (--medium-viewports) {
+        width: 280px;
+      }
 
-            @media (--small-viewports) {
-                width: 260px;
-            }
+      @media (--small-viewports) {
+        width: 260px;
+      }
 
-            &:nth-child(n+2) {
-                border-left: 1px solid #f0f1f5;
-            }
-        }
+      &:nth-child(n+2) {
+        border-left: 1px solid #f0f1f5;
+      }
     }
+  }
 </style>

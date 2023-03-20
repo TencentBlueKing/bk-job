@@ -166,37 +166,37 @@
 </script>
 <style lang="postcss">
     .notify-trigger-setting {
-        .bk-form-checkbox ~ .bk-form-checkbox {
-            margin-left: 25px;
+      .bk-form-checkbox ~ .bk-form-checkbox {
+        margin-left: 25px;
+      }
+
+      .input {
+        width: 716px;
+      }
+
+      .notify-way-table {
+        background: #fff;
+        border: 1px solid #dcdee5;
+
+        th,
+        td {
+          height: 42px;
+          padding-left: 16px;
+          font-size: 12px;
+          text-align: left;
+          border-left: 1px solid #dcdee5;
         }
 
-        .input {
-            width: 716px;
+        th {
+          font-weight: normal;
+          color: #313238;
+          background: #fafbfd;
         }
 
-        .notify-way-table {
-            background: #fff;
-            border: 1px solid #dcdee5;
-
-            th,
-            td {
-                height: 42px;
-                padding-left: 16px;
-                font-size: 12px;
-                text-align: left;
-                border-left: 1px solid #dcdee5;
-            }
-
-            th {
-                font-weight: normal;
-                color: #313238;
-                background: #fafbfd;
-            }
-
-            td {
-                color: #63656e;
-                border-top: 1px solid #dcdee5;
-            }
+        td {
+          color: #63656e;
+          border-top: 1px solid #dcdee5;
         }
+      }
     }
 </style>

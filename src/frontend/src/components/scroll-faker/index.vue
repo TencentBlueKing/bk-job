@@ -283,110 +283,110 @@
 </script>
 <style lang='postcss'>
     .scroll-faker {
-        position: relative;
-        height: 100%;
+      position: relative;
+      height: 100%;
 
-        &:hover {
-            & > .scrollbar-vertical,
-            & > .scrollbar-horizontal {
-                opacity: 100%;
-            }
-        }
-
-        &.theme-dark {
-            & > .scrollbar-vertical,
-            & > .scrollbar-horizontal {
-                &::-webkit-scrollbar-thumb {
-                    background-color: rgb(255 255 255 / 20%);
-                }
-
-                &:hover {
-                    &::-webkit-scrollbar-thumb {
-                        background-color: rgb(255 255 255 / 28%);
-                    }
-                }
-            }
-        }
-
-        & > .scroll-faker-content {
-            height: 100%;
-            overflow-x: scroll;
-            overflow-y: scroll;
-
-            &::-webkit-scrollbar {
-                width: 0;
-                height: 0;
-            }
-        }
-
+      &:hover {
         & > .scrollbar-vertical,
         & > .scrollbar-horizontal {
-            cursor: pointer;
-            opacity: 0%;
-            transition: 0.15s;
-
-            &::-webkit-scrollbar-thumb {
-                background-color: rgb(151 155 165 / 80%);
-                border-radius: 3px;
-            }
-
-            &:hover {
-                z-index: 10000000;
-                opacity: 100%;
-
-                &::-webkit-scrollbar-thumb {
-                    background-color: rgb(151 155 165 / 90%);
-                    border-radius: 7px;
-                }
-            }
+          opacity: 100%;
         }
+      }
 
-        & > .scrollbar-vertical {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 14px;
-            overflow-x: hidden;
-            overflow-y: scroll;
-
-            &::-webkit-scrollbar {
-                width: 6px;
-            }
-
-            &:hover {
-                &::-webkit-scrollbar {
-                    width: 14px !important;
-                }
-            }
-
-            .scrollbar-inner {
-                width: 100%;
-            }
-        }
-
+      &.theme-dark {
+        & > .scrollbar-vertical,
         & > .scrollbar-horizontal {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            height: 14px;
-            overflow-x: scroll;
-            overflow-y: hidden;
+          &::-webkit-scrollbar-thumb {
+            background-color: rgb(255 255 255 / 20%);
+          }
 
-            &::-webkit-scrollbar {
-                height: 6px;
+          &:hover {
+            &::-webkit-scrollbar-thumb {
+              background-color: rgb(255 255 255 / 28%);
             }
-
-            &:hover {
-                &::-webkit-scrollbar {
-                    height: 14px !important;
-                }
-            }
-
-            .scrollbar-inner {
-                height: 100%;
-            }
+          }
         }
+      }
+
+      & > .scroll-faker-content {
+        height: 100%;
+        overflow-x: scroll;
+        overflow-y: scroll;
+
+        &::-webkit-scrollbar {
+          width: 0;
+          height: 0;
+        }
+      }
+
+      & > .scrollbar-vertical,
+      & > .scrollbar-horizontal {
+        cursor: pointer;
+        opacity: 0%;
+        transition: 0.15s;
+
+        &::-webkit-scrollbar-thumb {
+          background-color: rgb(151 155 165 / 80%);
+          border-radius: 3px;
+        }
+
+        &:hover {
+          z-index: 10000000;
+          opacity: 100%;
+
+          &::-webkit-scrollbar-thumb {
+            background-color: rgb(151 155 165 / 90%);
+            border-radius: 7px;
+          }
+        }
+      }
+
+      & > .scrollbar-vertical {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 14px;
+        overflow-x: hidden;
+        overflow-y: scroll;
+
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        &:hover {
+          &::-webkit-scrollbar {
+            width: 14px !important;
+          }
+        }
+
+        .scrollbar-inner {
+          width: 100%;
+        }
+      }
+
+      & > .scrollbar-horizontal {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 14px;
+        overflow-x: scroll;
+        overflow-y: hidden;
+
+        &::-webkit-scrollbar {
+          height: 6px;
+        }
+
+        &:hover {
+          &::-webkit-scrollbar {
+            height: 14px !important;
+          }
+        }
+
+        .scrollbar-inner {
+          height: 100%;
+        }
+      }
     }
 </style>

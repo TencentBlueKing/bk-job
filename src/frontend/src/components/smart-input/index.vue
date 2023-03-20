@@ -134,52 +134,52 @@
     @import "@/css/mixins/scroll";
 
     .job-smart-input {
-        position: relative;
-        height: 30px;
-        padding: 0 10px;
+      position: relative;
+      height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+      line-height: 18px;
+      word-break: break-all;
+      cursor: pointer;
+      background: #fff;
+
+      .job-smart-input-area {
+        @mixin scroller;
+
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        max-height: 300px;
+        min-height: 32px;
+        padding: 6px 10px;
+        overflow-y: scroll;
         font-size: 12px;
-        line-height: 18px;
-        word-break: break-all;
-        cursor: pointer;
-        background: #fff;
+        color: #63656e;
+        background: inherit;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        outline: none;
 
-        .job-smart-input-area {
-            @mixin scroller;
-
-            position: absolute;
-            top: 0;
-            right: 0;
-            left: 0;
-            max-height: 300px;
-            min-height: 32px;
-            padding: 6px 10px;
-            overflow-y: scroll;
-            font-size: 12px;
-            color: #63656e;
-            background: inherit;
-            border: 1px solid #c4c6cc;
-            border-radius: 2px;
-            outline: none;
-
-            &:focus {
-                background: #fff !important;
-                border: 1px solid #3a84ff !important;
-            }
+        &:focus {
+          background: #fff !important;
+          border: 1px solid #3a84ff !important;
         }
+      }
 
-        .job-smart-input-placeholder {
-            position: absolute;
-            top: 1px;
-            right: 1px;
-            bottom: 1px;
-            left: 1px;
-            height: 30px;
-            padding: 6px 10px;
-            overflow: hidden;
-            color: #c4c6cc;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            background: transparent;
-        }
+      .job-smart-input-placeholder {
+        position: absolute;
+        top: 1px;
+        right: 1px;
+        bottom: 1px;
+        left: 1px;
+        height: 30px;
+        padding: 6px 10px;
+        overflow: hidden;
+        color: #c4c6cc;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: transparent;
+      }
     }
 </style>

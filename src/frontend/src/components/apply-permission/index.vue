@@ -99,35 +99,35 @@
 </script>
 <style lang="postcss" scoped>
     .jb-apply-permission {
-        .no-permission-tips {
-            text-align: center;
-        }
+      .no-permission-tips {
+        text-align: center;
+      }
 
-        .lock {
-            width: 120px;
-            height: 100px;
-        }
+      .lock {
+        width: 120px;
+        height: 100px;
+      }
 
-        .tips-text {
-            margin: 8px 0 22px;
-            font-size: 20px;
-            color: #63656e;
-        }
+      .tips-text {
+        margin: 8px 0 22px;
+        font-size: 20px;
+        color: #63656e;
+      }
 
-        .apply-permission-table {
-            border: none;
-        }
+      .apply-permission-table {
+        border: none;
+      }
 
-        .bk-table-outer-border::after {
-            display: none;
-        }
+      .bk-table-outer-border::after {
+        display: none;
+      }
 
-        .resource-content {
-            padding: 10px 0;
+      .resource-content {
+        padding: 10px 0;
 
-            p {
-                line-height: 24px;
-            }
+        p {
+          line-height: 24px;
         }
+      }
     }
 </style>

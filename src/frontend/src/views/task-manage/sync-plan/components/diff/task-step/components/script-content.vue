@@ -121,59 +121,59 @@
 </script>
 <style lang='postcss'>
     .sync-plan-script-content {
-        display: flex;
-        align-items: center;
-        height: 24px;
+      display: flex;
+      align-items: center;
+      height: 24px;
 
-        .script-content-detail {
-            padding: 4px 5px;
-            font-size: 17px;
-            color: #3a84ff;
-            cursor: pointer;
-        }
+      .script-content-detail {
+        padding: 4px 5px;
+        font-size: 17px;
+        color: #3a84ff;
+        cursor: pointer;
+      }
     }
 
     .script-diff-dialog {
-        position: fixed;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 9999;
+      padding: 0 40px;
+      background: #fff;
+
+      .content-title {
+        display: flex;
+        align-items: center;
+        height: 40px;
+        line-height: 40px;
+
+        .content-old,
+        .content-new {
+          flex: 1;
+        }
+      }
+
+      .content-wraper {
+        height: calc(100vh - 40px);
+        line-height: initial;
+        background: #1d1d1d;
+      }
+
+      .content-close {
+        position: absolute;
         top: 0;
         right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 9999;
-        padding: 0 40px;
-        background: #fff;
+        padding: 5px;
+        font-size: 30px;
+        color: #1d1d1d;
+        cursor: pointer;
+        transition: all 0.15s;
 
-        .content-title {
-            display: flex;
-            align-items: center;
-            height: 40px;
-            line-height: 40px;
-
-            .content-old,
-            .content-new {
-                flex: 1;
-            }
+        &:hover {
+          transform: rotateZ(90deg);
         }
-
-        .content-wraper {
-            height: calc(100vh - 40px);
-            line-height: initial;
-            background: #1d1d1d;
-        }
-
-        .content-close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            padding: 5px;
-            font-size: 30px;
-            color: #1d1d1d;
-            cursor: pointer;
-            transition: all 0.15s;
-
-            &:hover {
-                transform: rotateZ(90deg);
-            }
-        }
+      }
     }
 </style>

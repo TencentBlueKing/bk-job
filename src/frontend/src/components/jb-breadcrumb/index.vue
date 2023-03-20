@@ -157,34 +157,34 @@
 </script>
 <style lang='postcss'>
     .jb-breadcrumb {
-        height: 20px;
+      height: 20px;
+      overflow: hidden;
+      font-size: 14px;
+      color: #63656e;
+      white-space: nowrap;
+
+      & > * {
+        float: left;
+      }
+
+      .jb-breadcrumb-back,
+      .jb-breadcrumb-item {
+        &:hover {
+          color: #3a84ff;
+        }
+      }
+
+      .jb-breadcrumb-item {
+        height: 100%;
         overflow: hidden;
-        font-size: 14px;
-        color: #63656e;
-        white-space: nowrap;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        cursor: pointer;
 
-        & > * {
-            float: left;
+        &.last {
+          color: #313238 !important;
+          cursor: default;
         }
-
-        .jb-breadcrumb-back,
-        .jb-breadcrumb-item {
-            &:hover {
-                color: #3a84ff;
-            }
-        }
-
-        .jb-breadcrumb-item {
-            height: 100%;
-            overflow: hidden;
-            line-height: 20px;
-            text-overflow: ellipsis;
-            cursor: pointer;
-
-            &.last {
-                color: #313238 !important;
-                cursor: default;
-            }
-        }
+      }
     }
 </style>

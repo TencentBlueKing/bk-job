@@ -364,50 +364,50 @@
     @import "@/css/mixins/media";
 
     .script-source-of-execution {
-        .script-source-item {
-            .bk-radio-button-text {
-                width: 120px;
-                text-align: center;
-            }
+      .script-source-item {
+        .bk-radio-button-text {
+          width: 120px;
+          text-align: center;
+        }
+      }
+
+      .refer-script-box {
+        position: relative;
+        display: flex;
+
+        .refer-script-detail {
+          position: absolute;
+          top: 0;
+          right: -40px;
+          bottom: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          font-size: 16px;
+          color: #3a84ff;
+          cursor: pointer;
         }
 
-        .refer-script-box {
-            position: relative;
-            display: flex;
+        .refer-script-list {
+          width: calc(500px - 120px);
 
-            .refer-script-detail {
-                position: absolute;
-                top: 0;
-                right: -40px;
-                bottom: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 40px;
-                font-size: 16px;
-                color: #3a84ff;
-                cursor: pointer;
-            }
+          @media (--small-viewports) {
+            width: calc(500px - 120px);
+          }
 
-            .refer-script-list {
-                width: calc(500px - 120px);
+          @media (--medium-viewports) {
+            width: calc(560px - 120px);
+          }
 
-                @media (--small-viewports) {
-                    width: calc(500px - 120px);
-                }
+          @media (--large-viewports) {
+            width: calc(620px - 120px);
+          }
 
-                @media (--medium-viewports) {
-                    width: calc(560px - 120px);
-                }
-
-                @media (--large-viewports) {
-                    width: calc(620px - 120px);
-                }
-
-                @media (--huge-viewports) {
-                    width: calc(680px - 120px);
-                }
-            }
+          @media (--huge-viewports) {
+            width: calc(680px - 120px);
+          }
         }
+      }
     }
 </style>

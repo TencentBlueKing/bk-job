@@ -1004,132 +1004,132 @@
 </script>
 <style lang='postcss'>
     .task-manage-plan-page {
-        .bk-table tr:hover {
-            td.plan-name-column {
-                .plan-name-box {
-                    .collection-flag {
-                        display: inline-block;
-                    }
-                }
-            }
-        }
-
-        .bk-table-row {
-            &.active {
-                background: #eff5ff;
-            }
-        }
-
-        .create-plan-placeholder {
-            display: flex;
-            align-items: center;
-            height: 40px;
-            padding-left: 85px;
-            line-height: 40px;
-            color: #3a84ff;
-            border-bottom: 1px solid #dfe0e5;
-
-            &.active {
-                background: #eff5ff;
-            }
-
-            .name-box {
-                max-width: 226px;
-                margin-right: 8px;
-                overflow: hidden;
-                font-size: 13px;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-        }
-
-        .plan-name-column {
-            &:hover {
-                .collection-flag {
-                    display: block;
-                }
-            }
-
-            .cell {
-                overflow: unset;
-            }
-
-            .plan-name-box {
-                position: relative;
-                display: flex;
-                flex: 1;
-                align-items: center;
-                height: 40px;
-                cursor: pointer;
-            }
-
-            .name-wraper {
-                display: flex;
-                align-items: center;
-                width: 100%;
-                padding-right: 6px;
-                overflow: hidden;
-            }
-
-            .name-text {
-                overflow: hidden;
-                color: #3a84ff;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                cursor: pointer;
-                flex: 0 1 auto;
-                align-items: center;
-            }
-
-            .cron-job-tag {
-                flex: 0 0 auto;
-                display: inline-flex;
-                height: 16px;
-                padding: 0 4px;
-                margin-left: 4px;
-                font-size: 12px;
-                color: #fff;
-                cursor: pointer;
-                background: #3a84ff;
-                border-radius: 8px;
-                user-select: none;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .update-flag {
-                flex: 0 0 auto;
-                display: inline-flex;
-                width: 16px;
-                height: 16px;
-                margin-left: 4px;
-                font-size: 12px;
-                color: #fff;
-                background: #ea3636;
-                border-radius: 8px;
-                user-select: none;
-                justify-content: center;
-                align-items: center;
-            }
-
+      .bk-table tr:hover {
+        td.plan-name-column {
+          .plan-name-box {
             .collection-flag {
-                position: absolute;
-                left: -32px;
-                display: none;
-                padding: 10px;
-                font-size: 14px;
-                color: #c4c6cc;
-
-                &.favored {
-                    display: inline-block;
-                    color: #ffd695;
-                }
+              display: inline-block;
             }
-
-            .select-flag {
-                margin-left: auto;
-                color: #a3c5fd;
-            }
+          }
         }
+      }
+
+      .bk-table-row {
+        &.active {
+          background: #eff5ff;
+        }
+      }
+
+      .create-plan-placeholder {
+        display: flex;
+        align-items: center;
+        height: 40px;
+        padding-left: 85px;
+        line-height: 40px;
+        color: #3a84ff;
+        border-bottom: 1px solid #dfe0e5;
+
+        &.active {
+          background: #eff5ff;
+        }
+
+        .name-box {
+          max-width: 226px;
+          margin-right: 8px;
+          overflow: hidden;
+          font-size: 13px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .plan-name-column {
+        &:hover {
+          .collection-flag {
+            display: block;
+          }
+        }
+
+        .cell {
+          overflow: unset;
+        }
+
+        .plan-name-box {
+          position: relative;
+          display: flex;
+          flex: 1;
+          align-items: center;
+          height: 40px;
+          cursor: pointer;
+        }
+
+        .name-wraper {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          padding-right: 6px;
+          overflow: hidden;
+        }
+
+        .name-text {
+          overflow: hidden;
+          color: #3a84ff;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          cursor: pointer;
+          flex: 0 1 auto;
+          align-items: center;
+        }
+
+        .cron-job-tag {
+          flex: 0 0 auto;
+          display: inline-flex;
+          height: 16px;
+          padding: 0 4px;
+          margin-left: 4px;
+          font-size: 12px;
+          color: #fff;
+          cursor: pointer;
+          background: #3a84ff;
+          border-radius: 8px;
+          user-select: none;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .update-flag {
+          flex: 0 0 auto;
+          display: inline-flex;
+          width: 16px;
+          height: 16px;
+          margin-left: 4px;
+          font-size: 12px;
+          color: #fff;
+          background: #ea3636;
+          border-radius: 8px;
+          user-select: none;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .collection-flag {
+          position: absolute;
+          left: -32px;
+          display: none;
+          padding: 10px;
+          font-size: 14px;
+          color: #c4c6cc;
+
+          &.favored {
+            display: inline-block;
+            color: #ffd695;
+          }
+        }
+
+        .select-flag {
+          margin-left: auto;
+          color: #a3c5fd;
+        }
+      }
     }
 </style>

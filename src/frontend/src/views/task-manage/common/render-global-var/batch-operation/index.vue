@@ -187,93 +187,93 @@
 </script>
 <style lang="postcss">
     .global-bariable-batch-operation {
-        table {
-            width: 100%;
-            font-size: 12px;
-            line-height: 18px;
-            color: #63656e;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
-            table-layout: fixed;
+      table {
+        width: 100%;
+        font-size: 12px;
+        line-height: 18px;
+        color: #63656e;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+        table-layout: fixed;
 
-            thead {
-                background: #fafbfd;
-            }
-
-            th,
-            td {
-                height: 41px;
-                padding-right: 5px;
-                padding-left: 15px;
-                text-align: left;
-            }
-
-            th {
-                font-weight: normal;
-                color: #313238;
-            }
-
-            td {
-                padding-top: 5px;
-                padding-bottom: 5px;
-                border-top: 1px solid #dcdee5;
-            }
-
-            .hover-tips {
-                padding-bottom: 2px;
-                border-bottom: 1px dashed #c4c6cc;
-            }
-
-            .require-flag {
-                &::after {
-                    display: inline-block;
-                    height: 8px;
-                    font-size: 12px;
-                    line-height: 1;
-                    color: #ea3636;
-                    vertical-align: middle;
-                    content: "*";
-                }
-            }
-
-            .action-row {
-                user-select: none;
-
-                .action-btn {
-                    font-size: 18px;
-                    color: #c4c6cc;
-                    cursor: pointer;
-                }
-            }
+        thead {
+          background: #fafbfd;
         }
 
-        .empty-box {
-            display: flex;
-            height: 32px;
-            margin-top: 6px;
+        th,
+        td {
+          height: 41px;
+          padding-right: 5px;
+          padding-left: 15px;
+          text-align: left;
+        }
+
+        th {
+          font-weight: normal;
+          color: #313238;
+        }
+
+        td {
+          padding-top: 5px;
+          padding-bottom: 5px;
+          border-top: 1px solid #dcdee5;
+        }
+
+        .hover-tips {
+          padding-bottom: 2px;
+          border-bottom: 1px dashed #c4c6cc;
+        }
+
+        .require-flag {
+          &::after {
+            display: inline-block;
+            height: 8px;
             font-size: 12px;
-            color: #979ba5;
+            line-height: 1;
+            color: #ea3636;
+            vertical-align: middle;
+            content: "*";
+          }
+        }
+
+        .action-row {
+          user-select: none;
+
+          .action-btn {
+            font-size: 18px;
+            color: #c4c6cc;
             cursor: pointer;
-            background: #fcfdff;
-            border: 1px dashed #c4c6cc;
-            border-radius: 2px;
-            align-items: center;
-            justify-content: center;
-
-            i {
-                margin-right: 7px;
-                font-size: 14px;
-                color: #c4c6cc;
-            }
-
-            &:hover {
-                color: #3a84ff;
-                border-color: #3a84ff;
-
-                i {
-                    color: #3a84ff;
-                }
-            }
+          }
         }
+      }
+
+      .empty-box {
+        display: flex;
+        height: 32px;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #979ba5;
+        cursor: pointer;
+        background: #fcfdff;
+        border: 1px dashed #c4c6cc;
+        border-radius: 2px;
+        align-items: center;
+        justify-content: center;
+
+        i {
+          margin-right: 7px;
+          font-size: 14px;
+          color: #c4c6cc;
+        }
+
+        &:hover {
+          color: #3a84ff;
+          border-color: #3a84ff;
+
+          i {
+            color: #3a84ff;
+          }
+        }
+      }
     }
 </style>

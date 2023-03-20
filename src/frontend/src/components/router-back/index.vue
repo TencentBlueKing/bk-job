@@ -111,13 +111,13 @@
 </script>
 <style lang='postcss' scoped>
     .jb-router-back {
-        position: relative;
-        z-index: 1999;
-        flex: 0 0 auto;
-        padding: 16px 8px 16px 24px;
-        margin-left: -24px;
-        font-size: 14px;
-        color: #3a84ff;
-        cursor: pointer;
+      position: relative;
+      z-index: 1999;
+      flex: 0 0 auto;
+      padding: 16px 8px 16px 24px;
+      margin-left: -24px;
+      font-size: 14px;
+      color: #3a84ff;
+      cursor: pointer;
     }
 </style>

@@ -190,63 +190,63 @@
 </script>
 <style lang='postcss'>
     .plan-manage-confirm-cron {
-        display: flex;
-        background: #fff;
+      display: flex;
+      background: #fff;
 
-        .layout-left {
-            position: relative;
-            z-index: 1000;
-            flex: 0 0 320px;
-            height: calc(100vh - 154px);
-            background: #fafbfd;
+      .layout-left {
+        position: relative;
+        z-index: 1000;
+        flex: 0 0 320px;
+        height: calc(100vh - 154px);
+        background: #fafbfd;
 
-            &::after {
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 1px;
-                height: 100%;
-                background: #ecedf3;
-                content: "";
-            }
-
-            .cron-job-tab {
-                position: relative;
-                z-index: 1;
-                font-size: 14px;
-                color: #63656e;
-                cursor: pointer;
-                border-bottom: 1px solid #ecedf3;
-
-                .tab-container {
-                    display: flex;
-                    height: 40px;
-                    padding: 0 13px 0 24px;
-                    align-items: center;
-                }
-
-                &.active {
-                    background: #fff;
-                }
-
-                .job-name {
-                    margin-right: auto;
-                }
-
-                .job-check {
-                    font-size: 24px;
-                    color: #2dcb56;
-                }
-
-                .job-switch {
-                    margin-left: 20px;
-                }
-            }
+        &::after {
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 1px;
+          height: 100%;
+          background: #ecedf3;
+          content: "";
         }
 
-        .layout-right {
-            flex: 1;
-            height: calc(100vh - 154px);
+        .cron-job-tab {
+          position: relative;
+          z-index: 1;
+          font-size: 14px;
+          color: #63656e;
+          cursor: pointer;
+          border-bottom: 1px solid #ecedf3;
+
+          .tab-container {
+            display: flex;
+            height: 40px;
+            padding: 0 13px 0 24px;
+            align-items: center;
+          }
+
+          &.active {
+            background: #fff;
+          }
+
+          .job-name {
+            margin-right: auto;
+          }
+
+          .job-check {
+            font-size: 24px;
+            color: #2dcb56;
+          }
+
+          .job-switch {
+            margin-left: 20px;
+          }
         }
+      }
+
+      .layout-right {
+        flex: 1;
+        height: calc(100vh - 154px);
+      }
     }
 </style>

@@ -393,13 +393,13 @@
 </script>
 <style lang='postcss'>
     .step-distro-file {
-        .card-layout {
-            padding-left: 0;
-            margin-bottom: 6px;
+      .card-layout {
+        padding-left: 0;
+        margin-bottom: 6px;
 
-            .card-layout-title {
-                padding-left: 30px;
-            }
+        .card-layout-title {
+          padding-left: 30px;
         }
+      }
     }
 </style>

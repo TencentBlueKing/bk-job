@@ -109,29 +109,29 @@
 </script>
 <style lang="postcss">
     .file-step-transfer-mode-wraper {
-        display: flex;
-        align-items: center;
-        height: 32px;
+      display: flex;
+      align-items: center;
+      height: 32px;
 
-        .radio-check {
-            flex: 0 0 auto;
-            width: auto;
+      .radio-check {
+        flex: 0 0 auto;
+        width: auto;
 
-            .bk-form-radio {
-                &:nth-child(n+2) {
-                    margin-left: 32px;
-                }
-            }
-
-            .bk-radio-text {
-                border-bottom: 1px dashed #c4c6cc;
-            }
+        .bk-form-radio {
+          &:nth-child(n+2) {
+            margin-left: 32px;
+          }
         }
 
-        .select-check {
-            flex: 1;
-            min-width: 295px;
-            margin-left: 12px;
+        .bk-radio-text {
+          border-bottom: 1px dashed #c4c6cc;
         }
+      }
+
+      .select-check {
+        flex: 1;
+        min-width: 295px;
+        margin-left: 12px;
+      }
     }
 </style>

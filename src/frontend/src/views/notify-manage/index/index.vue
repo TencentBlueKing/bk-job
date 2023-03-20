@@ -179,10 +179,10 @@
 </script>
 <style lang="postcss" scoped>
     .notify-message-page {
-        margin-bottom: 24px;
+      margin-bottom: 24px;
 
-        .bk-collapse {
-            border-bottom: none;
-        }
+      .bk-collapse {
+        border-bottom: none;
+      }
     }
 </style>

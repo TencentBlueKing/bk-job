@@ -70,16 +70,16 @@
 </script>
 <style lang='postcss'>
     .jb-form-item {
-        &.label-miss {
-            .bk-label {
-                height: 0;
-                min-height: 0;
-                font-size: 0;
-            }
+      &.label-miss {
+        .bk-label {
+          height: 0;
+          min-height: 0;
+          font-size: 0;
         }
+      }
 
-        .jb-form-item-content {
-            flex: 1;
-        }
+      .jb-form-item-content {
+        flex: 1;
+      }
     }
 </style>

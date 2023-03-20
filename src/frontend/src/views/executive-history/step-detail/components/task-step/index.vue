@@ -174,123 +174,123 @@
 </script>
 <style lang='postcss'>
     .task-execute-bar-step {
-        cursor: pointer;
+      cursor: pointer;
 
-        &.start,
-        &.end {
-            cursor: default;
-
-            &:hover {
-                background: #fff;
-            }
-        }
+      &.start,
+      &.end {
+        cursor: default;
 
         &:hover {
-            background: #f0f1f5;
+          background: #fff;
         }
+      }
 
-        &.active {
-            background: #e1ecff;
-        }
+      &:hover {
+        background: #f0f1f5;
+      }
 
-        &.loading {
-            color: #63656e;
+      &.active {
+        background: #e1ecff;
+      }
 
-            .step-icon {
-                background: #3a84ff;
-            }
-
-            .time {
-                color: #3a84ff;
-            }
-        }
-
-        &.ingore {
-            .step-icon {
-                background: #abd88a;
-            }
-        }
-
-        &.disabled {
-            cursor: default;
-            background: transparent;
-
-            .step-icon {
-                background: #dcdee5;
-            }
-        }
-
-        &.fail,
-        &.forced,
-        &.confirm-forced {
-            color: #979ba5;
-
-            .step-icon {
-                background: #ff5656;
-            }
-        }
-
-        &.confirm {
-            color: #979ba5;
-
-            .step-icon {
-                background: #ff9c01;
-            }
-        }
-
-        .step-wraper {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 60px;
-            height: 60px;
-        }
+      &.loading {
+        color: #63656e;
 
         .step-icon {
-            display: flex;
-            width: 34px;
-            height: 34px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-            background: #2dcb9d;
-            border-radius: 50%;
-            align-items: center;
-            justify-content: center;
+          background: #3a84ff;
         }
 
-        .step-next {
-            position: absolute;
-            left: 50%;
-            font-size: 31px;
-            color: #c4c6cc;
-            transform: translate(-50%, -18px);
+        .time {
+          color: #3a84ff;
         }
+      }
 
-        .loading-progress {
-            position: absolute;
-            top: 9px;
-            left: 9px;
-            display: block;
-            width: 42px;
-            height: 42px;
-            animation: "ani-rotate" 2s linear infinite;
+      &.ingore {
+        .step-icon {
+          background: #abd88a;
         }
+      }
+
+      &.disabled {
+        cursor: default;
+        background: transparent;
+
+        .step-icon {
+          background: #dcdee5;
+        }
+      }
+
+      &.fail,
+      &.forced,
+      &.confirm-forced {
+        color: #979ba5;
+
+        .step-icon {
+          background: #ff5656;
+        }
+      }
+
+      &.confirm {
+        color: #979ba5;
+
+        .step-icon {
+          background: #ff9c01;
+        }
+      }
+
+      .step-wraper {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 60px;
+        height: 60px;
+      }
+
+      .step-icon {
+        display: flex;
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        background: #2dcb9d;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .step-next {
+        position: absolute;
+        left: 50%;
+        font-size: 31px;
+        color: #c4c6cc;
+        transform: translate(-50%, -18px);
+      }
+
+      .loading-progress {
+        position: absolute;
+        top: 9px;
+        left: 9px;
+        display: block;
+        width: 42px;
+        height: 42px;
+        animation: "ani-rotate" 2s linear infinite;
+      }
     }
 
     .task-status-bar-step-popover {
-        /* position: relative; */
-        font-size: 14px;
-        line-height: 22px;
-        color: #63656e;
-        white-space: nowrap;
-        background: #fff;
-        border: 1px solid #dcdee5;
-        border-radius: 2px;
-        box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
+      /* position: relative; */
+      font-size: 14px;
+      line-height: 22px;
+      color: #63656e;
+      white-space: nowrap;
+      background: #fff;
+      border: 1px solid #dcdee5;
+      border-radius: 2px;
+      box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
 
-        /* &:after{
+      /* &:after{
             content: '';
             position: absolute;
             top: 0;

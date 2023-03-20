@@ -325,154 +325,154 @@
 </script>
 <style lang='postcss'>
     .server-file-edit-box {
-        .global-variable-render-box {
-            position: relative;
-            border: 1px solid transparent;
-            border-radius: 2px;
+      .global-variable-render-box {
+        position: relative;
+        border: 1px solid transparent;
+        border-radius: 2px;
 
-            &.value-error {
-                border-color: #ea3636;
-            }
-
-            .error-tips {
-                position: absolute;
-                top: 0;
-                right: 0;
-                z-index: 1999;
-                display: flex;
-                height: 30px;
-                padding: 0 6px;
-                font-size: 16px;
-                color: #ea3636;
-                cursor: pointer;
-                align-items: center;
-            }
+        &.value-error {
+          border-color: #ea3636;
         }
 
-        .variable-edit-select,
-        .account-add-btn {
-            &:hover,
-            &.is-focus {
-                .bk-select-angle {
-                    display: block;
-                }
-            }
+        .error-tips {
+          position: absolute;
+          top: 0;
+          right: 0;
+          z-index: 1999;
+          display: flex;
+          height: 30px;
+          padding: 0 6px;
+          font-size: 16px;
+          color: #ea3636;
+          cursor: pointer;
+          align-items: center;
+        }
+      }
 
-            .bk-select-angle {
-                display: none;
-                font-size: 20px;
-            }
+      .variable-edit-select,
+      .account-add-btn {
+        &:hover,
+        &.is-focus {
+          .bk-select-angle {
+            display: block;
+          }
         }
 
-        .account-add-btn,
-        .server-edit-btn,
-        .server-add-only-host-btn {
-            margin-left: -10px;
+        .bk-select-angle {
+          display: none;
+          font-size: 20px;
+        }
+      }
+
+      .account-add-btn,
+      .server-edit-btn,
+      .server-add-only-host-btn {
+        margin-left: -10px;
+      }
+
+      .server-add-btn,
+      .server-edit-btn,
+      .server-add-host {
+        cursor: pointer;
+        border-radius: 2px;
+
+        &:hover {
+          background: #f0f1f5;
+        }
+      }
+
+      .server-add-btn,
+      .server-add-host {
+        height: 30px;
+        line-height: 30px;
+      }
+
+      .server-edit-btn {
+        min-height: 30px;
+        padding: 5px 10px;
+        line-height: 20px;
+      }
+
+      .server-add-btn {
+        display: flex;
+        height: 30px;
+        margin-left: -10px;
+        font-size: 12px;
+        cursor: pointer;
+        background: #f7f8fa;
+        border-radius: 2px;
+        align-items: center;
+
+        .server-type-select {
+          flex: 0 0 auto;
         }
 
-        .server-add-btn,
-        .server-edit-btn,
+        .line {
+          height: 16px;
+          background: #dcdee5;
+          flex: 0 0 1px;
+        }
+
+        .server-add-variable {
+          flex: 1;
+        }
+
         .server-add-host {
-            cursor: pointer;
-            border-radius: 2px;
+          display: flex;
+          height: 30px;
+          font-size: 12px;
+          border-radius: 2px;
+          flex: 1;
+          align-items: center;
+          justify-content: center;
+        }
+      }
 
-            &:hover {
-                background: #f0f1f5;
-            }
+      .server-add-only-host-btn {
+        display: flex;
+        height: 30px;
+        padding: 0 10px;
+        font-size: 12px;
+        cursor: pointer;
+        background: #f7f8fa;
+        border-radius: 2px;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          color: #979ba5;
+          background: #f0f1f5;
         }
 
-        .server-add-btn,
-        .server-add-host {
-            height: 30px;
-            line-height: 30px;
+        .add-flag {
+          margin-right: 6px;
+          margin-bottom: 2px;
+        }
+      }
+
+      .create-server-file {
+        tr {
+          td {
+            border-top: 1px solid #dcdee5;
+          }
+        }
+      }
+
+      .bk-select {
+        height: 30px;
+        line-height: 30px;
+        border: none;
+
+        &:hover {
+          background: #f0f1f5;
         }
 
-        .server-edit-btn {
-            min-height: 30px;
-            padding: 5px 10px;
-            line-height: 20px;
+        .bk-select-name {
+          height: 30px;
+          padding-right: 16px;
+          padding-left: 10px;
+          line-height: 30px;
         }
-
-        .server-add-btn {
-            display: flex;
-            height: 30px;
-            margin-left: -10px;
-            font-size: 12px;
-            cursor: pointer;
-            background: #f7f8fa;
-            border-radius: 2px;
-            align-items: center;
-
-            .server-type-select {
-                flex: 0 0 auto;
-            }
-
-            .line {
-                height: 16px;
-                background: #dcdee5;
-                flex: 0 0 1px;
-            }
-
-            .server-add-variable {
-                flex: 1;
-            }
-
-            .server-add-host {
-                display: flex;
-                height: 30px;
-                font-size: 12px;
-                border-radius: 2px;
-                flex: 1;
-                align-items: center;
-                justify-content: center;
-            }
-        }
-
-        .server-add-only-host-btn {
-            display: flex;
-            height: 30px;
-            padding: 0 10px;
-            font-size: 12px;
-            cursor: pointer;
-            background: #f7f8fa;
-            border-radius: 2px;
-            align-items: center;
-            justify-content: center;
-
-            &:hover {
-                color: #979ba5;
-                background: #f0f1f5;
-            }
-
-            .add-flag {
-                margin-right: 6px;
-                margin-bottom: 2px;
-            }
-        }
-
-        .create-server-file {
-            tr {
-                td {
-                    border-top: 1px solid #dcdee5;
-                }
-            }
-        }
-
-        .bk-select {
-            height: 30px;
-            line-height: 30px;
-            border: none;
-
-            &:hover {
-                background: #f0f1f5;
-            }
-
-            .bk-select-name {
-                height: 30px;
-                padding-right: 16px;
-                padding-left: 10px;
-                line-height: 30px;
-            }
-        }
+      }
     }
 </style>

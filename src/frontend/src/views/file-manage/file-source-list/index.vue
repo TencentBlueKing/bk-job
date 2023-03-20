@@ -400,9 +400,9 @@
 </script>
 <style lang="postcss">
     .file-manage-source-file {
-        .action-box {
-            display: flex;
-            align-items: center;
-        }
+      .action-box {
+        display: flex;
+        align-items: center;
+      }
     }
 </style>

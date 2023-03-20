@@ -198,49 +198,49 @@
 </script>
 <style lang='postcss'>
     .step-execution-history-select {
-        position: relative;
-        display: flex;
-        height: 20px;
-        padding-right: 2px;
-        padding-left: 10px;
-        margin-left: 8px;
-        color: #63656e;
-        cursor: pointer;
-        background: #e6e7eb;
-        border-radius: 2px;
-        align-items: center;
+      position: relative;
+      display: flex;
+      height: 20px;
+      padding-right: 2px;
+      padding-left: 10px;
+      margin-left: 8px;
+      color: #63656e;
+      cursor: pointer;
+      background: #e6e7eb;
+      border-radius: 2px;
+      align-items: center;
     }
 
     .step-execution-history-menu-theme {
-        .menu-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 32px;
-            padding: 0 10px;
-            font-size: 12px;
-            color: #979ba5;
-            cursor: pointer;
+      .menu-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 32px;
+        padding: 0 10px;
+        font-size: 12px;
+        color: #979ba5;
+        cursor: pointer;
 
-            &:hover {
-                background: #f4f6fa;
-            }
-
-            &.active {
-                background: #eaf3ff;
-
-                .retry-count {
-                    color: #3a84ff;
-                }
-            }
-
-            .retry-count {
-                color: #63656e;
-            }
+        &:hover {
+          background: #f4f6fa;
         }
 
-        .tippy-content {
-            margin: 0 -0.6rem;
+        &.active {
+          background: #eaf3ff;
+
+          .retry-count {
+            color: #3a84ff;
+          }
         }
+
+        .retry-count {
+          color: #63656e;
+        }
+      }
+
+      .tippy-content {
+        margin: 0 -0.6rem;
+      }
     }
 </style>

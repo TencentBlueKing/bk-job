@@ -219,50 +219,50 @@
 </script>
 <style lang='postcss' scoped>
     .render-trend-box {
+      display: flex;
+      align-items: flex-end;
+
+      .data-wraper {
         display: flex;
-        align-items: flex-end;
+        margin-right: auto;
+        font-size: 12px;
+        line-height: 16px;
+        color: #babcc2;
+        white-space: nowrap;
+        /* stylelint-disable declaration-block-no-redundant-longhand-properties */
+        flex-direction: column;
+        flex-wrap: nowrap;
 
-        .data-wraper {
-            display: flex;
-            margin-right: auto;
-            font-size: 12px;
-            line-height: 16px;
-            color: #babcc2;
-            white-space: nowrap;
-            /* stylelint-disable declaration-block-no-redundant-longhand-properties */
-            flex-direction: column;
-            flex-wrap: nowrap;
-
-            .total {
-                font-size: 24px;
-                font-weight: 500;
-                line-height: 32px;
-                color: #63656e;
-            }
-
-            .data-row {
-                display: flex;
-                align-items: center;
-
-                &.up {
-                    color: #4bc7ad;
-                }
-
-                &.down {
-                    color: #ff5656;
-                }
-            }
-
-            .label {
-                margin-right: 6px;
-                color: #babcc2;
-            }
+        .total {
+          font-size: 24px;
+          font-weight: 500;
+          line-height: 32px;
+          color: #63656e;
         }
 
-        .data-chart {
-            flex: 1;
-            padding-left: 30px;
-            overflow: hidden;
+        .data-row {
+          display: flex;
+          align-items: center;
+
+          &.up {
+            color: #4bc7ad;
+          }
+
+          &.down {
+            color: #ff5656;
+          }
         }
+
+        .label {
+          margin-right: 6px;
+          color: #babcc2;
+        }
+      }
+
+      .data-chart {
+        flex: 1;
+        padding-left: 30px;
+        overflow: hidden;
+      }
     }
 </style>

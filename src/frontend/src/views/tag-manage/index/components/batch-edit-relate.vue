@@ -290,70 +290,70 @@
 </script>
 <style lang="postcss">
     .batch-edit-relate-box {
-        padding-top: 5px;
+      padding-top: 5px;
 
-        .tag-panel {
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
-        }
+      .tag-panel {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+      }
 
-        .tag-search {
-            margin: 0 10px;
+      .tag-search {
+        margin: 0 10px;
 
-            &.bk-form-control {
-                &.with-left-icon {
-                    width: auto;
+        &.bk-form-control {
+          &.with-left-icon {
+            width: auto;
 
-                    .left-icon {
-                        left: 0;
-                    }
-
-                    .bk-form-input {
-                        padding-left: 24px;
-                    }
-                }
+            .left-icon {
+              left: 0;
             }
 
             .bk-form-input {
-                border-color: transparent !important;
-                border-bottom: 1px solid #c4c6cc !important;
+              padding-left: 24px;
             }
+          }
         }
 
-        .wrapper {
-            padding: 18px 0 18px 12px;
+        .bk-form-input {
+          border-color: transparent !important;
+          border-bottom: 1px solid #c4c6cc !important;
+        }
+      }
 
-            .tag-list {
-                display: flex;
-                flex-direction: column;
+      .wrapper {
+        padding: 18px 0 18px 12px;
 
-                .tag-item {
-                    margin-bottom: 16px;
+        .tag-list {
+          display: flex;
+          flex-direction: column;
 
-                    &:last-child {
-                        margin-bottom: 0;
-                    }
-                }
+          .tag-item {
+            margin-bottom: 16px;
+
+            &:last-child {
+              margin-bottom: 0;
             }
-
-            .new-tag-flag {
-                margin-left: 5px;
-                font-size: 18px;
-                vertical-align: middle;
-            }
+          }
         }
 
-        .tag-create {
-            height: 38px;
-            padding-left: 10px;
-            font-size: 12px;
-            line-height: 38px;
-            color: #63656e;
-            cursor: pointer;
-            background: #fafbfd;
-            border-top: 1px solid #dcdee5;
+        .new-tag-flag {
+          margin-left: 5px;
+          font-size: 18px;
+          vertical-align: middle;
         }
+      }
+
+      .tag-create {
+        height: 38px;
+        padding-left: 10px;
+        font-size: 12px;
+        line-height: 38px;
+        color: #63656e;
+        cursor: pointer;
+        background: #fafbfd;
+        border-top: 1px solid #dcdee5;
+      }
     }
 </style>

@@ -238,56 +238,56 @@
 </script>
 <style lang='postcss' scoped>
     .agent-box {
+      display: flex;
+      justify-content: center;
+
+      .agent-statistics {
+        margin-top: -10px;
+      }
+
+      .agent-statistics-detail {
+        width: 102px;
+        margin-left: 7.4%;
+        font-size: 12px;
+        line-height: 30px;
+      }
+
+      .detail-item {
         display: flex;
-        justify-content: center;
+        align-items: center;
+        color: #63656e;
+        cursor: pointer;
 
-        .agent-statistics {
-            margin-top: -10px;
+        &::before {
+          display: block;
+          width: 12px;
+          height: 3px;
+          margin-right: 8px;
+          content: "";
         }
 
-        .agent-statistics-detail {
-            width: 102px;
-            margin-left: 7.4%;
-            font-size: 12px;
-            line-height: 30px;
+        &.normal {
+          &::before {
+            background: #2dcb9d;
+          }
         }
 
-        .detail-item {
-            display: flex;
-            align-items: center;
-            color: #63656e;
-            cursor: pointer;
-
-            &::before {
-                display: block;
-                width: 12px;
-                height: 3px;
-                margin-right: 8px;
-                content: "";
-            }
-
-            &.normal {
-                &::before {
-                    background: #2dcb9d;
-                }
-            }
-
-            &.fail {
-                &::before {
-                    background: #ff565c;
-                }
-            }
-
-            &.uninstalled {
-                &::before {
-                    background: #dcdee5;
-                }
-            }
-
-            .detail-value {
-                margin-left: auto;
-                font-weight: bold;
-            }
+        &.fail {
+          &::before {
+            background: #ff565c;
+          }
         }
+
+        &.uninstalled {
+          &::before {
+            background: #dcdee5;
+          }
+        }
+
+        .detail-value {
+          margin-left: auto;
+          font-weight: bold;
+        }
+      }
     }
 </style>

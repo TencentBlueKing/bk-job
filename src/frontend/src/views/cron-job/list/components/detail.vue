@@ -196,34 +196,34 @@
 </script>
 <style lang="postcss" scoped>
     .detail-layout-wrapper {
-        .approval-wraper {
-            display: flex;
-            align-items: center;
-            height: 34px;
+      .approval-wraper {
+        display: flex;
+        align-items: center;
+        height: 34px;
 
-            .item {
-                display: flex;
-                height: 20px;
-                padding: 0 6px;
-                margin-right: 10px;
-                font-size: 12px;
-                color: #63656e;
-                background: #f0f1f5;
-                border-radius: 2px;
-                align-items: center;
-            }
-
-            .approval-flag {
-                margin-right: 4px;
-            }
+        .item {
+          display: flex;
+          height: 20px;
+          padding: 0 6px;
+          margin-right: 10px;
+          font-size: 12px;
+          color: #63656e;
+          background: #f0f1f5;
+          border-radius: 2px;
+          align-items: center;
         }
 
-        .detail-item {
-            margin-bottom: 0;
+        .approval-flag {
+          margin-right: 4px;
         }
+      }
 
-        .plan-variable-empty {
-            color: #b2b5bd;
-        }
+      .detail-item {
+        margin-bottom: 0;
+      }
+
+      .plan-variable-empty {
+        color: #b2b5bd;
+      }
     }
 </style>

@@ -410,19 +410,19 @@
 </script>
 <style lang="postcss">
     .operation-account {
-        margin-bottom: -20px;
+      margin-bottom: -20px;
 
-        .radio-button-group-wraper {
-            position: relative;
-            z-index: 1;
+      .radio-button-group-wraper {
+        position: relative;
+        z-index: 1;
+      }
+
+      .account-type-radio {
+        width: 120px;
+
+        .bk-radio-button-text {
+          width: 100%;
         }
-
-        .account-type-radio {
-            width: 120px;
-
-            .bk-radio-button-text {
-                width: 100%;
-            }
-        }
+      }
     }
 </style>

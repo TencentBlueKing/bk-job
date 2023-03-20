@@ -82,40 +82,40 @@
 </script>
 <style lang="postcss">
     .server-panel-dropdown-menu {
-        display: inline-flex;
-        align-items: center;
-        font-size: 20px;
-        cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      font-size: 20px;
+      cursor: pointer;
     }
 
     .server-panel-dropdown-menu-popover-theme {
-        padding: 0 !important;
+      padding: 0 !important;
 
-        .tippy-arrow {
-            display: none;
+      .tippy-arrow {
+        display: none;
+      }
+
+      .server-dropdown-menu-content {
+        width: 93px;
+        padding: 10px 0;
+        font-size: 14px;
+        line-height: 32px;
+        color: #63656e;
+        text-align: center;
+        background: #fff;
+        border: 1px solid #f0f1f5;
+        box-shadow: 0 1px 1px 0 rgb(185 203 222 / 50%);
+
+        .dropdown-menu-item {
+          cursor: pointer;
+
+          &:hover,
+          &.active {
+            color: #3a84ff;
+            background: #e5efff;
+          }
         }
-
-        .server-dropdown-menu-content {
-            width: 93px;
-            padding: 10px 0;
-            font-size: 14px;
-            line-height: 32px;
-            color: #63656e;
-            text-align: center;
-            background: #fff;
-            border: 1px solid #f0f1f5;
-            box-shadow: 0 1px 1px 0 rgb(185 203 222 / 50%);
-
-            .dropdown-menu-item {
-                cursor: pointer;
-
-                &:hover,
-                &.active {
-                    color: #3a84ff;
-                    background: #e5efff;
-                }
-            }
-        }
+      }
     }
 
 </style>

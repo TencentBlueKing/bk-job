@@ -101,42 +101,42 @@
 </script>
 <style lang='postcss'>
     .job-more-action {
-        display: inline-block;
-        width: 32px;
-        height: 32px;
-        margin-left: -14px;
-        line-height: 30px;
-        color: #868b97;
-        text-align: center;
-        cursor: pointer;
-        background: transparent;
-        border-radius: 50%;
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      margin-left: -14px;
+      line-height: 30px;
+      color: #868b97;
+      text-align: center;
+      cursor: pointer;
+      background: transparent;
+      border-radius: 50%;
+
+      .icon {
+        font-size: 14px;
+      }
+
+      &:hover {
+        background: #dcdee5;
 
         .icon {
-            font-size: 14px;
+          color: #3a84ff;
         }
-
-        &:hover {
-            background: #dcdee5;
-
-            .icon {
-                color: #3a84ff;
-            }
-        }
+      }
     }
 
     .job-action-wrapper {
-        .job-action-item {
-            width: 35px;
-            font-size: 14px;
-            line-height: 32px;
-            color: #868b97;
-            text-align: center;
-            cursor: pointer;
+      .job-action-item {
+        width: 35px;
+        font-size: 14px;
+        line-height: 32px;
+        color: #868b97;
+        text-align: center;
+        cursor: pointer;
 
-            &:hover {
-                color: #3a84ff;
-            }
+        &:hover {
+          color: #3a84ff;
         }
+      }
     }
 </style>

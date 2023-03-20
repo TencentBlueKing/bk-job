@@ -251,32 +251,32 @@
 </script>
 <style lang='postcss'>
     .batch-edit-plan-global-variable {
-        .action-target-info {
-            display: flex;
-            padding-top: 20px;
-            font-size: 14px;
-            line-height: 20px;
-            color: #63656e;
+      .action-target-info {
+        display: flex;
+        padding-top: 20px;
+        font-size: 14px;
+        line-height: 20px;
+        color: #63656e;
 
-            .label {
-                color: #313238;
-            }
-
-            .content-split {
-                width: 18px;
-                text-align: left;
-            }
+        .label {
+          color: #313238;
         }
 
-        .global-variable-list {
-            display: flex;
-            flex-wrap: wrap;
-            padding-top: 4px;
-            margin: 0 -5px;
+        .content-split {
+          width: 18px;
+          text-align: left;
         }
+      }
 
-        .global-variable-value {
-            margin-top: 30px;
-        }
+      .global-variable-list {
+        display: flex;
+        flex-wrap: wrap;
+        padding-top: 4px;
+        margin: 0 -5px;
+      }
+
+      .global-variable-value {
+        margin-top: 30px;
+      }
     }
 </style>

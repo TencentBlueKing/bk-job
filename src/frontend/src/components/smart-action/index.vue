@@ -175,15 +175,15 @@
 </script>
 <style lang="postcss" scoped>
     .smart {
-        position: fixed;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 998;
-        display: flex;
-        height: 52px;
-        background: #fff;
-        box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 6%);
-        align-items: center;
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 998;
+      display: flex;
+      height: 52px;
+      background: #fff;
+      box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 6%);
+      align-items: center;
     }
 </style>

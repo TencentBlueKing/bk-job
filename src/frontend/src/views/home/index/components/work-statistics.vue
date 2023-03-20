@@ -75,67 +75,67 @@
   };
 </script>
 <style lang='postcss'>
-    @keyframes hexagon-scale {
-        0% {
-            transform: scale(0);
-        }
-
-        70% {
-            transform: scale(1.5);
-        }
-
-        80% {
-            transform: scale(1.2);
-        }
-
-        90% {
-            transform: scale(1.4);
-        }
-
-        100% {
-            transform: scale(1.3);
-        }
+  @keyframes hexagon-scale {
+    0% {
+      transform: scale(0);
     }
 
-    .work-statistics-box {
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 18px;
-        text-align: center;
-        cursor: pointer;
-
-        .work-flag {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            width: 100px;
-            height: 60px;
-            margin-bottom: 15px;
-        }
-
-        .work-total {
-            font-size: 24px;
-            font-weight: bold;
-            color: #313238;
-        }
-
-        .work-name {
-            margin-top: 2px;
-            color: #979ba5;
-        }
-
-        .hexagon {
-            font-size: 60px;
-            color: #e3edff;
-        }
-
-        .statistics {
-            position: absolute;
-            top: 15px;
-            font-size: 30px;
-            color: #3a84ff;
-        }
+    70% {
+      transform: scale(1.5);
     }
+
+    80% {
+      transform: scale(1.2);
+    }
+
+    90% {
+      transform: scale(1.4);
+    }
+
+    100% {
+      transform: scale(1.3);
+    }
+  }
+
+  .work-statistics-box {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 18px;
+    text-align: center;
+    cursor: pointer;
+
+    .work-flag {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      width: 100px;
+      height: 60px;
+      margin-bottom: 15px;
+    }
+
+    .work-total {
+      font-size: 24px;
+      font-weight: bold;
+      color: #313238;
+    }
+
+    .work-name {
+      margin-top: 2px;
+      color: #979ba5;
+    }
+
+    .hexagon {
+      font-size: 60px;
+      color: #e3edff;
+    }
+
+    .statistics {
+      position: absolute;
+      top: 15px;
+      font-size: 30px;
+      color: #3a84ff;
+    }
+  }
 </style>

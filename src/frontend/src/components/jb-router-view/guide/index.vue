@@ -74,12 +74,12 @@
 </script>
 <style lang="postcss">
     .guide-page {
-        position: absolute;
-        top: 0;
-        right: 0;
-        left: 0;
-        z-index: 1000;
-        min-height: calc(100vh - 104px);
-        background: #fff;
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 1000;
+      min-height: calc(100vh - 104px);
+      background: #fff;
     }
 </style>

@@ -118,107 +118,107 @@
   };
 </script>
 <style lang='postcss'>
-    .plan-list-page-layout {
-        display: flex;
+  .plan-list-page-layout {
+    display: flex;
 
-        &.toggled {
-            margin-left: -24px;
+    &.toggled {
+      margin-left: -24px;
 
-            .left-wraper {
-                width: 0 !important;
-            }
+      .left-wraper {
+        width: 0 !important;
+      }
 
-            .toggle-button {
-                .toggle-arrow {
-                    transform: rotateZ(-90deg);
-                }
-            }
-
-            .layout-right {
-                margin-left: 24px;
-            }
+      .toggle-button {
+        .toggle-arrow {
+          transform: rotateZ(-90deg);
         }
+      }
 
-        .layout-left {
-            position: relative;
-            z-index: 9;
-            background: #fff;
-            border: 1px solid #dfe0e5;
-            transition: all 0.15s;
-            flex: 0 0 auto;
-
-            .left-wraper {
-                transition: all 0.1s;
-            }
-
-            .bk-table::before {
-                content: unset;
-            }
-
-            .toggle-button {
-                position: absolute;
-                top: 50%;
-                right: -14px;
-                display: flex;
-                width: 14px;
-                height: 64px;
-                font-size: 24px;
-                color: #fff;
-                cursor: pointer;
-                background: #dcdee5;
-                border-top-right-radius: 6px;
-                border-bottom-right-radius: 6px;
-                transform: translateY(-50%);
-                align-items: center;
-                justify-content: center;
-
-                &:hover {
-                    background: #c4c6cc;
-                }
-            }
-
-            .toggle-arrow {
-                transform: rotateZ(90deg);
-            }
-        }
-
-        .layout-right {
-            position: relative;
-            z-index: 1;
-            margin-left: 10px;
-            background: #fff;
-            border: 1px solid #dfe0e5;
-            border-radius: 2px;
-            transition: all 0.15s;
-            flex: 1;
-
-            .right-wraper {
-                opacity: 0%;
-                transition: all 0.5s;
-
-                &.active {
-                    opacity: 100%;
-                }
-            }
-
-            .close-btn {
-                position: absolute;
-                top: 8px;
-                right: 8px;
-                display: flex;
-                width: 26px;
-                height: 26px;
-                font-size: 16px;
-                color: #c4c6cc;
-                cursor: pointer;
-                border-radius: 50%;
-                align-items: center;
-                justify-content: center;
-
-                &:hover {
-                    background-color: #f0f1f5;
-                }
-            }
-        }
+      .layout-right {
+        margin-left: 24px;
+      }
     }
+
+    .layout-left {
+      position: relative;
+      z-index: 9;
+      background: #fff;
+      border: 1px solid #dfe0e5;
+      transition: all 0.15s;
+      flex: 0 0 auto;
+
+      .left-wraper {
+        transition: all 0.1s;
+      }
+
+      .bk-table::before {
+        content: unset;
+      }
+
+      .toggle-button {
+        position: absolute;
+        top: 50%;
+        right: -14px;
+        display: flex;
+        width: 14px;
+        height: 64px;
+        font-size: 24px;
+        color: #fff;
+        cursor: pointer;
+        background: #dcdee5;
+        border-top-right-radius: 6px;
+        border-bottom-right-radius: 6px;
+        transform: translateY(-50%);
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background: #c4c6cc;
+        }
+      }
+
+      .toggle-arrow {
+        transform: rotateZ(90deg);
+      }
+    }
+
+    .layout-right {
+      position: relative;
+      z-index: 1;
+      margin-left: 10px;
+      background: #fff;
+      border: 1px solid #dfe0e5;
+      border-radius: 2px;
+      transition: all 0.15s;
+      flex: 1;
+
+      .right-wraper {
+        opacity: 0%;
+        transition: all 0.5s;
+
+        &.active {
+          opacity: 100%;
+        }
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: flex;
+        width: 26px;
+        height: 26px;
+        font-size: 16px;
+        color: #c4c6cc;
+        cursor: pointer;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background-color: #f0f1f5;
+        }
+      }
+    }
+  }
 </style>

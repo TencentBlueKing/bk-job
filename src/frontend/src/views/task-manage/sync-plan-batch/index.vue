@@ -749,144 +749,144 @@
 </script>
 <style lang='postcss'>
     @keyframes sync-loading-ani {
-        from {
-            transform: rotateZ(0);
-        }
+      from {
+        transform: rotateZ(0);
+      }
 
-        to {
-            transform: rotateZ(360deg);
-        }
+      to {
+        transform: rotateZ(360deg);
+      }
     }
 
     .sync-plan-batch-page {
-        .render-list-header {
-            display: flex;
-            height: 42px;
-            padding: 0 15px;
-            font-size: 12px;
-            color: #63656e;
-            background: #f0f1f5;
-            border: 1px solid #dcdee5;
-            border-bottom: none;
-            align-items: center;
+      .render-list-header {
+        display: flex;
+        height: 42px;
+        padding: 0 15px;
+        font-size: 12px;
+        color: #63656e;
+        background: #f0f1f5;
+        border: 1px solid #dcdee5;
+        border-bottom: none;
+        align-items: center;
 
-            .list-name {
-                font-weight: bold;
+        .list-name {
+          font-weight: bold;
 
-                .total {
-                    color: #979ba5;
-                }
-            }
-
-            .item-status {
-                margin-left: auto;
-
-                .confirmed,
-                .unconfirmed {
-                    padding-right: 4px;
-                    font-weight: bold;
-                }
-
-                .confirmed {
-                    color: #3a84ff;
-                }
-            }
-        }
-
-        .sync-plan-list {
-            &.bk-table {
-                border-top-right-radius: 0;
-                border-top-left-radius: 0;
-            }
-
-            .template-plan-sync-record {
-                &:hover {
-                    .open-link-flag {
-                        opacity: 100%;
-                    }
-                }
-            }
-
-            .sync-permission {
-                background: #fafbfd;
-            }
-
-            .open-link-flag {
-                font-size: 12px;
-                opacity: 0%;
-            }
-
-            .status-column {
-                .cell {
-                    overflow: unset;
-                }
-            }
-
-            .confirm-status-box {
-                display: flex;
-                align-items: center;
-
-                .status-flag {
-                    margin-right: 4px;
-
-                    &.sync-default {
-                        color: #c4c6cc;
-                    }
-
-                    &.sync-pending {
-                        color: #3a84ff;
-                        animation: sync-loading-ani 1s linear infinite;
-                    }
-
-                    &.sync-success {
-                        color: #3fc06d;
-                    }
-
-                    &.sync-failed {
-                        color: #ea3636;
-                    }
-                }
-
-                span[tippy-tips] {
-                    padding-bottom: 2px;
-                    cursor: pointer;
-                    border-bottom: 1px dashed #c4c6cc;
-                }
-            }
-        }
-
-        .confirm-status {
-            height: 16px;
-            padding: 0 5px;
-            font-size: 12px;
-            line-height: 16px;
+          .total {
             color: #979ba5;
-            background: #f0f1f5;
-            border-radius: 8px;
-
-            &.confirmed {
-                color: #3a84ff;
-                background: #e1ecff;
-            }
+          }
         }
 
-        .plan-cron-job-loading {
+        .item-status {
+          margin-left: auto;
+
+          .confirmed,
+          .unconfirmed {
+            padding-right: 4px;
+            font-weight: bold;
+          }
+
+          .confirmed {
             color: #3a84ff;
-            animation: sync-loading-ani 1s linear infinite;
+          }
+        }
+      }
+
+      .sync-plan-list {
+        &.bk-table {
+          border-top-right-radius: 0;
+          border-top-left-radius: 0;
         }
 
-        .sync-plan-action {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            height: 52px;
-            padding-right: 24px;
-            background: #fff;
-            box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 6%);
+        .template-plan-sync-record {
+          &:hover {
+            .open-link-flag {
+              opacity: 100%;
+            }
+          }
         }
+
+        .sync-permission {
+          background: #fafbfd;
+        }
+
+        .open-link-flag {
+          font-size: 12px;
+          opacity: 0%;
+        }
+
+        .status-column {
+          .cell {
+            overflow: unset;
+          }
+        }
+
+        .confirm-status-box {
+          display: flex;
+          align-items: center;
+
+          .status-flag {
+            margin-right: 4px;
+
+            &.sync-default {
+              color: #c4c6cc;
+            }
+
+            &.sync-pending {
+              color: #3a84ff;
+              animation: sync-loading-ani 1s linear infinite;
+            }
+
+            &.sync-success {
+              color: #3fc06d;
+            }
+
+            &.sync-failed {
+              color: #ea3636;
+            }
+          }
+
+          span[tippy-tips] {
+            padding-bottom: 2px;
+            cursor: pointer;
+            border-bottom: 1px dashed #c4c6cc;
+          }
+        }
+      }
+
+      .confirm-status {
+        height: 16px;
+        padding: 0 5px;
+        font-size: 12px;
+        line-height: 16px;
+        color: #979ba5;
+        background: #f0f1f5;
+        border-radius: 8px;
+
+        &.confirmed {
+          color: #3a84ff;
+          background: #e1ecff;
+        }
+      }
+
+      .plan-cron-job-loading {
+        color: #3a84ff;
+        animation: sync-loading-ani 1s linear infinite;
+      }
+
+      .sync-plan-action {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        height: 52px;
+        padding-right: 24px;
+        background: #fff;
+        box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 6%);
+      }
     }
 </style>

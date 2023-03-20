@@ -124,33 +124,33 @@
 </script>
 <style lang='postcss' scoped>
     .artificial-view {
-        .detail-item {
-            margin-bottom: 0;
+      .detail-item {
+        margin-bottom: 0;
+      }
+
+      .approval-wraper {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        min-height: 34px;
+        margin-top: -5px;
+
+        .item {
+          display: flex;
+          height: 20px;
+          padding: 0 6px;
+          margin-top: 10px;
+          margin-right: 10px;
+          font-size: 12px;
+          color: #63656e;
+          background: #f0f1f5;
+          border-radius: 2px;
+          align-items: center;
         }
 
-        .approval-wraper {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            min-height: 34px;
-            margin-top: -5px;
-
-            .item {
-                display: flex;
-                height: 20px;
-                padding: 0 6px;
-                margin-top: 10px;
-                margin-right: 10px;
-                font-size: 12px;
-                color: #63656e;
-                background: #f0f1f5;
-                border-radius: 2px;
-                align-items: center;
-            }
-
-            .approval-flag {
-                margin-right: 4px;
-            }
+        .approval-flag {
+          margin-right: 4px;
         }
+      }
     }
 </style>

@@ -61,31 +61,31 @@
 </script>
 <style lang='postcss'>
     .bk-collapse {
-        border-bottom: 1px solid #dcdee5;
+      border-bottom: 1px solid #dcdee5;
     }
 
     .jb-collapse-item {
-        .bk-collapse-item-active {
-            .bk-collapse-item-header {
-                border-bottom-color: #dcdee5;
-            }
-        }
-
+      .bk-collapse-item-active {
         .bk-collapse-item-header {
-            position: relative;
-            overflow: initial;
-            font-size: 12px;
-            font-weight: 600;
-            background: #fafbfd;
-            border: 1px solid #dcdee5;
-            border-bottom-color: transparent;
+          border-bottom-color: #dcdee5;
         }
+      }
 
-        .bk-collapse-item .bk-collapse-item-content {
-            padding: 0;
-            border-right: 1px solid #dcdee5;
-            border-left: 1px solid #dcdee5;
-        }
+      .bk-collapse-item-header {
+        position: relative;
+        overflow: initial;
+        font-size: 12px;
+        font-weight: 600;
+        background: #fafbfd;
+        border: 1px solid #dcdee5;
+        border-bottom-color: transparent;
+      }
+
+      .bk-collapse-item .bk-collapse-item-content {
+        padding: 0;
+        border-right: 1px solid #dcdee5;
+        border-left: 1px solid #dcdee5;
+      }
     }
 
 </style>

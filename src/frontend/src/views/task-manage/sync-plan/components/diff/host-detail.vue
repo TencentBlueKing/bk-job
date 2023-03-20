@@ -252,73 +252,73 @@
 </script>
 <style lang="postcss">
     .host-variable-detail-dialog {
-        .bk-dialog-tool {
-            display: none;
+      .bk-dialog-tool {
+        display: none;
+      }
+
+      .bk-dialog-header,
+      .bk-dialog-footer {
+        position: relative;
+        z-index: 99999;
+        background: #fff;
+      }
+
+      .bk-dialog-header {
+        display: flex;
+        align-items: center;
+        height: 68px;
+        padding: 0 24px;
+        font-size: 20px;
+        color: #000;
+        border-bottom: 1px solid #dcdee5;
+
+        .display-diff {
+          display: flex;
+          align-items: center;
+          margin-left: auto;
+          font-size: 14px;
+          color: #63656e;
+
+          .bk-switcher {
+            margin-right: 10px;
+          }
         }
+      }
 
-        .bk-dialog-header,
-        .bk-dialog-footer {
-            position: relative;
-            z-index: 99999;
-            background: #fff;
-        }
+      .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner {
+        font-size: 20px;
+        color: #000;
+        text-align: left;
+      }
 
-        .bk-dialog-header {
-            display: flex;
-            align-items: center;
-            height: 68px;
-            padding: 0 24px;
-            font-size: 20px;
-            color: #000;
-            border-bottom: 1px solid #dcdee5;
+      .bk-dialog-wrapper .bk-dialog-body {
+        padding: 0;
+      }
 
-            .display-diff {
-                display: flex;
-                align-items: center;
-                margin-left: auto;
-                font-size: 14px;
-                color: #63656e;
+      .content-wraper {
+        height: 450px;
+        max-height: 450px;
+        min-height: 450px;
+        margin-top: -1px;
+      }
 
-                .bk-switcher {
-                    margin-right: 10px;
-                }
-            }
-        }
-
-        .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner {
-            font-size: 20px;
-            color: #000;
-            text-align: left;
-        }
-
-        .bk-dialog-wrapper .bk-dialog-body {
-            padding: 0;
-        }
-
-        .content-wraper {
-            height: 450px;
-            max-height: 450px;
-            min-height: 450px;
-            margin-top: -1px;
-        }
-
-        button[name="cancel"] {
-            display: none;
-        }
+      button[name="cancel"] {
+        display: none;
+      }
     }
 </style>
 <style lang='postcss' scoped>
     .step-view-global-variable {
-        display: inline-flex;
-        align-items: center;
-        padding-right: 10px;
-        line-height: 1;
-        cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      padding-right: 10px;
+      line-height: 1;
+      cursor: pointer;
 
-        .type-flag {
-            font-size: 17px;
-            color: #3a84ff;
-            cursor: pointer;
-        }
+      .type-flag {
+        font-size: 17px;
+        color: #3a84ff;
+        cursor: pointer;
+      }
     }
 </style>

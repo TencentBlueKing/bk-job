@@ -299,114 +299,114 @@
 </script>
 <style lang="postcss">
     .sync-ip-detail-dialog {
-        .bk-dialog-tool {
-            display: none;
+      .bk-dialog-tool {
+        display: none;
+      }
+
+      .bk-dialog-header,
+      .bk-dialog-footer {
+        position: relative;
+        z-index: 99999;
+        background: #fff;
+      }
+
+      .bk-dialog-header {
+        display: flex;
+        align-items: center;
+        height: 68px;
+        padding: 0 24px;
+        font-size: 20px;
+        color: #000;
+        border-bottom: 1px solid #dcdee5;
+
+        .display-diff {
+          display: flex;
+          align-items: center;
+          margin-left: auto;
+          font-size: 14px;
+          color: #63656e;
+
+          .bk-switcher {
+            margin-right: 10px;
+          }
         }
+      }
 
-        .bk-dialog-header,
-        .bk-dialog-footer {
-            position: relative;
-            z-index: 99999;
-            background: #fff;
-        }
+      .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner {
+        font-size: 20px;
+        color: #000;
+        text-align: left;
+      }
 
-        .bk-dialog-header {
-            display: flex;
-            align-items: center;
-            height: 68px;
-            padding: 0 24px;
-            font-size: 20px;
-            color: #000;
-            border-bottom: 1px solid #dcdee5;
+      .bk-dialog-wrapper .bk-dialog-body {
+        padding: 0;
+      }
 
-            .display-diff {
-                display: flex;
-                align-items: center;
-                margin-left: auto;
-                font-size: 14px;
-                color: #63656e;
+      .content-wraper {
+        height: 450px;
+        max-height: 450px;
+        min-height: 450px;
+        margin-top: -1px;
+      }
 
-                .bk-switcher {
-                    margin-right: 10px;
-                }
-            }
-        }
-
-        .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner {
-            font-size: 20px;
-            color: #000;
-            text-align: left;
-        }
-
-        .bk-dialog-wrapper .bk-dialog-body {
-            padding: 0;
-        }
-
-        .content-wraper {
-            height: 450px;
-            max-height: 450px;
-            min-height: 450px;
-            margin-top: -1px;
-        }
-
-        button[name="cancel"] {
-            display: none;
-        }
+      button[name="cancel"] {
+        display: none;
+      }
     }
 </style>
 <style lang='postcss' scoped>
     .sync-plan-ip-detail {
-        position: relative;
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .sync-plan-step-variable {
         display: flex;
-        align-items: center;
+        overflow: hidden;
+        cursor: pointer;
 
-        .sync-plan-step-variable {
-            display: flex;
-            overflow: hidden;
-            cursor: pointer;
-
-            .variable-flag {
-                display: flex;
-                width: 24px;
-                height: 24px;
-                font-size: 13px;
-                color: #fff !important;
-                background: #c4c6cc;
-                border-bottom-left-radius: 2px;
-                border-top-left-radius: 2px;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .variable-name {
-                display: flex;
-                height: 24px;
-                padding: 0 10px;
-                font-size: 12px;
-                color: #63656e;
-                background: #fff;
-                border: 1px solid #dcdee5;
-                border-left: none;
-                border-top-right-radius: 2px;
-                border-bottom-right-radius: 2px;
-                align-items: center;
-                justify-content: center;
-            }
+        .variable-flag {
+          display: flex;
+          width: 24px;
+          height: 24px;
+          font-size: 13px;
+          color: #fff !important;
+          background: #c4c6cc;
+          border-bottom-left-radius: 2px;
+          border-top-left-radius: 2px;
+          align-items: center;
+          justify-content: center;
         }
 
-        .ip-text {
-            height: 24px;
-            overflow: hidden;
-            line-height: 24px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .variable-name {
+          display: flex;
+          height: 24px;
+          padding: 0 10px;
+          font-size: 12px;
+          color: #63656e;
+          background: #fff;
+          border: 1px solid #dcdee5;
+          border-left: none;
+          border-top-right-radius: 2px;
+          border-bottom-right-radius: 2px;
+          align-items: center;
+          justify-content: center;
         }
+      }
 
-        .look-ip-detail {
-            padding: 4px 5px;
-            font-size: 17px;
-            color: #3a84ff;
-            cursor: pointer;
-        }
+      .ip-text {
+        height: 24px;
+        overflow: hidden;
+        line-height: 24px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .look-ip-detail {
+        padding: 4px 5px;
+        font-size: 17px;
+        color: #3a84ff;
+        cursor: pointer;
+      }
     }
 </style>

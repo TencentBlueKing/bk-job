@@ -102,37 +102,37 @@
 </script>
 <style lang='postcss'>
     .step-execute-variable-view {
-        height: 100%;
-        padding: 0 20px;
-        font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
-        color: #c4c6cc;
-        white-space: pre-line;
+      height: 100%;
+      padding: 0 20px;
+      font-family: Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
+      color: #c4c6cc;
+      white-space: pre-line;
 
-        table {
-            width: 100%;
+      table {
+        width: 100%;
+      }
+
+      th,
+      td {
+        height: 40px;
+        padding-right: 10px;
+        border-bottom: 1px solid #3b3c42;
+      }
+
+      th {
+        color: #ccc;
+      }
+
+      td {
+        color: #979ba5;
+
+        &:first-child {
+          white-space: pre;
         }
 
-        th,
-        td {
-            height: 40px;
-            padding-right: 10px;
-            border-bottom: 1px solid #3b3c42;
+        &.variable-value {
+          word-break: break-word;
         }
-
-        th {
-            color: #ccc;
-        }
-
-        td {
-            color: #979ba5;
-
-            &:first-child {
-                white-space: pre;
-            }
-
-            &.variable-value {
-                word-break: break-word;
-            }
-        }
+      }
     }
 </style>

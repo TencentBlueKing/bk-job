@@ -124,10 +124,10 @@
 </script>
 <style lang='postcss' scoped>
     .time-tips {
-        max-height: 40px;
-        min-height: 20px;
-        margin-top: 15px;
-        margin-bottom: 15px;
-        overflow: hidden;
+      max-height: 40px;
+      min-height: 20px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      overflow: hidden;
     }
 </style>

@@ -181,57 +181,57 @@
 </script>
 <style lang='postcss'>
     html[lang="en-US"] .notify-channel-wraper {
-        .bk-form-checkbox {
-            width: 64px;
-        }
+      .bk-form-checkbox {
+        width: 64px;
+      }
     }
 
     .execute-notify-box {
+      display: flex;
+      flex-direction: column;
+
+      .row {
         display: flex;
-        flex-direction: column;
+        margin-bottom: 20px;
 
-        .row {
-            display: flex;
-            margin-bottom: 20px;
-
-            &:last-child {
-                margin-bottom: 0;
-            }
-
-            .label {
-                font-size: 14px;
-                color: #63656e;
-                text-align: left;
-                flex: 0 0 80px;
-            }
+        &:last-child {
+          margin-bottom: 0;
         }
 
-        .time-select {
-            width: 100%;
-            background: #fff;
+        .label {
+          font-size: 14px;
+          color: #63656e;
+          text-align: left;
+          flex: 0 0 80px;
         }
+      }
 
-        .notify-channel-wraper {
-            display: flex;
-            align-items: flex-start;
-            min-height: 32px;
-            white-space: nowrap;
+      .time-select {
+        width: 100%;
+        background: #fff;
+      }
 
-            .all-channel {
-                display: flex;
-                flex-wrap: wrap;
-            }
+      .notify-channel-wraper {
+        display: flex;
+        align-items: flex-start;
+        min-height: 32px;
+        white-space: nowrap;
+
+        .all-channel {
+          display: flex;
+          flex-wrap: wrap;
         }
+      }
 
-        .bk-form-checkbox {
-            display: flex;
-            flex: 0 0 auto;
-            margin-top: 6px;
-            margin-right: 40px;
-        }
+      .bk-form-checkbox {
+        display: flex;
+        flex: 0 0 auto;
+        margin-top: 6px;
+        margin-right: 40px;
+      }
 
-        .bk-checkbox {
-            background: #fff;
-        }
+      .bk-checkbox {
+        background: #fff;
+      }
     }
 </style>

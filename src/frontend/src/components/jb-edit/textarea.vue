@@ -330,95 +330,95 @@
 </script>
 <style lang='postcss' scoped>
     .jb-edit-textarea {
+      position: relative;
+
+      &.block {
         position: relative;
+        cursor: pointer;
 
-        &.block {
-            position: relative;
-            cursor: pointer;
-
-            .render-value-box,
-            .edit-value-box {
-                margin-left: -10px;
-            }
-
-            .render-value-box {
-                padding-left: 10px;
-
-                &:hover {
-                    background: #f0f1f5;
-                }
-            }
-
-            .edit-action-box {
-                position: absolute;
-                top: 0;
-                right: 10px;
-                width: 16px;
-            }
+        .render-value-box,
+        .edit-value-box {
+          margin-left: -10px;
         }
 
         .render-value-box {
-            position: relative;
-            display: flex;
-            align-items: center;
-            min-width: 30px;
-            min-height: 30px;
-            padding: 3px 0;
+          padding-left: 10px;
 
-            &:hover {
-                .edit-action {
-                    opacity: 100%;
-                    transform: scale(1);
-                }
-            }
-
-            .text-whole {
-                color: #3a84ff;
-                white-space: nowrap;
-                cursor: pointer;
-                user-select: none;
-            }
-        }
-
-        .render-text-box {
-            position: relative;
-            overflow: hidden;
-            line-height: 24px;
-            white-space: pre-wrap;
+          &:hover {
+            background: #f0f1f5;
+          }
         }
 
         .edit-action-box {
-            display: flex;
-            align-items: center;
-            align-self: flex-start;
-            height: 26px;
-            margin-right: auto;
-            font-size: 16px;
+          position: absolute;
+          top: 0;
+          right: 10px;
+          width: 16px;
+        }
+      }
 
-            .edit-action {
-                padding: 4px 15px 4px 2px;
-                color: #979ba5;
-                cursor: pointer;
-                opacity: 0%;
-                transform: scale(0);
-                transition: 0.15s;
-                transform-origin: left center;
+      .render-value-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-width: 30px;
+        min-height: 30px;
+        padding: 3px 0;
 
-                &:hover {
-                    color: #3a84ff;
-                }
-            }
-
-            .edit-loading {
-                position: absolute;
-                top: 8px;
-                margin-left: 2px;
-                animation: rotate-loading 1s linear infinite;
-            }
+        &:hover {
+          .edit-action {
+            opacity: 100%;
+            transform: scale(1);
+          }
         }
 
-        .edit-value-box {
-            width: 100%;
+        .text-whole {
+          color: #3a84ff;
+          white-space: nowrap;
+          cursor: pointer;
+          user-select: none;
         }
+      }
+
+      .render-text-box {
+        position: relative;
+        overflow: hidden;
+        line-height: 24px;
+        white-space: pre-wrap;
+      }
+
+      .edit-action-box {
+        display: flex;
+        align-items: center;
+        align-self: flex-start;
+        height: 26px;
+        margin-right: auto;
+        font-size: 16px;
+
+        .edit-action {
+          padding: 4px 15px 4px 2px;
+          color: #979ba5;
+          cursor: pointer;
+          opacity: 0%;
+          transform: scale(0);
+          transition: 0.15s;
+          transform-origin: left center;
+
+          &:hover {
+            color: #3a84ff;
+          }
+        }
+
+        .edit-loading {
+          position: absolute;
+          top: 8px;
+          margin-left: 2px;
+          animation: rotate-loading 1s linear infinite;
+        }
+      }
+
+      .edit-value-box {
+        width: 100%;
+      }
     }
 </style>

@@ -315,87 +315,87 @@
 </script>
 <style lang="postcss">
     .export-task-step3-page {
-        .form {
-            display: flex;
-            justify-content: center;
-            padding-top: 60px;
+      .form {
+        display: flex;
+        justify-content: center;
+        padding-top: 60px;
 
-            .encrypt-wraper {
-                display: flex;
-                align-items: center;
-                height: 100%;
-            }
-
-            .expire-time-box {
-                .bk-radio-button-text {
-                    width: 93px;
-                }
-            }
-
-            .expire-time-custom {
-                position: relative;
-                right: 0;
-            }
+        .encrypt-wraper {
+          display: flex;
+          align-items: center;
+          height: 100%;
         }
 
-        .bk-form-radio {
-            margin-right: 28px;
+        .expire-time-box {
+          .bk-radio-button-text {
+            width: 93px;
+          }
         }
 
-        .group-text {
-            position: relative;
-            width: 87px;
-            overflow: unset !important;
-            text-align: center;
-
-            &::before {
-                position: absolute;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                left: 0;
-                z-index: 1;
-                background: #f5f7fa;
-                content: "";
-            }
-
-            &::after {
-                position: absolute;
-                top: -5px;
-                left: 50%;
-                width: 11px;
-                height: 11px;
-                background: #f5f7fa;
-                border-top: 1px solid #c4c6cc;
-                border-right: 1px solid #c4c6cc;
-                content: "";
-                transform: translateX(-50%) rotateZ(-45deg);
-            }
-
-            .text {
-                position: relative;
-                z-index: 1;
-            }
+        .expire-time-custom {
+          position: relative;
+          right: 0;
         }
+      }
+
+      .bk-form-radio {
+        margin-right: 28px;
+      }
+
+      .group-text {
+        position: relative;
+        width: 87px;
+        overflow: unset !important;
+        text-align: center;
+
+        &::before {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          z-index: 1;
+          background: #f5f7fa;
+          content: "";
+        }
+
+        &::after {
+          position: absolute;
+          top: -5px;
+          left: 50%;
+          width: 11px;
+          height: 11px;
+          background: #f5f7fa;
+          border-top: 1px solid #c4c6cc;
+          border-right: 1px solid #c4c6cc;
+          content: "";
+          transform: translateX(-50%) rotateZ(-45deg);
+        }
+
+        .text {
+          position: relative;
+          z-index: 1;
+        }
+      }
     }
 
     .html-config-password {
-        .item {
-            &::before {
-                display: inline-block;
-                width: 8px;
-                height: 8px;
-                margin-right: 10px;
-                background-color: #ccc;
-                border-radius: 50%;
-                content: "";
-            }
-
-            &.active {
-                &::before {
-                    background-color: #3fc06d;
-                }
-            }
+      .item {
+        &::before {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          margin-right: 10px;
+          background-color: #ccc;
+          border-radius: 50%;
+          content: "";
         }
+
+        &.active {
+          &::before {
+            background-color: #3fc06d;
+          }
+        }
+      }
     }
 </style>

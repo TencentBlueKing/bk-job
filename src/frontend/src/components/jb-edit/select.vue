@@ -337,118 +337,118 @@
 </script>
 <style lang='postcss'>
     .jb-edit-select {
-        &.block {
-            position: relative;
-            cursor: pointer;
-
-            .render-value-box {
-                padding-left: 10px;
-                margin-left: -10px;
-
-                &:hover {
-                    background: #f0f1f5;
-
-                    .value-text {
-                        max-width: calc(100% - 32px);
-                    }
-                }
-            }
-
-            .edit-action-box {
-                position: absolute;
-                top: 0;
-                right: 10px;
-                width: 16px;
-            }
-        }
+      &.block {
+        position: relative;
+        cursor: pointer;
 
         .render-value-box {
-            position: relative;
-            display: flex;
-            height: 30px;
-            min-width: 36px;
-            min-height: 28px;
+          padding-left: 10px;
+          margin-left: -10px;
 
-            .value-arrow {
-                position: absolute;
-                top: 2px;
-                right: 2px;
-                display: none;
-                font-size: 22px;
-                color: #979ba5;
+          &:hover {
+            background: #f0f1f5;
+
+            .value-text {
+              max-width: calc(100% - 32px);
             }
-
-            &:hover {
-                .edit-action {
-                    opacity: 100%;
-                    transform: scale(1);
-                }
-
-                .value-arrow {
-                    display: block;
-                }
-            }
-        }
-
-        .value-text {
-            overflow: hidden;
-            line-height: 30px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+          }
         }
 
         .edit-action-box {
-            display: flex;
-            align-items: center;
-            min-height: 1em;
-            margin-right: auto;
-            font-size: 16px;
-            color: #979ba5;
+          position: absolute;
+          top: 0;
+          right: 10px;
+          width: 16px;
+        }
+      }
 
-            .edit-action {
-                padding: 6px 0 6px 2px;
-                cursor: pointer;
-                opacity: 0%;
-                transform: scale(0);
-                transition: 0.15s;
-                transform-origin: left center;
+      .render-value-box {
+        position: relative;
+        display: flex;
+        height: 30px;
+        min-width: 36px;
+        min-height: 28px;
 
-                &:hover {
-                    color: #3a84ff;
-                }
-            }
-
-            .edit-loading {
-                position: absolute;
-                top: 9px;
-                margin-left: 2px;
-                animation: rotate-loading 1s linear infinite;
-            }
+        .value-arrow {
+          position: absolute;
+          top: 2px;
+          right: 2px;
+          display: none;
+          font-size: 22px;
+          color: #979ba5;
         }
 
-        .edit-value-box {
-            position: relative;
-            width: 100%;
-            font-size: 0;
+        &:hover {
+          .edit-action {
+            opacity: 100%;
+            transform: scale(1);
+          }
 
-            &.edit-error {
-                .bk-select {
-                    border-color: #ea3636 !important;
-                }
-            }
-
-            .input-edit-info {
-                position: absolute;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                padding: 0 10px;
-                font-size: 16px;
-                color: #ea3636;
-            }
+          .value-arrow {
+            display: block;
+          }
         }
+      }
+
+      .value-text {
+        overflow: hidden;
+        line-height: 30px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .edit-action-box {
+        display: flex;
+        align-items: center;
+        min-height: 1em;
+        margin-right: auto;
+        font-size: 16px;
+        color: #979ba5;
+
+        .edit-action {
+          padding: 6px 0 6px 2px;
+          cursor: pointer;
+          opacity: 0%;
+          transform: scale(0);
+          transition: 0.15s;
+          transform-origin: left center;
+
+          &:hover {
+            color: #3a84ff;
+          }
+        }
+
+        .edit-loading {
+          position: absolute;
+          top: 9px;
+          margin-left: 2px;
+          animation: rotate-loading 1s linear infinite;
+        }
+      }
+
+      .edit-value-box {
+        position: relative;
+        width: 100%;
+        font-size: 0;
+
+        &.edit-error {
+          .bk-select {
+            border-color: #ea3636 !important;
+          }
+        }
+
+        .input-edit-info {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          padding: 0 10px;
+          font-size: 16px;
+          color: #ea3636;
+        }
+      }
     }
 </style>

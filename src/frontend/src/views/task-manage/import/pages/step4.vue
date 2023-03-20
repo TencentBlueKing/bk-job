@@ -104,13 +104,13 @@
 </script>
 <style lang='postcss'>
     .task-import-step4 {
-        .form {
-            width: 520px;
-            margin: 60px auto 0;
-        }
+      .form {
+        width: 520px;
+        margin: 60px auto 0;
+      }
 
-        .input {
-            width: 420px;
-        }
+      .input {
+        width: 420px;
+      }
     }
 </style>

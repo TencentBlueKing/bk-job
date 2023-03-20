@@ -675,34 +675,34 @@
 </script>
 <style lang='postcss' scoped>
     .time-task-operation {
-        &.loading {
-            height: calc(100vh - 100px);
-        }
+      &.loading {
+        height: calc(100vh - 100px);
+      }
 
-        .global-variable-content {
-            position: relative;
-            top: -10px;
-        }
+      .global-variable-content {
+        position: relative;
+        top: -10px;
+      }
 
-        .plan-select {
-            display: inline-block;
-            width: 100%;
+      .plan-select {
+        display: inline-block;
+        width: 100%;
 
-            &.new-width {
-                width: calc(100% - 22px);
-            }
+        &.new-width {
+          width: calc(100% - 22px);
         }
+      }
 
-        .plan-icon {
-            display: inline-block;
-            font-size: 16px;
-            color: #979ba5;
-            vertical-align: top;
-            cursor: pointer;
-        }
+      .plan-icon {
+        display: inline-block;
+        font-size: 16px;
+        color: #979ba5;
+        vertical-align: top;
+        cursor: pointer;
+      }
 
-        .plan-variable-empty {
-            color: #b2b5bd;
-        }
+      .plan-variable-empty {
+        color: #b2b5bd;
+      }
     }
 </style>

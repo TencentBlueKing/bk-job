@@ -375,58 +375,58 @@
 </script>
 <style lang='postcss'>
     .executive-history-task {
-        position: relative;
-        top: 0;
-        right: 0;
-        padding-top: 13px;
-        padding-bottom: 53px;
+      position: relative;
+      top: 0;
+      right: 0;
+      padding-top: 13px;
+      padding-bottom: 53px;
 
-        .step-list {
-            display: flex;
-            flex-direction: column;
-            width: 578px;
-            margin: 0 auto;
+      .step-list {
+        display: flex;
+        flex-direction: column;
+        width: 578px;
+        margin: 0 auto;
+      }
+
+      .step-list-action {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        z-index: 9;
+        display: flex;
+        transform: translateX(-50%);
+        user-select: none;
+
+        .execution-process {
+          margin-left: 10px;
         }
+      }
 
-        .step-list-action {
-            position: fixed;
-            bottom: 18px;
-            left: 50%;
-            z-index: 9;
-            display: flex;
-            transform: translateX(-50%);
-            user-select: none;
+      .task-action {
+        position: fixed;
+        top: 126px;
+        right: 22px;
+        display: flex;
 
-            .execution-process {
-                margin-left: 10px;
-            }
+        .action-btn {
+          display: flex;
+          width: 32px;
+          height: 32px;
+          padding: 0 7px;
+          margin-left: 10px;
+          font-size: 19px;
+          color: #979ba5;
+          cursor: pointer;
+          background: #fff;
+          border-radius: 50%;
+          box-shadow: 0 2px 6px 0 rgb(0 0 0 / 6%);
+          align-items: center;
+          justify-content: center;
+
+          &:hover {
+            color: #3a84ff;
+          }
         }
-
-        .task-action {
-            position: fixed;
-            top: 126px;
-            right: 22px;
-            display: flex;
-
-            .action-btn {
-                display: flex;
-                width: 32px;
-                height: 32px;
-                padding: 0 7px;
-                margin-left: 10px;
-                font-size: 19px;
-                color: #979ba5;
-                cursor: pointer;
-                background: #fff;
-                border-radius: 50%;
-                box-shadow: 0 2px 6px 0 rgb(0 0 0 / 6%);
-                align-items: center;
-                justify-content: center;
-
-                &:hover {
-                    color: #3a84ff;
-                }
-            }
-        }
+      }
     }
 </style>

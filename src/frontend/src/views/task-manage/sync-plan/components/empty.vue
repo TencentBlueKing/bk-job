@@ -75,17 +75,17 @@
 </template>
 <style lang='postcss' scoped>
     .job-empty {
-        display: flex;
-        padding-top: 47px;
-        font-size: 14px;
-        line-height: 20px;
-        color: #979ba5;
-        text-align: center;
-        flex-direction: column;
-        align-items: center;
+      display: flex;
+      padding-top: 47px;
+      font-size: 14px;
+      line-height: 20px;
+      color: #979ba5;
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
 
-        .empty-flag {
-            width: 200px;
-        }
+      .empty-flag {
+        width: 200px;
+      }
     }
 </style>

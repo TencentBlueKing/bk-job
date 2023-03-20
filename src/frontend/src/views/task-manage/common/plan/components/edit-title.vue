@@ -197,41 +197,41 @@
 </script>
 <style lang="postcss">
     .plan-edit-title {
+      position: relative;
+      font-size: 14px;
+
+      .input-box {
         position: relative;
-        font-size: 14px;
 
-        .input-box {
-            position: relative;
-
-            .bk-form-input {
-                font-size: 14px;
-            }
-
-            &.validate-error {
-                .only-bottom-border {
-                    border-bottom-color: #ea3636 !important;
-                }
-            }
-
-            .edit-status-flag {
-                position: absolute;
-                top: 8px;
-                right: 8px;
-                z-index: 10;
-                font-size: 16px;
-            }
+        .bk-form-input {
+          font-size: 14px;
         }
 
-        .text {
-            font-size: 18px;
-            line-height: 32px;
-            color: #313238;
-
-            .edit-btn {
-                font-size: 15px;
-                color: #979ba5;
-                cursor: pointer;
-            }
+        &.validate-error {
+          .only-bottom-border {
+            border-bottom-color: #ea3636 !important;
+          }
         }
+
+        .edit-status-flag {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          z-index: 10;
+          font-size: 16px;
+        }
+      }
+
+      .text {
+        font-size: 18px;
+        line-height: 32px;
+        color: #313238;
+
+        .edit-btn {
+          font-size: 15px;
+          color: #979ba5;
+          cursor: pointer;
+        }
+      }
     }
 </style>

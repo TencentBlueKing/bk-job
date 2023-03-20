@@ -139,10 +139,10 @@
 </script>
 <style lang='postcss'>
     .job-execute-record {
-        min-height: calc(100vh - 120px);
+      min-height: calc(100vh - 120px);
 
-        .empty {
-            padding-top: 80px;
-        }
+      .empty {
+        padding-top: 80px;
+      }
     }
 </style>

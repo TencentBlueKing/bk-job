@@ -107,10 +107,10 @@
 </script>
 <style lang='postcss' scoped>
     .execute-global-variable {
-        min-height: calc(100vh - 120px);
+      min-height: calc(100vh - 120px);
     }
 
     .empty {
-        padding-top: 80px;
+      padding-top: 80px;
     }
 </style>

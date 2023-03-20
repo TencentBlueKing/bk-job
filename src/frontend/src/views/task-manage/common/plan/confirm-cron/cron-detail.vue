@@ -205,65 +205,65 @@
 </script>
 <style lang='postcss' scoped>
     .cron-job-detail {
-        padding: 20px 40px 0;
-        opacity: 100%;
-        transition: opacity 0.1s;
+      padding: 20px 40px 0;
+      opacity: 100%;
+      transition: opacity 0.1s;
 
-        &.is-loading {
-            opacity: 0%;
+      &.is-loading {
+        opacity: 0%;
+      }
+
+      .title {
+        display: flex;
+        margin-top: 2px;
+        margin-bottom: 30px;
+        font-size: 18px;
+        font-weight: bold;
+        line-height: 54px;
+        color: #000;
+        border-bottom: 1px solid #f0f1f5;
+        align-items: center;
+
+        .disable,
+        .confirm,
+        .waiting {
+          width: 42px;
+          height: 17px;
+          margin-left: 8px;
+          font-size: 11px;
+          line-height: 17px;
+          text-align: center;
+          border-radius: 2px;
         }
 
-        .title {
-            display: flex;
-            margin-top: 2px;
-            margin-bottom: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            line-height: 54px;
-            color: #000;
-            border-bottom: 1px solid #f0f1f5;
-            align-items: center;
-
-            .disable,
-            .confirm,
-            .waiting {
-                width: 42px;
-                height: 17px;
-                margin-left: 8px;
-                font-size: 11px;
-                line-height: 17px;
-                text-align: center;
-                border-radius: 2px;
-            }
-
-            .disable {
-                color: #63656e;
-                background: rgb(99 101 110 / 14%);
-            }
-
-            .confirm {
-                color: rgb(45 203 157);
-                background-color: rgb(45 203 157 / 14%);
-            }
-
-            .waiting {
-                color: #ff9c01;
-                background: rgb(255 156 1 / 14%);
-            }
+        .disable {
+          color: #63656e;
+          background: rgb(99 101 110 / 14%);
         }
 
-        .global-variable-action {
-            display: flex;
-            margin-top: 10px;
-
-            .variable-name {
-                padding-right: 28px;
-                box-sizing: content-box;
-            }
+        .confirm {
+          color: rgb(45 203 157);
+          background-color: rgb(45 203 157 / 14%);
         }
 
-        .job-empty {
-            margin-top: 140px;
+        .waiting {
+          color: #ff9c01;
+          background: rgb(255 156 1 / 14%);
         }
+      }
+
+      .global-variable-action {
+        display: flex;
+        margin-top: 10px;
+
+        .variable-name {
+          padding-right: 28px;
+          box-sizing: content-box;
+        }
+      }
+
+      .job-empty {
+        margin-top: 140px;
+      }
     }
 </style>

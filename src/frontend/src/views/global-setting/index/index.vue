@@ -89,50 +89,50 @@
 </script>
 <style lang='postcss'>
     .page-global-set-up {
-        .page-tab {
-            .bk-tab-section {
-                display: none;
-            }
+      .page-tab {
+        .bk-tab-section {
+          display: none;
         }
+      }
 
-        .set-up-wraper {
-            width: 100%;
-            min-height: 300px;
-            overflow: hidden;
-            background: #fff;
-            border: 1px solid #dcdee5;
-            border-top: none;
-        }
+      .set-up-wraper {
+        width: 100%;
+        min-height: 300px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #dcdee5;
+        border-top: none;
+      }
 
-        .set-up-content {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-        }
+      .set-up-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+      }
 
-        .block-title {
-            margin-bottom: 14px;
-            font-size: 14px;
-            font-weight: bold;
-            line-height: 1;
-            color: #63656e;
-        }
+      .block-title {
+        margin-bottom: 14px;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1;
+        color: #63656e;
+      }
 
-        .slide-enter {
-            opacity: 0%;
-            transform: translateX(200px);
-        }
+      .slide-enter {
+        opacity: 0%;
+        transform: translateX(200px);
+      }
 
-        .slide-enter-active, {
-            transition: all 0.5s cubic-bezier(0, 0, 0.19, 1.16);
-        }
+      .slide-enter-active, {
+        transition: all 0.5s cubic-bezier(0, 0, 0.19, 1.16);
+      }
 
-        .slide-leave {
-            display: none;
-        }
+      .slide-leave {
+        display: none;
+      }
 
-        .slide-leave-active {
-            display: none;
-        }
+      .slide-leave-active {
+        display: none;
+      }
     }
 </style>

@@ -345,78 +345,78 @@
 </script>
 <style lang="postcss">
     .jb-user-selector {
+      width: 100%;
+
+      &.disabled {
+        height: 32px;
+      }
+
+      .user-selector {
         width: 100%;
-
-        &.disabled {
-            height: 32px;
-        }
-
-        .user-selector {
-            width: 100%;
-        }
+      }
     }
 
     .jb-user-seletor-member-tag {
-        padding-right: 2px;
+      padding-right: 2px;
 
-        .tag-icon {
-            font-size: 16px;
-            color: #979ba5;
-        }
+      .tag-icon {
+        font-size: 16px;
+        color: #979ba5;
+      }
 
-        .text {
-            display: inline-block;
-            max-width: 150px;
-            margin-left: 4px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            vertical-align: top;
-        }
+      .text {
+        display: inline-block;
+        max-width: 150px;
+        margin-left: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: top;
+      }
     }
 
     .jb-user-selector-member-item {
-        position: relative;
-        display: flex;
-        padding-left: 10px;
-        align-items: center;
+      position: relative;
+      display: flex;
+      padding-left: 10px;
+      align-items: center;
 
-        &.is-disabled {
-            cursor: not-allowed;
-            user-select: none;
+      &.is-disabled {
+        cursor: not-allowed;
+        user-select: none;
 
-            .text,
-            .item-icon {
-                color: #c4c6cc;
-            }
-        }
-
-        .img {
-            width: 20px;
-            border-radius: 50%;
-        }
-
+        .text,
         .item-icon {
-            font-size: 20px;
-            color: #979ba5;
+          color: #c4c6cc;
         }
+      }
 
-        .text {
-            display: inline-block;
-            max-width: 150px;
-            margin-left: 5px;
-            overflow: hidden;
-            color: #63656e;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            vertical-align: top;
-        }
+      .img {
+        width: 20px;
+        border-radius: 50%;
+      }
 
-        .forbid-icon {
-            position: absolute;
-            right: 0;
-            margin-left: 4px;
-            font-size: 30px;
-        }
+      .item-icon {
+        font-size: 20px;
+        color: #979ba5;
+      }
+
+      .text {
+        display: inline-block;
+        max-width: 150px;
+        margin-left: 5px;
+        overflow: hidden;
+        color: #63656e;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: top;
+      }
+
+      .forbid-icon {
+        position: absolute;
+        right: 0;
+        margin-left: 4px;
+        font-size: 30px;
+      }
     }
 </style>

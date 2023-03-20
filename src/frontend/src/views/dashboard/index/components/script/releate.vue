@@ -81,11 +81,11 @@
 </script>
 <style lang='postcss' scoped>
     .script-ralate-dashboard {
-        .nums {
-            font-size: 24px;
-            font-weight: 500;
-            line-height: 32px;
-            color: #63656e;
-        }
+      .nums {
+        font-size: 24px;
+        font-weight: 500;
+        line-height: 32px;
+        color: #63656e;
+      }
     }
 </style>

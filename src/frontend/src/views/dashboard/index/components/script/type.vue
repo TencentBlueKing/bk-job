@@ -206,30 +206,30 @@
 </script>
 <style lang='postcss'>
     .script-type-dashboard {
-        .wraper {
+      .wraper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .item-list {
+          display: flex;
+          width: 180px;
+          margin-top: 30px;
+          font-size: 12px;
+          line-height: 18px;
+          color: #979ba5;
+          flex-wrap: wrap;
+          justify-content: space-around;
+
+          .item {
             display: flex;
-            flex-direction: column;
+            padding: 5px 0;
+            padding-left: 10px;
+            cursor: pointer;
+            flex: 1 1 50%;
             align-items: center;
-
-            .item-list {
-                display: flex;
-                width: 180px;
-                margin-top: 30px;
-                font-size: 12px;
-                line-height: 18px;
-                color: #979ba5;
-                flex-wrap: wrap;
-                justify-content: space-around;
-
-                .item {
-                    display: flex;
-                    padding: 5px 0;
-                    padding-left: 10px;
-                    cursor: pointer;
-                    flex: 1 1 50%;
-                    align-items: center;
-                }
-            }
+          }
         }
+      }
     }
 </style>

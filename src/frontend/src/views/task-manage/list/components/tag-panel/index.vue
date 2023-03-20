@@ -213,15 +213,15 @@
 </script>
 <style lang='postcss' scoped>
     .template-list-tag-panel {
-        display: flex;
-        flex-direction: column;
-        min-height: 50%;
-        padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 50%;
+      padding: 24px 0;
 
-        .line {
-            height: 1px;
-            margin: 10px 0;
-            background: #f0f1f5;
-        }
+      .line {
+        height: 1px;
+        margin: 10px 0;
+        background: #f0f1f5;
+      }
     }
 </style>

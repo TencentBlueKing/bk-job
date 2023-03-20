@@ -335,193 +335,193 @@
 </script>
 <style lang='postcss'>
     .step-execution-info-box {
+      position: relative;
+      height: 100%;
+
+      .tab-container {
         position: relative;
-        height: 100%;
+        z-index: 1;
+        display: flex;
+        font-size: 13px;
+        line-height: 42px;
+        color: #c4c6cc;
+        background: #2f3033;
+        box-shadow: 0 2px 4px 0 #000;
+        align-items: center;
 
-        .tab-container {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            font-size: 13px;
-            line-height: 42px;
-            color: #c4c6cc;
-            background: #2f3033;
-            box-shadow: 0 2px 4px 0 #000;
-            align-items: center;
+        .tab-title {
+          width: 166px;
+          font-size: 14px;
+          color: #dcdee5;
+          cursor: default;
 
-            .tab-title {
-                width: 166px;
-                font-size: 14px;
-                color: #dcdee5;
-                cursor: default;
-
-                &.success,
-                &.fail,
-                &.running,
-                &.waiting {
-                    &::before {
-                        display: inline-block;
-                        width: 3px;
-                        height: 12px;
-                        background: #2dc89d;
-                        content: "";
-                    }
-                }
-
-                &.fail {
-                    &::before {
-                        background: #ea3636;
-                    }
-                }
-
-                &.running {
-                    &::before {
-                        background: #699df4;
-                    }
-                }
-
-                &.waiting {
-                    &::before {
-                        background: #dcdee5;
-                    }
-                }
-
-                .host-ip {
-                    margin-left: 13px;
-                }
+          &.success,
+          &.fail,
+          &.running,
+          &.waiting {
+            &::before {
+              display: inline-block;
+              width: 3px;
+              height: 12px;
+              background: #2dc89d;
+              content: "";
             }
+          }
 
-            .split-line {
-                width: 1px;
-                height: 20px;
-                margin-right: -1px;
-                background: #63656e;
+          &.fail {
+            &::before {
+              background: #ea3636;
             }
+          }
 
-            .tab-item {
-                position: relative;
-                height: 42px;
-                padding: 0 20px;
-                cursor: pointer;
-                user-select: none;
-
-                &.active {
-                    z-index: 1;
-                    color: #fff;
-                    background: #212124;
-
-                    &::before {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 2px;
-                        background: #3a84ff;
-                        content: "";
-                    }
-                }
+          &.running {
+            &::before {
+              background: #699df4;
             }
+          }
 
-            .extend-box {
-                display: flex;
-                margin-left: auto;
-                font-size: 18px;
-
-                .extend-item {
-                    display: flex;
-                    height: 42px;
-                    padding: 0 10px;
-                    margin-left: 2px;
-                    cursor: pointer;
-                    align-items: center;
-                    justify-content: center;
-                }
+          &.waiting {
+            &::before {
+              background: #dcdee5;
             }
+          }
+
+          .host-ip {
+            margin-left: 13px;
+          }
         }
 
-        .tab-content-wraper {
-            flex: 1;
-            height: calc(100% - 42px);
-            background: #1d1d1d;
+        .split-line {
+          width: 1px;
+          height: 20px;
+          margin-right: -1px;
+          background: #63656e;
         }
 
-        .font-setting {
-            position: absolute;
-            top: 55px;
-            right: 94px;
+        .tab-item {
+          position: relative;
+          height: 42px;
+          padding: 0 20px;
+          cursor: pointer;
+          user-select: none;
+
+          &.active {
             z-index: 1;
-            width: 160px;
-            color: #979ba5;
-            background: #2f3033;
-            border: 1px solid;
-            border-radius: 2px;
-            opacity: 0%;
-            visibility: hidden;
-            transform: translateY(-15px);
-            box-shadow: 0 2px 4px 0 rgb(0 0 0 / 50%);
-            transition: all 0.15s;
-            border-image-source: linear-gradient(#3b3c42, #292a2e);
-            border-image-slice: 1;
-            border-image-width: 1px;
-
-            &.active {
-                opacity: 100%;
-                visibility: visible;
-                transform: translateY(0);
-            }
-
-            .font-setting-wraper {
-                position: relative;
-                z-index: 1;
-                display: flex;
-                background: inherit;
-                align-items: center;
-            }
+            color: #fff;
+            background: #212124;
 
             &::before {
-                position: absolute;
-                top: -20px;
-                right: 38px;
-                width: 42px;
-                height: 25px;
-                cursor: pointer;
-                content: "";
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 2px;
+              background: #3a84ff;
+              content: "";
             }
-
-            &::after {
-                position: absolute;
-                top: -5px;
-                left: 50%;
-                width: 11px;
-                height: 11px;
-                background: inherit;
-                border: 1px solid #3b3c42;
-                border-bottom: none;
-                border-left: none;
-                content: "";
-                transform: translateX(-50%) rotateZ(-45deg);
-            }
-
-            .font-item {
-                display: flex;
-                height: 42px;
-                cursor: pointer;
-                transition: all 0.15s;
-                align-items: center;
-                flex: 1;
-                justify-content: center;
-
-                &:hover,
-                &.active {
-                    color: #fafbfd;
-                }
-            }
-
-            .line {
-                width: 1px;
-                height: 18px;
-                background: #63656e;
-            }
+          }
         }
+
+        .extend-box {
+          display: flex;
+          margin-left: auto;
+          font-size: 18px;
+
+          .extend-item {
+            display: flex;
+            height: 42px;
+            padding: 0 10px;
+            margin-left: 2px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+          }
+        }
+      }
+
+      .tab-content-wraper {
+        flex: 1;
+        height: calc(100% - 42px);
+        background: #1d1d1d;
+      }
+
+      .font-setting {
+        position: absolute;
+        top: 55px;
+        right: 94px;
+        z-index: 1;
+        width: 160px;
+        color: #979ba5;
+        background: #2f3033;
+        border: 1px solid;
+        border-radius: 2px;
+        opacity: 0%;
+        visibility: hidden;
+        transform: translateY(-15px);
+        box-shadow: 0 2px 4px 0 rgb(0 0 0 / 50%);
+        transition: all 0.15s;
+        border-image-source: linear-gradient(#3b3c42, #292a2e);
+        border-image-slice: 1;
+        border-image-width: 1px;
+
+        &.active {
+          opacity: 100%;
+          visibility: visible;
+          transform: translateY(0);
+        }
+
+        .font-setting-wraper {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          background: inherit;
+          align-items: center;
+        }
+
+        &::before {
+          position: absolute;
+          top: -20px;
+          right: 38px;
+          width: 42px;
+          height: 25px;
+          cursor: pointer;
+          content: "";
+        }
+
+        &::after {
+          position: absolute;
+          top: -5px;
+          left: 50%;
+          width: 11px;
+          height: 11px;
+          background: inherit;
+          border: 1px solid #3b3c42;
+          border-bottom: none;
+          border-left: none;
+          content: "";
+          transform: translateX(-50%) rotateZ(-45deg);
+        }
+
+        .font-item {
+          display: flex;
+          height: 42px;
+          cursor: pointer;
+          transition: all 0.15s;
+          align-items: center;
+          flex: 1;
+          justify-content: center;
+
+          &:hover,
+          &.active {
+            color: #fafbfd;
+          }
+        }
+
+        .line {
+          width: 1px;
+          height: 18px;
+          background: #63656e;
+        }
+      }
     }
 </style>

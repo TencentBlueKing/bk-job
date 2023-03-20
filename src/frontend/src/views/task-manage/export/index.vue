@@ -135,34 +135,34 @@
 </script>
 <style lang="postcss">
     .export-job {
+      background-color: #fff;
+
+      .steps {
+        display: flex;
+        width: 100%;
+        height: 50px;
+        padding: 0 200px;
+        border-bottom: 1px solid #ccc;
+        align-items: center;
+      }
+
+      .page-wraper {
+        height: calc(100vh - 205px);
+      }
+
+      .action-footer {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 9;
+        display: flex;
+        height: 52px;
+        padding-right: 24px;
         background-color: #fff;
-
-        .steps {
-            display: flex;
-            width: 100%;
-            height: 50px;
-            padding: 0 200px;
-            border-bottom: 1px solid #ccc;
-            align-items: center;
-        }
-
-        .page-wraper {
-            height: calc(100vh - 205px);
-        }
-
-        .action-footer {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 9;
-            display: flex;
-            height: 52px;
-            padding-right: 24px;
-            background-color: #fff;
-            border-top: 1px solid #ccc;
-            align-items: center;
-            justify-content: flex-end;
-        }
+        border-top: 1px solid #ccc;
+        align-items: center;
+        justify-content: flex-end;
+      }
     }
 </style>

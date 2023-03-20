@@ -185,119 +185,119 @@
 </script>
 <style lang='postcss' scoped>
     .dashboard-page {
-        .operation-bar {
-            position: relative;
-            z-index: 1;
+      .operation-bar {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        height: 56px;
+        padding: 0 24px;
+        background: #fff;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+
+        .app-select {
+          display: flex;
+          align-items: center;
+
+          .app-list {
+            width: 360px;
+            background: #f0f1f5;
+            border: none;
+          }
+
+          .app-action-btn {
             display: flex;
+            width: 30px;
+            height: 30px;
+            margin-left: 10px;
+            font-size: 14px;
+            color: #979ba5;
+            cursor: pointer;
+            background: #f0f1f5;
+            border-radius: 2px;
             align-items: center;
-            height: 56px;
-            padding: 0 24px;
+            justify-content: center;
+          }
+        }
+
+        .date-setting {
+          display: flex;
+          align-items: center;
+          margin-left: auto;
+
+          .date-info {
+            font-size: 12px;
+            color: #c4c6cc;
+            transform-origin: right center;
+            transform: scale(0.85);
+          }
+
+          .date-picker {
+            width: 180px;
+            margin-left: 16px;
+
+            .bk-date-picker-rel .bk-date-picker-editor {
+              background: #f0f1f5;
+              border-color: transparent;
+            }
+          }
+        }
+      }
+
+      .dashboard-container {
+        .dashboard-wraper {
+          padding: 20px 24px;
+        }
+      }
+
+      .section-block {
+        display: flex;
+        flex-direction: column;
+
+        &:nth-child(n + 2) {
+          padding-top: 30px;
+        }
+
+        .section-title {
+          margin-bottom: 16px;
+          font-size: 16px;
+          line-height: 24px;
+          color: #313238;
+        }
+
+        .section-content {
+          display: flex;
+
+          .content-left,
+          .content-center,
+          .content-right {
+            display: flex;
             background: #fff;
             box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
 
-            .app-select {
-                display: flex;
-                align-items: center;
-
-                .app-list {
-                    width: 360px;
-                    background: #f0f1f5;
-                    border: none;
-                }
-
-                .app-action-btn {
-                    display: flex;
-                    width: 30px;
-                    height: 30px;
-                    margin-left: 10px;
-                    font-size: 14px;
-                    color: #979ba5;
-                    cursor: pointer;
-                    background: #f0f1f5;
-                    border-radius: 2px;
-                    align-items: center;
-                    justify-content: center;
-                }
+            & > * {
+              flex: 1;
             }
+          }
 
-            .date-setting {
-                display: flex;
-                align-items: center;
-                margin-left: auto;
+          .content-left {
+            flex: 0 0 auto;
+          }
 
-                .date-info {
-                    font-size: 12px;
-                    color: #c4c6cc;
-                    transform-origin: right center;
-                    transform: scale(0.85);
-                }
+          .content-center {
+            flex: 1 0 auto;
+            margin-left: 20px;
 
-                .date-picker {
-                    width: 180px;
-                    margin-left: 16px;
-
-                    .bk-date-picker-rel .bk-date-picker-editor {
-                        background: #f0f1f5;
-                        border-color: transparent;
-                    }
-                }
+            & ~ .content-right {
+              flex: 0;
             }
+          }
+
+          .content-right {
+            flex: 1 1 auto;
+            margin-left: 20px;
+          }
         }
-
-        .dashboard-container {
-            .dashboard-wraper {
-                padding: 20px 24px;
-            }
-        }
-
-        .section-block {
-            display: flex;
-            flex-direction: column;
-
-            &:nth-child(n + 2) {
-                padding-top: 30px;
-            }
-
-            .section-title {
-                margin-bottom: 16px;
-                font-size: 16px;
-                line-height: 24px;
-                color: #313238;
-            }
-
-            .section-content {
-                display: flex;
-
-                .content-left,
-                .content-center,
-                .content-right {
-                    display: flex;
-                    background: #fff;
-                    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
-
-                    & > * {
-                        flex: 1;
-                    }
-                }
-
-                .content-left {
-                    flex: 0 0 auto;
-                }
-
-                .content-center {
-                    flex: 1 0 auto;
-                    margin-left: 20px;
-
-                    & ~ .content-right {
-                        flex: 0;
-                    }
-                }
-
-                .content-right {
-                    flex: 1 1 auto;
-                    margin-left: 20px;
-                }
-            }
-        }
+      }
     }
 </style>

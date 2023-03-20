@@ -260,139 +260,139 @@
 </script>
 <style lang='postcss'>
     @keyframes script-execute-loading {
-        0% {
-            content: ".";
-        }
+      0% {
+        content: ".";
+      }
 
-        30% {
-            content: "..";
-        }
+      30% {
+        content: "..";
+      }
 
-        60% {
-            content: "...";
-        }
+      60% {
+        content: "...";
+      }
     }
 
     .step-execute-script-log {
-        position: relative;
-        height: 100%;
-        max-height: 100%;
-        min-height: 100%;
+      position: relative;
+      height: 100%;
+      max-height: 100%;
+      min-height: 100%;
 
-        .log-wraper {
-            position: absolute;
-            top: 0;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            padding-right: 20px;
-            /* stylelint-disable selector-class-pattern */
-            .ace_editor {
-                overflow: unset;
-                line-height: 1.6;
-                color: #c4c6cc;
-                background: #1d1d1d;
+      .log-wraper {
+        position: absolute;
+        top: 0;
+        bottom: 20px;
+        left: 0;
+        width: 100%;
+        padding-right: 20px;
+        /* stylelint-disable selector-class-pattern */
+        .ace_editor {
+          overflow: unset;
+          line-height: 1.6;
+          color: #c4c6cc;
+          background: #1d1d1d;
 
-                .ace_gutter {
-                    padding-top: 4px;
-                    margin-bottom: -4px;
-                    color: #63656e;
-                    background: #292929;
-                }
+          .ace_gutter {
+            padding-top: 4px;
+            margin-bottom: -4px;
+            color: #63656e;
+            background: #292929;
+          }
 
-                .ace_scroller {
-                    padding-top: 4px;
-                    margin-bottom: -4px;
-                }
+          .ace_scroller {
+            padding-top: 4px;
+            margin-bottom: -4px;
+          }
 
-                .ace_hidden-cursors .ace_cursor {
-                    opacity: 0% !important;
-                }
+          .ace_hidden-cursors .ace_cursor {
+            opacity: 0% !important;
+          }
 
-                .ace_selected-word {
-                    background: rgb(135 139 145 / 25%);
-                }
+          .ace_selected-word {
+            background: rgb(135 139 145 / 25%);
+          }
 
-                .ace_scrollbar-v,
-                .ace_scrollbar-h {
-                    &::-webkit-scrollbar-thumb {
-                        background-color: #3b3c42;
-                        border: 1px solid #63656e;
-                    }
-
-                    &::-webkit-scrollbar-corner {
-                        background-color: transparent;
-                    }
-                }
-
-                .ace_scrollbar-v {
-                    margin-right: -20px;
-
-                    &::-webkit-scrollbar {
-                        width: 14px;
-                    }
-                }
-
-                .ace_scrollbar-h {
-                    margin-bottom: -20px;
-
-                    &::-webkit-scrollbar {
-                        height: 14px;
-                    }
-                }
+          .ace_scrollbar-v,
+          .ace_scrollbar-h {
+            &::-webkit-scrollbar-thumb {
+              background-color: #3b3c42;
+              border: 1px solid #63656e;
             }
-        }
 
-        .log-status {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            padding-left: 20px;
-            color: #fff;
-        }
-
-        .log-loading {
-            &::after {
-                display: inline-block;
-                content: ".";
-                animation: script-execute-loading 2s linear infinite;
+            &::-webkit-scrollbar-corner {
+              background-color: transparent;
             }
-        }
+          }
 
-        .keyword {
-            color: #212124;
-            background: #f0dc73;
-        }
+          .ace_scrollbar-v {
+            margin-right: -20px;
 
-        .log-action-box {
-            position: absolute;
-            right: 20px;
-            bottom: 20px;
-            z-index: 10;
-            display: flex;
-
-            .action-item {
-                position: relative;
-                display: flex;
-                width: 32px;
-                height: 32px;
-                margin-left: 12px;
-                font-size: 18px;
-                color: #000;
-                cursor: pointer;
-                background: rgb(255 255 255 / 80%);
-                border-radius: 50%;
-                align-items: center;
-                justify-content: center;
-
-                &:hover {
-                    background: rgb(255 255 255);
-                }
-
-                &.action-bottom {
-                    transform: rotateZ(180deg);
-                }
+            &::-webkit-scrollbar {
+              width: 14px;
             }
+          }
+
+          .ace_scrollbar-h {
+            margin-bottom: -20px;
+
+            &::-webkit-scrollbar {
+              height: 14px;
+            }
+          }
         }
+      }
+
+      .log-status {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        padding-left: 20px;
+        color: #fff;
+      }
+
+      .log-loading {
+        &::after {
+          display: inline-block;
+          content: ".";
+          animation: script-execute-loading 2s linear infinite;
+        }
+      }
+
+      .keyword {
+        color: #212124;
+        background: #f0dc73;
+      }
+
+      .log-action-box {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        z-index: 10;
+        display: flex;
+
+        .action-item {
+          position: relative;
+          display: flex;
+          width: 32px;
+          height: 32px;
+          margin-left: 12px;
+          font-size: 18px;
+          color: #000;
+          cursor: pointer;
+          background: rgb(255 255 255 / 80%);
+          border-radius: 50%;
+          align-items: center;
+          justify-content: center;
+
+          &:hover {
+            background: rgb(255 255 255);
+          }
+
+          &.action-bottom {
+            transform: rotateZ(180deg);
+          }
+        }
+      }
     }
 </style>

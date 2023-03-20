@@ -69,32 +69,32 @@
     @import "@/css/mixins/scroll";
 
     .render-file-path-box {
-        padding: 6px 10px;
-        margin-left: -10px;
+      padding: 6px 10px;
+      margin-left: -10px;
 
-        &:hover {
-            background: #f0f1f5;
-        }
+      &:hover {
+        background: #f0f1f5;
+      }
     }
 
     .source-file-tips-box {
-        max-width: 300px;
-        max-height: 280px;
-        min-width: 60px;
-        overflow-y: auto;
+      max-width: 300px;
+      max-height: 280px;
+      min-width: 60px;
+      overflow-y: auto;
 
-        @mixin scroller;
+      @mixin scroller;
 
-        .row {
-            word-break: break-all;
-        }
+      .row {
+        word-break: break-all;
+      }
 
-        .dot {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            background: currentcolor;
-            border-radius: 50%;
-        }
+      .dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: currentcolor;
+        border-radius: 50%;
+      }
     }
 </style>

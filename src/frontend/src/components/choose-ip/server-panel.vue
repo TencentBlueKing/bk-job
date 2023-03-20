@@ -216,7 +216,7 @@
             errorIPMap[host.ip] = 1;
           }
         });
-                
+
         // 异常主机包含无效主机
         if (returnErrorIP) {
           return Object.keys(errorIPMap);
@@ -236,10 +236,10 @@
         if (!/^[0-9.]+$/g.test(filter)) {
           return [];
         }
-                
+
         const filterReg = new RegExp(`${encodeRegexp(filter.trim())}`);
         const hostMap = {};
-                
+
         if (this.$refs.host) {
           this.$refs.host.getAllHost().forEach((host) => {
             if (filterReg.test(host.ip)) {
@@ -247,7 +247,7 @@
             }
           });
         }
-                
+
         return Object.values(hostMap);
       },
       /**
@@ -344,84 +344,84 @@
   };
 </script>
 <style lang='postcss'>
-    .server-panel {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        background: #fff;
+  .server-panel {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    background: #fff;
 
-        &.show-search {
-            .server-result-wraper {
-                display: none;
-            }
-        }
-
-        .bk-collapse-item-header {
-            display: flex;
-            align-items: center;
-            padding-left: 23px;
-
-            .panel-title {
-                padding-left: 23px;
-            }
-        }
-
-        .server-result-wraper {
-            height: 100%;
-        }
-
-        .choose-ip-host-table {
-            thead {
-                th {
-                    background: #fff;
-                }
-            }
-
-            .invalid-list {
-                td {
-                    color: #c4c6cc;
-                }
-            }
-
-            tbody:last-child {
-                tr:last-child {
-                    td {
-                        border-bottom: none;
-                    }
-                }
-            }
-        }
-
-        /* diff 样式 */
-        .choose-ip-host-table { /* stylelint-disable-line */
-            tr.delete {
-                * {
-                    color: #c4c6cc !important;
-                    text-decoration: line-through;
-                }
-            }
-
-            tr.new {
-                td:first-child {
-                    position: relative;
-
-                    &::before {
-                        position: absolute;
-                        top: 50%;
-                        width: 24px;
-                        height: 16px;
-                        margin-left: -32px;
-                        font-size: 12px;
-                        line-height: 16px;
-                        color: #fff;
-                        text-align: center;
-                        background: #f0c581;
-                        border-radius: 2px;
-                        content: "new";
-                        transform: translateY(-50%);
-                    }
-                }
-            }
-        }
+    &.show-search {
+      .server-result-wraper {
+        display: none;
+      }
     }
+
+    .bk-collapse-item-header {
+      display: flex;
+      align-items: center;
+      padding-left: 23px;
+
+      .panel-title {
+        padding-left: 23px;
+      }
+    }
+
+    .server-result-wraper {
+      height: 100%;
+    }
+
+    .choose-ip-host-table {
+      thead {
+        th {
+          background: #fff;
+        }
+      }
+
+      .invalid-list {
+        td {
+          color: #c4c6cc;
+        }
+      }
+
+      tbody:last-child {
+        tr:last-child {
+          td {
+            border-bottom: none;
+          }
+        }
+      }
+    }
+
+    /* diff 样式 */
+    .choose-ip-host-table { /* stylelint-disable-line */
+      tr.delete {
+        * {
+          color: #c4c6cc !important;
+          text-decoration: line-through;
+        }
+      }
+
+      tr.new {
+        td:first-child {
+          position: relative;
+
+          &::before {
+            position: absolute;
+            top: 50%;
+            width: 24px;
+            height: 16px;
+            margin-left: -32px;
+            font-size: 12px;
+            line-height: 16px;
+            color: #fff;
+            text-align: center;
+            background: #f0c581;
+            border-radius: 2px;
+            content: "new";
+            transform: translateY(-50%);
+          }
+        }
+      }
+    }
+  }
 </style>

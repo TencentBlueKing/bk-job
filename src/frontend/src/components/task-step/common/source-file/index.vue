@@ -303,41 +303,41 @@
 </script>
 <style lang='postcss' scoped>
     .source-file-view {
-        margin-top: 16px;
+      margin-top: 16px;
     }
 
     .upload-file-tips {
-        font-size: 12px;
-        line-height: 16px;
-        color: #63656e;
+      font-size: 12px;
+      line-height: 16px;
+      color: #63656e;
 
-        .row {
-            position: relative;
-            padding-left: 12px;
+      .row {
+        position: relative;
+        padding-left: 12px;
 
-            &::before {
-                position: absolute;
-                top: 6px;
-                left: 0;
-                width: 4px;
-                height: 4px;
-                background: currentcolor;
-                border-radius: 50%;
-                content: "";
-            }
+        &::before {
+          position: absolute;
+          top: 6px;
+          left: 0;
+          width: 4px;
+          height: 4px;
+          background: currentcolor;
+          border-radius: 50%;
+          content: "";
         }
+      }
     }
 
     .source-file-tips {
-        font-size: 12px;
-        color: #979ba5;
+      font-size: 12px;
+      color: #979ba5;
 
-        .tips-flag {
-            margin-left: 8px;
-            font-size: 14px;
-            color: #c4c6cc;
-            cursor: pointer;
-        }
+      .tips-flag {
+        margin-left: 8px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
+      }
     }
 
 </style>

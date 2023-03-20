@@ -221,39 +221,39 @@
 </script>
 <style lang='postcss'>
     .file-upload-manage-page {
+      display: flex;
+      justify-content: center;
+      padding: 40px 0;
+
+      .input-wraper {
         display: flex;
-        justify-content: center;
-        padding: 40px 0;
+      }
 
-        .input-wraper {
-            display: flex;
+      .unit-item {
+        width: 80px;
+        margin-left: -2px;
+        background: #f5f7fa;
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+      }
+
+      .restrict-mode-radio {
+        display: flex;
+
+        .bk-form-radio-button {
+          flex: 1;
+
+          .bk-radio-button-text {
+            width: 100%;
+          }
         }
+      }
 
-        .unit-item {
-            width: 80px;
-            margin-left: -2px;
-            background: #f5f7fa;
-            border-bottom-left-radius: 0;
-            border-top-left-radius: 0;
-        }
-
-        .restrict-mode-radio {
-            display: flex;
-
-            .bk-form-radio-button {
-                flex: 1;
-
-                .bk-radio-button-text {
-                    width: 100%;
-                }
-            }
-        }
-
-        .form-item-error {
-            margin: -18px 0 0;
-            font-size: 12px;
-            line-height: 18px;
-            color: #ea3636;
-        }
+      .form-item-error {
+        margin: -18px 0 0;
+        font-size: 12px;
+        line-height: 18px;
+        color: #ea3636;
+      }
     }
 </style>

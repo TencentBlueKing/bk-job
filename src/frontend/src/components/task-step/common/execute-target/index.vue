@@ -386,64 +386,64 @@
 </script>
 <style lang='postcss'>
     html[lang="en-US"] {
-        .compose-form-item {
-            .server-global-variable-select {
-                width: 341px;
-            }
+      .compose-form-item {
+        .server-global-variable-select {
+          width: 341px;
         }
+      }
 
+      .ip-search {
+        width: 162px;
+      }
+
+      .only-host {
         .ip-search {
-            width: 162px;
+          width: 314px;
         }
-
-        .only-host {
-            .ip-search {
-                width: 314px;
-            }
-        }
+      }
     }
 
     .task-step-execute-target {
-        &.only-host {
-            .ip-search {
-                width: 620px;
-            }
-        }
-
-        .bk-button {
-            font-size: 14px !important;
-        }
-
-        .action-flag {
-            font-size: 18px;
-        }
-
-        .view-server-panel {
-            margin-top: 14px;
-        }
-
+      &.only-host {
         .ip-search {
-            flex: 0 0 auto;
-            width: 245px;
-            margin-left: auto;
+          width: 620px;
         }
+      }
 
-        .compose-form-item {
-            .server-global-variable-select {
-                width: 376px;
-            }
+      .bk-button {
+        font-size: 14px !important;
+      }
+
+      .action-flag {
+        font-size: 18px;
+      }
+
+      .view-server-panel {
+        margin-top: 14px;
+      }
+
+      .ip-search {
+        flex: 0 0 auto;
+        width: 245px;
+        margin-left: auto;
+      }
+
+      .compose-form-item {
+        .server-global-variable-select {
+          width: 376px;
         }
+      }
     }
 
     .execute-target-host-clear {
-        user-select: none;
+      user-select: none;
 
-        .disabled {
-            a {
-                color: #c4c6cc !important;
-                cursor: not-allowed;
-                background-color: #fafafa !important;
-            }
+      .disabled {
+        a {
+          color: #c4c6cc !important;
+          cursor: not-allowed;
+          background-color: #fafafa !important;
         }
+      }
     }
 </style>

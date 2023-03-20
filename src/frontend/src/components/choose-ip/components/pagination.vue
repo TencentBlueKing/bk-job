@@ -131,51 +131,51 @@
 </script>
 <style lang='postcss'>
     .server-pagination {
+      display: flex;
+      align-items: center;
+      height: 64px;
+      font-size: 12px;
+      color: #63656e;
+
+      .pagination-change {
         display: flex;
         align-items: center;
-        height: 64px;
-        font-size: 12px;
-        color: #63656e;
+        margin-left: auto;
+        user-select: none;
 
-        .pagination-change {
-            display: flex;
-            align-items: center;
-            margin-left: auto;
-            user-select: none;
-
-            .page-current,
-            .page-count {
-                height: 32px;
-                padding: 0 14px;
-                line-height: 32px;
-            }
-
-            .page-current {
-                width: 50px;
-                text-align: center;
-                border: 1px solid #c4c6cc;
-                border-radius: 2px;
-                outline-color: #3a84ff;
-            }
-
-            .page-line {
-                padding-left: 14px;
-            }
-
-            .page-last,
-            .page-next {
-                font-size: 24px;
-                color: #c4c6cc;
-                cursor: pointer;
-            }
-
-            .page-last {
-                transform: rotateZ(90deg);
-            }
-
-            .page-next {
-                transform: rotateZ(-90deg);
-            }
+        .page-current,
+        .page-count {
+          height: 32px;
+          padding: 0 14px;
+          line-height: 32px;
         }
+
+        .page-current {
+          width: 50px;
+          text-align: center;
+          border: 1px solid #c4c6cc;
+          border-radius: 2px;
+          outline-color: #3a84ff;
+        }
+
+        .page-line {
+          padding-left: 14px;
+        }
+
+        .page-last,
+        .page-next {
+          font-size: 24px;
+          color: #c4c6cc;
+          cursor: pointer;
+        }
+
+        .page-last {
+          transform: rotateZ(90deg);
+        }
+
+        .page-next {
+          transform: rotateZ(-90deg);
+        }
+      }
     }
 </style>

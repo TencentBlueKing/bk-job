@@ -226,43 +226,43 @@
 </script>
 <style lang='postcss'>
     .notify-set-manange {
-        display: flex;
-        justify-content: center;
-        padding-top: 40px;
-        padding-bottom: 40px;
+      display: flex;
+      justify-content: center;
+      padding-top: 40px;
+      padding-bottom: 40px;
 
-        .wraper {
-            width: 960px;
+      .wraper {
+        width: 960px;
+      }
+
+      .block-title {
+        margin-bottom: 12px;
+      }
+
+      .backlist {
+        margin-top: 38px;
+
+        span {
+          border-bottom: 1px dashed #c4c6cc;
         }
+      }
 
-        .block-title {
-            margin-bottom: 12px;
-        }
-
-        .backlist {
-            margin-top: 38px;
-
-            span {
-                border-bottom: 1px dashed #c4c6cc;
-            }
-        }
-
-        .action-box {
-            margin-top: 30px;
-        }
+      .action-box {
+        margin-top: 30px;
+      }
     }
 
     .member-item {
-        &.disabled {
-            color: #c4c6cc;
-        }
+      &.disabled {
+        color: #c4c6cc;
+      }
 
-        .job-icon-user {
-            margin-right: 8px;
-        }
+      .job-icon-user {
+        margin-right: 8px;
+      }
     }
 
     .slider-action {
-        margin-right: 10px;
+      margin-right: 10px;
     }
 </style>

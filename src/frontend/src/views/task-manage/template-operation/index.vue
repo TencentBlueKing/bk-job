@@ -723,70 +723,70 @@
     @import "@/css/mixins/media";
 
     .template-operation-page {
-        .push-file-content {
+      .push-file-content {
+        height: calc(100vh - 104px);
+
+        .jb-resize-layout-right {
+          background: #fff;
+
+          .variable-use-guide {
             height: calc(100vh - 104px);
+            padding-bottom: 52px;
+          }
+        }
+      }
 
-            .jb-resize-layout-right {
-                background: #fff;
+      .template-operation-form {
+        padding: 20px 24px 0;
+      }
 
-                .variable-use-guide {
-                    height: calc(100vh - 104px);
-                    padding-bottom: 52px;
-                }
-            }
+      .info {
+        margin-bottom: 20px;
+      }
+
+      .template-desc-textarea {
+        .bk-textarea-wrapper .bk-form-textarea.textarea-maxlength {
+          margin-bottom: 0;
         }
 
-        .template-operation-form {
-            padding: 20px 24px 0;
+        .bk-form-textarea {
+          min-height: 86px;
+        }
+      }
+
+      .form-item-content {
+        @media (--small-viewports) {
+          width: 500px;
         }
 
-        .info {
-            margin-bottom: 20px;
+        @media (--medium-viewports) {
+          width: 560px;
         }
 
-        .template-desc-textarea {
-            .bk-textarea-wrapper .bk-form-textarea.textarea-maxlength {
-                margin-bottom: 0;
-            }
-
-            .bk-form-textarea {
-                min-height: 86px;
-            }
+        @media (--large-viewports) {
+          width: 620px;
         }
 
-        .form-item-content {
-            @media (--small-viewports) {
-                width: 500px;
-            }
-
-            @media (--medium-viewports) {
-                width: 560px;
-            }
-
-            @media (--large-viewports) {
-                width: 620px;
-            }
-
-            @media (--huge-viewports) {
-                width: 680px;
-            }
+        @media (--huge-viewports) {
+          width: 680px;
         }
+      }
     }
 
     .invalid-variable-info,
     .password-variable-info {
-        .bk-dialog-content {
-            width: 500px !important;
-        }
+      .bk-dialog-content {
+        width: 500px !important;
+      }
     }
 
     .password-variable-info {
-        .bk-dialog-header-inner {
-            white-space: normal !important;
-        }
+      .bk-dialog-header-inner {
+        white-space: normal !important;
+      }
 
-        .bk-default {
-            display: none;
-        }
+      .bk-default {
+        display: none;
+      }
     }
 </style>

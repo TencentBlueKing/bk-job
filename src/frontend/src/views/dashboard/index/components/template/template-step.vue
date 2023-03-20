@@ -274,111 +274,111 @@
 </script>
 <style lang='postcss' scoped>
     .template-step-card {
-        width: 260px;
+      width: 260px;
 
-        .wraper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+      .wraper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .data-info {
+        display: flex;
+        flex-direction: column;
+        font-size: 12px;
+        line-height: 18px;
+        color: #979ba5;
+        white-space: nowrap;
+
+        .row {
+          display: flex;
+          align-items: flex-start;
+          margin-top: 6px;
         }
 
-        .data-info {
-            display: flex;
-            flex-direction: column;
-            font-size: 12px;
-            line-height: 18px;
-            color: #979ba5;
-            white-space: nowrap;
-
-            .row {
-                display: flex;
-                align-items: flex-start;
-                margin-top: 6px;
-            }
-
-            .data-label {
-                display: flex;
-                align-items: center;
-                padding-right: 14px;
-                cursor: pointer;
-            }
-
-            .data-content {
-                position: relative;
-                padding-left: 14px;
-
-                &::before {
-                    position: absolute;
-                    top: 9px;
-                    left: -14px;
-                    width: 14px;
-                    height: 1px;
-                    background: #f0f1f5;
-                    content: "";
-                }
-            }
-
-            .content-item {
-                position: relative;
-                display: flex;
-                align-items: center;
-                cursor: pointer;
-
-                &:nth-child(n+2) {
-                    margin-top: 4px;
-
-                    &::after {
-                        position: absolute;
-                        top: -13px;
-                        left: -14px;
-                        width: 1px;
-                        height: 22px;
-                        background: #f0f1f5;
-                        content: "";
-                    }
-                }
-
-                &::before {
-                    position: absolute;
-                    top: 9px;
-                    left: -14px;
-                    width: 14px;
-                    height: 1px;
-                    background: #f0f1f5;
-                    content: "";
-                }
-            }
-
-            .local-file-dot,
-            .server-file-dot,
-            .local-script-dot,
-            .refer-script-dot {
-                width: 8px;
-                height: 8px;
-                margin-right: 6px;
-                border-radius: 50%;
-            }
-
-            .local-file-dot {
-                background: rgb(35 35 148 / 40%);
-                border: 2px solid #232394;
-            }
-
-            .server-file-dot {
-                background: rgb(55 134 173 / 40%);
-                border: 2px solid #3786ad;
-            }
-
-            .local-script-dot {
-                background: rgb(116 194 194 / 40%);
-                border: 2px solid #74c2c2;
-            }
-
-            .refer-script-dot {
-                background: rgb(154 214 154 / 40%);
-                border: 2px solid #9ad69a;
-            }
+        .data-label {
+          display: flex;
+          align-items: center;
+          padding-right: 14px;
+          cursor: pointer;
         }
+
+        .data-content {
+          position: relative;
+          padding-left: 14px;
+
+          &::before {
+            position: absolute;
+            top: 9px;
+            left: -14px;
+            width: 14px;
+            height: 1px;
+            background: #f0f1f5;
+            content: "";
+          }
+        }
+
+        .content-item {
+          position: relative;
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+
+          &:nth-child(n+2) {
+            margin-top: 4px;
+
+            &::after {
+              position: absolute;
+              top: -13px;
+              left: -14px;
+              width: 1px;
+              height: 22px;
+              background: #f0f1f5;
+              content: "";
+            }
+          }
+
+          &::before {
+            position: absolute;
+            top: 9px;
+            left: -14px;
+            width: 14px;
+            height: 1px;
+            background: #f0f1f5;
+            content: "";
+          }
+        }
+
+        .local-file-dot,
+        .server-file-dot,
+        .local-script-dot,
+        .refer-script-dot {
+          width: 8px;
+          height: 8px;
+          margin-right: 6px;
+          border-radius: 50%;
+        }
+
+        .local-file-dot {
+          background: rgb(35 35 148 / 40%);
+          border: 2px solid #232394;
+        }
+
+        .server-file-dot {
+          background: rgb(55 134 173 / 40%);
+          border: 2px solid #3786ad;
+        }
+
+        .local-script-dot {
+          background: rgb(116 194 194 / 40%);
+          border: 2px solid #74c2c2;
+        }
+
+        .refer-script-dot {
+          background: rgb(154 214 154 / 40%);
+          border: 2px solid #9ad69a;
+        }
+      }
     }
 </style>

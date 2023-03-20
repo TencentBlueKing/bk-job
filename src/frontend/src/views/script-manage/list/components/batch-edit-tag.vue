@@ -361,94 +361,94 @@
 </script>
 <style lang="postcss">
     .script-manage-batch-edit-tag {
-        padding-top: 5px;
+      padding-top: 5px;
 
-        .tag-panel {
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
-        }
+      .tag-panel {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+      }
 
-        .tag-search {
-            margin: 0 10px;
+      .tag-search {
+        margin: 0 10px;
 
-            &.bk-form-control {
-                &.with-left-icon {
-                    width: auto;
+        &.bk-form-control {
+          &.with-left-icon {
+            width: auto;
 
-                    .left-icon {
-                        left: 0;
-                    }
-
-                    .bk-form-input {
-                        padding-left: 24px;
-                    }
-                }
+            .left-icon {
+              left: 0;
             }
 
             .bk-form-input {
-                border-color: transparent !important;
-                border-bottom: 1px solid #c4c6cc !important;
+              padding-left: 24px;
             }
+          }
         }
 
-        .wrapper {
-            padding: 18px 0 18px 12px;
+        .bk-form-input {
+          border-color: transparent !important;
+          border-bottom: 1px solid #c4c6cc !important;
+        }
+      }
 
-            .tag-list {
-                display: flex;
-                flex-direction: column;
+      .wrapper {
+        padding: 18px 0 18px 12px;
 
-                .tag-item {
-                    margin-bottom: 16px;
+        .tag-list {
+          display: flex;
+          flex-direction: column;
 
-                    &:last-child {
-                        margin-bottom: 0;
-                    }
-                }
+          .tag-item {
+            margin-bottom: 16px;
+
+            &:last-child {
+              margin-bottom: 0;
             }
-
-            .relate-all,
-            .relate-nums {
-                padding: 0 4px;
-                font-size: 12px;
-                font-weight: 500;
-                line-height: 16px;
-                background: #e1ecff;
-                border-radius: 2px;
-            }
-
-            .relate-all {
-                color: #3a84ff;
-            }
-
-            .relate-nums {
-                color: #979ba5;
-                background: #f0f1f5;
-            }
-
-            .new-tag-flag {
-                padding: 0 5px;
-                margin-left: 5px;
-                font-size: 12px;
-                line-height: 16px;
-                color: #ff9c01;
-                vertical-align: middle;
-                background: #ffe8c3;
-                border-radius: 2px;
-            }
+          }
         }
 
-        .tag-create {
-            height: 38px;
-            padding-left: 10px;
-            font-size: 12px;
-            line-height: 38px;
-            color: #63656e;
-            cursor: pointer;
-            background: #fafbfd;
-            border-top: 1px solid #dcdee5;
+        .relate-all,
+        .relate-nums {
+          padding: 0 4px;
+          font-size: 12px;
+          font-weight: 500;
+          line-height: 16px;
+          background: #e1ecff;
+          border-radius: 2px;
         }
+
+        .relate-all {
+          color: #3a84ff;
+        }
+
+        .relate-nums {
+          color: #979ba5;
+          background: #f0f1f5;
+        }
+
+        .new-tag-flag {
+          padding: 0 5px;
+          margin-left: 5px;
+          font-size: 12px;
+          line-height: 16px;
+          color: #ff9c01;
+          vertical-align: middle;
+          background: #ffe8c3;
+          border-radius: 2px;
+        }
+      }
+
+      .tag-create {
+        height: 38px;
+        padding-left: 10px;
+        font-size: 12px;
+        line-height: 38px;
+        color: #63656e;
+        cursor: pointer;
+        background: #fafbfd;
+        border-top: 1px solid #dcdee5;
+      }
     }
 </style>

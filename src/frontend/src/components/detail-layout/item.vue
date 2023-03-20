@@ -51,42 +51,42 @@
   };
 </script>
 <style lang='postcss' scoped>
-    .detail-item {
-        display: flex;
-        font-size: 14px;
-        line-height: 32px;
-        color: #313238;
-        align-items: flex-start;
-        justify-content: flex-end;
+  .detail-item {
+    display: flex;
+    font-size: 14px;
+    line-height: 32px;
+    color: #313238;
+    align-items: flex-start;
+    justify-content: flex-end;
 
-        &.design-layout-horizontal {
-            flex-direction: row !important;
-        }
-
-        &.design-layout-vertical {
-            flex-direction: column !important;
-
-            .detail-content {
-                width: 100%;
-            }
-        }
+    &.design-layout-horizontal {
+      flex-direction: row !important;
     }
 
-    .detail-label {
-        display: flex;
-        padding-right: 2px;
-        color: #63656e;
-        text-align: right;
-        word-break: keep-all;
-        white-space: pre;
-        align-items: center;
-        justify-content: flex-end;
-        flex: 0 0 auto;
-    }
+    &.design-layout-vertical {
+      flex-direction: column !important;
 
-    .detail-content {
-        flex: 1;
-        color: #63656e;
-        word-break: break-all;
+      .detail-content {
+        width: 100%;
+      }
     }
+  }
+
+  .detail-label {
+    display: flex;
+    padding-right: 2px;
+    color: #63656e;
+    text-align: right;
+    word-break: keep-all;
+    white-space: pre;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+  }
+
+  .detail-content {
+    flex: 1;
+    color: #63656e;
+    word-break: break-all;
+  }
 </style>

@@ -277,97 +277,97 @@
 </script>
 <style lang="postcss">
     .global-variable-create-row {
-        .offset-left {
-            margin-left: -10px;
+      .offset-left {
+        margin-left: -10px;
+      }
+
+      .bk-select {
+        height: 30px;
+        line-height: 30px;
+        background: #f7f8fa;
+        border: 1px solid transparent;
+
+        &:hover {
+          background: #f0f1f5;
         }
 
-        .bk-select {
-            height: 30px;
-            line-height: 30px;
-            background: #f7f8fa;
-            border: 1px solid transparent;
-
-            &:hover {
-                background: #f0f1f5;
-            }
-
-            .bk-select-name {
-                height: 30px;
-                padding-right: 16px;
-                padding-left: 10px;
-                line-height: 30px;
-            }
+        .bk-select-name {
+          height: 30px;
+          padding-right: 16px;
+          padding-left: 10px;
+          line-height: 30px;
         }
+      }
 
+      .bk-input-text {
+        .bk-form-input {
+          height: 30px;
+          line-height: 30px;
+          background: #f7f8fa;
+          border: 1px solid transparent;
+
+          &:hover {
+            background: #f0f1f5;
+          }
+        }
+      }
+
+      .job-textarea {
+        .job-textarea-edit {
+          background: #f7f8fa;
+          border: 1px solid transparent;
+
+          &:hover {
+            background: #f0f1f5;
+          }
+        }
+      }
+
+      .add-host-btn {
+        display: flex;
+        height: 30px;
+        padding: 0 10px;
+        font-size: 12px;
+        cursor: pointer;
+        background: #f7f8fa;
+        border-radius: 2px;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background: #f0f1f5;
+        }
+      }
+
+      .edit-error {
         .bk-input-text {
-            .bk-form-input {
-                height: 30px;
-                line-height: 30px;
-                background: #f7f8fa;
-                border: 1px solid transparent;
-
-                &:hover {
-                    background: #f0f1f5;
-                }
-            }
+          .bk-form-input {
+            border-color: #ea3636;
+          }
         }
+      }
 
-        .job-textarea {
-            .job-textarea-edit {
-                background: #f7f8fa;
-                border: 1px solid transparent;
+      .variable-name-box {
+        position: relative;
 
-                &:hover {
-                    background: #f0f1f5;
-                }
-            }
+        .input-error {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          padding: 0 10px;
+          font-size: 16px;
+          color: #ea3636;
+          cursor: pointer;
         }
+      }
 
-        .add-host-btn {
-            display: flex;
-            height: 30px;
-            padding: 0 10px;
-            font-size: 12px;
-            cursor: pointer;
-            background: #f7f8fa;
-            border-radius: 2px;
-            align-items: center;
-            justify-content: center;
-
-            &:hover {
-                background: #f0f1f5;
-            }
-        }
-
-        .edit-error {
-            .bk-input-text {
-                .bk-form-input {
-                    border-color: #ea3636;
-                }
-            }
-        }
-
-        .variable-name-box {
-            position: relative;
-
-            .input-error {
-                position: absolute;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                padding: 0 10px;
-                font-size: 16px;
-                color: #ea3636;
-                cursor: pointer;
-            }
-        }
-
-        .bk-form-control {
-            display: block;
-            width: auto;
-        }
+      .bk-form-control {
+        display: block;
+        width: auto;
+      }
     }
 </style>

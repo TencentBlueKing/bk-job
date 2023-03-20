@@ -738,55 +738,55 @@
 </script>
 <style lang='postcss'>
     .template-list-page {
-        .bk-table tr:hover {
-            td.task-name-column {
-                .task-name-box {
-                    .task-collection {
-                        display: inline-block;
-                    }
-                }
-            }
-        }
-
+      .bk-table tr:hover {
         td.task-name-column {
-            .cell {
-                margin-left: -22px;
+          .task-name-box {
+            .task-collection {
+              display: inline-block;
             }
-
-            .task-name-box {
-                position: relative;
-                padding-left: 22px;
-
-                .task-collection {
-                    position: absolute;
-                    top: 50%;
-                    left: 0;
-                    font-size: 14px;
-                    color: #c4c6cc;
-                    cursor: pointer;
-                    transform: translateY(-50%);
-
-                    &.unfavored {
-                        display: none;
-                    }
-
-                    &.favored {
-                        display: inline-block;
-                        color: #ffd695;
-                    }
-                }
-
-                .task-name-text {
-                    display: inline-block;
-                    height: 18px;
-                    max-width: calc(100% - 22px);
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    vertical-align: bottom;
-                }
-            }
+          }
         }
+      }
+
+      td.task-name-column {
+        .cell {
+          margin-left: -22px;
+        }
+
+        .task-name-box {
+          position: relative;
+          padding-left: 22px;
+
+          .task-collection {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            font-size: 14px;
+            color: #c4c6cc;
+            cursor: pointer;
+            transform: translateY(-50%);
+
+            &.unfavored {
+              display: none;
+            }
+
+            &.favored {
+              display: inline-block;
+              color: #ffd695;
+            }
+          }
+
+          .task-name-text {
+            display: inline-block;
+            height: 18px;
+            max-width: calc(100% - 22px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: bottom;
+          }
+        }
+      }
     }
 
 </style>

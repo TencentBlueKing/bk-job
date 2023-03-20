@@ -149,31 +149,31 @@
 </script>
 <style lang='postcss' scoped>
     .favor-task-box {
-        height: calc(100vh - 484px);
+      height: calc(100vh - 484px);
 
-        .task-action {
-            .cell {
-                & > * {
-                    margin-right: 10px;
-                }
-            }
+      .task-action {
+        .cell {
+          & > * {
+            margin-right: 10px;
+          }
         }
+      }
 
-        .list-empty {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            margin: 0 auto;
-            text-align: center;
+      .list-empty {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        margin: 0 auto;
+        text-align: center;
 
-            .empty-flag {
-                width: auto;
-                height: 50%;
-                max-height: 240px;
-                margin-top: -40px;
-            }
+        .empty-flag {
+          width: auto;
+          height: 50%;
+          max-height: 240px;
+          margin-top: -40px;
         }
+      }
     }
 </style>

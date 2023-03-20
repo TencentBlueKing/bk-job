@@ -70,12 +70,12 @@
 </script>
 <style lang="postcss">
     .error-handle-wraper {
-        display: flex;
-        align-items: center;
-        height: 100%;
+      display: flex;
+      align-items: center;
+      height: 100%;
 
-        .bk-checkbox-text {
-            border-bottom: 1px dashed #c4c6cc;
-        }
+      .bk-checkbox-text {
+        border-bottom: 1px dashed #c4c6cc;
+      }
     }
 </style>

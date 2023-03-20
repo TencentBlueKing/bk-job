@@ -110,26 +110,26 @@
 </script>
 <style lang='postcss'>
     .global-variable-detail {
-        display: flex;
-        flex: 1;
-        font-size: 14px;
-        line-height: 36px;
+      display: flex;
+      flex: 1;
+      font-size: 14px;
+      line-height: 36px;
 
-        &.vertical {
-            flex-direction: column;
-        }
+      &.vertical {
+        flex-direction: column;
+      }
 
-        .variable-name {
-            padding-right: 2px;
-            color: #b2b5bd;
-            text-align: right;
-            white-space: normal;
-            box-sizing: content-box;
-        }
+      .variable-name {
+        padding-right: 2px;
+        color: #b2b5bd;
+        text-align: right;
+        white-space: normal;
+        box-sizing: content-box;
+      }
 
-        .variable-value {
-            flex: 1 0;
-            color: #63656e;
-        }
+      .variable-value {
+        flex: 1 0;
+        color: #63656e;
+      }
     }
 </style>

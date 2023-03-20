@@ -198,199 +198,199 @@
   };
 </script>
 <style lang='postcss' scoped>
-    @import "@/css/mixins/scroll";
+  @import "@/css/mixins/scroll";
 
-    .step-execute-host-group {
-        width: 100%;
-        padding: 0 24px;
-        background: #f5f6fa;
-        border-bottom: 1px solid #e2e2e2;
+  .step-execute-host-group {
+    width: 100%;
+    padding: 0 24px;
+    background: #f5f6fa;
+    border-bottom: 1px solid #e2e2e2;
 
-        &.hide {
-            overflow: hidden;
+    &.hide {
+      overflow: hidden;
 
-            .group-tab {
-                visibility: hidden;
-            }
-        }
-
-        .group-tab {
-            display: flex;
-            height: 40px;
-            color: #63656e;
-            visibility: visible;
-            transition: all 0.15s;
-
-            &.toggle {
-                .tab-item {
-                    margin-right: 0;
-                }
-            }
-
-            .tab-item,
-            .tab-more {
-                position: relative;
-                display: flex;
-                height: 41px;
-                padding: 0 20px;
-                font-size: 14px;
-                color: #63656e;
-                cursor: pointer;
-                border: 1px solid transparent;
-                border-top-right-radius: 6px;
-                border-top-left-radius: 6px;
-                align-items: center;
-                flex: 0 0 auto;
-            }
-
-            .tab-item {
-                &:hover,
-                &.active {
-                    color: #313238;
-
-                    .group-nums {
-                        color: #63656e;
-                    }
-                }
-
-                &.active {
-                    background: #fff;
-                    border-color: #dcdee5;
-                    border-bottom-color: #fff;
-                }
-            }
-
-            .tab-more {
-                justify-content: flex-end;
-            }
-
-            .group-name {
-                max-width: 225px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .group-nums {
-                display: inline-block;
-                height: 16px;
-                min-width: 16px;
-                padding: 0 4px;
-                margin-left: 8px;
-                font-size: 12px;
-                font-weight: 500;
-                line-height: 16px;
-                color: #979ba5;
-                text-align: center;
-                background: #e6e7eb;
-                border-radius: 8px;
-            }
-
-            .max-length-info {
-                font-size: 16px;
-                color: #ea3636;
-            }
-        }
-
-        .group-toggle {
-            position: relative;
-            z-index: 999;
-
-            &:hover,
-            &.active {
-                .tab-more {
-                    color: #3a84ff;
-                }
-            }
-
-            &:hover {
-                .toggle-flag {
-                    transform: rotateZ(90deg);
-                }
-
-                .dropdown-menu {
-                    opacity: 100%;
-                    visibility: visible;
-                    transform: translateY(0);
-                }
-            }
-
-            .tab-more {
-                position: relative;
-                z-index: 99;
-                width: 124px;
-            }
-
-            .dropdown-menu {
-                position: absolute;
-                top: 50px;
-                right: 0;
-                width: 280px;
-                max-height: 300px;
-                padding: 6px 0;
-                overflow-y: scroll;
-                font-size: 12px;
-                background: #fff;
-                border: 1px solid #dcdee5;
-                opacity: 0%;
-                visibility: hidden;
-                transform: translateY(-15px);
-                transition: all 0.15s;
-
-                @mixin scroller;
-
-                &::before {
-                    position: absolute;
-                    top: -5px;
-                    right: 0;
-                    width: 124px;
-                    height: 8px;
-                    content: "";
-                }
-
-                .group-nums {
-                    margin-left: auto;
-                }
-            }
-
-            .dropdowm-item {
-                display: flex;
-                height: 32px;
-                padding: 0 10px;
-                cursor: pointer;
-                align-items: center;
-
-                &:hover,
-                &.active {
-                    color: #3a84ff;
-
-                    .group-nums {
-                        color: #fff;
-                        background: #3a84ff;
-                    }
-                }
-
-                &:hover {
-                    background: #f4f6fa;
-                }
-
-                &.active {
-                    background: #eaf3ff;
-                }
-            }
-
-            .toggle-flag {
-                margin-left: 2px;
-                transition: transform 0.15s;
-            }
-        }
-
-        .group-holder {
-            height: 19px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            word-break: break-all;
-            white-space: nowrap;
-        }
+      .group-tab {
+        visibility: hidden;
+      }
     }
+
+    .group-tab {
+      display: flex;
+      height: 40px;
+      color: #63656e;
+      visibility: visible;
+      transition: all 0.15s;
+
+      &.toggle {
+        .tab-item {
+          margin-right: 0;
+        }
+      }
+
+      .tab-item,
+      .tab-more {
+        position: relative;
+        display: flex;
+        height: 41px;
+        padding: 0 20px;
+        font-size: 14px;
+        color: #63656e;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-top-right-radius: 6px;
+        border-top-left-radius: 6px;
+        align-items: center;
+        flex: 0 0 auto;
+      }
+
+      .tab-item {
+        &:hover,
+        &.active {
+          color: #313238;
+
+          .group-nums {
+            color: #63656e;
+          }
+        }
+
+        &.active {
+          background: #fff;
+          border-color: #dcdee5;
+          border-bottom-color: #fff;
+        }
+      }
+
+      .tab-more {
+        justify-content: flex-end;
+      }
+
+      .group-name {
+        max-width: 225px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .group-nums {
+        display: inline-block;
+        height: 16px;
+        min-width: 16px;
+        padding: 0 4px;
+        margin-left: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 16px;
+        color: #979ba5;
+        text-align: center;
+        background: #e6e7eb;
+        border-radius: 8px;
+      }
+
+      .max-length-info {
+        font-size: 16px;
+        color: #ea3636;
+      }
+    }
+
+    .group-toggle {
+      position: relative;
+      z-index: 999;
+
+      &:hover,
+      &.active {
+        .tab-more {
+          color: #3a84ff;
+        }
+      }
+
+      &:hover {
+        .toggle-flag {
+          transform: rotateZ(90deg);
+        }
+
+        .dropdown-menu {
+          opacity: 100%;
+          visibility: visible;
+          transform: translateY(0);
+        }
+      }
+
+      .tab-more {
+        position: relative;
+        z-index: 99;
+        width: 124px;
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: 50px;
+        right: 0;
+        width: 280px;
+        max-height: 300px;
+        padding: 6px 0;
+        overflow-y: scroll;
+        font-size: 12px;
+        background: #fff;
+        border: 1px solid #dcdee5;
+        opacity: 0%;
+        visibility: hidden;
+        transform: translateY(-15px);
+        transition: all 0.15s;
+
+        @mixin scroller;
+
+        &::before {
+          position: absolute;
+          top: -5px;
+          right: 0;
+          width: 124px;
+          height: 8px;
+          content: "";
+        }
+
+        .group-nums {
+          margin-left: auto;
+        }
+      }
+
+      .dropdowm-item {
+        display: flex;
+        height: 32px;
+        padding: 0 10px;
+        cursor: pointer;
+        align-items: center;
+
+        &:hover,
+        &.active {
+          color: #3a84ff;
+
+          .group-nums {
+            color: #fff;
+            background: #3a84ff;
+          }
+        }
+
+        &:hover {
+          background: #f4f6fa;
+        }
+
+        &.active {
+          background: #eaf3ff;
+        }
+      }
+
+      .toggle-flag {
+        margin-left: 2px;
+        transition: transform 0.15s;
+      }
+    }
+
+    .group-holder {
+      height: 19px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-all;
+      white-space: nowrap;
+    }
+  }
 </style>

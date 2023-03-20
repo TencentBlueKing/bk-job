@@ -208,8 +208,8 @@
 </script>
 <style lang='postcss' scoped>
     .edit-execute-plan {
-        .info {
-            margin-bottom: 20px;
-        }
+      .info {
+        margin-bottom: 20px;
+      }
     }
 </style>

@@ -1066,37 +1066,37 @@
 </script>
 <style lang='postcss'>
     .script-manage-version-page {
-        .version-list-wraper {
-            margin-top: 20px;
-        }
+      .version-list-wraper {
+        margin-top: 20px;
+      }
 
-        .script-version-list {
-            .bk-table-row {
-                &.active {
-                    background: #eff5ff;
-                }
+      .script-version-list {
+        .bk-table-row {
+          &.active {
+            background: #eff5ff;
+          }
 
-                &.active,
-                &.hover-row {
-                    span[data-script-status] {
-                        background: #e6e7eb !important;
-                    }
-
-                    span[data-script-status="1"] {
-                        background: #daebde !important;
-                    }
-
-                    span[data-script-status="-1"] {
-                        background: #ffe8c3 !important;
-                    }
-                }
+          &.active,
+          &.hover-row {
+            span[data-script-status] {
+              background: #e6e7eb !important;
             }
 
-            .select-flag {
-                float: right;
-                margin-top: 3px;
-                color: #a3c5fd;
+            span[data-script-status="1"] {
+              background: #daebde !important;
             }
+
+            span[data-script-status="-1"] {
+              background: #ffe8c3 !important;
+            }
+          }
         }
+
+        .select-flag {
+          float: right;
+          margin-top: 3px;
+          color: #a3c5fd;
+        }
+      }
     }
 </style>

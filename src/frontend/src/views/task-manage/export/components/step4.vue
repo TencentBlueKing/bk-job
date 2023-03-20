@@ -241,74 +241,74 @@
 </script>
 <style lang="postcss">
     @keyframes export-task-loading {
-        0% {
-            content: ".";
-        }
+      0% {
+        content: ".";
+      }
 
-        30% {
-            content: "..";
-        }
+      30% {
+        content: "..";
+      }
 
-        60% {
-            content: "...";
-        }
+      60% {
+        content: "...";
+      }
     }
 
     .export-task-step4-page {
-        .notice {
-            margin-top: 50px;
-            margin-bottom: 16px;
-            text-align: center;
+      .notice {
+        margin-top: 50px;
+        margin-bottom: 16px;
+        text-align: center;
 
-            img {
-                width: 143px;
-            }
-
-            .title {
-                font-size: 24px;
-                color: #63656e;
-
-                .loading {
-                    &::after {
-                        display: inline-block;
-                        content: ".";
-                        animation: export-task-loading 2s linear infinite;
-                    }
-                }
-            }
-
-            .export-download {
-                margin-top: 10px;
-                font-size: 14px;
-                color: #63656e;
-
-                .btn {
-                    color: #3a84ff;
-                    cursor: pointer;
-                }
-            }
+        img {
+          width: 143px;
         }
 
-        .log-content {
-            width: 680px;
-            max-height: calc(100vh - 475px);
-            padding: 12px 16px;
-            margin: 30px auto 0;
-            overflow-y: auto;
-            font-size: 12px;
-            line-height: 20px;
-            color: #979ba5;
-            background-color: #fafbfd;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
+        .title {
+          font-size: 24px;
+          color: #63656e;
 
-            &::-webkit-scrollbar {
-                width: 13px;
+          .loading {
+            &::after {
+              display: inline-block;
+              content: ".";
+              animation: export-task-loading 2s linear infinite;
             }
-
-            &::-webkit-scrollbar-thumb {
-                background-color: #dcdee5;
-            }
+          }
         }
+
+        .export-download {
+          margin-top: 10px;
+          font-size: 14px;
+          color: #63656e;
+
+          .btn {
+            color: #3a84ff;
+            cursor: pointer;
+          }
+        }
+      }
+
+      .log-content {
+        width: 680px;
+        max-height: calc(100vh - 475px);
+        padding: 12px 16px;
+        margin: 30px auto 0;
+        overflow-y: auto;
+        font-size: 12px;
+        line-height: 20px;
+        color: #979ba5;
+        background-color: #fafbfd;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+
+        &::-webkit-scrollbar {
+          width: 13px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background-color: #dcdee5;
+        }
+      }
     }
 </style>

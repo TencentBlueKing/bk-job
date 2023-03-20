@@ -473,249 +473,249 @@
     @import "@/css/mixins/media";
 
     .task-global-variable-box {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        margin-top: -10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: -10px;
 
-        .render-global-variable {
-            margin-top: 10px;
-            margin-right: 10px;
-            cursor: pointer;
+      .render-global-variable {
+        margin-top: 10px;
+        margin-right: 10px;
+        cursor: pointer;
+        border-color: #3a84ff;
+
+        &.selected {
+          .global-variable-content {
+            border-color: #3a84ff;
+          }
+        }
+
+        &.not-selected {
+          .variable-type {
+            background: #dcdee5;
+          }
+        }
+      }
+
+      .global-variable-content {
+        position: relative;
+        display: flex;
+        width: 160px;
+        height: 50px;
+        padding: 0 10px;
+        background: #fff;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        box-sizing: border-box;
+        transition: all 0.15s;
+        align-items: center;
+
+        &:hover {
+          background: #e1ecff;
+          border-color: #3a84ff;
+
+          .variable-delete-btn {
+            opacity: 100%;
+            visibility: visible;
+            transform: scale(1);
+          }
+        }
+      }
+
+      .variable-type {
+        display: flex;
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+        color: #fff;
+        background: #3a84ff;
+        border-radius: 2px;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 30px;
+        transition: all 0.15s;
+      }
+
+      .variable-delete-btn {
+        position: absolute;
+        top: -9px;
+        right: -9px;
+        width: 18px;
+        height: 18px;
+        font-size: 14px;
+        line-height: 18px;
+        color: #fff;
+        cursor: pointer;
+        background: #c4c6cc;
+        border-radius: 50%;
+        opacity: 0%;
+        visibility: hidden;
+        transform: scale(0.8);
+        transition: all 0.25s;
+      }
+
+      .variable-info {
+        display: flex;
+        padding-left: 10px;
+        font-size: 12px;
+        line-height: 1;
+        color: #979ba5;
+        flex-direction: column;
+
+        .variable-name {
+          height: 16px;
+          max-width: 100px;
+          margin-bottom: 2px;
+          overflow: hidden;
+          font-size: 14px;
+          color: #63656e;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .variable-description {
+          height: 14px;
+          max-width: 138px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .global-variable-new {
+        position: relative;
+        width: 160px;
+        margin-top: 10px;
+
+        .new-btn,
+        .use-guide {
+          cursor: pointer;
+
+          &:hover,
+          &.active {
+            color: #3a84ff;
             border-color: #3a84ff;
 
-            &.selected {
-                .global-variable-content {
-                    border-color: #3a84ff;
-                }
+            i {
+              color: #3a84ff;
             }
+          }
+        }
 
-            &.not-selected {
-                .variable-type {
-                    background: #dcdee5;
-                }
-            }
+        .new-btn {
+          display: flex;
+          width: 100%;
+          height: 50px;
+          font-size: 14px;
+          color: #979ba5;
+          border: 1px dashed #c4c6cc;
+          border-radius: 2px;
+          box-sizing: border-box;
+          align-items: center;
+          justify-content: center;
+
+          .create-flag {
+            margin-right: 5px;
+            color: #c4c6cc;
+          }
+        }
+
+        .use-guide {
+          position: absolute;
+          top: 50%;
+          right: -29px;
+          display: flex;
+          width: 30px;
+          font-size: 14px;
+          color: #979ba5;
+          justify-content: center;
+          align-items: center;
+          transform: translateY(-50%);
+        }
+      }
+
+      .global-variable-content,
+      .global-variable-new {
+        @media (--small-viewports) {
+          width: 160px;
+        }
+
+        @media (--medium-viewports) {
+          width: 180px;
+        }
+
+        @media (--large-viewports) {
+          width: 200px;
+        }
+
+        @media (--huge-viewports) {
+          width: 220px;
+        }
+      }
+
+      .step-mode-diff {
+        cursor: default;
+
+        &::after {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          content: "";
         }
 
         .global-variable-content {
-            position: relative;
-            display: flex;
-            width: 160px;
-            height: 50px;
-            padding: 0 10px;
-            background: #fff;
-            border: 1px solid #c4c6cc;
-            border-radius: 2px;
-            box-sizing: border-box;
-            transition: all 0.15s;
-            align-items: center;
+          &.same {
+            border-color: #c4c6cc;
 
-            &:hover {
-                background: #e1ecff;
-                border-color: #3a84ff;
-
-                .variable-delete-btn {
-                    opacity: 100%;
-                    visibility: visible;
-                    transform: scale(1);
-                }
+            .variable-type {
+              background: #979ba5;
             }
-        }
+          }
 
-        .variable-type {
-            display: flex;
-            width: 30px;
-            height: 30px;
-            font-size: 18px;
-            color: #fff;
-            background: #3a84ff;
-            border-radius: 2px;
-            align-items: center;
-            justify-content: center;
-            flex: 0 0 30px;
-            transition: all 0.15s;
-        }
-
-        .variable-delete-btn {
-            position: absolute;
-            top: -9px;
-            right: -9px;
-            width: 18px;
-            height: 18px;
-            font-size: 14px;
-            line-height: 18px;
-            color: #fff;
-            cursor: pointer;
-            background: #c4c6cc;
-            border-radius: 50%;
-            opacity: 0%;
-            visibility: hidden;
-            transform: scale(0.8);
-            transition: all 0.25s;
-        }
-
-        .variable-info {
-            display: flex;
-            padding-left: 10px;
-            font-size: 12px;
-            line-height: 1;
-            color: #979ba5;
-            flex-direction: column;
-
-            .variable-name {
-                height: 16px;
-                max-width: 100px;
-                margin-bottom: 2px;
-                overflow: hidden;
-                font-size: 14px;
-                color: #63656e;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .variable-description {
-                height: 14px;
-                max-width: 138px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-        }
-
-        .global-variable-new {
-            position: relative;
-            width: 160px;
-            margin-top: 10px;
-
-            .new-btn,
-            .use-guide {
-                cursor: pointer;
-
-                &:hover,
-                &.active {
-                    color: #3a84ff;
-                    border-color: #3a84ff;
-
-                    i {
-                        color: #3a84ff;
-                    }
-                }
-            }
-
-            .new-btn {
-                display: flex;
-                width: 100%;
-                height: 50px;
-                font-size: 14px;
-                color: #979ba5;
-                border: 1px dashed #c4c6cc;
-                border-radius: 2px;
-                box-sizing: border-box;
-                align-items: center;
-                justify-content: center;
-
-                .create-flag {
-                    margin-right: 5px;
-                    color: #c4c6cc;
-                }
-            }
-
-            .use-guide {
-                position: absolute;
-                top: 50%;
-                right: -29px;
-                display: flex;
-                width: 30px;
-                font-size: 14px;
-                color: #979ba5;
-                justify-content: center;
-                align-items: center;
-                transform: translateY(-50%);
-            }
-        }
-
-        .global-variable-content,
-        .global-variable-new {
-            @media (--small-viewports) {
-                width: 160px;
-            }
-
-            @media (--medium-viewports) {
-                width: 180px;
-            }
-
-            @media (--large-viewports) {
-                width: 200px;
-            }
-
-            @media (--huge-viewports) {
-                width: 220px;
-            }
-        }
-
-        .step-mode-diff {
-            cursor: default;
-
+          &.new {
             &::after {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                content: "";
+              position: absolute;
+              top: -6px;
+              right: -6px;
+              width: 28px;
+              height: 14px;
+              font-size: 12px;
+              line-height: 14px;
+              color: #fff;
+              text-align: center;
+              background: #ffa86e;
+              content: "new";
+            }
+          }
+
+          &.new,
+          &.different {
+            position: relative;
+            border-color: #f9c9a9;
+
+            .variable-type {
+              background: #f5c09e;
+            }
+          }
+
+          &.delete {
+            border-color: #dcdee5;
+
+            .variable-type {
+              background: #dcdee5;
             }
 
-            .global-variable-content {
-                &.same {
-                    border-color: #c4c6cc;
-
-                    .variable-type {
-                        background: #979ba5;
-                    }
-                }
-
-                &.new {
-                    &::after {
-                        position: absolute;
-                        top: -6px;
-                        right: -6px;
-                        width: 28px;
-                        height: 14px;
-                        font-size: 12px;
-                        line-height: 14px;
-                        color: #fff;
-                        text-align: center;
-                        background: #ffa86e;
-                        content: "new";
-                    }
-                }
-
-                &.new,
-                &.different {
-                    position: relative;
-                    border-color: #f9c9a9;
-
-                    .variable-type {
-                        background: #f5c09e;
-                    }
-                }
-
-                &.delete {
-                    border-color: #dcdee5;
-
-                    .variable-type {
-                        background: #dcdee5;
-                    }
-
-                    .variable-info {
-                        .variable-name,
-                        .variable-description {
-                            color: #c4c6cc;
-                            text-decoration: line-through;
-                        }
-                    }
-                }
+            .variable-info {
+              .variable-name,
+              .variable-description {
+                color: #c4c6cc;
+                text-decoration: line-through;
+              }
             }
+          }
         }
+      }
     }
 </style>

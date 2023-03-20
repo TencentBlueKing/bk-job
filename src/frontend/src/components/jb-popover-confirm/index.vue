@@ -181,40 +181,40 @@
 
 <style lang="postcss">
     .jb-popover-confirm {
-        display: inline-block;
+      display: inline-block;
     }
 
     .jb-popover-confirm-theme.tippy-tooltip {
-        .tippy-content {
-            padding: 20px !important;
+      .tippy-content {
+        padding: 20px !important;
+      }
+
+      .jb-popover-content {
+        .confirm-title {
+          font-size: 16px;
+          font-weight: normal;
+          line-height: 20px;
+          color: #313238;
         }
 
-        .jb-popover-content {
-            .confirm-title {
-                font-size: 16px;
-                font-weight: normal;
-                line-height: 20px;
-                color: #313238;
-            }
-
-            .confirm-content {
-                margin: 10px 0 0;
-                font-size: 12px;
-                color: #63656e;
-            }
-
-            .confirm-options {
-                display: flex;
-                justify-content: flex-end;
-                margin: 16px 0 0;
-            }
-
-            .confirm-option-button {
-                height: 24px;
-                min-width: 60px;
-                margin: 0 0 0 10px;
-                line-height: 22px;
-            }
+        .confirm-content {
+          margin: 10px 0 0;
+          font-size: 12px;
+          color: #63656e;
         }
+
+        .confirm-options {
+          display: flex;
+          justify-content: flex-end;
+          margin: 16px 0 0;
+        }
+
+        .confirm-option-button {
+          height: 24px;
+          min-width: 60px;
+          margin: 0 0 0 10px;
+          line-height: 22px;
+        }
+      }
     }
 </style>

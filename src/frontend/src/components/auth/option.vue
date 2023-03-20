@@ -70,8 +70,8 @@
 </script>
 <style lang='postcss'>
     .jb-select-option-permission {
-        &.permission {
-            color: #c4c6cc;
-        }
+      &.permission {
+        color: #c4c6cc;
+      }
     }
 </style>

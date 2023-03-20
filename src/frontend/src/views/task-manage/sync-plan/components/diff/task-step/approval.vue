@@ -109,27 +109,27 @@
 </script>
 <style lang='postcss' scoped>
     .approval-wraper {
-        display: inline-flex;
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: -10px;
+
+      .item {
+        display: flex;
+        height: 20px;
+        padding: 0 6px;
+        margin-top: 10px;
+        margin-right: 10px;
+        font-size: 12px;
+        color: #63656e;
+        white-space: nowrap;
+        background: #f0f1f5;
+        border-radius: 2px;
         align-items: center;
-        flex-wrap: wrap;
-        margin-top: -10px;
+      }
 
-        .item {
-            display: flex;
-            height: 20px;
-            padding: 0 6px;
-            margin-top: 10px;
-            margin-right: 10px;
-            font-size: 12px;
-            color: #63656e;
-            white-space: nowrap;
-            background: #f0f1f5;
-            border-radius: 2px;
-            align-items: center;
-        }
-
-        .approval-flag {
-            margin-right: 4px;
-        }
+      .approval-flag {
+        margin-right: 4px;
+      }
     }
 </style>

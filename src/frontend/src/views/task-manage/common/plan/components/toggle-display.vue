@@ -65,19 +65,19 @@
 </script>
 <style lang='postcss' scoped>
     .toggle-display {
-        .action {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            line-height: 19px;
-            color: #3a84ff;
-            cursor: pointer;
-            user-select: none;
-        }
+      .action {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        line-height: 19px;
+        color: #3a84ff;
+        cursor: pointer;
+        user-select: none;
+      }
 
-        .toggle-arrow {
-            margin-right: 3px;
-            font-size: 12px;
-        }
+      .toggle-arrow {
+        margin-right: 3px;
+        font-size: 12px;
+      }
     }
 </style>

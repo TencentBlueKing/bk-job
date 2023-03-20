@@ -64,47 +64,47 @@
   };
 </script>
 <style lang='postcss' scoped>
-    @import "@/css/mixins/media";
+  @import "@/css/mixins/media";
 
-    .script-dashboard {
-        display: flex;
+  .script-dashboard {
+    display: flex;
 
-        .layout-left {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #f0f1f5;
+    .layout-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #f0f1f5;
 
-            .dashboard-card-layout {
-                @media (--huge-viewports) {
-                    width: 400px;
-                }
-
-                @media (--large-viewports) {
-                    width: 300px;
-                }
-
-                @media (--medium-viewports) {
-                    width: 280px;
-                }
-
-                @media (--small-viewports) {
-                    width: 260px;
-                }
-
-                &:nth-child(n+2) {
-                    border-top: 1px solid #f0f1f5;
-                }
-            }
+      .dashboard-card-layout {
+        @media (--huge-viewports) {
+          width: 400px;
         }
 
-        .layout-center {
-            flex: 2;
+        @media (--large-viewports) {
+          width: 300px;
         }
 
-        .layout-right {
-            flex: 2;
-            border-left: 1px solid #f0f1f5;
+        @media (--medium-viewports) {
+          width: 280px;
         }
+
+        @media (--small-viewports) {
+          width: 260px;
+        }
+
+        &:nth-child(n+2) {
+          border-top: 1px solid #f0f1f5;
+        }
+      }
     }
+
+    .layout-center {
+      flex: 2;
+    }
+
+    .layout-right {
+      flex: 2;
+      border-left: 1px solid #f0f1f5;
+    }
+  }
 </style>

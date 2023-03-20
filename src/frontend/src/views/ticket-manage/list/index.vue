@@ -489,26 +489,26 @@
 </script>
 <style lang="postcss">
     @keyframes related-nums-loading {
-        0% {
-            transform: rotateZ(0);
-        }
+      0% {
+        transform: rotateZ(0);
+      }
 
-        100% {
-            transform: rotateZ(360deg);
-        }
+      100% {
+        transform: rotateZ(360deg);
+      }
     }
 
     .ticket-manage-page {
-        .sync-fetch-relate-nums {
-            height: 13px;
+      .sync-fetch-relate-nums {
+        height: 13px;
 
-            .related-nums-loading {
-                position: absolute;
-                display: flex;
-                width: 13px;
-                height: 13px;
-                animation: related-nums-loading 1s linear infinite;
-            }
+        .related-nums-loading {
+          position: absolute;
+          display: flex;
+          width: 13px;
+          height: 13px;
+          animation: related-nums-loading 1s linear infinite;
         }
+      }
     }
 </style>

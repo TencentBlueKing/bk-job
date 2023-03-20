@@ -185,54 +185,54 @@
 </script>
 <style lang='postcss'>
     .script-template-preview-template {
-        position: relative;
-        z-index: 0;
-        height: 100%;
-        background: #292929;
+      position: relative;
+      z-index: 0;
+      height: 100%;
+      background: #292929;
 
-        .preview-content {
-            height: calc(100% - 51px);
-            /* stylelint-disable selector-class-pattern */
-            &.ace_editor {
-                background: #292929;
+      .preview-content {
+        height: calc(100% - 51px);
+        /* stylelint-disable selector-class-pattern */
+        &.ace_editor {
+          background: #292929;
 
-                .ace_gutter {
-                    background: #292929;
-                }
-            }
+          .ace_gutter {
+            background: #292929;
+          }
         }
+      }
 
-        .preview-result {
-            display: flex;
-            align-items: flex-end;
-            padding: 16px 20px;
+      .preview-result {
+        display: flex;
+        align-items: flex-end;
+        padding: 16px 20px;
+        font-size: 14px;
+        line-height: 19px;
+        color: #c4c6cc;
+
+        .refresh-flag {
+          display: flex;
+          margin-left: 9px;
+          font-size: 12px;
+          cursor: pointer;
+
+          .dot {
+            position: relative;
+            margin-right: 8px;
             font-size: 14px;
-            line-height: 19px;
-            color: #c4c6cc;
 
-            .refresh-flag {
-                display: flex;
-                margin-left: 9px;
-                font-size: 12px;
-                cursor: pointer;
-
-                .dot {
-                    position: relative;
-                    margin-right: 8px;
-                    font-size: 14px;
-
-                    &::after {
-                        position: absolute;
-                        top: 6px;
-                        right: -3px;
-                        width: 4px;
-                        height: 4px;
-                        background: #d74242;
-                        border-radius: 50%;
-                        content: "";
-                    }
-                }
+            &::after {
+              position: absolute;
+              top: 6px;
+              right: -3px;
+              width: 4px;
+              height: 4px;
+              background: #d74242;
+              border-radius: 50%;
+              content: "";
             }
+          }
         }
+      }
     }
 </style>

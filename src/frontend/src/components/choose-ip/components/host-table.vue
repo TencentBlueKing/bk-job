@@ -168,120 +168,120 @@
 </script>
 <style lang='postcss'>
     .choose-ip-host-table {
-        &.empty {
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            min-height: 300px;
+      &.empty {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        min-height: 300px;
 
-            .job-empty {
-                margin-top: 90px;
-            }
+        .job-empty {
+          margin-top: 90px;
         }
+      }
 
-        table {
-            width: 100%;
-            color: #63656e;
-            table-layout: fixed;
+      table {
+        width: 100%;
+        color: #63656e;
+        table-layout: fixed;
 
-            .valid-list {
-                tr:last-child {
-                    td {
-                        border: none;
-                    }
-                }
-            }
-
-            th,
+        .valid-list {
+          tr:last-child {
             td {
-                height: 41px;
-                padding: 0 10px;
-                font-size: 12px;
-                font-weight: normal;
-                line-height: 20px;
-                text-align: left;
-                border-bottom: 1px solid #e7e8ed;
-
-                &:first-child {
-                    padding-left: 60px;
-                }
+              border: none;
             }
-
-            th {
-                color: #313238;
-                white-space: nowrap;
-                background: #f5f6fa;
-            }
-
-            td {
-                word-break: break-all;
-            }
-
-            .table-cell {
-                position: relative;
-
-                .repeat,
-                .invalid {
-                    position: absolute;
-                    top: 10px;
-                    height: 18px;
-                    padding: 0 5px;
-                    margin-left: -6px;
-                    font-size: 12px;
-                    line-height: 18px;
-                    text-align: center;
-                    border-radius: 2px;
-                    transform: translateX(-100%);
-                }
-
-                .repeat {
-                    color: #fff;
-                    background: #fe9c00;
-                }
-
-                .invalid {
-                    color: #979ba5;
-                    background: #f0f1f5;
-                }
-            }
-
-            .cell-text {
-                /* stylelint-disable value-no-vendor-prefix */
-                display: -webkit-box;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                word-break: break-all;
-                white-space: normal;
-                -webkit-box-orient: vertical;
-                -webkit-line-clamp: 2;
-            }
+          }
         }
 
-        .bk-button-text {
+        th,
+        td {
+          height: 41px;
+          padding: 0 10px;
+          font-size: 12px;
+          font-weight: normal;
+          line-height: 20px;
+          text-align: left;
+          border-bottom: 1px solid #e7e8ed;
+
+          &:first-child {
+            padding-left: 60px;
+          }
+        }
+
+        th {
+          color: #313238;
+          white-space: nowrap;
+          background: #f5f6fa;
+        }
+
+        td {
+          word-break: break-all;
+        }
+
+        .table-cell {
+          position: relative;
+
+          .repeat,
+          .invalid {
+            position: absolute;
+            top: 10px;
+            height: 18px;
+            padding: 0 5px;
+            margin-left: -6px;
             font-size: 12px;
-        }
-
-        .action-column {
-            width: 90px;
-            padding-right: 20px;
-            text-align: right;
-        }
-
-        .loading-status {
-            font-size: 16px;
-            color: #3a84ff;
-            vertical-align: middle;
-            animation: rotate-loading 1s linear infinite;
-        }
-
-        .list-more {
-            height: 40px;
-            font-size: 12px;
-            line-height: 40px;
-            color: #63656e;
+            line-height: 18px;
             text-align: center;
-            cursor: pointer;
-            border-top: 1px solid #e7e8ed;
+            border-radius: 2px;
+            transform: translateX(-100%);
+          }
+
+          .repeat {
+            color: #fff;
+            background: #fe9c00;
+          }
+
+          .invalid {
+            color: #979ba5;
+            background: #f0f1f5;
+          }
         }
+
+        .cell-text {
+          /* stylelint-disable value-no-vendor-prefix */
+          display: -webkit-box;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          word-break: break-all;
+          white-space: normal;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+        }
+      }
+
+      .bk-button-text {
+        font-size: 12px;
+      }
+
+      .action-column {
+        width: 90px;
+        padding-right: 20px;
+        text-align: right;
+      }
+
+      .loading-status {
+        font-size: 16px;
+        color: #3a84ff;
+        vertical-align: middle;
+        animation: rotate-loading 1s linear infinite;
+      }
+
+      .list-more {
+        height: 40px;
+        font-size: 12px;
+        line-height: 40px;
+        color: #63656e;
+        text-align: center;
+        cursor: pointer;
+        border-top: 1px solid #e7e8ed;
+      }
     }
 </style>

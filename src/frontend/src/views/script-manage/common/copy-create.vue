@@ -352,16 +352,16 @@
 </script>
 <style lang='postcss'>
     .script-manage-copy-create-box {
-        .script-version {
-            position: relative;
+      .script-version {
+        position: relative;
 
-            .new-flag {
-                position: absolute;
-                top: -32px;
-                left: 55px;
-                font-size: 32px;
-                color: #7d6b50;
-            }
+        .new-flag {
+          position: absolute;
+          top: -32px;
+          left: 55px;
+          font-size: 32px;
+          color: #7d6b50;
         }
+      }
     }
 </style>

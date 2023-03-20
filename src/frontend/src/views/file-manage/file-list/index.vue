@@ -233,14 +233,14 @@
 </script>
 <style lang="postcss">
     .file-node-list-page {
-        .list-action-layout {
-            .right-box {
-                flex: 1;
-            }
-
-            .list-breadcrumb {
-                width: 100%;
-            }
+      .list-action-layout {
+        .right-box {
+          flex: 1;
         }
+
+        .list-breadcrumb {
+          width: 100%;
+        }
+      }
     }
 </style>

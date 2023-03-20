@@ -194,64 +194,64 @@
 
 <style lang="postcss">
     .channel-detail-layout {
-        display: flex;
+      display: flex;
 
-        .layout-left,
-        .layout-right {
-            flex: 1;
+      .layout-left,
+      .layout-right {
+        flex: 1;
+      }
+
+      .detail-item {
+        margin-bottom: 20px;
+        font-size: 14px;
+
+        label {
+          color: #b2b5bd;
+          word-break: keep-all;
+          white-space: pre;
         }
 
-        .detail-item {
-            margin-bottom: 20px;
-            font-size: 14px;
-
-            label {
-                color: #b2b5bd;
-                word-break: keep-all;
-                white-space: pre;
-            }
-
-            span {
-                color: #63656e;
-            }
+        span {
+          color: #63656e;
         }
+      }
 
-        .detail-label {
-            justify-content: flex-start;
-        }
+      .detail-label {
+        justify-content: flex-start;
+      }
     }
 
     .notify-template-form {
-        position: relative;
-        margin-top: 20px;
+      position: relative;
+      margin-top: 20px;
 
-        .bk-form-textarea {
-            max-height: 400px;
-            min-height: 280px;
-        }
+      .bk-form-textarea {
+        max-height: 400px;
+        min-height: 280px;
+      }
 
-        .bk-button-text {
-            position: absolute;
-            top: -32px;
-            right: 0;
-        }
+      .bk-button-text {
+        position: absolute;
+        top: -32px;
+        right: 0;
+      }
     }
 
     .message-preview {
-        margin-bottom: 20px;
+      margin-bottom: 20px;
     }
 
     .send-message-content {
-        display: flex;
+      display: flex;
 
-        .bk-button {
-            margin-left: 10px;
-        }
+      .bk-button {
+        margin-left: 10px;
+      }
     }
 
     .internal-variable-dialog {
-        .bk-dialog-tool {
-            display: none;
-        }
+      .bk-dialog-tool {
+        display: none;
+      }
     }
 </style>

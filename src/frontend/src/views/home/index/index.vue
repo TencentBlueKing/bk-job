@@ -130,80 +130,80 @@
 </script>
 <style lang='postcss'>
     .page-home {
+      display: flex;
+      flex-direction: column;
+
+      .layout-left {
         display: flex;
         flex-direction: column;
+        flex: 1;
+        margin-right: 20px;
+      }
 
-        .layout-left {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            margin-right: 20px;
+      .layout-right {
+        display: flex;
+        width: 28.6168%;
+        max-width: 480px;
+        min-width: 360px;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      .layout-row {
+        display: flex;
+
+        &.content-top {
+          height: 196px;
+          margin-bottom: 20px;
+        }
+      }
+
+      .user-card {
+        flex: 1 0 480px;
+        min-width: 480px;
+        margin-right: 20px;
+      }
+
+      .agent-card {
+        flex: 1 1 378px;
+      }
+
+      .work-statistics-card {
+        width: calc(50% - 10px);
+        margin-right: 20px;
+
+        &:hover {
+          box-shadow: 0 2px 6px 0 rgb(0 0 0 / 10%);
+
+          .hexagon {
+            animation: hexagon-scale 0.3s ease-in forwards;
+          }
         }
 
-        .layout-right {
-            display: flex;
-            width: 28.6168%;
-            max-width: 480px;
-            min-width: 360px;
-            flex-direction: column;
-            flex: 1;
+        &:last-child {
+          margin-right: 0;
         }
+      }
 
-        .layout-row {
-            display: flex;
+      .record-card {
+        flex: 1;
+      }
 
-            &.content-top {
-                height: 196px;
-                margin-bottom: 20px;
-            }
-        }
+      .my-task {
+        flex: 1;
+        width: 878px;
+      }
 
-        .user-card {
-            flex: 1 0 480px;
-            min-width: 480px;
-            margin-right: 20px;
-        }
-
-        .agent-card {
-            flex: 1 1 378px;
-        }
-
-        .work-statistics-card {
-            width: calc(50% - 10px);
-            margin-right: 20px;
-
-            &:hover {
-                box-shadow: 0 2px 6px 0 rgb(0 0 0 / 10%);
-
-                .hexagon {
-                    animation: hexagon-scale 0.3s ease-in forwards;
-                }
-            }
-
-            &:last-child {
-                margin-right: 0;
-            }
-        }
-
-        .record-card {
-            flex: 1;
-        }
-
-        .my-task {
-            flex: 1;
-            width: 878px;
-        }
-
-        .page-footer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 52px;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #63656e;
-            border-top: 1px solid #dcdee5;
-        }
+      .page-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 52px;
+        margin-top: 20px;
+        font-size: 12px;
+        color: #63656e;
+        border-top: 1px solid #dcdee5;
+      }
     }
 </style>

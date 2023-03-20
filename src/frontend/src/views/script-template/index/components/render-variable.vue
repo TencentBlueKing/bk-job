@@ -101,42 +101,42 @@
 </script>
 <style lang='postcss'>
     .script-template-render-variable {
-        height: 100%;
-        padding: 16px 20px;
-        white-space: nowrap;
-        background: #292929;
+      height: 100%;
+      padding: 16px 20px;
+      white-space: nowrap;
+      background: #292929;
 
-        .script-variable-list {
-            width: 100%;
-            margin-top: 16px;
-            font-size: 12px;
+      .script-variable-list {
+        width: 100%;
+        margin-top: 16px;
+        font-size: 12px;
 
-            thead {
-                background: #3a3b3d;
-            }
-
-            td {
-                height: 32px;
-                padding: 0 16px;
-            }
-
-            tbody {
-                td {
-                    border-bottom: 1px solid #4a4a4a;
-                }
-            }
-
-            .variable-name {
-                height: 24px;
-                padding-left: 10px;
-                margin-left: -10px;
-                line-height: 24px;
-                cursor: pointer;
-
-                &:hover {
-                    background: #3b3c3d;
-                }
-            }
+        thead {
+          background: #3a3b3d;
         }
+
+        td {
+          height: 32px;
+          padding: 0 16px;
+        }
+
+        tbody {
+          td {
+            border-bottom: 1px solid #4a4a4a;
+          }
+        }
+
+        .variable-name {
+          height: 24px;
+          padding-left: 10px;
+          margin-left: -10px;
+          line-height: 24px;
+          cursor: pointer;
+
+          &:hover {
+            background: #3b3c3d;
+          }
+        }
+      }
     }
 </style>

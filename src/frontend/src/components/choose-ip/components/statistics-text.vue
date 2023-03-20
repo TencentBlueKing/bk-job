@@ -47,27 +47,27 @@
   };
 </script>
 <style lang='postcss'>
-    .statistics-text {
-        display: flex;
-        font-size: 12px;
-        font-weight: normal;
-        color: #63656e;
+  .statistics-text {
+    display: flex;
+    font-size: 12px;
+    font-weight: normal;
+    color: #63656e;
 
-        .strong {
-            color: #3a84ff;
-        }
-
-        .error {
-            color: #ea3636;
-        }
-
-        .success {
-            color: #3fc06d;
-        }
-
-        .number {
-            padding: 0 4px;
-            font-weight: bold;
-        }
+    .strong {
+      color: #3a84ff;
     }
+
+    .error {
+      color: #ea3636;
+    }
+
+    .success {
+      color: #3fc06d;
+    }
+
+    .number {
+      padding: 0 4px;
+      font-weight: bold;
+    }
+  }
 </style>

@@ -78,7 +78,7 @@
 </script>
 <style lang="postcss">
     .notify-wraper {
-        margin-top: -20px !important;
-        margin-bottom: 20px;
+      margin-top: -20px !important;
+      margin-bottom: 20px;
     }
 </style>

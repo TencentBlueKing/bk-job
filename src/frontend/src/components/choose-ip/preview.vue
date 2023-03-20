@@ -152,43 +152,43 @@
 </script>
 <style lang='postcss'>
     .server-preview {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 9;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 9;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+
+      .preview-header {
         display: flex;
-        flex-direction: column;
-        background: #fff;
+        align-items: center;
+        flex: 0 0 68px;
+        height: 68px;
+        padding-left: 24px;
+        margin-bottom: -1px;
+        font-size: 20px;
+        color: #000;
+        border-bottom: 1px solid #dcdee5;
 
-        .preview-header {
-            display: flex;
-            align-items: center;
-            flex: 0 0 68px;
-            height: 68px;
-            padding-left: 24px;
-            margin-bottom: -1px;
-            font-size: 20px;
-            color: #000;
-            border-bottom: 1px solid #dcdee5;
-
-            .server-description {
-                padding-top: 6px;
-                margin-left: 12px;
-                font-size: 12px;
-                line-height: 1em;
-                color: #63656e;
-            }
+        .server-description {
+          padding-top: 6px;
+          margin-left: 12px;
+          font-size: 12px;
+          line-height: 1em;
+          color: #63656e;
         }
+      }
 
-        .preview-footer {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            height: 60px;
-            padding-right: 24px;
-            background: #fafbfd;
-        }
+      .preview-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        height: 60px;
+        padding-right: 24px;
+        background: #fafbfd;
+      }
     }
 </style>

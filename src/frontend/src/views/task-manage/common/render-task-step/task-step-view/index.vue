@@ -90,8 +90,8 @@
 </script>
 <style lang="postcss" scoped>
     .detail-layout-wrapper {
-        .detail-item {
-            margin-bottom: 0;
-        }
+      .detail-item {
+        margin-bottom: 0;
+      }
     }
 </style>

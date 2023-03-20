@@ -297,75 +297,75 @@
 </script>
 <style lang="postcss">
     .choose-ip-server-ip-input {
-        padding: 20px 24px;
+      padding: 20px 24px;
 
-        .focus-error {
-            textarea {
-                &::selection {
-                    color: #63656e;
-                    background: #fdd;
-                }
-            }
+      .focus-error {
+        textarea {
+          &::selection {
+            color: #63656e;
+            background: #fdd;
+          }
         }
+      }
 
-        .input-action {
-            display: flex;
-            align-items: center;
-            margin-top: 20px;
+      .input-action {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+      }
+
+      .input-error {
+        display: flex;
+        margin-right: auto;
+        color: #ea3636;
+
+        .error-action {
+          font-size: 16px;
+          color: #63656e;
+          cursor: pointer;
+
+          &:hover {
+            color: #3a84ff;
+          }
         }
+      }
 
-        .input-error {
-            display: flex;
-            margin-right: auto;
-            color: #ea3636;
+      .submit-btn {
+        margin-left: auto;
 
-            .error-action {
-                font-size: 16px;
-                color: #63656e;
-                cursor: pointer;
-
-                &:hover {
-                    color: #3a84ff;
-                }
-            }
+        &:hover {
+          .server-input-number .text {
+            color: #3a84ff;
+            background: #fff;
+          }
         }
-
-        .submit-btn {
-            margin-left: auto;
-
-            &:hover {
-                .server-input-number .text {
-                    color: #3a84ff;
-                    background: #fff;
-                }
-            }
-        }
+      }
     }
 
     .server-input-number,
     .server-input-number .text {
-        transition: transform 0.5s;
+      transition: transform 0.5s;
     }
 
     .server-input-number {
-        position: relative;
-        z-index: 999999;
-        display: inline-block;
-        height: 17px;
-        transition-timing-function: cubic-bezier(0.74, 0.95, 0.81, 0.92);
+      position: relative;
+      z-index: 999999;
+      display: inline-block;
+      height: 17px;
+      transition-timing-function: cubic-bezier(0.74, 0.95, 0.81, 0.92);
     }
 
     .server-input-number .text {
-        display: inline-block;
-        height: 17px;
-        min-width: 17px;
-        padding: 0 4px;
-        font-size: 12px;
-        line-height: 17px;
-        color: #fff;
-        text-align: center;
-        background: #3a84ff;
-        border-radius: 8px;
-        transition-timing-function: cubic-bezier(0, -1.12, 0.94, -1.07);
+      display: inline-block;
+      height: 17px;
+      min-width: 17px;
+      padding: 0 4px;
+      font-size: 12px;
+      line-height: 17px;
+      color: #fff;
+      text-align: center;
+      background: #3a84ff;
+      border-radius: 8px;
+      transition-timing-function: cubic-bezier(0, -1.12, 0.94, -1.07);
     }
 </style>

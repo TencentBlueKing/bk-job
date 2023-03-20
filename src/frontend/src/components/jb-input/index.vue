@@ -134,15 +134,15 @@
 </script>
 <style lang='postcss'>
     .jb-input {
-        position: relative;
+      position: relative;
 
-        .jb-input-number {
-            position: absolute;
-            top: 9px;
-            right: 9px;
-            font-size: 12px;
-            line-height: 1em;
-            color: #979ba5;
-        }
+      .jb-input-number {
+        position: absolute;
+        top: 9px;
+        right: 9px;
+        font-size: 12px;
+        line-height: 1em;
+        color: #979ba5;
+      }
     }
 </style>

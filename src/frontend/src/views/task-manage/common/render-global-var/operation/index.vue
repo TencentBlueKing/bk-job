@@ -167,10 +167,10 @@
 </script>
 <style lang="postcss">
     .variable-type-wraper {
-        .item {
-            .bk-radio-button-text {
-                width: 108px;
-            }
+      .item {
+        .bk-radio-button-text {
+          width: 108px;
         }
+      }
     }
 </style>

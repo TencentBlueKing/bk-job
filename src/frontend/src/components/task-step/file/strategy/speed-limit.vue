@@ -115,55 +115,55 @@
 </script>
 <style lang='postcss'>
     .push-speed-limit {
-        .bk-label {
-            white-space: normal;
-        }
+      .bk-label {
+        white-space: normal;
+      }
 
-        .speed-limit-wraper {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }
+      .speed-limit-wraper {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
 
-        .speed-limit-content {
-            display: flex;
-            align-items: center;
-            height: 32px;
-        }
+      .speed-limit-content {
+        display: flex;
+        align-items: center;
+        height: 32px;
+      }
 
-        .speed-limit-input {
-            width: calc(100% - 100px);
-            margin-left: auto;
-        }
+      .speed-limit-input {
+        width: calc(100% - 100px);
+        margin-left: auto;
+      }
 
-        .tips-flag {
-            margin-left: 8px;
-            font-size: 14px;
-            line-height: 32px;
-            color: #c4c6cc;
-            cursor: pointer;
-        }
+      .tips-flag {
+        margin-left: 8px;
+        font-size: 14px;
+        line-height: 32px;
+        color: #c4c6cc;
+        cursor: pointer;
+      }
     }
 
     .speed-limit-tips {
-        font-size: 12px;
-        line-height: 16px;
-        color: #63656e;
+      font-size: 12px;
+      line-height: 16px;
+      color: #63656e;
 
-        .row {
-            position: relative;
-            padding-left: 12px;
+      .row {
+        position: relative;
+        padding-left: 12px;
 
-            &::before {
-                position: absolute;
-                top: 6px;
-                left: 0;
-                width: 4px;
-                height: 4px;
-                background: currentcolor;
-                border-radius: 50%;
-                content: "";
-            }
+        &::before {
+          position: absolute;
+          top: 6px;
+          left: 0;
+          width: 4px;
+          height: 4px;
+          background: currentcolor;
+          border-radius: 50%;
+          content: "";
         }
+      }
     }
 </style>

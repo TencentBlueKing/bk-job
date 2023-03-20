@@ -88,6 +88,6 @@
 </script>
 <style lang="postcss">
     .notify-wraper {
-        margin-top: -20px !important;
+      margin-top: -20px !important;
     }
 </style>

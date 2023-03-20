@@ -76,49 +76,49 @@
 </script>
 <style lang='postcss'>
     .list-operation-extend {
-        display: inline-block;
-        width: 32px;
-        height: 32px;
-        margin-left: -14px;
-        line-height: 30px;
-        color: #868b97;
-        text-align: center;
-        cursor: pointer;
-        background: transparent;
-        border-radius: 50%;
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      margin-left: -14px;
+      line-height: 30px;
+      color: #868b97;
+      text-align: center;
+      cursor: pointer;
+      background: transparent;
+      border-radius: 50%;
+
+      .icon {
+        font-size: 14px;
+      }
+
+      &:hover {
+        background: #dcdee5;
 
         .icon {
-            font-size: 14px;
+          color: #3a84ff;
         }
-
-        &:hover {
-            background: #dcdee5;
-
-            .icon {
-                color: #3a84ff;
-            }
-        }
+      }
     }
 
     .list-operation-extend-wrapper {
-        display: flex;
-        flex-direction: column;
+      display: flex;
+      flex-direction: column;
 
-        .action-item {
-            font-size: 14px;
-            line-height: 32px;
-            color: #868b97;
-            text-align: center;
-            cursor: pointer;
+      .action-item {
+        font-size: 14px;
+        line-height: 32px;
+        color: #868b97;
+        text-align: center;
+        cursor: pointer;
 
-            &:hover {
-                color: #3a84ff;
-            }
-
-            &.disabled {
-                color: #dcdee5;
-                cursor: not-allowed;
-            }
+        &:hover {
+          color: #3a84ff;
         }
+
+        &.disabled {
+          color: #dcdee5;
+          cursor: not-allowed;
+        }
+      }
     }
 </style>

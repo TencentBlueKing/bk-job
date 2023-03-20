@@ -166,27 +166,27 @@
 </script>
 <style lang='postcss'>
     .server-search-panel {
+      color: #63656e;
+      border: 1px solid #dcdee5;
+
+      .search-header {
+        position: relative;
+        height: 41px;
+        padding-left: 60px;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 41px;
         color: #63656e;
-        border: 1px solid #dcdee5;
+        background: #fafbfd;
+        border-bottom: 1px solid #dcdee5;
+      }
 
-        .search-header {
-            position: relative;
-            height: 41px;
-            padding-left: 60px;
-            font-size: 12px;
-            font-weight: bold;
-            line-height: 41px;
-            color: #63656e;
-            background: #fafbfd;
-            border-bottom: 1px solid #dcdee5;
-        }
+      .list-more {
+        border-top: 1px solid #dcdee5;
+      }
 
-        .list-more {
-            border-top: 1px solid #dcdee5;
-        }
-
-        .search-empty {
-            height: 240px;
-        }
+      .search-empty {
+        height: 240px;
+      }
     }
 </style>

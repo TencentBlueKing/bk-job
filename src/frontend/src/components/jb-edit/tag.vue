@@ -265,122 +265,122 @@
 </script>
 <style lang="postcss">
     .edit-tag-column {
-        .cell {
-            overflow: initial;
-            line-height: 18px;
-            text-overflow: initial;
-            word-break: break-all;
-            -webkit-line-clamp: unset;
+      .cell {
+        overflow: initial;
+        line-height: 18px;
+        text-overflow: initial;
+        word-break: break-all;
+        -webkit-line-clamp: unset;
 
-            .jb-edit-tag {
-                margin-left: -4px;
-            }
+        .jb-edit-tag {
+          margin-left: -4px;
         }
+      }
     }
 </style>
 <style lang='postcss'>
     @keyframes tag-edit-loading {
-        to {
-            transform: rotateZ(360deg);
-        }
+      to {
+        transform: rotateZ(360deg);
+      }
     }
 
     .jb-edit-tag {
-        position: relative;
-        height: 30px;
-        cursor: pointer;
-        border-radius: 2px;
+      position: relative;
+      height: 30px;
+      cursor: pointer;
+      border-radius: 2px;
 
-        &.shortcurt {
-            .render-value-box {
-                padding-left: 4px;
-            }
-
-            &:hover {
-                background: #e1e2e6;
-
-                .shortcurt-action-btn {
-                    display: flex;
-                }
-            }
+      &.shortcurt {
+        .render-value-box {
+          padding-left: 4px;
         }
 
         &:hover {
-            .tag-normal-box,
-            .tag-shortcurt-box {
-                display: flex;
-                opacity: 100%;
-                transform: scale(1);
-            }
-        }
+          background: #e1e2e6;
 
-        .render-value-box {
+          .shortcurt-action-btn {
             display: flex;
-            height: 30px;
-            line-height: 30px;
-            align-items: center;
+          }
         }
+      }
 
-        .value-text {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
+      &:hover {
         .tag-normal-box,
         .tag-shortcurt-box {
-            display: none;
-            height: 30px;
-            min-width: 24px;
-            color: #979ba5;
-            opacity: 0%;
-            align-items: center;
+          display: flex;
+          opacity: 100%;
+          transform: scale(1);
+        }
+      }
+
+      .render-value-box {
+        display: flex;
+        height: 30px;
+        line-height: 30px;
+        align-items: center;
+      }
+
+      .value-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .tag-normal-box,
+      .tag-shortcurt-box {
+        display: none;
+        height: 30px;
+        min-width: 24px;
+        color: #979ba5;
+        opacity: 0%;
+        align-items: center;
+      }
+
+      .tag-shortcurt-box {
+        padding-right: 6px;
+        margin-left: auto;
+        font-size: 16px;
+        flex: 0 0 42px;
+
+        .paste-btn {
+          margin-left: 4px;
         }
 
-        .tag-shortcurt-box {
-            padding-right: 6px;
-            margin-left: auto;
-            font-size: 16px;
-            flex: 0 0 42px;
+        .shortcurt-action-btn {
+          align-items: center;
 
-            .paste-btn {
-                margin-left: 4px;
-            }
-
-            .shortcurt-action-btn {
-                align-items: center;
-
-                i:hover {
-                    color: #3a84ff;
-                }
-            }
+          i:hover {
+            color: #3a84ff;
+          }
         }
+      }
 
-        .tag-normal-box {
-            font-size: 16px;
-            transform: scale(0);
-            transition: 0.15s;
-            transform-origin: left center;
+      .tag-normal-box {
+        font-size: 16px;
+        transform: scale(0);
+        transition: 0.15s;
+        transform-origin: left center;
 
-            .edit-action {
-                padding: 6px 15px 6px 2px;
-                cursor: pointer;
+        .edit-action {
+          padding: 6px 15px 6px 2px;
+          cursor: pointer;
 
-                &:hover {
-                    color: #3a84ff;
-                }
-            }
+          &:hover {
+            color: #3a84ff;
+          }
         }
+      }
 
-        .tag-edit-loading {
-            position: absolute;
-            top: 9px;
-            right: 10px;
-            animation: "tag-edit-loading" 1s linear infinite;
-        }
+      .tag-edit-loading {
+        position: absolute;
+        top: 9px;
+        right: 10px;
+        animation: "tag-edit-loading" 1s linear infinite;
+      }
 
-        .edit-value-box {
-            width: 100%;
-        }
+      .edit-value-box {
+        width: 100%;
+      }
     }
 </style>

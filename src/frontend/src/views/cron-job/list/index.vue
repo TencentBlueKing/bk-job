@@ -688,91 +688,91 @@
 </script>
 <style lang="postcss">
     @keyframes sync-fetch-loading {
-        0% {
-            transform: rotateZ(0);
-        }
+      0% {
+        transform: rotateZ(0);
+      }
 
-        100% {
-            transform: rotateZ(360deg);
-        }
+      100% {
+        transform: rotateZ(360deg);
+      }
     }
 
     .cron-job-manage {
-        .expression {
-            font-size: 14px;
-            color: #c4c6cc;
+      .expression {
+        font-size: 14px;
+        color: #c4c6cc;
+      }
+
+      .more-fail-action {
+        text-align: right;
+
+        .bk-button-text {
+          font-size: 12px;
+        }
+      }
+
+      .time-task-name {
+        display: inline-block;
+        height: 18px;
+        max-width: 100%;
+        overflow: hidden;
+        color: #3a84ff;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: bottom;
+        cursor: pointer;
+      }
+
+      .execute-result-text {
+        &.success {
+          &::before {
+            background: #2dcb56;
+          }
         }
 
-        .more-fail-action {
-            text-align: right;
-
-            .bk-button-text {
-                font-size: 12px;
-            }
+        &.fail {
+          &::before {
+            background: #ea3636;
+          }
         }
 
-        .time-task-name {
-            display: inline-block;
-            height: 18px;
-            max-width: 100%;
-            overflow: hidden;
-            color: #3a84ff;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            vertical-align: bottom;
-            cursor: pointer;
+        &.waiting {
+          &::before {
+            background: #dcdee5;
+          }
         }
 
-        .execute-result-text {
-            &.success {
-                &::before {
-                    background: #2dcb56;
-                }
-            }
-
-            &.fail {
-                &::before {
-                    background: #ea3636;
-                }
-            }
-
-            &.waiting {
-                &::before {
-                    background: #dcdee5;
-                }
-            }
-
-            &::before {
-                display: inline-block;
-                width: 8px;
-                height: 8px;
-                margin-right: 10px;
-                border-radius: 50%;
-                content: "";
-            }
+        &::before {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          margin-right: 10px;
+          border-radius: 50%;
+          content: "";
         }
+      }
 
-        .sync-fetch {
-            height: 13px;
-        }
+      .sync-fetch {
+        height: 13px;
+      }
 
-        .sync-fetch-loading {
-            position: absolute;
-            display: flex;
-            width: 13px;
-            height: 13px;
-            animation: sync-fetch-loading 1s linear infinite;
-        }
+      .sync-fetch-loading {
+        position: absolute;
+        display: flex;
+        width: 13px;
+        height: 13px;
+        animation: sync-fetch-loading 1s linear infinite;
+      }
 
-        .task-plan-text {
-            display: inline-block;
-            height: 18px;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            vertical-align: bottom;
-        }
+      .task-plan-text {
+        display: inline-block;
+        height: 18px;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: bottom;
+      }
     }
 
 </style>

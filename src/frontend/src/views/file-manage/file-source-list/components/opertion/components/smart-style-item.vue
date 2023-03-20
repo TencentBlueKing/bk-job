@@ -66,18 +66,18 @@
 
 <style lang="postcss">
     .smart-style-item {
-        .smart-arrow {
-            position: relative;
-            width: 0;
-            height: 0;
-            border: 8px solid transparent;
-            border-bottom-color: #f5f6fa;
-        }
+      .smart-arrow {
+        position: relative;
+        width: 0;
+        height: 0;
+        border: 8px solid transparent;
+        border-bottom-color: #f5f6fa;
+      }
 
-        .smart-item-content {
-            padding: 15px 30px;
-            margin: 0 -30px 10px;
-            background-color: #f5f6fa;
-        }
+      .smart-item-content {
+        padding: 15px 30px;
+        margin: 0 -30px 10px;
+        background-color: #f5f6fa;
+      }
     }
 </style>

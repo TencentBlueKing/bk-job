@@ -123,50 +123,50 @@
 </script>
 <style lang='postcss' scoped>
     .host-value-text {
+      display: flex;
+      width: 333px;
+      height: 32px;
+      overflow: hidden;
+      font-size: 12px;
+      color: #63656e;
+      cursor: pointer;
+      background: #fff;
+      border: 1px solid #c4c6cc;
+      border-radius: 3px;
+      transition: all 0.1s;
+      align-items: center;
+
+      .host-type {
         display: flex;
-        width: 333px;
+        width: 32px;
         height: 32px;
-        overflow: hidden;
-        font-size: 12px;
-        color: #63656e;
-        cursor: pointer;
-        background: #fff;
-        border: 1px solid #c4c6cc;
-        border-radius: 3px;
+        margin-right: 10px;
+        font-size: 17px;
+        color: #fff;
+        background: #c4c6cc;
         transition: all 0.1s;
         align-items: center;
+        justify-content: center;
+      }
+
+      .host-edit {
+        margin-right: 8px;
+        margin-left: auto;
+        font-size: 16px;
+        color: #3a84ff;
+        opacity: 0%;
+      }
+
+      &:hover {
+        border-color: #3a84ff;
 
         .host-type {
-            display: flex;
-            width: 32px;
-            height: 32px;
-            margin-right: 10px;
-            font-size: 17px;
-            color: #fff;
-            background: #c4c6cc;
-            transition: all 0.1s;
-            align-items: center;
-            justify-content: center;
+          background: #3a84ff;
         }
 
         .host-edit {
-            margin-right: 8px;
-            margin-left: auto;
-            font-size: 16px;
-            color: #3a84ff;
-            opacity: 0%;
+          opacity: 100%;
         }
-
-        &:hover {
-            border-color: #3a84ff;
-
-            .host-type {
-                background: #3a84ff;
-            }
-
-            .host-edit {
-                opacity: 100%;
-            }
-        }
+      }
     }
 </style>

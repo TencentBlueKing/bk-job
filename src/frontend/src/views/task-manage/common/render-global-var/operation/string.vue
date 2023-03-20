@@ -134,9 +134,9 @@
 </script>
 <style lang='postcss'>
     .changeable-cls {
-        .bk-form-checkbox .bk-checkbox-text {
-            padding-bottom: 2px;
-            border-bottom: 1px dashed #c4c6cc;
-        }
+      .bk-form-checkbox .bk-checkbox-text {
+        padding-bottom: 2px;
+        border-bottom: 1px dashed #c4c6cc;
+      }
     }
 </style>

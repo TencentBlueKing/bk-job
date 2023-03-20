@@ -84,21 +84,21 @@
 </script>
 <style lang='postcss'>
     .jb-detail-layout {
-        &.see {
-            .detail-label {
-                color: #b2b5bd;
-            }
+      &.see {
+        .detail-label {
+          color: #b2b5bd;
+        }
+      }
+
+      &.vertical {
+        .detail-label {
+          justify-content: flex-start;
         }
 
-        &.vertical {
-            .detail-label {
-                justify-content: flex-start;
-            }
-
-            .detail-item {
-                flex-direction: column;
-                align-items: stretch;
-            }
+        .detail-item {
+          flex-direction: column;
+          align-items: stretch;
         }
+      }
     }
 </style>

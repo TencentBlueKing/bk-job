@@ -185,21 +185,21 @@
 </script>
 <style lang="postcss">
     .choose-source-file {
-        .result-nums {
-            display: inline-block;
-            min-width: 18px;
-            min-height: 18px;
-            padding: 0 5px;
-            font-size: 12px;
-            line-height: 18px;
-            color: #3a84ff;
-            text-align: center;
-            background-color: #fff;
-            border-radius: 10px;
-        }
+      .result-nums {
+        display: inline-block;
+        min-width: 18px;
+        min-height: 18px;
+        padding: 0 5px;
+        font-size: 12px;
+        line-height: 18px;
+        color: #3a84ff;
+        text-align: center;
+        background-color: #fff;
+        border-radius: 10px;
+      }
 
-        .dialog-content {
-            height: 570px;
-        }
+      .dialog-content {
+        height: 570px;
+      }
     }
 </style>

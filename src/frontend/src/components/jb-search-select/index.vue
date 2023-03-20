@@ -289,13 +289,13 @@
 </script>
 <style lang="postcss">
     .jb-search-select {
-        z-index: 999;
-        background: #fff;
+      z-index: 999;
+      background: #fff;
 
-        textarea {
-            &::placeholder {
-                color: #c4c6cc;
-            }
+      textarea {
+        &::placeholder {
+          color: #c4c6cc;
         }
+      }
     }
 </style>

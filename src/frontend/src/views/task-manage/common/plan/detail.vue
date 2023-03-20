@@ -399,78 +399,78 @@
     @import "@/css/mixins/media";
 
     .task-plan-view-box {
-        .view-title {
-            flex: 1;
-            display: flex;
-            align-items: center;
+      .view-title {
+        flex: 1;
+        display: flex;
+        align-items: center;
 
-            .cron-job-tag {
-                display: inline-flex;
-                display: flex;
-                height: 16px;
-                padding: 0 4px;
-                margin-left: 14px;
-                font-size: 12px;
-                color: #fff;
-                cursor: pointer;
-                background: #3a84ff;
-                border-radius: 8px;
-                user-select: none;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .link-wraper {
-                display: flex;
-            }
+        .cron-job-tag {
+          display: inline-flex;
+          display: flex;
+          height: 16px;
+          padding: 0 4px;
+          margin-left: 14px;
+          font-size: 12px;
+          color: #fff;
+          cursor: pointer;
+          background: #3a84ff;
+          border-radius: 8px;
+          user-select: none;
+          justify-content: center;
+          align-items: center;
         }
 
-        .action-box {
-            display: flex;
-            width: 500px;
+        .link-wraper {
+          display: flex;
+        }
+      }
 
-            @media (--small-viewports) {
-                width: 500px;
-            }
+      .action-box {
+        display: flex;
+        width: 500px;
 
-            @media (--medium-viewports) {
-                width: 560px;
-            }
-
-            @media (--large-viewports) {
-                width: 620px;
-            }
-
-            @media (--huge-viewports) {
-                width: 680px;
-            }
+        @media (--small-viewports) {
+          width: 500px;
         }
 
-        .action-update {
-            position: relative;
-
-            .update-flag {
-                position: absolute;
-                top: -10px;
-                right: -10px;
-                font-size: 16px;
-                line-height: 0;
-                color: #ea3636;
-                background: #fff;
-                border: 2px solid #fff;
-            }
+        @media (--medium-viewports) {
+          width: 560px;
         }
 
-        .action-del {
-            margin-left: auto;
+        @media (--large-viewports) {
+          width: 620px;
         }
 
-        .delete-btn {
-            &:hover {
-                color: #fff;
-                background: #ea3636;
-                border-color: transparent;
-            }
+        @media (--huge-viewports) {
+          width: 680px;
         }
+      }
+
+      .action-update {
+        position: relative;
+
+        .update-flag {
+          position: absolute;
+          top: -10px;
+          right: -10px;
+          font-size: 16px;
+          line-height: 0;
+          color: #ea3636;
+          background: #fff;
+          border: 2px solid #fff;
+        }
+      }
+
+      .action-del {
+        margin-left: auto;
+      }
+
+      .delete-btn {
+        &:hover {
+          color: #fff;
+          background: #ea3636;
+          border-color: transparent;
+        }
+      }
     }
 </style>

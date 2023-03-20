@@ -224,23 +224,23 @@
 </script>
 <style lang='postcss' scoped>
     .notify-channel-wraper {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      white-space: nowrap;
+
+      .bk-form-checkbox {
         display: flex;
-        align-items: center;
-        height: 32px;
-        white-space: nowrap;
+        flex: 0 0 auto;
+        margin-right: 40px;
+      }
 
-        .bk-form-checkbox {
-            display: flex;
-            flex: 0 0 auto;
-            margin-right: 40px;
-        }
-
-        .all-channel {
-            display: flex;
-        }
+      .all-channel {
+        display: flex;
+      }
     }
 
     .input {
-        width: 495px;
+      width: 495px;
     }
 </style>

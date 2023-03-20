@@ -297,57 +297,57 @@
 </script>
 <style lang="postcss">
     #taskStepOperationSideslider {
-        .bk-sideslider-content {
-            overflow: unset !important;
+      .bk-sideslider-content {
+        overflow: unset !important;
+      }
+
+      .jb-sideslider-content {
+        padding: 0;
+      }
+
+      .jb-resize-layout-right {
+        background: #fff;
+
+        .right-content-placeholder {
+          height: 100vh;
+          margin-top: -60px;
         }
 
-        .jb-sideslider-content {
-            padding: 0;
+        .variable-use-guide {
+          height: calc(100vh - 52px);
+        }
+      }
+
+      .task-step-operation-wraper {
+        .step-wrapper-container {
+          position: relative;
+          padding-top: 20px;
+          padding-right: 30px;
+          padding-left: 30px;
         }
 
-        .jb-resize-layout-right {
-            background: #fff;
+        .step-type-radio {
+          display: flex;
 
-            .right-content-placeholder {
-                height: 100vh;
-                margin-top: -60px;
-            }
+          .bk-form-radio-button {
+            flex: 1;
 
-            .variable-use-guide {
-                height: calc(100vh - 52px);
+            .bk-radio-button-text {
+              width: 100%;
             }
+          }
         }
 
-        .task-step-operation-wraper {
-            .step-wrapper-container {
-                position: relative;
-                padding-top: 20px;
-                padding-right: 30px;
-                padding-left: 30px;
-            }
-
-            .step-type-radio {
-                display: flex;
-
-                .bk-form-radio-button {
-                    flex: 1;
-
-                    .bk-radio-button-text {
-                        width: 100%;
-                    }
-                }
-            }
-
-            .form-item-content {
-                width: 495px;
-            }
-
-            .variable-guide-btn {
-                position: absolute;
-                top: 20px;
-                right: 30px;
-            }
+        .form-item-content {
+          width: 495px;
         }
+
+        .variable-guide-btn {
+          position: absolute;
+          top: 20px;
+          right: 30px;
+        }
+      }
     }
 
 </style>

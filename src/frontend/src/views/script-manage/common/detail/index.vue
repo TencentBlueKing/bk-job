@@ -410,61 +410,61 @@
     @import "@/css/mixins/scroll";
 
     %tab-item {
-        display: flex;
-        width: 94px;
-        height: 35px;
-        font-size: 13px;
-        color: #979ba5;
-        align-items: center;
+      display: flex;
+      width: 94px;
+      height: 35px;
+      font-size: 13px;
+      color: #979ba5;
+      align-items: center;
     }
 
     .script-manage-detail-box {
-        .content-tab {
-            position: absolute;
-            left: 50%;
-            z-index: 0;
-            display: flex;
-            width: 250px;
-            margin-top: -35px;
-            transform: translateX(-50%);
-            align-content: center;
-            justify-content: center;
+      .content-tab {
+        position: absolute;
+        left: 50%;
+        z-index: 0;
+        display: flex;
+        width: 250px;
+        margin-top: -35px;
+        transform: translateX(-50%);
+        align-content: center;
+        justify-content: center;
 
-            .content-tab-item {
-                @extend %tab-item;
+        .content-tab-item {
+          @extend %tab-item;
 
-                padding-left: 0;
-                cursor: pointer;
-                transition: all 0.1s;
-                flex: 0 0 120px;
-                align-items: center;
-                justify-content: center;
+          padding-left: 0;
+          cursor: pointer;
+          transition: all 0.1s;
+          flex: 0 0 120px;
+          align-items: center;
+          justify-content: center;
 
-                &.active {
-                    color: #dcdee5;
-                    background: #242424;
-                    border-top-right-radius: 6px;
-                    border-top-left-radius: 6px;
-                }
-            }
+          &.active {
+            color: #dcdee5;
+            background: #242424;
+            border-top-right-radius: 6px;
+            border-top-left-radius: 6px;
+          }
         }
+      }
 
-        .version-content {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
+      .version-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
 
-        .render-version-log {
-            height: 100%;
-            padding: 12px 10px;
-            overflow-y: auto;
-            font-size: 12px;
-            line-height: 20px;
-            color: #63656e;
-            white-space: pre-line;
+      .render-version-log {
+        height: 100%;
+        padding: 12px 10px;
+        overflow-y: auto;
+        font-size: 12px;
+        line-height: 20px;
+        color: #63656e;
+        white-space: pre-line;
 
-            @mixin scroller;
-        }
+        @mixin scroller;
+      }
     }
 </style>

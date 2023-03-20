@@ -75,7 +75,7 @@
 </script>
 <style lang='postcss' scoped>
     .not-permission {
-        color: #c4c6cc;
-        cursor: default;
+      color: #c4c6cc;
+      cursor: default;
     }
 </style>

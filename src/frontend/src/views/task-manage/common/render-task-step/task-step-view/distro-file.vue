@@ -114,12 +114,12 @@
 </script>
 <style lang="postcss" scoped>
     .distro-file-view {
-        &.loading {
-            height: calc(100vh - 100px);
-        }
+      &.loading {
+        height: calc(100vh - 100px);
+      }
 
-        .detail-item {
-            margin-bottom: 0;
-        }
+      .detail-item {
+        margin-bottom: 0;
+      }
     }
 </style>

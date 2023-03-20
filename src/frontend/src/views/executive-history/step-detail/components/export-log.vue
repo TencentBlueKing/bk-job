@@ -293,105 +293,105 @@
 </script>
 <style lang='postcss'>
     .step-execute-log-export {
-        position: relative;
-        height: 32px;
-        padding: 0 15px;
-        margin-left: 10px;
-        font-size: 14px;
-        line-height: 32px;
-        color: #63656e;
-        cursor: pointer;
-        background: #fafbfd;
-        border: 1px solid #c4c6cc;
-        border-radius: 2px;
-        user-select: none;
-        flex: 0 0 auto;
+      position: relative;
+      height: 32px;
+      padding: 0 15px;
+      margin-left: 10px;
+      font-size: 14px;
+      line-height: 32px;
+      color: #63656e;
+      cursor: pointer;
+      background: #fafbfd;
+      border: 1px solid #c4c6cc;
+      border-radius: 2px;
+      user-select: none;
+      flex: 0 0 auto;
 
-        .thum-precess-bar {
-            position: absolute;
-            right: 0;
-            bottom: -1px;
-            left: 0;
-            height: 2px;
-            background: #dcdee5;
-            border-radius: 1px;
+      .thum-precess-bar {
+        position: absolute;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        height: 2px;
+        background: #dcdee5;
+        border-radius: 1px;
 
-            &.normal,
-            &.packageing {
-                .thum-precess {
-                    background: #3a84ff;
-                }
-            }
-
-            &.failed {
-                .thum-precess {
-                    background: #ea3636;
-                }
-            }
-
-            &.success {
-                .thum-precess {
-                    background: #2dcb56;
-                }
-            }
-
-            .thum-precess {
-                width: 50%;
-                height: 100%;
-                background: #3a84ff;
-                border-radius: 1px;
-            }
+        &.normal,
+        &.packageing {
+          .thum-precess {
+            background: #3a84ff;
+          }
         }
-    }
-
-    .step-execute-log-package {
-        position: relative;
-        width: 390px;
-        padding: 14px 17px;
-        font-size: 12px;
-        line-height: 16px;
 
         &.failed {
-            .package-result,
-            .package-result-tips {
-                color: #ea3636;
-            }
-
-            .bk-progress .progress-inner {
-                background: #ea3636;
-            }
+          .thum-precess {
+            background: #ea3636;
+          }
         }
 
         &.success {
-            .package-result {
-                color: #63656e;
-            }
-
-            .bk-progress .progress-inner {
-                background: #2dcb56;
-            }
+          .thum-precess {
+            background: #2dcb56;
+          }
         }
 
-        .package-baseinfo {
-            display: flex;
-
-            .package-size {
-                margin-right: auto;
-            }
-
-            .package-result {
-                color: #979ba5;
-            }
+        .thum-precess {
+          width: 50%;
+          height: 100%;
+          background: #3a84ff;
+          border-radius: 1px;
         }
+      }
+    }
 
-        .package-process {
-            margin-top: 10px;
-        }
+    .step-execute-log-package {
+      position: relative;
+      width: 390px;
+      padding: 14px 17px;
+      font-size: 12px;
+      line-height: 16px;
 
+      &.failed {
+        .package-result,
         .package-result-tips {
-            display: flex;
-            align-items: center;
-            margin-top: 13px;
+          color: #ea3636;
         }
+
+        .bk-progress .progress-inner {
+          background: #ea3636;
+        }
+      }
+
+      &.success {
+        .package-result {
+          color: #63656e;
+        }
+
+        .bk-progress .progress-inner {
+          background: #2dcb56;
+        }
+      }
+
+      .package-baseinfo {
+        display: flex;
+
+        .package-size {
+          margin-right: auto;
+        }
+
+        .package-result {
+          color: #979ba5;
+        }
+      }
+
+      .package-process {
+        margin-top: 10px;
+      }
+
+      .package-result-tips {
+        display: flex;
+        align-items: center;
+        margin-top: 13px;
+      }
     }
 </style>

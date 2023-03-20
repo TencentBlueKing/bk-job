@@ -228,42 +228,42 @@
 </script>
 <style lang="postcss">
     .task-step-rolling {
-        display: block;
+      display: block;
 
-        .rolling-expr-field {
-            position: relative;
+      .rolling-expr-field {
+        position: relative;
 
-            .form-error-tip {
-                display: none;
-            }
-
-            .rolling-expr-gudie-btn {
-                position: absolute;
-                top: 0;
-                right: -22px;
-                font-size: 14px;
-                color: #979ba5;
-                cursor: pointer;
-
-                &:hover,
-                &.active {
-                    color: #3a84ff;
-                }
-            }
+        .form-error-tip {
+          display: none;
         }
 
-        .strategy-tips {
-            margin-top: 4px;
-            font-size: 12px;
-            line-height: 16px;
-            color: #979ba5;
-        }
+        .rolling-expr-gudie-btn {
+          position: absolute;
+          top: 0;
+          right: -22px;
+          font-size: 14px;
+          color: #979ba5;
+          cursor: pointer;
 
-        .strategy-error {
-            margin-top: 4px;
-            font-size: 12px;
-            line-height: 18px;
-            color: #ea3636;
+          &:hover,
+          &.active {
+            color: #3a84ff;
+          }
         }
+      }
+
+      .strategy-tips {
+        margin-top: 4px;
+        font-size: 12px;
+        line-height: 16px;
+        color: #979ba5;
+      }
+
+      .strategy-error {
+        margin-top: 4px;
+        font-size: 12px;
+        line-height: 18px;
+        color: #ea3636;
+      }
     }
 </style>

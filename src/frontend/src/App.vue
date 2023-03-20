@@ -262,69 +262,69 @@
 </script>
 <style lang="postcss">
     .job-site {
-        opacity: 100%;
+      opacity: 100%;
 
-        &.loading {
-            opacity: 0%;
+      &.loading {
+        opacity: 0%;
+      }
+
+      .flag-box {
+        position: relative;
+        display: inline-flex;
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        color: #979ba5;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background 0.15s;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          z-index: 1;
+          color: #3a84ff;
+          background: #f0f1f5;
         }
+      }
 
-        .flag-box {
-            position: relative;
-            display: inline-flex;
-            width: 32px;
-            height: 32px;
-            font-size: 16px;
-            color: #979ba5;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: background 0.15s;
-            align-items: center;
-            justify-content: center;
+      .user-flag {
+        display: flex;
+        height: 32px;
+        font-size: 12px;
+        color: #c4c6cc;
+        cursor: pointer;
+        align-items: center;
 
-            &:hover {
-                z-index: 1;
-                color: #3a84ff;
-                background: #f0f1f5;
-            }
+        &:hover {
+          color: #3a84ff;
         }
-
-        .user-flag {
-            display: flex;
-            height: 32px;
-            font-size: 12px;
-            color: #c4c6cc;
-            cursor: pointer;
-            align-items: center;
-
-            &:hover {
-                color: #3a84ff;
-            }
-        }
+      }
     }
 
     .site-header-dropdown-theme {
-        padding-right: 0 !important;
-        padding-left: 0 !important;
+      padding-right: 0 !important;
+      padding-left: 0 !important;
 
-        .item {
-            display: flex;
-            height: 32px;
-            padding: 0 16px;
-            font-size: 12px;
-            color: #63656e;
-            cursor: pointer;
-            align-items: center;
+      .item {
+        display: flex;
+        height: 32px;
+        padding: 0 16px;
+        font-size: 12px;
+        color: #63656e;
+        cursor: pointer;
+        align-items: center;
 
-            &.active,
-            &:hover {
-                color: #3a84ff;
-                background-color: #eaf3ff;
-            }
+        &.active,
+        &:hover {
+          color: #3a84ff;
+          background-color: #eaf3ff;
         }
+      }
 
-        .lang-flag {
-            margin-right: 4px;
-            font-size: 20px;
-        }
+      .lang-flag {
+        margin-right: 4px;
+        font-size: 20px;
+      }
     }
 </style>

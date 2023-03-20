@@ -75,21 +75,21 @@
 </script>
 <style lang='postcss'>
     .job-empty {
-        display: flex;
-        font-size: 12px;
-        line-height: 1;
-        color: #979ba5;
-        text-align: center;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+      display: flex;
+      font-size: 12px;
+      line-height: 1;
+      color: #979ba5;
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
 
-        .job-empty-text {
-            margin-top: 20px;
+      .job-empty-text {
+        margin-top: 20px;
 
-            * {
-                font-size: 12px !important;
-            }
+        * {
+          font-size: 12px !important;
         }
+      }
     }
 </style>

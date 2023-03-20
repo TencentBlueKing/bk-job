@@ -150,16 +150,16 @@
 </script>
 <style lang="postcss">
     .bk-diff {
-        &.dark {
-            .d2h-code-line-ctn {
-                color: #979ba5;
-            }
-
-            .hljs-addition,
-            .hljs-deletion {
-                width: auto;
-                background: none;
-            }
+      &.dark {
+        .d2h-code-line-ctn {
+          color: #979ba5;
         }
+
+        .hljs-addition,
+        .hljs-deletion {
+          width: auto;
+          background: none;
+        }
+      }
     }
 </style>

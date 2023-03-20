@@ -193,54 +193,54 @@
 </script>
 <style lang='postcss'>
     .script-version-basic-box {
-        position: relative;
+      position: relative;
+      display: flex;
+      height: 128px;
+      padding: 16px 24px;
+      background: #fff;
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 16%);
+
+      .script-type-flag {
+        flex: 0 0  auto;
+        margin-right: 20px;
+
+        img {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      .detail-column {
         display: flex;
-        height: 128px;
-        padding: 16px 24px;
-        background: #fff;
-        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 16%);
+        line-height: 30px;
+        flex-direction: column;
 
-        .script-type-flag {
-            flex: 0 0  auto;
-            margin-right: 20px;
-
-            img {
-                width: 100%;
-                height: 100%;
-            }
+        &.last {
+          flex: 1;
         }
 
-        .detail-column {
-            display: flex;
-            line-height: 30px;
-            flex-direction: column;
-
-            &.last {
-                flex: 1;
-            }
-
-            .item-label {
-                flex: 0 0 auto;
-                color: #b2b5bd;
-            }
-
-            .item-value {
-                flex: 1;
-                width: 0;
-                padding-right: 20px;
-                color: #63656e;
-
-                .text-box {
-                    height: 32px;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-            }
+        .item-label {
+          flex: 0 0 auto;
+          color: #b2b5bd;
         }
 
-        .detail-col {
-            display: flex;
+        .item-value {
+          flex: 1;
+          width: 0;
+          padding-right: 20px;
+          color: #63656e;
+
+          .text-box {
+            height: 32px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
         }
+      }
+
+      .detail-col {
+        display: flex;
+      }
     }
 </style>

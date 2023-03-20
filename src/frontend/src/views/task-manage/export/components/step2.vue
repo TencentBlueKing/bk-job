@@ -313,135 +313,135 @@
 </script>
 <style lang="postcss">
     .task-export-step2-page {
-        .layout-wraper {
+      .layout-wraper {
+        display: flex;
+      }
+
+      .layout-left,
+      .layout-right {
+        height: calc(100vh - 205px);
+      }
+
+      .layout-left {
+        position: relative;
+        overflow: hidden;
+        background: #fafbfd;
+        flex: 0 0 360px;
+
+        &::after {
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          width: 1px;
+          background: #dcdee5;
+          content: "";
+        }
+
+        .job-list {
+          .job-item {
+            height: 40px;
+            padding-left: 24px;
+            font-size: 14px;
+            line-height: 40px;
+            color: #63656e;
+            cursor: pointer;
+            border-bottom: 1px solid #dcdee5;
+
+            .text {
+              max-width: calc(100% - 48px);
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+
+            &.active {
+              position: relative;
+              z-index: 1;
+              background: #fff;
+            }
+          }
+        }
+      }
+
+      .layout-right {
+        padding-top: 40px;
+        padding-left: 50px;
+        flex: 1;
+
+        .content {
+          width: 680px;
+
+          .title {
+            padding-bottom: 16px;
+            font-size: 18px;
+            line-height: 24px;
+            border-bottom: 1px solid #f0f1f5;
+          }
+        }
+      }
+
+      .export-project {
+        margin-top: 20px;
+
+        .project-select {
+          display: flex;
+          font-size: 14px;
+          line-height: 19px;
+          color: #313238;
+
+          .all-select-btn {
+            margin-right: 20px;
+            margin-left: auto;
+          }
+        }
+
+        .project-list {
+          margin-top: 12px;
+          border: 1px solid #dcdee5;
+          border-bottom: 0;
+
+          .item {
             display: flex;
+            height: 40px;
+            padding-right: 25px;
+            padding-left: 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #dcdee5;
+            align-items: center;
+
+            .plan {
+              color: #3a84ff;
+            }
+          }
         }
 
-        .layout-left,
-        .layout-right {
-            height: calc(100vh - 205px);
-        }
+        .plan-check {
+          position: relative;
+          width: 18px;
+          height: 18px;
+          margin-left: auto;
+          border: 1px solid #dcdee5;
+          border-radius: 50%;
 
-        .layout-left {
-            position: relative;
-            overflow: hidden;
-            background: #fafbfd;
-            flex: 0 0 360px;
+          &.active {
+            background: #3a84ff;
+            border-color: #3a84ff;
 
             &::after {
-                position: absolute;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                width: 1px;
-                background: #dcdee5;
-                content: "";
+              position: absolute;
+              top: 4px;
+              left: 3px;
+              width: 8px;
+              height: 4px;
+              border-bottom: 2px solid #fff;
+              border-left: 2px solid #fff;
+              content: "";
+              transform: rotate(-45deg) scaleY(1);
+              transform-origin: center;
             }
-
-            .job-list {
-                .job-item {
-                    height: 40px;
-                    padding-left: 24px;
-                    font-size: 14px;
-                    line-height: 40px;
-                    color: #63656e;
-                    cursor: pointer;
-                    border-bottom: 1px solid #dcdee5;
-
-                    .text {
-                        max-width: calc(100% - 48px);
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                    }
-
-                    &.active {
-                        position: relative;
-                        z-index: 1;
-                        background: #fff;
-                    }
-                }
-            }
+          }
         }
-
-        .layout-right {
-            padding-top: 40px;
-            padding-left: 50px;
-            flex: 1;
-
-            .content {
-                width: 680px;
-
-                .title {
-                    padding-bottom: 16px;
-                    font-size: 18px;
-                    line-height: 24px;
-                    border-bottom: 1px solid #f0f1f5;
-                }
-            }
-        }
-
-        .export-project {
-            margin-top: 20px;
-
-            .project-select {
-                display: flex;
-                font-size: 14px;
-                line-height: 19px;
-                color: #313238;
-
-                .all-select-btn {
-                    margin-right: 20px;
-                    margin-left: auto;
-                }
-            }
-
-            .project-list {
-                margin-top: 12px;
-                border: 1px solid #dcdee5;
-                border-bottom: 0;
-
-                .item {
-                    display: flex;
-                    height: 40px;
-                    padding-right: 25px;
-                    padding-left: 16px;
-                    cursor: pointer;
-                    border-bottom: 1px solid #dcdee5;
-                    align-items: center;
-
-                    .plan {
-                        color: #3a84ff;
-                    }
-                }
-            }
-
-            .plan-check {
-                position: relative;
-                width: 18px;
-                height: 18px;
-                margin-left: auto;
-                border: 1px solid #dcdee5;
-                border-radius: 50%;
-
-                &.active {
-                    background: #3a84ff;
-                    border-color: #3a84ff;
-
-                    &::after {
-                        position: absolute;
-                        top: 4px;
-                        left: 3px;
-                        width: 8px;
-                        height: 4px;
-                        border-bottom: 2px solid #fff;
-                        border-left: 2px solid #fff;
-                        content: "";
-                        transform: rotate(-45deg) scaleY(1);
-                        transform-origin: center;
-                    }
-                }
-            }
-        }
+      }
     }
 </style>

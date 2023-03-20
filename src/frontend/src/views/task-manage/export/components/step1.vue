@@ -61,64 +61,64 @@
   };
 </script>
 <style lang="postcss">
-    @import "@/css/mixins/media";
+  @import "@/css/mixins/media";
 
-    .task-export-step1-page {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+  .task-export-step1-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
-        .flag {
-            display: flex;
-            flex-direction: column;
-            padding-top: 70px;
-        }
-
-        .title {
-            padding-top: 10px;
-            font-size: 24px;
-            color: #63656e;
-            text-align: center;
-        }
-
-        .tips-content {
-            width: 712px;
-            max-height: calc(100vh - 423px);
-            padding: 12px 16px;
-            margin: 30px auto 0;
-            overflow-y: scroll;
-            font-size: 12px;
-            line-height: 20px;
-            color: #979ba5;
-            background-color: #fafbfd;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
-
-            &::-webkit-scrollbar {
-                width: 13px;
-            }
-
-            &::-webkit-scrollbar-thumb {
-                background-color: #dcdee5;
-            }
-        }
-
-        @media (--small-viewports) {
-            .flag {
-                padding-top: 50px;
-
-                img {
-                    width: 120px;
-                }
-            }
-
-            .title {
-                font-size: 20px;
-            }
-
-            .tips-content {
-                max-height: calc(100vh - 370px);
-            }
-        }
+    .flag {
+      display: flex;
+      flex-direction: column;
+      padding-top: 70px;
     }
+
+    .title {
+      padding-top: 10px;
+      font-size: 24px;
+      color: #63656e;
+      text-align: center;
+    }
+
+    .tips-content {
+      width: 712px;
+      max-height: calc(100vh - 423px);
+      padding: 12px 16px;
+      margin: 30px auto 0;
+      overflow-y: scroll;
+      font-size: 12px;
+      line-height: 20px;
+      color: #979ba5;
+      background-color: #fafbfd;
+      border: 1px solid #dcdee5;
+      border-radius: 2px;
+
+      &::-webkit-scrollbar {
+        width: 13px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: #dcdee5;
+      }
+    }
+
+    @media (--small-viewports) {
+      .flag {
+        padding-top: 50px;
+
+        img {
+          width: 120px;
+        }
+      }
+
+      .title {
+        font-size: 20px;
+      }
+
+      .tips-content {
+        max-height: calc(100vh - 370px);
+      }
+    }
+  }
 </style>

@@ -70,25 +70,25 @@
 </script>
 <style lang='postcss' scoped>
     .toggle-display {
-        .action {
-            display: flex;
-            align-items: center;
-            height: 32px;
-            font-size: 14px;
-            color: #3a84ff;
-            cursor: pointer;
-            border-radius: 2px;
-            user-select: none;
+      .action {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        font-size: 14px;
+        color: #3a84ff;
+        cursor: pointer;
+        border-radius: 2px;
+        user-select: none;
 
-            &.open {
-                padding-left: 8px;
-                background: #e1ecff;
-            }
+        &.open {
+          padding-left: 8px;
+          background: #e1ecff;
         }
+      }
 
-        .toggle-arrow {
-            margin-right: 3px;
-            font-size: 12px;
-        }
+      .toggle-arrow {
+        margin-right: 3px;
+        font-size: 12px;
+      }
     }
 </style>

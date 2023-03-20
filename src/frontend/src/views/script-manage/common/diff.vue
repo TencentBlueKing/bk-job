@@ -298,166 +298,166 @@
 </script>
 <style lang="postcss">
     .jb-diff-layout {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        padding: 8px 24px;
-        background-color: #fff;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 8px 24px;
+      background-color: #fff;
 
-        .header {
+      .header {
+        display: flex;
+        align-items: center;
+        padding-right: 16px;
+
+        .title {
+          font-size: 20px;
+          line-height: 28px;
+          color: #313238;
+        }
+
+        .diff-info {
+          display: flex;
+          margin-top: 15px;
+          margin-left: auto;
+          font-size: 12px;
+          line-height: 1em;
+          align-items: center;
+
+          .diff-del,
+          .diff-change,
+          .diff-ins {
             display: flex;
-            align-items: center;
-            padding-right: 16px;
-
-            .title {
-                font-size: 20px;
-                line-height: 28px;
-                color: #313238;
-            }
-
-            .diff-info {
-                display: flex;
-                margin-top: 15px;
-                margin-left: auto;
-                font-size: 12px;
-                line-height: 1em;
-                align-items: center;
-
-                .diff-del,
-                .diff-change,
-                .diff-ins {
-                    display: flex;
-                    margin-left: 30px;
-                    cursor: pointer;
-                    user-select: none;
-                }
-
-                .diff-del {
-                    color: #bd5c58;
-
-                    .before {
-                        background: #b1615b;
-                    }
-
-                    .after {
-                        background: #dcdcdc;
-                    }
-                }
-
-                .diff-change {
-                    color: #63656e;
-
-                    .before {
-                        background: #b1615b;
-                    }
-
-                    .after {
-                        background: #9aad76;
-                    }
-                }
-
-                .diff-ins {
-                    color: #9aad76;
-
-                    .before {
-                        background: #dcdcdc;
-                    }
-
-                    .after {
-                        background: #9aad76;
-                    }
-                }
-
-                .before,
-                .after {
-                    width: 1em;
-                    height: 1em;
-                }
-
-                .after {
-                    margin-right: 6px;
-                    margin-left: 1px;
-                }
-            }
-        }
-
-        .version-select-layout {
-            display: flex;
-            height: 48px;
-            margin-top: 18px;
-            background: #eaebf0;
-            border-radius: 2px 2px 0 0;
-
-            .version-left,
-            .version-right {
-                display: flex;
-                padding: 0 8px;
-                flex: 0 0 50%;
-                align-items: center;
-            }
-
-            .version-left {
-                border-right: 1px solid #dcdee5;
-            }
-
-            .bk-select {
-                color: #63656e;
-                background: #fff;
-            }
-        }
-
-        .version-selector {
-            width: 300px;
-        }
-
-        .content-wraper {
-            max-height: calc(100vh - 92px);
-        }
-
-        .d2h-file-wrapper {
-            border: none;
-        }
-
-        .diff-details {
-            position: relative;
-            background-color: #fff;
-        }
-
-        .d2h-code-side-linenumber {
-            line-height: 20px;
-
-            &.active::before {
-                float: left;
-                width: 10px;
-                height: 10px;
-                margin-top: 5px;
-                margin-left: 13px;
-                background: #666;
-                border-radius: 50%;
-                content: "";
-            }
-        }
-
-        .icon-close {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            display: flex;
-            width: 26px;
-            height: 26px;
-            font-size: 22px;
-            color: #979ba5;
+            margin-left: 30px;
             cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.1s;
-            align-items: center;
-            justify-content: center;
+            user-select: none;
+          }
 
-            &:hover {
-                background-color: #f0f1f5;
+          .diff-del {
+            color: #bd5c58;
+
+            .before {
+              background: #b1615b;
             }
+
+            .after {
+              background: #dcdcdc;
+            }
+          }
+
+          .diff-change {
+            color: #63656e;
+
+            .before {
+              background: #b1615b;
+            }
+
+            .after {
+              background: #9aad76;
+            }
+          }
+
+          .diff-ins {
+            color: #9aad76;
+
+            .before {
+              background: #dcdcdc;
+            }
+
+            .after {
+              background: #9aad76;
+            }
+          }
+
+          .before,
+          .after {
+            width: 1em;
+            height: 1em;
+          }
+
+          .after {
+            margin-right: 6px;
+            margin-left: 1px;
+          }
         }
+      }
+
+      .version-select-layout {
+        display: flex;
+        height: 48px;
+        margin-top: 18px;
+        background: #eaebf0;
+        border-radius: 2px 2px 0 0;
+
+        .version-left,
+        .version-right {
+          display: flex;
+          padding: 0 8px;
+          flex: 0 0 50%;
+          align-items: center;
+        }
+
+        .version-left {
+          border-right: 1px solid #dcdee5;
+        }
+
+        .bk-select {
+          color: #63656e;
+          background: #fff;
+        }
+      }
+
+      .version-selector {
+        width: 300px;
+      }
+
+      .content-wraper {
+        max-height: calc(100vh - 92px);
+      }
+
+      .d2h-file-wrapper {
+        border: none;
+      }
+
+      .diff-details {
+        position: relative;
+        background-color: #fff;
+      }
+
+      .d2h-code-side-linenumber {
+        line-height: 20px;
+
+        &.active::before {
+          float: left;
+          width: 10px;
+          height: 10px;
+          margin-top: 5px;
+          margin-left: 13px;
+          background: #666;
+          border-radius: 50%;
+          content: "";
+        }
+      }
+
+      .icon-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: flex;
+        width: 26px;
+        height: 26px;
+        font-size: 22px;
+        color: #979ba5;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: all 0.1s;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background-color: #f0f1f5;
+        }
+      }
     }
 </style>

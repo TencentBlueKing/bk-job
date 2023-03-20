@@ -540,107 +540,107 @@
 </script>
 <style lang="postcss">
     .jb-render-list {
-        &.table-empty {
-            .bk-table-fixed-right {
-                bottom: 0 !important;
-            }
+      &.table-empty {
+        .bk-table-fixed-right {
+          bottom: 0 !important;
+        }
+      }
+
+      .bk-table-pagination-wrapper {
+        background: #fff;
+      }
+
+      .bk-table-body-wrapper {
+        td {
+          .bk-table-setting-content {
+            display: none;
+          }
+        }
+      }
+
+      .select-cell {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .jb-whole-check {
+          position: relative;
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          vertical-align: middle;
+          cursor: pointer;
+          background-color: #fff;
+          border: 1px solid #3a84ff;
+          border-radius: 2px;
+
+          &::after {
+            position: absolute;
+            top: 1px;
+            left: 4px;
+            width: 4px;
+            height: 8px;
+            border: 2px solid #3a84ff;
+            border-top: 0;
+            border-left: 0;
+            content: "";
+            transform: rotate(45deg);
+          }
         }
 
-        .bk-table-pagination-wrapper {
-            background: #fff;
+        .select-menu-flag {
+          margin-left: 4px;
+          font-size: 18px;
+        }
+      }
+
+      .jb-table-select-tips {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        background: #ebecf0;
+
+        .strong {
+          color: inherit;
         }
 
-        .bk-table-body-wrapper {
-            td {
-                .bk-table-setting-content {
-                    display: none;
-                }
-            }
+        .action-clear {
+          color: #3a84ff;
+          cursor: pointer;
         }
+      }
 
-        .select-cell {
-            position: relative;
-            display: flex;
-            align-items: center;
-
-            .jb-whole-check {
-                position: relative;
-                display: inline-block;
-                width: 16px;
-                height: 16px;
-                vertical-align: middle;
-                cursor: pointer;
-                background-color: #fff;
-                border: 1px solid #3a84ff;
-                border-radius: 2px;
-
-                &::after {
-                    position: absolute;
-                    top: 1px;
-                    left: 4px;
-                    width: 4px;
-                    height: 8px;
-                    border: 2px solid #3a84ff;
-                    border-top: 0;
-                    border-left: 0;
-                    content: "";
-                    transform: rotate(45deg);
-                }
-            }
-
-            .select-menu-flag {
-                margin-left: 4px;
-                font-size: 18px;
-            }
-        }
-
-        .jb-table-select-tips {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 30px;
-            background: #ebecf0;
-
-            .strong {
-                color: inherit;
-            }
-
-            .action-clear {
-                color: #3a84ff;
-                cursor: pointer;
-            }
-        }
-
-        .bk-table-empty-block {
-            height: auto;
-            background: #fff;
-        }
+      .bk-table-empty-block {
+        height: auto;
+        background: #fff;
+      }
     }
 
     .tippy-tooltip {
-        &.jb-table-select-menu-theme {
-            padding: 0;
+      &.jb-table-select-menu-theme {
+        padding: 0;
 
-            .jb-table-select-plan {
-                padding: 5px 0;
+        .jb-table-select-plan {
+          padding: 5px 0;
 
-                .item {
-                    padding: 0 10px;
-                    font-size: 12px;
-                    line-height: 26px;
-                    cursor: pointer;
+          .item {
+            padding: 0 10px;
+            font-size: 12px;
+            line-height: 26px;
+            cursor: pointer;
 
-                    &:hover {
-                        color: #3a84ff;
-                        background-color: #eaf3ff;
-                    }
-
-                    &.is-selected {
-                        color: #3a84ff;
-                        background-color: #f4f6fa;
-                    }
-                }
+            &:hover {
+              color: #3a84ff;
+              background-color: #eaf3ff;
             }
+
+            &.is-selected {
+              color: #3a84ff;
+              background-color: #f4f6fa;
+            }
+          }
         }
+      }
     }
 </style>

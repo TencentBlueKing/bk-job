@@ -284,34 +284,34 @@
 </script>
 <style lang="postcss">
     .choose-ip-dynamic-group {
-        min-height: 100%;
-        padding: 20px 24px;
+      min-height: 100%;
+      padding: 20px 24px;
 
-        .group-empty {
-            margin-top: 180px;
-            text-align: center;
-        }
+      .group-empty {
+        margin-top: 180px;
+        text-align: center;
+      }
 
-        .group-list {
-            padding-top: 20px;
+      .group-list {
+        padding-top: 20px;
 
-            table {
-                th,
-                td {
-                    &:first-child {
-                        padding-left: 15px;
-                    }
-                }
+        table {
+          th,
+          td {
+            &:first-child {
+              padding-left: 15px;
             }
+          }
         }
+      }
 
-        .check-flag {
-            font-size: 20px;
-            color: #63656e;
-        }
+      .check-flag {
+        font-size: 20px;
+        color: #63656e;
+      }
 
-        .group-row {
-            cursor: pointer;
-        }
+      .group-row {
+        cursor: pointer;
+      }
     }
 </style>

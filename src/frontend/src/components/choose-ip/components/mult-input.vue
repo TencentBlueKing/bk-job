@@ -117,41 +117,41 @@
 </script>
 <style lang='postcss'>
     .mult-input {
-        position: relative;
-        height: 30px;
-        padding: 0 10px;
+      position: relative;
+      height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      word-break: break-all;
+      cursor: pointer;
+      background: #fff;
+
+      .input-text-area {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        max-height: 300px;
+        min-height: 32px;
+        padding: 6px 10px;
+        overflow-y: scroll;
         font-size: 12px;
-        line-height: 1.5;
-        word-break: break-all;
-        cursor: pointer;
-        background: #fff;
+        color: #63656e;
+        background: inherit;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        outline: none;
+      }
 
-        .input-text-area {
-            position: absolute;
-            top: 0;
-            right: 0;
-            left: 0;
-            max-height: 300px;
-            min-height: 32px;
-            padding: 6px 10px;
-            overflow-y: scroll;
-            font-size: 12px;
-            color: #63656e;
-            background: inherit;
-            border: 1px solid #c4c6cc;
-            border-radius: 2px;
-            outline: none;
-        }
-
-        .mult-input-placeholder {
-            position: absolute;
-            top: 1px;
-            right: 1px;
-            bottom: 1px;
-            left: 1px;
-            padding: 6px 10px;
-            color: #c4c6cc;
-            background: inherit;
-        }
+      .mult-input-placeholder {
+        position: absolute;
+        top: 1px;
+        right: 1px;
+        bottom: 1px;
+        left: 1px;
+        padding: 6px 10px;
+        color: #c4c6cc;
+        background: inherit;
+      }
     }
 </style>

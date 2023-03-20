@@ -177,6 +177,6 @@
 </script>
 <style lang="postcss" scoped>
     .view-server-panel {
-        margin-top: 10px;
+      margin-top: 10px;
     }
 </style>

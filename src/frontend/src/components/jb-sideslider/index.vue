@@ -327,28 +327,28 @@
 </script>
 <style lang="postcss">
     .jb-sideslider {
-        .bk-sideslider-wrapper {
-            overflow: unset;
-        }
+      .bk-sideslider-wrapper {
+        overflow: unset;
+      }
 
-        .jb-sideslider-content {
-            position: relative;
-            z-index: 1;
-            padding: 20px 30px;
-        }
+      .jb-sideslider-content {
+        position: relative;
+        z-index: 1;
+        padding: 20px 30px;
+      }
 
-        .bk-sideslider-footer {
-            height: auto;
-            background: #fff !important;
-        }
+      .bk-sideslider-footer {
+        height: auto;
+        background: #fff !important;
+      }
 
-        .jb-sideslider-footer {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            padding: 0 30px;
-            background: inherit !important;
-        }
+      .jb-sideslider-footer {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 0 30px;
+        background: inherit !important;
+      }
     }
 </style>

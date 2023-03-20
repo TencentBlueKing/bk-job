@@ -121,16 +121,16 @@
 </script>
 <style lang="postcss" scoped>
     .render-notify-way-check {
-        display: flex;
-        align-items: center;
+      display: flex;
+      align-items: center;
 
-        .check-all {
-            flex: 0 0 auto;
-            margin-right: 25px;
-        }
+      .check-all {
+        flex: 0 0 auto;
+        margin-right: 25px;
+      }
 
-        .check-item {
-            flex: 0 0 auto;
-        }
+      .check-item {
+        flex: 0 0 auto;
+      }
     }
 </style>

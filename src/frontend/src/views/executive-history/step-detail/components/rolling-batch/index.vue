@@ -464,189 +464,189 @@
 </script>
 <style lang="postcss" scoped>
     .batch-box {
+      display: flex;
+      padding: 20px 24px 12px;
+      background: #f5f6fa;
+
+      .pre-btn,
+      .next-btn,
+      .more-btn {
         display: flex;
-        padding: 20px 24px 12px;
-        background: #f5f6fa;
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        color: #979ba5;
+        cursor: pointer;
+        background: #e8e9f0;
+        border-radius: 50%;
+        justify-content: center;
+        align-items: center;
 
-        .pre-btn,
-        .next-btn,
-        .more-btn {
+        &:hover {
+          background: #dcdee5;
+        }
+
+        &.disabled {
+          color: #c4c6cc;
+          cursor: not-allowed;
+          background: #e8e9f0 !important;
+        }
+      }
+
+      .pre-btn {
+        margin-right: 8px;
+
+        i {
+          transform: rotateZ(90deg);
+        }
+      }
+
+      .next-btn {
+        margin-left: 8px;
+
+        i {
+          transform: rotateZ(-90deg);
+        }
+      }
+
+      .more-btn {
+        margin-left: 6px;
+      }
+
+      .batch-content {
+        display: flex;
+        padding: 2px;
+        font-size: 12px;
+        color: #63656e;
+        background: #e4e6ed;
+        border-radius: 18px;
+        box-sizing: content-box;
+        user-select: none;
+
+        .content-list {
+          position: relative;
+          height: 24px;
+          overflow: hidden;
+          flex: 1;
+        }
+
+        .wrapper {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          display: flex;
+          align-items: center;
+          transition: all 0.15s;
+        }
+
+        .batch-item {
+          position: relative;
+          display: flex;
+          height: 24px;
+          padding: 0 16px;
+          cursor: pointer;
+          border-radius: 12px;
+          transition: all 0.15s;
+          flex: 1 0 auto;
+          align-items: center;
+          justify-content: center;
+
+          &:hover,
+          &.active {
+            &::after {
+              opacity: 0%;
+            }
+          }
+
+          &:hover {
+            background: #f0f1f5;
+          }
+
+          &.active {
+            cursor: default;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+          }
+
+          &.confirm {
+            &::after {
+              position: absolute;
+              right: 6px;
+              bottom: 0;
+              left: 15px;
+              border-bottom: 1px dashed #ff9c01;
+              content: "";
+            }
+
+            .batch-item-status {
+              color: #ff9c01;
+            }
+          }
+
+          &.will {
+            color: #b1b6c2;
+          }
+
+          .batch-item-status {
+            position: absolute;
+            right: 3px;
             display: flex;
-            flex: 0 0 auto;
-            width: 28px;
-            height: 28px;
-            color: #979ba5;
-            cursor: pointer;
-            background: #e8e9f0;
-            border-radius: 50%;
-            justify-content: center;
+            font-size: 13px;
             align-items: center;
-
-            &:hover {
-                background: #dcdee5;
-            }
-
-            &.disabled {
-                color: #c4c6cc;
-                cursor: not-allowed;
-                background: #e8e9f0 !important;
-            }
+          }
         }
 
-        .pre-btn {
-            margin-right: 8px;
+        .all-btn {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          height: 100%;
+          padding: 0 18px;
+          cursor: pointer;
+          align-items: center;
+          flex: 0 0 auto;
+          border-radius: 0;
 
-            i {
-                transform: rotateZ(90deg);
+          &:hover {
+            background: #f0f1f5;
+            border-radius: 12px;
+          }
+
+          &.fixed {
+            &::after {
+              opacity: 100%;
+              transform: scaleX(1);
             }
+          }
+
+          &.disabled {
+            cursor: not-allowed;
+          }
+
+          &.active {
+            cursor: default;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+          }
+
+          &::after {
+            position: absolute;
+            top: -2px;
+            right: -8px;
+            width: 6px;
+            height: calc(100% + 4px);
+            background: linear-gradient(270deg, rgb(0 0 0 / 0%), rgb(0 0 0 / 8%));
+            border-left: 2px solid #e4e6ed;
+            content: "";
+            opacity: 0%;
+            transform: scaleX(0);
+            transition: all 0.15s;
+            transform-origin: left center;
+          }
         }
-
-        .next-btn {
-            margin-left: 8px;
-
-            i {
-                transform: rotateZ(-90deg);
-            }
-        }
-
-        .more-btn {
-            margin-left: 6px;
-        }
-
-        .batch-content {
-            display: flex;
-            padding: 2px;
-            font-size: 12px;
-            color: #63656e;
-            background: #e4e6ed;
-            border-radius: 18px;
-            box-sizing: content-box;
-            user-select: none;
-
-            .content-list {
-                position: relative;
-                height: 24px;
-                overflow: hidden;
-                flex: 1;
-            }
-
-            .wrapper {
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                display: flex;
-                align-items: center;
-                transition: all 0.15s;
-            }
-
-            .batch-item {
-                position: relative;
-                display: flex;
-                height: 24px;
-                padding: 0 16px;
-                cursor: pointer;
-                border-radius: 12px;
-                transition: all 0.15s;
-                flex: 1 0 auto;
-                align-items: center;
-                justify-content: center;
-
-                &:hover,
-                &.active {
-                    &::after {
-                        opacity: 0%;
-                    }
-                }
-
-                &:hover {
-                    background: #f0f1f5;
-                }
-
-                &.active {
-                    cursor: default;
-                    background: #fff;
-                    border-radius: 12px;
-                    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
-                }
-
-                &.confirm {
-                    &::after {
-                        position: absolute;
-                        right: 6px;
-                        bottom: 0;
-                        left: 15px;
-                        border-bottom: 1px dashed #ff9c01;
-                        content: "";
-                    }
-
-                    .batch-item-status {
-                        color: #ff9c01;
-                    }
-                }
-
-                &.will {
-                    color: #b1b6c2;
-                }
-
-                .batch-item-status {
-                    position: absolute;
-                    right: 3px;
-                    display: flex;
-                    font-size: 13px;
-                    align-items: center;
-                }
-            }
-
-            .all-btn {
-                position: relative;
-                z-index: 1;
-                display: flex;
-                height: 100%;
-                padding: 0 18px;
-                cursor: pointer;
-                align-items: center;
-                flex: 0 0 auto;
-                border-radius: 0;
-
-                &:hover {
-                    background: #f0f1f5;
-                    border-radius: 12px;
-                }
-
-                &.fixed {
-                    &::after {
-                        opacity: 100%;
-                        transform: scaleX(1);
-                    }
-                }
-
-                &.disabled {
-                    cursor: not-allowed;
-                }
-
-                &.active {
-                    cursor: default;
-                    background: #fff;
-                    border-radius: 12px;
-                    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
-                }
-
-                &::after {
-                    position: absolute;
-                    top: -2px;
-                    right: -8px;
-                    width: 6px;
-                    height: calc(100% + 4px);
-                    background: linear-gradient(270deg, rgb(0 0 0 / 0%), rgb(0 0 0 / 8%));
-                    border-left: 2px solid #e4e6ed;
-                    content: "";
-                    opacity: 0%;
-                    transform: scaleX(0);
-                    transition: all 0.15s;
-                    transform-origin: left center;
-                }
-            }
-        }
+      }
     }
 </style>

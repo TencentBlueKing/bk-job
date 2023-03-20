@@ -378,219 +378,219 @@
 </script>
 <style lang='postcss'>
     @keyframes list-loading-ani {
-        0% {
-            transform: rotateZ(0);
-        }
+      0% {
+        transform: rotateZ(0);
+      }
 
-        100% {
-            transform: rotateZ(360deg);
-        }
+      100% {
+        transform: rotateZ(360deg);
+      }
     }
 
     .step-execute-host-list {
-        position: relative;
-        width: 287px;
-        height: 100%;
-        max-height: 100%;
-        min-height: 100%;
-        transition: all 0.3s;
+      position: relative;
+      width: 287px;
+      height: 100%;
+      max-height: 100%;
+      min-height: 100%;
+      transition: all 0.3s;
 
-        .ip-list-body {
-            height: calc(100% - 41px);
+      .ip-list-body {
+        height: calc(100% - 41px);
+      }
+
+      .ip-table {
+        width: 100%;
+
+        th,
+        td {
+          height: 40px;
+          padding-left: 26px;
+          line-height: 40px;
+          text-align: left;
+          white-space: nowrap;
+          border-bottom: 1px solid #dcdee5;
         }
 
-        .ip-table {
-            width: 100%;
+        th {
+          position: relative;
+          font-weight: normal;
+          color: #313238;
 
-            th,
-            td {
-                height: 40px;
-                padding-left: 26px;
-                line-height: 40px;
-                text-align: left;
-                white-space: nowrap;
-                border-bottom: 1px solid #dcdee5;
-            }
+          &.sort {
+            cursor: pointer;
+          }
 
-            th {
-                position: relative;
-                font-weight: normal;
-                color: #313238;
-
-                &.sort {
-                    cursor: pointer;
-                }
-
-                .sort-box {
-                    position: absolute;
-                    top: 0;
-                    display: inline-flex;
-                    height: 100%;
-                    margin-left: 9px;
-                    font-size: 6px;
-                    color: #c4c6cc;
-                    justify-content: center;
-                    flex-direction: column;
-
-                    .top,
-                    .bottom {
-                        width: 0;
-                        height: 0;
-                        margin: 1px 0;
-                        border: 5px solid transparent;
-
-                        &.active {
-                            color: #3a84ff;
-                        }
-                    }
-
-                    .top {
-                        border-bottom-color: currentcolor;
-                    }
-
-                    .bottom {
-                        border-top-color: currentcolor;
-                    }
-                }
-            }
-
-            td {
-                color: #63656e;
-                cursor: pointer;
-            }
-
-            tbody {
-                tr {
-                    &.active {
-                        background: #f0f1f5;
-
-                        .active-flag {
-                            font-size: 14px;
-                        }
-                    }
-
-                    .active-flag {
-                        padding: 0;
-                        font-size: 0;
-                        color: #979ba5;
-                        text-align: center;
-                    }
-                }
-            }
-
-            .copy-ip-btn {
-                margin-left: 8px;
-                font-size: 12px;
-                font-weight: normal;
-                color: #3a84ff;
-                cursor: pointer;
-            }
-
-            .list-action {
-                width: 40px;
-                height: 40px;
-                padding: 0;
-                font-size: 14px;
-                color: #979ba5;
-                text-align: center;
-                cursor: pointer;
-                border-left: 1px solid #dcdee5;
-            }
-
-            .success,
-            .fail,
-            .running,
-            .waiting {
-                &::before {
-                    display: inline-block;
-                    width: 3px;
-                    height: 12px;
-                    margin-right: 1em;
-                    margin-left: -3px;
-                    background: #2dc89d;
-                    content: "";
-                }
-            }
-
-            .fail {
-                &::before {
-                    background: #ea3636;
-                }
-            }
-
-            .running {
-                &::before {
-                    background: #699df4;
-                }
-            }
-
-            .waiting {
-                &::before {
-                    background: #dcdee5;
-                }
-            }
-        }
-
-        .list-loading {
-            display: flex;
-            height: 40px;
-            font-size: 12px;
-            color: #979ba5;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-
-            .loading-flag {
-                display: flex;
-                width: 20px;
-                height: 20px;
-                animation: list-loading-ani 1s linear infinite;
-                align-items: center;
-                justify-content: center;
-                transform-origin: center center;
-            }
-        }
-
-        .list-column-select {
+          .sort-box {
             position: absolute;
-            top: 45px;
-            left: 0;
-            z-index: 1;
-            width: 100%;
-            background: #fff;
-            box-shadow: 1px 1px 5px 0 #dcdee5;
-        }
-
-        .select-body {
-            padding: 15px 22px 30px;
-
-            .title {
-                margin-bottom: 22px;
-                font-size: 16px;
-                color: #313238;
-            }
-        }
-
-        .select-column {
-            margin-top: 20px;
-            margin-right: 36px;
-
-            &:last-child {
-                margin-right: 0;
-            }
-        }
-
-        .select-footer {
-            display: flex;
-            height: 50px;
-            background: #fafbfd;
-            border-top: 1px solid #dbdde4;
-            align-items: center;
+            top: 0;
+            display: inline-flex;
+            height: 100%;
+            margin-left: 9px;
+            font-size: 6px;
+            color: #c4c6cc;
             justify-content: center;
+            flex-direction: column;
 
-            .bk-button {
-                margin: 0 5px;
+            .top,
+            .bottom {
+              width: 0;
+              height: 0;
+              margin: 1px 0;
+              border: 5px solid transparent;
+
+              &.active {
+                color: #3a84ff;
+              }
             }
+
+            .top {
+              border-bottom-color: currentcolor;
+            }
+
+            .bottom {
+              border-top-color: currentcolor;
+            }
+          }
         }
+
+        td {
+          color: #63656e;
+          cursor: pointer;
+        }
+
+        tbody {
+          tr {
+            &.active {
+              background: #f0f1f5;
+
+              .active-flag {
+                font-size: 14px;
+              }
+            }
+
+            .active-flag {
+              padding: 0;
+              font-size: 0;
+              color: #979ba5;
+              text-align: center;
+            }
+          }
+        }
+
+        .copy-ip-btn {
+          margin-left: 8px;
+          font-size: 12px;
+          font-weight: normal;
+          color: #3a84ff;
+          cursor: pointer;
+        }
+
+        .list-action {
+          width: 40px;
+          height: 40px;
+          padding: 0;
+          font-size: 14px;
+          color: #979ba5;
+          text-align: center;
+          cursor: pointer;
+          border-left: 1px solid #dcdee5;
+        }
+
+        .success,
+        .fail,
+        .running,
+        .waiting {
+          &::before {
+            display: inline-block;
+            width: 3px;
+            height: 12px;
+            margin-right: 1em;
+            margin-left: -3px;
+            background: #2dc89d;
+            content: "";
+          }
+        }
+
+        .fail {
+          &::before {
+            background: #ea3636;
+          }
+        }
+
+        .running {
+          &::before {
+            background: #699df4;
+          }
+        }
+
+        .waiting {
+          &::before {
+            background: #dcdee5;
+          }
+        }
+      }
+
+      .list-loading {
+        display: flex;
+        height: 40px;
+        font-size: 12px;
+        color: #979ba5;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+
+        .loading-flag {
+          display: flex;
+          width: 20px;
+          height: 20px;
+          animation: list-loading-ani 1s linear infinite;
+          align-items: center;
+          justify-content: center;
+          transform-origin: center center;
+        }
+      }
+
+      .list-column-select {
+        position: absolute;
+        top: 45px;
+        left: 0;
+        z-index: 1;
+        width: 100%;
+        background: #fff;
+        box-shadow: 1px 1px 5px 0 #dcdee5;
+      }
+
+      .select-body {
+        padding: 15px 22px 30px;
+
+        .title {
+          margin-bottom: 22px;
+          font-size: 16px;
+          color: #313238;
+        }
+      }
+
+      .select-column {
+        margin-top: 20px;
+        margin-right: 36px;
+
+        &:last-child {
+          margin-right: 0;
+        }
+      }
+
+      .select-footer {
+        display: flex;
+        height: 50px;
+        background: #fafbfd;
+        border-top: 1px solid #dbdde4;
+        align-items: center;
+        justify-content: center;
+
+        .bk-button {
+          margin: 0 5px;
+        }
+      }
     }
 </style>

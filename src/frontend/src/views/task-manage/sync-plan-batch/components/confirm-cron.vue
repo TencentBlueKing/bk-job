@@ -106,27 +106,27 @@
 </script>
 <style lang='postcss'>
     .plan-confirm-cron-dialog {
-        .bk-dialog-wrapper {
-            .bk-dialog-body {
-                padding: 0;
-            }
-
-            .bk-dialog.bk-dialog-fullscreen .bk-dialog-body {
-                bottom: 0;
-            }
-
-            .bk-dialog-footer {
-                display: none;
-            }
+      .bk-dialog-wrapper {
+        .bk-dialog-body {
+          padding: 0;
         }
 
-        .confirm-cron-wraper {
-            min-height: 100vh;
+        .bk-dialog.bk-dialog-fullscreen .bk-dialog-body {
+          bottom: 0;
         }
 
-        .layout-left,
-        .layout-right {
-            height: 100vh;
+        .bk-dialog-footer {
+          display: none;
         }
+      }
+
+      .confirm-cron-wraper {
+        min-height: 100vh;
+      }
+
+      .layout-left,
+      .layout-right {
+        height: 100vh;
+      }
     }
 </style>

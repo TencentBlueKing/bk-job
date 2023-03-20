@@ -519,47 +519,47 @@
 </script>
 <style lang="postcss">
     .file-source-create-form {
-        min-height: 50vh;
+      min-height: 50vh;
 
-        .share-object-box {
-            display: flex;
-            align-items: center;
+      .share-object-box {
+        display: flex;
+        align-items: center;
 
-            .share-app-select {
-                flex: 1 1 auto;
-                margin-right: 10px;
-            }
+        .share-app-select {
+          flex: 1 1 auto;
+          margin-right: 10px;
+        }
+      }
+
+      .access-point-box {
+        display: flex;
+        align-items: center;
+
+        .worker-select {
+          width: 220px;
+          margin-right: 10px;
+        }
+      }
+
+      .worker-box {
+        .bk-form-radio-button {
+          width: 220px;
+          margin-top: 10px;
+
+          .bk-radio-button-text {
+            width: 100%;
+          }
         }
 
-        .access-point-box {
-            display: flex;
-            align-items: center;
+        .worker-item {
+          display: flex;
+          font-size: 12px;
+          justify-content: space-between;
 
-            .worker-select {
-                width: 220px;
-                margin-right: 10px;
-            }
+          .latency {
+            color: #3fc06d;
+          }
         }
-
-        .worker-box {
-            .bk-form-radio-button {
-                width: 220px;
-                margin-top: 10px;
-
-                .bk-radio-button-text {
-                    width: 100%;
-                }
-            }
-
-            .worker-item {
-                display: flex;
-                font-size: 12px;
-                justify-content: space-between;
-
-                .latency {
-                    color: #3fc06d;
-                }
-            }
-        }
+      }
     }
 </style>

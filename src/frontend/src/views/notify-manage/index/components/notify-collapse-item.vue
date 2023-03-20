@@ -61,16 +61,16 @@
 </script>
 <style lang='postcss'>
     .notify-collapse-item {
-        .bk-collapse-item-header {
-            font-size: 14px;
-            font-weight: 600;
-            color: #313238;
-            border-bottom: 1px solid #dcdee5;
-        }
+      .bk-collapse-item-header {
+        font-size: 14px;
+        font-weight: 600;
+        color: #313238;
+        border-bottom: 1px solid #dcdee5;
+      }
 
-        .bk-collapse-item .bk-collapse-item-content {
-            min-height: 42px;
-            padding: 40px 0 0 84px;
-        }
+      .bk-collapse-item .bk-collapse-item-content {
+        min-height: 42px;
+        padding: 40px 0 0 84px;
+      }
     }
 </style>

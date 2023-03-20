@@ -198,108 +198,108 @@
     @import "@/css/mixins/scroll";
 
     .edit-source-file {
-        position: relative;
-        display: flex;
-        width: 100%;
-        margin-left: -10px;
-        font-size: 12px;
-        border-radius: 2px;
+      position: relative;
+      display: flex;
+      width: 100%;
+      margin-left: -10px;
+      font-size: 12px;
+      border-radius: 2px;
 
-        &.path-error {
-            .file-path-edit,
-            .file-path-create {
-                .job-smart-input-area {
-                    border-color: #ea3636;
-                }
-            }
-        }
-
-        .path-text {
-            width: 100%;
-            padding: 6px 10px;
-            cursor: pointer;
-            border: 1px solid transparent !important;
-            border-radius: 2px;
-
-            &:hover {
-                background: #f0f1f5;
-            }
-
-            .bk-tooltip,
-            .bk-tooltip-ref {
-                display: flex;
-                flex-direction: column;
-            }
-
-            .path-text-row {
-                width: 100%;
-                height: 18px;
-                max-width: 100%;
-                overflow: hidden;
-                line-height: 18px;
-                text-overflow: ellipsis;
-                word-break: keep-all;
-                white-space: normal;
-            }
-        }
-
+      &.path-error {
         .file-path-edit,
         .file-path-create {
-            width: 100%;
+          .job-smart-input-area {
+            border-color: #ea3636;
+          }
+        }
+      }
 
-            .job-smart-input-area {
-                min-height: 30px;
-                border-color: transparent;
-            }
+      .path-text {
+        width: 100%;
+        padding: 6px 10px;
+        cursor: pointer;
+        border: 1px solid transparent !important;
+        border-radius: 2px;
+
+        &:hover {
+          background: #f0f1f5;
         }
 
-        .file-path-edit {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .bk-tooltip,
+        .bk-tooltip-ref {
+          display: flex;
+          flex-direction: column;
         }
 
-        .file-path-create {
-            background: #f7f8fa;
-
-            &:hover {
-                background: #f0f1f5;
-            }
+        .path-text-row {
+          width: 100%;
+          height: 18px;
+          max-width: 100%;
+          overflow: hidden;
+          line-height: 18px;
+          text-overflow: ellipsis;
+          word-break: keep-all;
+          white-space: normal;
         }
+      }
 
-        .error-flag {
-            position: absolute;
-            top: 0;
-            right: 0;
-            z-index: 1999;
-            display: flex;
-            align-items: center;
-            height: 30px;
-            padding: 0 6px;
-            font-size: 16px;
-            color: #ea3636;
-            cursor: pointer;
+      .file-path-edit,
+      .file-path-create {
+        width: 100%;
+
+        .job-smart-input-area {
+          min-height: 30px;
+          border-color: transparent;
         }
+      }
+
+      .file-path-edit {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      .file-path-create {
+        background: #f7f8fa;
+
+        &:hover {
+          background: #f0f1f5;
+        }
+      }
+
+      .error-flag {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 1999;
+        display: flex;
+        align-items: center;
+        height: 30px;
+        padding: 0 6px;
+        font-size: 16px;
+        color: #ea3636;
+        cursor: pointer;
+      }
     }
 
     .source-file-tips-box {
-        max-width: 300px;
-        max-height: 280px;
-        min-width: 60px;
-        overflow-y: auto;
+      max-width: 300px;
+      max-height: 280px;
+      min-width: 60px;
+      overflow-y: auto;
 
-        @mixin scroller;
+      @mixin scroller;
 
-        .row {
-            word-break: break-all;
-        }
+      .row {
+        word-break: break-all;
+      }
 
-        .dot {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            background: currentcolor;
-            border-radius: 50%;
-        }
+      .dot {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: currentcolor;
+        border-radius: 50%;
+      }
     }
 </style>

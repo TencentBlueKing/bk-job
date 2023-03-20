@@ -148,109 +148,109 @@
 </script>
 <style lang="postcss">
     .render-server-agent {
-        .agent-text {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            cursor: pointer;
+      .agent-text {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        cursor: pointer;
 
-            .strong {
-                color: #3a84ff;
-            }
-
-            .error {
-                color: #ea3636;
-            }
-
-            .success {
-                color: #3fc06d;
-            }
-
-            .number {
-                padding: 0 4px;
-                font-weight: bold;
-            }
-
-            .splite {
-                padding-left: 16px;
-            }
+        .strong {
+          color: #3a84ff;
         }
+
+        .error {
+          color: #ea3636;
+        }
+
+        .success {
+          color: #3fc06d;
+        }
+
+        .number {
+          padding: 0 4px;
+          font-weight: bold;
+        }
+
+        .splite {
+          padding-left: 16px;
+        }
+      }
     }
 
     .render-server-detail-dialog {
-        .bk-dialog-tool {
-            display: none;
+      .bk-dialog-tool {
+        display: none;
+      }
+
+      .bk-dialog-header,
+      .bk-dialog-footer {
+        position: relative;
+        z-index: 99999;
+        background: #fff;
+      }
+
+      .bk-dialog-header {
+        padding: 0;
+      }
+
+      .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner {
+        font-size: 20px;
+        color: #000;
+        text-align: left;
+      }
+
+      .bk-dialog-wrapper .bk-dialog-body {
+        padding: 0;
+
+        .server-panel {
+          height: 100%;
+
+          &.show-detail {
+            overflow: hidden;
+          }
+
+          .host-detail.show {
+            padding-left: 20%;
+          }
         }
+      }
 
-        .bk-dialog-header,
-        .bk-dialog-footer {
-            position: relative;
-            z-index: 99999;
-            background: #fff;
+      .content-wraper {
+        height: 450px;
+        max-height: 450px;
+        min-height: 450px;
+        margin-top: -1px;
+      }
+
+      button[name="cancel"] {
+        display: none;
+      }
+
+      .variable-title {
+        position: relative;
+        height: 68px;
+        padding-top: 0;
+        padding-bottom: 0;
+        padding-left: 25px;
+        font-size: 20px;
+        line-height: 68px;
+        color: #000;
+        text-align: left;
+        border-bottom: 1px solid #dcdee5;
+      }
+
+      .global-variable-dialog-close {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-size: 32px;
+        color: #c4c6cc;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &:hover {
+          transform: rotateZ(90deg);
         }
-
-        .bk-dialog-header {
-            padding: 0;
-        }
-
-        .bk-dialog-wrapper .bk-dialog-header .bk-dialog-header-inner {
-            font-size: 20px;
-            color: #000;
-            text-align: left;
-        }
-
-        .bk-dialog-wrapper .bk-dialog-body {
-            padding: 0;
-
-            .server-panel {
-                height: 100%;
-
-                &.show-detail {
-                    overflow: hidden;
-                }
-
-                .host-detail.show {
-                    padding-left: 20%;
-                }
-            }
-        }
-
-        .content-wraper {
-            height: 450px;
-            max-height: 450px;
-            min-height: 450px;
-            margin-top: -1px;
-        }
-
-        button[name="cancel"] {
-            display: none;
-        }
-
-        .variable-title {
-            position: relative;
-            height: 68px;
-            padding-top: 0;
-            padding-bottom: 0;
-            padding-left: 25px;
-            font-size: 20px;
-            line-height: 68px;
-            color: #000;
-            text-align: left;
-            border-bottom: 1px solid #dcdee5;
-        }
-
-        .global-variable-dialog-close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            font-size: 32px;
-            color: #c4c6cc;
-            cursor: pointer;
-            transition: all 0.15s;
-
-            &:hover {
-                transform: rotateZ(90deg);
-            }
-        }
+      }
     }
 </style>

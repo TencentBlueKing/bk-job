@@ -260,90 +260,90 @@
 </script>
 <style lang='postcss'>
     .script-template-page {
-        .action-box {
-            display: flex;
-            height: 52px;
-            padding-left: 16px;
-            background: #2e2e2e;
-            box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 16%);
-            align-items: center;
+      .action-box {
+        display: flex;
+        height: 52px;
+        padding-left: 16px;
+        background: #2e2e2e;
+        box-shadow: 0 -2px 4px 0 rgb(0 0 0 / 16%);
+        align-items: center;
 
-            .action-btn {
-                width: 86px;
-                height: 32px;
-                font-size: 14px;
-                line-height: 32px;
-                color: #979ba5;
-                text-align: center;
-                cursor: pointer;
-                background: #242424;
-                border: 1px solid #5c5e66;
-                border-radius: 2px;
-                transition: all 0.15s;
+        .action-btn {
+          width: 86px;
+          height: 32px;
+          font-size: 14px;
+          line-height: 32px;
+          color: #979ba5;
+          text-align: center;
+          cursor: pointer;
+          background: #242424;
+          border: 1px solid #5c5e66;
+          border-radius: 2px;
+          transition: all 0.15s;
 
-                &:hover {
-                    color: #b1b6c2;
-                    border-color: #878b94;
-                }
+          &:hover {
+            color: #b1b6c2;
+            border-color: #878b94;
+          }
 
-                &.active {
-                    color: #699df4;
-                    background: #242424;
-                    border: 1px solid transparent;
-                }
-            }
+          &.active {
+            color: #699df4;
+            background: #242424;
+            border: 1px solid transparent;
+          }
         }
+      }
 
-        .bk-loading {
-            background: rgb(0 0 0 / 80%) !important;
-        }
+      .bk-loading {
+        background: rgb(0 0 0 / 80%) !important;
+      }
     }
 
     .script-template-editor {
-        .jb-ace-title {
-            background: #2e2e2e;
+      .jb-ace-title {
+        background: #2e2e2e;
 
-            .jb-ace-mode-item {
-                &.active {
-                    background: #1a1a1a;
-                }
-            }
-        }
-        /* stylelint-disable selector-class-pattern */
-        .ace_editor {
+        .jb-ace-mode-item {
+          &.active {
             background: #1a1a1a;
-
-            .ace_gutter {
-                background: #1a1a1a;
-            }
+          }
         }
+      }
+      /* stylelint-disable selector-class-pattern */
+      .ace_editor {
+        background: #1a1a1a;
+
+        .ace_gutter {
+          background: #1a1a1a;
+        }
+      }
     }
 
     .script-editor-right-panel {
-        position: relative;
-        height: 100%;
-        font-size: 14px;
-        line-height: 19px;
-        color: #c4c6cc;
-        border-left: 1px solid #333;
+      position: relative;
+      height: 100%;
+      font-size: 14px;
+      line-height: 19px;
+      color: #c4c6cc;
+      border-left: 1px solid #333;
 
-        .panel-close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            display: flex;
-            width: 26px;
-            height: 26px;
-            font-size: 18px;
-            color: #63656e;
-            cursor: pointer;
-            border-radius: 50%;
-            align-items: center;
-            justify-content: center;
+      .panel-close {
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: flex;
+        width: 26px;
+        height: 26px;
+        font-size: 18px;
+        color: #63656e;
+        cursor: pointer;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
 
-            &:hover {
-                background-color: #313238;
-            }
+        &:hover {
+          background-color: #313238;
         }
+      }
     }
 </style>

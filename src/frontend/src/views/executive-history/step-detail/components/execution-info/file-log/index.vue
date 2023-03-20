@@ -266,51 +266,51 @@
 </script>
 <style lang='postcss'>
     @keyframes file-log-loading-ani {
-        0% {
-            transform: rotateZ(0);
-        }
+      0% {
+        transform: rotateZ(0);
+      }
 
-        100% {
-            transform: rotateZ(360deg);
-        }
+      100% {
+        transform: rotateZ(360deg);
+      }
     }
 
     .file-download-log {
-        height: 100%;
-        padding-top: 10px;
-        overflow-y: scroll;
+      height: 100%;
+      padding-top: 10px;
+      overflow-y: scroll;
 
-        &::-webkit-scrollbar {
-            width: 14px;
+      &::-webkit-scrollbar {
+        width: 14px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: #3b3c42;
+        border: 1px solid #63656e;
+      }
+
+      &::-webkit-scrollbar-corner {
+        background-color: transparent;
+      }
+
+      .load-more {
+        display: flex;
+        align-items: center;
+        height: 20px;
+        padding-top: 20px;
+        padding-bottom: 24px;
+        padding-left: 44px;
+        color: #fff;
+
+        .loading-flag {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          transform-origin: center center;
+          animation: file-log-loading-ani 1s linear infinite;
         }
-
-        &::-webkit-scrollbar-thumb {
-            background-color: #3b3c42;
-            border: 1px solid #63656e;
-        }
-
-        &::-webkit-scrollbar-corner {
-            background-color: transparent;
-        }
-
-        .load-more {
-            display: flex;
-            align-items: center;
-            height: 20px;
-            padding-top: 20px;
-            padding-bottom: 24px;
-            padding-left: 44px;
-            color: #fff;
-
-            .loading-flag {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 20px;
-                height: 20px;
-                transform-origin: center center;
-                animation: file-log-loading-ani 1s linear infinite;
-            }
-        }
+      }
     }
 </style>

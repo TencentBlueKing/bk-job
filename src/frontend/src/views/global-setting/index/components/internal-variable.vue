@@ -75,38 +75,38 @@
 
 <style lang="postcss">
     .internal-variable-wrapper {
-        height: 586px;
-        padding-top: 16px;
+      height: 586px;
+      padding-top: 16px;
 
-        .close-dialog {
-            position: absolute;
-            top: 10px;
-            right: 6px;
-            font-size: 28px;
-            color: #979ba5;
-            cursor: pointer;
+      .close-dialog {
+        position: absolute;
+        top: 10px;
+        right: 6px;
+        font-size: 28px;
+        color: #979ba5;
+        cursor: pointer;
+      }
+
+      header {
+        font-size: 20px;
+        color: #313238;
+      }
+
+      .variable-tab {
+        margin-top: 10px;
+
+        .bk-tab-section {
+          display: none;
         }
+      }
 
-        header {
-            font-size: 20px;
-            color: #313238;
-        }
+      .variable-table {
+        margin-top: 20px;
+        border: none;
+      }
 
-        .variable-tab {
-            margin-top: 10px;
-
-            .bk-tab-section {
-                display: none;
-            }
-        }
-
-        .variable-table {
-            margin-top: 20px;
-            border: none;
-        }
-
-        .bk-table-outer-border::after {
-            display: none;
-        }
+      .bk-table-outer-border::after {
+        display: none;
+      }
     }
 </style>

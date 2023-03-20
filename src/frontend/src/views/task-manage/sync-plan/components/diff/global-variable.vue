@@ -115,102 +115,102 @@
   };
 </script>
 <style lang='postcss'>
-    html[lang="en-US"] {
-        .diff-global-variable {
-            .info {
-                .label {
-                    flex-basis: 100px;
-                }
-            }
-        }
-    }
-
+  html[lang="en-US"] {
     .diff-global-variable {
-        color: #63656e;
-
-        &.new {
-            position: relative;
-
-            .name {
-                display: flex;
-                align-items: center;
-
-                &::after {
-                    width: 28px;
-                    height: 14px;
-                    margin-left: 10px;
-                    font-size: 12px;
-                    line-height: 14px;
-                    color: #fff;
-                    text-align: center;
-                    background: #ffa86e;
-                    content: "new";
-                }
-            }
+      .info {
+        .label {
+          flex-basis: 100px;
         }
-
-        &.delete {
-            text-decoration: line-through;
-        }
-
-        .changed {
-            .value {
-                padding: 3px;
-                background: #fddfcb;
-            }
-        }
-
-        .name {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            line-height: 24px;
-            color: #313238;
-
-            .type-flag {
-                display: flex;
-                width: 24px;
-                height: 24px;
-                margin-right: 10px;
-                font-size: 17px;
-                color: #fff;
-                background: #979ba5;
-                border-radius: 2px;
-                align-items: center;
-                justify-content: center;
-            }
-        }
-
-        .info {
-            padding-left: 34px;
-            font-size: 0;
-            line-height: 32px;
-            color: #b2b5bd;
-
-            & > div {
-                display: flex;
-            }
-
-            .label {
-                font-size: 14px;
-                flex: 0 0 75px;
-            }
-
-            .value {
-                min-width: 20px;
-                font-size: 14px;
-                color: #63656e;
-                word-break: break-all;
-            }
-
-            .host-value-detail {
-                margin-left: 4px;
-                font-size: 17px;
-                color: #3a84ff;
-                cursor: pointer;
-            }
-        }
+      }
     }
+  }
+
+  .diff-global-variable {
+    color: #63656e;
+
+    &.new {
+      position: relative;
+
+      .name {
+        display: flex;
+        align-items: center;
+
+        &::after {
+          width: 28px;
+          height: 14px;
+          margin-left: 10px;
+          font-size: 12px;
+          line-height: 14px;
+          color: #fff;
+          text-align: center;
+          background: #ffa86e;
+          content: "new";
+        }
+      }
+    }
+
+    &.delete {
+      text-decoration: line-through;
+    }
+
+    .changed {
+      .value {
+        padding: 3px;
+        background: #fddfcb;
+      }
+    }
+
+    .name {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 24px;
+      color: #313238;
+
+      .type-flag {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        margin-right: 10px;
+        font-size: 17px;
+        color: #fff;
+        background: #979ba5;
+        border-radius: 2px;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .info {
+      padding-left: 34px;
+      font-size: 0;
+      line-height: 32px;
+      color: #b2b5bd;
+
+      & > div {
+        display: flex;
+      }
+
+      .label {
+        font-size: 14px;
+        flex: 0 0 75px;
+      }
+
+      .value {
+        min-width: 20px;
+        font-size: 14px;
+        color: #63656e;
+        word-break: break-all;
+      }
+
+      .host-value-detail {
+        margin-left: 4px;
+        font-size: 17px;
+        color: #3a84ff;
+        cursor: pointer;
+      }
+    }
+  }
 </style>

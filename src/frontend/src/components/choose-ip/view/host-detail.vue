@@ -111,12 +111,12 @@
 </script>
 <style lang="postcss">
     .choose-ip-host-detail {
-        .choose-ip-host-table {
-            tr {
-                td {
-                    border-bottom: 1px solid #e7e8ed !important;
-                }
-            }
+      .choose-ip-host-table {
+        tr {
+          td {
+            border-bottom: 1px solid #e7e8ed !important;
+          }
         }
+      }
     }
 </style>

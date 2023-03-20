@@ -143,13 +143,13 @@
 </script>
 <style lang='postcss'>
     .array-type-group {
-        position: relative;
-        z-index: 1;
+      position: relative;
+      z-index: 1;
 
-        .item {
-            .bk-radio-button-text {
-                width: 108px;
-            }
+      .item {
+        .bk-radio-button-text {
+          width: 108px;
         }
+      }
     }
 </style>

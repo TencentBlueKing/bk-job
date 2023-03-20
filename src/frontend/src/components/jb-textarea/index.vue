@@ -156,75 +156,75 @@
     @import "@/css/mixins/scroll";
 
     .job-textarea {
-        position: relative;
+      position: relative;
+      font-size: 12px;
+      line-height: 18px;
+      word-break: break-all;
+      cursor: pointer;
+
+      .job-textarea-wraper {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        z-index: 1999;
+        max-height: 300px;
+        min-height: 100%;
+        padding-bottom: 20px;
+
+        .value-length {
+          position: absolute;
+          right: 20px;
+          bottom: 6px;
+          display: flex;
+          color: #979ba5;
+          cursor: default;
+          background: inherit;
+          border-radius: 8px;
+          user-select: none;
+        }
+      }
+
+      .job-textarea-edit {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 6px 10px 0;
+        overflow-y: scroll;
         font-size: 12px;
-        line-height: 18px;
-        word-break: break-all;
-        cursor: pointer;
+        color: #63656e;
+        background: #fff;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        outline: none;
+        resize: none;
 
-        .job-textarea-wraper {
-            position: absolute;
-            top: 0;
-            right: 0;
-            left: 0;
-            z-index: 1999;
-            max-height: 300px;
-            min-height: 100%;
-            padding-bottom: 20px;
-
-            .value-length {
-                position: absolute;
-                right: 20px;
-                bottom: 6px;
-                display: flex;
-                color: #979ba5;
-                cursor: default;
-                background: inherit;
-                border-radius: 8px;
-                user-select: none;
-            }
+        &:focus {
+          padding-bottom: 30px;
+          background: #fff !important;
+          border: 1px solid #3a84ff !important;
         }
 
-        .job-textarea-edit {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            padding: 6px 10px 0;
-            overflow-y: scroll;
-            font-size: 12px;
-            color: #63656e;
-            background: #fff;
-            border: 1px solid #c4c6cc;
-            border-radius: 2px;
-            outline: none;
-            resize: none;
+        @mixin scroller;
+      }
 
-            &:focus {
-                padding-bottom: 30px;
-                background: #fff !important;
-                border: 1px solid #3a84ff !important;
-            }
-
-            @mixin scroller;
-        }
-
-        .job-textarea-placeholder {
-            position: absolute;
-            top: 1px;
-            right: 1px;
-            bottom: 1px;
-            left: 1px;
-            height: 30px;
-            padding: 6px 10px;
-            overflow: hidden;
-            color: #c4c6cc;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            background: inherit;
-        }
+      .job-textarea-placeholder {
+        position: absolute;
+        top: 1px;
+        right: 1px;
+        bottom: 1px;
+        left: 1px;
+        height: 30px;
+        padding: 6px 10px;
+        overflow: hidden;
+        color: #c4c6cc;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: inherit;
+      }
     }
 </style>

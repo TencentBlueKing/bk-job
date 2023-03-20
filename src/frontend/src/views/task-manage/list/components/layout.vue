@@ -81,74 +81,74 @@
   };
 </script>
 <style lang='postcss'>
-    @import "@/css/mixins/media";
+  @import "@/css/mixins/media";
 
-    .task-layout {
-        display: flex;
+  .task-layout {
+    display: flex;
 
-        .layout-left {
-            position: relative;
-            width: 0;
-            background: #fafbfd;
-            border-right: 1px solid #ecedf3;
-            transition: width 0.2s linear;
+    .layout-left {
+      position: relative;
+      width: 0;
+      background: #fafbfd;
+      border-right: 1px solid #ecedf3;
+      transition: width 0.2s linear;
 
-            &.expended {
-                @media (--small-viewports) {
-                    width: 200px;
-                }
-
-                @media (--medium-viewports) {
-                    width: 240px;
-                }
-
-                @media (--large-viewports) {
-                    width: 280px;
-                }
-
-                @media (--huge-viewports) {
-                    width: 280px;
-                }
-            }
+      &.expended {
+        @media (--small-viewports) {
+          width: 200px;
         }
 
-        .layout-right {
-            position: relative;
-            width: calc(100% - 280px);
-            padding: 24px;
-            background: #fff;
-            box-sizing: border-box;
-            flex: 1 0 auto;
-
-            .toggle-button {
-                position: absolute;
-                top: 50%;
-                left: -1px;
-                display: flex;
-                width: 14px;
-                height: 64px;
-                font-size: 24px;
-                color: #fff;
-                cursor: pointer;
-                background: #dcdee5;
-                border-top-right-radius: 6px;
-                border-bottom-right-radius: 6px;
-                transform: translateY(-50%);
-                align-items: center;
-                justify-content: center;
-
-                &:hover {
-                    background: #c4c6cc;
-                }
-
-                .toggle-arrow {
-                    transform: rotateZ(-90deg);
-
-                    &.open {
-                        transform: rotateZ(90deg);
-                    }
-                }
-            }
+        @media (--medium-viewports) {
+          width: 240px;
         }
+
+        @media (--large-viewports) {
+          width: 280px;
+        }
+
+        @media (--huge-viewports) {
+          width: 280px;
+        }
+      }
     }
+
+    .layout-right {
+      position: relative;
+      width: calc(100% - 280px);
+      padding: 24px;
+      background: #fff;
+      box-sizing: border-box;
+      flex: 1 0 auto;
+
+      .toggle-button {
+        position: absolute;
+        top: 50%;
+        left: -1px;
+        display: flex;
+        width: 14px;
+        height: 64px;
+        font-size: 24px;
+        color: #fff;
+        cursor: pointer;
+        background: #dcdee5;
+        border-top-right-radius: 6px;
+        border-bottom-right-radius: 6px;
+        transform: translateY(-50%);
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background: #c4c6cc;
+        }
+
+        .toggle-arrow {
+          transform: rotateZ(-90deg);
+
+          &.open {
+            transform: rotateZ(90deg);
+          }
+        }
+      }
+    }
+  }
 </style>

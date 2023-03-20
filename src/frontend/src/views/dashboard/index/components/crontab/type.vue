@@ -201,32 +201,32 @@
 </script>
 <style lang='postcss' scoped>
     .crontab-type-dashboard {
-        .wraper {
+      .wraper {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+
+        .item-list {
+          display: flex;
+          width: 180px;
+          margin-top: 20px;
+          font-size: 12px;
+          line-height: 18px;
+          color: #979ba5;
+          flex-direction: column;
+          align-items: center;
+
+          .item {
             display: flex;
+            cursor: pointer;
+            flex: 1 1 50%;
             align-items: center;
-            flex-direction: column;
 
-            .item-list {
-                display: flex;
-                width: 180px;
-                margin-top: 20px;
-                font-size: 12px;
-                line-height: 18px;
-                color: #979ba5;
-                flex-direction: column;
-                align-items: center;
-
-                .item {
-                    display: flex;
-                    cursor: pointer;
-                    flex: 1 1 50%;
-                    align-items: center;
-
-                    &:nth-child(n + 1) {
-                        margin-top: 10px;
-                    }
-                }
+            &:nth-child(n + 1) {
+              margin-top: 10px;
             }
+          }
         }
+      }
     }
 </style>

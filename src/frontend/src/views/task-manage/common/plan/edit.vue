@@ -372,60 +372,60 @@
     @import "@/css/mixins/media";
 
     .task-plan-edit-box {
-        .variable-batch-action {
-            margin: 4px 0;
-        }
+      .variable-batch-action {
+        margin: 4px 0;
+      }
 
-        .layout-title {
-            padding-bottom: 0 !important;
-            border-bottom-color: transparent !important;
+      .layout-title {
+        padding-bottom: 0 !important;
+        border-bottom-color: transparent !important;
 
-            .name-input {
-                .bk-form-input {
-                    font-size: 18px;
-                    color: #313238;
-                }
-
-                .only-bottom-border {
-                    padding-top: 9px;
-                    padding-bottom: 16px;
-                    padding-left: 0;
-                }
-            }
-        }
-
-        .section-title {
-            font-size: 14px;
-            line-height: 19px;
+        .name-input {
+          .bk-form-input {
+            font-size: 18px;
             color: #313238;
+          }
+
+          .only-bottom-border {
+            padding-top: 9px;
+            padding-bottom: 16px;
+            padding-left: 0;
+          }
+        }
+      }
+
+      .section-title {
+        font-size: 14px;
+        line-height: 19px;
+        color: #313238;
+      }
+
+      .task-step-selection {
+        display: flex;
+        width: 500px;
+        height: 19px;
+        margin-bottom: 16px;
+
+        @media (--small-viewports) {
+          width: 500px;
         }
 
-        .task-step-selection {
-            display: flex;
-            width: 500px;
-            height: 19px;
-            margin-bottom: 16px;
-
-            @media (--small-viewports) {
-                width: 500px;
-            }
-
-            @media (--medium-viewports) {
-                width: 560px;
-            }
-
-            @media (--large-viewports) {
-                width: 620px;
-            }
-
-            @media (--huge-viewports) {
-                width: 680px;
-            }
-
-            .step-check {
-                margin-left: auto;
-            }
+        @media (--medium-viewports) {
+          width: 560px;
         }
+
+        @media (--large-viewports) {
+          width: 620px;
+        }
+
+        @media (--huge-viewports) {
+          width: 680px;
+        }
+
+        .step-check {
+          margin-left: auto;
+        }
+      }
     }
 
 </style>

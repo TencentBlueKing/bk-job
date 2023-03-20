@@ -218,43 +218,43 @@
 </script>
 <style lang='postcss'>
     .platform-dashboard {
+      display: flex;
+      height: 100%;
+      color: #e5e6eb;
+
+      .dashboard-card-layout {
+        position: relative;
+        flex: 1;
+        border: none;
+
+        &:nth-child(n+2) {
+          border-left: 1px solid #f0f1f5;
+        }
+
+        .card-title {
+          color: #979ba5;
+        }
+      }
+
+      .container {
         display: flex;
-        height: 100%;
-        color: #e5e6eb;
+        align-items: center;
 
-        .dashboard-card-layout {
-            position: relative;
-            flex: 1;
-            border: none;
-
-            &:nth-child(n+2) {
-                border-left: 1px solid #f0f1f5;
-            }
-
-            .card-title {
-                color: #979ba5;
-            }
+        .dashboard {
+          margin-left: 10px;
         }
+      }
 
-        .container {
-            display: flex;
-            align-items: center;
+      .nums {
+        font-size: 24px;
+        font-weight: bold;
+        color: #63656e;
+      }
 
-            .dashboard {
-                margin-left: 10px;
-            }
-        }
-
-        .nums {
-            font-size: 24px;
-            font-weight: bold;
-            color: #63656e;
-        }
-
-        .platform-flag {
-            position: absolute;
-            bottom: 24px;
-            left: 20px;
-        }
+      .platform-flag {
+        position: absolute;
+        bottom: 24px;
+        left: 20px;
+      }
     }
 </style>

@@ -255,101 +255,101 @@
     @import "@/css/mixins/scroll";
 
     .render-server-file {
-        flex: 1;
+      flex: 1;
 
-        .bk-collapse-item-header {
-            display: flex;
-            align-items: center;
-            padding-left: 23px;
+      .bk-collapse-item-header {
+        display: flex;
+        align-items: center;
+        padding-left: 23px;
 
-            .collapse-title {
-                padding-left: 23px;
-            }
+        .collapse-title {
+          padding-left: 23px;
+        }
+      }
+
+      table {
+        width: 100%;
+        line-height: 20px;
+        background: #fff;
+
+        tr:nth-child(n+2) {
+          td {
+            border-top: 1px solid #dcdee5;
+          }
         }
 
-        table {
-            width: 100%;
-            line-height: 20px;
-            background: #fff;
+        th,
+        td {
+          height: 42px;
+          padding-top: 5px;
+          padding-bottom: 5px;
+          padding-left: 16px;
+          font-size: 12px;
+          text-align: left;
 
-            tr:nth-child(n+2) {
-                td {
-                    border-top: 1px solid #dcdee5;
-                }
-            }
-
-            th,
-            td {
-                height: 42px;
-                padding-top: 5px;
-                padding-bottom: 5px;
-                padding-left: 16px;
-                font-size: 12px;
-                text-align: left;
-
-                &:first-child {
-                    padding-left: 60px;
-                }
-            }
-
-            th {
-                font-weight: normal;
-                color: #313238;
-                border-bottom: 1px solid #dcdee5;
-            }
-
-            td {
-                color: #63656e;
-
-                .file-path {
-                    display: inline-block;
-                    max-width: 100%;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-            }
+          &:first-child {
+            padding-left: 60px;
+          }
         }
 
-        .source-file-alias {
-            cursor: pointer;
-
-            &:hover {
-                color: #3a84ff !important;
-
-                .source-file-icon {
-                    display: inline;
-                }
-            }
+        th {
+          font-weight: normal;
+          color: #313238;
+          border-bottom: 1px solid #dcdee5;
         }
 
-        .source-file-icon {
-            display: none;
+        td {
+          color: #63656e;
+
+          .file-path {
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+      }
+
+      .source-file-alias {
+        cursor: pointer;
+
+        &:hover {
+          color: #3a84ff !important;
+
+          .source-file-icon {
+            display: inline;
+          }
+        }
+      }
+
+      .source-file-icon {
+        display: none;
+      }
+
+      .bk-table-empty-block {
+        display: none;
+      }
+
+      .source-file-tips-box {
+        max-width: 300px;
+        max-height: 280px;
+        min-width: 60px;
+        overflow-y: auto;
+
+        @mixin scroller;
+
+        .row {
+          word-break: break-all;
         }
 
-        .bk-table-empty-block {
-            display: none;
+        .dot {
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          background: currentcolor;
+          border-radius: 50%;
         }
-
-        .source-file-tips-box {
-            max-width: 300px;
-            max-height: 280px;
-            min-width: 60px;
-            overflow-y: auto;
-
-            @mixin scroller;
-
-            .row {
-                word-break: break-all;
-            }
-
-            .dot {
-                display: inline-block;
-                width: 6px;
-                height: 6px;
-                background: currentcolor;
-                border-radius: 50%;
-            }
-        }
+      }
     }
 </style>

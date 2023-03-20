@@ -178,71 +178,71 @@
     @import "@/css/mixins/scroll";
 
     .plan-action-layout {
-        position: relative;
-        padding-right: 24px;
-        padding-left: 24px;
-        overflow: hidden;
+      position: relative;
+      padding-right: 24px;
+      padding-left: 24px;
+      overflow: hidden;
+      background: #fff;
+
+      .loading-wraper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 999;
+        width: 100%;
+        height: 100%;
+        padding-top: 40px;
+        padding-left: 40px;
         background: #fff;
+        opacity: 100%;
+        visibility: visible;
 
-        .loading-wraper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 999;
-            width: 100%;
-            height: 100%;
-            padding-top: 40px;
-            padding-left: 40px;
-            background: #fff;
-            opacity: 100%;
-            visibility: visible;
-
-            &.loading-hidden {
-                opacity: 0%;
-                visibility: hidden;
-                transition: visibility 0.7s linear, opacity 0.5s linear;
-            }
-
-            .loading-content {
-                width: 580px;
-            }
+        &.loading-hidden {
+          opacity: 0%;
+          visibility: hidden;
+          transition: visibility 0.7s linear, opacity 0.5s linear;
         }
 
-        .layout-title {
-            display: flex;
-            padding-top: 30px;
-            padding-bottom: 16px;
-            color: #000;
-            border-bottom: 1px solid #f0f1f5;
+        .loading-content {
+          width: 580px;
+        }
+      }
 
-            .title-text {
-                padding-bottom: 14px;
-                font-size: 18px;
-                line-height: 1;
-            }
+      .layout-title {
+        display: flex;
+        padding-top: 30px;
+        padding-bottom: 16px;
+        color: #000;
+        border-bottom: 1px solid #f0f1f5;
 
-            .sub-title {
-                margin-left: auto;
-            }
+        .title-text {
+          padding-bottom: 14px;
+          font-size: 18px;
+          line-height: 1;
         }
 
-        .content-wraper {
-            padding-top: 24px;
-            padding-right: 40px;
-            margin-right: 2px;
-            overflow-y: auto;
-
-            @mixin scroller;
+        .sub-title {
+          margin-left: auto;
         }
+      }
 
-        .layout-footer {
-            position: relative;
-            display: flex;
-            height: 60px;
-            margin-right: -24px;
-            margin-left: -24px;
-            background: #fff;
-            align-items: center;
-        }
+      .content-wraper {
+        padding-top: 24px;
+        padding-right: 40px;
+        margin-right: 2px;
+        overflow-y: auto;
+
+        @mixin scroller;
+      }
+
+      .layout-footer {
+        position: relative;
+        display: flex;
+        height: 60px;
+        margin-right: -24px;
+        margin-left: -24px;
+        background: #fff;
+        align-items: center;
+      }
     }
 </style>

@@ -237,73 +237,73 @@
 </script>
 <style lang='postcss' scoped>
     .target-path-tips {
-        font-size: 12px;
-        line-height: 16px;
-        color: #63656e;
+      font-size: 12px;
+      line-height: 16px;
+      color: #63656e;
 
-        .row {
-            position: relative;
-            padding-left: 12px;
-            margin-bottom: 6px;
+      .row {
+        position: relative;
+        padding-left: 12px;
+        margin-bottom: 6px;
 
-            &::before {
-                position: absolute;
-                top: 6px;
-                left: 0;
-                width: 4px;
-                height: 4px;
-                background: currentcolor;
-                border-radius: 50%;
-                content: "";
-            }
+        &::before {
+          position: absolute;
+          top: 6px;
+          left: 0;
+          width: 4px;
+          height: 4px;
+          background: currentcolor;
+          border-radius: 50%;
+          content: "";
+        }
+      }
+
+      .target-path-demo {
+        width: 100%;
+        margin-top: 6px;
+
+        th,
+        td {
+          height: 40px;
+          padding: 0 10px;
+          border-bottom: 1px solid #dfe0e5;
         }
 
-        .target-path-demo {
-            width: 100%;
-            margin-top: 6px;
-
-            th,
-            td {
-                height: 40px;
-                padding: 0 10px;
-                border-bottom: 1px solid #dfe0e5;
-            }
-
-            th {
-                background-color: #fafbfd;
-            }
-
-            .copy-box {
-                display: flex;
-                width: 160px;
-                height: 26px;
-                padding: 0 10px;
-                margin: 0 -10px;
-                overflow: hidden;
-                line-height: 26px;
-                cursor: pointer;
-                border-radius: 2px;
-
-                &:hover {
-                    background: #f0f1f5;
-
-                    .copy-tips {
-                        display: block;
-                    }
-                }
-
-                .copy-value {
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-
-                .copy-tips {
-                    display: none;
-                    margin-left: auto;
-                    flex: 0 0 auto;
-                }
-            }
+        th {
+          background-color: #fafbfd;
         }
+
+        .copy-box {
+          display: flex;
+          width: 160px;
+          height: 26px;
+          padding: 0 10px;
+          margin: 0 -10px;
+          overflow: hidden;
+          line-height: 26px;
+          cursor: pointer;
+          border-radius: 2px;
+
+          &:hover {
+            background: #f0f1f5;
+
+            .copy-tips {
+              display: block;
+            }
+          }
+
+          .copy-value {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .copy-tips {
+            display: none;
+            margin-left: auto;
+            flex: 0 0 auto;
+          }
+        }
+      }
     }
 </style>

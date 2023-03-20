@@ -230,25 +230,25 @@
 </script>
 <style lang="postcss">
     .exec-script-view {
-        &.loading {
-            height: calc(100vh - 100px);
-        }
+      &.loading {
+        height: calc(100vh - 100px);
+      }
 
-        .detail-item {
-            margin-bottom: 0;
-        }
+      .detail-item {
+        margin-bottom: 0;
+      }
 
-        .script-detail {
-            color: #3a84ff;
-            cursor: pointer;
-        }
+      .script-detail {
+        color: #3a84ff;
+        cursor: pointer;
+      }
 
-        .script-update-flag {
-            display: inline-block;
+      .script-update-flag {
+        display: inline-block;
 
-            .script-update {
-                color: #ff5656;
-            }
+        .script-update {
+          color: #ff5656;
         }
+      }
     }
 </style>

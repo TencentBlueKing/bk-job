@@ -235,85 +235,85 @@
 </script>
 <style lang='postcss'>
     .page-sentence-rule {
-        padding: 42px 40px 50px;
+      padding: 42px 40px 50px;
 
-        .rule-table {
-            width: 100%;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
+      .rule-table {
+        width: 100%;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
 
-            th {
-                color: #313238;
-                background: #fafbfd;
-            }
-
-            th,
-            td {
-                height: 40px;
-                padding-left: 20px;
-                font-size: 12px;
-                color: #63656e;
-                text-align: left;
-                border-top: 1px solid #dcdee5;
-            }
-
-            .bk-button-text {
-                font-size: 12px;
-
-                .icon-plus {
-                    font-size: 18px;
-                }
-            }
+        th {
+          color: #313238;
+          background: #fafbfd;
         }
 
-        .input {
-            width: 100%;
-
-            .bk-form-input {
-                height: 26px;
-            }
+        th,
+        td {
+          height: 40px;
+          padding-left: 20px;
+          font-size: 12px;
+          color: #63656e;
+          text-align: left;
+          border-top: 1px solid #dcdee5;
         }
 
-        .action-tips {
-            color: #c4c6cc;
+        .bk-button-text {
+          font-size: 12px;
+
+          .icon-plus {
+            font-size: 18px;
+          }
         }
+      }
 
-        .action-box {
-            display: flex;
+      .input {
+        width: 100%;
 
-            .bk-button-text {
-                margin-right: 14px;
-            }
+        .bk-form-input {
+          height: 26px;
         }
+      }
 
-        .script-type-edit {
-            &.bk-select {
-                margin-left: -10px;
-                border-color: transparent;
+      .action-tips {
+        color: #c4c6cc;
+      }
 
-                &:hover {
-                    background: #f0f1f5;
+      .action-box {
+        display: flex;
 
-                    .bk-select-angle {
-                        display: block;
-                    }
-                }
-
-                .bk-select-angle {
-                    display: none;
-                }
-            }
+        .bk-button-text {
+          margin-right: 14px;
         }
+      }
 
-        .bk-select {
-            .bk-select-name {
-                height: 24px;
-                line-height: 24px;
-            }
+      .script-type-edit {
+        &.bk-select {
+          margin-left: -10px;
+          border-color: transparent;
+
+          &:hover {
+            background: #f0f1f5;
 
             .bk-select-angle {
-                top: 2px;
+              display: block;
             }
+          }
+
+          .bk-select-angle {
+            display: none;
+          }
         }
+      }
+
+      .bk-select {
+        .bk-select-name {
+          height: 24px;
+          line-height: 24px;
+        }
+
+        .bk-select-angle {
+          top: 2px;
+        }
+      }
     }
 </style>

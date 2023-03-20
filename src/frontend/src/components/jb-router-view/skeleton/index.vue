@@ -107,33 +107,33 @@
 </script>
 <style lang='postcss' scoped>
     .viewport-full {
-        .jb-view-skeleton {
-            padding: 0;
-        }
+      .jb-view-skeleton {
+        padding: 0;
+      }
     }
 
     .jb-view-skeleton {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 20px;
-        left: 0;
-        z-index: 1001;
-        width: 100%;
-        min-height: calc(100vh - 104px);
-        padding: 20px 24px 0;
-        overflow: hidden;
-        background: #f5f7fa;
-        opacity: 100%;
-        visibility: visible;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 20px;
+      left: 0;
+      z-index: 1001;
+      width: 100%;
+      min-height: calc(100vh - 104px);
+      padding: 20px 24px 0;
+      overflow: hidden;
+      background: #f5f7fa;
+      opacity: 100%;
+      visibility: visible;
     }
 
     .skeleton-leave-active {
-        transition: visibility 0.7s linear, opacity 0.5s linear;
+      transition: visibility 0.7s linear, opacity 0.5s linear;
     }
 
     .skeleton-leave-to {
-        opacity: 0%;
-        visibility: hidden;
+      opacity: 0%;
+      visibility: hidden;
     }
 </style>

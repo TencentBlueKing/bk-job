@@ -60,11 +60,11 @@
 </script>
 <style lang='postcss'>
     .muti-item {
-        display: flex;
-        width: 100%;
+      display: flex;
+      width: 100%;
 
-        .bk-form-control {
-            flex: 1;
-        }
+      .bk-form-control {
+        flex: 1;
+      }
     }
 </style>

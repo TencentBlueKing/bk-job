@@ -290,74 +290,74 @@
 </script>
 <style lang="postcss">
     .script-manage-sync-task-page {
-        .sync-script-record {
-            &:hover {
-                .template-link {
-                    opacity: 100%;
-                }
-            }
+      .sync-script-record {
+        &:hover {
+          .template-link {
+            opacity: 100%;
+          }
         }
+      }
 
-        .template-link {
-            font-size: 12px;
-            opacity: 0%;
-        }
+      .template-link {
+        font-size: 12px;
+        opacity: 0%;
+      }
 
-        .retry-btn {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            margin-bottom: 20px;
-        }
+      .retry-btn {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+      }
 
-        .table-top {
-            height: 42px;
-            padding: 0 20px;
-            margin-top: 16px;
-            font-size: 12px;
-            line-height: 42px;
-            background-color: #f0f1f5;
-        }
+      .table-top {
+        height: 42px;
+        padding: 0 20px;
+        margin-top: 16px;
+        font-size: 12px;
+        line-height: 42px;
+        background-color: #f0f1f5;
+      }
 
-        .version-sum {
-            color: #a3a6af;
-        }
+      .version-sum {
+        color: #a3a6af;
+      }
 
-        .status-action {
-            display: inline-block;
-            width: 46px;
-            height: 16px;
-            font-size: 12px;
-            color: #9fa2ac;
-            text-align: center;
-            background-color: #f0f1f5;
-        }
+      .status-action {
+        display: inline-block;
+        width: 46px;
+        height: 16px;
+        font-size: 12px;
+        color: #9fa2ac;
+        text-align: center;
+        background-color: #f0f1f5;
+      }
 
-        .failed-sync-status {
-            border-bottom: 1px dashed #c4c6cc;
-        }
+      .failed-sync-status {
+        border-bottom: 1px dashed #c4c6cc;
+      }
 
-        .try-show {
-            display: visible;
-            padding-left: 10px;
-        }
+      .try-show {
+        display: visible;
+        padding-left: 10px;
+      }
 
-        .try-hide {
-            display: none;
-        }
+      .try-hide {
+        display: none;
+      }
 
-        .footer-action {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            display: flex;
-            width: 100%;
-            height: 52px;
-            padding-right: 24px;
-            background: #fff;
-            border-top: 1px solid #e2e2e2;
-            align-items: center;
-            justify-content: flex-end;
-        }
+      .footer-action {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        width: 100%;
+        height: 52px;
+        padding-right: 24px;
+        background: #fff;
+        border-top: 1px solid #e2e2e2;
+        align-items: center;
+        justify-content: flex-end;
+      }
     }
 </style>

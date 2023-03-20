@@ -56,41 +56,41 @@
   };
 </script>
 <style lang='postcss' scoped>
-    @import "@/css/mixins/media";
+  @import "@/css/mixins/media";
 
-    .template-dashboard {
-        display: flex;
+  .template-dashboard {
+    display: flex;
 
-        .layout-left {
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #f0f1f5;
+    .layout-left {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #f0f1f5;
 
-            .dashboard-card-layout {
-                &:nth-child(n+2) {
-                    border-top: 1px solid #f0f1f5;
-                }
-            }
+      .dashboard-card-layout {
+        &:nth-child(n+2) {
+          border-top: 1px solid #f0f1f5;
         }
-
-        .dashboard-card-layout {
-            width: 260px;
-
-            @media (--huge-viewports) {
-                width: 400px;
-            }
-
-            @media (--large-viewports) {
-                width: 300px;
-            }
-
-            @media (--medium-viewports) {
-                width: 280px;
-            }
-
-            @media (--small-viewports) {
-                width: 260px;
-            }
-        }
+      }
     }
+
+    .dashboard-card-layout {
+      width: 260px;
+
+      @media (--huge-viewports) {
+        width: 400px;
+      }
+
+      @media (--large-viewports) {
+        width: 300px;
+      }
+
+      @media (--medium-viewports) {
+        width: 280px;
+      }
+
+      @media (--small-viewports) {
+        width: 260px;
+      }
+    }
+  }
 </style>

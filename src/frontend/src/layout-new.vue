@@ -358,45 +358,45 @@
 </script>
 <style lang="postcss">
     #app {
-        .site-title {
-            padding-left: 16px;
-            font-size: 18px;
-            color: #96a2b9;
+      .site-title {
+        padding-left: 16px;
+        font-size: 18px;
+        color: #96a2b9;
+      }
+
+      .top-menu-box {
+        display: flex;
+        padding: 0 4px;
+
+        .top-menu-item {
+          padding: 0 20px;
+          cursor: pointer;
+          transition: all 0.15s;
+
+          &.active {
+            color: #fff;
+          }
+
+          &:hover {
+            color: #d3d9e4;
+          }
         }
+      }
 
-        .top-menu-box {
-            display: flex;
-            padding: 0 4px;
+      .app-select-box {
+        padding: 0 12px 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #2f3847;
+      }
 
-            .top-menu-item {
-                padding: 0 20px;
-                cursor: pointer;
-                transition: all 0.15s;
-
-                &.active {
-                    color: #fff;
-                }
-
-                &:hover {
-                    color: #d3d9e4;
-                }
-            }
-        }
-
-        .app-select-box {
-            padding: 0 12px 10px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #2f3847;
-        }
-
-        .page-title {
-            display: flex;
-            flex: 1;
-            align-items: center;
-        }
+      .page-title {
+        display: flex;
+        flex: 1;
+        align-items: center;
+      }
     }
 
     #siteHeaderStatusBar {
-        flex: 1;
+      flex: 1;
     }
 </style>

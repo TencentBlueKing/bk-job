@@ -300,33 +300,33 @@
 </script>
 <style lang="postcss">
     .choose-ip-dinamic-business-topology {
+      position: relative;
+      height: 100%;
+      padding: 0 24px;
+
+      .node-search {
         position: relative;
-        height: 100%;
-        padding: 0 24px;
+        z-index: 1;
+        padding-top: 20px;
+      }
 
-        .node-search {
-            position: relative;
-            z-index: 1;
-            padding-top: 20px;
-        }
+      .topology-node-tree {
+        height: calc(100% - 92px);
+        margin-top: 20px;
+      }
 
-        .topology-node-tree {
-            height: calc(100% - 92px);
-            margin-top: 20px;
+      .node-box {
+        .node-count {
+          margin-left: 8px !important;
         }
+      }
 
-        .node-box {
-            .node-count {
-                margin-left: 8px !important;
-            }
-        }
-
-        .topology-empty {
-            position: absolute;
-            right: 0;
-            left: 0;
-            width: 100%;
-            margin-top: 90px;
-        }
+      .topology-empty {
+        position: absolute;
+        right: 0;
+        left: 0;
+        width: 100%;
+        margin-top: 90px;
+      }
     }
 </style>

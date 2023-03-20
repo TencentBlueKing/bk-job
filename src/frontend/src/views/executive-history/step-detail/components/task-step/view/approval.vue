@@ -122,192 +122,192 @@
   };
 </script>
 <style lang='postcss'>
-    .task-execute-bar-step-confirm-popover-view {
-        position: relative;
-        width: 472px;
-        background: #fff;
+  .task-execute-bar-step-confirm-popover-view {
+    position: relative;
+    width: 472px;
+    background: #fff;
 
-        &.not-start {
-            &::before {
-                background: #dcdee5;
-                border-color: #dcdee5;
-            }
+    &.not-start {
+      &::before {
+        background: #dcdee5;
+        border-color: #dcdee5;
+      }
 
-            .confirm-wraper {
-                border-left-color: #dcdee5;
-            }
-        }
+      .confirm-wraper {
+        border-left-color: #dcdee5;
+      }
+    }
 
-        &.success {
-            &::before {
-                background: #2dcb9d;
-                border-color: #2dcb9d;
-            }
+    &.success {
+      &::before {
+        background: #2dcb9d;
+        border-color: #2dcb9d;
+      }
 
-            .confirm-wraper {
-                border-left-color: #2dcb9d;
-            }
+      .confirm-wraper {
+        border-left-color: #2dcb9d;
+      }
+    }
+
+    &.confirm-forced {
+      &::before {
+        background: #ff5656;
+        border-color: #ff5656;
+      }
+
+      .confirm-wraper {
+        border-left-color: #ff5656;
+      }
+    }
+
+    &.middle {
+      &::before {
+        top: 50%;
+        transform: translateY(-50%) rotateZ(-45deg);
+      }
+    }
+
+    &.top {
+      &::before {
+        top: 10px;
+        transform: rotateZ(-45deg);
+      }
+    }
+
+    &.bottom {
+      &::before {
+        bottom: 20px;
+        transform: rotateZ(-45deg);
+      }
+    }
+
+    &::before {
+      position: absolute;
+      left: -6px;
+      width: 10px;
+      height: 10px;
+      background: #ffb848;
+      border: 1px solid #dcdee5;
+      border-color: #ffb848;
+      content: "";
+    }
+
+    .confirm-wraper {
+      position: relative;
+      padding: 20px 36px 24px 30px;
+      background: #fff;
+      border-left: 6px solid #ffb848;
+    }
+
+    .step-name {
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 21px;
+      color: #313238;
+    }
+
+    .approval-info {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-top: 4px;
+      font-size: 12px;
+      line-height: 20px;
+      color: #b2b5bd;
+    }
+
+    .approval-person {
+      display: flex;
+      flex-wrap: wrap;
+
+      .persion-label,
+      .person {
+        margin-top: 10px;
+      }
+
+      .role-flag {
+        margin-right: 4px;
+      }
+    }
+
+    .person {
+      display: inline-flex;
+      height: 22px;
+      padding: 0 6px;
+      margin-right: 6px;
+      font-size: 12px;
+      color: #63656e;
+      background: #f0f1f5;
+      border-radius: 2px;
+      align-items: center;
+    }
+
+    .approval-channel {
+      margin-top: 10px;
+    }
+
+    .confirm-reason,
+    .confirm-reason-text {
+      margin-top: 20px;
+    }
+
+    .confirm-reason-text {
+      font-size: 14px;
+      line-height: 22px;
+      color: #63656e;
+    }
+
+    .step-desc {
+      padding-top: 14px;
+      white-space: normal;
+    }
+
+    .step-action {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+
+      .step-instance-action {
+        width: 76px;
+        height: 26px;
+        padding: 0;
+        margin-right: 0;
+        margin-left: 10px;
+        font-size: 12px;
+        border-radius: 2px;
+
+        &.confirm {
+          color: #fff;
+          background: #3a84ff;
         }
 
         &.confirm-forced {
-            &::before {
-                background: #ff5656;
-                border-color: #ff5656;
-            }
-
-            .confirm-wraper {
-                border-left-color: #ff5656;
-            }
+          color: #63656e !important;
+          background: #fff;
+          border: 1px solid #c4c6cc;
         }
 
-        &.middle {
-            &::before {
-                top: 50%;
-                transform: translateY(-50%) rotateZ(-45deg);
-            }
+        &.retry {
+          width: auto;
+          padding: 0 14px;
+          color: #fff;
+          background: #3a84ff;
         }
 
-        &.top {
-            &::before {
-                top: 10px;
-                transform: rotateZ(-45deg);
-            }
+        .job-icon {
+          display: none;
         }
-
-        &.bottom {
-            &::before {
-                bottom: 20px;
-                transform: rotateZ(-45deg);
-            }
-        }
-
-        &::before {
-            position: absolute;
-            left: -6px;
-            width: 10px;
-            height: 10px;
-            background: #ffb848;
-            border: 1px solid #dcdee5;
-            border-color: #ffb848;
-            content: "";
-        }
-
-        .confirm-wraper {
-            position: relative;
-            padding: 20px 36px 24px 30px;
-            background: #fff;
-            border-left: 6px solid #ffb848;
-        }
-
-        .step-name {
-            font-size: 16px;
-            font-weight: bold;
-            line-height: 21px;
-            color: #313238;
-        }
-
-        .approval-info {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            padding-top: 4px;
-            font-size: 12px;
-            line-height: 20px;
-            color: #b2b5bd;
-        }
-
-        .approval-person {
-            display: flex;
-            flex-wrap: wrap;
-
-            .persion-label,
-            .person {
-                margin-top: 10px;
-            }
-
-            .role-flag {
-                margin-right: 4px;
-            }
-        }
-
-        .person {
-            display: inline-flex;
-            height: 22px;
-            padding: 0 6px;
-            margin-right: 6px;
-            font-size: 12px;
-            color: #63656e;
-            background: #f0f1f5;
-            border-radius: 2px;
-            align-items: center;
-        }
-
-        .approval-channel {
-            margin-top: 10px;
-        }
-
-        .confirm-reason,
-        .confirm-reason-text {
-            margin-top: 20px;
-        }
-
-        .confirm-reason-text {
-            font-size: 14px;
-            line-height: 22px;
-            color: #63656e;
-        }
-
-        .step-desc {
-            padding-top: 14px;
-            white-space: normal;
-        }
-
-        .step-action {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 20px;
-
-            .step-instance-action {
-                width: 76px;
-                height: 26px;
-                padding: 0;
-                margin-right: 0;
-                margin-left: 10px;
-                font-size: 12px;
-                border-radius: 2px;
-
-                &.confirm {
-                    color: #fff;
-                    background: #3a84ff;
-                }
-
-                &.confirm-forced {
-                    color: #63656e !important;
-                    background: #fff;
-                    border: 1px solid #c4c6cc;
-                }
-
-                &.retry {
-                    width: auto;
-                    padding: 0 14px;
-                    color: #fff;
-                    background: #3a84ff;
-                }
-
-                .job-icon {
-                    display: none;
-                }
-            }
-        }
-
-        .approval-close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            padding: 10px;
-            font-size: 24px;
-            color: #c4c6cc;
-            cursor: pointer;
-        }
+      }
     }
+
+    .approval-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 10px;
+      font-size: 24px;
+      color: #c4c6cc;
+      cursor: pointer;
+    }
+  }
 </style>

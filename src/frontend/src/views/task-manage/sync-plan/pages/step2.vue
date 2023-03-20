@@ -239,75 +239,75 @@
 </script>
 <style lang='postcss'>
     .sync-step2 {
-        position: relative;
+      position: relative;
 
-        .container {
-            display: flex;
+      .container {
+        display: flex;
+      }
+
+      .sync-wraper {
+        flex: 1;
+      }
+
+      .sync-header {
+        .sync-before,
+        .sync-after {
+          padding: 0 !important;
+        }
+      }
+
+      .sync-layout {
+        display: flex;
+
+        &:nth-child(2n+1) {
+          background: #f7f8fa;
         }
 
-        .sync-wraper {
-            flex: 1;
+        &:nth-child(2n) {
+          background: #fff;
         }
+      }
 
-        .sync-header {
-            .sync-before,
-            .sync-after {
-                padding: 0 !important;
-            }
-        }
-
-        .sync-layout {
-            display: flex;
-
-            &:nth-child(2n+1) {
-                background: #f7f8fa;
-            }
-
-            &:nth-child(2n) {
-                background: #fff;
-            }
-        }
-
-        .sync-content {
-            height: calc(100vh - 199px);
-
-            .sync-before,
-            .sync-after {
-                padding-right: 14px;
-                padding-left: 24px;
-            }
-        }
-
-        .sync-before {
-            border-right: 1px solid #e2e2e2;
-        }
+      .sync-content {
+        height: calc(100vh - 199px);
 
         .sync-before,
         .sync-after {
-            flex: 1;
-            padding: 24px 14px 20px 24px;
-
-            .title {
-                height: 40px;
-                font-size: 14px;
-                line-height: 40px;
-                color: #fff;
-                text-align: center;
-                background: rgb(0 0 0 / 60%);
-            }
+          padding-right: 14px;
+          padding-left: 24px;
         }
+      }
 
-        .block-title {
-            padding-top: 20px;
-            padding-bottom: 20px;
-            font-size: 18px;
-            line-height: 24px;
-            color: #313238;
-        }
+      .sync-before {
+        border-right: 1px solid #e2e2e2;
+      }
 
-        .global-variable-tips {
-            font-size: 12px;
-            color: #979ba5;
+      .sync-before,
+      .sync-after {
+        flex: 1;
+        padding: 24px 14px 20px 24px;
+
+        .title {
+          height: 40px;
+          font-size: 14px;
+          line-height: 40px;
+          color: #fff;
+          text-align: center;
+          background: rgb(0 0 0 / 60%);
         }
+      }
+
+      .block-title {
+        padding-top: 20px;
+        padding-bottom: 20px;
+        font-size: 18px;
+        line-height: 24px;
+        color: #313238;
+      }
+
+      .global-variable-tips {
+        font-size: 12px;
+        color: #979ba5;
+      }
     }
 </style>

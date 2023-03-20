@@ -163,14 +163,14 @@
 </script>
 <style lang='postcss'>
     .job-tag-select {
-        .bk-select {
-            &.is-focus {
-                z-index: 9;
-            }
+      .bk-select {
+        &.is-focus {
+          z-index: 9;
         }
+      }
 
-        .bk-select-dropdown {
-            background: #fff;
-        }
+      .bk-select-dropdown {
+        background: #fff;
+      }
     }
 </style>

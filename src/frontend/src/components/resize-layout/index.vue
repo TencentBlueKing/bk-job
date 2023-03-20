@@ -222,54 +222,54 @@
 </script>
 <style lang="postcss">
     .jb-resize-layout {
-        position: relative;
-        display: flex;
+      position: relative;
+      display: flex;
+      height: 100%;
+
+      &::after {
+        display: table;
+        content: "";
+      }
+
+      .jb-resize-layout-left {
+        float: left;
         height: 100%;
+      }
 
-        &::after {
-            display: table;
-            content: "";
+      .jb-resize-layout-right {
+        float: left;
+        height: 100%;
+      }
+
+      .jb-resize-layout-line {
+        position: absolute;
+        top: 0;
+        right: 300px;
+        bottom: 0;
+        z-index: 9;
+        display: flex;
+        width: 10px;
+        font-size: 23px;
+        color: #c4c6cc;
+        cursor: ew-resize;
+        border: 3px solid transparent;
+        border-top: none;
+        border-bottom: none;
+        align-items: center;
+
+        &:hover {
+          &::before {
+            background: #3a84ff;
+          }
         }
 
-        .jb-resize-layout-left {
-            float: left;
-            height: 100%;
+        &::before {
+          display: block;
+          width: 1px;
+          height: 100%;
+          background: #dcdee5;
+          content: "";
         }
-
-        .jb-resize-layout-right {
-            float: left;
-            height: 100%;
-        }
-
-        .jb-resize-layout-line {
-            position: absolute;
-            top: 0;
-            right: 300px;
-            bottom: 0;
-            z-index: 9;
-            display: flex;
-            width: 10px;
-            font-size: 23px;
-            color: #c4c6cc;
-            cursor: ew-resize;
-            border: 3px solid transparent;
-            border-top: none;
-            border-bottom: none;
-            align-items: center;
-
-            &:hover {
-                &::before {
-                    background: #3a84ff;
-                }
-            }
-
-            &::before {
-                display: block;
-                width: 1px;
-                height: 100%;
-                background: #dcdee5;
-                content: "";
-            }
-        }
+      }
     }
 </style>

@@ -188,49 +188,49 @@
     @import "@/css/mixins/media";
 
     .account-dashboard {
-        .dashboard-card-layout {
-            border: none;
+      .dashboard-card-layout {
+        border: none;
 
-            &:nth-child(n+2) {
-                border-top: 1px solid #f0f1f5;
-            }
-
-            @media (--huge-viewports) {
-                width: 400px;
-            }
-
-            @media (--large-viewports) {
-                width: 300px;
-            }
-
-            @media (--medium-viewports) {
-                width: 280px;
-            }
-
-            @media (--small-viewports) {
-                width: 260px;
-            }
+        &:nth-child(n+2) {
+          border-top: 1px solid #f0f1f5;
         }
 
-        .item-content {
-            position: relative;
-            display: flex;
-            align-items: center;
-            font-size: 24px;
-            font-weight: bold;
-            line-height: 32px;
-            color: #63656e;
-
-            .dashboard {
-                margin-left: 10px;
-            }
+        @media (--huge-viewports) {
+          width: 400px;
         }
 
-        .type-flag {
-            position: absolute;
-            right: 24px;
-            bottom: 24px;
-            color: #e5e6eb;
+        @media (--large-viewports) {
+          width: 300px;
         }
+
+        @media (--medium-viewports) {
+          width: 280px;
+        }
+
+        @media (--small-viewports) {
+          width: 260px;
+        }
+      }
+
+      .item-content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        line-height: 32px;
+        color: #63656e;
+
+        .dashboard {
+          margin-left: 10px;
+        }
+      }
+
+      .type-flag {
+        position: absolute;
+        right: 24px;
+        bottom: 24px;
+        color: #e5e6eb;
+      }
     }
 </style>

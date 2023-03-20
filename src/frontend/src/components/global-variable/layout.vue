@@ -85,17 +85,17 @@
 </script>
 <style lang='postcss'>
     .global-variable-layout {
-        display: flex;
-        flex-direction: column;
+      display: flex;
+      flex-direction: column;
 
-        &.vertical {
-            .global-variable-edit-box {
-                flex-direction: column;
-            }
-
-            .variable-name {
-                text-align: left;
-            }
+      &.vertical {
+        .global-variable-edit-box {
+          flex-direction: column;
         }
+
+        .variable-name {
+          text-align: left;
+        }
+      }
     }
 </style>

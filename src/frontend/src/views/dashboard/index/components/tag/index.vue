@@ -271,48 +271,48 @@
 </script>
 <style lang='postcss'>
     .tag-dashboard {
-        .tag-box {
-            position: relative;
-            font-size: 10px;
+      .tag-box {
+        position: relative;
+        font-size: 10px;
 
-            span {
-                z-index: 1;
-                line-height: 1;
-                white-space: nowrap;
-                cursor: pointer;
-                transition: font-weight 0.15s, transform 0.15s;
+        span {
+          z-index: 1;
+          line-height: 1;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: font-weight 0.15s, transform 0.15s;
 
-                &:hover {
-                    font-weight: bold;
-                    opacity: 100%;
-                    transform: scale(1.2);
-                }
+          &:hover {
+            font-weight: bold;
+            opacity: 100%;
+            transform: scale(1.2);
+          }
 
-                &.w5 {
-                    font-size: 28px;
-                    color: #4031a3;
-                }
+          &.w5 {
+            font-size: 28px;
+            color: #4031a3;
+          }
 
-                &.w4 {
-                    font-size: 24px;
-                    color: #3d6dcc;
-                }
+          &.w4 {
+            font-size: 24px;
+            color: #3d6dcc;
+          }
 
-                &.w3 {
-                    font-size: 20px;
-                    color: #4da8d6;
-                }
+          &.w3 {
+            font-size: 20px;
+            color: #4da8d6;
+          }
 
-                &.w2 {
-                    font-size: 16px;
-                    color: #55c29e;
-                }
+          &.w2 {
+            font-size: 16px;
+            color: #55c29e;
+          }
 
-                &.w1 {
-                    font-size: 12px;
-                    color: #92c288;
-                }
-            }
+          &.w1 {
+            font-size: 12px;
+            color: #92c288;
+          }
         }
+      }
     }
 </style>

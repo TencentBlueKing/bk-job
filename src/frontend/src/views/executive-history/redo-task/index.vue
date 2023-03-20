@@ -170,19 +170,19 @@
 </script>
 <style lang='postcss'>
     .setting-variable {
-        .title {
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1;
-            color: #313238;
-        }
+      .title {
+        margin-bottom: 20px;
+        font-size: 14px;
+        line-height: 1;
+        color: #313238;
+      }
 
-        .variable-list {
-            display: inline-block;
-        }
+      .variable-list {
+        display: inline-block;
+      }
     }
 
     .setting-wariable-operate {
-        margin-left: 88px;
+      margin-left: 88px;
     }
 </style>

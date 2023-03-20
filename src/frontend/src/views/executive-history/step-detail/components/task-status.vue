@@ -285,133 +285,133 @@
 </script>
 <style lang='postcss'>
     html[lang="en-US"] {
-        .return-edit {
-            margin-top: 6px;
-            transform: rotate(90deg);
-        }
+      .return-edit {
+        margin-top: 6px;
+        transform: rotate(90deg);
+      }
     }
 
     @keyframes ani-rotate {
-        to {
-            transform: rotateZ(360deg);
-        }
+      to {
+        transform: rotateZ(360deg);
+      }
     }
 
     .task-execution-step-wraper {
-        background: #fff;
+      background: #fff;
 
-        &.column {
-            display: flex;
-
-            .task-step-detail {
-                width: 0;
-            }
-        }
-
-        .task-process {
-            display: flex;
-            height: calc(100vh - 104px);
-            padding-bottom: 38px;
-            background: #fff;
-            border-right: 1px solid #e2e2e2;
-            flex-direction: column;
-            flex: 0 0 61px;
-
-            .process-wraper {
-                height: 100%;
-
-                .scroll-faker-content {
-                    position: relative;
-                }
-            }
-
-            .execution-process {
-                position: absolute;
-                right: 0;
-                bottom: 0;
-                left: 0;
-                width: 60px;
-                height: 28px;
-                font-size: 14px;
-                line-height: 28px;
-                color: #fff;
-                text-align: center;
-                background: rgb(0 0 0 / 25%);
-                user-select: none;
-            }
-        }
+      &.column {
+        display: flex;
 
         .task-step-detail {
-            flex: 1;
-            background: #fff;
+          width: 0;
+        }
+      }
+
+      .task-process {
+        display: flex;
+        height: calc(100vh - 104px);
+        padding-bottom: 38px;
+        background: #fff;
+        border-right: 1px solid #e2e2e2;
+        flex-direction: column;
+        flex: 0 0 61px;
+
+        .process-wraper {
+          height: 100%;
+
+          .scroll-faker-content {
+            position: relative;
+          }
         }
 
-        .execution-history {
-            position: fixed;
-            top: 127px;
-            right: 0;
-            z-index: 999;
-            font-size: 12px;
-            line-height: 30px;
-            color: #c4c6cc;
-            background: #63656e;
-            border-bottom-left-radius: 2px;
-            transform: translateX(100%);
-            transition: all 0.35s;
-            user-select: none;
-
-            &.active {
-                transform: translateX(0);
-
-                .toggle-flag {
-                    transform: rotateZ(180deg);
-                }
-            }
-
-            .toggle-btn {
-                position: absolute;
-                top: 0;
-                left: -22px;
-                display: flex;
-                width: 22px;
-                height: 88px;
-                line-height: 13px;
-                color: #dcdee5;
-                text-align: center;
-                cursor: pointer;
-                background: #63656e;
-                border-right: 1px solid #757783;
-                border-bottom-left-radius: 8px;
-                border-top-left-radius: 8px;
-                flex-direction: column;
-                justify-content: center;
-
-                .toggle-flag {
-                    margin-bottom: 5px;
-                    color: #979ba5;
-                    transition: all 0.2s;
-                }
-            }
-
-            .history-content {
-                display: flex;
-                min-height: 90px;
-                padding: 12px 0;
-                flex-direction: column;
-                justify-content: center;
-            }
-
-            .item {
-                padding-right: 16px;
-                padding-left: 16px;
-                cursor: pointer;
-                transition: all 0.15s;
-
-                &:hover {
-                    color: #fff;
-                    background: #4f515a;
-                }
-            }
+        .execution-process {
+          position: absolute;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          width: 60px;
+          height: 28px;
+          font-size: 14px;
+          line-height: 28px;
+          color: #fff;
+          text-align: center;
+          background: rgb(0 0 0 / 25%);
+          user-select: none;
         }
+      }
+
+      .task-step-detail {
+        flex: 1;
+        background: #fff;
+      }
+
+      .execution-history {
+        position: fixed;
+        top: 127px;
+        right: 0;
+        z-index: 999;
+        font-size: 12px;
+        line-height: 30px;
+        color: #c4c6cc;
+        background: #63656e;
+        border-bottom-left-radius: 2px;
+        transform: translateX(100%);
+        transition: all 0.35s;
+        user-select: none;
+
+        &.active {
+          transform: translateX(0);
+
+          .toggle-flag {
+            transform: rotateZ(180deg);
+          }
+        }
+
+        .toggle-btn {
+          position: absolute;
+          top: 0;
+          left: -22px;
+          display: flex;
+          width: 22px;
+          height: 88px;
+          line-height: 13px;
+          color: #dcdee5;
+          text-align: center;
+          cursor: pointer;
+          background: #63656e;
+          border-right: 1px solid #757783;
+          border-bottom-left-radius: 8px;
+          border-top-left-radius: 8px;
+          flex-direction: column;
+          justify-content: center;
+
+          .toggle-flag {
+            margin-bottom: 5px;
+            color: #979ba5;
+            transition: all 0.2s;
+          }
+        }
+
+        .history-content {
+          display: flex;
+          min-height: 90px;
+          padding: 12px 0;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .item {
+          padding-right: 16px;
+          padding-left: 16px;
+          cursor: pointer;
+          transition: all 0.15s;
+
+          &:hover {
+            color: #fff;
+            background: #4f515a;
+          }
+        }
+      }
     }
 </style>

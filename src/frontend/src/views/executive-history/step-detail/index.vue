@@ -695,151 +695,151 @@
     @import "@/css/mixins/media";
 
     @keyframes search-loading {
-        0% {
-            transform: rotateZ(0);
-        }
+      0% {
+        transform: rotateZ(0);
+      }
 
-        100% {
-            transform: rotateZ(360deg);
-        }
+      100% {
+        transform: rotateZ(360deg);
+      }
     }
 
     .executive-history-step {
-        .step-info-header {
-            display: flex;
-            padding: 45px 24px 12px;
-            background: #f5f6fa;
+      .step-info-header {
+        display: flex;
+        padding: 45px 24px 12px;
+        background: #f5f6fa;
 
-            .step-info-wraper {
-                flex: 1;
-                margin-top: -25px;
+        .step-info-wraper {
+          flex: 1;
+          margin-top: -25px;
 
-                .step-type-text {
-                    font-size: 12px;
-                    line-height: 16px;
-                    color: #979ba5;
-                }
+          .step-type-text {
+            font-size: 12px;
+            line-height: 16px;
+            color: #979ba5;
+          }
 
-                .step-name-box {
-                    display: flex;
-                    align-items: center;
-                    margin-top: 10px;
-                }
-
-                .step-name-text {
-                    height: 24px;
-                    max-width: calc(100% - 65px);
-                    overflow: hidden;
-                    font-size: 18px;
-                    line-height: 24px;
-                    color: #313238;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-            }
-
-            .step-action-box {
-                display: flex;
-                flex: 0 0 auto;
-                justify-content: flex-end;
-                max-width: 360px;
-
-                .step-instance-action {
-                    border-radius: 2px;
-
-                    i {
-                        display: none;
-                    }
-                }
-            }
-
-            .log-search-box {
-                position: relative;
-                display: flex;
-                flex: 0 0 391px;
-                background: #fff;
-
-                .search-loading {
-                    position: absolute;
-                    top: 1px;
-                    right: 13px;
-                    bottom: 1px;
-                    display: flex;
-                    align-items: center;
-                    color: #c4c6cc;
-                    background: #fff;
-
-                    .loading-flag {
-                        animation: list-loading-ani 1s linear infinite;
-                    }
-                }
-            }
-
-            .task-instance-action {
-                display: flex;
-
-                .action-btn {
-                    display: flex;
-                    width: 32px;
-                    height: 32px;
-                    margin-left: 8px;
-                    font-size: 16px;
-                    color: #979ba5;
-                    cursor: pointer;
-                    background: #fff;
-                    border: 1px solid #c4c6cc;
-                    border-radius: 2px;
-                    align-items: center;
-                    justify-content: center;
-                }
-            }
-        }
-
-        .detail-container {
-            display: flex;
-            height: calc(100vh - 234px);
-            padding: 20px 24px;
-
-            .container-left {
-                height: 100%;
-                overflow: hidden;
-                background: #fff;
-                border: 1px solid #dcdee5;
-                border-bottom-left-radius: 2px;
-                border-top-left-radius: 2px;
-            }
-
-            .container-right {
-                display: flex;
-                width: 0;
-                height: 100%;
-                overflow: hidden;
-                flex-direction: column;
-                flex: 1;
-            }
-        }
-
-        .step-action {
+          .step-name-box {
             display: flex;
             align-items: center;
+            margin-top: 10px;
+          }
 
-            .action-btn {
-                display: flex;
-                height: 32px;
-                padding: 0 7px;
-                margin-left: 10px;
-                font-size: 19px;
-                color: #979ba5;
-                cursor: pointer;
-                background: #fff;
-                border-radius: 16px;
-                align-items: center;
-                justify-content: center;
-
-                &:hover {
-                    color: #3a84ff;
-                }
-            }
+          .step-name-text {
+            height: 24px;
+            max-width: calc(100% - 65px);
+            overflow: hidden;
+            font-size: 18px;
+            line-height: 24px;
+            color: #313238;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
         }
+
+        .step-action-box {
+          display: flex;
+          flex: 0 0 auto;
+          justify-content: flex-end;
+          max-width: 360px;
+
+          .step-instance-action {
+            border-radius: 2px;
+
+            i {
+              display: none;
+            }
+          }
+        }
+
+        .log-search-box {
+          position: relative;
+          display: flex;
+          flex: 0 0 391px;
+          background: #fff;
+
+          .search-loading {
+            position: absolute;
+            top: 1px;
+            right: 13px;
+            bottom: 1px;
+            display: flex;
+            align-items: center;
+            color: #c4c6cc;
+            background: #fff;
+
+            .loading-flag {
+              animation: list-loading-ani 1s linear infinite;
+            }
+          }
+        }
+
+        .task-instance-action {
+          display: flex;
+
+          .action-btn {
+            display: flex;
+            width: 32px;
+            height: 32px;
+            margin-left: 8px;
+            font-size: 16px;
+            color: #979ba5;
+            cursor: pointer;
+            background: #fff;
+            border: 1px solid #c4c6cc;
+            border-radius: 2px;
+            align-items: center;
+            justify-content: center;
+          }
+        }
+      }
+
+      .detail-container {
+        display: flex;
+        height: calc(100vh - 234px);
+        padding: 20px 24px;
+
+        .container-left {
+          height: 100%;
+          overflow: hidden;
+          background: #fff;
+          border: 1px solid #dcdee5;
+          border-bottom-left-radius: 2px;
+          border-top-left-radius: 2px;
+        }
+
+        .container-right {
+          display: flex;
+          width: 0;
+          height: 100%;
+          overflow: hidden;
+          flex-direction: column;
+          flex: 1;
+        }
+      }
+
+      .step-action {
+        display: flex;
+        align-items: center;
+
+        .action-btn {
+          display: flex;
+          height: 32px;
+          padding: 0 7px;
+          margin-left: 10px;
+          font-size: 19px;
+          color: #979ba5;
+          cursor: pointer;
+          background: #fff;
+          border-radius: 16px;
+          align-items: center;
+          justify-content: center;
+
+          &:hover {
+            color: #3a84ff;
+          }
+        }
+      }
     }
 </style>

@@ -175,67 +175,67 @@
 </script>
 <style lang='postcss'>
     .page-platform-info {
+      display: flex;
+      justify-content: center;
+      padding-top: 10px;
+      padding-bottom: 40px;
+
+      .wraper {
+        margin-bottom: 10px;
+      }
+
+      .backlist {
+        margin-top: 38px;
+
+        span {
+          border-bottom: 1px dashed #c4c6cc;
+        }
+      }
+
+      .block-title {
+        padding-bottom: 6px;
+        margin-bottom: 12px;
+      }
+
+      .action-box {
+        margin-top: 30px;
+      }
+
+      hgroup {
         display: flex;
-        justify-content: center;
-        padding-top: 10px;
-        padding-bottom: 40px;
+        justify-content: flex-start;
+        align-items: self-start;
+        margin-bottom: 20px;
 
-        .wraper {
-            margin-bottom: 10px;
+        .bk-label {
+          text-align: left;
         }
 
-        .backlist {
-            margin-top: 38px;
-
-            span {
-                border-bottom: 1px dashed #c4c6cc;
-            }
+        .bk-form-item {
+          margin-top: 0;
+          margin-bottom: 10px;
         }
 
-        .block-title {
-            padding-bottom: 6px;
-            margin-bottom: 12px;
+        .reset {
+          margin-top: 4px;
+          margin-left: 2px;
         }
 
-        .action-box {
-            margin-top: 30px;
+        .title-separator-item {
+          .bk-label {
+            text-align: right;
+          }
         }
-
-        hgroup {
-            display: flex;
-            justify-content: flex-start;
-            align-items: self-start;
-            margin-bottom: 20px;
-
-            .bk-label {
-                text-align: left;
-            }
-
-            .bk-form-item {
-                margin-top: 0;
-                margin-bottom: 10px;
-            }
-
-            .reset {
-                margin-top: 4px;
-                margin-left: 2px;
-            }
-
-            .title-separator-item {
-                .bk-label {
-                    text-align: right;
-                }
-            }
-        }
+      }
     }
 
     .title-example-popover {
-        padding: 20px 10px;
-        text-align: center;
+      padding: 20px 10px;
+      text-align: center;
 
-        .example-image {
-            width: 270px;
-            height: 100px;
-        }
+      .example-image {
+        width: 270px;
+        height: 100px;
+      }
     }
 </style>

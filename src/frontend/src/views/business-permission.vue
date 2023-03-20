@@ -176,85 +176,85 @@
 </script>
 <style lang='postcss'>
     .bussiness-app-empty-page {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        background: #fff;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: #fff;
 
-        .page-header {
-            padding: 40px 0 30px;
-            background: #f5f6fa;
+      .page-header {
+        padding: 40px 0 30px;
+        background: #f5f6fa;
 
-            .header-wraper {
-                width: 1175px;
-                margin: 0 auto;
-            }
+        .header-wraper {
+          width: 1175px;
+          margin: 0 auto;
+        }
+      }
+
+      .page-wraper {
+        width: 1175px;
+        margin: 0 auto;
+      }
+
+      .page-title {
+        font-size: 20px;
+        line-height: 26px;
+        color: #313238;
+      }
+
+      .page-desc {
+        margin-top: 12px;
+        font-size: 13px;
+        line-height: 24px;
+        color: #63656e;
+      }
+
+      .page-container {
+        display: flex;
+        margin-top: 20px;
+      }
+
+      .feature-item {
+        display: flex;
+        flex: 1;
+        justify-content: space-between;
+        height: 236px;
+        padding-right: 35px;
+        font-size: 12px;
+        line-height: 24px;
+        color: #63656e;
+
+        .feature-box {
+          width: 275px;
         }
 
-        .page-wraper {
-            width: 1175px;
-            margin: 0 auto;
+        .feature-title {
+          margin-top: 42px;
+          margin-bottom: 16px;
+          font-size: 16px;
+          line-height: 21px;
+          color: #313238;
         }
+      }
 
-        .page-title {
-            font-size: 20px;
-            line-height: 26px;
-            color: #313238;
-        }
+      .divide-line {
+        width: 1px;
+        height: 160px;
+        margin-top: 42px;
+        background: #dcdee5;
+      }
 
-        .page-desc {
-            margin-top: 12px;
-            font-size: 13px;
-            line-height: 24px;
-            color: #63656e;
-        }
+      .page-action {
+        margin-top: 30px;
+      }
 
-        .page-container {
-            display: flex;
-            margin-top: 20px;
-        }
-
-        .feature-item {
-            display: flex;
-            flex: 1;
-            justify-content: space-between;
-            height: 236px;
-            padding-right: 35px;
-            font-size: 12px;
-            line-height: 24px;
-            color: #63656e;
-
-            .feature-box {
-                width: 275px;
-            }
-
-            .feature-title {
-                margin-top: 42px;
-                margin-bottom: 16px;
-                font-size: 16px;
-                line-height: 21px;
-                color: #313238;
-            }
-        }
-
-        .divide-line {
-            width: 1px;
-            height: 160px;
-            margin-top: 42px;
-            background: #dcdee5;
-        }
-
-        .page-action {
-            margin-top: 30px;
-        }
-
-        .page-link {
-            margin-top: 60px;
-            font-size: 12px;
-            line-height: 16px;
-            color: #979ba5;
-        }
+      .page-link {
+        margin-top: 60px;
+        font-size: 12px;
+        line-height: 16px;
+        color: #979ba5;
+      }
     }
 </style>

@@ -1080,57 +1080,57 @@
 </script>
 <style lang='postcss' scoped>
     .execute-statistics-dashboard {
-        padding: 20px;
+      padding: 20px;
 
-        .header-action {
-            display: flex;
-            font-size: 12px;
-            color: #63656e;
+      .header-action {
+        display: flex;
+        font-size: 12px;
+        color: #63656e;
 
-            .type-tab,
-            .time-tab {
-                display: flex;
+        .type-tab,
+        .time-tab {
+          display: flex;
 
-                .tab-item {
-                    height: 28px;
-                    padding: 0 16px;
-                    line-height: 28px;
-                    cursor: pointer;
-                    border-radius: 14px;
-                    transition: all 0.15s;
+          .tab-item {
+            height: 28px;
+            padding: 0 16px;
+            line-height: 28px;
+            cursor: pointer;
+            border-radius: 14px;
+            transition: all 0.15s;
 
-                    &.active,
-                    &:hover {
-                        color: #3a84ff;
-                    }
-
-                    &.active {
-                        background: #ebf2ff;
-                    }
-                }
+            &.active,
+            &:hover {
+              color: #3a84ff;
             }
 
-            .type-tab {
-                .tab-item {
-                    margin-right: 8px;
-                }
+            &.active {
+              background: #ebf2ff;
             }
-
-            .time-tab {
-                margin-left: auto;
-
-                .tab-item {
-                    margin-left: 8px;
-                }
-            }
-
-            .tab-back {
-                color: #3a84ff;
-
-                .tab-back-action {
-                    cursor: pointer;
-                }
-            }
+          }
         }
+
+        .type-tab {
+          .tab-item {
+            margin-right: 8px;
+          }
+        }
+
+        .time-tab {
+          margin-left: auto;
+
+          .tab-item {
+            margin-left: 8px;
+          }
+        }
+
+        .tab-back {
+          color: #3a84ff;
+
+          .tab-back-action {
+            cursor: pointer;
+          }
+        }
+      }
     }
 </style>

@@ -186,41 +186,41 @@
 </script>
 <style lang='postcss'>
     .page-account-rule {
+      display: flex;
+      justify-content: center;
+      padding-top: 40px;
+      padding-bottom: 40px;
+
+      .wraper {
+        margin-bottom: 30px;
+      }
+
+      .account-block {
         display: flex;
-        justify-content: center;
-        padding-top: 40px;
-        padding-bottom: 40px;
+        align-items: center;
+        justify-content: flex-end;
+        color: #63656e;
 
-        .wraper {
-            margin-bottom: 30px;
+        .name {
+          font-size: 14px;
         }
 
-        .account-block {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            color: #63656e;
-
-            .name {
-                font-size: 14px;
-            }
-
-            .expression-input {
-                width: 300px;
-            }
-
-            .rule {
-                width: 400px;
-                margin: 0 14px 0 10px;
-            }
-
-            .reset {
-                font-size: 12px;
-            }
+        .expression-input {
+          width: 300px;
         }
 
-        .action-box {
-            margin-top: 30px;
+        .rule {
+          width: 400px;
+          margin: 0 14px 0 10px;
         }
+
+        .reset {
+          font-size: 12px;
+        }
+      }
+
+      .action-box {
+        margin-top: 30px;
+      }
     }
 </style>

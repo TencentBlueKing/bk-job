@@ -134,13 +134,13 @@
 </script>
 <style lang="postcss">
     .sync-plan-step1 {
-        .detail-label {
-            padding-right: 24px;
-        }
+      .detail-label {
+        padding-right: 24px;
+      }
     }
 </style>
 <style lang='postcss' scoped>
     .sync-plan-step1 {
-        padding: 24px 24px 60px;
+      padding: 24px 24px 60px;
     }
 </style>

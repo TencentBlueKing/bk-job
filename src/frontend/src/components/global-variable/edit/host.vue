@@ -183,9 +183,9 @@
 </script>
 <style lang='postcss' scoped>
     .variable-type-host {
-        .host-value-panel {
-            margin-top: 10px;
-        }
+      .host-value-panel {
+        margin-top: 10px;
+      }
     }
 
 </style>

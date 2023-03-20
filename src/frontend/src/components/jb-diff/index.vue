@@ -155,14 +155,14 @@
 </script>
 <style lang="postcss">
     .jb-diff {
-        .d2h-file-header {
-            display: none;
-        }
+      .d2h-file-header {
+        display: none;
+      }
 
-        tbody {
-            tr:last-child {
-                display: none;
-            }
+      tbody {
+        tr:last-child {
+          display: none;
         }
+      }
     }
 </style>

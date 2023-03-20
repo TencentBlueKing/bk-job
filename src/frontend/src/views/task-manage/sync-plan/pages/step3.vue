@@ -241,61 +241,61 @@
 </script>
 <style lang='postcss'>
     .sync-plan-step3 {
-        .layout-wraper {
+      .layout-wraper {
+        display: flex;
+        background: #fff;
+
+        .layout-left {
+          position: relative;
+          height: calc(100vh - 210px);
+          background: #fafbfd;
+          flex: 0 0 320px;
+
+          &::after {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: #dcdee5;
+            content: "";
+          }
+
+          .job-tab {
+            position: relative;
+            z-index: 1;
             display: flex;
-            background: #fff;
+            height: 40px;
+            padding: 0 13px 0 24px;
+            font-size: 14px;
+            color: #63656e;
+            cursor: pointer;
+            border-bottom: 1px solid #dcdee5;
+            align-items: center;
 
-            .layout-left {
-                position: relative;
-                height: calc(100vh - 210px);
-                background: #fafbfd;
-                flex: 0 0 320px;
-
-                &::after {
-                    position: absolute;
-                    top: 0;
-                    right: 0;
-                    width: 1px;
-                    height: 100%;
-                    background: #dcdee5;
-                    content: "";
-                }
-
-                .job-tab {
-                    position: relative;
-                    z-index: 1;
-                    display: flex;
-                    height: 40px;
-                    padding: 0 13px 0 24px;
-                    font-size: 14px;
-                    color: #63656e;
-                    cursor: pointer;
-                    border-bottom: 1px solid #dcdee5;
-                    align-items: center;
-
-                    &.active {
-                        background: #fff;
-                    }
-
-                    .job-name {
-                        margin-right: auto;
-                    }
-
-                    .job-check {
-                        font-size: 24px;
-                        color: #2dcb56;
-                    }
-
-                    .job-switch {
-                        margin-left: 20px;
-                    }
-                }
+            &.active {
+              background: #fff;
             }
 
-            .layout-right {
-                height: calc(100vh - 210px);
-                flex: 1;
+            .job-name {
+              margin-right: auto;
             }
+
+            .job-check {
+              font-size: 24px;
+              color: #2dcb56;
+            }
+
+            .job-switch {
+              margin-left: 20px;
+            }
+          }
         }
+
+        .layout-right {
+          height: calc(100vh - 210px);
+          flex: 1;
+        }
+      }
     }
 </style>

@@ -90,63 +90,63 @@
 </script>
 <style lang="postcss">
     html[lang="en-US"] {
-        .source-file-action-content {
-            width: 154px;
-        }
+      .source-file-action-content {
+        width: 154px;
+      }
     }
 
     .source-file-action-extend {
-        position: absolute;
-        top: 50%;
-        right: 16px;
-        z-index: 9;
-        display: flex;
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
-        font-weight: normal;
-        color: #979ba5;
-        cursor: pointer;
-        border-radius: 50%;
-        transform: translateY(-50%);
-        user-select: none;
-        align-items: center;
-        justify-content: center;
+      position: absolute;
+      top: 50%;
+      right: 16px;
+      z-index: 9;
+      display: flex;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: normal;
+      color: #979ba5;
+      cursor: pointer;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      user-select: none;
+      align-items: center;
+      justify-content: center;
 
-        &:hover,
-        &.tippy-active {
-            z-index: 10;
-            color: #3a84ff;
-            background: #dcdee5;
-        }
+      &:hover,
+      &.tippy-active {
+        z-index: 10;
+        color: #3a84ff;
+        background: #dcdee5;
+      }
     }
 
     .source-file-action-extend-popover-theme {
-        padding: 0 !important;
+      padding: 0 !important;
 
-        .tippy-arrow {
-            display: none;
+      .tippy-arrow {
+        display: none;
+      }
+
+      .source-file-action-content {
+        width: 93px;
+        font-size: 14px;
+        line-height: 32px;
+        color: #63656e;
+        background: #fff;
+        border: 1px solid #f0f1f5;
+        box-shadow: 0 2px 1px 0 rgb(185 203 222 / 50%);
+
+        .action-item {
+          padding-left: 15px;
+          cursor: pointer;
+
+          &:hover {
+            color: #3a84ff;
+            background: #e5efff;
+          }
         }
-
-        .source-file-action-content {
-            width: 93px;
-            font-size: 14px;
-            line-height: 32px;
-            color: #63656e;
-            background: #fff;
-            border: 1px solid #f0f1f5;
-            box-shadow: 0 2px 1px 0 rgb(185 203 222 / 50%);
-
-            .action-item {
-                padding-left: 15px;
-                cursor: pointer;
-
-                &:hover {
-                    color: #3a84ff;
-                    background: #e5efff;
-                }
-            }
-        }
+      }
     }
 
 </style>

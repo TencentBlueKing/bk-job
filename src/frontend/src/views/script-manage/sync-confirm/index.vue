@@ -302,66 +302,66 @@
 </script>
 <style lang="postcss" scoped>
     .script-manage-sync-confirm {
-        .search-input {
-            width: 500px;
-        }
+      .search-input {
+        width: 500px;
+      }
 
-        .table-top {
-            height: 42px;
-            padding: 0 20px;
-            margin-top: 16px;
-            font-size: 12px;
-            line-height: 42px;
-            background-color: #f0f1f5;
-        }
+      .table-top {
+        height: 42px;
+        padding: 0 20px;
+        margin-top: 16px;
+        font-size: 12px;
+        line-height: 42px;
+        background-color: #f0f1f5;
+      }
 
-        .template-script-record {
-            &:hover {
-                .template-link {
-                    display: inline;
-                }
-            }
+      .template-script-record {
+        &:hover {
+          .template-link {
+            display: inline;
+          }
         }
+      }
 
-        .job-template-name {
-            .template-link {
-                display: none;
-                margin-left: 5px;
-            }
+      .job-template-name {
+        .template-link {
+          display: none;
+          margin-left: 5px;
         }
+      }
 
-        .table-selected {
-            color: #a3a6af;
-        }
+      .table-selected {
+        color: #a3a6af;
+      }
 
-        .status-action {
-            width: 46px;
-            height: 16px;
-            padding: 0 5px;
-            margin-left: 10px;
-            font-size: 12px;
-            color: #9fa2ac;
-            text-align: center;
-            background: #f0f1f5;
-        }
+      .status-action {
+        width: 46px;
+        height: 16px;
+        padding: 0 5px;
+        margin-left: 10px;
+        font-size: 12px;
+        color: #9fa2ac;
+        text-align: center;
+        background: #f0f1f5;
+      }
 
-        .status-online {
-            color: #45c272;
-            background-color: #e5f6ea;
-        }
+      .status-online {
+        color: #45c272;
+        background-color: #e5f6ea;
+      }
 
-        .footer-action {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            display: flex;
-            width: 100%;
-            height: 52px;
-            padding-right: 24px;
-            background: #fff;
-            border-top: 1px solid #e2e2e2;
-            align-items: center;
-            justify-content: flex-end;
-        }
+      .footer-action {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        width: 100%;
+        height: 52px;
+        padding-right: 24px;
+        background: #fff;
+        border-top: 1px solid #e2e2e2;
+        align-items: center;
+        justify-content: flex-end;
+      }
     }
 </style>

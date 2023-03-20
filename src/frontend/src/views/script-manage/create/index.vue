@@ -260,33 +260,33 @@
 </script>
 <style lang='postcss' scoped>
     .create-script-page {
-        .input {
-            width: 510px;
-            background: #fff;
-        }
+      .input {
+        width: 510px;
+        background: #fff;
+      }
     }
 
     .script-name-tips {
+      padding-right: 12px;
+      font-size: 12px;
+      line-height: 16px;
+      color: #63656e;
+
+      .row {
+        position: relative;
         padding-right: 12px;
-        font-size: 12px;
-        line-height: 16px;
-        color: #63656e;
+        padding-left: 12px;
 
-        .row {
-            position: relative;
-            padding-right: 12px;
-            padding-left: 12px;
-
-            &::before {
-                position: absolute;
-                top: 6px;
-                left: 0;
-                width: 4px;
-                height: 4px;
-                background: currentcolor;
-                border-radius: 50%;
-                content: "";
-            }
+        &::before {
+          position: absolute;
+          top: 6px;
+          left: 0;
+          width: 4px;
+          height: 4px;
+          background: currentcolor;
+          border-radius: 50%;
+          content: "";
         }
+      }
     }
 </style>

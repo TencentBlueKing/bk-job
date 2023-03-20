@@ -122,30 +122,30 @@
 </script>
 <style lang='postcss'>
     .job-back-top {
-        display: flex;
+      display: flex;
+      width: 28px;
+      height: 28px;
+      color: #fff;
+      cursor: pointer;
+      background: rgb(0 0 0 / 25%);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background: rgb(0 0 0 / 40%);
+      }
+
+      &.theme-normal {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+      }
+
+      &.theme-small {
         width: 28px;
         height: 28px;
-        color: #fff;
-        cursor: pointer;
-        background: rgb(0 0 0 / 25%);
-        border-radius: 50%;
-        align-items: center;
-        justify-content: center;
-
-        &:hover {
-            background: rgb(0 0 0 / 40%);
-        }
-
-        &.theme-normal {
-            width: 36px;
-            height: 36px;
-            font-size: 20px;
-        }
-
-        &.theme-small {
-            width: 28px;
-            height: 28px;
-            font-size: 16px;
-        }
+        font-size: 16px;
+      }
     }
 </style>

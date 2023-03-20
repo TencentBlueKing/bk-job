@@ -126,21 +126,21 @@
 </script>
 <style lang='postcss'>
     .execute-total-dashboard {
-        .wraper {
-            display: flex;
-            flex-direction: column;
-            margin-right: auto;
-            font-size: 12px;
-            line-height: 16px;
-            color: #babcc2;
+      .wraper {
+        display: flex;
+        flex-direction: column;
+        margin-right: auto;
+        font-size: 12px;
+        line-height: 16px;
+        color: #babcc2;
 
-            .total {
-                height: 32px;
-                font-size: 24px;
-                font-weight: bold;
-                line-height: 32px;
-                color: #63656e;
-            }
+        .total {
+          height: 32px;
+          font-size: 24px;
+          font-weight: bold;
+          line-height: 32px;
+          color: #63656e;
         }
+      }
     }
 </style>

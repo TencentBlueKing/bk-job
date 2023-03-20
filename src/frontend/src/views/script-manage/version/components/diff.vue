@@ -285,161 +285,161 @@
 </script>
 <style lang="postcss">
     .jb-diff-layout {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        padding: 0 40px;
-        background-color: #fafbfd;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 0 40px;
+      background-color: #fafbfd;
 
-        .header {
+      .header {
+        display: flex;
+        height: 40px;
+        align-items: center;
+
+        .title {
+          font-size: 14px;
+          color: #313238;
+        }
+
+        .diff-info {
+          display: flex;
+          margin-right: 114px;
+          margin-left: auto;
+          font-size: 12px;
+          line-height: 1em;
+          align-items: center;
+
+          .diff-del,
+          .diff-change,
+          .diff-ins {
             display: flex;
-            height: 40px;
-            align-items: center;
-
-            .title {
-                font-size: 14px;
-                color: #313238;
-            }
-
-            .diff-info {
-                display: flex;
-                margin-right: 114px;
-                margin-left: auto;
-                font-size: 12px;
-                line-height: 1em;
-                align-items: center;
-
-                .diff-del,
-                .diff-change,
-                .diff-ins {
-                    display: flex;
-                    margin-left: 30px;
-                    cursor: pointer;
-                    user-select: none;
-                }
-
-                .diff-del {
-                    color: #bd5c58;
-
-                    .before {
-                        background: #b1615b;
-                    }
-
-                    .after {
-                        background: #dcdcdc;
-                    }
-                }
-
-                .diff-change {
-                    color: #63656e;
-
-                    .before {
-                        background: #b1615b;
-                    }
-
-                    .after {
-                        background: #9aad76;
-                    }
-                }
-
-                .diff-ins {
-                    color: #9aad76;
-
-                    .before {
-                        background: #dcdcdc;
-                    }
-
-                    .after {
-                        background: #9aad76;
-                    }
-                }
-
-                .before,
-                .after {
-                    width: 1em;
-                    height: 1em;
-                }
-
-                .after {
-                    margin-right: 6px;
-                    margin-left: 1px;
-                }
-            }
-        }
-
-        .version-select-layout {
-            display: flex;
-            height: 51px;
-            margin: 6px 0 0;
-            background: #2f3033;
-            border-radius: 2px 2px 0 0;
-
-            .version-left,
-            .version-right {
-                display: flex;
-                padding: 0 10px;
-                flex: 0 0 50%;
-                align-items: center;
-            }
-
-            .version-left {
-                border-right: 1px solid #dcdee5;
-            }
-
-            .bk-select {
-                color: #dcdee5;
-                background: #393a3d;
-                border-color: #393a3d;
-            }
-        }
-
-        .version-selector {
-            width: 300px;
-        }
-
-        .content-wraper {
-            max-height: calc(100vh - 92px);
-            background: #1d1d1d;
-        }
-
-        .d2h-file-wrapper {
-            border: none;
-        }
-
-        .diff-details {
-            position: relative;
-            background-color: #272822;
-        }
-
-        .d2h-code-side-linenumber {
-            line-height: 20px;
-
-            &.active::before {
-                float: left;
-                width: 10px;
-                height: 10px;
-                margin-top: 5px;
-                margin-left: 13px;
-                background: #666;
-                border-radius: 50%;
-                content: "";
-            }
-        }
-
-        .icon-close {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            font-size: 28px;
-            color: #313238;
+            margin-left: 30px;
             cursor: pointer;
-            transition: all 0.1s;
+            user-select: none;
+          }
 
-            &:hover {
-                transform: rotateZ(90deg);
+          .diff-del {
+            color: #bd5c58;
+
+            .before {
+              background: #b1615b;
             }
+
+            .after {
+              background: #dcdcdc;
+            }
+          }
+
+          .diff-change {
+            color: #63656e;
+
+            .before {
+              background: #b1615b;
+            }
+
+            .after {
+              background: #9aad76;
+            }
+          }
+
+          .diff-ins {
+            color: #9aad76;
+
+            .before {
+              background: #dcdcdc;
+            }
+
+            .after {
+              background: #9aad76;
+            }
+          }
+
+          .before,
+          .after {
+            width: 1em;
+            height: 1em;
+          }
+
+          .after {
+            margin-right: 6px;
+            margin-left: 1px;
+          }
         }
+      }
+
+      .version-select-layout {
+        display: flex;
+        height: 51px;
+        margin: 6px 0 0;
+        background: #2f3033;
+        border-radius: 2px 2px 0 0;
+
+        .version-left,
+        .version-right {
+          display: flex;
+          padding: 0 10px;
+          flex: 0 0 50%;
+          align-items: center;
+        }
+
+        .version-left {
+          border-right: 1px solid #dcdee5;
+        }
+
+        .bk-select {
+          color: #dcdee5;
+          background: #393a3d;
+          border-color: #393a3d;
+        }
+      }
+
+      .version-selector {
+        width: 300px;
+      }
+
+      .content-wraper {
+        max-height: calc(100vh - 92px);
+        background: #1d1d1d;
+      }
+
+      .d2h-file-wrapper {
+        border: none;
+      }
+
+      .diff-details {
+        position: relative;
+        background-color: #272822;
+      }
+
+      .d2h-code-side-linenumber {
+        line-height: 20px;
+
+        &.active::before {
+          float: left;
+          width: 10px;
+          height: 10px;
+          margin-top: 5px;
+          margin-left: 13px;
+          background: #666;
+          border-radius: 50%;
+          content: "";
+        }
+      }
+
+      .icon-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        font-size: 28px;
+        color: #313238;
+        cursor: pointer;
+        transition: all 0.1s;
+
+        &:hover {
+          transform: rotateZ(90deg);
+        }
+      }
     }
 </style>

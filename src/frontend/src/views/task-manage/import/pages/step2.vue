@@ -386,170 +386,170 @@
 </script>
 <style lang='postcss'>
     .task-import-step2 {
+      width: 680px;
+      margin: 60px auto 0;
+
+      .upload-log-box {
         width: 680px;
-        margin: 60px auto 0;
+        max-height: calc(100vh - 344px);
+        padding: 10px 16px;
+        margin-top: 20px;
+        overflow-y: scroll;
+        font-size: 12px;
+        line-height: 22px;
+        color: #979ba5;
+        background: #fafbfd;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
 
-        .upload-log-box {
-            width: 680px;
-            max-height: calc(100vh - 344px);
-            padding: 10px 16px;
-            margin-top: 20px;
-            overflow-y: scroll;
-            font-size: 12px;
-            line-height: 22px;
-            color: #979ba5;
-            background: #fafbfd;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
+        .action {
+          color: #3a84ff;
+          cursor: pointer;
+        }
+      }
 
-            .action {
-                color: #3a84ff;
-                cursor: pointer;
-            }
+      .bk-upload {
+        .all-file {
+          display: none;
+        }
+      }
+
+      .upload-result {
+        position: relative;
+        display: flex;
+        height: 60px;
+        padding: 12px 10px;
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+
+        &:hover {
+          background: #f0f1f5;
+
+          .file-delete {
+            display: block;
+          }
         }
 
-        .bk-upload {
-            .all-file {
-                display: none;
-            }
+        &.success {
+          .file-status {
+            color: #2dcb56;
+          }
         }
 
-        .upload-result {
-            position: relative;
-            display: flex;
-            height: 60px;
-            padding: 12px 10px;
-            cursor: pointer;
-            background: #fff;
-            border: 1px solid #c4c6cc;
-            border-radius: 2px;
+        &.error,
+        &.failed {
+          background: rgb(254 221 220 / 40%);
+          border-color: #ff5656;
 
-            &:hover {
-                background: #f0f1f5;
-
-                .file-delete {
-                    display: block;
-                }
-            }
-
-            &.success {
-                .file-status {
-                    color: #2dcb56;
-                }
-            }
-
-            &.error,
-            &.failed {
-                background: rgb(254 221 220 / 40%);
-                border-color: #ff5656;
-
-                &:hover {
-                    .file-delete {
-                        display: block;
-                    }
-                }
-
-                .file-status {
-                    color: #ff5656;
-                }
-
-                .file-refresh,
-                .file-delete {
-                    top: 20px;
-                    color: #ff5656;
-                }
-
-                .file-delte {
-                    right: 12px;
-                }
-            }
-
-            &.failed {
-                &:hover {
-                    .file-refresh {
-                        display: block;
-                    }
-                }
-            }
-
-            .file-pic {
-                width: 36px;
-                height: 36px;
-                background: skyblue;
-            }
-
-            .file-info {
-                padding-left: 11px;
-                font-size: 12px;
-                line-height: 20px;
-                color: #63656e;
-                flex: 1;
-            }
-
-            .file-status {
-                height: 16px;
-                font-size: 12px;
-                line-height: 16px;
-            }
-
-            .file-refresh,
+          &:hover {
             .file-delete {
-                position: absolute;
-                display: none;
-                font-size: 20px;
-                color: #979ba5;
+              display: block;
             }
+          }
 
+          .file-status {
+            color: #ff5656;
+          }
+
+          .file-refresh,
+          .file-delete {
+            top: 20px;
+            color: #ff5656;
+          }
+
+          .file-delte {
+            right: 12px;
+          }
+        }
+
+        &.failed {
+          &:hover {
             .file-refresh {
-                top: 20px;
-                right: 41px;
+              display: block;
             }
-
-            .file-delete {
-                top: 4px;
-                right: 4px;
-            }
-
-            .progress-text {
-                position: absolute;
-                top: 18px;
-                right: 18px;
-                font-weight: bold;
-                line-height: 16px;
-                color: #63656e;
-                user-select: none;
-            }
-
-            .upload-progress {
-                position: relative;
-                height: 2px;
-                margin-top: 6px;
-                background: #dcdee5;
-
-                .progress-bar {
-                    position: absolute;
-                    top: 0;
-                    bottom: 0;
-                    left: 0;
-                    width: 100px;
-                    background: #3a84ff;
-                }
-            }
+          }
         }
+
+        .file-pic {
+          width: 36px;
+          height: 36px;
+          background: skyblue;
+        }
+
+        .file-info {
+          padding-left: 11px;
+          font-size: 12px;
+          line-height: 20px;
+          color: #63656e;
+          flex: 1;
+        }
+
+        .file-status {
+          height: 16px;
+          font-size: 12px;
+          line-height: 16px;
+        }
+
+        .file-refresh,
+        .file-delete {
+          position: absolute;
+          display: none;
+          font-size: 20px;
+          color: #979ba5;
+        }
+
+        .file-refresh {
+          top: 20px;
+          right: 41px;
+        }
+
+        .file-delete {
+          top: 4px;
+          right: 4px;
+        }
+
+        .progress-text {
+          position: absolute;
+          top: 18px;
+          right: 18px;
+          font-weight: bold;
+          line-height: 16px;
+          color: #63656e;
+          user-select: none;
+        }
+
+        .upload-progress {
+          position: relative;
+          height: 2px;
+          margin-top: 6px;
+          background: #dcdee5;
+
+          .progress-bar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 100px;
+            background: #3a84ff;
+          }
+        }
+      }
     }
 
     .setting-password-dialog {
-        .bk-dialog-header {
-            padding-bottom: 0 !important;
-        }
+      .bk-dialog-header {
+        padding-bottom: 0 !important;
+      }
 
-        .bk-form-item:last-child {
-            margin-bottom: 0 !important;
-        }
+      .bk-form-item:last-child {
+        margin-bottom: 0 !important;
+      }
 
-        .setting-password-footer {
-            display: flex;
-            justify-content: flex-end;
-        }
+      .setting-password-footer {
+        display: flex;
+        justify-content: flex-end;
+      }
     }
 </style>

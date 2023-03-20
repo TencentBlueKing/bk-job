@@ -53,12 +53,12 @@
 </template>
 <style lang='postcss'>
     .task-exection-status-bar {
-        .step-instance-action {
-            border: 1px solid #c4c6cc;
+      .step-instance-action {
+        border: 1px solid #c4c6cc;
 
-            &:hover {
-                border-color: #ea3636;
-            }
+        &:hover {
+          border-color: #ea3636;
         }
+      }
     }
 </style>

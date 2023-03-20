@@ -295,13 +295,13 @@
 </script>
 <style lang='postcss'>
     .batch-edit-global-variable-box {
-        .edit-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 56px;
-            margin: -20px -30px 0;
-            background: #f0f1f5;
-        }
+      .edit-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 56px;
+        margin: -20px -30px 0;
+        background: #f0f1f5;
+      }
     }
 </style>

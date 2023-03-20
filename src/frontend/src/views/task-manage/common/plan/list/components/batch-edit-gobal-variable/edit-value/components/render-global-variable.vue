@@ -108,103 +108,103 @@
 </script>
 <style lang="postcss">
     .render-global-variable-box {
-        position: relative;
-        display: flex;
-        width: 160px;
-        height: 32px;
-        padding-right: 26px;
-        margin-top: 12px;
-        margin-right: 5px;
-        margin-left: 5px;
-        color: #63656e;
-        cursor: pointer;
-        border: 1px solid #dcdee5;
-        border-radius: 2px;
-        transition: all 0.1s;
-        align-items: center;
+      position: relative;
+      display: flex;
+      width: 160px;
+      height: 32px;
+      padding-right: 26px;
+      margin-top: 12px;
+      margin-right: 5px;
+      margin-left: 5px;
+      color: #63656e;
+      cursor: pointer;
+      border: 1px solid #dcdee5;
+      border-radius: 2px;
+      transition: all 0.1s;
+      align-items: center;
 
-        &:hover {
-            z-index: 1;
-        }
+      &:hover {
+        z-index: 1;
+      }
+
+      .variable-type {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 32px;
+        height: 100%;
+        margin-left: -1px;
+        font-size: 17px;
+        color: #fff;
+        background: #d3d5db;
+        transition: all 0.1s;
+      }
+
+      .select-checked {
+        position: absolute;
+        top: 9px;
+        right: 6px;
+        bottom: 0;
+        width: 14px;
+        height: 14px;
+        background: #fff;
+        border: 1px solid #c4c6cc;
+        border-radius: 50%;
+      }
+
+      &.active {
+        border-color: #3a84ff;
 
         .variable-type {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex: 0 0 32px;
-            height: 100%;
-            margin-left: -1px;
-            font-size: 17px;
-            color: #fff;
-            background: #d3d5db;
-            transition: all 0.1s;
+          background: #3a84ff;
         }
 
         .select-checked {
+          background: #3a84ff;
+          border-color: #3a84ff;
+
+          &::after {
             position: absolute;
-            top: 9px;
-            right: 6px;
-            bottom: 0;
-            width: 14px;
-            height: 14px;
-            background: #fff;
-            border: 1px solid #c4c6cc;
-            border-radius: 50%;
+            top: 2px;
+            left: 4px;
+            width: 3px;
+            height: 6px;
+            border: 1px solid #fff;
+            border-top: 0;
+            border-left: 0;
+            content: "";
+            transform: rotate(45deg) scale(1);
+            transition: all 0.1s;
+            transform-origin: center;
+          }
         }
+      }
 
-        &.active {
-            border-color: #3a84ff;
-
-            .variable-type {
-                background: #3a84ff;
-            }
-
-            .select-checked {
-                background: #3a84ff;
-                border-color: #3a84ff;
-
-                &::after {
-                    position: absolute;
-                    top: 2px;
-                    left: 4px;
-                    width: 3px;
-                    height: 6px;
-                    border: 1px solid #fff;
-                    border-top: 0;
-                    border-left: 0;
-                    content: "";
-                    transform: rotate(45deg) scale(1);
-                    transition: all 0.1s;
-                    transform-origin: center;
-                }
-            }
-        }
-
-        .variable-name {
-            padding-left: 6px;
-            overflow: hidden;
-            font-size: 13px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            flex: 0 1 auto;
-            align-items: center;
-        }
+      .variable-name {
+        padding-left: 6px;
+        overflow: hidden;
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 0 1 auto;
+        align-items: center;
+      }
     }
 
     .batch-global-variable-popover-detail {
-        table {
-            td {
-                font-size: 12px;
-                line-height: 20px;
-                color: #63656e;
-                vertical-align: top;
+      table {
+        td {
+          font-size: 12px;
+          line-height: 20px;
+          color: #63656e;
+          vertical-align: top;
 
-                &:first-child {
-                    color: #b2b6be;
-                    text-align: right;
-                    word-break: keep-all;
-                }
-            }
+          &:first-child {
+            color: #b2b6be;
+            text-align: right;
+            word-break: keep-all;
+          }
         }
+      }
     }
 </style>

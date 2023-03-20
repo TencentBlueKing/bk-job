@@ -274,133 +274,133 @@
 </script>
 <style lang='postcss'>
     @keyframes ani-rotate {
-        to {
-            transform: rotateZ(360deg);
-        }
+      to {
+        transform: rotateZ(360deg);
+      }
     }
 
     .task-list-tag-edit {
-        position: relative;
-        display: flex;
-        align-items: center;
-        height: 36px;
-        padding-right: 20px;
-        padding-left: 25px;
-        font-size: 14px;
-        color: #63656e;
-        cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 36px;
+      padding-right: 20px;
+      padding-left: 25px;
+      font-size: 14px;
+      color: #63656e;
+      cursor: pointer;
 
-        &:hover {
-            color: #3a84ff;
-            background: #e1ecff;
-
-            .tag-flag {
-                color: #3a84ff;
-            }
-
-            .tag-num {
-                color: #3a84ff;
-            }
-        }
-
-        &.disabled {
-            color: #c4c6cc;
-            cursor: not-allowed;
-
-            &:hover {
-                .tag-flag {
-                    color: #c4c6cc;
-                }
-
-                .tag-num {
-                    color: #c4c6cc;
-                }
-            }
-        }
-
-        &.edit:hover {
-            .tag-num {
-                display: none;
-            }
-
-            .edit-action {
-                display: flex;
-            }
-        }
-
-        &.active {
-            color: #3a84ff;
-            background: #e1ecff;
-
-            .tag-flag {
-                color: #3a84ff;
-            }
-
-            .tag-num {
-                color: #3a84ff;
-            }
-        }
-
-        &.edit-error {
-            .bk-form-input {
-                border-color: #ea3636 !important;
-            }
-        }
+      &:hover {
+        color: #3a84ff;
+        background: #e1ecff;
 
         .tag-flag {
-            margin-right: 7px;
-            color: #c4c6cc;
+          color: #3a84ff;
         }
 
-        .tag-name {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            height: 100%;
-            padding-right: 10px;
-            overflow: hidden;
-
-            .name-text {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
+        .tag-num {
+          color: #3a84ff;
         }
+      }
 
-        .tag-num-box {
-            flex: 0 0 auto;
-            margin-left: auto;
+      &.disabled {
+        color: #c4c6cc;
+        cursor: not-allowed;
+
+        &:hover {
+          .tag-flag {
             color: #c4c6cc;
+          }
 
-            .tag-loading {
-                animation: "ani-rotate" 2s linear infinite;
-            }
+          .tag-num {
+            color: #c4c6cc;
+          }
+        }
+      }
+
+      &.edit:hover {
+        .tag-num {
+          display: none;
         }
 
         .edit-action {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding-right: 20px;
-            padding-left: 10px;
-            cursor: pointer;
+          display: flex;
+        }
+      }
+
+      &.active {
+        color: #3a84ff;
+        background: #e1ecff;
+
+        .tag-flag {
+          color: #3a84ff;
         }
 
-        .input-edit-info {
-            position: absolute;
-            top: 0;
-            right: 20px;
-            bottom: 0;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            font-size: 16px;
-            color: #ea3636;
+        .tag-num {
+          color: #3a84ff;
         }
+      }
+
+      &.edit-error {
+        .bk-form-input {
+          border-color: #ea3636 !important;
+        }
+      }
+
+      .tag-flag {
+        margin-right: 7px;
+        color: #c4c6cc;
+      }
+
+      .tag-name {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        height: 100%;
+        padding-right: 10px;
+        overflow: hidden;
+
+        .name-text {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .tag-num-box {
+        flex: 0 0 auto;
+        margin-left: auto;
+        color: #c4c6cc;
+
+        .tag-loading {
+          animation: "ani-rotate" 2s linear infinite;
+        }
+      }
+
+      .edit-action {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding-right: 20px;
+        padding-left: 10px;
+        cursor: pointer;
+      }
+
+      .input-edit-info {
+        position: absolute;
+        top: 0;
+        right: 20px;
+        bottom: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        font-size: 16px;
+        color: #ea3636;
+      }
     }
 </style>

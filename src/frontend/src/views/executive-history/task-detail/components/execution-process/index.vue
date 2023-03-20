@@ -77,19 +77,19 @@
 </script>
 <style lang='postcss'>
     .task-exeution-process {
-        width: 100px;
-        height: 28px;
-        margin-left: 10px;
-        font-size: 14px;
-        line-height: 28px;
-        color: #fff;
-        text-align: center;
-        cursor: pointer;
-        background: rgb(0 0 0 / 25%);
-        border-radius: 14px;
+      width: 100px;
+      height: 28px;
+      margin-left: 10px;
+      font-size: 14px;
+      line-height: 28px;
+      color: #fff;
+      text-align: center;
+      cursor: pointer;
+      background: rgb(0 0 0 / 25%);
+      border-radius: 14px;
 
-        &:hover {
-            background: rgb(0 0 0 / 40%);
-        }
+      &:hover {
+        background: rgb(0 0 0 / 40%);
+      }
     }
 </style>

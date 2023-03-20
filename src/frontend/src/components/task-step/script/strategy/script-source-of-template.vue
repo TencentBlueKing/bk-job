@@ -475,32 +475,32 @@
 </script>
 <style lang='postcss'>
     .script-source-of-template {
-        .script-source-item {
-            .bk-radio-button-text {
-                width: 120px;
-                text-align: center;
-            }
+      .script-source-item {
+        .bk-radio-button-text {
+          width: 120px;
+          text-align: center;
         }
+      }
 
-        .update-flag {
-            margin-left: 4px;
-            color: #ff5656;
+      .update-flag {
+        margin-left: 4px;
+        color: #ff5656;
+      }
+
+      .refer-script-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .refer-script-detail {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: 4px;
+          font-size: 16px;
+          color: #3a84ff;
+          cursor: pointer;
         }
-
-        .refer-script-item {
-            position: relative;
-            display: flex;
-            align-items: center;
-
-            .refer-script-detail {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-left: 4px;
-                font-size: 16px;
-                color: #3a84ff;
-                cursor: pointer;
-            }
-        }
+      }
     }
 </style>

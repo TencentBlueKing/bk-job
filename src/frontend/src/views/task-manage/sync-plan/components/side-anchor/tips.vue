@@ -98,38 +98,38 @@
 </script>
 <style lang='postcss'>
     .sync-plan-side-anchor-tips {
+      position: relative;
+      margin-left: -10px;
+      color: #fff;
+      border-radius: 4px;
+      transform: translateX(-100%);
+
+      &.arrow-position-right {
+        &::before {
+          right: 128px;
+          left: unset;
+        }
+      }
+
+      &::after {
+        position: absolute;
+        top: 50%;
+        right: -5px;
+        width: 11px;
+        height: 11px;
+        background: #333;
+        content: "";
+        transform: translateY(-50%) rotateZ(45deg);
+        box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
+      }
+
+      .wraper {
         position: relative;
-        margin-left: -10px;
-        color: #fff;
+        padding: 7px 14px;
+        font-size: 12px;
+        white-space: nowrap;
+        background: #333;
         border-radius: 4px;
-        transform: translateX(-100%);
-
-        &.arrow-position-right {
-            &::before {
-                right: 128px;
-                left: unset;
-            }
-        }
-
-        &::after {
-            position: absolute;
-            top: 50%;
-            right: -5px;
-            width: 11px;
-            height: 11px;
-            background: #333;
-            content: "";
-            transform: translateY(-50%) rotateZ(45deg);
-            box-shadow: 0 0 5px 0 rgb(0 0 0 / 9%);
-        }
-
-        .wraper {
-            position: relative;
-            padding: 7px 14px;
-            font-size: 12px;
-            white-space: nowrap;
-            background: #333;
-            border-radius: 4px;
-        }
+      }
     }
 </style>

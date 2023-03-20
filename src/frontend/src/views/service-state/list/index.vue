@@ -283,71 +283,71 @@
 
 <style lang="postcss">
     .service-state-info {
-        .service-table > .bk-table-body-wrapper > table > tbody > .bk-table-row {
-            cursor: pointer;
+      .service-table > .bk-table-body-wrapper > table > tbody > .bk-table-row {
+        cursor: pointer;
+      }
+
+      .service-expand-table {
+        background-color: #fafbfd;
+
+        tr {
+          background-color: #fafbfd;
         }
+      }
 
-        .service-expand-table {
-            background-color: #fafbfd;
+      .bk-table .bk-table-body td.bk-table-expanded-cell {
+        padding: 0 48px;
+        background-color: #fafbfd;
+      }
 
-            tr {
-                background-color: #fafbfd;
-            }
+      .service-ip {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+
+        &:hover {
+          .copy-ip-icon {
+            color: #3a84ff;
+          }
         }
+      }
 
-        .bk-table .bk-table-body td.bk-table-expanded-cell {
-            padding: 0 48px;
-            background-color: #fafbfd;
-        }
+      .copy-ip-icon {
+        color: #979ba5;
+      }
 
-        .service-ip {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
+      .service-instance-num {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+        border: 1px solid #fff;
+      }
 
-            &:hover {
-                .copy-ip-icon {
-                    color: #3a84ff;
-                }
-            }
-        }
+      .unknown {
+        color: #979ba5;
+        background-color: #e6e8f0;
+      }
 
-        .copy-ip-icon {
-            color: #979ba5;
-        }
+      .abnormal {
+        color: #ea3536;
+        background-color: #fdd;
+      }
 
-        .service-instance-num {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            line-height: 18px;
-            text-align: center;
-            border: 1px solid #fff;
-        }
+      .normal {
+        color: #14a568;
+        background-color: #dff0e4;
+      }
 
-        .unknown {
-            color: #979ba5;
-            background-color: #e6e8f0;
-        }
+      .expanded {
+        background-color: #f0f1f5;
+      }
 
-        .abnormal {
-            color: #ea3536;
-            background-color: #fdd;
-        }
-
-        .normal {
-            color: #14a568;
-            background-color: #dff0e4;
-        }
-
-        .expanded {
-            background-color: #f0f1f5;
-        }
-
-        .bk-table-expand-icon-expanded {
-            color: #979ba5;
-        }
+      .bk-table-expand-icon-expanded {
+        color: #979ba5;
+      }
     }
 </style>

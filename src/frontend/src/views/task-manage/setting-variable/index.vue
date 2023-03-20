@@ -283,14 +283,14 @@
 </script>
 <style lang='postcss'>
     .setting-variable-page {
-        .action-wraper {
-            display: flex;
-            align-items: center;
-            width: 960px;
+      .action-wraper {
+        display: flex;
+        align-items: center;
+        width: 960px;
 
-            .remove-all {
-                margin-left: 40px;
-            }
+        .remove-all {
+          margin-left: 40px;
         }
+      }
     }
 </style>

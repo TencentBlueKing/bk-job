@@ -110,6 +110,6 @@
 </script>
 <style lang='postcss'>
     .batch-preview-plan-global-variable {
-        padding-top: 6px;
+      padding-top: 6px;
     }
 </style>

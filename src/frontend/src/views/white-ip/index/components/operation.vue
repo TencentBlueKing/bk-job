@@ -289,23 +289,23 @@
 </script>
 <style lang='postcss'>
     .app-wraper {
-        display: flex;
-        align-items: center;
+      display: flex;
+      align-items: center;
 
-        .app-select {
-            flex: 1;
-        }
+      .app-select {
+        flex: 1;
+      }
 
-        .whole-business {
-            margin-left: 10px;
-        }
+      .whole-business {
+        margin-left: 10px;
+      }
     }
 
     .input {
-        width: 495px;
+      width: 495px;
     }
 
     .scope-checkbox {
-        margin-right: 30px;
+      margin-right: 30px;
     }
 </style>

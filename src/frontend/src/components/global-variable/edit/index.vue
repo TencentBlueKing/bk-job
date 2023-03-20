@@ -136,65 +136,65 @@
 </script>
 <style lang='postcss'>
     .global-variable-edit-box {
-        display: flex;
-        flex: 1;
-        margin-bottom: 20px;
+      display: flex;
+      flex: 1;
+      margin-bottom: 20px;
 
-        &.variable-required {
-            .variable-name {
-                white-space: normal;
-
-                .name-text {
-                    margin-right: -10px;
-
-                    &::after {
-                        width: 10px;
-                        margin-left: 0.2em;
-                        color: #ea3636;
-                        content: "*";
-                    }
-                }
-            }
-        }
-
+      &.variable-required {
         .variable-name {
-            padding-right: 28px;
-            font-size: 14px;
-            line-height: 32px;
-            color: #666;
-            text-align: right;
-            box-sizing: content-box;
+          white-space: normal;
 
-            .name-text {
-                white-space: nowrap;
+          .name-text {
+            margin-right: -10px;
+
+            &::after {
+              width: 10px;
+              margin-left: 0.2em;
+              color: #ea3636;
+              content: "*";
             }
+          }
         }
+      }
 
-        .variable-value {
-            flex: 1;
-            max-width: 960px;
-        }
+      .variable-name {
+        padding-right: 28px;
+        font-size: 14px;
+        line-height: 32px;
+        color: #666;
+        text-align: right;
+        box-sizing: content-box;
 
-        .variable-value-error {
-            .bk-form-input {
-                color: #ff5656;
-                border-color: #ff5656;
-            }
+        .name-text {
+          white-space: nowrap;
         }
+      }
 
-        .variable-error {
-            margin-top: 4px;
-            margin-bottom: -6px;
-            font-size: 12px;
-            line-height: 1;
-            color: #ea3636;
+      .variable-value {
+        flex: 1;
+        max-width: 960px;
+      }
+
+      .variable-value-error {
+        .bk-form-input {
+          color: #ff5656;
+          border-color: #ff5656;
         }
+      }
+
+      .variable-error {
+        margin-top: 4px;
+        margin-bottom: -6px;
+        font-size: 12px;
+        line-height: 1;
+        color: #ea3636;
+      }
     }
 
     .variable-desc-tippy {
-        .tippy-content {
-            max-width: 200px;
-            white-space: normal;
-        }
+      .tippy-content {
+        max-width: 200px;
+        white-space: normal;
+      }
     }
 </style>

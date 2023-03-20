@@ -174,20 +174,20 @@
 </script>
 <style lang='postcss'>
     .form-item-changeable {
-        .bk-form-checkbox .bk-checkbox-text {
-            padding-bottom: 2px;
-            border-bottom: 1px dashed #c4c6cc;
-        }
+      .bk-form-checkbox .bk-checkbox-text {
+        padding-bottom: 2px;
+        border-bottom: 1px dashed #c4c6cc;
+      }
     }
 
     .array-type-group {
-        position: relative;
-        z-index: 1;
+      position: relative;
+      z-index: 1;
 
-        .item {
-            .bk-radio-button-text {
-                width: 108px;
-            }
+      .item {
+        .bk-radio-button-text {
+          width: 108px;
         }
+      }
     }
 </style>

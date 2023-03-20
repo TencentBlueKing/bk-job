@@ -185,86 +185,86 @@
 </script>
 <style lang='postcss'>
     @keyframes import-task-loading {
-        0% {
-            content: ".";
-        }
+      0% {
+        content: ".";
+      }
 
-        30% {
-            content: "..";
-        }
+      30% {
+        content: "..";
+      }
 
-        60% {
-            content: "...";
-        }
+      60% {
+        content: "...";
+      }
     }
 
     .task-import-step5 {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100%;
 
-        .flag {
-            margin-top: 50px;
-            margin-bottom: 16px;
+      .flag {
+        margin-top: 50px;
+        margin-bottom: 16px;
 
-            img {
-                width: 143px;
-            }
+        img {
+          width: 143px;
+        }
+      }
+
+      .title {
+        font-size: 24px;
+        line-height: 31px;
+        color: #63656e;
+
+        .loading {
+          &::after {
+            display: inline-block;
+            content: ".";
+            animation: import-task-loading 2s linear infinite;
+          }
+        }
+      }
+
+      .log-container {
+        position: relative;
+        margin-top: 30px;
+      }
+
+      .log-box {
+        width: 680px;
+        max-height: calc(100vh - 460px);
+        padding: 12px 16px;
+        overflow-y: auto;
+        font-size: 12px;
+        line-height: 20px;
+        color: #979ba5;
+        background: #fafbfd;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+
+        &::-webkit-scrollbar {
+          width: 13px;
         }
 
-        .title {
-            font-size: 24px;
-            line-height: 31px;
-            color: #63656e;
-
-            .loading {
-                &::after {
-                    display: inline-block;
-                    content: ".";
-                    animation: import-task-loading 2s linear infinite;
-                }
-            }
+        &::-webkit-scrollbar-thumb {
+          background-color: #dcdee5;
         }
 
-        .log-container {
-            position: relative;
-            margin-top: 30px;
+        .action {
+          color: #3a84ff;
+          cursor: pointer;
         }
+      }
 
-        .log-box {
-            width: 680px;
-            max-height: calc(100vh - 460px);
-            padding: 12px 16px;
-            overflow-y: auto;
-            font-size: 12px;
-            line-height: 20px;
-            color: #979ba5;
-            background: #fafbfd;
-            border: 1px solid #dcdee5;
-            border-radius: 2px;
-
-            &::-webkit-scrollbar {
-                width: 13px;
-            }
-
-            &::-webkit-scrollbar-thumb {
-                background-color: #dcdee5;
-            }
-
-            .action {
-                color: #3a84ff;
-                cursor: pointer;
-            }
-        }
-
-        .log-copy {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 16px;
-            color: #979ba5;
-            cursor: pointer;
-        }
+      .log-copy {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 16px;
+        color: #979ba5;
+        cursor: pointer;
+      }
     }
 </style>

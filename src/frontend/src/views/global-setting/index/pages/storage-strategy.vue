@@ -115,26 +115,26 @@
 </script>
 <style lang='postcss'>
     .page-storage-strategy {
-        display: flex;
-        padding: 40px 0;
-        justify-content: center;
+      display: flex;
+      padding: 40px 0;
+      justify-content: center;
 
-        .wraper {
-            width: 600px;
-        }
+      .wraper {
+        width: 600px;
+      }
 
-        .storage-block {
-            margin-bottom: 40px;
-        }
+      .storage-block {
+        margin-bottom: 40px;
+      }
 
-        .storage-tips {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #63656e;
-        }
+      .storage-tips {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #63656e;
+      }
 
-        .action-box {
-            margin-top: 10px;
-        }
+      .action-box {
+        margin-top: 10px;
+      }
     }
 </style>

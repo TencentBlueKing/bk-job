@@ -181,53 +181,53 @@
 </script>
 <style lang='postcss'>
     .job-form {
-        .bk-form {
-            .bk-label {
-                height: 32px;
-                padding-right: 24px;
-                word-break: keep-all;
-                white-space: pre;
-                box-sizing: border-box;
-            }
-
-            .bk-form-item {
-                margin-bottom: 20px;
-            }
-
-            &.bk-form-vertical {
-                .bk-form-item {
-                    margin: 0;
-                    margin-bottom: 20px;
-                }
-            }
-
-            .bk-form-item.is-danger,
-            .bk-form-item.is-error {
-                .bk-sideslider {
-                    input[type="number"],
-                    input[type="password"],
-                    input[type="text"],
-                    input[type="url"],
-                    select,
-                    textarea {
-                        color: #63656e;
-                        border-color: #c4c6cc;
-
-                        &::placeholder {
-                            color: #63656e;
-                            border-color: #c4c6cc;
-                        }
-                    }
-
-                    .bk-select {
-                        border-color: #c4c6cc;
-
-                        &::before {
-                            color: #63656e;
-                        }
-                    }
-                }
-            }
+      .bk-form {
+        .bk-label {
+          height: 32px;
+          padding-right: 24px;
+          word-break: keep-all;
+          white-space: pre;
+          box-sizing: border-box;
         }
+
+        .bk-form-item {
+          margin-bottom: 20px;
+        }
+
+        &.bk-form-vertical {
+          .bk-form-item {
+            margin: 0;
+            margin-bottom: 20px;
+          }
+        }
+
+        .bk-form-item.is-danger,
+        .bk-form-item.is-error {
+          .bk-sideslider {
+            input[type="number"],
+            input[type="password"],
+            input[type="text"],
+            input[type="url"],
+            select,
+            textarea {
+              color: #63656e;
+              border-color: #c4c6cc;
+
+              &::placeholder {
+                color: #63656e;
+                border-color: #c4c6cc;
+              }
+            }
+
+            .bk-select {
+              border-color: #c4c6cc;
+
+              &::before {
+                color: #63656e;
+              }
+            }
+          }
+        }
+      }
     }
 </style>

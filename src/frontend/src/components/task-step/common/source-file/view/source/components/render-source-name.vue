@@ -80,18 +80,18 @@
 </script>
 <style lang="postcss">
     .render-file-source-name {
-        cursor: pointer;
+      cursor: pointer;
+
+      .link-flag {
+        opacity: 0%;
+      }
+
+      &:hover {
+        color: #3a84ff !important;
 
         .link-flag {
-            opacity: 0%;
+          opacity: 100%;
         }
-
-        &:hover {
-            color: #3a84ff !important;
-
-            .link-flag {
-                opacity: 100%;
-            }
-        }
+      }
     }
 </style>

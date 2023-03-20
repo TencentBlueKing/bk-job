@@ -231,120 +231,120 @@
 </script>
 <style lang='postcss'>
     .cron-job {
-        background: #f0f1f5;
+      background: #f0f1f5;
 
-        &.is-error {
-            .time-input {
-                .input {
-                    border-color: #ff5656;
-                }
-            }
-        }
-
-        /* stylelint-disable selector-class-pattern */
-        &.error-month .month,
-        &.error-dayOfMonth .dayOfMonth,
-        &.error-dayOfWeek .dayOfWeek,
-        &.error-hour .hour,
-        &.error-minute .minute {
-            color: #ff5656 !important;
-        }
-
-        &.select-month .month,
-        &.select-dayOfMonth .dayOfMonth,
-        &.select-dayOfWeek .dayOfWeek,
-        &.select-hour .hour,
-        &.select-minute .minute {
-            color: #3a84ff;
-        }
-
-        .time-describe {
-            display: flex;
-            justify-content: center;
-        }
-
-        .time-text {
-            padding: 0 19px;
-            font-size: 12px;
-            line-height: 22px;
-            color: #c4c6cc;
-            cursor: pointer;
-            transition: all 0.1s;
-
-            &.active {
-                color: #3a84ff;
-            }
-
-            &.field-error {
-                color: #ff5656;
-            }
-        }
-
+      &.is-error {
         .time-input {
-            .input {
-                width: 100%;
-                height: 48px;
-                padding: 0 30px;
-                font-size: 24px;
-                line-height: 48px;
-                word-spacing: 30px;
-                color: #63656e;
-                text-align: center;
-                border: 1px solid #3a84ff;
-                border-radius: 2px;
-                outline: none;
+          .input {
+            border-color: #ff5656;
+          }
+        }
+      }
 
-                &::selection {
-                    color: #3a84ff;
-                    background: transparent;
-                }
-            }
+      /* stylelint-disable selector-class-pattern */
+      &.error-month .month,
+      &.error-dayOfMonth .dayOfMonth,
+      &.error-dayOfWeek .dayOfWeek,
+      &.error-hour .hour,
+      &.error-minute .minute {
+        color: #ff5656 !important;
+      }
+
+      &.select-month .month,
+      &.select-dayOfMonth .dayOfMonth,
+      &.select-dayOfWeek .dayOfWeek,
+      &.select-hour .hour,
+      &.select-minute .minute {
+        color: #3a84ff;
+      }
+
+      .time-describe {
+        display: flex;
+        justify-content: center;
+      }
+
+      .time-text {
+        padding: 0 19px;
+        font-size: 12px;
+        line-height: 22px;
+        color: #c4c6cc;
+        cursor: pointer;
+        transition: all 0.1s;
+
+        &.active {
+          color: #3a84ff;
         }
 
-        .time-parse {
-            padding: 10px 0;
-            margin-top: 8px;
-            line-height: 18px;
-            color: #63656e;
-            text-align: center;
+        &.field-error {
+          color: #ff5656;
+        }
+      }
+
+      .time-input {
+        .input {
+          width: 100%;
+          height: 48px;
+          padding: 0 30px;
+          font-size: 24px;
+          line-height: 48px;
+          word-spacing: 30px;
+          color: #63656e;
+          text-align: center;
+          border: 1px solid #3a84ff;
+          border-radius: 2px;
+          outline: none;
+
+          &::selection {
+            color: #3a84ff;
+            background: transparent;
+          }
+        }
+      }
+
+      .time-parse {
+        padding: 10px 0;
+        margin-top: 8px;
+        line-height: 18px;
+        color: #63656e;
+        text-align: center;
+      }
+
+      .time-next {
+        display: flex;
+        height: 18px;
+        overflow: hidden;
+        font-size: 12px;
+        line-height: 18px;
+        color: #979ba5;
+        text-align: center;
+        transition: height 0.2s linear;
+        align-content: center;
+        justify-content: center;
+
+        &.active {
+          height: 90px;
+
+          .arrow {
+            align-items: flex-end;
+
+            .arrow-button {
+              transform: rotateZ(-180deg);
+            }
+          }
         }
 
-        .time-next {
-            display: flex;
-            height: 18px;
-            overflow: hidden;
-            font-size: 12px;
-            line-height: 18px;
-            color: #979ba5;
-            text-align: center;
-            transition: height 0.2s linear;
-            align-content: center;
-            justify-content: center;
-
-            &.active {
-                height: 90px;
-
-                .arrow {
-                    align-items: flex-end;
-
-                    .arrow-button {
-                        transform: rotateZ(-180deg);
-                    }
-                }
-            }
-
-            .value {
-                text-align: left;
-            }
-
-            .arrow {
-                display: flex;
-                padding-top: 2px;
-                padding-bottom: 2px;
-                padding-left: 2px;
-                font-size: 12px;
-                cursor: pointer;
-            }
+        .value {
+          text-align: left;
         }
+
+        .arrow {
+          display: flex;
+          padding-top: 2px;
+          padding-bottom: 2px;
+          padding-left: 2px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+      }
     }
 </style>

@@ -89,23 +89,23 @@
 </script>
 <style lang='postcss' scoped>
     .apply-permission-page {
-        display: flex;
-        align-items: center;
-        height: 100%;
-        margin-top: -30px;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      margin-top: -30px;
 
-        .page-main {
-            width: 768px;
-            padding: 24px;
-            margin: 60px auto;
-            background-color: #fff;
-            border-radius: 2px;
-            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
-        }
+      .page-main {
+        width: 768px;
+        padding: 24px;
+        margin: 60px auto;
+        background-color: #fff;
+        border-radius: 2px;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 5%);
+      }
 
-        .footer {
-            margin: 24px auto 6px;
-            text-align: center;
-        }
+      .footer {
+        margin: 24px auto 6px;
+        text-align: center;
+      }
     }
 </style>

@@ -118,26 +118,26 @@
 </script>
 <style lang='postcss'>
     .resizeable-box {
-        position: relative;
-        height: 100%;
+      position: relative;
+      height: 100%;
 
-        .mouse-flag {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 1;
-            display: flex;
-            width: 3px;
-            padding-left: 3px;
-            font-size: 23px;
-            color: #63656e;
-            cursor: col-resize;
-            align-items: center;
+      .mouse-flag {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        display: flex;
+        width: 3px;
+        padding-left: 3px;
+        font-size: 23px;
+        color: #63656e;
+        cursor: col-resize;
+        align-items: center;
 
-            &:hover {
-                background: gray;
-            }
+        &:hover {
+          background: gray;
         }
+      }
     }
 </style>

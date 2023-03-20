@@ -149,89 +149,89 @@
 </script>
 <style lang='postcss' scoped>
     .sync-plan-side-anchor {
-        flex: 0 0 200px;
-        height: calc(100vh - 160px);
-        padding-right: 24px;
-        padding-bottom: 60px;
-        font-size: 12px;
-        line-height: 26px;
-        color: #63656e;
-        background: #fff;
-        border-top: 40px solid rgb(0 0 0 / 60%);
-        user-select: none;
+      flex: 0 0 200px;
+      height: calc(100vh - 160px);
+      padding-right: 24px;
+      padding-bottom: 60px;
+      font-size: 12px;
+      line-height: 26px;
+      color: #63656e;
+      background: #fff;
+      border-top: 40px solid rgb(0 0 0 / 60%);
+      user-select: none;
 
-        .anchor-wraper {
-            min-height: calc(100% - 20px);
-            margin-left: 10px;
-            border-left: 2px solid #f0f1f5;
+      .anchor-wraper {
+        min-height: calc(100% - 20px);
+        margin-left: 10px;
+        border-left: 2px solid #f0f1f5;
+      }
+
+      .item-title {
+        position: relative;
+        padding-left: 13px;
+        margin-top: 20px;
+        color: #b2b5bd;
+
+        &::before {
+          position: absolute;
+          top: 50%;
+          left: -5px;
+          width: 8px;
+          height: 8px;
+          background: #fff;
+          border: 2px solid #c4c6cc;
+          border-radius: 50%;
+          content: "";
+          transform: translateY(-50%);
+          box-sizing: border-box;
+        }
+      }
+
+      .item {
+        position: relative;
+        display: flex;
+        padding-left: 26px;
+        cursor: pointer;
+        transition: all 0.3s linear;
+
+        .anchor-text {
+          max-width: 170px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: pre;
         }
 
-        .item-title {
-            position: relative;
-            padding-left: 13px;
-            margin-top: 20px;
-            color: #b2b5bd;
+        &:hover,
+        &.active {
+          color: #3a84ff;
 
-            &::before {
-                position: absolute;
-                top: 50%;
-                left: -5px;
-                width: 8px;
-                height: 8px;
-                background: #fff;
-                border: 2px solid #c4c6cc;
-                border-radius: 50%;
-                content: "";
-                transform: translateY(-50%);
-                box-sizing: border-box;
-            }
+          &::before {
+            position: absolute;
+            top: 0;
+            left: -2px;
+            width: 2px;
+            height: 100%;
+            background: #3a84ff;
+            content: "";
+          }
         }
 
-        .item {
-            position: relative;
-            display: flex;
-            padding-left: 26px;
-            cursor: pointer;
-            transition: all 0.3s linear;
-
-            .anchor-text {
-                max-width: 170px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: pre;
-            }
-
-            &:hover,
-            &.active {
-                color: #3a84ff;
-
-                &::before {
-                    position: absolute;
-                    top: 0;
-                    left: -2px;
-                    width: 2px;
-                    height: 100%;
-                    background: #3a84ff;
-                    content: "";
-                }
-            }
-
-            &:hover {
-                span {
-                    transform: scale(1.1);
-                }
-            }
-
-            &.active {
-                span {
-                    transform: scale(1);
-                }
-            }
-
-            span {
-                transform-origin: left center;
-                transition: transform 0.2s;
-            }
+        &:hover {
+          span {
+            transform: scale(1.1);
+          }
         }
+
+        &.active {
+          span {
+            transform: scale(1);
+          }
+        }
+
+        span {
+          transform-origin: left center;
+          transition: transform 0.2s;
+        }
+      }
     }
 </style>

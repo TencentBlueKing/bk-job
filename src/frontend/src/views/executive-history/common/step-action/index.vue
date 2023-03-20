@@ -164,58 +164,58 @@
 </script>
 <style lang='postcss'>
     .step-action-confirm {
-        display: inline-flex;
+      display: inline-flex;
     }
 
     .step-instance-action {
-        display: flex;
-        height: 32px;
-        padding: 0 12px 0 8px;
-        margin-right: 10px;
-        font-size: 14px;
-        color: #63656e;
-        cursor: pointer;
-        background: #fff;
-        border-radius: 16px;
-        align-items: center;
-        justify-content: center;
+      display: flex;
+      height: 32px;
+      padding: 0 12px 0 8px;
+      margin-right: 10px;
+      font-size: 14px;
+      color: #63656e;
+      cursor: pointer;
+      background: #fff;
+      border-radius: 16px;
+      align-items: center;
+      justify-content: center;
 
-        &:hover {
-            i {
-                color: currentcolor;
-            }
-        }
-
-        &.task-detail {
-            box-shadow: 0 2px 6px #ddd;
-        }
-
-        &.step-detail {
-            border: 1px solid #c4c6cc;
-        }
-
-        &.stop,
-        &.confirm-forced {
-            &:hover {
-                color: #ea3636;
-                border-color: #c4c6cc;
-            }
-        }
-
-        &.retry,
-        &.skip,
-        &.next,
-        &.confirm {
-            &:hover {
-                color: #3a84ff;
-                border-color: #3a84ff;
-            }
-        }
-
+      &:hover {
         i {
-            margin-right: 6px;
-            font-size: 16px;
-            color: #979ba5;
+          color: currentcolor;
         }
+      }
+
+      &.task-detail {
+        box-shadow: 0 2px 6px #ddd;
+      }
+
+      &.step-detail {
+        border: 1px solid #c4c6cc;
+      }
+
+      &.stop,
+      &.confirm-forced {
+        &:hover {
+          color: #ea3636;
+          border-color: #c4c6cc;
+        }
+      }
+
+      &.retry,
+      &.skip,
+      &.next,
+      &.confirm {
+        &:hover {
+          color: #3a84ff;
+          border-color: #3a84ff;
+        }
+      }
+
+      i {
+        margin-right: 6px;
+        font-size: 16px;
+        color: #979ba5;
+      }
     }
 </style>

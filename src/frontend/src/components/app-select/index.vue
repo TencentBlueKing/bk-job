@@ -460,197 +460,197 @@
 </script>
 <style lang='postcss'>
     .job-app-select {
-        position: relative;
-        color: #dcdee5;
-        background: #f0f1f5;
-        border: none;
-        border-radius: 2px;
+      position: relative;
+      color: #dcdee5;
+      background: #f0f1f5;
+      border: none;
+      border-radius: 2px;
 
-        &.focus {
-            .panel-arrow {
-                transform: rotateZ(-180deg);
-            }
-        }
-
-        .app-icon {
-            height: 30px;
-            line-height: 30px;
-            color: inherit;
-            text-align: center;
-            cursor: pointer;
-            background: inherit;
-            border: none;
-            outline: none;
-        }
-
-        .app-name {
-            width: 100%;
-            height: 30px;
-            padding: 0 10px;
-            line-height: 30px;
-            color: inherit;
-            cursor: pointer;
-            background: inherit;
-            border: none;
-            outline: none;
-
-            &:placeholder {
-                color: #c4c6cc;
-            }
-        }
-
+      &.focus {
         .panel-arrow {
-            position: absolute;
-            top: 4px;
-            right: 2px;
-            font-size: 22px;
-            color: rgb(151 155 165);
-            pointer-events: none;
-            transition: all 0.15s;
+          transform: rotateZ(-180deg);
         }
+      }
+
+      .app-icon {
+        height: 30px;
+        line-height: 30px;
+        color: inherit;
+        text-align: center;
+        cursor: pointer;
+        background: inherit;
+        border: none;
+        outline: none;
+      }
+
+      .app-name {
+        width: 100%;
+        height: 30px;
+        padding: 0 10px;
+        line-height: 30px;
+        color: inherit;
+        cursor: pointer;
+        background: inherit;
+        border: none;
+        outline: none;
+
+        &:placeholder {
+          color: #c4c6cc;
+        }
+      }
+
+      .panel-arrow {
+        position: absolute;
+        top: 4px;
+        right: 2px;
+        font-size: 22px;
+        color: rgb(151 155 165);
+        pointer-events: none;
+        transition: all 0.15s;
+      }
     }
 
     .app-list-theme {
-        padding: 0 !important;
-        background: #182233 !important;
-        border: 1px solid #2f3847;
-        box-shadow: 0 2px 3px 0 rgb(0 0 0 / 10%) !important;
+      padding: 0 !important;
+      background: #182233 !important;
+      border: 1px solid #2f3847;
+      box-shadow: 0 2px 3px 0 rgb(0 0 0 / 10%) !important;
 
-        .component-permission-disabled {
-            color: #70737a !important;
+      .component-permission-disabled {
+        color: #70737a !important;
 
-            * {
-                color: #70737a !important;
-            }
+        * {
+          color: #70737a !important;
+        }
+      }
+
+      .app-panel {
+        overflow: hidden;
+        color: #c4c6cc;
+      }
+
+      .app-search {
+        position: relative;
+        padding: 0 10px;
+
+        input {
+          width: 100%;
+          height: 32px;
+          padding: 0 10px 0 30px;
+          line-height: 32px;
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid #404a5c;
+          outline: none;
+
+          &::placeholder {
+            color: #747e94;
+          }
         }
 
-        .app-panel {
-            overflow: hidden;
-            color: #c4c6cc;
+        .app-search-flag {
+          position: absolute;
+          top: 8px;
+          left: 10px;
+          font-size: 16px;
+          color: #979ba5;
+        }
+      }
+
+      .app-list {
+        position: relative;
+        max-height: 238px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+        overflow-y: auto;
+
+        &::-webkit-scrollbar {
+          width: 6px;
         }
 
-        .app-search {
-            position: relative;
-            padding: 0 10px;
+        &::-webkit-scrollbar-thumb {
+          background-color: #5f6e85;
+          border-radius: 3px;
+        }
+      }
 
-            input {
-                width: 100%;
-                height: 32px;
-                padding: 0 10px 0 30px;
-                line-height: 32px;
-                background: transparent;
-                border: none;
-                border-bottom: 1px solid #404a5c;
-                outline: none;
+      .app-list-empty {
+        text-align: center;
+      }
 
-                &::placeholder {
-                    color: #747e94;
-                }
-            }
+      .app-item {
+        display: flex;
+        height: 32px;
+        padding: 0 16px 0 10px;
+        line-height: 32px;
+        cursor: pointer;
+        transition: all 0.1s;
+        align-items: center;
 
-            .app-search-flag {
-                position: absolute;
-                top: 8px;
-                left: 10px;
-                font-size: 16px;
-                color: #979ba5;
-            }
+        &:hover,
+        &.hover {
+          color: #f0f1f5;
+          background: #294066;
         }
 
-        .app-list {
-            position: relative;
-            max-height: 238px;
-            margin-top: 8px;
-            margin-bottom: 8px;
-            overflow-y: auto;
-
-            &::-webkit-scrollbar {
-                width: 6px;
+        &:hover {
+          .app-collection {
+            .unfavor {
+              opacity: 100%;
             }
-
-            &::-webkit-scrollbar-thumb {
-                background-color: #5f6e85;
-                border-radius: 3px;
-            }
+          }
         }
 
-        .app-list-empty {
-            text-align: center;
+        &.active {
+          color: #f0f1f5;
+          background-color: #2d3542;
         }
 
-        .app-item {
-            display: flex;
-            height: 32px;
-            padding: 0 16px 0 10px;
-            line-height: 32px;
-            cursor: pointer;
+        .app-wrapper {
+          display: flex;
+          overflow: hidden;
+        }
+
+        .app-name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          flex: 0 1 auto;
+        }
+
+        .app-id {
+          padding-left: 4px;
+          color: #979ba5;
+          flex: 0 0 auto;
+        }
+
+        .app-collection {
+          display: flex;
+          margin-left: auto;
+          font-size: 16px;
+          color: #979ba5;
+          align-items: center;
+
+          .favor {
+            color: #ffb848;
+          }
+
+          .unfavor {
+            opacity: 0%;
             transition: all 0.1s;
-            align-items: center;
-
-            &:hover,
-            &.hover {
-                color: #f0f1f5;
-                background: #294066;
-            }
-
-            &:hover {
-                .app-collection {
-                    .unfavor {
-                        opacity: 100%;
-                    }
-                }
-            }
-
-            &.active {
-                color: #f0f1f5;
-                background-color: #2d3542;
-            }
-
-            .app-wrapper {
-                display: flex;
-                overflow: hidden;
-            }
-
-            .app-name {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                flex: 0 1 auto;
-            }
-
-            .app-id {
-                padding-left: 4px;
-                color: #979ba5;
-                flex: 0 0 auto;
-            }
-
-            .app-collection {
-                display: flex;
-                margin-left: auto;
-                font-size: 16px;
-                color: #979ba5;
-                align-items: center;
-
-                .favor {
-                    color: #ffb848;
-                }
-
-                .unfavor {
-                    opacity: 0%;
-                    transition: all 0.1s;
-                }
-            }
+          }
         }
+      }
 
-        .app-create {
-            display: flex;
-            height: 33px;
-            padding: 0 10px;
-            color: #c4c6cc;
-            cursor: pointer;
-            background: #28354d;
-            border-radius: 0 0 1px 1px;
-            align-items: center;
-        }
+      .app-create {
+        display: flex;
+        height: 33px;
+        padding: 0 10px;
+        color: #c4c6cc;
+        cursor: pointer;
+        background: #28354d;
+        border-radius: 0 0 1px 1px;
+        align-items: center;
+      }
     }
 </style>

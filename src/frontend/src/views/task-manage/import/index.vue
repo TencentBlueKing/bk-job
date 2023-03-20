@@ -136,18 +136,18 @@
 </script>
 <style lang='postcss'>
     .task-import-page {
-        background: #fff;
+      background: #fff;
 
-        .header {
-            display: flex;
-            align-items: center;
-            height: 49px;
-            padding: 0 57px;
-            border: 1px solid #dcdee5;
-        }
+      .header {
+        display: flex;
+        align-items: center;
+        height: 49px;
+        padding: 0 57px;
+        border: 1px solid #dcdee5;
+      }
 
-        .content {
-            height: calc(100vh - 205px);
-        }
+      .content {
+        height: calc(100vh - 205px);
+      }
     }
 </style>
