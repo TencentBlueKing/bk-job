@@ -572,4 +572,6 @@ export default {
   粘贴: 'Paste',
   快速执行详情: 'Quick Launch Details',
   存在不同版本: 'different version detected',
+  滚动策略必填: 'Strategy is required',
+  滚动策略格式不正确: 'Strategy is incorrect format',
 };
