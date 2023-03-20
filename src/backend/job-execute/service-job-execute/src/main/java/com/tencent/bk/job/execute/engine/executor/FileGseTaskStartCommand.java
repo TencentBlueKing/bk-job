@@ -350,7 +350,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             Long sourceHostId = file.getHost().getHostId();
             ServiceHostLogDTO hostTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                 sourceHostId, file.getHost().toCloudIp());
-            FileDistStatusEnum status = StringUtils.isNotEmpty(file.getHost().getAgentId()) ?
+            boolean isAgentInstalled = isAgentInstalled(file.getHost().getAgentId());
+            FileDistStatusEnum status = isAgentInstalled ?
                 FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
             hostTaskLog.addFileTaskLog(
                 new ServiceFileTaskLogDTO(
@@ -370,9 +371,13 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                     status.getName(),
                     "--",
                     "--",
-                    null)
+                    isAgentInstalled ? "Agent is not installed" : null)
             );
         }
+    }
+
+    private boolean isAgentInstalled(String agentId) {
+        return StringUtils.isNotEmpty(agentId);
     }
 
     private void addInitialFileDownloadTaskLogs(Map<Long, ServiceHostLogDTO> logs) {
@@ -381,12 +386,13 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             .filter(AgentTaskDTO::isTarget)
             .forEach(targetAgentTask -> {
                 HostDTO targetHost = hostIdHostMap.get(targetAgentTask.getHostId());
+                boolean isTargetAgentInstalled = isAgentInstalled(targetHost.getAgentId());
                 ServiceHostLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                     targetHost.getHostId(), targetHost.toCloudIp());
                 for (JobFile file : allSrcFiles) {
+                    boolean isSourceAgentInstalled = isAgentInstalled(file.getHost().getAgentId());
                     Long sourceHostId = file.getHost().getHostId();
-                    FileDistStatusEnum status = StringUtils.isNotEmpty(file.getHost().getAgentId())
-                        && StringUtils.isNotEmpty(targetHost.getAgentId()) ?
+                    FileDistStatusEnum status = isTargetAgentInstalled && isSourceAgentInstalled ?
                         FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
                     ipTaskLog.addFileTaskLog(
                         new ServiceFileTaskLogDTO(
@@ -406,8 +412,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                             status.getName(),
                             "--",
                             "--",
-                            null)
-                    );
+                            isTargetAgentInstalled ? (isSourceAgentInstalled ? null : "Source agent is not installed")
+                                : "Agent is not installed"
+                        ));
                 }
             });
     }
