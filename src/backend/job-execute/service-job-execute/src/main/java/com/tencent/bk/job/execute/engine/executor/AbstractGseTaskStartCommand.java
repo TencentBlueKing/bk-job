@@ -310,7 +310,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     }
 
     /**
-     * 获取字符类型全局变量的变量名和值
+     * 获取字符类型（TaskVariableTypeEnum.STRING|TaskVariableTypeEnum.CIPHER)全局变量的变量名和值
      *
      * @param stepInputVariables 步骤入参
      * @return 字符类型全局变量的变量名和值
@@ -321,7 +321,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             return globalVarValueMap;
         }
         stepInputVariables.getGlobalParams().forEach(globalParam -> {
-            if (TaskVariableTypeEnum.valOf(globalParam.getType()) == TaskVariableTypeEnum.STRING) {
+            TaskVariableTypeEnum variableType = TaskVariableTypeEnum.valOf(globalParam.getType());
+            if (variableType == TaskVariableTypeEnum.STRING || variableType == TaskVariableTypeEnum.CIPHER) {
                 globalVarValueMap.put(globalParam.getName(), globalParam.getValue());
             }
         });

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.common.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -33,7 +34,15 @@ import java.util.regex.Pattern;
 /**
  * 变量值解析
  */
+@Slf4j
 public class VariableValueResolver {
+    /**
+     * 解析字符串中的变量值
+     *
+     * @param param       字符串参数
+     * @param variableMap 变量KV
+     * @return 解析后的字符串
+     */
     public static String resolve(String param, Map<String, String> variableMap) {
         if (StringUtils.isBlank(param) || variableMap == null || variableMap.isEmpty()) {
             return param;
