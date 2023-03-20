@@ -598,9 +598,9 @@ job:
   # 各微服务Actuator监控端口
   managePort: 19876
   web:
-    # 作业平台主站域名
+    # 作业平台主站域名（被前端与Web API使用）
     domain: "job.example.com"
-    # 作业平台API域名
+    # 作业平台API域名（被上层系统ESB、ApiGW使用）
     apiDomain: "jobapi.example.com"
   ingress:
     https:
@@ -1283,6 +1283,17 @@ frontendConfig:
     tls: []
     extraTls: []
     secrets: []
+
+## 对外暴露API的Ingress配置
+apiConfig:
+  ingress:
+    # 对外暴露API的Ingress是否启用，默认启用
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      # 请求包大小限制
+      nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
 
 ## migration迁移任务配置
 migration:
