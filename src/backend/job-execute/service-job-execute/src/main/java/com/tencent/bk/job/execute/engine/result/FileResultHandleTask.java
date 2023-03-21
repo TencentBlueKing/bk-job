@@ -520,8 +520,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                       Map<Long, ServiceHostLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getContent();
         dealDownloadTaskFail(executionLogs, content.getSourceAgentId(), content.getStandardSourceFilePath(),
-            content.getDestAgentId(), content.getStandardDestFilePath(), result.getErrorCode(), result.getErrorMsg(),
-            content.getStartTime(), content.getEndTime());
+            content.getDestAgentId(), content.getStandardDestFilePath(), result.getErrorCode(),
+            buildErrorLogContent(result), content.getStartTime(), content.getEndTime());
     }
 
     private void dealDownloadTaskFail(Map<Long, ServiceHostLogDTO> executionLogs,
@@ -594,7 +594,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 null,
                 null,
                 null,
-                result.getResult().getErrorMsg())
+                buildErrorLogContent(result.getResult()))
         );
         analyseAgentTaskResult(result.getResult().getErrorCode(), sourceAgentId, startTime, endTime, false);
 
@@ -607,16 +607,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 targetAgentId,
                 fileDest.getDestPath(),
                 result.getResult().getErrorCode(),
-                result.getResult().getErrorMsg(),
+                buildErrorLogContent(result.getResult()),
                 startTime,
                 endTime);
         }
     }
 
-    private String buildErrorLogContent(JobAtomicFileTaskResult result) {
+    private String buildErrorLogContent(AtomicFileTaskResult result) {
         StringBuilder sb = new StringBuilder();
-        sb.append(result.getResult().getErrorMsg()).append(".");
-        AtomicFileTaskResultContent content = result.getResult().getContent();
+        sb.append(result.getErrorMsg()).append(".");
+        AtomicFileTaskResultContent content = result.getContent();
         if (content != null && content.getStatus() != null) {
             sb.append(" Status: ").append(content.getStatus());
             if (StringUtils.isNotBlank(content.getStatusInfo())) {
