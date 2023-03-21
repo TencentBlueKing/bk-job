@@ -132,7 +132,7 @@ public class ResultHandleResumeListener {
      * 恢复被中断的作业结果处理任务
      */
     public void handleEvent(ResultHandleTaskResumeEvent event) {
-        log.info("Receive gse task result handle task resume event: {}", event);
+        log.info("Receive gse task result handle task resume event: {}, duration: {}ms", event, event.duration());
         GseTaskDTO gseTask = gseTaskService.getGseTask(event.getGseTaskId());
         long stepInstanceId = gseTask.getStepInstanceId();
         String requestId = StringUtils.isNotEmpty(event.getRequestId()) ? event.getRequestId()

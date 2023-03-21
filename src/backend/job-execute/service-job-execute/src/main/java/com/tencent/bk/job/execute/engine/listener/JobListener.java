@@ -87,7 +87,7 @@ public class JobListener {
      * @param jobEvent 作业执行相关的事件
      */
     public void handleEvent(JobEvent jobEvent) {
-        log.info("Handle job event, event: {}", jobEvent);
+        log.info("Handle job event, event: {}, duration: {}ms", jobEvent, jobEvent.duration());
         long jobInstanceId = jobEvent.getJobInstanceId();
         JobActionEnum action = JobActionEnum.valueOf(jobEvent.getAction());
         try {
