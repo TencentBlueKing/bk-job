@@ -63,7 +63,7 @@ public class AgentStatusSyncService {
         hostAgentStatusWatch.start("listAllHostInfo");
         List<HostSimpleDTO> localHosts = applicationHostDAO.listAllHostSimpleInfo();
         hostAgentStatusWatch.stop();
-        hostAgentStatusWatch.start("getAgentStatusByAppInfo from GSE");
+        hostAgentStatusWatch.start("getAgentStatus from GSE");
         long startTime = System.currentTimeMillis();
         hostService.fillHostStatus(localHosts);
         gseInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
