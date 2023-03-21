@@ -47,7 +47,7 @@ public class Event {
 
     public long duration() {
         if (time != null) {
-            return DateUtils.calculateMillsBetweenDateTime(LocalDateTime.now(), time);
+            return DateUtils.calculateMillsBetweenDateTime(time, LocalDateTime.now());
         } else {
             return 0;
         }
