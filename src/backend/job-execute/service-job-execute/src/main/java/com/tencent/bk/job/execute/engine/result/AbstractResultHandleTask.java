@@ -58,6 +58,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.Collection;
@@ -127,11 +128,15 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected long appId;
     /**
-     * GSE 任务执行结果
+     * GSE 任务执行
      */
     protected GseTaskDTO gseTask;
     /**
-     * GSE 主机任务执行结果，Map<AgentId, AgentTaskDTO>
+     * Agent 任务
+     */
+    protected List<AgentTaskDTO> agentTasks;
+    /**
+     * GSE 目标主机任务执行结果，Map<AgentId, AgentTaskDTO>
      */
     protected Map<String, AgentTaskDTO> targetAgentTasks;
     /**
@@ -147,15 +152,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected Set<String> targetAgentIds = new HashSet<>();
     /**
-     * 未开始任务的目标服务器
+     * 未结束的目标服务器
      */
-    protected Set<String> notStartedTargetAgentIds = new HashSet<>();
-    /**
-     * 正在执行任务的目标服务器
-     */
-    protected Set<String> runningTargetAgentIds = new HashSet<>();
-
-    // ---------------- analysed task execution result for server --------------------
+    protected Set<String> notFinishedTargetAgentIds = new HashSet<>();
     /**
      * 已经分析结果完成的目标服务器
      */
@@ -180,7 +179,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * 任务是否已停止
      */
     protected volatile boolean isStopped = false;
-    // ---------------- analysed task execution result for server --------------------
+
     /**
      * 任务是否启用
      */
@@ -190,7 +189,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     private final AtomicInteger pullLogTimes = new AtomicInteger(0);
 
-    // ---------------- task lifecycle properties --------------------
+
     /**
      * 最近一次成功拉取GSE执行结果的时间
      */
@@ -207,7 +206,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * 是否是GSE V2 TASK
      */
     protected boolean gseV2Task;
-    // ---------------- task lifecycle properties --------------------
+    /**
+     * 是否包含非法主机
+     */
+    protected boolean hasInvalidHost;
+
 
 
     protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
@@ -226,7 +229,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                        Map<String, AgentTaskDTO> targetAgentTasks,
                                        GseTaskDTO gseTask,
-                                       String requestId) {
+                                       String requestId,
+                                       List<AgentTaskDTO> agentTasks) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
@@ -248,12 +252,12 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
         this.targetAgentTasks = targetAgentTasks;
         this.gseTask = gseTask;
+        this.agentTasks = agentTasks;
 
         targetAgentTasks.values().forEach(agentTask -> this.targetAgentIds.add(agentTask.getAgentId()));
-        this.notStartedTargetAgentIds.addAll(targetAgentIds);
+        this.notFinishedTargetAgentIds.addAll(targetAgentIds);
 
-        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance,
-            host -> host.getAgentId() != null ? host.getAgentId() : host.toCloudIp());
+        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getAgentId);
 
         // 如果是执行方案，需要初始化全局变量
         if (taskInstance.isPlanInstance()) {
@@ -262,6 +266,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 taskVariables.forEach(var -> initialVariables.put(var.getName(), var));
             }
         }
+
+        this.hasInvalidHost = agentTasks.stream().anyMatch(agentTask -> StringUtils.isEmpty(agentTask.getAgentId()));
     }
 
     /**
@@ -515,8 +521,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         log.info("[{}]: Deal target agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
             gseTask.getTaskUniqueName(), agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
-        notStartedTargetAgentIds.remove(agentId);
-        runningTargetAgentIds.remove(agentId);
+        notFinishedTargetAgentIds.remove(agentId);
         analyseFinishedTargetAgentIds.add(agentId);
 
         if (endTime - startTime <= 0) {
@@ -597,14 +602,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
-        log.info("[{}]: Deal unfinished agent result| noStartJobAgentIds : {}| runningJobAgentIds : {}",
-            gseTask.getTaskUniqueName(), notStartedTargetAgentIds, runningTargetAgentIds);
-        Set<String> unfinishedAgentIds = new HashSet<>();
-        unfinishedAgentIds.addAll(notStartedTargetAgentIds);
-        unfinishedAgentIds.addAll(runningTargetAgentIds);
+        log.info("[{}]: Deal unfinished agent result| notFinishedTargetAgentIds : {}",
+            gseTask.getTaskUniqueName(), notFinishedTargetAgentIds);
         long startTime = (gseTask != null && gseTask.getStartTime() != null) ?
             gseTask.getStartTime() : System.currentTimeMillis();
-        for (String agentId : unfinishedAgentIds) {
+        for (String agentId : notFinishedTargetAgentIds) {
             AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
             agentTask.setStartTime(startTime);
             agentTask.setEndTime(System.currentTimeMillis());
@@ -660,6 +662,43 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         } else {
             return "default";
         }
+    }
+
+    /**
+     * 是否所有目标Agent上的任务都完成
+     */
+    protected boolean isAllTargetAgentTasksDone() {
+        return this.analyseFinishedTargetAgentIds.size() == this.targetAgentIds.size();
+    }
+
+    /**
+     * 是否所有目标Agent上的任务都执行成功
+     */
+    protected boolean isAllTargetAgentTasksSuccess() {
+        return this.targetAgentIds.size() == this.successTargetAgentIds.size();
+    }
+
+    /**
+     * 所有agent任务结束的时候，分析整体GSE任务状态
+     */
+    protected GseTaskExecuteResult analyseFinishedExecuteResult() {
+        GseTaskExecuteResult rst;
+        if (isAllTargetAgentTasksSuccess()) {
+            // 如果源/目标包含非法主机，设置任务状态为失败
+            if (hasInvalidHost) {
+                log.info("Gse task contains invalid host, set execute result fail");
+                rst = GseTaskExecuteResult.FAILED;
+            } else {
+                rst = GseTaskExecuteResult.SUCCESS;
+            }
+        } else {
+            if (this.isTerminatedSuccess) {
+                rst = GseTaskExecuteResult.STOP_SUCCESS;
+            } else {
+                rst = GseTaskExecuteResult.FAILED;
+            }
+        }
+        return rst;
     }
 
     /**

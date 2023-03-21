@@ -36,10 +36,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -76,9 +76,16 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     @Override
     public <K> Map<K, HostDTO> computeStepHosts(StepInstanceBaseDTO stepInstance,
                                                 Function<? super HostDTO, K> keyMapper) {
-        Map<K, HostDTO> hosts =
-            stepInstance.getTargetServers().getIpList().stream()
-                .collect(Collectors.toMap(keyMapper, host -> host, (k1, k2) -> k1));
+
+        Map<K, HostDTO> hosts = new HashMap<>();
+        stepInstance.getTargetServers().getIpList()
+            .forEach(host -> {
+                K key = keyMapper.apply(host);
+                if (key != null) {
+                    hosts.put(keyMapper.apply(host), host);
+                }
+            });
+
         if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSourceList;
             if (stepInstance instanceof StepInstanceDTO) {
@@ -93,7 +100,13 @@ public class StepInstanceServiceImpl implements StepInstanceService {
                     fileSource -> {
                         if (fileSource.getServers() != null
                             && CollectionUtils.isNotEmpty(fileSource.getServers().getIpList())) {
-                            fileSource.getServers().getIpList().forEach(host -> hosts.put(keyMapper.apply(host), host));
+                            fileSource.getServers().getIpList()
+                                .forEach(host -> {
+                                    K key = keyMapper.apply(host);
+                                    if (key != null) {
+                                        hosts.put(keyMapper.apply(host), host);
+                                    }
+                                });
                         }
                     });
             }

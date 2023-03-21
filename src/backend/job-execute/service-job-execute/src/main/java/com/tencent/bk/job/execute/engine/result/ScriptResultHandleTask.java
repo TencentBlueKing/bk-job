@@ -70,11 +70,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -156,7 +154,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                   Map<String, AgentTaskDTO> agentTaskMap,
                                   GseTaskDTO gseTask,
-                                  String requestId) {
+                                  String requestId,
+                                  List<AgentTaskDTO> agentTasks) {
         super(taskInstanceService,
             gseTaskService,
             logService,
@@ -173,7 +172,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             taskVariablesAnalyzeResult,
             agentTaskMap,
             gseTask,
-            requestId);
+            requestId,
+            agentTasks);
         initLogPullProcess(agentTaskMap.values());
     }
 
@@ -190,10 +190,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     @Override
     GseLogBatchPullResult<ScriptTaskResult> pullGseTaskResultInBatches() {
         if (pullAgentIdBatches.isEmpty()) {
-            Set<String> queryAgentIds = new HashSet<>();
-            queryAgentIds.addAll(notStartedTargetAgentIds);
-            queryAgentIds.addAll(runningTargetAgentIds);
-            List<String> queryAgentIdList = new ArrayList<>(queryAgentIds);
+            List<String> queryAgentIdList = new ArrayList<>(notFinishedTargetAgentIds);
             pullAgentIdBatches = BatchUtil.buildBatchList(queryAgentIdList, currentBatchSize);
         }
         return tryPullGseResultWithRetry();
@@ -321,6 +318,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         batchSaveChangedGseAgentTasks(targetAgentTasks.values());
         watch.stop();
 
+        log.info("[{}] Analyse gse task result -> notFinishedTargetAgentIds={}, analyseFinishedTargetAgentIds={}",
+            this.gseTask.getTaskUniqueName(), this.notFinishedTargetAgentIds, this.analyseFinishedTargetAgentIds);
+
         GseTaskExecuteResult rst = analyseExecuteResult();
         if (!rst.getResultCode().equals(GseTaskExecuteResult.RESULT_CODE_RUNNING)) {
             watch.start("saveVariables");
@@ -390,8 +390,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                     // 0：原子任务已派发；
                 case RUNNING:
                     // 1：原子任务执行中；
-                    notStartedTargetAgentIds.remove(agentId);
-                    runningTargetAgentIds.add(agentId);
                     agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
                     break;
                 case SUCCESS:
@@ -401,8 +399,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                             || taskVariablesAnalyzeResult.isExistNamespaceVar())) {
                             //对于包含云参或者上下文参数的任务，下发任务的时候包含了2个任务；第一个是执行用户脚本；第二个获取参数的值
                             agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
-                            notStartedTargetAgentIds.remove(agentId);
-                            runningTargetAgentIds.add(agentId);
                             refreshPullLogProgress("", agentId, 1);
                         } else {
                             //普通任务，拉取日志，设置为成功
@@ -608,25 +604,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         progress.setAtomicTaskId(mid);
     }
 
-    /*
+    /**
      * 分析执行结果
+     *
      * @return 任务执行结果
      */
     private GseTaskExecuteResult analyseExecuteResult() {
         GseTaskExecuteResult rst;
-        if (this.notStartedTargetAgentIds.isEmpty() && this.runningTargetAgentIds.isEmpty()) {
-            int targetAgentNum = this.targetAgentIds.size();
-            int successTargetAgentNum = this.successTargetAgentIds.size();
-            boolean isSuccess = successTargetAgentNum == targetAgentNum;
-            if (isSuccess) {
-                rst = GseTaskExecuteResult.SUCCESS;
-            } else {
-                if (this.isTerminatedSuccess) {
-                    rst = GseTaskExecuteResult.STOP_SUCCESS;
-                } else {
-                    rst = GseTaskExecuteResult.FAILED;
-                }
-            }
+        if (isAllTargetAgentTasksDone()) {
+            rst = analyseFinishedExecuteResult();
         } else {
             rst = GseTaskExecuteResult.RUNNING;
         }
@@ -637,11 +623,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
         super.saveFailInfoForUnfinishedAgentTask(status, errorMsg);
         long endTime = System.currentTimeMillis();
-        Set<String> unfinishedAgentIds = new HashSet<>();
-        unfinishedAgentIds.addAll(notStartedTargetAgentIds);
-        unfinishedAgentIds.addAll(runningTargetAgentIds);
         if (StringUtils.isNotEmpty(errorMsg)) {
-            List<ServiceScriptLogDTO> scriptLogs = unfinishedAgentIds.stream().map(agentId -> {
+            List<ServiceScriptLogDTO> scriptLogs = notFinishedTargetAgentIds.stream().map(agentId -> {
                 AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
                 HostDTO host = agentIdHostMap.get(agentId);
                 return logService.buildSystemScriptLog(host, errorMsg, agentTask.getScriptLogOffset(), endTime);

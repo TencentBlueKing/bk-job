@@ -143,7 +143,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             requestId,
             taskInstance,
             stepInstance,
-            gseTask, stepInstanceService);
+            gseTask,
+            stepInstanceService);
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
@@ -156,7 +157,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     }
 
     @Override
-    protected void preExecute() {
+    protected void initExecutionContext() {
+        super.initExecutionContext();
         scriptFilePath = buildScriptFilePath(jobExecuteConfig.getGseScriptFileRootPath(),
             stepInstance.getAccount());
     }
@@ -651,7 +653,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 taskVariablesAnalyzeResult,
                 targetAgentTaskMap,
                 gseTask,
-                requestId);
+                requestId,
+                agentTasks);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
@@ -659,7 +662,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     @Override
     protected final void handleStartGseTaskError(GseTaskResponse gseTaskResponse) {
         long now = DateUtils.currentTimeMillis();
-        updateGseTaskExecutionInfo(null, RunStatusEnum.FAIL, null, now, now - gseTask.getStartTime());
+        updateGseTaskExecutionInfo(null, RunStatusEnum.FAIL, now);
 
         String errorMsg = "GSE Job failed:" + gseTaskResponse.getErrorMessage();
         int errorMsgLength = errorMsg.length();
@@ -684,5 +687,14 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         }
         logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
         scriptAgentTaskService.batchUpdateAgentTasks(targetAgentTaskMap.values());
+    }
+
+    @Override
+    protected boolean checkGseTaskExecutable() {
+        if (this.targetAgentTaskMap.isEmpty()) {
+            log.warn("Script gse task target agent is empty, can not execute! Set gse task status fail");
+            return false;
+        }
+        return true;
     }
 }

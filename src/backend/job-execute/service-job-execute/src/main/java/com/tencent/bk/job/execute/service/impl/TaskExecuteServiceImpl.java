@@ -42,7 +42,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
-import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContextBuilder;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
@@ -934,23 +933,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 hosts.getNotInAppHosts().forEach(host -> host.setAgentId(host.toCloudIp()));
             }
         }
-        // 检查主机agentId;没有agentId的不允许执行
-        checkHostAgentId(ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
 
         setAgentStatus(hosts.getValidHosts());
         setAgentStatus(hosts.getNotInAppHosts());
     }
-
-    private void checkHostAgentId(Collection<HostDTO> hosts) {
-        List<HostDTO> missingAgentIdHosts = hosts.stream()
-            .filter(host -> StringUtils.isEmpty(host.getAgentId()))
-            .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(missingAgentIdHosts)) {
-            log.warn("Found hosts missing agentId!");
-            throwHostInvalidException(missingAgentIdHosts);
-        }
-    }
-
 
     private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
         fillServersDetail(stepInstance.getTargetServers(), hostMap);
@@ -2012,11 +1998,24 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
-        List<String> agentIdList = hosts.stream().map(HostDTO::getAgentId).distinct().collect(Collectors.toList());
+        List<String> agentIdList = hosts.stream()
+            .filter(host -> StringUtils.isNotEmpty(host.getAgentId()))
+            .map(HostDTO::getAgentId)
+            .distinct()
+            .collect(Collectors.toList());
         Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+
         for (HostDTO host : hosts) {
-            AgentState agentState = agentStateMap.get(host.getAgentId());
-            host.setAlive(AgentStatusEnum.fromAgentState(agentState).getValue());
+            if (StringUtils.isEmpty(host.getAgentId())) {
+                host.setAlive(AgentStatusEnum.NOT_ALIVE.getValue());
+            } else {
+                AgentState agentState = agentStateMap.get(host.getAgentId());
+                if (agentState != null) {
+                    host.setAlive(AgentStatusEnum.fromAgentState(agentState).getValue());
+                } else {
+                    host.setAlive(AgentStatusEnum.NOT_ALIVE.getValue());
+                }
+            }
         }
     }
 

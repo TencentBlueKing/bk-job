@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.LogServiceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
@@ -425,5 +426,63 @@ public class LogServiceImpl implements LogService {
     @Override
     public void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> hostFileLogs) {
         writeFileLogsWithTimestamp(jobCreateTime, hostFileLogs, System.currentTimeMillis());
+    }
+
+    @Override
+    public ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(JobFile srcFile,
+                                                                  FileDistStatusEnum status,
+                                                                  String size,
+                                                                  String speed,
+                                                                  String process,
+                                                                  String content) {
+        return new ServiceFileTaskLogDTO(
+            FileDistModeEnum.UPLOAD.getValue(),
+            null,
+            null,
+            null,
+            null,
+            srcFile.getHost().getHostId(),
+            srcFile.getHost().toCloudIp(),
+            srcFile.getHost().toCloudIpv6(),
+            srcFile.getFileType().getType(),
+            srcFile.getStandardFilePath(),
+            srcFile.getDisplayFilePath(),
+            size,
+            status.getValue(),
+            status.getName(),
+            speed,
+            process,
+            content
+        );
+    }
+
+    @Override
+    public ServiceFileTaskLogDTO buildDownloadServiceFileTaskLogDTO(JobFile srcFile,
+                                                                    HostDTO targetHost,
+                                                                    String targetPath,
+                                                                    FileDistStatusEnum status,
+                                                                    String size,
+                                                                    String speed,
+                                                                    String process,
+                                                                    String content) {
+        return new ServiceFileTaskLogDTO(
+            FileDistModeEnum.DOWNLOAD.getValue(),
+            targetHost.getHostId(),
+            targetHost.toCloudIp(),
+            targetHost.toCloudIpv6(),
+            targetPath,
+            srcFile.getHost().getHostId(),
+            srcFile.getHost().toCloudIp(),
+            srcFile.getHost().toCloudIpv6(),
+            srcFile.getFileType().getType(),
+            srcFile.getStandardFilePath(),
+            srcFile.getDisplayFilePath(),
+            size,
+            status.getValue(),
+            status.getName(),
+            speed,
+            process,
+            content
+        );
     }
 }

@@ -172,7 +172,9 @@ public class ResultHandleResumeListener {
                                   String requestId) {
         Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
         List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        agentTasks.forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
+        agentTasks.stream()
+            .filter(agentTask -> StringUtils.isNotEmpty(agentTask.getAgentId()))
+            .forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
 
         ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
             taskInstanceService,
@@ -191,7 +193,8 @@ public class ResultHandleResumeListener {
             taskVariablesAnalyzeResult,
             agentTaskMap,
             gseTask,
-            requestId);
+            requestId,
+            agentTasks);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
@@ -209,13 +212,15 @@ public class ResultHandleResumeListener {
         Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
         Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
         List<AgentTaskDTO> agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        agentTasks.forEach(agentTask -> {
-            if (agentTask.isTarget()) {
-                targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);
-            } else {
-                sourceAgentTaskMap.put(agentTask.getAgentId(), agentTask);
-            }
-        });
+        agentTasks.stream()
+            .filter(agentTask -> StringUtils.isNotEmpty(agentTask.getAgentId()))
+            .forEach(agentTask -> {
+                if (agentTask.isTarget()) {
+                    targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);
+                } else {
+                    sourceAgentTaskMap.put(agentTask.getAgentId(), agentTask);
+                }
+            });
 
         FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(
             taskInstanceService,
@@ -236,7 +241,8 @@ public class ResultHandleResumeListener {
             sourceAgentTaskMap,
             gseTask,
             srcAndDestMap,
-            requestId);
+            requestId,
+            agentTasks);
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
 

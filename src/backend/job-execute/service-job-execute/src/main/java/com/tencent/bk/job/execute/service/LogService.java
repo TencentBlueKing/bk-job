@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
+import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
@@ -173,5 +175,43 @@ public interface LogService {
      * @param hostFileLogs  文件任务执行日志
      */
     void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> hostFileLogs);
+
+    /**
+     * 构造上传文件任务日志
+     *
+     * @param srcFile 源文件
+     * @param status  任务状态
+     * @param size    源文件大小
+     * @param speed   上传速度
+     * @param process 进度
+     * @param content 日志内容
+     */
+    ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(JobFile srcFile,
+                                                           FileDistStatusEnum status,
+                                                           String size,
+                                                           String speed,
+                                                           String process,
+                                                           String content);
+
+    /**
+     * 构造下载文件任务日志
+     *
+     * @param srcFile    源文件
+     * @param targetHost 目标主机
+     * @param targetPath 目标路径
+     * @param status     任务状态
+     * @param size       源文件大小
+     * @param speed      下载速度
+     * @param process    进度
+     * @param content    日志内容
+     */
+    ServiceFileTaskLogDTO buildDownloadServiceFileTaskLogDTO(JobFile srcFile,
+                                                             HostDTO targetHost,
+                                                             String targetPath,
+                                                             FileDistStatusEnum status,
+                                                             String size,
+                                                             String speed,
+                                                             String process,
+                                                             String content);
 
 }
