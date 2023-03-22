@@ -40,25 +40,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Configuration
 public class ExecutorConfiguration {
 
-    @Bean("syncAgentStatusExecutor")
-    public ThreadPoolExecutor syncAgentStatusExecutor() {
-        ThreadPoolExecutor syncAgentStatusExecutor = new ThreadPoolExecutor(
-            5,
-            5,
-            1L,
-            TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(5000), (r, executor) ->
-            log.error(
-                "syncAgentStatusExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
-                executor.getPoolSize(),
-                executor.getQueue().size()
-            )
-        );
-        syncAgentStatusExecutor.setThreadFactory(getThreadFactoryByNameAndSeq("syncAgentStatusExecutor-",
-            new AtomicInteger(1)));
-        return syncAgentStatusExecutor;
-    }
-
     @Bean("syncHostExecutor")
     public ThreadPoolExecutor syncHostExecutor() {
         ThreadPoolExecutor syncHostExecutor = new ThreadPoolExecutor(
