@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -157,4 +158,19 @@ public interface ApplicationHostDAO {
      * @return 删除的主机数量
      */
     int deleteBizHostInfoByBizId(long bizId);
+
+    /**
+     * 查询全部主机，主机对象只有主要属性
+     *
+     * @return 主机列表
+     */
+    List<HostSimpleDTO> listAllHostSimpleInfo();
+
+    /**
+     * 批量更新主机状态
+     * @param status 主机状态
+     * @param hostIdList 主机id列表
+     * @return 成功更新的条数
+     */
+    int batchUpdateHostStatusByHostIds(int status, List<Long> hostIdList);
 }
