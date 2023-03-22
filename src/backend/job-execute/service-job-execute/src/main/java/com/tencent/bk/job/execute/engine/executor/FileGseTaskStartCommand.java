@@ -165,10 +165,10 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         resolveFileSource();
         // 解析文件传输的源文件, 得到List<JobFile>
         parseSrcFiles();
-        // 解析源<->目标文件映射
-        parseSrcDestFileMap();
         // 解析目标路径中的变量
         resolvedTargetPathWithVariable();
+        // 解析源<->目标文件映射
+        parseSrcDestFileMap();
         // 初始化agent任务
         initFileSourceGseAgentTasks();
         // 保存文件子任务的初始状态
