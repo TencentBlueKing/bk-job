@@ -184,11 +184,11 @@ public interface HostService {
     void fillAgentStatus(List<ApplicationHostDTO> hosts);
 
     /**
-     * 根据本地主机信息从GSE拉取主机，两者根据状态做个对比，把状态不同的主机返回
+     * 本地主机状态与GSE主机状态做个比较，找到状态不同的主机并返回
      * @param hosts 本地主机
      * @return
      */
-    List<HostSimpleDTO>  listNeedChangedHostCompareToGSE(List<HostSimpleDTO> hosts);
+    List<HostSimpleDTO> findStatusChangedHosts(List<HostSimpleDTO> hosts);
 
     /**
      * 获取业务下的主机

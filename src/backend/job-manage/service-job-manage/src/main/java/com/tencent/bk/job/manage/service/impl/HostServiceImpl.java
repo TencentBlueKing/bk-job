@@ -732,9 +732,9 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostSimpleDTO> listNeedChangedHostCompareToGSE(List<HostSimpleDTO> hostList) {
-        List<HostSimpleDTO> needChangedHosts = new ArrayList<>();
-        if (hostList.isEmpty()) return needChangedHosts;
+    public List<HostSimpleDTO> findStatusChangedHosts(List<HostSimpleDTO> hostList) {
+        List<HostSimpleDTO> statusChangedHosts = new ArrayList<>();
+        if (hostList.isEmpty()) return statusChangedHosts;
         List<String> cloudIpList =
             hostList.stream().map(HostSimpleDTO::getCloudIp).collect(Collectors.toList());
         Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
@@ -743,10 +743,10 @@ public class HostServiceImpl implements HostService {
             QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(host.getCloudIp());
             if(host.getGseAgentAlive() != agentStatus.status){
                 host.setGseAgentAlive(agentStatus.status);
-                needChangedHosts.add(host);
+                statusChangedHosts.add(host);
             }
         }
-        return needChangedHosts;
+        return statusChangedHosts;
     }
 
     @Override

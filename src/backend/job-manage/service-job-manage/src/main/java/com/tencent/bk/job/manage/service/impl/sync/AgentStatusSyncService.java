@@ -65,21 +65,21 @@ public class AgentStatusSyncService {
         hostAgentStatusWatch.stop();
         hostAgentStatusWatch.start("getAgentStatus from GSE");
         long startTime = System.currentTimeMillis();
-        List<HostSimpleDTO> needChangedHosts = hostService.listNeedChangedHostCompareToGSE(localHosts);
+        List<HostSimpleDTO> statusChangedHosts = hostService.findStatusChangedHosts(localHosts);
         gseInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
         hostAgentStatusWatch.stop();
         hostAgentStatusWatch.start("updateHosts to local DB");
         startTime = System.currentTimeMillis();
-        int succUpdateHostNum = hostService.updateHostsStatus(needChangedHosts);
+        int succUpdateHostNum = hostService.updateHostsStatus(statusChangedHosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         hostAgentStatusWatch.stop();
         if (hostAgentStatusWatch.getTotalTimeMillis() > 180000) {
-            log.info("syncHostAgentStatus too slow, run statistics,totalHosts:{};needChangedHosts:{};succHosts:{};" +
-                "timeConsume:{}", localHosts.size(), needChangedHosts.size(), succUpdateHostNum,
+            log.warn("syncHostAgentStatus too slow,run statistics,totalHosts:{};statusChangedHosts:{};succUpdateHosts:{};" +
+                "timeConsume:{}", localHosts.size(), statusChangedHosts.size(), succUpdateHostNum,
                 hostAgentStatusWatch.prettyPrint());
         }
-        log.debug("syncHostAgentStatus Performance,totalHosts:{};needChangedHosts:{};succHosts:{};timeConsume:{}",
-            localHosts.size(), needChangedHosts.size(), succUpdateHostNum, hostAgentStatusWatch);
+        log.info("syncHostAgentStatus Performance,totalHosts:{};statusChangedHosts:{};succUpdateHosts:{};timeConsume:{}",
+            localHosts.size(), statusChangedHosts.size(), succUpdateHostNum, hostAgentStatusWatch);
         return Pair.of(gseInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 
