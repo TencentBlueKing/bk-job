@@ -732,17 +732,21 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public void fillHostStatus(List<HostSimpleDTO> hostList) {
-        if (hostList.isEmpty()) return;
+    public List<HostSimpleDTO> listNeedChangedHostCompareToGSE(List<HostSimpleDTO> hostList) {
+        List<HostSimpleDTO> needChangedHosts = new ArrayList<>();
+        if (hostList.isEmpty()) return needChangedHosts;
         List<String> cloudIpList =
             hostList.stream().map(HostSimpleDTO::getCloudIp).collect(Collectors.toList());
-        // 批量设置agent状态
         Map<String, QueryAgentStatusClient.AgentStatus> agentStatusMap =
             queryAgentStatusClient.batchGetAgentStatus(cloudIpList);
         for (HostSimpleDTO host : hostList) {
             QueryAgentStatusClient.AgentStatus agentStatus = agentStatusMap.get(host.getCloudIp());
-            host.setGseAgentAlive(agentStatus.status);
+            if(host.getGseAgentAlive() != agentStatus.status){
+                host.setGseAgentAlive(agentStatus.status);
+                needChangedHosts.add(host);
+            }
         }
+        return needChangedHosts;
     }
 
     @Override
