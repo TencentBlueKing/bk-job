@@ -73,6 +73,7 @@ const IpSelector = createIpSelector({
   unqiuePanelValue: false,
   nameStyle: 'camelCase',
   hostTableDefaultSelectAllMode: true,
+  hostSearchSelect: true,
   // hostTableCustomColumnList: [
   //     {
   //         key: 'a1',
