@@ -46,7 +46,7 @@ public class StepExecutionDetailDTO {
     /**
      * 任务执行分组状态
      */
-    List<AgentTaskResultGroupDTO> resultGroups;
+    private List<AgentTaskResultGroupDTO> resultGroups;
     /**
      * 步骤实例ID
      */
