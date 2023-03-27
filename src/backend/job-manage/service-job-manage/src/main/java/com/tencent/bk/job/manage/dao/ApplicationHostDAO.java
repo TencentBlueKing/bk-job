@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
+import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -232,4 +233,10 @@ public interface ApplicationHostDAO {
      * @return 删除的主机数量
      */
     int deleteBizHostInfoByBizId(long bizId);
+    /**
+     * 根据业务id统计主机状态数量
+     * @param bizIds 业务id
+     * @return 状态数量
+     */
+    List<HostStatusNumStatisticsDTO> countHostStatusNumByBizIds(List<Long> bizIds);
 }

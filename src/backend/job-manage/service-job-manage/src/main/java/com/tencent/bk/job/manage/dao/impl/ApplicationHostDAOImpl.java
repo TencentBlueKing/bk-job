@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
+import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
@@ -1250,6 +1251,32 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.CLOUD_IP.in(cloudIps));
         return queryHostsByCondition(conditions);
+    }
+
+    @Override
+    public List<HostStatusNumStatisticsDTO> countHostStatusNumByBizIds(List<Long> bizIds) {
+        List<Condition> conditions = new ArrayList<>();
+        if (bizIds != null) {
+            conditions.add(HostTopo.HOST_TOPO.APP_ID.in(bizIds));
+        }
+        var query = context.select(
+            TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
+            DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
+        ).from(TABLE)
+            .leftJoin(HostTopo.HOST_TOPO).on(TABLE.HOST_ID.eq(HostTopo.HOST_TOPO.HOST_ID))
+            .where(conditions)
+            .groupBy(TABLE.IS_AGENT_ALIVE);
+        val records = query.fetch();
+        List<HostStatusNumStatisticsDTO> countList = new ArrayList<>();
+        if (records.size() > 0) {
+            records.forEach(record -> {
+                HostStatusNumStatisticsDTO statisticsDTO = new HostStatusNumStatisticsDTO();
+                statisticsDTO.setHostNum(Integer.valueOf(record.get(HostStatusNumStatisticsDTO.KEY_HOST_NUM).toString()));
+                statisticsDTO.setGseAgentAlive(Integer.valueOf(record.get(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE).toString()));
+                countList.add(statisticsDTO);
+            });
+        }
+        return countList;
     }
 
     private List<ApplicationHostDTO> queryHostsByCondition(List<Condition> conditions) {
