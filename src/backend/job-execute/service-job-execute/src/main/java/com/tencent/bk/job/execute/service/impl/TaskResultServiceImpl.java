@@ -852,12 +852,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private List<HostDTO> getHostsByLogContentKeyword(long stepInstanceId, int executeCount, Integer batch,
                                                       String keyword) {
-        String searchKey = keyword.replaceAll("'", "").replaceAll("\\$", "")
-            .replaceAll("&", "").replaceAll("\\$", "")
-            .replaceAll("\\|", "").replaceAll("`", "")
-            .replaceAll(";", "");
-
-        return logService.getIpsByContentKeyword(stepInstanceId, executeCount, batch, searchKey);
+        return logService.getIpsByContentKeyword(stepInstanceId, executeCount, batch, keyword);
     }
 
     private List<HostDTO> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, String searchIp) {
