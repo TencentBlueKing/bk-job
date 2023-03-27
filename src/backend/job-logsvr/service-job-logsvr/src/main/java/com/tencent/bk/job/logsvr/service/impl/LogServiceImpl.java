@@ -33,6 +33,7 @@ import com.mongodb.client.model.WriteModel;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.FileLogQuery;
 import com.tencent.bk.job.logsvr.model.FileTaskLogDoc;
@@ -63,6 +64,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LogServiceImpl implements LogService {
     private static final int BATCH_SIZE = 100;
+    private static final char[] SPECIAL_CHAR = {'*', '(', ')', '+', '?', '\\', '$', '^', '>', '.'};
+    private static final String[] ESCAPE_CHAR = {"\\*", "\\(", "\\)", "\\+", "\\?", "\\\\", "\\$", "\\^", "\\>", "\\."};
     private final MongoTemplate mongoTemplate;
     private final LogCollectionFactory logCollectionFactory;
 
@@ -527,8 +530,8 @@ public class LogServiceImpl implements LogService {
         if (batch != null && batch > 0) {
             query.addCriteria(Criteria.where("batch").is(batch));
         }
-        Pattern pattern = Pattern.compile(keyword.replaceAll("['$&|`;#]", ""),
-            Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
+        keyword = StringUtil.escape(keyword, SPECIAL_CHAR, ESCAPE_CHAR);
+        Pattern pattern = Pattern.compile(keyword, Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
         query.addCriteria(Criteria.where("content").regex(pattern));
         return query;
     }
