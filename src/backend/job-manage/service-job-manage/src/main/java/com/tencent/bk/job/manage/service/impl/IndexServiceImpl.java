@@ -123,8 +123,8 @@ public class IndexServiceImpl implements IndexService {
     public AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope) {
         // 查出业务
         ApplicationDTO appInfo = applicationDAO.getAppById(appResourceScope.getAppId());
-        Long normalNum = 0l;
-        Long abnormalNum = 0l;
+        Long normalNum = 0L;
+        Long abnormalNum = 0L;
         List<Long> bizIds;
         if (appInfo.isBiz()) {
             // 普通业务

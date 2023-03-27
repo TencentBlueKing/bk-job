@@ -24,15 +24,10 @@
 
 package com.tencent.bk.job.common.model.dto;
 
-import com.tencent.bk.job.common.constant.JobConstants;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * host状态数量统计
