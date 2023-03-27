@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
@@ -233,4 +234,12 @@ public interface HostService {
      * @return 主机 Map<hostId, host>
      */
     Map<String, ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps);
+
+    /**
+     * 更新主机状态
+     *
+     * @param simpleHostList 主机列表
+     * @return 更新成功的条数
+     */
+    int updateHostsStatus(List<HostSimpleDTO> simpleHostList);
 }

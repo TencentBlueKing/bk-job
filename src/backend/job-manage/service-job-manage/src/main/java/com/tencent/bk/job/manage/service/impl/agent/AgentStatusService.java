@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.impl.agent;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -89,6 +91,39 @@ public class AgentStatusService {
                 hostInfoDTO.setGseAgentStatus(agentState.getStatusCode());
             }
         }
+    }
+
+    /**
+     * 本地主机状态与GSE主机状态做个比较，找到状态不同的主机并返回
+     *
+     * @param hosts 主机列表
+     */
+    public List<HostSimpleDTO> findStatusChangedHosts(List<HostSimpleDTO> hosts) {
+        List<HostSimpleDTO> statusChangedHosts = new ArrayList<>();
+        if (hosts.isEmpty()) return statusChangedHosts;
+
+        List<String> agentIdList = HostSimpleDTO.buildAgentIdList(hosts);
+        Map<String, AgentState> agentStateMap = null;
+        try {
+            agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+        } catch (Exception e) {
+            FormattingTuple msg = MessageFormatter.format(
+                "Fail to get agentState by agentIdList:{}",
+                LogUtil.buildListLog(agentIdList, 20)
+            );
+            log.warn(msg.getMessage(), e);
+            return statusChangedHosts;
+        }
+
+        for (HostSimpleDTO host : hosts) {
+            String agentId = host.getFinalAgentId();
+            AgentState agentState = agentStateMap.get(agentId);
+            if (agentState != null && host.getGseAgentAlive() != agentState.getStatusCode()) {
+                host.setGseAgentAlive(agentState.getStatusCode());
+                statusChangedHosts.add(host);
+            }
+        }
+        return statusChangedHosts;
     }
 
     /**

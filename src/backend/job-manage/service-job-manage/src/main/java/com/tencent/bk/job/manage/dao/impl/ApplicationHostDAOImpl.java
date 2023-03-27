@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
@@ -102,6 +103,20 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.IS_AGENT_ALIVE,
         TABLE.CLOUD_IP,
         TABLE.CLOUD_VENDOR_ID
+    };
+
+    private static final TableField<?, ?>[] SIMPLE_FIELDS = {
+        TABLE.HOST_ID,
+        TABLE.APP_ID,
+        TABLE.IS_AGENT_ALIVE,
+        TABLE.IP,
+        TABLE.CLOUD_AREA_ID,
+        TABLE.AGENT_ID,
+        TABLE.APP_ID,
+        TABLE.IP_V6,
+        TABLE.IP_DESC,
+        TABLE.OS,
+        TABLE.OS_TYPE
     };
 
     private final DSLContext context;
@@ -1095,6 +1110,26 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<HostSimpleDTO> listAllHostSimpleInfo() {
+        val query = context.select(SIMPLE_FIELDS)
+            .from(TABLE);
+        Result<Record> records = query.fetch();
+        List<HostSimpleDTO> hostInfoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(records)) {
+            records.map(record -> hostInfoList.add(extractSimpleData(record)));
+        }
+        return hostInfoList;
+    }
+
+    @Override
+    public int batchUpdateHostStatusByHostIds(int status, List<Long> hostIdList) {
+        return context.update(TABLE)
+            .set(TABLE.IS_AGENT_ALIVE, UByte.valueOf(status))
+            .where(TABLE.HOST_ID.in(hostIdList))
+            .execute();
+    }
+
+    @Override
     public boolean existsHost(long bizId, String ip) {
         return context.fetchExists(TABLE, TABLE.APP_ID.eq(ULong.valueOf(bizId)).and(TABLE.IP.eq(ip)));
     }
@@ -1267,5 +1302,25 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         applicationHostDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
         applicationHostDTO.setCloudVendorId(record.get(TABLE.CLOUD_VENDOR_ID));
         return applicationHostDTO;
+    }
+
+    public static HostSimpleDTO extractSimpleData(Record record) {
+        if (record == null) {
+            return null;
+        }
+        HostSimpleDTO hostSimpleDTO = new HostSimpleDTO();
+        hostSimpleDTO.setBizId(record.get(TABLE.APP_ID).longValue());
+        hostSimpleDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue());
+        hostSimpleDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
+        hostSimpleDTO.setAgentId(record.get(TABLE.AGENT_ID));
+        hostSimpleDTO.setIpv6(record.get(TABLE.IP_V6));
+        hostSimpleDTO.setHostName(record.get(TABLE.IP_DESC));
+        hostSimpleDTO.setOsName(record.get(TABLE.OS));
+        hostSimpleDTO.setOsType(record.get(TABLE.OS_TYPE));
+        hostSimpleDTO.setIp(record.get(TABLE.IP));
+        hostSimpleDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
+        hostSimpleDTO.setCloudIp(hostSimpleDTO.getCloudAreaId() + ":" + hostSimpleDTO.getIp());
+
+        return hostSimpleDTO;
     }
 }
