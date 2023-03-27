@@ -109,7 +109,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.HOST_ID,
         TABLE.APP_ID,
         TABLE.IS_AGENT_ALIVE,
-        TABLE.CLOUD_IP,
+        TABLE.IP,
+        TABLE.CLOUD_AREA_ID,
         TABLE.AGENT_ID,
         TABLE.APP_ID,
         TABLE.IP_V6,
@@ -1311,12 +1312,14 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         hostSimpleDTO.setBizId(record.get(TABLE.APP_ID).longValue());
         hostSimpleDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue());
         hostSimpleDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
-        hostSimpleDTO.setCloudIp(record.get(TABLE.CLOUD_IP));
         hostSimpleDTO.setAgentId(record.get(TABLE.AGENT_ID));
         hostSimpleDTO.setIpv6(record.get(TABLE.IP_V6));
         hostSimpleDTO.setHostName(record.get(TABLE.IP_DESC));
         hostSimpleDTO.setOsName(record.get(TABLE.OS));
         hostSimpleDTO.setOsType(record.get(TABLE.OS_TYPE));
+        hostSimpleDTO.setIp(record.get(TABLE.IP));
+        hostSimpleDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
+        hostSimpleDTO.setCloudIp(hostSimpleDTO.getCloudAreaId() + ":" + hostSimpleDTO.getIp());
 
         return hostSimpleDTO;
     }

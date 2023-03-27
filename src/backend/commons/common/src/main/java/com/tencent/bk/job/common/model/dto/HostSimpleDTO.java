@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 public class HostSimpleDTO {
 
     /**
@@ -90,6 +92,16 @@ public class HostSimpleDTO {
      */
     private String osType;
 
+    /**
+     * IPv4(主机的第一个IPv4地址,完整的IPv4地址使用displayIp字段)
+     */
+    private String ip;
+
+    /**
+     * 云区域ID
+     */
+    private Long cloudAreaId;
+
     @JsonIgnore
     public String getFinalAgentId() {
         if (StringUtils.isNotBlank(agentId)) {
@@ -101,6 +113,10 @@ public class HostSimpleDTO {
     public static List<String> buildAgentIdList(List<HostSimpleDTO> hosts) {
         List<String> agentIdList = new ArrayList<>();
         for (HostSimpleDTO host : hosts) {
+            if(StringUtils.isBlank(host.getIp()) && StringUtils.isBlank(host.getAgentId())){
+                log.warn("buildAgentIdList, ip and agentId is blank, {}", host);
+                continue;
+            }
             agentIdList.add(host.getFinalAgentId());
         }
         return agentIdList;
@@ -108,10 +124,8 @@ public class HostSimpleDTO {
 
     public ApplicationHostDTO convertToHostDTO(){
         ApplicationHostDTO hostDTO = new ApplicationHostDTO();
-        Long cloudAreaId = Long.valueOf(this.getCloudIp().split(":")[0]);
-        String ip = this.getCloudIp().split(":")[1];
-        hostDTO.setIp(ip);
-        hostDTO.setCloudAreaId(cloudAreaId);
+        hostDTO.setIp(this.getIp());
+        hostDTO.setCloudAreaId(this.getCloudAreaId());
         hostDTO.setCloudIp(this.getCloudIp());
         hostDTO.setGseAgentAlive(this.getGseAgentAlive().intValue() == 1);
         hostDTO.setGseAgentStatus(this.getGseAgentAlive());
