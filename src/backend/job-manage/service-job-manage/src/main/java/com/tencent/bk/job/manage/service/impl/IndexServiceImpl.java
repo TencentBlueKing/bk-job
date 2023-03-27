@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
@@ -122,40 +123,31 @@ public class IndexServiceImpl implements IndexService {
     public AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope) {
         // 查出业务
         ApplicationDTO appInfo = applicationDAO.getAppById(appResourceScope.getAppId());
-        Long normalNum;
-        Long abnormalNum;
-        List<Long> hostIds;
+        Long normalNum = 0l;
+        Long abnormalNum = 0l;
+        List<Long> bizIds;
         if (appInfo.isBiz()) {
             // 普通业务
-            hostIds = hostTopoDAO.listHostIdByBizIds(
-                Collections.singletonList(Long.valueOf(appResourceScope.getId()))
-            );
+            bizIds = Collections.singletonList(Long.valueOf(appResourceScope.getId()));
         } else if (appInfo.isAllBizSet()) {
             // 全业务
             // 不根据主机ID过滤
-            hostIds = null;
+            bizIds = null;
         } else if (appInfo.isBizSet()) {
             // 业务集
             // 查出业务集下所有子业务
-            List<Long> subBizIds = appInfo.getSubBizIds();
-            // 查出所有子业务下属主机ID
-            hostIds = hostTopoDAO.listHostIdByBizIds(subBizIds);
+            bizIds = appInfo.getSubBizIds();
         } else {
             throw new InternalException("Ilegal appInfo:" + appInfo, ErrorCode.INTERNAL_ERROR);
         }
-        // 查主机数量
-        normalNum = applicationHostDAO.countHostByIdAndStatus(
-            hostIds,
-            AgentStatusEnum.ALIVE
-        );
-        abnormalNum = applicationHostDAO.countHostByIdAndStatus(
-            hostIds,
-            AgentStatusEnum.NOT_ALIVE
-        );
-        abnormalNum += applicationHostDAO.countHostByIdAndStatus(
-            hostIds,
-            AgentStatusEnum.UNKNOWN
-        );
+        List<HostStatusNumStatisticsDTO> statisticsDTOS = applicationHostDAO.countHostStatusNumByBizIds(bizIds);
+        for (HostStatusNumStatisticsDTO statisticsDTO : statisticsDTOS) {
+            if (statisticsDTO.getGseAgentAlive() == AgentStatusEnum.ALIVE.getValue()) {
+                normalNum += statisticsDTO.getHostNum();
+            } else {
+                abnormalNum += statisticsDTO.getHostNum();
+            }
+        }
         return new AgentStatistics(normalNum.intValue(), abnormalNum.intValue());
     }
 
