@@ -8,7 +8,7 @@
     </div>
     <div
       ref="popRef"
-      style="width: 98px; padding: 5px 0; margin: -0.3rem -0.6rem;">
+      style="min-width: 98px; padding: 5px 0; margin: -0.3rem -0.6rem; word-break: keep-all;">
       <slot name="menu" />
     </div>
   </div>
