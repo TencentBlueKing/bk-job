@@ -73,7 +73,7 @@ public class BasicJwtManager implements JwtManager {
 
     @Override
     public String generateToken(long expireMills) {
-        // token 超时10min
+        // token 超时2h
         long expireAt = System.currentTimeMillis() + expireMills;
         this.token = Jwts.builder().setSubject("job-service-auth").setExpiration(new Date(expireAt))
             .signWith(SignatureAlgorithm.RS512, privateKey).compact();
@@ -81,8 +81,8 @@ public class BasicJwtManager implements JwtManager {
     }
 
     public String generateToken() {
-        // token 默认超时10min
-        return generateToken(10 * 60 * 1000);
+        // token 默认超时2h
+        return generateToken(120 * 60 * 1000);
     }
 
     /**
