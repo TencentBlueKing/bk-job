@@ -33,16 +33,18 @@
           <td style="width: 40%;">{{ row.fileLocationText }}</td>
           <td style="width: auto;">
             <template v-if="row.fileSize > 0">
-              <p v-if="row.uploadStatus !== 'danger'">
+              <p v-if="row.uploadStatus === 'success'">
                 {{ $t('本地文件') }}（{{ row.fileSizeText }}）
               </p>
-              <p v-else style="color: #ff5656;">
+              <p
+                v-if="row.uploadStatus === 'danger'"
+                style="color: #ff5656;">
                 {{ $t('上传失败') }}
               </p>
               <div class="upload-progress">
                 <transition name="fade">
                   <bk-progress
-                    v-show="row.uploadProgress !== 1"
+                    v-show="row.uploadStatus === 'primary'"
                     :percent="row.uploadProgress"
                     :show-text="false"
                     :theme="row.uploadStatus" />
@@ -173,7 +175,7 @@
         const { files } = event.target;
         const uploadFileQueue = [];
         const params = new FormData();
-                
+
         const sameStack = [];
         const largeStack = [];
         const includeStask = [];
@@ -183,13 +185,13 @@
           restrictMode,
           suffixList = [],
         } = this.FILE_UPLOAD_SETTING;
-                
+
         Array.from(files).forEach((curFile) => {
           const { name, size } = curFile;
 
           if (suffixList && suffixList.length > 0) {
             const fileExtRule = new RegExp(`(${suffixList.map(item => encodeRegexp(item)).join('|')})$`);
-                    
+
             // 上传文件后缀允许范围;
             if (restrictMode === 1
               && !fileExtRule.test(name)) {
@@ -203,13 +205,13 @@
               return;
             }
           }
-                    
+
           // 重名检测
           if (this.fileList.some(_ => _.fileLocationText === name)) {
             sameStack.push(name);
             return;
           }
-                    
+
           if (size > this.fileUploadMaxBytes) {
             largeStack.push(name);
             return;
@@ -222,7 +224,7 @@
           uploadFileQueue.push(sourceFile);
           params.append('uploadFiles', curFile);
         });
-                
+
         if (includeStask.length > 0) {
           this.messageError(`${I18n.t('文件')}[${includeStask.join(' / ')}]${I18n.t('的类型不在允许范围：')}${suffixList.join('、')}`);
         }
@@ -240,9 +242,9 @@
           this.$refs.uploadInput.value = '';
           return;
         }
-                
+
         this.fileList.push(...uploadFileQueue);
-                
+
         TaskExecuteService.getUploadFileContent(params, {
           onUploadProgress: _.throttle((event) => {
             uploadFileQueue.forEach((sourceFile) => {
