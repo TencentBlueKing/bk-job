@@ -37,18 +37,18 @@
           </td>
           <td style="width: auto;">
             <template v-if="row.fileSize > 0">
-              <p v-if="row.uploadStatus !== 'danger'">
+              <p v-if="row.uploadStatus === 'success'">
                 {{ $t('本地文件') }}（{{ row.fileSizeText }}）
               </p>
               <p
-                v-else
+                v-if="row.uploadStatus === 'danger'"
                 style="color: #ff5656;">
                 {{ $t('上传失败') }}
               </p>
               <div class="upload-progress">
                 <transition name="fade">
                   <bk-progress
-                    v-show="row.uploadProgress !== 1"
+                    v-show="row.uploadStatus === 'primary'"
                     :percent="row.uploadProgress"
                     :show-text="false"
                     :theme="row.uploadStatus" />
