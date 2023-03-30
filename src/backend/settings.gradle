@@ -92,4 +92,5 @@ include 'job-analysis:model-job-analysis'
 include 'job-tools'
 include 'job-tools:k8s-startup-controller'
 include 'upgrader'
+include 'boot-assemble'
 
