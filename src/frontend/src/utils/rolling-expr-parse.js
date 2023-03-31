@@ -136,8 +136,6 @@ const translateEN = (value) => {
   let lastFixedNum = 0;
   let lastPerNum = '';
 
-  const lastBatchPre = value.length > 1 ? '..., ' : '';
-
   const batchTotal = value.length;
 
   const parse = (atoms, batchNum) => {
@@ -150,7 +148,7 @@ const translateEN = (value) => {
 
       if (batchNum === batchTotal) {
         // eslint-disable-next-line max-len
-        return [`${lastBatchPre}followed by a batch of every ${fixedNum} host(s) until the rolling of all remaining hosts.`];
+        return [`followed by a batch of every ${fixedNum} host(s) until the rolling of all remaining hosts.`];
       }
       return [`${ordinalSuffixOf(batchNum)} batch ${fixedNum} hosts(s)`];
     }
@@ -164,7 +162,7 @@ const translateEN = (value) => {
 
       if (batchNum === batchTotal) {
         // eslint-disable-next-line max-len
-        return [`${lastBatchPre}${lastBatchPre}${perNum}% host(s) per batch until the rolling of all remaining hosts.`];
+        return [`${perNum}% host(s) per batch until the rolling of all remaining hosts.`];
       }
       return [`${ordinalSuffixOf(batchNum)} batch ${perNum}% hosts(s)`];
     }
@@ -186,7 +184,7 @@ const translateEN = (value) => {
         textQueue.push(`${ordinalSuffixOf(batchNum + 1)} batch ${lastPerNum}%+${step + step} host(s)`);
       } else if (lastFixedNum) {
         textQueue.push(`${ordinalSuffixOf(batchNum)} batch ${step + lastFixedNum} host(s)`);
-        textQueue.push(`${ordinalSuffixOf(batchNum + 1)} batch${step + step + lastFixedNum} host(s)`);
+        textQueue.push(`${ordinalSuffixOf(batchNum + 1)} batch ${step + step + lastFixedNum} host(s)`);
       }
       textQueue.push(`...and so on "increment ${step} host(s) per batch" until the rolling of all remaining hosts.`);
       return textQueue;
@@ -207,7 +205,7 @@ const translateEN = (value) => {
         textQueue.push(`${ordinalSuffixOf(batchNum)} batch ${rate * lastPerNum}% host(s)`);
         textQueue.push(`${ordinalSuffixOf(batchNum + 1)} batch ${rate * rate * lastPerNum}% host(s)`);
       } else if (lastFixedNum) {
-        textQueue.push(`${ordinalSuffixOf(batchNum)} batch${rate * lastFixedNum} host(s)`);
+        textQueue.push(`${ordinalSuffixOf(batchNum)} batch ${rate * lastFixedNum} host(s)`);
         textQueue.push(`${ordinalSuffixOf(batchNum + 1)} batch ${rate * rate * lastFixedNum} host(s)`);
       }
       textQueue.push(`...and so on "times ${rate} host(s) per batch" until the rolling of all remaining hosts.`);
@@ -222,7 +220,7 @@ const translateEN = (value) => {
         return ['All of the hosts in one batch.'];
       }
 
-      return [`"${ordinalSuffixOf(batchNum)} batch" all the remaining hosts.`];
+      return [`${ordinalSuffixOf(batchNum)} batch all the remaining hosts.`];
     }
 
     throw new Error(`${atoms} is not allowed.`);

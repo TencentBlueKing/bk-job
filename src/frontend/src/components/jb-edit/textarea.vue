@@ -288,13 +288,12 @@
        * @desc 退出编辑状态
        */
       handleHideInput (event) {
-        if (event.path && event.path.length > 0) {
-          // eslint-disable-next-line no-plusplus
-          for (let i = 0; i < event.path.length; i++) {
-            const target = event.path[i];
-            if (target.className === 'jb-edit-textarea') {
-              return;
-            }
+        const eventPath = event.composedPath();
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < eventPath.length; i++) {
+          const target = eventPath[i];
+          if (target.className === 'jb-edit-textarea') {
+            return;
           }
         }
         this.isEditing = false;
