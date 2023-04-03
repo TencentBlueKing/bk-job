@@ -38,7 +38,10 @@ export default {
     提交: 'Commit',
     云区域: 'Cloud Area',
     '输入IP，以“回车”分隔': 'Separate with new line...',
-    备注: 'Description',
+    备注: {
+      label: 'Description',
+      colHead: 'DESCRIPTION',
+    },
     IP必填: 'IP address field is required',
     备注必填: 'Description field is required',
     生效范围必填: 'Acting On is required',

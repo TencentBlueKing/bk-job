@@ -75,7 +75,7 @@
           type="textarea" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('whiteIP.备注')"
+        :label="$t('whiteIP.备注.label')"
         property="remark"
         required>
         <bk-input
@@ -252,7 +252,7 @@
             this.actionScope = data;
           });
       },
-            
+
       handleRangeChange (value) {
         if (value.length > 0) {
           this.$refs.whiteIpForm.clearError('actionScopeIdList');

@@ -85,6 +85,13 @@
         prop="appText"
         show-overflow-tooltip />
       <bk-table-column
+        v-if="allRenderColumnMap.remark"
+        key="remark"
+        align="left"
+        :label="$t('whiteIP.备注.colHead')"
+        prop="remark"
+        show-overflow-tooltip />
+      <bk-table-column
         v-if="allRenderColumnMap.creator"
         key="creator"
         align="left"
@@ -263,6 +270,10 @@
           id: 'appText',
           label: I18n.t('whiteIP.目标业务.colHead'),
           disabled: true,
+        },
+        {
+          id: 'remark',
+          label: I18n.t('whiteIP.备注.colHead'),
         },
         {
           id: 'creator',
