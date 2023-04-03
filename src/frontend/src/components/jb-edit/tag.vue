@@ -239,7 +239,6 @@
           return;
         }
         copyMemo = _.cloneDeep(this.localValue);
-        console.log('form copyMemocopyMemo = ', copyMemo);
         execCopy(this.text);
       },
       /**

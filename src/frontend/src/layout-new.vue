@@ -270,8 +270,6 @@
         ENABLE_FEATURE_FILE_MANAGE: false,
       });
 
-      console.dir(context);
-
       /**
        * @desc 返回首页
        */
