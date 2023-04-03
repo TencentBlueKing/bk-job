@@ -28,6 +28,11 @@ dependencies {
     api project(":job-logsvr:service-job-logsvr")
     api project(":commons:common-i18n")
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    constraints {
+        implementation('commons-fileupload:commons-fileupload:1.5') {
+            because 'version 1.4 pulled from spring-cloud-starter-openfeign has vulnerabilities(CVE-2023-24998)'
+        }
+    }
     implementation 'org.springframework.cloud:spring-cloud-starter-consul-discovery'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
