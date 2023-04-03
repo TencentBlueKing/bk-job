@@ -28,6 +28,11 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt'
     implementation 'com.google.guava:guava'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    constraints {
+        implementation('commons-fileupload:commons-fileupload:1.5') {
+            because 'version 1.4 pulled from spring-cloud-starter-openfeign has vulnerabilities(CVE-2023-24998)'
+        }
+    }
     api(group: 'org.springframework.boot', name: 'spring-boot')
     api(group: 'org.springframework.boot', name: 'spring-boot-autoconfigure')
     implementation 'org.springframework:spring-context'
