@@ -39,11 +39,6 @@ dependencies {
     implementation "org.apache.commons:commons-collections4"
     api("org.springframework.cloud:spring-cloud-starter-sleuth")
     implementation('org.springframework.cloud:spring-cloud-starter-openfeign')
-    constraints {
-        implementation('commons-fileupload:commons-fileupload:1.5') {
-            because 'version 1.4 pulled from spring-cloud-starter-openfeign has vulnerabilities(CVE-2023-24998)'
-        }
-    }
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"
     implementation "org.slf4j:slf4j-api"
