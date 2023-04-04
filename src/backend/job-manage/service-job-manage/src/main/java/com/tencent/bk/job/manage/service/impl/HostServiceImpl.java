@@ -1532,11 +1532,11 @@ public class HostServiceImpl implements HostService {
             List<BasicAppHost> cmdbExistHosts = cmdbHostsPair.getRight();
             if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
                 notInAppHosts.clear();
-                List<HostDTO> cmdbValidHosts = new ArrayList<>();
+                List<BasicAppHost> cmdbValidHosts = new ArrayList<>();
                 cmdbExistHosts.forEach(existHost -> {
                     if (includeBizIds.contains(existHost.getBizId())) {
                         validHosts.add(existHost.toHostDTO());
-                        cmdbValidHosts.add(existHost.toHostDTO());
+                        cmdbValidHosts.add(existHost);
                     } else {
                         notInAppHosts.add(existHost.toHostDTO());
                     }
