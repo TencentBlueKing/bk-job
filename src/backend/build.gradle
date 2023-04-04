@@ -282,6 +282,14 @@ subprojects {
             dependency "com.beust:jcommander:$jcommanderVersion"
         }
     }
+    dependencies {
+        constraints {
+            implementation('commons-fileupload:commons-fileupload:1.5') {
+                because 'version 1.4 pulled from spring-cloud-starter-openfeign has vulnerabilities(CVE-2023-24998)'
+            }
+        }
+    }
+
     configurations {
         all*.exclude group: 'junit', module: 'junit'
         all*.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
