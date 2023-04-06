@@ -1366,6 +1366,11 @@ public class HostServiceImpl implements HostService {
             }
         });
 
+        // 对于判定为其他业务下的主机，可能是缓存数据不准确导致，需要根据CMDB实时数据进行二次判定
+        if (CollectionUtils.isNotEmpty(notInAppHosts)) {
+            reConfirmNotInAppHostsByCmdb(notInAppHosts, notExistHosts, validHosts, appId, includeBizIds);
+        }
+
         if (CollectionUtils.isNotEmpty(notExistHosts) || CollectionUtils.isNotEmpty(notInAppHosts)) {
             log.info("Contains invalid hosts, appId: {}, notExistHosts: {}, hostsInOtherApp: {}",
                 appId, notExistHosts, notInAppHosts);
@@ -1376,6 +1381,47 @@ public class HostServiceImpl implements HostService {
         result.setNotInAppHosts(notInAppHosts);
 
         return result;
+    }
+
+    /**
+     * 对于判定为其他业务下的主机，可能是缓存数据不准确导致，根据CMDB实时数据进行二次判定
+     *
+     * @param notInAppHosts 前期判定为在其他业务下的主机，在该方法中数据可能被修改
+     * @param notExistHosts 前期判定为不存在的主机，在该方法中数据可能被修改
+     * @param validHosts    前期判定为在业务下的主机，在该方法中数据可能被修改
+     * @param appId         Job内业务ID
+     * @param includeBizIds Job内业务ID可能对应的多个CMDB业务ID列表
+     */
+    private void reConfirmNotInAppHostsByCmdb(List<HostDTO> notInAppHosts,
+                                              List<HostDTO> notExistHosts,
+                                              List<HostDTO> validHosts,
+                                              Long appId,
+                                              List<Long> includeBizIds) {
+        Pair<List<HostDTO>, List<ApplicationHostDTO>> cmdbHostsPair = listHostsFromCmdb(notInAppHosts);
+        if (CollectionUtils.isNotEmpty(cmdbHostsPair.getLeft())) {
+            notExistHosts.addAll(cmdbHostsPair.getLeft());
+        }
+        List<ApplicationHostDTO> cmdbExistHosts = cmdbHostsPair.getRight();
+        if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
+            notInAppHosts.clear();
+            List<ApplicationHostDTO> cmdbValidHosts = new ArrayList<>();
+            cmdbExistHosts.forEach(existHost -> {
+                if (includeBizIds.contains(existHost.getBizId())) {
+                    validHosts.add(existHost.toHostDTO());
+                    cmdbValidHosts.add(existHost);
+                } else {
+                    notInAppHosts.add(existHost.toHostDTO());
+                }
+            });
+            if (!cmdbValidHosts.isEmpty()) {
+                log.info(
+                    "{} hosts belong to appId {} after check in cmdb, cmdbValidHosts={}",
+                    cmdbValidHosts.size(),
+                    appId,
+                    cmdbValidHosts
+                );
+            }
+        }
     }
 
     private void refreshHostAgentIdIfNeed(boolean needRefreshAgentId, List<ApplicationHostDTO> hosts) {
@@ -1409,19 +1455,54 @@ public class HostServiceImpl implements HostService {
             missingAgentIdHostIds, hostIdAndAgentIdMap, System.currentTimeMillis() - start);
     }
 
-    private Pair<List<HostDTO>, List<ApplicationHostDTO>> listHostsFromCacheOrCmdb(Collection<HostDTO> hosts) {
-        List<ApplicationHostDTO> appHosts = new ArrayList<>();
+    private Pair<List<HostDTO>, List<ApplicationHostDTO>> listHostsFromCmdb(Collection<HostDTO> hosts) {
         List<HostDTO> notExistHosts = new ArrayList<>();
+        List<ApplicationHostDTO> appHosts = new ArrayList<>();
+        Pair<List<Long>, List<String>> pair = separateByHostIdOrCloudIp(hosts);
+        List<Long> hostIds = pair.getLeft();
+        List<String> cloudIps = pair.getRight();
+        if (CollectionUtils.isNotEmpty(hostIds)) {
+            Pair<List<Long>, List<ApplicationHostDTO>> result =
+                new ListHostByHostIdsStrategy().listHostsFromCmdb(hostIds);
+            appHosts.addAll(result.getRight());
+            if (CollectionUtils.isNotEmpty(result.getLeft())) {
+                result.getLeft().forEach(notExistHostId -> {
+                    notExistHosts.add(HostDTO.fromHostId(notExistHostId));
+                });
+            }
+        }
+        if (CollectionUtils.isNotEmpty(cloudIps)) {
+            Pair<List<String>, List<ApplicationHostDTO>> result =
+                new ListHostByIpsStrategy().listHostsFromCmdb(cloudIps);
+            appHosts.addAll(result.getRight());
+            if (CollectionUtils.isNotEmpty(result.getLeft())) {
+                result.getLeft().forEach(notExistCloudIp -> {
+                    notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp));
+                });
+            }
+        }
+        return Pair.of(notExistHosts, appHosts);
+    }
+
+    private Pair<List<Long>, List<String>> separateByHostIdOrCloudIp(Collection<HostDTO> hosts) {
         List<Long> hostIds = new ArrayList<>();
         List<String> cloudIps = new ArrayList<>();
         hosts.forEach(host -> {
             if (host.getHostId() != null) {
                 hostIds.add(host.getHostId());
             } else {
-                // 兼容使用云区域+ip来代表主机的场景
                 cloudIps.add(host.toCloudIp());
             }
         });
+        return Pair.of(hostIds, cloudIps);
+    }
+
+    private Pair<List<HostDTO>, List<ApplicationHostDTO>> listHostsFromCacheOrCmdb(Collection<HostDTO> hosts) {
+        List<ApplicationHostDTO> appHosts = new ArrayList<>();
+        List<HostDTO> notExistHosts = new ArrayList<>();
+        Pair<List<Long>, List<String>> pair = separateByHostIdOrCloudIp(hosts);
+        List<Long> hostIds = pair.getLeft();
+        List<String> cloudIps = pair.getRight();
         if (CollectionUtils.isNotEmpty(hostIds)) {
             Pair<List<Long>, List<ApplicationHostDTO>> result = listHostsByStrategy(hostIds,
                 new ListHostByHostIdsStrategy());
