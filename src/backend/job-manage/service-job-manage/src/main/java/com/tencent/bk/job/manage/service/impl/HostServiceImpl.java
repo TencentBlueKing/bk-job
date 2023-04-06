@@ -1525,31 +1525,7 @@ public class HostServiceImpl implements HostService {
 
         // 对于判定为其他业务下的主机，可能是缓存数据不准确导致，需要根据CMDB实时数据进行二次判定
         if (CollectionUtils.isNotEmpty(notInAppHosts)) {
-            Pair<List<HostDTO>, List<BasicAppHost>> cmdbHostsPair = listHostsFromCmdb(notInAppHosts);
-            if (CollectionUtils.isNotEmpty(cmdbHostsPair.getLeft())) {
-                notExistHosts.addAll(cmdbHostsPair.getLeft());
-            }
-            List<BasicAppHost> cmdbExistHosts = cmdbHostsPair.getRight();
-            if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
-                notInAppHosts.clear();
-                List<BasicAppHost> cmdbValidHosts = new ArrayList<>();
-                cmdbExistHosts.forEach(existHost -> {
-                    if (includeBizIds.contains(existHost.getBizId())) {
-                        validHosts.add(existHost.toHostDTO());
-                        cmdbValidHosts.add(existHost);
-                    } else {
-                        notInAppHosts.add(existHost.toHostDTO());
-                    }
-                });
-                if (!cmdbValidHosts.isEmpty()) {
-                    log.info(
-                        "{} hosts belong to appId {} after check in cmdb, cmdbValidHosts={}",
-                        cmdbValidHosts.size(),
-                        appId,
-                        cmdbValidHosts
-                    );
-                }
-            }
+            reConfirmNotInAppHostsByCmdb(notInAppHosts, notExistHosts, validHosts, appId, includeBizIds);
         }
 
         if (CollectionUtils.isNotEmpty(notExistHosts) || CollectionUtils.isNotEmpty(notInAppHosts)) {
@@ -1562,6 +1538,47 @@ public class HostServiceImpl implements HostService {
         result.setNotInAppHosts(notInAppHosts);
 
         return result;
+    }
+
+    /**
+     * 对于判定为其他业务下的主机，可能是缓存数据不准确导致，根据CMDB实时数据进行二次判定
+     *
+     * @param notInAppHosts 前期判定为在其他业务下的主机，在该方法中数据可能被修改
+     * @param notExistHosts 前期判定为不存在的主机，在该方法中数据可能被修改
+     * @param validHosts    前期判定为在业务下的主机，在该方法中数据可能被修改
+     * @param appId         Job内业务ID
+     * @param includeBizIds Job内业务ID可能对应的多个CMDB业务ID列表
+     */
+    private void reConfirmNotInAppHostsByCmdb(List<HostDTO> notInAppHosts,
+                                              List<HostDTO> notExistHosts,
+                                              List<HostDTO> validHosts,
+                                              Long appId,
+                                              List<Long> includeBizIds) {
+        Pair<List<HostDTO>, List<BasicAppHost>> cmdbHostsPair = listHostsFromCmdb(notInAppHosts);
+        if (CollectionUtils.isNotEmpty(cmdbHostsPair.getLeft())) {
+            notExistHosts.addAll(cmdbHostsPair.getLeft());
+        }
+        List<BasicAppHost> cmdbExistHosts = cmdbHostsPair.getRight();
+        if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
+            notInAppHosts.clear();
+            List<BasicAppHost> cmdbValidHosts = new ArrayList<>();
+            cmdbExistHosts.forEach(existHost -> {
+                if (includeBizIds.contains(existHost.getBizId())) {
+                    validHosts.add(existHost.toHostDTO());
+                    cmdbValidHosts.add(existHost);
+                } else {
+                    notInAppHosts.add(existHost.toHostDTO());
+                }
+            });
+            if (!cmdbValidHosts.isEmpty()) {
+                log.info(
+                    "{} hosts belong to appId {} after check in cmdb, cmdbValidHosts={}",
+                    cmdbValidHosts.size(),
+                    appId,
+                    cmdbValidHosts
+                );
+            }
+        }
     }
 
     private Pair<List<HostDTO>, List<BasicAppHost>> listHostsFromCmdb(Collection<HostDTO> hosts) {
