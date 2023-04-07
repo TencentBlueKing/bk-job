@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.gateway.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -47,6 +48,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+@Slf4j
 @Configuration
 public class RestConfig {
     @Bean
@@ -61,8 +63,12 @@ public class RestConfig {
         try {
             SSLContextBuilder builder = new SSLContextBuilder();
             builder.loadTrustMaterial(null, (X509Certificate[] x509Certificates, String s) -> true);
-            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(builder.build(), new String[]{
-                "SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.2"}, null, NoopHostnameVerifier.INSTANCE);
+            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                builder.build(),
+                null,
+                null,
+                NoopHostnameVerifier.INSTANCE
+            );
             Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", new PlainConnectionSocketFactory())
                 .register("https", socketFactory).build();
@@ -72,9 +78,8 @@ public class RestConfig {
                 HttpClients.custom().setSSLSocketFactory(socketFactory).setConnectionManager(phccm)
                     .setConnectionManagerShared(true).build();
             factory.setHttpClient(httpClient);
-
         } catch (Exception e) {
-
+            log.error("Fail to init httpClient", e);
         }
 
         RestTemplate restTemplate = new RestTemplate(factory);
