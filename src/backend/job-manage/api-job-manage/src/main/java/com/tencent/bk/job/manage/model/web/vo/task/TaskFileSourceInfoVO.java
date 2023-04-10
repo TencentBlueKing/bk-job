@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -80,8 +81,8 @@ public class TaskFileSourceInfoVO {
                     return false;
                 }
                 for (String file : fileLocation) {
-                    if (StringUtils.isBlank(file)) {
-                        JobContextUtil.addDebugMessage("Invalid file location!");
+                    if (!FilePathValidateUtil.validateFileSystemAbsolutePath(file)) {
+                        JobContextUtil.addDebugMessage("fileLocation is null or illegal!");
                         return false;
                     }
                 }
