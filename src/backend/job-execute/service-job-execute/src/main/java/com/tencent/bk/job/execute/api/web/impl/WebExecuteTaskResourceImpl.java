@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -430,10 +431,16 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                     log.warn("Fast send file, account is empty!");
                     return false;
                 }
+                for (String file : fileSource.getFileLocation()) {
+                    if (!FilePathValidateUtil.validateFileSystemAbsolutePath(file)) {
+                        log.warn("Fast send file, fileLocation is null or illegal!");
+                        return false;
+                    }
+                }
             }
         }
-        if (StringUtils.isBlank(fileDestination.getPath())) {
-            log.warn("Fast send file, targetPath is empty");
+        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(fileDestination.getPath())) {
+            log.warn("Fast send file, fileDestinationPath is null or illegal!");
             return false;
         }
 
