@@ -208,6 +208,7 @@
         for (let i = 0; i < eventPath.length; i++) {
           const target = eventPath[i];
           if (/tippy-popper/.test(target.className)
+            || /bk-info-box/.test(target.className)
             || /job-tag-create-dialog/.test(target.className)) {
             return;
           }
