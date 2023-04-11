@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.service.AccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -134,6 +135,7 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     }
 
     @Override
+    @Transactional(rollbackFor = {Throwable.class})
     public InternalResponse<ServiceAccountDTO> saveOrGetAccount(String username, Long createTime, Long lastModifyTime,
                                                                 String lastModifyUser, Long appId,
                                                                 AccountCreateUpdateReq accountCreateUpdateReq) {
