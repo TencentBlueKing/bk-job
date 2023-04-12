@@ -131,7 +131,7 @@ public class AccountServiceImpl implements AccountService {
         Map<Long, AccountDisplayDTO> map = new HashMap<>();
         List<AccountDisplayDTO> accountDisplayDTOList = accountDAO.listAccountDisplayInfoByIds(accountIds);
         for (AccountDisplayDTO accountDisplayDTO : accountDisplayDTOList) {
-            map.put(accountDisplayDTO.getId(),accountDisplayDTO);
+            map.put(accountDisplayDTO.getId(), accountDisplayDTO);
         }
         return map;
     }
@@ -143,6 +143,21 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void updateAccount(AccountDTO account) throws ServiceException {
+        AccountDTO existAccount = accountDAO.getAccountExceptId(
+            account.getAppId(),
+            account.getCategory(),
+            account.getAlias(),
+            account.getId()
+        );
+        if (existAccount != null) {
+            log.info(
+                "Another same alias exists:(appId={}, category={}, alias={})",
+                account.getAppId(),
+                account.getCategory(),
+                account.getAlias()
+            );
+            throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALIAS_EXIST);
+        }
         if (StringUtils.isNotEmpty(account.getPassword())) {
             account.setPassword(encryptor.encrypt(account.getPassword()));
         }
