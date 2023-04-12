@@ -61,4 +61,9 @@ public class GseTaskServiceImpl implements GseTaskService {
     public GseTaskDTO getGseTask(long gseTaskId) {
         return gseTaskDAO.getGseTask(gseTaskId);
     }
+
+    @Override
+    public GseTaskDTO getGseTaskByGseTaskId(String gseTaskId) {
+        return gseTaskDAO.getGseTaskByGseTaskId(gseTaskId);
+    }
 }

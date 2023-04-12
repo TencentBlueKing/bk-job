@@ -65,4 +65,11 @@ public interface GseTaskDAO {
      */
     GseTaskDTO getGseTask(long gseTaskId);
 
+    /**
+     * 获取 GSE 任务
+     *
+     * @param gseTaskId GSE任务ID
+     * @return GSE 任务
+     */
+    GseTaskDTO getGseTaskByGseTaskId(String gseTaskId);
 }

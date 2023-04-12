@@ -123,4 +123,12 @@ public class GseTaskDAOImpl implements GseTaskDAO {
             .fetchOne();
         return extractInfo(record);
     }
+
+    @Override
+    public GseTaskDTO getGseTaskByGseTaskId(String gseTaskId) {
+        Record record  = dslContext.select(ALL_FIELDS).from(TABLE)
+            .where(TABLE.GSE_TASK_ID.eq(gseTaskId))
+            .fetchOne();
+        return extractInfo(record);
+    }
 }

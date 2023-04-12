@@ -22,53 +22,66 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.model.web.vo;
 
-import com.tencent.bk.job.execute.model.GseTaskDTO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-/**
- * GSE 任务 Service
- */
-public interface GseTaskService {
+@ApiModel("任务链接")
+@Data
+public class TaskLinkVO {
+    /**
+     * 资源范围类型
+     */
+    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    private String scopeType;
 
     /**
-     * 保存 GSE 任务
-     *
-     * @param gseTask GSE 任务
+     * 资源范围ID
      */
-    Long saveGseTask(GseTaskDTO gseTask);
+    @ApiModelProperty("资源范围ID")
+    private String scopeId;
 
     /**
-     * 更新 GSE 任务
-     *
-     * @param gseTask GSE 任务
-     * @return 是否更新成功
+     * 业务ID
      */
-    boolean updateGseTask(GseTaskDTO gseTask);
+    @ApiModelProperty("业务ID")
+    private Long appId;
 
     /**
-     * 获取 GSE 任务
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @param batch          滚动执行批次
-     * @return GSE 任务
+     * 任务ID
      */
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch);
+    @ApiModelProperty("任务ID")
+    private Long jobInstanceId;
 
     /**
-     * 获取 GSE 任务
-     *
-     * @param gseTaskId GSE任务ID
-     * @return GSE 任务
+     * 步骤ID
      */
-    GseTaskDTO getGseTask(long gseTaskId);
+    @ApiModelProperty("步骤ID")
+    private Long stepInstanceId;
 
     /**
-     * 查询 GSE 任务
-     *
-     * @param gseTaskId GSE任务ID
-     * @return GSE 任务
+     * 执行次数
      */
-    GseTaskDTO getGseTaskByGseTaskId(String gseTaskId);
+    @ApiModelProperty("执行次数")
+    private Integer executeCount;
+
+    /**
+     * 批次
+     */
+    @ApiModelProperty("批次")
+    private Integer batch;
+
+    /**
+     * gse任务ID
+     */
+    @ApiModelProperty("gse任务ID")
+    private String gseTaskId;
+
+    /**
+     * web访问链接
+     */
+    @ApiModelProperty("web访问链接")
+    private String link;
 }

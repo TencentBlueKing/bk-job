@@ -22,53 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.api.web;
 
-import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.execute.model.web.vo.TaskLinkVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * GSE 任务 Service
+ * 自助查询API-前端调用
  */
-public interface GseTaskService {
-
-    /**
-     * 保存 GSE 任务
-     *
-     * @param gseTask GSE 任务
-     */
-    Long saveGseTask(GseTaskDTO gseTask);
-
-    /**
-     * 更新 GSE 任务
-     *
-     * @param gseTask GSE 任务
-     * @return 是否更新成功
-     */
-    boolean updateGseTask(GseTaskDTO gseTask);
-
-    /**
-     * 获取 GSE 任务
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @param batch          滚动执行批次
-     * @return GSE 任务
-     */
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch);
-
-    /**
-     * 获取 GSE 任务
-     *
-     * @param gseTaskId GSE任务ID
-     * @return GSE 任务
-     */
-    GseTaskDTO getGseTask(long gseTaskId);
-
-    /**
-     * 查询 GSE 任务
-     *
-     * @param gseTaskId GSE任务ID
-     * @return GSE 任务
-     */
-    GseTaskDTO getGseTaskByGseTaskId(String gseTaskId);
+@Api(tags = {"job-execute:web:Search_Tools"})
+@RequestMapping("/web/tools")
+@RestController
+@WebAPI
+public interface WebSearchToolsResource {
+    @ApiOperation(value = "查询任务链接", produces = "application/json")
+    @GetMapping(value = {"/queryJobInstance/{gseTaskId}"})
+    Response<TaskLinkVO> getTaskLink(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "GSE任务ID", required = true)
+        @PathVariable(value = "gseTaskId")
+            String gseTaskId
+    );
 }
