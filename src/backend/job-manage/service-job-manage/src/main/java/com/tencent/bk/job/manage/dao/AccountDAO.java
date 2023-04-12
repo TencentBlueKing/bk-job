@@ -133,17 +133,6 @@ public interface AccountDAO {
      */
     AccountDTO getAccount(Long appId, AccountCategoryEnum category, String alias);
 
-    /**
-     * 根据别名获取账号信息，排除指定ID
-     *
-     * @param appId    业务ID
-     * @param category 账号类型
-     * @param alias    账号别名
-     * @param exceptId 要排除的ID
-     * @return 账号
-     */
-    AccountDTO getAccountExceptId(Long appId, AccountCategoryEnum category, String alias, Long exceptId);
-
     AccountDTO getAccount(Long appId, AccountCategoryEnum category, AccountTypeEnum type, String account, String alias);
 
     /**

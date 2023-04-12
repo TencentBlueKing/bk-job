@@ -143,18 +143,17 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void updateAccount(AccountDTO account) throws ServiceException {
-        AccountDTO existAccount = accountDAO.getAccountExceptId(
+        AccountDTO existAccount = accountDAO.getAccount(
             account.getAppId(),
             account.getCategory(),
-            account.getAlias(),
-            account.getId()
+            account.getAlias()
         );
-        if (existAccount != null) {
+        if (existAccount != null && !existAccount.getId().equals(account.getId())) {
             log.info(
                 "Another same alias exists:(appId={}, category={}, alias={})",
-                account.getAppId(),
-                account.getCategory(),
-                account.getAlias()
+                existAccount.getAppId(),
+                existAccount.getCategory(),
+                existAccount.getAlias()
             );
             throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALIAS_EXIST);
         }
