@@ -45,4 +45,12 @@ public interface RollingConfigDAO {
      * @return 滚动配置
      */
     RollingConfigDTO queryRollingConfigById(Long rollingConfigId);
+
+    /**
+     * 通过任务ID获取滚动配置
+     *
+     * @param taskInstanceId 任务ID
+     * @return 滚动配置
+     */
+    RollingConfigDTO queryRollingConfigByTaskInstanceId(long taskInstanceId);
 }

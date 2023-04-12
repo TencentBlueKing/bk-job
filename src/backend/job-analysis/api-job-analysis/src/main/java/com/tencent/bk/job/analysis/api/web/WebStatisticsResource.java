@@ -181,6 +181,7 @@ public interface WebStatisticsResource {
             "TASK_TIME_CONSUMING:任务耗时\n" +
             "SCRIPT_TYPE:快速执行脚本的脚本类型\n" +
             "FILE_TRANSFER_MODE:快速分发文件的传输模式\n" +
+            "ROLLING_TASK:滚动执行\n" +
             ")")
         @PathVariable(value = "dimension", required = true)
             DimensionEnum dimension,

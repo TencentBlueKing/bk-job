@@ -78,6 +78,36 @@ public class ExecutedTaskStatisticService extends BaseStatisticService {
         return failedStatisticsDTOList;
     }
 
+    private List<StatisticsDTO> getRollingTaskFailedStatisticsDTOList(List<Long> appIdList, String startDate, String endDate) {
+        List<StatisticsDTO> failedStatisticsDTOList;
+        if (appIdList == null) {
+            // 全局指标
+            failedStatisticsDTOList =
+                statisticsDAO.getStatisticsListBetweenDate(
+                    Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
+                    null,
+                    StatisticsConstants.RESOURCE_FAILED_TASK,
+                    StatisticsConstants.DIMENSION_ROLLING_TASK,
+                    StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY,
+                    startDate,
+                    endDate
+                );
+            if (failedStatisticsDTOList == null || failedStatisticsDTOList.isEmpty()) {
+                failedStatisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList, null,
+                    StatisticsConstants.RESOURCE_FAILED_TASK, StatisticsConstants.DIMENSION_ROLLING_TASK,
+                    StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, startDate, endDate);
+            }
+        } else {
+            // 按业务聚合
+            failedStatisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
+                StatisticsConstants.GLOBAL_APP_ID_LIST, StatisticsConstants.RESOURCE_FAILED_TASK,
+                StatisticsConstants.DIMENSION_ROLLING_TASK, StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, startDate
+                , endDate);
+        }
+        log.debug("RollingTaskFailedStatisticsDTOList={}", failedStatisticsDTOList);
+        return failedStatisticsDTOList;
+    }
+
     public List<DayDistributionElementVO> getByStartupModeDayDetail(List<Long> appIdList,
                                                                     String startDate, String endDate) {
         List<StatisticsDTO> statisticsDTOList;
@@ -164,6 +194,35 @@ public class ExecutedTaskStatisticService extends BaseStatisticService {
         log.debug("statisticsDTOList={}", statisticsDTOList);
         List<DayDistributionElementVO> dayDistributionElementVOList = groupByDateAndDimensionValue(statisticsDTOList,
             getFailedStatisticsDTOList(appIdList, startDate, endDate));
+        log.debug("dayDistributionElementVOList={}", dayDistributionElementVOList);
+        return dayDistributionElementVOList;
+    }
+
+    public List<DayDistributionElementVO> getByRollingTaskDayDetail(List<Long> appIdList, String startDate, String endDate) {
+        List<StatisticsDTO> statisticsDTOList;
+        if (appIdList == null) {
+            // 全部业务，直接拿离线聚合后的数据
+            statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList, null,
+                StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_TASK_OF_ALL_APP,
+                StatisticsConstants.DIMENSION_ROLLING_TASK, startDate, endDate);
+            if (statisticsDTOList == null
+                || statisticsDTOList.size() < DateUtils.calcDaysBetween(startDate, endDate) + 1) {
+                log.info("offline data not ready, calc in mem, startDate={}, endDate={}", startDate, endDate);
+                // 离线聚合数据暂未统计完成
+                statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
+                    Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
+                    StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_ROLLING_TASK, startDate,
+                    endDate);
+            }
+        } else {
+            statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
+                Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
+                StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_ROLLING_TASK, startDate,
+                endDate);
+        }
+        log.debug("statisticsDTOList={}", statisticsDTOList);
+        List<DayDistributionElementVO> dayDistributionElementVOList = groupByDateAndDimensionValue(statisticsDTOList,
+            getRollingTaskFailedStatisticsDTOList(appIdList, startDate, endDate));
         log.debug("dayDistributionElementVOList={}", dayDistributionElementVOList);
         return dayDistributionElementVOList;
     }

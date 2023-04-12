@@ -132,6 +132,11 @@ public class TaskInstanceDTO {
     private String callbackUrl;
 
     /**
+     * 是否滚动执行
+     */
+    private boolean rollingEnabled;
+
+    /**
      * 步骤实例
      */
     private List<StepInstanceDTO> stepInstances;

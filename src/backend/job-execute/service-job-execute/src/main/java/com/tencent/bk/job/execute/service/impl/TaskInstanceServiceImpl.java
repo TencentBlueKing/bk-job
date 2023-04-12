@@ -36,10 +36,12 @@ import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
@@ -68,16 +70,19 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     private final StepInstanceDAO stepInstanceDAO;
     private final TaskInstanceDAO taskInstanceDAO;
     private final TaskInstanceVariableService taskInstanceVariableService;
+    private final RollingConfigService rollingConfigService;
 
     @Autowired
     public TaskInstanceServiceImpl(ApplicationService applicationService,
                                    StepInstanceDAO stepInstanceDAO,
                                    TaskInstanceDAO taskInstanceDAO,
-                                   TaskInstanceVariableService taskInstanceVariableService) {
+                                   TaskInstanceVariableService taskInstanceVariableService,
+                                   RollingConfigService rollingConfigService) {
         this.applicationService = applicationService;
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
+        this.rollingConfigService = rollingConfigService;
     }
 
     @Override
@@ -87,7 +92,12 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     @Override
     public TaskInstanceDTO getTaskInstance(long taskInstanceId) {
-        return taskInstanceDAO.getTaskInstance(taskInstanceId);
+        TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
+        RollingConfigDTO rollingConfigDTO = rollingConfigService.getRollingConfigByTaskInstanceId(taskInstanceId);
+        if(rollingConfigDTO != null){
+            taskInstanceDTO.setRollingEnabled(true);
+        }
+        return taskInstanceDTO;
     }
 
     @Override

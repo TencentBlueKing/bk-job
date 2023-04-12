@@ -58,6 +58,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -242,6 +243,33 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         return executedTaskStatisticService.getByTimeConsumingDayDetail(appIdList, startDate, endDate);
     }
 
+    private List<DayDistributionElementVO> executeTaskByRollingTaskDayDetail(String username, List<Long> appIdList,
+                                                                             String startDate, String endDate) {
+        // 滚动执行统计
+        List<DayDistributionElementVO> rollingTaskDayDetailList =
+            executedTaskStatisticService.getByRollingTaskDayDetail(appIdList, startDate, endDate);
+        // 任务执行统计
+        List<DayDistributionElementVO> totalTaskDayDetailList =
+            executedTaskStatisticService.getByTaskTypeDayDetail(appIdList, startDate, endDate);
+
+        // 将任务执行统计(总执行次数)合入到对应的滚动执行统计中,key已'_TOTAL'结尾
+        List<DayDistributionElementVO> mixTaskDayDetailList = new ArrayList<>();
+        for (int i = 0; i < rollingTaskDayDetailList.size(); i++) {
+            DayDistributionElementVO rollingEleVO = rollingTaskDayDetailList.get(i);
+            CommonDistributionVO rollingVO = rollingEleVO.getDistribution();
+            Map<String, Long> rollingMap = rollingVO.getLabelAmountMap();
+            Map<String, Long> mixMap = rollingMap;
+            for (String key : rollingMap.keySet()) {
+                long total = totalTaskDayDetailList.get(i).getDistribution().getLabelAmountMap().get(key);
+                mixMap.put(key + "_TOTAL", total);
+            }
+            rollingVO.setLabelAmountMap(mixMap);
+            rollingEleVO.setDistribution(rollingVO);
+            mixTaskDayDetailList.add(rollingEleVO);
+        }
+        return mixTaskDayDetailList;
+    }
+
     private List<DayDistributionElementVO> fastScriptByScriptTypeDayDetail(String username,
                                                                            List<Long> appIdList,
                                                                            String startDate,
@@ -278,6 +306,8 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         } else if (ResourceEnum.EXECUTED_TASK == resource && DimensionEnum.TASK_TIME_CONSUMING == dimension) {
             dayDistributionElementVOList = executedTaskByTimeConsumingDayDetail(username, appIdList, startDate,
                 endDate);
+        } else if (ResourceEnum.EXECUTED_TASK == resource && DimensionEnum.ROLLING_TASK == dimension) {
+            dayDistributionElementVOList = executeTaskByRollingTaskDayDetail(username, appIdList, startDate, endDate);
         } else if (ResourceEnum.EXECUTED_FAST_SCRIPT == resource && DimensionEnum.SCRIPT_TYPE == dimension) {
             dayDistributionElementVOList = fastScriptByScriptTypeDayDetail(username, appIdList, startDate, endDate);
         } else if (ResourceEnum.EXECUTED_FAST_FILE == resource && DimensionEnum.FILE_TRANSFER_MODE == dimension) {

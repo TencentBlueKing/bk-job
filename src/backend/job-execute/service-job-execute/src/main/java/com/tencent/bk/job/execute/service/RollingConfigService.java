@@ -53,4 +53,6 @@ public interface RollingConfigService {
     RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
 
     RollingConfigDTO getRollingConfig(long rollingConfigId);
+
+    RollingConfigDTO getRollingConfigByTaskInstanceId(long taskInstanceId);
 }

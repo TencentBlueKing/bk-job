@@ -43,6 +43,10 @@ public enum DimensionEnum {
      */
     TASK_TIME_CONSUMING("job.analysis.dimensions.executedTask.taskTimeConsuming"),
     /**
+     * 执行过的任务：滚动执行
+     */
+    ROLLING_TASK("job.analysis.dimensions.executedTask.rollingTask"),
+    /**
      * 执行过的快速执行脚本：脚本类型
      */
     SCRIPT_TYPE("job.analysis.dimensions.executedFastScript.scriptType"),

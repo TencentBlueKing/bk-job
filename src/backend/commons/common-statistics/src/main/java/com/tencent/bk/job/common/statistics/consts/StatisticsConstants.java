@@ -125,6 +125,8 @@ public class StatisticsConstants {
     public static final String DIMENSION_TASK_TYPE = "taskType";
     // 维度：执行耗时
     public static final String DIMENSION_TASK_TIME_CONSUMING = "taskTimeConsuming";
+    // 维度：滚动执行
+    public static final String DIMENSION_ROLLING_TASK = "rollingTask";
     // 维度：步骤运行状态
     public static final String DIMENSION_STEP_RUN_STATUS = "stepRunStatus";
     // 维度：文件传输模式
