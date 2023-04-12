@@ -468,19 +468,6 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     @Override
-    public AccountDTO getAccountExceptId(Long appId, AccountCategoryEnum category, String alias, Long exceptId) {
-        Record record = ctx.select(ALL_FILED)
-            .from(TB_ACCOUNT)
-            .where(TB_ACCOUNT.APP_ID.eq(appId))
-            .and(TB_ACCOUNT.CATEGORY.eq(JooqDataTypeUtil.getByteFromInteger(category.getValue())))
-            .and(TB_ACCOUNT.ALIAS.eq(alias))
-            .and(TB_ACCOUNT.ID.notEqual(exceptId))
-            .and(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)))
-            .fetchOne();
-        return extract(record);
-    }
-
-    @Override
     public AccountDTO getAccount(Long appId, AccountCategoryEnum category, AccountTypeEnum type, String account,
                                  String alias) {
         List<Condition> conditions = genBaseConditions(appId, category);
