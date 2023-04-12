@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -115,6 +116,7 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
     }
 
     @Override
+    @Transactional(rollbackFor = {Throwable.class})
     public InternalResponse<Long> saveCronJobWithId(String username, Long appId, Long cronJobId, Long createTime,
                                                     Long lastModifyTime, String lastModifyUser,
                                                     CronJobCreateUpdateReq cronJobCreateUpdateReq) {
