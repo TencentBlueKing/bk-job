@@ -298,69 +298,42 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return null;
     }
 
+    // 默认账号命名规则：Linux
+    private static final String DEFAULT_ACCOUNT_NAME_RULE_LINUX = "^[a-z_][a-z0-9_-]{1,31}$";
+    // 默认账号命名规则：Windows
+    private static final String DEFAULT_ACCOUNT_NAME_RULE_WINDOWS = "^[a-æA-Æ0-9-]{1,32}$";
+    // 默认账号命名规则：Database
+    private static final String DEFAULT_ACCOUNT_NAME_RULE_DATABASE = "^[a-zA-Z0-9\\.\\-\\_]{1,16}$";
+
+    private List<AccountNameRule> getDefaultNameRules(Locale locale) {
+        List<AccountNameRule> defaultNameRules = new ArrayList<>();
+        defaultNameRules.add(new AccountNameRule(OSTypeEnum.LINUX, DEFAULT_ACCOUNT_NAME_RULE_LINUX,
+            i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.linux",
+                locale)));
+        defaultNameRules.add(new AccountNameRule(OSTypeEnum.WINDOWS, DEFAULT_ACCOUNT_NAME_RULE_WINDOWS,
+            i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.windows",
+                locale)));
+        defaultNameRules.add(new AccountNameRule(OSTypeEnum.DATABASE, DEFAULT_ACCOUNT_NAME_RULE_DATABASE,
+            i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.database",
+                locale)));
+        return defaultNameRules;
+    }
+
     @Override
     public AccountNameRulesWithDefaultVO getAccountNameRules() {
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
-        List<AccountNameRule> defaultNameRules = new ArrayList<>();
+        List<AccountNameRule> defaultNameRules;
         GlobalSettingDTO currentNameRulesDTO;
         if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
             //英文环境
-            GlobalSettingDTO defaultNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
-                GlobalSettingKeys.KEY_DEFAULT_NAME_RULES_EN);
-            if (defaultNameRulesDTO == null) {
-                defaultNameRules.add(new AccountNameRule(OSTypeEnum.LINUX, "^[a-z_][a-z0-9_-]{2,31}$",
-                    i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.linux",
-                        Locale.ENGLISH)));
-                defaultNameRules.add(new AccountNameRule(OSTypeEnum.WINDOWS, "^[a-æA-Æ0-9-]{1,32}$",
-                    i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.windows",
-                        Locale.ENGLISH)));
-                defaultNameRules.add(new AccountNameRule(OSTypeEnum.DATABASE, "^[a-zA-Z0-9\\.\\-\\_]{1,16}$",
-                    i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.database",
-                        Locale.ENGLISH)));
-                defaultNameRulesDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_DEFAULT_NAME_RULES_EN,
-                    JsonUtils.toJson(defaultNameRules),
-                    "默认命名规则JSON串(default json-serialized name rules)");
-                currentNameRulesDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN,
-                    JsonUtils.toJson(defaultNameRules),
-                    "默认命名规则JSON串(default json-serialized name rules)");
-                globalSettingDAO.insertGlobalSetting(dslContext, defaultNameRulesDTO);
-                globalSettingDAO.insertGlobalSetting(dslContext, currentNameRulesDTO);
-            } else {
-                defaultNameRules = JsonUtils.fromJson(defaultNameRulesDTO.getValue(),
-                    new TypeReference<List<AccountNameRule>>() {
-                    });
-                currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
-                    GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN);
-            }
+            defaultNameRules = getDefaultNameRules(Locale.ENGLISH);
+            currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
+                GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN);
         } else {
             //中文环境
-            GlobalSettingDTO defaultNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
-                GlobalSettingKeys.KEY_DEFAULT_NAME_RULES);
-            if (defaultNameRulesDTO == null) {
-                defaultNameRules.add(new AccountNameRule(OSTypeEnum.LINUX, "^[a-z_][a-z0-9_-]{2,31}$",
-                    i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.linux",
-                        Locale.CHINA)));
-                defaultNameRules.add(new AccountNameRule(OSTypeEnum.WINDOWS, "^[a-æA-Æ0-9-]{1,32}$",
-                    i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.windows",
-                        Locale.CHINA)));
-                defaultNameRules.add(new AccountNameRule(OSTypeEnum.DATABASE, "^[a-zA-Z0-9\\.\\-\\_]{1,16}$",
-                    i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.database",
-                        Locale.CHINA)));
-                defaultNameRulesDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_DEFAULT_NAME_RULES,
-                    JsonUtils.toJson(defaultNameRules),
-                    "默认命名规则JSON串(default json-serialized name rules)");
-                currentNameRulesDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_CURRENT_NAME_RULES,
-                    JsonUtils.toJson(defaultNameRules),
-                    "默认命名规则JSON串(default json-serialized name rules)");
-                globalSettingDAO.insertGlobalSetting(dslContext, defaultNameRulesDTO);
-                globalSettingDAO.insertGlobalSetting(dslContext, currentNameRulesDTO);
-            } else {
-                defaultNameRules = JsonUtils.fromJson(defaultNameRulesDTO.getValue(),
-                    new TypeReference<List<AccountNameRule>>() {
-                    });
-                currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
-                    GlobalSettingKeys.KEY_CURRENT_NAME_RULES);
-            }
+            defaultNameRules = getDefaultNameRules(Locale.CHINA);
+            currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
+                GlobalSettingKeys.KEY_CURRENT_NAME_RULES);
         }
         List<AccountNameRule> currentNameRules;
         if (currentNameRulesDTO != null) {
