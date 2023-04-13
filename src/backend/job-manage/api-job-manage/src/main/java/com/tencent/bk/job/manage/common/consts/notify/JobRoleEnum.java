@@ -70,4 +70,13 @@ public enum JobRoleEnum {
         JobRoleEnum roleEnum = JobRoleEnum.valueOf(role);
         return new RoleVO(roleEnum.name(), I18nUtil.getI18nMessage(roleEnum.getDefaultName()));
     }
+
+    public static boolean isJobRole(String role) {
+        for (JobRoleEnum jobRole : values()) {
+            if (jobRole.name().equals(role)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
