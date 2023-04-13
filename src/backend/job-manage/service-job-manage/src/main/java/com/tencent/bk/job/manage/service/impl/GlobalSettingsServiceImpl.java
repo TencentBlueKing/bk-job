@@ -354,9 +354,14 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public Boolean setAccountNameRules(String username, AccountNameRulesReq req) {
-        GlobalSettingDTO currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
-            GlobalSettingKeys.KEY_CURRENT_NAME_RULES);
-        GlobalSettingDTO inputNameRulesDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_CURRENT_NAME_RULES,
+        String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
+        String currentNameRulesKey = GlobalSettingKeys.KEY_CURRENT_NAME_RULES;
+        if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
+            //英文环境
+            currentNameRulesKey = GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN;
+        }
+        GlobalSettingDTO currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext, currentNameRulesKey);
+        GlobalSettingDTO inputNameRulesDTO = new GlobalSettingDTO(currentNameRulesKey,
             JsonUtils.toJson(req.getRules()), String.format("Updated by %s at %s", username,
             DateUtils.defaultLocalDateTime(LocalDateTime.now())));
         if (currentNameRulesDTO == null) {
