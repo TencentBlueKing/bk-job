@@ -41,6 +41,7 @@ import com.tencent.bk.job.analysis.service.CommonStatisticService;
 import com.tencent.bk.job.analysis.service.ExecutedTaskStatisticService;
 import com.tencent.bk.job.analysis.service.FastFileStatisticService;
 import com.tencent.bk.job.analysis.service.FastScriptStatisticService;
+import com.tencent.bk.job.analysis.service.RollingTaskStatisticService;
 import com.tencent.bk.job.analysis.service.TagStatisticService;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -58,7 +59,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +71,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
 
     private final AppStatisticService appStatisticService;
     private final ExecutedTaskStatisticService executedTaskStatisticService;
+    private final RollingTaskStatisticService rollingTaskStatisticService;
     private final FastScriptStatisticService fastScriptStatisticService;
     private final FastFileStatisticService fastFileStatisticService;
     private final TagStatisticService tagStatisticService;
@@ -82,6 +83,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     @Autowired
     public WebStatisticsResourceImpl(AppStatisticService appStatisticService,
                                      ExecutedTaskStatisticService executedTaskStatisticService,
+                                     RollingTaskStatisticService rollingTaskStatisticService,
                                      FastScriptStatisticService fastScriptStatisticService,
                                      FastFileStatisticService fastFileStatisticService,
                                      TagStatisticService tagStatisticService,
@@ -91,6 +93,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
                                      AppScopeMappingService appScopeMappingService) {
         this.appStatisticService = appStatisticService;
         this.executedTaskStatisticService = executedTaskStatisticService;
+        this.rollingTaskStatisticService = rollingTaskStatisticService;
         this.fastScriptStatisticService = fastScriptStatisticService;
         this.fastFileStatisticService = fastFileStatisticService;
         this.tagStatisticService = tagStatisticService;
@@ -243,31 +246,9 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         return executedTaskStatisticService.getByTimeConsumingDayDetail(appIdList, startDate, endDate);
     }
 
-    private List<DayDistributionElementVO> executeTaskByRollingTaskDayDetail(String username, List<Long> appIdList,
+    private List<DayDistributionElementVO> rollingTaskByTaskTypeDayDetail(String username, List<Long> appIdList,
                                                                              String startDate, String endDate) {
-        // 滚动执行统计
-        List<DayDistributionElementVO> rollingTaskDayDetailList =
-            executedTaskStatisticService.getByRollingTaskDayDetail(appIdList, startDate, endDate);
-        // 任务执行统计
-        List<DayDistributionElementVO> totalTaskDayDetailList =
-            executedTaskStatisticService.getByTaskTypeDayDetail(appIdList, startDate, endDate);
-
-        // 将任务执行统计(总执行次数)合入到对应的滚动执行统计中,key已'_TOTAL'结尾
-        List<DayDistributionElementVO> mixTaskDayDetailList = new ArrayList<>();
-        for (int i = 0; i < rollingTaskDayDetailList.size(); i++) {
-            DayDistributionElementVO rollingEleVO = rollingTaskDayDetailList.get(i);
-            CommonDistributionVO rollingVO = rollingEleVO.getDistribution();
-            Map<String, Long> rollingMap = rollingVO.getLabelAmountMap();
-            Map<String, Long> mixMap = rollingMap;
-            for (String key : rollingMap.keySet()) {
-                long total = totalTaskDayDetailList.get(i).getDistribution().getLabelAmountMap().get(key);
-                mixMap.put(key + "_TOTAL", total);
-            }
-            rollingVO.setLabelAmountMap(mixMap);
-            rollingEleVO.setDistribution(rollingVO);
-            mixTaskDayDetailList.add(rollingEleVO);
-        }
-        return mixTaskDayDetailList;
+        return rollingTaskStatisticService.rollingTaskByTaskTypeDayDetail(appIdList, startDate, endDate);
     }
 
     private List<DayDistributionElementVO> fastScriptByScriptTypeDayDetail(String username,
@@ -306,8 +287,8 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         } else if (ResourceEnum.EXECUTED_TASK == resource && DimensionEnum.TASK_TIME_CONSUMING == dimension) {
             dayDistributionElementVOList = executedTaskByTimeConsumingDayDetail(username, appIdList, startDate,
                 endDate);
-        } else if (ResourceEnum.EXECUTED_TASK == resource && DimensionEnum.ROLLING_TASK == dimension) {
-            dayDistributionElementVOList = executeTaskByRollingTaskDayDetail(username, appIdList, startDate, endDate);
+        } else if (ResourceEnum.EXECUTED_ROLLING_TASK == resource && DimensionEnum.TASK_TYPE == dimension) {
+            dayDistributionElementVOList = rollingTaskByTaskTypeDayDetail(username, appIdList, startDate, endDate);
         } else if (ResourceEnum.EXECUTED_FAST_SCRIPT == resource && DimensionEnum.SCRIPT_TYPE == dimension) {
             dayDistributionElementVOList = fastScriptByScriptTypeDayDetail(username, appIdList, startDate, endDate);
         } else if (ResourceEnum.EXECUTED_FAST_FILE == resource && DimensionEnum.FILE_TRANSFER_MODE == dimension) {

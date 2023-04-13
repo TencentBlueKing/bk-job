@@ -164,7 +164,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             // 滚动执行
             if (taskInstanceDTO.isRollingEnabled()) {
                 StatisticsKey keyRollingTaskNormalTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
-                    StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_ROLLING_TASK,
+                    StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE,
                     StatisticsConstants.DIMENSION_VALUE_TASK_TYPE_EXECUTE_TASK);
                 AtomicInteger rollingTaskNormalTaskCount = metricsMap.computeIfAbsent(keyRollingTaskNormalTaskCount,
                     statisticsKey -> new AtomicInteger(0));
@@ -182,7 +182,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             // 滚动执行
             if (taskInstanceDTO.isRollingEnabled()) {
                 StatisticsKey keyRollingTaskScriptTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
-                    StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_ROLLING_TASK,
+                    StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE,
                     StatisticsConstants.DIMENSION_VALUE_TASK_TYPE_FAST_EXECUTE_SCRIPT);
                 AtomicInteger rollingTaskScriptTaskCount = metricsMap.computeIfAbsent(keyRollingTaskScriptTaskCount,
                     statisticsKey -> new AtomicInteger(0));
@@ -200,7 +200,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             // 滚动执行
             if (taskInstanceDTO.isRollingEnabled()) {
                 StatisticsKey keyRollingTaskFileTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
-                    StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_ROLLING_TASK,
+                    StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE,
                     StatisticsConstants.DIMENSION_VALUE_TASK_TYPE_FAST_PUSH_FILE);
                 AtomicInteger rollingTaskFileTaskCount = metricsMap.computeIfAbsent(keyRollingTaskFileTaskCount,
                     statisticsKey -> new AtomicInteger(0));
@@ -288,7 +288,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             // 滚动执行
             if (taskInstanceDTO.isRollingEnabled()) {
                 StatisticsKey keyFailedRollingTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
-                    StatisticsConstants.RESOURCE_FAILED_TASK, StatisticsConstants.DIMENSION_ROLLING_TASK,
+                    StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
                     StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY);
                 AtomicInteger failedRollingTaskCount = metricsMap.computeIfAbsent(keyFailedRollingTaskCount,
                     statisticsKey -> new AtomicInteger(0));

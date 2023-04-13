@@ -35,6 +35,10 @@ public enum ResourceEnum {
      */
     EXECUTED_TASK("job.analysis.resources.executedTask"),
     /**
+     * 滚动执行过的任务（包含快速执行脚本、快速分发文件、作业）
+     */
+    EXECUTED_ROLLING_TASK("job.analysis.resources.executedRollingTask"),
+    /**
      * 执行过的快速执行脚本
      */
     EXECUTED_FAST_SCRIPT("job.analysis.resources.executedFastScript"),

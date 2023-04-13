@@ -63,6 +63,8 @@ public class StatisticsConstants {
     public static final String RESOURCE_ACCOUNT_OF_ALL_APP = "accountOfAllApp";
     // 所有业务一天的任务执行量
     public static final String RESOURCE_ONE_DAY_EXECUTED_TASK_OF_ALL_APP = "oneDayExecutedTaskOfAllApp";
+    // 所有业务一天的滚动任务执行量
+    public static final String RESOURCE_ONE_DAY_ROLLING_TASK_OF_ALL_APP = "oneDayRollingTaskOfAllApp";
     // 所有业务一天的失败任务量
     public static final String RESOURCE_ONE_DAY_FAILED_TASK_OF_ALL_APP = "oneDayFailedTaskOfAllApp";
     // 所有业务一天的脚本执行量
@@ -75,6 +77,10 @@ public class StatisticsConstants {
     public static final String RESOURCE_EXECUTED_TASK = "executedTask";
     // 失败的任务（含快速脚本、快速文件、作业）
     public static final String RESOURCE_FAILED_TASK = "failedTask";
+    // 滚动执行过的任务（含快速脚本、快速文件、作业）
+    public static final String RESOURCE_ROLLING_TASK = "rollingTask";
+    // 滚动执行失败的任务（含快速脚本、快速文件、作业）
+    public static final String RESOURCE_ROLLING_FAILED_TASK = "rollingFailedTask";
     // 执行过的快速执行脚本
     public static final String RESOURCE_EXECUTED_FAST_SCRIPT = "executedFastScript";
     // 执行过的快速分发文件
@@ -125,8 +131,6 @@ public class StatisticsConstants {
     public static final String DIMENSION_TASK_TYPE = "taskType";
     // 维度：执行耗时
     public static final String DIMENSION_TASK_TIME_CONSUMING = "taskTimeConsuming";
-    // 维度：滚动执行
-    public static final String DIMENSION_ROLLING_TASK = "rollingTask";
     // 维度：步骤运行状态
     public static final String DIMENSION_STEP_RUN_STATUS = "stepRunStatus";
     // 维度：文件传输模式
