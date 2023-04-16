@@ -29,6 +29,8 @@ import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.generated.tables.GseTask;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,10 +127,15 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    public GseTaskDTO getGseTaskByGseTaskId(String gseTaskId) {
-        Record record  = dslContext.select(ALL_FIELDS).from(TABLE)
+    public Long getStepInstanceId(String gseTaskId) {
+        Result<Record1<Long>> record = dslContext.select(TABLE.STEP_INSTANCE_ID).from(TABLE)
             .where(TABLE.GSE_TASK_ID.eq(gseTaskId))
-            .fetchOne();
-        return extractInfo(record);
+            .limit(1)
+            .fetch();
+        if (record.isEmpty()) {
+            return null;
+        } else {
+            return record.get(0).get(TABLE.STEP_INSTANCE_ID);
+        }
     }
 }

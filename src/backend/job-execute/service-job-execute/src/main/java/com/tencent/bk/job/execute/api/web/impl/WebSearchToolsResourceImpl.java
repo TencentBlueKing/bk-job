@@ -8,15 +8,13 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.web.WebSearchToolsResource;
-import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.web.vo.TaskLinkVO;
-import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +28,8 @@ import java.util.List;
 public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     private final StepInstanceService stepInstanceService;
     private final GseTaskService gseTaskService;
-    private final ApplicationService applicationService;
     private final AppAuthService appAuthService;
+    private final AppScopeMappingService appScopeMappingService;
 
     /**
      * 作业平台web访问地址，可配置多个，用","分隔
@@ -47,17 +45,24 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     @Autowired
     public WebSearchToolsResourceImpl(StepInstanceService stepInstanceService,
                                       GseTaskService gseTaskService,
-                                      ApplicationService applicationService,
-                                      AppAuthService appAuthService) {
+                                      AppAuthService appAuthService,
+                                      AppScopeMappingService appScopeMappingService) {
         this.stepInstanceService = stepInstanceService;
         this.gseTaskService = gseTaskService;
-        this.applicationService = applicationService;
         this.appAuthService = appAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public Response<TaskLinkVO> getTaskLink(String username, String gseTaskId) {
-        AppResourceScope appResourceScope = JobContextUtil.getAppResourceScope();
+        Long stepInstanceId = gseTaskService.getStepInstanceId(gseTaskId);
+        if (stepInstanceId == null) {
+            throw new InternalException(gseTaskId + " does not exist", ErrorCode.ILLEGAL_PARAM);
+        }
+        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(stepInstanceId);
+        Long appId = stepInstanceBase.getAppId();
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        AppResourceScope appResourceScope = new AppResourceScope(appId, resourceScope);
         // 鉴权
         AuthResult authResult = appAuthService.auth(username, ActionId.ACCESS_BUSINESS, appResourceScope);
         if (!authResult.isPass()) {
@@ -68,22 +73,15 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
             throw new PermissionDeniedException(authResult);
         }
 
-        GseTaskDTO gseTaskDTO = gseTaskService.getGseTaskByGseTaskId(gseTaskId);
-        if (gseTaskDTO == null) {
-            throw new InternalException(gseTaskId + " does not exist", ErrorCode.ILLEGAL_PARAM);
-        }
-
-        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(gseTaskDTO.getStepInstanceId());
-        ServiceApplicationDTO applicationDTO = applicationService.getAppById(stepInstanceBase.getAppId());
         TaskLinkVO taskLinkVO = new TaskLinkVO();
-        taskLinkVO.setScopeType(applicationDTO.getScopeType());
-        taskLinkVO.setScopeId(applicationDTO.getScopeId());
+        taskLinkVO.setScopeType(resourceScope.getType().getValue());
+        taskLinkVO.setScopeId(resourceScope.getId());
         taskLinkVO.setAppId(stepInstanceBase.getAppId());
         taskLinkVO.setJobInstanceId(stepInstanceBase.getTaskInstanceId());
-        taskLinkVO.setStepInstanceId(gseTaskDTO.getStepInstanceId());
-        taskLinkVO.setExecuteCount(gseTaskDTO.getExecuteCount());
-        taskLinkVO.setBatch(gseTaskDTO.getBatch());
-        taskLinkVO.setGseTaskId(gseTaskDTO.getGseTaskId());
+        taskLinkVO.setStepInstanceId(stepInstanceId);
+        taskLinkVO.setExecuteCount(stepInstanceBase.getExecuteCount());
+        taskLinkVO.setBatch(stepInstanceBase.getBatch());
+        taskLinkVO.setGseTaskId(gseTaskId);
         taskLinkVO.setLink(buildLink(taskLinkVO));
         return Response.buildSuccessResp(taskLinkVO);
     }

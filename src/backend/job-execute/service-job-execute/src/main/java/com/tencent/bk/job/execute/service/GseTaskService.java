@@ -65,10 +65,10 @@ public interface GseTaskService {
     GseTaskDTO getGseTask(long gseTaskId);
 
     /**
-     * 查询 GSE 任务
+     * 获取 stepInstanceId
      *
      * @param gseTaskId GSE任务ID
-     * @return GSE 任务
+     * @return stepInstanceId
      */
-    GseTaskDTO getGseTaskByGseTaskId(String gseTaskId);
+    Long getStepInstanceId(String gseTaskId);
 }
