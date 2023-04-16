@@ -127,7 +127,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
-    public RollingConfigDTO getRollingConfigByTaskInstanceId(long taskInstanceId) {
-        return rollingConfigDAO.queryRollingConfigByTaskInstanceId(taskInstanceId);
+    public boolean getTaskRollingEnabledByTaskInstanceId(long taskInstanceId) {
+        return rollingConfigDAO.getTaskRollingEnabledByTaskInstanceId(taskInstanceId);
     }
 }

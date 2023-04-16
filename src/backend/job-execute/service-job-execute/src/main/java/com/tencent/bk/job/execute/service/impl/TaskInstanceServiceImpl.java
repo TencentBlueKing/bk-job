@@ -36,7 +36,6 @@ import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -92,12 +91,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     @Override
     public TaskInstanceDTO getTaskInstance(long taskInstanceId) {
-        TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
-        RollingConfigDTO rollingConfigDTO = rollingConfigService.getRollingConfigByTaskInstanceId(taskInstanceId);
-        if(rollingConfigDTO != null){
-            taskInstanceDTO.setRollingEnabled(true);
-        }
-        return taskInstanceDTO;
+        return taskInstanceDAO.getTaskInstance(taskInstanceId);
     }
 
     @Override

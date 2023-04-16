@@ -77,16 +77,13 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     }
 
     @Override
-    public RollingConfigDTO queryRollingConfigByTaskInstanceId(long taskInstanceId) {
-        Record record = CTX.select(
-            TABLE.ID,
-            TABLE.TASK_INSTANCE_ID,
-            TABLE.CONFIG_NAME,
-            TABLE.CONFIG)
+    public boolean getTaskRollingEnabledByTaskInstanceId(long taskInstanceId) {
+        Record record = CTX.select(TABLE.ID)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .limit(1)
             .fetchOne();
-        return extract(record);
+        return record != null;
     }
 
     private RollingConfigDTO extract(Record record) {

@@ -63,21 +63,21 @@ public class RollingTaskStatisticService extends BaseStatisticService {
                     Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
                     null,
                     StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK,
-                    StatisticsConstants.DIMENSION_TASK_TYPE,
+                    StatisticsConstants.DIMENSION_TIME_UNIT,
                     StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY,
                     startDate,
                     endDate
                 );
             if (failedStatisticsDTOList == null || failedStatisticsDTOList.isEmpty()) {
                 failedStatisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList, null,
-                    StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK, StatisticsConstants.DIMENSION_TASK_TYPE,
+                    StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
                     StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, startDate, endDate);
             }
         } else {
             // 按业务聚合
             failedStatisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
                 StatisticsConstants.GLOBAL_APP_ID_LIST, StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK,
-                StatisticsConstants.DIMENSION_TASK_TYPE, StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, startDate
+                StatisticsConstants.DIMENSION_TIME_UNIT, StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, startDate
                 , endDate);
         }
         log.debug("RollingTaskFailedStatisticsDTOList={}", failedStatisticsDTOList);
@@ -87,7 +87,7 @@ public class RollingTaskStatisticService extends BaseStatisticService {
     public List<DayDistributionElementVO> rollingTaskByTaskTypeDayDetail(List<Long> appIdList, String startDate,
                                                                          String endDate) {
         // 滚动执行统计
-        List<DayDistributionElementVO> rollingTaskDayDetailList = getByRollingTaskDayDetail(appIdList, startDate, endDate);
+        List<DayDistributionElementVO> rollingTaskDayDetailList = getByTaskTypeDayDetail(appIdList, startDate, endDate);
         // 任务执行统计
         List<DayDistributionElementVO> totalTaskDayDetailList =
             executedTaskStatisticService.getByTaskTypeDayDetail(appIdList, startDate, endDate);
@@ -100,8 +100,14 @@ public class RollingTaskStatisticService extends BaseStatisticService {
             Map<String, Long> rollingMap = rollingVO.getLabelAmountMap();
             Map<String, Long> mixMap = rollingMap;
             for (String key : rollingMap.keySet()) {
-                long total = totalTaskDayDetailList.get(i).getDistribution().getLabelAmountMap().get(key);
-                mixMap.put(key + "_TOTAL", total);
+                try {
+                    long total = totalTaskDayDetailList.get(i).getDistribution().getLabelAmountMap().get(key);
+                    mixMap.put(key + "_TOTAL", total);
+                } catch (Exception e) {
+                    log.error("taskTypeDayDetail may be empty!", e);
+                } finally {
+                    mixMap.put(key + "_TOTAL", 0L);
+                }
             }
             rollingVO.setLabelAmountMap(mixMap);
             rollingEleVO.setDistribution(rollingVO);
@@ -110,7 +116,7 @@ public class RollingTaskStatisticService extends BaseStatisticService {
         return mixTaskDayDetailList;
     }
 
-    private List<DayDistributionElementVO> getByRollingTaskDayDetail(List<Long> appIdList, String startDate, String endDate) {
+    private List<DayDistributionElementVO> getByTaskTypeDayDetail(List<Long> appIdList, String startDate, String endDate) {
         List<StatisticsDTO> statisticsDTOList;
         if (appIdList == null) {
             // 全部业务，直接拿离线聚合后的数据

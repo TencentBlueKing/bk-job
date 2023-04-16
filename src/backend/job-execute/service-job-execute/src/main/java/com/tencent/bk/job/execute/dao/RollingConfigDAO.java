@@ -47,10 +47,9 @@ public interface RollingConfigDAO {
     RollingConfigDTO queryRollingConfigById(Long rollingConfigId);
 
     /**
-     * 通过任务ID获取滚动配置
-     *
-     * @param taskInstanceId 任务ID
-     * @return 滚动配置
+     * 任务是否启用了滚动执行
+     * @param taskInstanceId 任务id
+     * @return boolean true启用，false未启用
      */
-    RollingConfigDTO queryRollingConfigByTaskInstanceId(long taskInstanceId);
+    boolean getTaskRollingEnabledByTaskInstanceId(long taskInstanceId);
 }

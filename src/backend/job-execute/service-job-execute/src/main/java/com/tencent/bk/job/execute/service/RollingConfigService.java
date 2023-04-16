@@ -54,5 +54,10 @@ public interface RollingConfigService {
 
     RollingConfigDTO getRollingConfig(long rollingConfigId);
 
-    RollingConfigDTO getRollingConfigByTaskInstanceId(long taskInstanceId);
+    /**
+     * 任务是否启用了滚动执行
+     * @param taskInstanceId 任务id
+     * @return boolean true启用，false未启用
+     */
+    boolean getTaskRollingEnabledByTaskInstanceId(long taskInstanceId);
 }
