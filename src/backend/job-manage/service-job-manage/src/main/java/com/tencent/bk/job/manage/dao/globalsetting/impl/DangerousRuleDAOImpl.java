@@ -24,22 +24,29 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
+import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
+import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Result;
+import org.jooq.SortField;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.DangerousRule;
+import org.jooq.generated.tables.records.DangerousRuleRecord;
 import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -193,6 +200,87 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
         } else {
             return record.value1();
         }
+    }
+
+    @Override
+    public List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext, DangerousRuleQuery query,
+                                                    BaseSearchCondition baseSearchCondition) {
+        List<Condition> conditions = buildConditionList(query, baseSearchCondition);
+        Collection<SortField<?>> orderFields = buildOrderFieldList(baseSearchCondition);
+        Result<DangerousRuleRecord> records = dslContext.selectFrom(T)
+            .where(conditions)
+            .orderBy(orderFields)
+            .fetch();
+        return records.map(this::convertRecordToDto);
+    }
+
+    private List<Condition> buildConditionList(DangerousRuleQuery query, BaseSearchCondition baseSearchCondition){
+        List<Condition> conditions = new ArrayList<>();
+        if (StringUtils.isNotBlank(query.getExpression())) {
+            conditions.add(T.EXPRESSION.like("%" + query.getExpression() + "%"));
+        }
+        if (StringUtils.isNotBlank(query.getDescription())) {
+            conditions.add(T.DESCRIPTION.like("%" + query.getDescription() + "%"));
+        }
+        if (query.getScriptTypeList() != null) {
+            List<Byte> typeList = query.getScriptTypeList();
+            int scriptType = 0;
+            for (Byte type : typeList) {
+                if (type > 0 && type <= 8) {
+                    scriptType |= 1 << (type - 1);
+                }
+            }
+            conditions.add(DSL.bitAnd(DSL.field(T.SCRIPT_TYPE), scriptType).greaterThan(0));
+        }
+        if (query.getAction() != null) {
+            conditions.add(T.ACTION.in(query.getAction()));
+        }
+        return conditions;
+    }
+
+    private Collection<SortField<?>> buildOrderFieldList(BaseSearchCondition baseSearchCondition) {
+        Collection<SortField<?>> orderFields = new ArrayList<>();
+        if (StringUtils.isBlank(baseSearchCondition.getOrderField())) {
+            orderFields.add(T.PRIORITY.desc());
+        } else {
+            String orderField = baseSearchCondition.getOrderField();
+            if ("priority".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(T.PRIORITY.asc());
+                } else {
+                    orderFields.add(T.PRIORITY.desc());
+                }
+            }
+            if ("expression".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(T.EXPRESSION.asc());
+                } else {
+                    orderFields.add(T.EXPRESSION.desc());
+                }
+            }
+            if ("description".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(T.DESCRIPTION.asc());
+                } else {
+                    orderFields.add(T.DESCRIPTION.desc());
+                }
+            }
+            if ("scriptType".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(T.SCRIPT_TYPE.asc());
+                } else {
+                    orderFields.add(T.SCRIPT_TYPE.desc());
+                }
+            }
+            if ("action".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(T.ACTION.asc());
+                } else {
+                    orderFields.add(T.ACTION.desc());
+                }
+            }
+        }
+        return orderFields;
     }
 
     private DangerousRuleDTO convertRecordToDto(Record record) {

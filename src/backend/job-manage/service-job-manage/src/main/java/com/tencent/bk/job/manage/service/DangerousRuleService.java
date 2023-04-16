@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.service;
 
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
@@ -39,4 +41,6 @@ public interface DangerousRuleService {
     Integer moveDangerousRule(String username, MoveDangerousRuleReq req);
 
     Integer deleteDangerousRuleById(String username, Long id);
+
+    List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query, BaseSearchCondition baseSearchCondition);
 }
