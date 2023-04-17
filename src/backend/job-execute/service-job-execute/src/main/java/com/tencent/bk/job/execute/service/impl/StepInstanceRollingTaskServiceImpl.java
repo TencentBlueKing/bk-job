@@ -97,6 +97,11 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
     }
 
     @Override
+    public List<StepInstanceRollingTaskDTO> listRollingTasksByStep(long stepInstanceId) {
+        return stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId, null, null);
+    }
+
+    @Override
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
         return stepInstanceRollingTaskDAO.saveRollingTask(rollingTask);
     }

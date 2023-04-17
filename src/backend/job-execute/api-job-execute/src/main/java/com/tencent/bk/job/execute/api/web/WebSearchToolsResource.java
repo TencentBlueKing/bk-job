@@ -36,6 +36,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * 自助查询API-前端调用
  */
@@ -53,5 +55,16 @@ public interface WebSearchToolsResource {
         @ApiParam(value = "GSE任务ID", required = true)
         @PathVariable(value = "gseTaskId")
             String gseTaskId
+    );
+
+    @ApiOperation(value = "根据作业步骤ID获取任务链接", produces = "application/json")
+    @GetMapping(value = {"/queryJobInstance/stepInstanceIds/{stepInstanceId}"})
+    Response<List<TaskLinkVO>> getTaskLinkByStepId(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "任务步骤ID", required = true)
+        @PathVariable(value = "stepInstanceId")
+            Long stepInstanceId
     );
 }
