@@ -122,5 +122,6 @@ export default {
     最近30天: 'Last 30 days',
     截图: 'Screenshot',
     '未知 OS': 'Unknown OS',
+    滚动执行: 'Rolling Exec.',
   },
 };

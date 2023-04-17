@@ -111,7 +111,7 @@
         color,
         value,
       } = data;
-            
+
       if (seriesType === 'bar') {
         return `
                     <tr>
@@ -142,7 +142,7 @@
     } else {
       paramsArr = params;
     }
-        
+
     return `<table>${paramsArr.map(generatorHtml).join('')}</table>`;
   };
 
@@ -180,7 +180,7 @@
           this.handleTaskTypeChange(target.seriesId);
         }
       });
-            
+
       const resize = _.throttle(() => {
         this.myChart.resize();
       }, 300);
@@ -214,7 +214,7 @@
             CRON,
             NORMAL,
           } = distribution.labelAmountMap;
-                    
+
           apiList.push(API);
           cronList.push(CRON);
           normalList.push(NORMAL);
@@ -379,7 +379,7 @@
             FAST_EXECUTE_SCRIPT,
             FAST_PUSH_FILE,
           } = distribution.labelAmountMap;
-                    
+
           executeTaskList.push(EXECUTE_TASK);
           fastExecuteScriptList.push(FAST_EXECUTE_SCRIPT);
           fastPushFileList.push(FAST_PUSH_FILE);
