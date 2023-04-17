@@ -29,7 +29,7 @@ export default {
     新建: 'New',
     '搜索账号别名，名称，更新人...': 'Search by Account Name / Alias / Last Modified By ...',
     '账号 ID': 'ID',
-    更新时间: 'LAST MODIFIED ON',
+    更新时间: 'LAST MODIFIED AT',
     操作: 'ACTIONS',
     编辑: 'Edit',
     '确定删除该账号？': 'Are you sure?',

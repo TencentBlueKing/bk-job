@@ -396,7 +396,7 @@ export default {
   状态: 'STATES',
   类型: 'TYPE',
   更新人: 'LAST MODIFIED BY',
-  更新时间: 'LAST MODIFIED ON',
+  更新时间: 'LAST MODIFIED AT',
   个源文件文件: 'File(s) selected from FILE SOURCES',
   搜索文件名: 'Search By File Name...',
   '搜索 bucket名称': 'Search By Bucket Name...',

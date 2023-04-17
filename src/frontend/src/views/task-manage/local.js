@@ -160,7 +160,7 @@ export default {
     管理标签: 'Tag Manage',
     '输入 作业模板名、标签名 或 更新人 进行搜索...': 'Search by Template Name / Tag / Last Modified By...',
     我的作业: 'Mine',
-    更新时间: 'LAST MODIFIED ON',
+    更新时间: 'LAST MODIFIED AT',
     操作: 'ACTIONS',
     调试: 'Debug',
     '确定删除该作业？': 'Are you sure to delete it?',
