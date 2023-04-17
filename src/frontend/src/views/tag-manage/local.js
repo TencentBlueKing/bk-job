@@ -45,7 +45,7 @@ export default {
     更新人: {
       colHead: 'LAST MODIFIED BY',
     },
-    更新时间: 'LAST MODIFIED ON',
+    更新时间: 'LAST MODIFIED AT',
     操作: 'ACTIONS',
     编辑: 'Edit',
     '确认删除该标签？': 'Are you sure to delete it?',
