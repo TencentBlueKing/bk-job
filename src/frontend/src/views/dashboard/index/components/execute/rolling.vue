@@ -23,24 +23,30 @@
       </div>
     </div>
     <div v-bkloading="{ isLoading, opacity: 0.8 }">
-      <div ref="dashboard" style="width: 100%; height: 325px;" />
+      <div
+        ref="dashboard"
+        style="width: 100%; height: 325px;" />
     </div>
   </card-layout>
 </template>
 <script>
 /* eslint-disable max-len */
+  import echarts from 'lib/echarts.min.js';
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import StatisticsService from '@service/statistics';
-  import * as echarts from 'echarts';
+
   import {
     formatNumber,
     prettyDateFormat,
   } from '@utils/assist';
+
+  import CardLayout from '../card-layout';
   import {
     chartsOptionsBase,
   } from '../common/assist';
-  import CardLayout from '../card-layout';
+
+  import I18n from '@/i18n';
 
   const tooltipFormatter = (params) => {
     const generatorHtml = (data) => {
@@ -61,7 +67,7 @@
                         <td style="text-align: right">${value}</td>
                     </tr>
                 `;
-      } else if (seriesType === 'line') {
+      } if (seriesType === 'line') {
         return `
                     <tr>
                         <td style="padding-right: 24px; vertical-align: middle;">
@@ -96,7 +102,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         dimension: '',
@@ -105,11 +111,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.handleDaysChange(this.days);
       },
     },
-    mounted () {
+    mounted() {
       // 下钻的作业类型
       this.drillDowntaskType = '';
 
@@ -126,7 +132,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchReourcesDimensions({
           resource: 'EXECUTED_ROLLING_TASK',
@@ -144,7 +150,7 @@
        * @desc 按任务类型统计
        * @param {Array} data 数据
        */
-      initTaskType (data) {
+      initTaskType(data) {
         const dateList = [];
         const fastPushFileList = [];
         const fastExecuteScriptList = [];
@@ -277,7 +283,7 @@
        * @param {String} days 统计纬度
        *
        */
-      handleDaysChange (days) {
+      handleDaysChange(days) {
         this.days = days;
         this.fetchData();
       },
