@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @WebAPI
 public interface WebSearchToolsResource {
     @ApiOperation(value = "查询任务链接", produces = "application/json")
-    @GetMapping(value = {"/queryJobInstance/{gseTaskId}"})
+    @GetMapping(value = {"/queryJobInstance/gseTaskIds/{gseTaskId}"})
     Response<TaskLinkVO> getTaskLink(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
