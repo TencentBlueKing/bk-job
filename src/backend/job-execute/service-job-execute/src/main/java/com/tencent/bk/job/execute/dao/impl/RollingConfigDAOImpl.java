@@ -84,6 +84,7 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
         Result<Record1<Integer>> records = CTX.selectOne()
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .limit(1)
             .fetch();
         return CollectionUtils.isNotEmpty(records);
     }
