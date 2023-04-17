@@ -59,5 +59,5 @@ public interface RollingConfigService {
      * @param taskInstanceId 任务id
      * @return boolean true启用，false未启用
      */
-    boolean getTaskRollingEnabledByTaskInstanceId(long taskInstanceId);
+    boolean isTaskRollingEnabled(long taskInstanceId);
 }

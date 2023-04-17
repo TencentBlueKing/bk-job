@@ -166,7 +166,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             int taskTypeNormalTaskCountValue = taskTypeNormalTaskCount.incrementAndGet();
             log.debug("taskTypeNormalTaskCount={}", taskTypeNormalTaskCountValue);
             // 滚动执行
-            if (rollingConfigService.getTaskRollingEnabledByTaskInstanceId(taskInstanceDTO.getTaskId())) {
+            if (rollingConfigService.isTaskRollingEnabled(taskInstanceDTO.getTaskId())) {
                 StatisticsKey keyRollingTaskNormalTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE,
                     StatisticsConstants.DIMENSION_VALUE_TASK_TYPE_EXECUTE_TASK);
@@ -184,7 +184,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             int taskTypeScriptTaskCountValue = taskTypeScriptTaskCount.incrementAndGet();
             log.debug("taskTypeScriptTaskCount={}", taskTypeScriptTaskCountValue);
             // 滚动执行
-            if (rollingConfigService.getTaskRollingEnabledByTaskInstanceId(taskInstanceDTO.getTaskId())) {
+            if (rollingConfigService.isTaskRollingEnabled(taskInstanceDTO.getTaskId())) {
                 StatisticsKey keyRollingTaskScriptTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE,
                     StatisticsConstants.DIMENSION_VALUE_TASK_TYPE_FAST_EXECUTE_SCRIPT);
@@ -202,7 +202,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             int taskTypeFileTaskCountValue = taskTypeFileTaskCount.incrementAndGet();
             log.debug("taskTypeFileTaskCount={}", taskTypeFileTaskCountValue);
             // 滚动执行
-            if (rollingConfigService.getTaskRollingEnabledByTaskInstanceId(taskInstanceDTO.getTaskId())) {
+            if (rollingConfigService.isTaskRollingEnabled(taskInstanceDTO.getTaskId())) {
                 StatisticsKey keyRollingTaskFileTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE,
                     StatisticsConstants.DIMENSION_VALUE_TASK_TYPE_FAST_PUSH_FILE);
@@ -290,7 +290,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             int failedTaskCountValue = failedTaskCount.incrementAndGet();
             log.debug("failedTaskCount={}", failedTaskCountValue);
             // 滚动执行
-            if (rollingConfigService.getTaskRollingEnabledByTaskInstanceId(taskInstanceDTO.getTaskId())) {
+            if (rollingConfigService.isTaskRollingEnabled(taskInstanceDTO.getTaskId())) {
                 StatisticsKey keyFailedRollingTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                     StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
                     StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY);

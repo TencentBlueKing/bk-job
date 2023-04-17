@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,15 +99,18 @@ public class RollingTaskStatisticService extends BaseStatisticService {
             DayDistributionElementVO rollingEleVO = rollingTaskDayDetailList.get(i);
             CommonDistributionVO rollingVO = rollingEleVO.getDistribution();
             Map<String, Long> rollingMap = rollingVO.getLabelAmountMap();
-            Map<String, Long> mixMap = rollingMap;
+            Map<String, Long> mixMap = new HashMap<>();
             for (String key : rollingMap.keySet()) {
+                mixMap.put(key, rollingMap.get(key));
                 try {
-                    long total = totalTaskDayDetailList.get(i).getDistribution().getLabelAmountMap().get(key);
+                    DayDistributionElementVO elementVO = totalTaskDayDetailList.get(i);
+                    CommonDistributionVO distributionVO = elementVO.getDistribution();
+                    Map<String, Long> amountMap = distributionVO.getLabelAmountMap();
+                    long total = amountMap.get(key);
                     mixMap.put(key + "_TOTAL", total);
                 } catch (Exception e) {
-                    log.error("taskTypeDayDetail may be empty!", e);
-                } finally {
                     mixMap.put(key + "_TOTAL", 0L);
+                    log.error("taskTypeDayDetail may be empty!", e);
                 }
             }
             rollingVO.setLabelAmountMap(mixMap);
