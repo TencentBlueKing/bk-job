@@ -54,7 +54,6 @@ export default {
     输入确认端口: 'Type your database port...',
     依赖系统账号: 'Dependent System Account',
     选择依赖系统账号: 'Select dependent system account',
-    描述: 'Descriptions',
     输入账号描述: 'Type the usage scenario description of the account here...',
     类型: 'Type',
     用途: 'Usage',
@@ -70,6 +69,7 @@ export default {
     编辑账号成功: 'Account has been modified',
     取消: 'Cancel',
     保存成功: 'The changes has been saved',
+
     账号别名: {
       label: 'Account Alias',
       colHead: 'ACCOUNT ALIAS',
@@ -77,6 +77,10 @@ export default {
     账号名称: {
       label: 'Name',
       colHead: 'NAME',
+    },
+    描述: {
+      label: 'Descriptions',
+      colHead: 'DESCRIPTIONS',
     },
     账号用途: {
       label: 'Usage',

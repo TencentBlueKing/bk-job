@@ -94,7 +94,7 @@
           @change="value => props.change('rePassword', value)" />
       </jb-form-item>
     </template>
-    <jb-form-item :label="parent.$t('account.描述')">
+    <jb-form-item :label="parent.$t('account.描述.label')">
       <bk-input
         :maxlength="200"
         :placeholder="parent.$t('account.输入账号描述')"

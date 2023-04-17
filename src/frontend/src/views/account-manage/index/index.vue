@@ -77,16 +77,13 @@
         prop="account"
         sortable="custom" />
       <bk-table-column
-        v-if="allRenderColumnMap.remark"
-        key="remark"
+        v-if="allRenderColumnMap.account"
+        key="account"
         align="left"
         :label="$t('account.描述.colHead')"
         min-width="180"
-        prop="remark">
-        <template slot-scope="{ row }">
-          <span>{{ row.remark || '--' }}</span>
-        </template>
-      </bk-table-column>
+        prop="account"
+        sortable="custom" />
       <bk-table-column
         v-if="allRenderColumnMap.categoryName"
         key="categoryName"
