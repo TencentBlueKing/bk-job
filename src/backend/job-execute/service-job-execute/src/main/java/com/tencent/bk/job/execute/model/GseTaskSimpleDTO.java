@@ -22,68 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.execute.model.GseTaskDTO;
-import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
-
-import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * GSE 任务 Service
+ * GSE 任务
  */
-public interface GseTaskService {
+@Data
+@NoArgsConstructor
+public class GseTaskSimpleDTO {
+    /**
+     * 步骤实例ID
+     */
+    private Long stepInstanceId;
+    /**
+     * 步骤执行次数
+     */
+    private Integer executeCount;
+    /**
+     * 滚动执行批次
+     */
+    private Integer batch;
 
     /**
-     * 保存 GSE 任务
-     *
-     * @param gseTask GSE 任务
+     * GSE 任务ID
      */
-    Long saveGseTask(GseTaskDTO gseTask);
-
-    /**
-     * 更新 GSE 任务
-     *
-     * @param gseTask GSE 任务
-     * @return 是否更新成功
-     */
-    boolean updateGseTask(GseTaskDTO gseTask);
-
-    /**
-     * 获取 GSE 任务
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @param batch          滚动执行批次
-     * @return GSE 任务
-     */
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch);
-
-    /**
-     * 获取 GSE 任务
-     *
-     * @param gseTaskId GSE任务ID
-     * @return GSE 任务
-     */
-    GseTaskDTO getGseTask(long gseTaskId);
-
-    /**
-     * 获取 GSE 任务
-     *
-     * @param gseTaskId GSE任务ID
-     * @return stepInstanceId
-     */
-    GseTaskSimpleDTO getGseTaskSimpleInfo(String gseTaskId);
-
-    /**
-     * 获取 GSE 任务列表
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount 执行次数
-     * @param batch 批次
-     * @return GSE 任务列表
-     */
-    List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId,
-                                                 Integer executeCount,
-                                                 Integer batch);
+    private String gseTaskId;
 }

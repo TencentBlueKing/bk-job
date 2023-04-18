@@ -10,7 +10,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.web.WebSearchToolsResource;
-import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.web.vo.TaskLinkVO;
@@ -34,9 +34,6 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     private final AppAuthService appAuthService;
     private final AppScopeMappingService appScopeMappingService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
-
-    private final static Integer DEFAULT_EXECUTE_COUNT = 0;
-    private final static Integer DEFAULT_BATCH = 0;
 
     /**
      * 作业平台web访问地址，可配置多个，用","分隔
@@ -65,25 +62,21 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     @Override
     public Response<TaskLinkVO> getTaskLink(String username,
                                             String gseTaskId) {
-        Long stepInstanceId = gseTaskService.getStepInstanceId(gseTaskId);
-        if (stepInstanceId == null) {
+        GseTaskSimpleDTO gseTaskSimpleInfo = gseTaskService.getGseTaskSimpleInfo(gseTaskId);
+        if (gseTaskSimpleInfo == null) {
             log.warn("not found stepInstanceId by "+gseTaskId);
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
         }
-        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(gseTaskSimpleInfo.getStepInstanceId());
         Long appId = stepInstanceBase.getAppId();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         AppResourceScope appResourceScope = new AppResourceScope(appId, resourceScope);
         // 鉴权
-        AuthResult authResult = auth(username, appResourceScope);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-
+        auth(username, appResourceScope);
         TaskLinkVO taskLinkVO = convertToTaskLinVO(resourceScope,
             stepInstanceBase,
-            stepInstanceBase.getExecuteCount(),
-            stepInstanceBase.getBatch(),
+            gseTaskSimpleInfo.getExecuteCount(),
+            gseTaskSimpleInfo.getBatch(),
             gseTaskId);
         return Response.buildSuccessResp(taskLinkVO);
     }
@@ -100,40 +93,37 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         AppResourceScope appResourceScope = new AppResourceScope(appId, resourceScope);
         // 鉴权
-        AuthResult authResult = auth(username, appResourceScope);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+        auth(username, appResourceScope);
 
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTaskDTOS =
             stepInstanceRollingTaskService.listRollingTasksByStep(stepInstanceId);
-        List<GseTaskDTO> gseTaskDTOList = new ArrayList<>();
+        List<GseTaskSimpleDTO> gseTaskDTOList = new ArrayList<>();
         // 是否滚动执行
         if (CollectionUtils.isNotEmpty(stepInstanceRollingTaskDTOS)) {
             for (StepInstanceRollingTaskDTO stepInstanceRollingTaskDTO : stepInstanceRollingTaskDTOS) {
-                GseTaskDTO gseTaskDTO = gseTaskService.getGseTask(stepInstanceId,
+                List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.ListGseTaskSimpleInfo(stepInstanceId,
                     stepInstanceRollingTaskDTO.getExecuteCount(),
                     stepInstanceRollingTaskDTO.getBatch());
-                if (gseTaskDTO != null) {
-                    gseTaskDTOList.add(gseTaskDTO);
+                if (CollectionUtils.isNotEmpty(gseTaskSimpleDTOList)) {
+                    gseTaskDTOList.addAll(gseTaskSimpleDTOList);
                 }
             }
         } else {
-            GseTaskDTO gseTaskDTO = gseTaskService.getGseTask(stepInstanceId,
-                DEFAULT_EXECUTE_COUNT,
-                DEFAULT_BATCH);
-            if (gseTaskDTO != null) {
-                gseTaskDTOList.add(gseTaskDTO);
+            List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.ListGseTaskSimpleInfo(stepInstanceId,
+                null,
+                null);
+            if (CollectionUtils.isNotEmpty(gseTaskSimpleDTOList)) {
+                gseTaskDTOList.addAll(gseTaskSimpleDTOList);
             }
         }
 
         List<TaskLinkVO> taskLinkVOList = new ArrayList<>();
-        for (GseTaskDTO gseTaskDTO : gseTaskDTOList) {
+        for (GseTaskSimpleDTO gseTaskSimpleDTO : gseTaskDTOList) {
             taskLinkVOList.add(convertToTaskLinVO(resourceScope,
                 stepInstanceBase,
-                gseTaskDTO.getExecuteCount(),
-                gseTaskDTO.getBatch(),
-                gseTaskDTO.getGseTaskId()));
+                gseTaskSimpleDTO.getExecuteCount(),
+                gseTaskSimpleDTO.getBatch(),
+                gseTaskSimpleDTO.getGseTaskId()));
         }
         return Response.buildSuccessResp(taskLinkVOList);
     }
@@ -147,6 +137,9 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
             authResult = appAuthService.auth(username,
                 ActionId.VIEW_HISTORY,
                 appResourceScope);
+        }
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
         }
         return authResult;
     }
