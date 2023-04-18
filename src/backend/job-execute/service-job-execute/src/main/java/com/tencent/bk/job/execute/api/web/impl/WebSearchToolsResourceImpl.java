@@ -35,6 +35,9 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     private final AppScopeMappingService appScopeMappingService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
 
+    private final static Integer DEFAULT_EXECUTE_COUNT = 0;
+    private final static Integer DEFAULT_BATCH = 0;
+
     /**
      * 作业平台web访问地址，可配置多个，用","分隔
      */
@@ -60,7 +63,8 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     }
 
     @Override
-    public Response<TaskLinkVO> getTaskLink(String username, String gseTaskId) {
+    public Response<TaskLinkVO> getTaskLink(String username,
+                                            String gseTaskId) {
         Long stepInstanceId = gseTaskService.getStepInstanceId(gseTaskId);
         if (stepInstanceId == null) {
             log.warn("not found stepInstanceId by "+gseTaskId);
@@ -71,22 +75,22 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         AppResourceScope appResourceScope = new AppResourceScope(appId, resourceScope);
         // 鉴权
-        AuthResult authResult = appAuthService.auth(username, ActionId.ACCESS_BUSINESS, appResourceScope);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-        authResult = appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
+        AuthResult authResult = auth(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
 
-        TaskLinkVO taskLinkVO = convertToTaskLinVO(resourceScope, stepInstanceBase, stepInstanceBase.getExecuteCount(),
-            stepInstanceBase.getBatch(), gseTaskId);
+        TaskLinkVO taskLinkVO = convertToTaskLinVO(resourceScope,
+            stepInstanceBase,
+            stepInstanceBase.getExecuteCount(),
+            stepInstanceBase.getBatch(),
+            gseTaskId);
         return Response.buildSuccessResp(taskLinkVO);
     }
 
     @Override
-    public Response<List<TaskLinkVO>> getTaskLinkByStepId(String username, Long stepInstanceId) {
+    public Response<List<TaskLinkVO>> getTaskLinkByStepId(String username,
+                                                          Long stepInstanceId) {
         StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(stepInstanceId);
         if (stepInstanceBase == null) {
             log.warn("not found StepInstance by "+stepInstanceId);
@@ -96,11 +100,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         AppResourceScope appResourceScope = new AppResourceScope(appId, resourceScope);
         // 鉴权
-        AuthResult authResult = appAuthService.auth(username, ActionId.ACCESS_BUSINESS, appResourceScope);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-        authResult = appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
+        AuthResult authResult = auth(username, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -112,24 +112,50 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         if (CollectionUtils.isNotEmpty(stepInstanceRollingTaskDTOS)) {
             for (StepInstanceRollingTaskDTO stepInstanceRollingTaskDTO : stepInstanceRollingTaskDTOS) {
                 GseTaskDTO gseTaskDTO = gseTaskService.getGseTask(stepInstanceId,
-                    stepInstanceRollingTaskDTO.getExecuteCount(), stepInstanceRollingTaskDTO.getBatch());
-                if (gseTaskDTO != null) gseTaskDTOList.add(gseTaskDTO);
+                    stepInstanceRollingTaskDTO.getExecuteCount(),
+                    stepInstanceRollingTaskDTO.getBatch());
+                if (gseTaskDTO != null) {
+                    gseTaskDTOList.add(gseTaskDTO);
+                }
             }
         } else {
-            GseTaskDTO gseTaskDTO = gseTaskService.getGseTask(stepInstanceId, 0, 0);
-            if (gseTaskDTO != null) gseTaskDTOList.add(gseTaskDTO);
+            GseTaskDTO gseTaskDTO = gseTaskService.getGseTask(stepInstanceId,
+                DEFAULT_EXECUTE_COUNT,
+                DEFAULT_BATCH);
+            if (gseTaskDTO != null) {
+                gseTaskDTOList.add(gseTaskDTO);
+            }
         }
 
         List<TaskLinkVO> taskLinkVOList = new ArrayList<>();
         for (GseTaskDTO gseTaskDTO : gseTaskDTOList) {
-            taskLinkVOList.add(convertToTaskLinVO(resourceScope, stepInstanceBase, gseTaskDTO.getExecuteCount(),
-                gseTaskDTO.getBatch(), gseTaskDTO.getGseTaskId()));
+            taskLinkVOList.add(convertToTaskLinVO(resourceScope,
+                stepInstanceBase,
+                gseTaskDTO.getExecuteCount(),
+                gseTaskDTO.getBatch(),
+                gseTaskDTO.getGseTaskId()));
         }
         return Response.buildSuccessResp(taskLinkVOList);
     }
 
-    private TaskLinkVO convertToTaskLinVO(ResourceScope resourceScope, StepInstanceBaseDTO stepInstanceBase,
-                                          int executeCount, int batch, String gseTaskId) {
+    private AuthResult auth(String username,
+                            AppResourceScope appResourceScope) {
+        AuthResult authResult = appAuthService.auth(username,
+            ActionId.ACCESS_BUSINESS,
+            appResourceScope);
+        if (authResult.isPass()) {
+            authResult = appAuthService.auth(username,
+                ActionId.VIEW_HISTORY,
+                appResourceScope);
+        }
+        return authResult;
+    }
+
+    private TaskLinkVO convertToTaskLinVO(ResourceScope resourceScope,
+                                          StepInstanceBaseDTO stepInstanceBase,
+                                          int executeCount,
+                                          int batch,
+                                          String gseTaskId) {
         TaskLinkVO taskLinkVO = new TaskLinkVO();
         taskLinkVO.setScopeType(resourceScope.getType().getValue());
         taskLinkVO.setScopeId(resourceScope.getId());
@@ -151,13 +177,21 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
             String[] jobWebUrls = jobWebUrl.split(",");
             List<String> links = new ArrayList();
             for (String webUrl : jobWebUrls) {
-                links.add(String.format(linkTemplate, webUrl, taskLinkVO.getJobInstanceId(),
-                    taskLinkVO.getStepInstanceId(), taskLinkVO.getExecuteCount(), taskLinkVO.getBatch()));
+                links.add(String.format(linkTemplate,
+                    webUrl,
+                    taskLinkVO.getJobInstanceId(),
+                    taskLinkVO.getStepInstanceId(),
+                    taskLinkVO.getExecuteCount(),
+                    taskLinkVO.getBatch()));
             }
             return links.toString();
         } else {
-            return String.format(linkTemplate, jobWebUrl, taskLinkVO.getJobInstanceId(),
-                taskLinkVO.getStepInstanceId(), taskLinkVO.getExecuteCount(), taskLinkVO.getBatch());
+            return String.format(linkTemplate,
+                jobWebUrl,
+                taskLinkVO.getJobInstanceId(),
+                taskLinkVO.getStepInstanceId(),
+                taskLinkVO.getExecuteCount(),
+                taskLinkVO.getBatch());
         }
     }
 }
