@@ -57,7 +57,7 @@
 </template>
 <script>
   import I18n from '@/i18n';
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import HomeService from '@service/home';
   import SidesliderBox from '@components/choose-ip/components/sideslider-box';
   import ActionExtend from '@components/choose-ip/components/action-extend';
@@ -161,11 +161,11 @@
               selectedOffset: 0,
               avoidLabelOverlap: false,
               label: {
-                normal: {
-                  show: false,
-                  position: 'center',
-                },
-                emphasis: {
+                show: false,
+                position: 'center',
+              },
+              emphasis: {
+                label: {
                   show: true,
                   label: {
                     fontSize: '12',
@@ -191,9 +191,8 @@
                 },
               },
               labelLine: {
-                normal: {
-                  show: false,
-                },
+                show: false,
+                position: 'center',
               },
               data: [
                 {

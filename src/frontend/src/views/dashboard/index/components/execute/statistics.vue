@@ -94,7 +94,7 @@
   import _ from 'lodash';
   import I18n from '@/i18n';
   import StatisticsService from '@service/statistics';
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import {
     formatNumber,
     prettyDateFormat,
@@ -114,24 +114,24 @@
 
       if (seriesType === 'bar') {
         return `
-                    <tr>
-                        <td style="padding-right: 24px; vertical-align: middle;">
-                            <span style="display: inline-block; width: 8px; height: 8px; background: ${color}"></span>
-                            <span>${seriesName}</span>
-                        </td>
-                        <td style="text-align: right">${value}</td>
-                    </tr>
-                `;
+          <tr>
+            <td style="padding-right: 24px; color: #fff; vertical-align: middle;">
+              <span style="display: inline-block; width: 8px; height: 8px; background: ${color}"></span>
+              <span>${seriesName}</span>
+            </td>
+            <td style="text-align: right">${value}</td>
+          </tr>
+        `;
       } else if (seriesType === 'line') {
         return `
-                    <tr>
-                        <td style="padding-right: 24px; vertical-align: middle;">
-                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${color}"></span>
-                            <span>${seriesName}</span>
-                        </td>
-                        <td style="text-align: right">${value}</td>
-                    </tr>
-                `;
+          <tr>
+            <td style="padding-right: 24px; color: #fff; vertical-align: middle;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${color}"></span>
+              <span>${seriesName}</span>
+            </td>
+            <td style="text-align: right">${value}</td>
+          </tr>
+        `;
       }
     };
     let paramsArr = [];
@@ -253,6 +253,7 @@
                 width: 30,
                 color: '#63656E',
                 opacity: 0.16,
+                type: 'solid',
               },
             },
             formatter: tooltipFormatter,
@@ -408,6 +409,7 @@
           tooltip: {
             trigger: 'item',
             backgroundColor: 'rgba(0,0,0,0.8)',
+            borderColor: 'transparent',
             formatter: tooltipFormatter,
           },
           grid: {
@@ -470,6 +472,9 @@
               itemStyle: {
                 color: '#D4E6C1',
               },
+              emphasis: {
+                focus: 'series',
+              },
             },
             {
               id: 'EXECUTED_FAST_FILE',
@@ -480,6 +485,9 @@
               data: fastPushFileList,
               itemStyle: {
                 color: '#85CCA8',
+              },
+              emphasis: {
+                focus: 'series',
               },
             },
             {
@@ -492,6 +500,9 @@
               itemStyle: {
                 color: '#3786AD',
               },
+              emphasis: {
+                focus: 'series',
+              },
             },
             {
               name: I18n.t('dashboard.执行失败次数'),
@@ -499,6 +510,9 @@
               data: failList,
               itemStyle: {
                 color: '#FF5656',
+              },
+              emphasis: {
+                focus: 'series',
               },
             },
           ],
@@ -560,6 +574,7 @@
                 width: 30,
                 color: '#63656E',
                 opacity: 0.16,
+                type: 'solid',
               },
             },
             formatter: tooltipFormatter,
@@ -726,6 +741,7 @@
                 width: 30,
                 color: '#F5F6FA',
                 opacity: 0.5,
+                type: 'solid',
               },
             },
             formatter: tooltipFormatter,
@@ -905,6 +921,7 @@
                 width: 30,
                 color: '#F5F6FA',
                 opacity: 0.5,
+                type: 'solid',
               },
             },
             formatter: tooltipFormatter,

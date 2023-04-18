@@ -47,7 +47,7 @@
 </template>
 <script>
   import _ from 'lodash';
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import I18n from '@/i18n';
   import StatisticsService from '@service/statistics';
   import CardLayout from '../card-layout';
@@ -146,11 +146,11 @@
               selectedOffset: 0,
               avoidLabelOverlap: false,
               label: {
-                normal: {
-                  show: false,
-                  position: 'center',
-                },
-                emphasis: {
+                show: false,
+                position: 'center',
+              },
+              emphasis: {
+                label: {
                   show: true,
                   formatter: [
                     '{value|{d}%}',
