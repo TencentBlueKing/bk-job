@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
@@ -61,9 +62,9 @@ import java.util.concurrent.TimeUnit;
     dataStartVersion = "3.0.0.0",
     targetVersion = "3.4.2.1",
     targetExecuteTime = ExecuteTimeEnum.MAKE_UP)
+@SuppressWarnings("unused")
 public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
 
-    private ArtifactoryClient artifactoryAdminClient;
     private ArtifactoryClient artifactoryJobClient;
     private String baseUrl;
     private String adminUsername;
@@ -78,28 +79,11 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
     private boolean enableMigrateLocalUploadFile;
     private boolean enableMigrateBackupFile;
     private boolean enableMigrateLogExportFile;
-    private int uploadConcurrency;
     private ThreadPoolExecutor uploadExecutor;
-
-    private final String localUploadDirName = "localupload";
-    private final String backupDirName = "backup";
-    private final String logExportDirName = "filedata";
+    private final ConcurrentLinkedQueue<String> allFailedFilePathList = new ConcurrentLinkedQueue<>();
 
     public LocalUploadFileToBkRepoMigrationTask(Properties properties) {
         super(properties);
-    }
-
-    private ArtifactoryClient getAdminClient() {
-        Properties properties = getProperties();
-        if (artifactoryAdminClient == null) {
-            artifactoryAdminClient = new ArtifactoryClient(
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_BASE_URL),
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_ADMIN_USERNAME),
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ARTIFACTORY_ADMIN_PASSWORD),
-                null
-            );
-        }
-        return artifactoryAdminClient;
     }
 
     private ArtifactoryClient getJobClient() {
@@ -140,7 +124,7 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
             (String) properties.getOrDefault(
                 ParamNameConsts.CONFIG_PROPERTY_ENABLE_MIGRATE_LOG_EXPORT_FILE, "false"
             ));
-        uploadConcurrency = Integer.parseInt(
+        int uploadConcurrency = Integer.parseInt(
             (String) properties.getOrDefault(
                 ParamNameConsts.CONFIG_PROPERTY_MIGRATE_UPLOAD_CONCURRENCY, 20
             ));
@@ -273,30 +257,38 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
 
     private boolean existsFileInRepo(String repo, String filePath, String fileMd5) {
         ArtifactoryClient jobClient = getJobClient();
-        try {
-            NodeDTO nodeDTO = jobClient.queryNodeDetail(jobProject, repo, filePath);
-            return nodeDTO != null
-                && fileMd5.equals(nodeDTO.getMd5());
-        } catch (Exception e) {
-            FormattingTuple msg = MessageFormatter.format(
-                "Fail to compare targetFile {} with node in repo {}",
-                filePath,
-                repo
-            );
-            log.warn(msg.getMessage());
-        }
+        int retryCount = 0;
+        int maxRetryCount = 3;
+        do {
+            try {
+                NodeDTO nodeDTO = jobClient.queryNodeDetail(jobProject, repo, filePath);
+                return nodeDTO != null
+                    && fileMd5.equals(nodeDTO.getMd5());
+            } catch (Exception e) {
+                FormattingTuple msg = MessageFormatter.arrayFormat(
+                    "Fail to compare targetFile {} with node in repo {}, retry={}", new Object[]{
+                        filePath,
+                        repo,
+                        retryCount
+                    }
+                );
+                log.warn(msg.getMessage());
+                retryCount += 1;
+                ThreadUtils.sleep(5000);
+            }
+        } while (retryCount < maxRetryCount);
         return false;
     }
 
     class UploadTask extends Thread {
 
-        private ArtifactoryClient jobClient;
-        private File file;
-        private String repo;
-        private String path;
-        private int taskIndex;
-        private int taskSize;
-        private ConcurrentLinkedQueue<String> failedFilePathList;
+        private final ArtifactoryClient jobClient;
+        private final File file;
+        private final String repo;
+        private final String path;
+        private final int taskIndex;
+        private final int taskSize;
+        private final ConcurrentLinkedQueue<String> failedFilePathList;
 
         UploadTask(
             ArtifactoryClient jobClient,
@@ -336,46 +328,55 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
                 log.warn(msg.getMessage(), e);
                 throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
             }
-            if (!existsFileInRepo(repo, relativePath, md5)) {
-                NodeDTO nodeDTO;
-                int retryTimes = 0;
-                boolean uploaded = false;
+            if (existsFileInRepo(repo, relativePath, md5)) {
+                log.info("File {} already in repo {}, skip", relativePath, repo);
+                return;
+            }
+            uploadFileToRepoWithRetry(filePath, relativePath, md5);
+        }
+
+        private void uploadFileToRepoWithRetry(String filePath, String relativePath, String md5) {
+            NodeDTO nodeDTO;
+            int retryTimes = 0;
+            boolean uploaded = false;
+            while (!uploaded && retryTimes < 3) {
                 try {
-                    while (!uploaded && retryTimes < 3) {
-                        nodeDTO = jobClient.uploadGenericFile(
-                            jobProject,
-                            repo,
-                            relativePath,
-                            file
+                    nodeDTO = jobClient.uploadGenericFile(
+                        jobProject,
+                        repo,
+                        relativePath,
+                        file
+                    );
+                    if (nodeDTO != null && md5.equals(nodeDTO.getMd5())) {
+                        log.info(
+                            "Success uploaded {} to repo {}, md5={}",
+                            relativePath, repo, nodeDTO.getMd5()
                         );
-                        if (nodeDTO != null && md5.equals(nodeDTO.getMd5())) {
-                            log.info(
-                                "Success uploaded {} to repo {}, md5={}",
-                                relativePath, repo, nodeDTO.getMd5()
-                            );
-                            uploaded = true;
-                        } else {
-                            log.warn(
-                                "Fail to upload {} to repo {}, md5 not correct, retry after 5s",
-                                relativePath, repo
-                            );
-                            Thread.sleep(5000);
-                            retryTimes += 1;
-                        }
-                    }
-                    if (!uploaded) {
-                        failedFilePathList.add(filePath);
+                        uploaded = true;
+                    } else {
+                        log.warn(
+                            "Fail to upload {} to repo {}, md5 not correct, retry after 5s",
+                            relativePath,
+                            repo
+                        );
+                        retryTimes += 1;
+                        ThreadUtils.sleep(5000);
                     }
                 } catch (Exception e) {
-                    FormattingTuple msg = MessageFormatter.format(
-                        "Fail to upload {} to repo {}",
-                        relativePath,
-                        repo
+                    FormattingTuple msg = MessageFormatter.arrayFormat(
+                        "Fail to upload {} to repo {}, retry={}", new Object[]{
+                            relativePath,
+                            repo,
+                            retryTimes
+                        }
                     );
                     log.warn(msg.getMessage(), e);
+                    retryTimes += 1;
+                    ThreadUtils.sleep(5000);
                 }
-            } else {
-                log.info("File {} already in repo {}, skip", relativePath, repo);
+            }
+            if (!uploaded) {
+                failedFilePathList.add(filePath);
             }
         }
     }
@@ -384,15 +385,15 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
         ArtifactoryClient jobClient = getJobClient();
         List<File> fileList = scanAllFilesOnPath(path);
         log.info("{} files in path {}", fileList.size(), path);
-        ConcurrentLinkedQueue<String> failedFilePathList = new ConcurrentLinkedQueue<>();
         List<Future<?>> uploadTaskFutureList = new ArrayList<>();
+        ConcurrentLinkedQueue<String> currentFailedFilePathList = new ConcurrentLinkedQueue<>();
         for (int i = 0; i < fileList.size(); i++) {
             File file = fileList.get(i);
             UploadTask task = new UploadTask(
                 jobClient,
                 file, repo, path,
                 i, fileList.size(),
-                failedFilePathList
+                currentFailedFilePathList
             );
             Future<?> future = uploadExecutor.submit(task);
             uploadTaskFutureList.add(future);
@@ -407,23 +408,27 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
             }
         });
         log.info("all {} uploadTasks to repo {} done!", fileList.size(), repo);
-        if (!failedFilePathList.isEmpty()) {
-            log.warn("Fail to upload {} files to repo {}", failedFilePathList.size(), repo);
-            failedFilePathList.forEach(log::info);
+        if (!currentFailedFilePathList.isEmpty()) {
+            log.warn("Fail to upload {} files to repo {}", currentFailedFilePathList.size(), repo);
+            currentFailedFilePathList.forEach(log::info);
+            allFailedFilePathList.addAll(currentFailedFilePathList);
         }
     }
 
     private void uploadLocalFiles() {
+        String localUploadDirName = "localupload";
         String localFileDirPath = PathUtil.joinFilePath(storageRootPath, localUploadDirName);
         uploadFilesToRepo(localFileDirPath, localUploadRepo);
     }
 
     private void uploadBackupFiles() {
+        String backupDirName = "backup";
         String localFileDirPath = PathUtil.joinFilePath(storageRootPath, backupDirName);
         uploadFilesToRepo(localFileDirPath, backupRepo);
     }
 
     private void uploadLogExportFiles() {
+        String logExportDirName = "filedata";
         String localFileDirPath = PathUtil.joinFilePath(storageRootPath, logExportDirName);
         uploadFilesToRepo(localFileDirPath, logExportRepo);
     }
@@ -446,6 +451,10 @@ public class LocalUploadFileToBkRepoMigrationTask extends BaseUpgradeTask {
             uploadLogExportFiles();
         }
         uploadExecutor.shutdown();
-        return true;
+        if (allFailedFilePathList.isEmpty()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
