@@ -28,6 +28,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.List;
+
 @ApiModel("任务链接")
 @Data
 public class TaskLinkVO {
@@ -83,5 +85,5 @@ public class TaskLinkVO {
      * web访问链接
      */
     @ApiModelProperty("web访问链接")
-    private String link;
+    private List<String> link;
 }

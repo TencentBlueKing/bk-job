@@ -172,10 +172,10 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     /**
      * 拼接链接地址
      */
-    private String buildLink(TaskLinkVO taskLinkVO) {
+    private List<String> buildLink(TaskLinkVO taskLinkVO) {
+        List<String> links = new ArrayList();
         if (jobWebUrl.indexOf(",") != -1) {
             String[] jobWebUrls = jobWebUrl.split(",");
-            List<String> links = new ArrayList();
             for (String webUrl : jobWebUrls) {
                 links.add(String.format(linkTemplate,
                     webUrl,
@@ -184,14 +184,14 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
                     taskLinkVO.getExecuteCount(),
                     taskLinkVO.getBatch()));
             }
-            return links.toString();
         } else {
-            return String.format(linkTemplate,
+            links.add(String.format(linkTemplate,
                 jobWebUrl,
                 taskLinkVO.getJobInstanceId(),
                 taskLinkVO.getStepInstanceId(),
                 taskLinkVO.getExecuteCount(),
-                taskLinkVO.getBatch());
+                taskLinkVO.getBatch()));
         }
+        return links;
     }
 }
