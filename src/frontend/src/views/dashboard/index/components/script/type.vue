@@ -48,7 +48,7 @@
   </card-layout>
 </template>
 <script>
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import _ from 'lodash';
 
   import StatisticsService from '@service/statistics';
@@ -155,28 +155,28 @@
               hoverOffset: 8,
               selectedOffset: 0,
               avoidLabelOverlap: false,
-              label: {
-                normal: {
+              emphasis: {
+                label: {
                   show: false,
                   position: 'center',
-                },
-                emphasis: {
-                  show: true,
-                  formatter: [
-                    '{value|{d}%}',
-                    '{b}',
-                  ].join('\n'),
-                  rich: {
-                    name: {
-                      fontSize: 12,
-                      lineHieght: 16,
-                      color: '#63656E',
-                    },
-                    value: {
-                      fontSize: 26,
-                      fontWeight: 600,
-                      lineHeight: 42,
-                      color: '#63656E',
+                  emphasis: {
+                    show: true,
+                    formatter: [
+                      '{value|{d}%}',
+                      '{b}',
+                    ].join('\n'),
+                    rich: {
+                      name: {
+                        fontSize: 12,
+                        lineHieght: 16,
+                        color: '#63656E',
+                      },
+                      value: {
+                        fontSize: 26,
+                        fontWeight: 600,
+                        lineHeight: 42,
+                        color: '#63656E',
+                      },
                     },
                   },
                 },
