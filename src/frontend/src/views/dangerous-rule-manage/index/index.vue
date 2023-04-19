@@ -48,7 +48,7 @@
         ref="list"
         :data="list">
         <bk-table-column
-          :label="$t('dangerousRule.语法检测表达式')"
+          :label="$t('dangerousRule.语法检测表达式.col')"
           prop="expression">
           <template slot-scope="{ row }">
             <jb-edit-input
@@ -60,7 +60,7 @@
           </template>
         </bk-table-column>
         <bk-table-column
-          :label="$t('dangerousRule.规则说明')"
+          :label="$t('dangerousRule.规则说明.col')"
           prop="description">
           <template slot-scope="{ row }">
             <jb-edit-input
@@ -72,7 +72,7 @@
           </template>
         </bk-table-column>
         <bk-table-column
-          :label="$t('dangerousRule.脚本类型')"
+          :label="$t('dangerousRule.脚本类型.col')"
           prop="scriptTypeList">
           <template slot-scope="{ row }">
             <jb-edit-select
@@ -87,7 +87,7 @@
           </template>
         </bk-table-column>
         <bk-table-column
-          :label="$t('dangerousRule.动作')"
+          :label="$t('dangerousRule.动作.col')"
           prop="action"
           :render-header="renderActionHead">
           <template slot-scope="{ row }">
@@ -242,21 +242,21 @@
 
       this.searchSelect = [
         {
-          name: I18n.t('dangerousRule.语法检测表达式'),
+          name: I18n.t('dangerousRule.语法检测表达式.col'),
           id: 'expression',
           default: true,
         },
         {
-          name: I18n.t('dangerousRule.规则说明'),
+          name: I18n.t('dangerousRule.规则说明.col'),
           id: 'description',
         },
         {
-          name: I18n.t('dangerousRule.脚本类型'),
+          name: I18n.t('dangerousRule.脚本类型.col'),
           id: 'scriptTypeList',
           remoteMethod: PublicScriptManageService.scriptTypeList,
         },
         {
-          name: I18n.t('dangerousRule.动作'),
+          name: I18n.t('dangerousRule.动作.col'),
           id: 'action',
           remoteMethod: DangerousRuleService.fetchActionList,
         },
@@ -286,20 +286,20 @@
       this.tableColumn = [
         {
           id: 'expression',
-          label: I18n.t('dangerousRule.语法检测表达式'),
+          label: I18n.t('dangerousRule.语法检测表达式.col'),
           disabled: true,
         },
         {
           id: 'description',
-          label: I18n.t('dangerousRule.规则说明'),
+          label: I18n.t('dangerousRule.规则说明.col'),
         },
         {
           id: 'scriptTypeList',
-          label: I18n.t('dangerousRule.脚本类型'),
+          label: I18n.t('dangerousRule.脚本类型.col'),
         },
         {
           id: 'action',
-          label: I18n.t('dangerousRule.动作'),
+          label: I18n.t('dangerousRule.动作.col'),
           disabled: true,
         },
         {

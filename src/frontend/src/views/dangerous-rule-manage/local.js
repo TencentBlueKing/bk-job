@@ -28,14 +28,22 @@ export default {
   namespace: 'dangerousRule',
   message: {
     新建: 'new',
-    语法检测表达式: 'GRAMMAR REGEX',
-    语法检测表达式_label: 'Grammar Regex',
-    规则说明: 'EXPLANATION',
-    规则说明_label: 'Explanation',
-    脚本类型: 'SCRIPT TYPE',
-    脚本类型_label: 'Script Type',
-    动作: 'ACTION',
-    动作_label: 'action',
+    语法检测表达式: {
+      col: 'GRAMMAR REGEX',
+      label: 'Grammar Regex',
+    },
+    规则说明: {
+      col: 'EXPLANATION',
+      label: 'Explanation',
+    },
+    脚本类型: {
+      col: 'SCRIPT TYPE',
+      label: 'Script Type',
+    },
+    动作: {
+      col: 'ACTION',
+      label: 'action',
+    },
     操作: 'ACTIONS',
     '规则的排序越靠前，表示检测优先级越高': 'The higher the order of the rules, the higher the detect priority',
     上移: 'Up',
