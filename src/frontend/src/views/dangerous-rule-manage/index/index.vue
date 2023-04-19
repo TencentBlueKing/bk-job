@@ -27,54 +27,6 @@
 
 <template>
   <div class="dangerous-rule-manage-page">
-<<<<<<< HEAD
-    <table
-      v-test="{ type: 'list', value: 'dangerousRule' }"
-      class="rule-table">
-      <thead>
-        <tr>
-          <th style="width: 200px;">
-            {{ $t('dangerousRule.语法检测表达式') }}
-          </th>
-          <th>{{ $t('dangerousRule.规则说明') }}</th>
-          <th style="width: 300px;">
-            {{ $t('dangerousRule.脚本类型') }}
-          </th>
-          <th style="width: 300px;">
-            <span>{{ $t('dangerousRule.动作') }}</span>
-            <bk-popover placement="right">
-              <icon
-                class="action-tips"
-                type="info" />
-              <div slot="content">
-                <div>{{ $t('dangerousRule.【扫描】') }}</div>
-                <div>{{ $t('dangerousRule.命中规则的脚本执行任务仅会做记录，不会拦截') }}</div>
-                <div style="margin-top: 8px;">
-                  {{ $t('dangerousRule.【拦截】') }}
-                </div>
-                <div>{{ $t('dangerousRule.命中规则的脚本执行任务会被记录，并中止运行') }}</div>
-              </div>
-            </bk-popover>
-          </th>
-          <th style="width: 180px;">
-            {{ $t('dangerousRule.操作') }}
-            <icon
-              v-bk-tooltips="{
-                theme: 'dark',
-                content: $t('dangerousRule.规则的排序越靠前，表示检测优先级越高'),
-              }"
-              class="action-tips"
-              type="info" />
-          </th>
-        </tr>
-      </thead>
-      <table-action-row @on-change="handleAdd" />
-      <tbody
-        v-for="(rule, index) in list"
-        :key="rule.id">
-        <tr>
-          <td>
-=======
     <list-action-layout>
       <bk-button
         class="w120"
@@ -99,7 +51,6 @@
           :label="$t('dangerousRule.语法检测表达式')"
           prop="expression">
           <template slot-scope="{ row }">
->>>>>>> fa804fe0f0... hotfix:高危语句规则页面增加搜索等通用操作 #1345
             <jb-edit-input
               field="expression"
               mode="block"
@@ -229,26 +180,30 @@
         </bk-table-column>
       </bk-table>
     </div>
-    <JbSideslider
+    <jb-sideslider
       :is-show.sync="isShowOperation"
       :title="$t('dangerousRule.新增检测规则')"
       :width="650">
       <add-rule @on-change="handleAddRuleChange" />
-    </JbSideslider>
+    </jb-sideslider>
   </div>
 </template>
 <script>
   import DangerousRuleService from '@service/dangerous-rule';
   import PublicScriptManageService from '@service/public-script-manage';
 
+  import { listColumnsCache } from '@utils/cache-helper';
+
   import JbEditInput from '@components/jb-edit/input';
   import JbEditSelect from '@components/jb-edit/select';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
-  import EditAction from './components/edit-action';
-  import ListActionLayout from '@components/list-action-layout';
-  import AddRule from './components/add-rule';
   import JbSearchSelect from '@components/jb-search-select';
-  import { listColumnsCache } from '@utils/cache-helper';
+  import ListActionLayout from '@components/list-action-layout';
+
+  import AddRule from './components/add-rule';
+  import EditAction from './components/edit-action';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'accout_list_columns';
 
@@ -274,17 +229,17 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
     },
-    created () {
+    created() {
       this.searchParams = {};
       this.editRule = {};
       this.fetchScriptType();
@@ -381,7 +336,7 @@
         ]);
       }
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
@@ -402,7 +357,7 @@
             this.isLoading = false;
           });
       },
-      renderActionHead (h, data) {
+      renderActionHead(h, data) {
         return (
           <span>
             <span>{ data.column.label }</span>
@@ -422,7 +377,7 @@
           </span>
         );
       },
-      renderOperationHeader (h, data) {
+      renderOperationHeader(h, data) {
         return (
           <span>
             <span>{ data.column.label }</span>
@@ -441,7 +396,7 @@
        * @desc 表格列自定义
        * @param { Object } 列信息
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -458,10 +413,10 @@
             this.scriptTypeList = data;
           });
       },
-      handleCreate () {
+      handleCreate() {
         this.isShowOperation = true;
       },
-      handleSearch (searchParams) {
+      handleSearch(searchParams) {
         this.searchParams = searchParams;
         this.fetchData();
       },
@@ -496,7 +451,7 @@
        * @param {Object} rule 高危语句规则
        * @param {Object} payload 脚本语言列表哦
        */
-      handleUpdate (rule, payload) {
+      handleUpdate(rule, payload) {
         return DangerousRuleService.update({
           ...rule,
           ...payload,
@@ -508,7 +463,7 @@
       /**
        * @desc 添加一条高危语句
        */
-      handleAddRuleChange () {
+      handleAddRuleChange() {
         this.fetchData();
       },
       /**
