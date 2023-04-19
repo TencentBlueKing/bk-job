@@ -578,4 +578,6 @@ export default {
   存在不同版本: 'different version detected',
   滚动策略必填: 'Strategy is required',
   滚动策略格式不正确: 'Strategy is incorrect format',
+  扫描: 'Scan',
+  拦截: 'Block',
 };

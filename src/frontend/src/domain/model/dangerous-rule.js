@@ -23,38 +23,18 @@
  * IN THE SOFTWARE.
 */
 
-/* eslint-disable no-param-reassign */
-import DangerousRuleSource from '../source/dangerous-rule';
-import DangerousRuleModel from '@model/dangerous-rule';
-import I18n from '@/i18n';
-
-export default {
-  fetchList(params = {}, payload = {}) {
-    return DangerousRuleSource.getData(params, payload)
-      .then(({ data }) => data.map(item => new DangerousRuleModel(item)));
-  },
-  update(params) {
-    return DangerousRuleSource.update(params)
-      .then(({ data }) => data);
-  },
-  remove(params) {
-    return DangerousRuleSource.removeById(params)
-      .then(({ data }) => data);
-  },
-  updateSort(params) {
-    return DangerousRuleSource.move(params)
-      .then(({ data }) => data);
-  },
-  fetchActionList () {
-    return Promise.resolve([
-      {
-        id: 1,
-        name: I18n.t('扫描'),
-      },
-      {
-        id: 2,
-        name: I18n.t('拦截'),
-      },
-    ]);
-  },
-};
+export default class DangerousRule {
+  constructor (payload) {
+    this.action = payload.action;
+    this.createTime = payload.createTime;
+    this.creator = payload.creator;
+    this.description = payload.description;
+    this.expression = payload.expression;
+    this.id = payload.id;
+    this.lastModifyTime = payload.lastModifyTime;
+    this.lastModifier = payload.lastModifier;
+    this.order = payload.order;
+    this.scriptTypeList = payload.scriptTypeList || [];
+    this.status = payload.status;
+  }
+}
