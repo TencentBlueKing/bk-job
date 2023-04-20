@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -51,4 +55,16 @@ public class DangerousRuleVO {
     private Integer action;
     @ApiModelProperty("启用状态,1:启用,2:停止")
     private Integer status;
+    @ApiModelProperty("创建人")
+    private String creator;
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    @JsonDeserialize(using = LongTimestampDeserializer.class)
+    @ApiModelProperty("创建时间")
+    private Long createTime;
+    @ApiModelProperty("最近更新人")
+    private String lastModifier;
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    @JsonDeserialize(using = LongTimestampDeserializer.class)
+    @ApiModelProperty("最近更新时间")
+    private Long lastModifyTime;
 }

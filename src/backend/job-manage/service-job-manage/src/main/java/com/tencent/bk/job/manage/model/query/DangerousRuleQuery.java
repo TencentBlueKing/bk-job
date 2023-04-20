@@ -15,12 +15,20 @@ import java.util.List;
 @ToString
 @Builder
 public class DangerousRuleQuery implements Cloneable {
-    // 表达式
+    /**
+     * 表达式
+     */
     private String expression;
-    // 脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)
+    /**
+     * 脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)
+     */
     private List<Byte> scriptTypeList;
-    // 描述
+    /**
+     * 描述
+     */
     private String description;
-    // 处理动作
+    /**
+     * 处理动作
+     */
     private List<Byte> action;
 }

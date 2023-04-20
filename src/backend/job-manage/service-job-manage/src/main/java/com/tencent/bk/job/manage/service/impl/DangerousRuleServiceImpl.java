@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.manager.cache.DangerousRuleCache;
@@ -184,8 +183,8 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
     }
 
     @Override
-    public List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query, BaseSearchCondition baseSearchCondition) {
-        return dangerousRuleDAO.listDangerousRules(dslContext, query, baseSearchCondition)
+    public List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query) {
+        return dangerousRuleDAO.listDangerousRules(dslContext, query)
             .stream()
             .map(DangerousRuleDTO::toVO)
             .collect(Collectors.toList());

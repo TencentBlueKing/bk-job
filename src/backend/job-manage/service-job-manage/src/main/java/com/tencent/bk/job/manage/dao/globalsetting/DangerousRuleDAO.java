@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import org.jooq.DSLContext;
@@ -50,6 +49,5 @@ public interface DangerousRuleDAO {
 
     int getMinPriority(DSLContext dslContext);
 
-    List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext, DangerousRuleQuery query,
-                                             BaseSearchCondition baseSearchCondition);
+    List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext, DangerousRuleQuery query);
 }

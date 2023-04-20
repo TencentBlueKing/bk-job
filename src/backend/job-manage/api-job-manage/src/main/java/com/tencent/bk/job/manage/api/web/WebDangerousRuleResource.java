@@ -69,13 +69,7 @@ public interface WebDangerousRuleResource {
             List<Byte> scriptTypeList,
         @ApiParam("动作：可多选")
         @RequestParam(value = "action", required = false)
-            List<Byte> action,
-        @ApiParam("排序字段")
-        @RequestParam(value = "orderField", required = false)
-            String orderField,
-        @ApiParam("排序顺序,0:降序;1:升序")
-        @RequestParam(value = "order", required = false)
-            Integer order
+            List<Byte> action
     );
 
 
