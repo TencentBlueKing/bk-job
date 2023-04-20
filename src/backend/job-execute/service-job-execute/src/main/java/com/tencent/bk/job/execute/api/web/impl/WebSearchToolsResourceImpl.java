@@ -64,8 +64,10 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
                                             String gseTaskId) {
         GseTaskSimpleDTO gseTaskSimpleInfo = gseTaskService.getGseTaskSimpleInfo(gseTaskId);
         if (gseTaskSimpleInfo == null) {
-            log.warn("not found stepInstanceId by "+gseTaskId);
-            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+            String errorMsg = "not found gseTask by "+gseTaskId;
+            log.warn(errorMsg);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{String.valueOf(gseTaskId), errorMsg});
         }
         StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(gseTaskSimpleInfo.getStepInstanceId());
         Long appId = stepInstanceBase.getAppId();
@@ -86,8 +88,10 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
                                                           Long stepInstanceId) {
         StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(stepInstanceId);
         if (stepInstanceBase == null) {
-            log.warn("not found StepInstance by "+stepInstanceId);
-            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
+            String errorMsg = "not found StepInstance by "+stepInstanceId;
+            log.warn(errorMsg);
+            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{String.valueOf(stepInstanceId), errorMsg});
         }
         Long appId = stepInstanceBase.getAppId();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
