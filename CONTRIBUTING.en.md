@@ -46,17 +46,15 @@ git commit -m 'fix: the bug xxx #123'
 
 | Mark     | Description                                   |
 | -------- | -------------------------------------- |
-| feature/feat  | Develop a new feature                             |
-| bug/fix/bugfix   | Fix a bug                                |
-| refactor/perf | Refactor the code/Optimize configurations & parameters/Optimize the logic and the functionality |
-| test     | Add unit testing cases                   |
+| feat     | Develop a new feature                             |
+| fix      | Fix a bug                                |
 | docs     | Add documents                               |
-| info     | Add comment information                         |
-| format   | On the premise of not modifying business logic, only format the code  |
-| merge    | Only merge and synchronize branches                       |
-| depend   | Add, delete or modify the dependencies of the project                 |
+| style    | On the premise of not modifying business logic, only format the code  |
+| refactor | Refactor the code   |
+| perf     | Optimize configurations & parameters/Optimize the logic and the functionality |
+| test     | Add unit testing cases                   |
 | chore    | Relevant code like build scripts and tasks                 |
-| del    | Destructive actions like deleting functionalities and APIs that are still in use               |
+| merge    | Only merge and synchronize branches                       |
 
 ## Pull Request/Merge Request
 
