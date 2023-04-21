@@ -76,7 +76,7 @@ export default {
     '渠道类型：': 'Channel:  ',
     '消息类型：': 'Type:  ',
     '最近修改人：': 'Last Modified By:  ',
-    '最近修改时间：': 'Last Modified On:  ',
+    '最近修改时间：': 'LAST MODIFIED AT:  ',
     模板内容: 'Template Contents',
     模板内容必填: 'Template Contents is required',
     内置变量: 'Built-in Variables',

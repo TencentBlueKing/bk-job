@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
@@ -54,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
@@ -123,6 +125,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     }
 
     @Override
+    @Transactional(rollbackFor = {Throwable.class})
     public InternalResponse<Long> saveTemplateForMigration(
         String username,
         Long appId,
@@ -167,7 +170,12 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
                 finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
             return InternalResponse.buildSuccessResp(finalTemplateId);
         } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{
+                    "body",
+                    StringUtil.concatCollection(JobContextUtil.getDebugMessage(), "\n")
+                }
+            );
         }
     }
 

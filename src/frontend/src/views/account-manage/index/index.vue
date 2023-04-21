@@ -55,6 +55,7 @@
         v-if="allRenderColumnMap.id"
         key="id"
         align="left"
+        fixed="left"
         label="ID"
         prop="id"
         sortable="custom"
@@ -75,6 +76,17 @@
         min-width="180"
         prop="account"
         sortable="custom" />
+      <bk-table-column
+        v-if="allRenderColumnMap.remark"
+        key="remark"
+        align="left"
+        :label="$t('account.描述.colHead')"
+        min-width="180"
+        prop="remark">
+        <template slot-scope="{ row }">
+          <span>{{ row.remark || '--' }}</span>
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.categoryName"
         key="categoryName"
@@ -240,6 +252,10 @@
           id: 'account',
         },
         {
+          name: I18n.t('account.描述.colHead'),
+          id: 'remark',
+        },
+        {
           name: I18n.t('account.创建人'),
           id: 'creator',
           remoteMethod: NotifyService.fetchUsersOfSearch,
@@ -266,6 +282,10 @@
           id: 'account',
           label: I18n.t('account.账号名称.colHead'),
           disabled: true,
+        },
+        {
+          id: 'remark',
+          label: I18n.t('account.描述.colHead'),
         },
         {
           id: 'categoryName',

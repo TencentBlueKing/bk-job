@@ -48,7 +48,7 @@ export default {
     状态: 'STATUS',
     已上线: 'Online',
     更新人: 'LAST MODIFIED BY',
-    更新时间: 'LAST MODIFIED ON',
+    更新时间: 'LAST MODIFIED AT',
     执行方案: 'Plans',
     调试: 'Debug',
     编辑: 'Edit',

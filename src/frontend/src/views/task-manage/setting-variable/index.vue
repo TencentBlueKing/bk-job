@@ -57,22 +57,21 @@
       <template #action>
         <div class="action-wraper">
           <bk-button
-            class="w120 mr10"
+            class="w120"
             :loading="isSubmiting"
             theme="primary"
             @click="handleGoExec">
             {{ $t('template.执行') }}
           </bk-button>
           <bk-button
+            class="ml10"
             @click="handleCancle">
             {{ $t('template.取消') }}
           </bk-button>
-          <bk-button
-            v-if="hasHostVariable"
-            class="remove-all"
-            @click="handleRemoveAllInvalidHost">
-            {{ $t('template.移除无效主机') }}
-          </bk-button>
+          <remove-invalid
+            class="ml10"
+            :host-variable-list="allHostVariable"
+            @change="handleRemoveAllInvalidHost" />
         </div>
       </template>
     </smart-action>
@@ -92,6 +91,7 @@
   import GlobalVariable from '@components/global-variable/edit';
   import ToggleDisplay from '@components/global-variable/toggle-display';
   import BackTop from '@components/back-top';
+  import RemoveInvalid from './components/remove-invalid.vue';
 
   export default {
     name: '',
@@ -100,15 +100,16 @@
       GlobalVariable,
       ToggleDisplay,
       BackTop,
+      RemoveInvalid,
     },
     data () {
       return {
         isLoading: true,
         isSubmiting: false,
-        hasHostVariable: false,
         usedList: [],
         unusedList: [],
         planName: '',
+        allHostVariable: [],
       };
     },
     computed: {
@@ -161,7 +162,7 @@
           });
           this.usedList = Object.freeze(usedList);
           this.unusedList = Object.freeze(unusedList);
-          this.hasHostVariable = _.findIndex(variableList, variable => variable.isHost) > -1;
+          this.allHostVariable = Object.freeze(_.filter(variableList, variable => variable.isHost));
         })
           .catch((error) => {
             if ([

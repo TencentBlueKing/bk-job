@@ -82,7 +82,7 @@ export default {
     搜索关键字: 'Search By Keyword',
     文件名: 'Filename',
     更新人: 'LAST MODIFY BY',
-    更新时间: 'LAST MODIFIED ON',
+    更新时间: 'LAST MODIFIED AT',
     文件源列表: 'File Source List',
     关闭成功: 'Switch Off (Inactive)',
     开启成功: 'Switch On (Active)',
