@@ -515,5 +515,6 @@ export default {
     新建模板: 'New Template',
     '标签名称：': 'Tag Name: ',
     '标签描述：': 'Tag Desc.: ',
+    未发现无效主机: 'No invalid host found',
   },
 };
