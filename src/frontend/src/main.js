@@ -43,6 +43,8 @@ import store from '@/store';
 import { scopeCache } from '@/utils/cache-helper';
 import EntryTask from '@/utils/entry-task';
 
+import { getURLSearchParams } from '@utils/assist';
+
 /**
  * @desc 启动打印当前系统信息
  */
@@ -145,6 +147,7 @@ entryTask.add(context => AppManageService.fetchWholeAppList().then((data) => {
     context.scopeId = scopeId;
   }
 }));
+
 /**
  * @desc 是否是admin用户
  */
@@ -152,6 +155,7 @@ entryTask.add(context => QueryGlobalSettingService.fetchAdminIdentity().then((da
   // eslint-disable-next-line no-param-reassign
   context.isAdmin = data;
 }));
+
 /**
  * @desc 通过第三方系统查看任务执行详情
  */
@@ -183,6 +187,9 @@ if (apiExecute) {
           name: 'historyStep',
           params: {
             taskInstanceId: taskData.id,
+          },
+          query: {
+            ...getURLSearchParams(window.location.search),
           },
         });
       }
