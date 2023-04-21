@@ -29,7 +29,7 @@ import _ from 'lodash'
 export const parseURL = url => {
     const a = document.createElement('a')
     a.href = url
-    
+
     return {
         source: url,
         protocol: a.protocol.replace(':', ''),
@@ -47,13 +47,13 @@ export const buildURLParams = (params) => {
         if (obj === null || typeof obj === 'undefined') {
             return
         }
-      
+
         // Force an array if not already something iterable
         if (typeof obj !== 'object') {
             /* eslint no-param-reassign:0*/
             obj = [obj]
         }
-      
+
         if (_.isArray(obj)) {
             // Iterate over array values
             for (let i = 0, l = obj.length; i < l; i++) {
@@ -82,20 +82,20 @@ export const buildURLParams = (params) => {
     if (!params) {
         return ''
     }
-  
+
     const parts = []
-  
+
     forEach(params, function serialize (val, key) {
         if (val === null || typeof val === 'undefined') {
             return
         }
-  
+
         if (_.isArray(val)) {
             key = key + '[]'
         } else {
             val = [val]
         }
-  
+
         forEach(val, function parseValue (v) {
             if (_.isDate(v)) {
                 v = v.toISOString()
@@ -106,4 +106,12 @@ export const buildURLParams = (params) => {
         })
     })
     return parts.join('&')
+}
+
+export const getURLSearchParams = (search) => {
+    const searchParams = new URLSearchParams(search);
+    return Array.from(searchParams.keys()).reduce((result, key) => ({
+        ...result,
+        [key]: searchParams.get(key) || '',
+      }), {});
 }
