@@ -27,13 +27,19 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.generated.tables.GseTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public class GseTaskDAOImpl implements GseTaskDAO {
@@ -42,6 +48,9 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     private static final GseTask TABLE = GseTask.GSE_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {TABLE.ID, TABLE.STEP_INSTANCE_ID, TABLE.EXECUTE_COUNT,
         TABLE.BATCH, TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.STATUS, TABLE.GSE_TASK_ID};
+
+    private static final TableField<?, ?>[] SIMPLE_FIELDS = {TABLE.STEP_INSTANCE_ID, TABLE.EXECUTE_COUNT,
+        TABLE.BATCH, TABLE.GSE_TASK_ID};
 
     @Autowired
     public GseTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext dslContext) {
@@ -64,6 +73,18 @@ public class GseTaskDAOImpl implements GseTaskDAO {
         gseTaskDTO.setStatus(record.get(TABLE.STATUS).intValue());
         gseTaskDTO.setGseTaskId(record.get(TABLE.GSE_TASK_ID));
         return gseTaskDTO;
+    }
+
+    private GseTaskSimpleDTO extractSimpleInfo(Record record) {
+        if (record == null) {
+            return null;
+        }
+        GseTaskSimpleDTO gseTaskSimpleDTO = new GseTaskSimpleDTO();
+        gseTaskSimpleDTO.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
+        gseTaskSimpleDTO.setExecuteCount(record.get(TABLE.EXECUTE_COUNT).intValue());
+        gseTaskSimpleDTO.setBatch(record.get(TABLE.BATCH).intValue());
+        gseTaskSimpleDTO.setGseTaskId(record.get(TABLE.GSE_TASK_ID));
+        return gseTaskSimpleDTO;
     }
 
     @Override
@@ -122,5 +143,41 @@ public class GseTaskDAOImpl implements GseTaskDAO {
             .where(TABLE.ID.eq(gseTaskId))
             .fetchOne();
         return extractInfo(record);
+    }
+
+    @Override
+    public GseTaskSimpleDTO getGseTaskSimpleInfo(String gseTaskId) {
+        Result<Record> records = dslContext.select(SIMPLE_FIELDS).from(TABLE)
+            .where(TABLE.GSE_TASK_ID.eq(gseTaskId))
+            .limit(1)
+            .fetch();
+        if (records.isEmpty()) {
+            return null;
+        }
+        return extractSimpleInfo(records.get(0));
+    }
+
+    @Override
+    public List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId, Integer executeCount, Integer batch) {
+        List<Condition> conditions = new ArrayList<>();
+        if (stepInstanceId != null) {
+            conditions.add(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId));
+        }
+        if (executeCount != null) {
+            conditions.add(TABLE.EXECUTE_COUNT.eq(executeCount.shortValue()));
+        }
+        if (batch != null) {
+            conditions.add(TABLE.BATCH.eq(batch.shortValue()));
+        }
+        Result<Record> records = dslContext.select(SIMPLE_FIELDS).from(TABLE)
+            .where(conditions)
+            .fetch();
+        List<GseTaskSimpleDTO> results = new ArrayList<>();
+        if (records.isNotEmpty()) {
+            records.into(record -> {
+                results.add(extractSimpleInfo(record));
+            });
+        }
+        return results;
     }
 }
