@@ -66,8 +66,8 @@ public class TaskLinkVO {
     /**
      * 执行次数
      */
-    @ApiModelProperty("执行次数")
-    private Integer executeCount;
+    @ApiModelProperty("重试次数")
+    private Integer retryCount;
 
     /**
      * 批次

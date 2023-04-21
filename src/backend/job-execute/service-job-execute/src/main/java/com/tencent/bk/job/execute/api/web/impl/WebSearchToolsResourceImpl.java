@@ -44,7 +44,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     /**
      * 链接地址
      */
-    private final static String linkTemplate = "%s/api_execute/%s?stepInstanceId=%s&executeCount=%s&batch=%s";
+    private final static String linkTemplate = "%s/api_execute/%s?stepInstanceId=%s&retryCount=%s&batch=%s";
 
     @Autowired
     public WebSearchToolsResourceImpl(StepInstanceService stepInstanceService,
@@ -150,7 +150,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
 
     private TaskLinkVO convertToTaskLinVO(ResourceScope resourceScope,
                                           StepInstanceBaseDTO stepInstanceBase,
-                                          int executeCount,
+                                          int retryCount,
                                           int batch,
                                           String gseTaskId) {
         TaskLinkVO taskLinkVO = new TaskLinkVO();
@@ -159,7 +159,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         taskLinkVO.setAppId(stepInstanceBase.getAppId());
         taskLinkVO.setJobInstanceId(stepInstanceBase.getTaskInstanceId());
         taskLinkVO.setStepInstanceId(stepInstanceBase.getId());
-        taskLinkVO.setExecuteCount(executeCount);
+        taskLinkVO.setRetryCount(retryCount);
         taskLinkVO.setBatch(batch);
         taskLinkVO.setGseTaskId(gseTaskId);
         taskLinkVO.setLink(buildLink(taskLinkVO));
@@ -178,7 +178,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
                     webUrl,
                     taskLinkVO.getJobInstanceId(),
                     taskLinkVO.getStepInstanceId(),
-                    taskLinkVO.getExecuteCount(),
+                    taskLinkVO.getRetryCount(),
                     taskLinkVO.getBatch()));
             }
         } else {
@@ -186,7 +186,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
                 jobWebUrl,
                 taskLinkVO.getJobInstanceId(),
                 taskLinkVO.getStepInstanceId(),
-                taskLinkVO.getExecuteCount(),
+                taskLinkVO.getRetryCount(),
                 taskLinkVO.getBatch()));
         }
         return links;
