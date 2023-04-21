@@ -30,6 +30,8 @@ import QueryGlobalSettingService from '@service/query-global-setting';
 import TaskExecuteService from '@service/task-execute';
 import TaskPlanService from '@service/task-plan';
 
+import { getURLSearchParams } from '@utils/assist';
+
 import '@/common/bkmagic';
 import '@/css/reset.css';
 import '@/css/app.css';
@@ -42,8 +44,6 @@ import createRouter from '@/router';
 import store from '@/store';
 import { scopeCache } from '@/utils/cache-helper';
 import EntryTask from '@/utils/entry-task';
-
-import { getURLSearchParams } from '@utils/assist';
 
 /**
  * @desc 启动打印当前系统信息
