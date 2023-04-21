@@ -69,10 +69,10 @@
 </template>
 <script>
   import _ from 'lodash';
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import StatisticsService from '@service/statistics';
   import { prettyDateFormat } from '@utils/assist';
-    
+
   const styleMap = {
     up: {
       itemStyle: {

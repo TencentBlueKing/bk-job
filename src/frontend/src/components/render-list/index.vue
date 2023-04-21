@@ -229,7 +229,7 @@
         }
         const pageSize = this.pagination.limit;
         const start = parseInt(this.pagination.current - 1, 10) * pageSize;
-                
+
         const requestParams = {
           ...this.defaultSortParams,
           ...this.params,
@@ -241,7 +241,7 @@
           routerCache.setItem(this.$route.name, requestParams);
           window.history.replaceState({}, '', `?${buildURLParams(requestParams)}`);
         }
-                
+
         // 跨页全选时同样需要过滤
         this.requestParamsMemo = requestParams;
         this.isRequesting = true;
@@ -320,14 +320,14 @@
         }
         // 解析url的排序信息
         const { orderField, order } = this.URLQuery;
-                
+
         if (orderField) {
           // table默认排序设置
           this.defaultSort.prop = orderField;
           this.defaultSort.order = ~~order ? 'ascending' : 'descending';
         }
         this.defaultSortParams = {};
-                
+
         if (Object.prototype.hasOwnProperty.call(this.URLQuery, 'orderField')
           && Object.prototype.hasOwnProperty.call(this.URLQuery, 'order')) {
           // api默认排序参数
@@ -383,20 +383,20 @@
           );
         };
         return (
-                <div class="select-cell">
-                    {renderCheckbox()}
-                    <bk-popover
-                        placement="bottom-start"
-                        theme="light jb-table-select-menu"
-                        arrow={ false }
-                        size="regular">
-                        <icon class="select-menu-flag" type="down-small" />
-                        <div slot="content" class="jb-table-select-plan">
-                            <div class="item" onClick={this.handlePageSelect}>{I18n.t('本页全选')}</div>
-                            <div class="item" onClick={this.fetchWhole}>{I18n.t('跨页全选')}</div>
-                        </div>
-                    </bk-popover>
-                </div>
+          <div class="select-cell">
+              {renderCheckbox()}
+              <bk-popover
+                  placement="bottom-start"
+                  theme="light jb-table-select-menu"
+                  arrow={ false }
+                  size="regular">
+                  <icon class="select-menu-flag" type="down-small" />
+                  <div slot="content" class="jb-table-select-plan">
+                      <div class="item" onClick={this.handlePageSelect}>{I18n.t('本页全选')}</div>
+                      <div class="item" onClick={this.fetchWhole}>{I18n.t('跨页全选')}</div>
+                  </div>
+              </bk-popover>
+          </div>
         );
       },
       /**
@@ -440,7 +440,7 @@
           delete params.order;
           this.params = Object.freeze(params);
         }
-                
+
         this.$emit('onFetch');
       },
       /**

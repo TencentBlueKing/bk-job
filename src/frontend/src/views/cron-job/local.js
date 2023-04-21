@@ -32,7 +32,7 @@ export default {
     '搜索任务ID，任务名称，更新人...': 'Search by Cron Job ID / Cron Name / Last Modified By ...',
     任务ID: 'Cron ID',
     执行方案名称: 'JOB PLAN',
-    更新时间: 'LAST MODIFIED ON',
+    更新时间: 'LAST MODIFIED AT',
     最新执行结果: 'LATEST RESULT',
     周期成功率: 'SUCCESS RATE',
     更多失败记录: 'More',

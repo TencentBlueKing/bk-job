@@ -27,10 +27,23 @@
 export default {
   namespace: 'dangerousRule',
   message: {
-    语法检测表达式: 'GRAMMAR REGEX',
-    规则说明: 'EXPLANATION',
-    脚本类型: 'SCRIPT TYPE',
-    动作: 'ACTION',
+    新建: 'new',
+    语法检测表达式: {
+      col: 'GRAMMAR REGEX',
+      label: 'Grammar Regex',
+    },
+    规则说明: {
+      col: 'EXPLANATION',
+      label: 'Explanation',
+    },
+    脚本类型: {
+      col: 'SCRIPT TYPE',
+      label: 'Script Type',
+    },
+    动作: {
+      col: 'ACTION',
+      label: 'action',
+    },
     操作: 'ACTIONS',
     '规则的排序越靠前，表示检测优先级越高': 'The higher the order of the rules, the higher the detect priority',
     上移: 'Up',
@@ -56,5 +69,14 @@ export default {
     脚本类型不能为空: 'Script type is required',
     请填写完整的语法检测表达式和说明: 'Grammar Regex and Description not defined.',
     新增成功: 'New rule has been created',
+    语法检测表达式必填: '语法检测表达式必填',
+    规则说明必填: '语法检测表达式必填',
+    脚本类型必填: '脚本类型必填',
+    动作必填: '动作必填',
+    '搜索语法检测表达式，规则说明，脚本类型...': '搜索语法检测表达式，规则说明，脚本类型...',
+    创建人: 'CREATED BY',
+    更新人: 'LAST MODIFIED BY',
+    更新时间: 'LAST MODIFIED AT',
+    创建时间: 'CREATED ON',
   },
 };

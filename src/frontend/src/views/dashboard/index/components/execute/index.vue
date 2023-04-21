@@ -27,12 +27,17 @@
 
 <template>
   <div class="execute-dashboard">
-    <div class="layout-left">
-      <total-count v-bind="$attrs" />
-      <fail-count v-bind="$attrs" />
+    <div class="execute-dashboard-row">
+      <div class="layout-left">
+        <total-count v-bind="$attrs" />
+        <fail-count v-bind="$attrs" />
+      </div>
+      <div class="layout-right">
+        <statistics v-bind="$attrs" />
+      </div>
     </div>
-    <div class="layout-right">
-      <statistics v-bind="$attrs" />
+    <div class="execute-dashboard-row">
+      <Rolling v-bind="$attrs" />
     </div>
   </div>
 </template>
@@ -40,6 +45,7 @@
   import TotalCount from './total-count';
   import FailCount from './fail-count';
   import Statistics from './statistics';
+  import Rolling from './rolling';
 
   export default {
     name: '',
@@ -47,6 +53,7 @@
       TotalCount,
       FailCount,
       Statistics,
+      Rolling,
     },
     data () {
       return {};
@@ -59,9 +66,16 @@
   @import "@/css/mixins/media";
 
   .execute-dashboard {
-    display: flex;
     flex: 1;
-    background: #fff;
+
+    .execute-dashboard-row {
+      display: flex;
+      background: #fff;
+
+      & ~ .execute-dashboard-row {
+        margin-top: 20px;
+      }
+    }
 
     .layout-left {
       flex: 0 0 260px;
