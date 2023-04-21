@@ -11,7 +11,9 @@
 </template>
 <script>
   import _ from 'lodash';
-  import AppManageService from '@service/app-manage';
+
+  import HostManageService from '@service/host-manage';
+
   import I18n from '@/i18n';
 
   export default {
@@ -22,7 +24,7 @@
         require: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isButtonDisable: true,
@@ -30,70 +32,71 @@
     },
     watch: {
       hostVariableList: {
-        handler () {
+        handler() {
           this.fetchData();
         },
       },
     },
-    created () {
+    created() {
       this.tooltops = {
         disabled: true,
         content: I18n.t('template.未发现无效主机'),
       };
     },
     methods: {
-      fetchData () {
+      fetchData() {
         if (!this.isLoading) {
           return;
         }
-        let allIpList = [];
+        let allHostList = [];
         let allNodeList = [];
         let allDynamicGroupList = [];
 
         this.hostVariableList.forEach((hostVariable) => {
           if (!hostVariable.defaultTargetValue.isEmpty) {
             const {
-              ipList,
-              topoNodeList,
+              hostList,
+              nodeList,
               dynamicGroupList,
             } = hostVariable.defaultTargetValue.hostNodeInfo;
-            allIpList.push(...ipList);
-            allNodeList.push(...topoNodeList.map(({ type, id }) => ({ type, id })));
-            allDynamicGroupList.push(...dynamicGroupList);
+            allHostList.push(...hostList.map(({ hostId }) => ({ hostId })));
+            allNodeList.push(...nodeList.map(({ objectId, instanceId }) => ({ objectId, instanceId })));
+            allDynamicGroupList.push(...dynamicGroupList.map(({ id }) => ({ id })));
           }
         });
 
-        allIpList = _.uniq(allIpList.map(host => `${host.cloudAreaInfo.id}:${host.ip}`));
-        allNodeList = _.uniqBy(allNodeList, ({ type, id }) => `#${type}#${id}`);
-        allDynamicGroupList = _.uniq(allDynamicGroupList.map(({ id }) => id));
+        allHostList = _.uniqBy(allHostList, ({ hostId }) => ({ hostId }));
+        allNodeList = _.uniqBy(allNodeList, ({ objectId, instanceId }) => `#${objectId}#${instanceId}`);
+        allDynamicGroupList = _.uniqBy(allDynamicGroupList, ({ id }) => id);
 
         const requestQueue = [];
-        if (allIpList.length > 0) {
-          requestQueue.push(AppManageService.fetchHostOfHost({
-            ipList: allIpList,
+        if (allHostList.length > 0) {
+          requestQueue.push(HostManageService.fetchHostInfoByHostId({
+            hostList: allHostList,
           }));
         } else {
           requestQueue.push(Promise.resolve([]));
         }
 
         if (allNodeList.length > 0) {
-          requestQueue.push(AppManageService.fetchNodeInfo(allNodeList));
+          requestQueue.push(HostManageService.fetchNodePath({
+            nodeList: allNodeList,
+          }));
         } else {
           requestQueue.push(Promise.resolve([]));
         }
 
         if (allDynamicGroupList.length > 0) {
-          requestQueue.push(AppManageService.fetchHostOfDynamicGroup({
-            id: allDynamicGroupList.join(','),
+          requestQueue.push(HostManageService.fetchDynamicGroup({
+            dynamicGroupList: allDynamicGroupList,
           }));
         } else {
           requestQueue.push(Promise.resolve([]));
         }
 
         Promise.all(requestQueue)
-          .then(([ipListResult, nodeListResult, dynamicGroupListResult]) => {
-            //
-            this.isButtonDisable = allIpList.length <= ipListResult.length
+          .then(([hostListResult, nodeListResult, dynamicGroupListResult]) => {
+            this.isButtonDisable = allHostList.length <= hostListResult.length
               && allNodeList.length <= nodeListResult.length
               && allDynamicGroupList.length <= dynamicGroupListResult.length;
 
@@ -103,7 +106,7 @@
             this.isLoading = false;
           });
       },
-      handleRemoveAllInvalidHost () {
+      handleRemoveAllInvalidHost() {
         this.$emits('change');
       },
     },
