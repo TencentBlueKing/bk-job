@@ -140,6 +140,7 @@
                 :value="row.status"
                 @update="status => handleUpdate(row, { status })" />
               <bk-button
+                v-if="!isSearching"
                 v-bk-tooltips.top="$t('dangerousRule.上移')"
                 v-test="{ type: 'button', value: 'upMoveRule' }"
                 class="arrow-btn ml10"
@@ -149,6 +150,7 @@
                 <Icon type="increase-line" />
               </bk-button>
               <bk-button
+                v-if="!isSearching"
                 v-bk-tooltips.top="$t('dangerousRule.下移')"
                 v-test="{ type: 'button', value: 'downMoveRule' }"
                 class="arrow-btn"
@@ -222,6 +224,7 @@
         scriptTypeList: [],
         tableSize: 'small',
         selectedTableColumn: [],
+        searchParams: {},
       };
     },
     computed: {
@@ -234,9 +237,11 @@
           return result;
         }, {});
       },
+      isSearching () {
+        return Object.keys(this.searchParams).length > 0;
+      },
     },
     created () {
-      this.searchParams = {};
       this.editRule = {};
       this.fetchScriptType();
 
