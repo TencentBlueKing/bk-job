@@ -183,7 +183,7 @@ if (apiExecute) {
         });
       } else {
         window.BKApp.$router.replace({
-          name: 'historyStep',
+          name: 'quickLaunchStep',
           params: {
             taskInstanceId: taskData.id,
           },
@@ -195,6 +195,40 @@ if (apiExecute) {
     },
   );
 }
+
+/**
+ * @desc 通过第三方系统查看作业任务步骤执行详情
+ */
+const apiExecuteStep = window.location.href.match(/api_execute_step\/([^/]+)\/([^/]+)/);
+if (apiExecuteStep) {
+  // 通过 iframe 访问任务详情入口为 IframeApp
+  if (window.frames.length !== parent.frames.length) {
+    EntryApp = IframeApp;
+  }
+  const [, taskInstanceId, stepInstanceId] = apiExecuteStep;
+  entryTask.add(
+    context => TaskExecuteService.fetchTaskInstanceFromAllApp({
+      taskInstanceId,
+    }).then((data) => {
+      context.taskData = data;
+      context.scopeType = data.scopeType;
+      context.scopeId = data.scopeId;
+    }),
+    (context) => {
+      window.BKApp.$router.replace({
+        name: 'historyStep',
+        params: {
+          taskInstanceId,
+        },
+        query: {
+          ...getURLSearchParams(window.location.search),
+          stepInstanceId,
+        },
+      });
+    },
+  );
+}
+
 /**
  * @desc 通过第三方系统查看执行方案详情
  */
