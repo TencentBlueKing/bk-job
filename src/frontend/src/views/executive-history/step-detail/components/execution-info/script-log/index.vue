@@ -32,30 +32,46 @@
     }"
     class="step-execute-script-log">
     <div class="log-wraper">
-      <div v-once id="executeScriptLog" style="height: 100%;" />
+      <div
+        v-once
+        id="executeScriptLog"
+        style="height: 100%;" />
     </div>
-    <div v-if="ip && isRunning" class="log-status">
-      <div class="log-loading">{{ $t('history.执行中') }}</div>
+    <div
+      v-if="ip && isRunning"
+      class="log-status">
+      <div class="log-loading">
+        {{ $t('history.执行中') }}
+      </div>
     </div>
     <div class="log-action-box">
-      <div v-bk-tooltips="backTopTips" class="action-item" @click="handleScrollTop">
-        <Icon type="up-to-top" />
+      <div
+        v-bk-tooltips="backTopTips"
+        class="action-item"
+        @click="handleScrollTop">
+        <icon type="up-to-top" />
       </div>
-      <div v-bk-tooltips="backBottomTips" class="action-item action-bottom" @click="handleScrollBottom">
-        <Icon type="up-to-top" />
+      <div
+        v-bk-tooltips="backBottomTips"
+        class="action-item action-bottom"
+        @click="handleScrollBottom">
+        <icon type="up-to-top" />
       </div>
     </div>
   </div>
 </template>
 <script>
-  import _ from 'lodash';
   import ace from 'ace/ace';
+  import _ from 'lodash';
+
+  import TaskExecuteService from '@service/task-execute';
+
+  import mixins from '../../mixins';
+
   import 'ace/mode-text';
   import 'ace/theme-monokai';
   import 'ace/ext-searchbox';
   import I18n from '@/i18n';
-  import TaskExecuteService from '@service/task-execute';
-  import mixins from '../../mixins';
 
   export default {
     mixins: [
@@ -90,7 +106,7 @@
         default: true,
       },
     },
-    data () {
+    data() {
       return {
         // 日志loading，切换主机的时候才显示
         isLoading: true,
@@ -107,7 +123,7 @@
        * 日志目标改变，重置页面操作的数据
        */
       name: {
-        handler () {
+        handler() {
           // 日志自动滚动
           this.isLoading = true;
           this.autoScrollTimeout();
@@ -119,12 +135,12 @@
        * @desc 字体大小改变时虚拟滚动重新计算
        */
       fontSize: {
-        handler (fontSize) {
+        handler(fontSize) {
           this.editor.setFontSize(fontSize);
         },
       },
       lineFeed: {
-        handler (lineFeed) {
+        handler(lineFeed) {
           setTimeout(() => {
             this.editor && this.editor.setOptions({
               wrap: lineFeed ? 'free' : 'none',
@@ -134,7 +150,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.backTopTips = {
         content: I18n.t('history.回到顶部'),
         placements: [
@@ -150,14 +166,14 @@
         theme: 'light',
       };
     },
-    mounted () {
+    mounted() {
       this.initEditor();
     },
     methods: {
       /**
        * @desc 获取脚本日志
        */
-      fetchLogContent () {
+      fetchLogContent() {
         if (!this.ip) {
           this.isLoading = false;
           if (this.editor) {
@@ -190,7 +206,7 @@
             this.isLoading = false;
           });
       },
-      initEditor () {
+      initEditor() {
         const editor = ace.edit('executeScriptLog');
         editor.getSession().setMode('ace/mode/text');
         editor.setTheme('ace/theme/monokai');
@@ -226,7 +242,7 @@
       /**
        * @desc 外部调用
        */
-      resize () {
+      resize() {
         this.$nextTick(() => {
           this.editor.resize();
         });
@@ -234,7 +250,7 @@
       /**
        * @desc 日志滚动定时器
        */
-      autoScrollTimeout () {
+      autoScrollTimeout() {
         if (this.isWillAutoScroll && !this.isLoading) {
           this.handleScrollBottom();
         }
@@ -245,13 +261,13 @@
       /**
        * @desc 回到日志顶部
        */
-      handleScrollTop () {
+      handleScrollTop() {
         this.editor.scrollToLine(0);
       },
       /**
        * @desc 回到日志底部
        */
-      handleScrollBottom () {
+      handleScrollBottom() {
         this.isWillAutoScroll = true;
         this.editor.scrollToLine(Infinity);
       },

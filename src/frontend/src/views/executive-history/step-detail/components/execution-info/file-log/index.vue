@@ -42,9 +42,12 @@
         :render-content-map="renderContentMap"
         @on-toggle="handleToggle" />
     </div>
-    <div v-if="renderNums < contentList.length" ref="load" class="load-more">
+    <div
+      v-if="renderNums < contentList.length"
+      ref="load"
+      class="load-more">
       <div class="loading-flag">
-        <Icon type="loading-circle" />
+        <icon type="loading-circle" />
       </div>
       <div>{{ $t('history.加载中') }}</div>
     </div>
@@ -52,11 +55,15 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import TaskExecuteService from '@service/task-execute';
+
   import {
     getOffset,
   } from '@utils/assist';
+
   import mixins from '../../mixins';
+
   import FileItem from './log-item';
 
   export default {
@@ -88,7 +95,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         // 基础信息loading
         isLoading: true,
@@ -108,10 +115,10 @@
       };
     },
     computed: {
-      renderNums () {
+      renderNums() {
         return this.onePageNums + this.pageSize * this.page;
       },
-      renderList () {
+      renderList() {
         return this.contentList.slice(0, this.renderNums);
       },
     },
@@ -120,7 +127,7 @@
        * @desc 查看的日志目标改变，重新获取日志
        */
       name: {
-        handler () {
+        handler() {
           this.isLoading = true;
           this.isMemoChange = false;
           this.page = 0;
@@ -133,7 +140,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       // 缓存是否有展开日志的操作
       this.isMemoChange = false;
       // 前端分页加载器，控制触发频率
@@ -141,7 +148,7 @@
       // 日志列表中是否包含日志内容标记，如果不包含需要异步获取日志内容
       this.includingLogContent = '';
     },
-    mounted () {
+    mounted() {
       this.calcFirstPageNums();
       window.addEventListener('resize', this.handleScroll);
       this.$once('hook:beforeDestroy', () => {
@@ -155,7 +162,7 @@
        * 默认展开第一个文件的日志
        * 如果文件信息里面不包含日志内容，需要异步获取文件内容
        */
-      fetchData () {
+      fetchData() {
         if (!this.ip) {
           this.isLoading = false;
           this.contentList = [];
@@ -220,13 +227,13 @@
       /**
        * @desc 外部调用
        */
-      resize () {
+      resize() {
         this.handleScroll();
       },
       /**
        * @desc 计算首屏需要渲染的文件数
        */
-      calcFirstPageNums () {
+      calcFirstPageNums() {
         const windowHeight = window.innerHeight;
         const { top } = getOffset(this.$refs.contentBox);
         this.onePageNums = Math.ceil((windowHeight - top) / 34) + 3;
@@ -253,7 +260,7 @@
        *
        * 展开时需要重新获取一次日志
        */
-      handleToggle (taskId, toggle) {
+      handleToggle(taskId, toggle) {
         const openMemo = { ...this.openMemo };
         openMemo[taskId] = toggle;
         this.openMemo = Object.freeze(openMemo);

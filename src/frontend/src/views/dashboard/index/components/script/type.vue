@@ -31,7 +31,9 @@
     class="script-type-dashboard"
     :title="$t('dashboard.脚本类型分布')">
     <div class="wraper">
-      <div ref="dashboard" style="width: 180px; height: 180px;" />
+      <div
+        ref="dashboard"
+        style="width: 180px; height: 180px;" />
       <div class="item-list">
         <div
           v-for="item in typeList"
@@ -48,7 +50,9 @@
 <script>
   import * as echarts from 'echarts';
   import _ from 'lodash';
+
   import StatisticsService from '@service/statistics';
+
   import CardLayout from '../card-layout';
   import {
     chartsOptionsBase,
@@ -74,7 +78,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -88,11 +92,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    created () {
+    created() {
       this.typeList = [
         'Bat',
         'Shell',
@@ -102,11 +106,11 @@
         'SQL',
       ];
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
 
         StatisticsService.fetchDistributionMetrics({
@@ -120,7 +124,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         this.myChart = echarts.init(this.$refs.dashboard);
         const data = [];
         let maxType = this.typeList[0];// eslint-disable-line prefer-destructuring
@@ -187,7 +191,7 @@
           this.handleMouseover(params.data.name);
         });
       },
-      calcItemCircleStyles (type) {
+      calcItemCircleStyles(type) {
         return {
           width: '8px',
           height: '8px',
@@ -196,7 +200,7 @@
           backgroundColor: colorMap[type],
         };
       },
-      handleMouseover (type) {
+      handleMouseover(type) {
         const others = _.filter(this.typeList, _ => _ !== type);
         this.myChart.dispatchAction({ type: 'highlight', name: type });
         this.myChart.dispatchAction({ type: 'downplay', name: others });

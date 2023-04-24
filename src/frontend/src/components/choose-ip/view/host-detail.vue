@@ -26,12 +26,22 @@
 -->
 
 <template>
-  <div ref="hostDetail" class="choose-ip-host-detail">
-    <sideslider-box :value="show" @change="handleClose">
-      <div slot="title">{{ data.name }}</div>
+  <div
+    ref="hostDetail"
+    class="choose-ip-host-detail">
+    <sideslider-box
+      :value="show"
+      @change="handleClose">
+      <div slot="title">
+        {{ data.name }}
+      </div>
       <div slot="desc">
-        <statistics-text slot="desc" :data="data" />
-        <action-extend copyable :list="list" />
+        <statistics-text
+          slot="desc"
+          :data="data" />
+        <action-extend
+          copyable
+          :list="list" />
       </div>
       <host-table :list="list" />
     </sideslider-box>
@@ -39,9 +49,9 @@
 </template>
 <script>
   import ActionExtend from '../components/action-extend';
+  import HostTable from '../components/host-table';
   import SidesliderBox from '../components/sideslider-box';
   import StatisticsText from '../components/statistics-text';
-  import HostTable from '../components/host-table';
   import {
     sortHost,
   } from '../components/utils';
@@ -74,14 +84,14 @@
         }),
       },
     },
-    data () {
+    data() {
       return {
         list: [],
       };
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (!data.host) {
             this.list = [];
             return;
@@ -91,7 +101,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.append().appendChild(this.$refs.hostDetail);
       this.$once('hook:beforeDestroy', () => {
         const $target = this.append();
@@ -101,7 +111,7 @@
       });
     },
     methods: {
-      handleClose () {
+      handleClose() {
         this.currentPage = 1;
         this.$emit('input', false);
         this.$emit('change', false);

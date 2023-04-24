@@ -38,7 +38,9 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import StatisticsService from '@service/statistics';
+
   import CardLayout from '../card-layout';
 
   export default {
@@ -46,21 +48,21 @@
     components: {
       CardLayout,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
 
-    created () {
+    created() {
       this.textList = [];
     },
-    mounted () {
+    mounted() {
       this.fetchData();
       const resize = _.throttle(() => {
         this.init(this.textList);
@@ -71,7 +73,7 @@
       });
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchDistributionMetrics({
           date: this.date,
@@ -109,7 +111,7 @@
               checkWeight(secondMax, tagNumList.pop(), nextMin);
             }
           };
-                    
+
           checkWeight(
             tagNumList.pop(),
             tagNumList.pop(),
@@ -132,7 +134,7 @@
             this.isLoading = false;
           });
       },
-      init (wordList) {
+      init(wordList) {
         const start = (wordArray) => {
           // 容器元素的引用
           const boxClientRect = this.$refs.box.getBoundingClientRect();
@@ -177,7 +179,7 @@
             wordArray.sort((a, b) => {
               if (a.weight < b.weight) {
                 return 1;
-              } else if (a.weight > b.weight) {
+              } if (a.weight > b.weight) {
                 return -1;
               }
               return 0;

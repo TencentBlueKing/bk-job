@@ -62,8 +62,9 @@
   </bk-dialog>
 </template>
 <script>
-  import I18n from '@/i18n';
   import { leaveConfirm } from '@utils/assist';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'JbDialog',
@@ -89,7 +90,7 @@
         default: true,
       },
     },
-    data () {
+    data() {
       return {
         isShow: false,
         isRender: false,
@@ -99,7 +100,7 @@
     },
     watch: {
       value: {
-        handler (val) {
+        handler(val) {
           // settimeout 解决 bk-dialog 默认显示没有遮罩的 bug
           setTimeout(() => {
             if (val) {
@@ -114,10 +115,10 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.pageChangeConfirmMemo = false;
     },
-    mounted () {
+    mounted() {
       window.addEventListener('resize', this.calcMediaWidth);
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', this.calcMediaWidth);
@@ -127,7 +128,7 @@
       /**
        * @desc 计算响应式宽度
        */
-      calcMediaWidth () {
+      calcMediaWidth() {
         let renderWidth = this.width;
         if (!this.media.length) {
           renderWidth = this.width;
@@ -153,7 +154,7 @@
        *
        * 判断条件为有没有提供submit方法
        */
-      checkHandle () {
+      checkHandle() {
         // 可以绑定子组件的条件是子组件有提供submit methods
         const handle = {
           submit: () => Promise.resolve(),
@@ -170,13 +171,13 @@
         });
         return handle;
       },
-      beforeClose () {
+      beforeClose() {
         return leaveConfirm();
       },
       /**
        * @desc 关闭弹框
        */
-      close () {
+      close() {
         window.changeFlag = this.pageChangeConfirmMemo;
         this.$emit('input', false);
         this.$emit('change', false);
@@ -184,7 +185,7 @@
       /**
        * @desc 关闭弹框
        */
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => this.checkHandle().reset())
           .then(() => this.close())
@@ -193,7 +194,7 @@
       /**
        * @desc 弹框的确认操作
        */
-      handleConfirm () {
+      handleConfirm() {
         this.isSubmiting = true;
         // submit 有可能返回不是 Promise, 用 Promise 包裹兼容这种情况
         Promise.resolve(this.checkHandle().submit())
@@ -208,7 +209,7 @@
       /**
        * @desc 关闭弹框
        */
-      handleInputValue () {
+      handleInputValue() {
         this.close();
       },
     },

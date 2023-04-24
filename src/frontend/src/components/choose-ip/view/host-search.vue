@@ -32,25 +32,40 @@
         <span>{{ $t('已筛选出') }}<span class="strong number">{{ list.length }}</span>{{ $t('个IP') }}</span>
         <span v-if="statisticsData.fail">（<span class="error">{{ statisticsData.fail }}</span>{{ $t('台Agent异常') }}）</span>
       </span>
-      <action-extend copyable :list="list">
+      <action-extend
+        copyable
+        :list="list">
         <template v-if="editable">
-          <div class="action-item" @click="handleRemoveAll">{{ $t('移除全部') }}</div>
-          <div class="action-item" @click="handleRemoveFail">{{ $t('移除异常') }}</div>
+          <div
+            class="action-item"
+            @click="handleRemoveAll">
+            {{ $t('移除全部') }}
+          </div>
+          <div
+            class="action-item"
+            @click="handleRemoveFail">
+            {{ $t('移除异常') }}
+          </div>
         </template>
       </action-extend>
     </div>
-    <host-table editable is-search :list="list" @on-change="handleRemoveOne" />
+    <host-table
+      editable
+      is-search
+      :list="list"
+      @on-change="handleRemoveOne" />
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
-  import HostTable from '../components/host-table';
   import ActionExtend from '../components/action-extend';
+  import HostTable from '../components/host-table';
   import {
     sortHost,
     statisticsHost,
   } from '../components/utils';
-    
+
+  import I18n from '@/i18n';
+
   export default {
     name: '',
     components: {
@@ -67,14 +82,14 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         list: [],
         statisticsData: {},
       };
     },
     computed: {
-      classes () {
+      classes() {
         return {
           scroll: this.data.length > 10,
         };
@@ -82,7 +97,7 @@
     },
     watch: {
       data: {
-        handler (host) {
+        handler(host) {
           if (this.isInnerChange) {
             this.isInnerChange = false;
             return;
@@ -99,7 +114,7 @@
       /**
        * @desc 删除所有筛选得到的主机
        */
-      handleRemoveAll () {
+      handleRemoveAll() {
         if (this.list.length < 1) {
           this.messageSuccess(I18n.t('没有可移除主机'));
           return;
@@ -115,7 +130,7 @@
        *
        * 抛出change事件通知那些主机被删除
        */
-      handleRemoveFail () {
+      handleRemoveFail() {
         const effectiveIp = [];
         const failIp = [];
         this.list.forEach((currentHost) => {
@@ -140,7 +155,7 @@
        *
        * 抛出change事件通知那些主机被删除
        */
-      handleRemoveOne (hostRealId) {
+      handleRemoveOne(hostRealId) {
         // 内部显示删除
         const newList = [];
         let removeHost = null;
@@ -155,7 +170,7 @@
         if (!removeHost) {
           return;
         }
-                
+
         this.isInnerChange = true;
         this.$emit('on-change', [
           removeHost,

@@ -26,7 +26,7 @@
 const STATUS_ONLINE = 1; // 已上线
 
 export default class TaskPlan {
-  constructor (payload) {
+  constructor(payload) {
     this.templateId = payload.templateId;
     this.taskId = payload.taskId;
     this.taskName = payload.taskName;
@@ -38,7 +38,7 @@ export default class TaskPlan {
     this.scriptVersionId = payload.scriptVersionId;
   }
 
-  get isOnline () {
+  get isOnline() {
     return [
       STATUS_ONLINE,
     ].includes(this.scriptStatus);

@@ -34,19 +34,35 @@
       toggled: isOpen,
     }">
     <div class="layout-left">
-      <div class="left-wraper" :style="styles">
+      <div
+        class="left-wraper"
+        :style="styles">
         <slot />
       </div>
-      <div v-if="isShowRight" class="toggle-button" @click="handleToggle">
-        <Icon class="toggle-arrow" type="down-small" />
+      <div
+        v-if="isShowRight"
+        class="toggle-button"
+        @click="handleToggle">
+        <icon
+          class="toggle-arrow"
+          type="down-small" />
       </div>
     </div>
-    <div v-if="flod" class="layout-right" :style="rightStyles">
-      <div class="right-wraper" :class="{ active: isShowRight }">
-        <slot v-if="isShowRight" name="flod" />
+    <div
+      v-if="flod"
+      class="layout-right"
+      :style="rightStyles">
+      <div
+        class="right-wraper"
+        :class="{ active: isShowRight }">
+        <slot
+          v-if="isShowRight"
+          name="flod" />
       </div>
-      <div class="close-btn" @click="handleClose">
-        <Icon type="close-big" />
+      <div
+        class="close-btn"
+        @click="handleClose">
+        <icon type="close-big" />
       </div>
     </div>
   </div>
@@ -65,7 +81,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isShowRight: false,
         isOpen: false,
@@ -74,7 +90,7 @@
       };
     },
     computed: {
-      styles () {
+      styles() {
         if (this.flod) {
           return {
             width: '360px',
@@ -84,7 +100,7 @@
           width: this.layoutWidth,
         };
       },
-      rightStyles () {
+      rightStyles() {
         const paddingBottom = 20;
         return {
           height: `calc(100vh -  ${this.layoutOffsetTop + paddingBottom}px)`,
@@ -93,7 +109,7 @@
     },
     watch: {
       flod: {
-        handler (flod) {
+        handler(flod) {
           if (flod) {
             setTimeout(() => {
               this.isShowRight = flod;
@@ -105,7 +121,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.init();
       window.addEventListener('resize', this.init);
       this.$once('hook:beforeDestroy', () => {
@@ -116,16 +132,16 @@
       /**
        * @desc 根据屏幕尺寸动态计算 layout 的位置信息
        */
-      init () {
+      init() {
         const layoutWidth = this.$refs.layout.getBoundingClientRect().width;
         this.layoutWidth = `${layoutWidth}px`;
         const offsetTop = getOffset(this.$refs.layout).top;
         this.layoutOffsetTop = offsetTop;
       },
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
       },
-      handleClose () {
+      handleClose() {
         leaveConfirm()
           .then(() => {
             this.isOpen = false;

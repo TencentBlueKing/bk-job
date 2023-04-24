@@ -27,90 +27,91 @@
 
 import DynamicGroupInfoVO from '@domain/variable-object/dynamic-group-info';
 import NodeInfoVO from '@domain/variable-object/node-info';
+
 import AppManageSource from '../source/app-manage';
 
 export default {
-  fetchAppList () {
+  fetchAppList() {
     return AppManageSource.getWholeAppList()
       .then(({ data }) => Object.freeze(data.data));
   },
-  fetchWholeAppList () {
+  fetchWholeAppList() {
     return AppManageSource.getWholeAppList()
       .then(({ data }) => Object.freeze(data));
   },
-  favorApp (params) {
+  favorApp(params) {
     return AppManageSource.updateFavorApp(params)
       .then(({ data }) => data);
   },
-  cancelFavorApp (params) {
+  cancelFavorApp(params) {
     return AppManageSource.updateCancelFavorApp(params)
       .then(({ data }) => data);
   },
   // 获取拓扑节点树
-  fetchTopology () {
+  fetchTopology() {
     return AppManageSource.getAllTopology()
       .then(({ data }) => data);
   },
   // 获取业务拓扑主机列表（包含主机）
-  fetchTopologyWithCount () {
+  fetchTopologyWithCount() {
     return AppManageSource.getAllTopologyWithCount()
       .then(({ data }) => data);
   },
   // 获取拓扑节点数包含主机
-  fetchAllTopologyHost () {
+  fetchAllTopologyHost() {
     return AppManageSource.getAllTopologyWithHost()
       .then(({ data }) => data);
   },
   // 获取节点的主机
-  fetchNodeInfo (params) {
+  fetchNodeInfo(params) {
     return AppManageSource.getHostByNode(params)
       .then(({ data }) => data.map(item => new NodeInfoVO(item)));
   },
   // 获取节点详情
-  fetchNodeDetail (params) {
+  fetchNodeDetail(params) {
     return AppManageSource.getNodeInfo(params)
       .then(({ data }) => data);
   },
 
   // 获取节点拓扑路径
-  fetchNodePath (params) {
+  fetchNodePath(params) {
     return AppManageSource.getNodePath(params)
       .then(({ data }) => data);
   },
-    
+
   // ip输入获取主机列表
-  fetchHostOfHost (params) {
+  fetchHostOfHost(params) {
     return AppManageSource.getHostByHost(params)
       .then(({ data }) => data);
   },
   // 获取动态分列表
-  fetchDynamicGroup () {
+  fetchDynamicGroup() {
     return AppManageSource.getAllDynamicGroup()
       .then(({ data }) => data);
   },
   // 获取动态分组的主机列表
-  fetchHostOfDynamicGroup (params) {
+  fetchHostOfDynamicGroup(params) {
     return AppManageSource.getHostByDynamicGroupId(params)
       .then(({ data }) => data.map(item => new DynamicGroupInfoVO(item)));
   },
-    
-  fetchTopologyHost (params) {
+
+  fetchTopologyHost(params) {
     return AppManageSource.getTopologyHost(params)
       .then(({ data }) => data);
   },
 
-  fetchTopogyIPs (params) {
+  fetchTopogyIPs(params) {
     return AppManageSource.getTopologyIPs(params)
       .then(({ data }) => data);
   },
-    
+
   // IP选择器根据拓扑节点获取其子节点
-  fetchChildOfNode (params) {
+  fetchChildOfNode(params) {
     return AppManageSource.getChildOfNode(params)
       .then(({ data }) => data);
   },
-    
-  fetchHostStatistics (params) {
+
+  fetchHostStatistics(params) {
     return AppManageSource.getHostStatistics(params)
       .then(({ data }) => data);
   },

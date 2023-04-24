@@ -35,21 +35,21 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
   import { createPatch } from 'diff';
   import * as Diff2Html from 'diff2html';
   import hljs from 'highlight.js/lib/core';
+  import bash from 'highlight.js/lib/languages/bash';
+  import diff from 'highlight.js/lib/languages/diff';
+  import go from 'highlight.js/lib/languages/go';
   import javascript from 'highlight.js/lib/languages/javascript';
   import json from 'highlight.js/lib/languages/json';
-  import bash from 'highlight.js/lib/languages/bash';
-  import go from 'highlight.js/lib/languages/go';
-  import xml from 'highlight.js/lib/languages/xml';
-  import python from 'highlight.js/lib/languages/python';
-  import typescript from 'highlight.js/lib/languages/typescript';
-  import sql from 'highlight.js/lib/languages/sql';
   import perl from 'highlight.js/lib/languages/perl';
   import powershell from 'highlight.js/lib/languages/powershell';
-  import diff from 'highlight.js/lib/languages/diff';
+  import python from 'highlight.js/lib/languages/python';
+  import sql from 'highlight.js/lib/languages/sql';
+  import typescript from 'highlight.js/lib/languages/typescript';
+  import xml from 'highlight.js/lib/languages/xml';
+  import _ from 'lodash';
 
   import 'highlight.js/styles/dark.css';
 
@@ -72,7 +72,7 @@
   });
 
   export default {
-    name: 'diff',
+    name: 'Diff',
     props: {
       oldContent: {
         type: String,
@@ -100,17 +100,17 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         html: '',
       };
     },
     computed: {
-      classes () {
+      classes() {
         return [this.theme, `format-${this.format}`];
       },
     },
-    created () {
+    created() {
       const unwatch = this.$watch(() => `（${this.language}）${this.oldContent + this.newContent}`, () => {
         const oldContent = `${this.oldContent}\n// --end--`;
         const newContent = `${this.newContent}\n// -- end--`;

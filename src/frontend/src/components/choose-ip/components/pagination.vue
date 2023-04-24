@@ -27,20 +27,30 @@
 
 <template>
   <div class="server-pagination">
-    <div class="pagination-total">{{ $t('共计') }} {{ total }} {{ $t('条.total') }}</div>
+    <div class="pagination-total">
+      {{ $t('共计') }} {{ total }} {{ $t('条.total') }}
+    </div>
     <div class="pagination-change">
-      <div class="page-last" @click="handlePageChange(-1)">
-        <Icon type="down-small" />
+      <div
+        class="page-last"
+        @click="handlePageChange(-1)">
+        <icon type="down-small" />
       </div>
       <input
         class="page-current"
         :value="current"
         @blur="handleInputSubmit"
         @change="handleInputSubmit">
-      <div class="page-line">/</div>
-      <div class="page-count">{{ totalPage }}</div>
-      <div class="page-next" @click="handlePageChange(1)">
-        <Icon type="down-small" />
+      <div class="page-line">
+        /
+      </div>
+      <div class="page-count">
+        {{ totalPage }}
+      </div>
+      <div
+        class="page-next"
+        @click="handlePageChange(1)">
+        <icon type="down-small" />
       </div>
     </div>
   </div>
@@ -59,26 +69,26 @@
         default: 0,
       },
     },
-    data () {
+    data() {
       return {
         current: 1,
       };
     },
     computed: {
-      totalPage () {
+      totalPage() {
         return Math.ceil(this.total / this.pageSize);
       },
     },
     watch: {
       page: {
-        handler (newPage) {
+        handler(newPage) {
           this.current = newPage;
         },
         immediate: true,
       },
     },
     methods: {
-      handleInput (event) {
+      handleInput(event) {
         const $target = event.target;
         let value = parseInt($target.value, 10);
         if (!value) {
@@ -95,7 +105,7 @@
           $target.value = value;
         });
       },
-      handleInputSubmit (event) {
+      handleInputSubmit(event) {
         const $target = event.target;
         let value = parseInt($target.value, 10);
         if (!value) {
@@ -116,7 +126,7 @@
         }
         this.$emit('on-change', this.current);
       },
-      handlePageChange (step) {
+      handlePageChange(step) {
         const newPage = this.page + step;
         if (newPage < 1) {
           return;

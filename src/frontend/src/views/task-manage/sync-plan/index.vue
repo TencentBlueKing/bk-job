@@ -26,9 +26,14 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="do-sync-plan">
+  <div
+    v-bkloading="{ isLoading }"
+    class="do-sync-plan">
     <div class="sync-plan-step">
-      <bk-steps class="step-process" :cur-step.sync="curStep" :steps="stepList" />
+      <bk-steps
+        class="step-process"
+        :cur-step.sync="curStep"
+        :steps="stepList" />
     </div>
     <div class="step-wraper">
       <component
@@ -42,11 +47,13 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskPlanService from '@service/task-plan';
+
   import Step1 from './pages/step1';
   import Step2 from './pages/step2';
   import Step3 from './pages/step3';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -55,7 +62,7 @@
       Step2,
       Step3,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         curStep: 1,
@@ -64,7 +71,7 @@
       };
     },
     computed: {
-      stepCom () {
+      stepCom() {
         const comMap = {
           1: Step1,
           2: Step2,
@@ -73,10 +80,10 @@
         return comMap[this.curStep];
       },
     },
-    created () {
+    created() {
       this.id = this.$route.params.id;
       this.templateId = this.$route.params.templateId;
-            
+
       this.stepList = [
         { title: I18n.t('template.差异总览'), icon: 1 },
         { title: I18n.t('template.差异明细'), icon: 2 },
@@ -90,7 +97,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData (id) {
+      fetchData(id) {
         this.$request(TaskPlanService.fetchSyncInfo({
           id: this.id,
           templateId: this.templateId,
@@ -140,14 +147,14 @@
             this.isLoading = false;
           });
       },
-      handleStepChange (payload) {
+      handleStepChange(payload) {
         this.curStep = payload;
       },
-      handleCancel () {
+      handleCancel() {
         this.routerBack();
       },
 
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'viewPlan') {
           this.$router.push({

@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div class="step-execute-host-list" :style="styles">
+  <div
+    class="step-execute-host-list"
+    :style="styles">
     <list-head
       class="ip-list-head"
       :columns="columnList"
@@ -34,7 +36,9 @@
       @on-copy="handleCopyIP"
       @on-show-setting="handleShowSetting"
       @on-sort="handleSort" />
-    <div ref="list" class="ip-list-body">
+    <div
+      ref="list"
+      class="ip-list-body">
       <scroll-faker @on-scroll="handleScroll">
         <list-body
           :columns="columnList"
@@ -46,28 +50,31 @@
           ref="loading"
           class="list-loading">
           <div class="loading-flag">
-            <Icon type="loading-circle" />
+            <icon type="loading-circle" />
           </div>
           <div>{{ $t('history.加载中') }}</div>
         </div>
         <template v-if="list.length < 1 && !listLoading">
-          <Empty v-if="!searchValue" style="height: 100%;" />
-          <Empty v-else style="height: 100%;" type="search">
+          <empty
+            v-if="!searchValue"
+            style="height: 100%;" />
+          <empty
+            v-else
+            style="height: 100%;"
+            type="search">
             <div style="font-size: 14px; color: #63656e;">
               {{ $t('搜索结果为空') }}
             </div>
             <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
               <span>{{ $t('可以尝试调整关键词') }}</span>
-              <template>
-                <span>{{ $t('或') }}</span>
-                <bk-button
-                  text
-                  @click="handleClearSearch">
-                  {{ $t('清空搜索条件') }}
-                </bk-button>
-              </template>
+              <span>{{ $t('或') }}</span>
+              <bk-button
+                text
+                @click="handleClearSearch">
+                {{ $t('清空搜索条件') }}
+              </bk-button>
             </div>
-          </Empty>
+          </empty>
         </template>
       </scroll-faker>
     </div>
@@ -75,7 +82,9 @@
       v-show="isSetting"
       class="list-column-select">
       <div class="select-body">
-        <div class="title">{{ $t('history.字段显示设置') }}</div>
+        <div class="title">
+          {{ $t('history.字段显示设置') }}
+        </div>
         <bk-checkbox
           :checked="isAllColumn"
           :indeterminate="isIndeterminate"
@@ -109,13 +118,17 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import {
     getOffset,
   } from '@utils/assist';
+
   import Empty from '@components/empty';
-  import ListHead from './list-head';
+
   import ListBody from './list-body';
+  import ListHead from './list-head';
+
+  import I18n from '@/i18n';
 
   const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN';
   const LIST_ROW_HEIGHT = 40; // 每列高度
@@ -153,7 +166,7 @@
       },
       searchValue: String,
     },
-    data () {
+    data() {
       let allShowColumn = [
         'displayIp',
         'totalTime',
@@ -210,21 +223,21 @@
        * @desc 列选择是否半选状态
        * @return {Boolean}
        */
-      isIndeterminate () {
+      isIndeterminate() {
         return this.tempAllShowColumn.length !== this.columnList.length;
       },
       /**
        * @desc 列选择是否全选状态
        * @return {Boolean}
        */
-      isAllColumn () {
+      isAllColumn() {
         return this.tempAllShowColumn.length === this.columnList.length;
       },
       /**
        * @desc IP 列表样式判断
        * @return {Object}
        */
-      styles () {
+      styles() {
         const width = 217 + (this.allShowColumn.length - 1) * 94;
         return {
           width: `${width}px`,
@@ -234,20 +247,20 @@
        * @desc 列选择是否半选状态
        * @return {Boolean}
        */
-      hasMore () {
+      hasMore() {
         return this.page * this.pageSize < this.total;
       },
     },
-        
+
     watch: {
       /**
        * @desc IP 列表名称变化时重置翻页
        */
-      name () {
+      name() {
         this.page = 1;
       },
       data: {
-        handler (data) {
+        handler(data) {
           // 切换分组时最新的分组数据一定来自API返回数据
           // listLoading为false说明是本地切换不更新列表
           if (!this.listLoading) {
@@ -258,7 +271,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.calcPageSize();
       window.addEventListener('resize', this.handleScroll);
       this.$once('hook:beforeDestroy', () => {
@@ -269,7 +282,7 @@
       /**
        * @desc 根据屏幕高度计算单页 pageSize
        */
-      calcPageSize () {
+      calcPageSize() {
         const { top } = getOffset(this.$refs.list);
         const windowHeight = window.innerHeight;
         const listHeight = windowHeight - top - 20;
@@ -285,7 +298,7 @@
         }
         const windowHeight = window.innerHeight;
         const { top } = this.$refs.loading.getBoundingClientRect();
-                
+
         if (top - 80 < windowHeight) {
           // 增加分页
           this.page += 1;
@@ -295,25 +308,25 @@
       /**
        * @desc 复制ip
        */
-      handleCopyIP () {
+      handleCopyIP() {
         this.$emit('on-copy');
       },
       /**
        * @desc 显示列配置面板
        */
-      handleShowSetting () {
+      handleShowSetting() {
         this.isSetting = true;
       },
       /**
        * @desc 隐藏列配置面板
        */
-      handleHideSetting () {
+      handleHideSetting() {
         this.isSetting = false;
       },
       /**
        * @desc 列配置面板全选状态切换
        */
-      handleToggleAll () {
+      handleToggleAll() {
         if (this.isAllColumn) {
           this.tempAllShowColumn = this.columnList.reduce((result, item) => {
             if (item.disabled) {
@@ -328,7 +341,7 @@
       /**
        * @desc 保存列配置
        */
-      handleSubmitSetting () {
+      handleSubmitSetting() {
         this.allShowColumn = [
           ...this.tempAllShowColumn,
         ];
@@ -339,14 +352,14 @@
        * @desc 表格排序
        * @param {Object} column 操作列数据
        */
-      handleSort (column) {
+      handleSort(column) {
         const {
           orderField,
           order,
         } = column;
         const newOrder = order === 1 ? 0 : 1;
         column.order = newOrder;
-                
+
         this.columnList = Object.freeze(this.columnList.map((item) => {
           item.order = '';
           if (item.orderField === orderField) {
@@ -364,13 +377,13 @@
        * @desc 选择表格一行数据
        * @param {Object} row 选择数据
        */
-      handleSelect (row) {
+      handleSelect(row) {
         this.$emit('on-change', row);
       },
       /**
        * @desc 清空搜索
        */
-      handleClearSearch () {
+      handleClearSearch() {
         this.$emit('on-clear-search');
       },
     },

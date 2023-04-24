@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="file-manage-source-file">
+  <div
+    v-bkloading="{ isLoading }"
+    class="file-manage-source-file">
     <list-action-layout>
       <auth-button
         auth="file_source/create"
@@ -76,8 +78,12 @@
             }">
             {{ row.alias }}
           </auth-router-link>
-          <span v-else v-bk-tooltips="$t('file.接入点异常，暂时不可用')">
-            <bk-button disabled text>{{ row.alias }}</bk-button>
+          <span
+            v-else
+            v-bk-tooltips="$t('file.接入点异常，暂时不可用')">
+            <bk-button
+              disabled
+              text>{{ row.alias }}</bk-button>
           </span>
         </template>
       </bk-table-column>
@@ -94,7 +100,10 @@
         :label="$t('file.状态')"
         prop="status">
         <template slot-scope="{ row }">
-          <Icon style="vertical-align: middle;" svg :type="row.statusIcon" />
+          <icon
+            style="vertical-align: middle;"
+            svg
+            :type="row.statusIcon" />
           <span style="vertical-align: middle;">{{ row.statusText }}</span>
         </template>
       </bk-table-column>
@@ -117,7 +126,9 @@
         key="action"
         :label="$t('file.操作')"
         width="160">
-        <div slot-scope="{ row }" class="action-box">
+        <div
+          slot-scope="{ row }"
+          class="action-box">
           <auth-component
             auth="file_source/edit"
             class="mr10"
@@ -179,16 +190,20 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import FileManageService from '@service/file-source-manage';
+
   import {
     listColumnsCache,
   } from '@utils/cache-helper';
+
+  import JbPopoverConfirm from '@components/jb-popover-confirm';
   import JbSearchSelect from '@components/jb-search-select';
   import ListActionLayout from '@components/list-action-layout';
-  import JbPopoverConfirm from '@components/jb-popover-confirm';
   import RenderList from '@components/render-list';
+
   import FileOpertion from './components/opertion';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'file_source_list_columns';
 
@@ -201,7 +216,7 @@
       FileOpertion,
       JbPopoverConfirm,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         tableSize: 'small',
@@ -212,10 +227,10 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.fileSourcelist.isLoading;
       },
-      operationSidesliderInfo () {
+      operationSidesliderInfo() {
         if (this.fileSourceDetailInfo.id) {
           return {
             title: I18n.t('file.编辑文件源'),
@@ -227,14 +242,14 @@
           okText: I18n.t('file.提交'),
         };
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
     },
-    created () {
+    created() {
       this.fetchFileSourceList = FileManageService.fetchFileSourceList;
       this.searchSelect = [
         {
@@ -291,7 +306,7 @@
       /**
        * @desc 获取文件夹数据
        */
-      fetchData () {
+      fetchData() {
         this.$refs.fileSourcelist.$emit('onFetch', {
           ...this.searchParams,
         });
@@ -302,7 +317,7 @@
        *
        * 显示新建文件源模板
        */
-      handleCreate () {
+      handleCreate() {
         this.fileSourceDetailInfo = {};
         this.isShowSideslider = true;
       },
@@ -313,7 +328,7 @@
        *
        * 显示编辑文件源模板
        */
-      handleEdit (payload) {
+      handleEdit(payload) {
         this.fileSourceDetailInfo = payload;
         this.isShowSideslider = true;
       },
@@ -323,7 +338,7 @@
        *
        * 重新拉取数据
        */
-      handleFileSourceChange () {
+      handleFileSourceChange() {
         this.fetchData();
       },
 
@@ -332,7 +347,7 @@
        * @param {Boolean} value 是否开启
        * @param {Object} row 文件源详情数据
        */
-      hanldeToggleEnable (value, row) {
+      hanldeToggleEnable(value, row) {
         const enableMemo = row.enable;
         FileManageService.toggleSourceEnable({
           flag: value,
@@ -348,7 +363,7 @@
       /**
        * @desc 设置表格显示列/表格size
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -363,7 +378,7 @@
        *
        * 重新拉取数据
        */
-      handleSearch (payload) {
+      handleSearch(payload) {
         this.searchParams = payload;
         this.fetchData();
       },
@@ -374,7 +389,7 @@
        *
        * 删除成功重新拉取数据
        */
-      handleDelete (id) {
+      handleDelete(id) {
         FileManageService.removeSource(id)
           .then((res) => {
             this.messageSuccess(I18n.t('file.删除成功'));
@@ -386,7 +401,7 @@
        * @desc 跳转到bucket存储桶列表
        * @param {Object} row 文件源详情数据
        */
-      handelGoBucket (row) {
+      handelGoBucket(row) {
         this.$router.push({
           name: 'bucketList',
           query: {

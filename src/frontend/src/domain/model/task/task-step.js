@@ -28,11 +28,13 @@
  *
 */
 import _ from 'lodash';
-import I18n from '@/i18n';
+
 import Model from '@model/model';
-import TaskScriptStep from '@model/task/task-script-step';
-import TaskFileStep from '@model/task/task-file-step';
 import TaskApprovalStep from '@model/task/task-approval-step';
+import TaskFileStep from '@model/task/task-file-step';
+import TaskScriptStep from '@model/task/task-script-step';
+
+import I18n from '@/i18n';
 
 const TYPE_SCRIPT = 1;
 const TYPE_FILE = 2;
@@ -59,7 +61,7 @@ export default class TaskStep extends Model {
     [TYPE_APPROVAL]: 'approval',
   };
 
-  constructor (payload, isClone = false) {
+  constructor(payload, isClone = false) {
     super();
     this.id = isClone ? -payload.id : payload.id;
     this.name = payload.name;
@@ -68,7 +70,7 @@ export default class TaskStep extends Model {
     this.enable = payload.enable || 0;
     this.templateStepId = payload.templateStepId || 0;
     this.refVariables = payload.refVariables || [];
-        
+
     this.approvalStepInfo = this.initApprovalStepInfo(payload.approvalStepInfo);
     this.fileStepInfo = this.initFileStepInfo(payload.fileStepInfo);
     this.scriptStepInfo = this.initScriptStepInfo(payload.scriptStepInfo);
@@ -78,7 +80,7 @@ export default class TaskStep extends Model {
      * @desc 步骤类型 ICON
      * @returns { String }
      */
-  get icon () {
+  get icon() {
     return TaskStep.iconMap[this.type];
   }
 
@@ -86,7 +88,7 @@ export default class TaskStep extends Model {
      * @desc 步骤类型文本描述
      * @returns { String }
      */
-  get typeText () {
+  get typeText() {
     return TaskStep.typeTextMap[this.type];
   }
 
@@ -94,7 +96,7 @@ export default class TaskStep extends Model {
      * @desc 步骤状态 html
      * @returns { String }
      */
-  get scriptStatusHtml () {
+  get scriptStatusHtml() {
     return this.scriptStepInfo.scriptStatusHtml;
   }
 
@@ -102,7 +104,7 @@ export default class TaskStep extends Model {
      * @desc 执行脚本步骤——引用脚本需要更新
      * @returns { Boolean }
      */
-  get isScriptNeedUpdate () {
+  get isScriptNeedUpdate() {
     if (this.type !== TYPE_SCRIPT) {
       return false;
     }
@@ -113,7 +115,7 @@ export default class TaskStep extends Model {
      * @desc 执行脚本步骤——引用脚本本禁用
      * @returns { Boolean }
      */
-  get isScriptDisabled () {
+  get isScriptDisabled() {
     if (this.type !== TYPE_SCRIPT) {
       return false;
     }
@@ -124,7 +126,7 @@ export default class TaskStep extends Model {
      * @desc 脚本类型步骤
      * @returns { Boolean }
      */
-  get isScript () {
+  get isScript() {
     return this.type === TYPE_SCRIPT;
   }
 
@@ -132,7 +134,7 @@ export default class TaskStep extends Model {
      * @desc 分发文件类型步骤
      * @returns { Boolean }
      */
-  get isFile () {
+  get isFile() {
     return this.type === TYPE_FILE;
   }
 
@@ -140,7 +142,7 @@ export default class TaskStep extends Model {
      * @desc 人工审核类型步骤
      * @returns { Boolean }
      */
-  get isApproval () {
+  get isApproval() {
     return this.type === TYPE_APPROVAL;
   }
 
@@ -149,7 +151,7 @@ export default class TaskStep extends Model {
      * @param { Object } approvalStepInfo
      * @returns { Object }
      */
-  initApprovalStepInfo (approvalStepInfo) {
+  initApprovalStepInfo(approvalStepInfo) {
     if (!_.isObject(approvalStepInfo)) {
       return {};
     }
@@ -161,7 +163,7 @@ export default class TaskStep extends Model {
      * @param { Object } fileStepInfo
      * @returns { Object }
      */
-  initFileStepInfo (fileStepInfo) {
+  initFileStepInfo(fileStepInfo) {
     if (!_.isObject(fileStepInfo)) {
       return {};
     }
@@ -173,7 +175,7 @@ export default class TaskStep extends Model {
      * @param { Object } scriptStepInfo
      * @returns { Object }
      */
-  initScriptStepInfo (scriptStepInfo) {
+  initScriptStepInfo(scriptStepInfo) {
     if (!_.isObject(scriptStepInfo)) {
       return {};
     }

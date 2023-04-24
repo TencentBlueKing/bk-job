@@ -26,10 +26,17 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="edit-execute-plan">
-    <bk-alert class="info" :title="$t('template.调试方案的特殊性：不可删除、始终与作业模板同步、不能被API调用、只能在作业平台使用')" />
+  <div
+    v-bkloading="{ isLoading }"
+    class="edit-execute-plan">
+    <bk-alert
+      class="info"
+      :title="$t('template.调试方案的特殊性：不可删除、始终与作业模板同步、不能被API调用、只能在作业平台使用')" />
     <smart-action offset-target="bk-form-content">
-      <jb-form ref="editPlanForm" :model="formData" :rules="rules">
+      <jb-form
+        ref="editPlanForm"
+        :model="formData"
+        :rules="rules">
         <jb-form-item :label="$t('template.全局变量.label')">
           <render-global-var
             :list="variableList"
@@ -37,7 +44,10 @@
             :select-value="selectedVariable"
             @on-change="handleGlobalVariableChange" />
         </jb-form-item>
-        <jb-form-item :label="$t('template.执行步骤')" property="enableSteps" required>
+        <jb-form-item
+          :label="$t('template.执行步骤')"
+          property="enableSteps"
+          required>
           <render-task-step
             :list="taskStepList"
             mode="select"
@@ -53,20 +63,26 @@
           @click="handleSumbit">
           {{ $t('template.保存') }}
         </bk-button>
-        <bk-button @click="handleCancle">{{ $t('template.取消') }}</bk-button>
+        <bk-button @click="handleCancle">
+          {{ $t('template.取消') }}
+        </bk-button>
       </template>
     </smart-action>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskPlanService from '@service/task-plan';
-  import JbForm from '@components/jb-form';
+
   import {
     findUsedVariable,
   } from '@utils/assist';
+
+  import JbForm from '@components/jb-form';
+
   import RenderGlobalVar from '../common/render-global-var';
   import RenderTaskStep from '../common/render-task-step';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     id: 0,
@@ -83,7 +99,7 @@
       RenderGlobalVar,
       RenderTaskStep,
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
         variableList: [],
@@ -93,15 +109,15 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
-      selectedVariable () {
+      selectedVariable() {
         const selectedSteps = this.taskStepList.filter(step => this.formData.enableSteps.includes(step.id));
         return findUsedVariable(selectedSteps);
       },
     },
-    created () {
+    created() {
       this.rules = {
         enableSteps: [
           {
@@ -115,7 +131,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.$request(TaskPlanService.fetchDebugInfo({
           templateId: this.formData.templateId,
         }, {
@@ -145,7 +161,7 @@
           });
       },
 
-      handleGlobalVariableChange (payload) {
+      handleGlobalVariableChange(payload) {
         this.formData.variables = payload.map((item) => {
           const data = { ...item };
           if (!data.delete) {
@@ -155,7 +171,7 @@
         });
       },
 
-      handleSelectStep (payload) {
+      handleSelectStep(payload) {
         const index = this.formData.enableSteps.findIndex(item => item === payload.id);
 
         if (index > -1) {
@@ -170,7 +186,7 @@
         }
       },
 
-      handleSumbit () {
+      handleSumbit() {
         this.isSubmitLoading = true;
         this.$refs.editPlanForm.validate()
           .then(() => TaskPlanService.planUpdate(this.formData)
@@ -191,11 +207,11 @@
           });
       },
 
-      handleCancle () {
+      handleCancle() {
         this.routerBack();
       },
 
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'debugPlan',
           params: {

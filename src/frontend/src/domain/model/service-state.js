@@ -23,15 +23,16 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import Model from '@model/model';
+
+import I18n from '@/i18n';
 
 // const STATUS_ABNORMAL = 0 // 异常
 // const STATUS_NORMAL = 1 // 正常
 // const STATUS_UNKNOWN = -1 // 未知
 
 export default class SeverState extends Model {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.name = payload.name;
     this.instanceList = payload.instanceList;
@@ -39,7 +40,7 @@ export default class SeverState extends Model {
     this.versionConsistent = payload.versionConsistent;
   }
 
-  get versionHtml () {
+  get versionHtml() {
     /* eslint-disable max-len */
     return this.versionConsistent
       ? `<span>${this.version}</span>`

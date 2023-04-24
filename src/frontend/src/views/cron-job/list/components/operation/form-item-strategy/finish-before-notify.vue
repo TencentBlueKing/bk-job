@@ -28,9 +28,14 @@
 <template>
   <div v-if="isShowNotify">
     <jb-form-item>
-      <bk-checkbox v-model="isFinishBeforeNotify">{{ $t('cron.结束前通知') }}</bk-checkbox>
+      <bk-checkbox v-model="isFinishBeforeNotify">
+        {{ $t('cron.结束前通知') }}
+      </bk-checkbox>
     </jb-form-item>
-    <render-strategy v-if="isFinishBeforeNotify" class="notify-wraper" left="55">
+    <render-strategy
+      v-if="isFinishBeforeNotify"
+      class="notify-wraper"
+      left="55">
       <execute-notify
         v-bind="$attrs"
         :form-data="formData"
@@ -55,13 +60,13 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isFinishBeforeNotify: false,
       };
     },
     computed: {
-      isShowNotify () {
+      isShowNotify() {
         if (!this.formData.endTime) {
           return false;
         }
@@ -73,7 +78,7 @@
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           if (this.formData.notifyOffset
             || this.formData.notifyChannel.length > 0
             || this.formData.notifyUser.roleList.length > 0

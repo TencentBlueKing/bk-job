@@ -26,9 +26,15 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="script-manage-sync-task-page">
+  <div
+    v-bkloading="{ isLoading }"
+    class="script-manage-sync-task-page">
     <div class="retry-btn">
-      <bk-button :disabled="isRetryAllDisable" @click="handleAllRetry">{{ $t('script.全部重试') }}</bk-button>
+      <bk-button
+        :disabled="isRetryAllDisable"
+        @click="handleAllRetry">
+        {{ $t('script.全部重试') }}
+      </bk-button>
     </div>
     <div class="table-top">
       {{ $t('script.同步作业模板') }}
@@ -36,7 +42,9 @@
         （{{ $t('script.共') }} {{ data.length }} {{ $t('script.个.result') }}）
       </span>
     </div>
-    <bk-table :data="data" row-class-name="sync-script-record">
+    <bk-table
+      :data="data"
+      row-class-name="sync-script-record">
       <bk-table-column
         :label="$t('script.作业模板名称')"
         prop="name"
@@ -51,12 +59,18 @@
               },
             }">
             {{ row.templateName }}
-            <Icon class="template-link" type="edit" />
+            <icon
+              class="template-link"
+              type="edit" />
           </router-link>
         </template>
       </bk-table-column>
-      <bk-table-column :label="$t('script.步骤名称')" prop="stepName" />
-      <bk-table-column :label="$t('script.引用的版本号')" prop="version">
+      <bk-table-column
+        :label="$t('script.步骤名称')"
+        prop="stepName" />
+      <bk-table-column
+        :label="$t('script.引用的版本号')"
+        prop="version">
         <template slot-scope="{ row }">
           <bk-button
             text
@@ -80,7 +94,10 @@
         prop="syncStatus"
         width="350">
         <template slot-scope="{ row, $index }">
-          <Icon class="mr10" svg :type="row.syncIcon" />
+          <icon
+            class="mr10"
+            svg
+            :type="row.syncIcon" />
           <span>{{ row.syncStatusMsg }}</span>
           <bk-button
             v-if="row.isSyncFailed"
@@ -101,7 +118,9 @@
         {{ $t('script.完成') }}
       </bk-button>
     </div>
-    <script-detail :is-show.sync="isShowDetail" :script-version-id="selectScriptVersionId" />
+    <script-detail
+      :is-show.sync="isShowDetail"
+      :script-version-id="selectScriptVersionId" />
     <element-teleport v-if="lastVersionScriptInfo.version">
       <span> - {{ $t('script.同步至') }}</span>
       <span>{{ lastVersionScriptInfo.version }}</span>
@@ -109,21 +128,24 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
+  import PublicScriptService from '@service/public-script-manage';
+  import ScriptService from '@service/script-manage';
+  import TaskPlanService from '@service/task-plan';
+
   import {
     checkPublicScript,
     leaveConfirm,
   } from '@utils/assist';
-  import ScriptService from '@service/script-manage';
-  import PublicScriptService from '@service/public-script-manage';
-  import TaskPlanService from '@service/task-plan';
+
   import ScriptDetail from './components/script-detail';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
       ScriptDetail,
     },
-    data () {
+    data() {
       return {
         data: [],
         isLoading: false,
@@ -133,7 +155,7 @@
       };
     },
     computed: {
-      isRetryAllDisable () {
+      isRetryAllDisable() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.data.length; i++) {
           if (this.data[i].isSyncFailed) {
@@ -143,7 +165,7 @@
         return true;
       },
     },
-    created () {
+    created() {
       this.statusFilters = [
         { value: 0, text: I18n.t('script.未上线') },
         { value: 1, text: I18n.t('script.已上线') },
@@ -166,7 +188,7 @@
       /**
        * @desc 开始同步脚本
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         this.serviceHandler.scriptVersionSync({
           scriptId: this.scriptId,
@@ -182,7 +204,7 @@
       /**
        * @desc 脚本的最新版本信息
        */
-      fetchLastScriptVersionDetail () {
+      fetchLastScriptVersionDetail() {
         this.serviceHandler.versionDetail({
           id: this.$route.params.scriptVersionId,
         }).then((data) => {
@@ -193,20 +215,20 @@
        * @desc 脚本详情
        * @param { Number } id
        */
-      handleShowDetail (id) {
+      handleShowDetail(id) {
         this.selectScriptVersionId = id;
         this.isShowDetail = true;
       },
       /**
        * @desc 全部重试
        */
-      handleAllRetry () {
+      handleAllRetry() {
         this.fetchData();
       },
       /**
        * @desc 单个重试
        */
-      handleRetry (row, index) {
+      handleRetry(row, index) {
         this.serviceHandler.scriptVersionSync({
           scriptId: this.scriptId,
           scriptVersionId: this.scriptVersionId,
@@ -225,19 +247,19 @@
        * @param {Number} value 选中的状态
        * @param {Object} row 单条数据
        */
-      statusFilterMethod (value, row) {
+      statusFilterMethod(value, row) {
         return row.scriptStatus === value;
       },
       /**
        * @desc 完成同步任务
        */
-      handleFinish () {
+      handleFinish() {
         this.routerBack();
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         window.changeFlag = !this.isRetryAllDisable;
         this.isSyncPlanLoading = false;
         leaveConfirm(I18n.t('script.部分作业模板同步失败，请留意'))

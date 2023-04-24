@@ -26,13 +26,18 @@
 -->
 
 <template>
-  <smart-action class="create-script-page" offset-target="bk-form-content">
+  <smart-action
+    class="create-script-page"
+    offset-target="bk-form-content">
     <jb-form
       ref="form"
       v-test="{ type: 'form', value: 'create_script' }"
       :model="formData"
       :rules="rules">
-      <jb-form-item :label="$t('script.脚本名称.label')" property="name" required>
+      <jb-form-item
+        :label="$t('script.脚本名称.label')"
+        property="name"
+        required>
         <div class="script-name input">
           <jb-input
             v-model="formData.name"
@@ -40,7 +45,9 @@
             :placeholder="$t('script.推荐按照该脚本逻辑提供的使用场景来取名...')" />
         </div>
       </jb-form-item>
-      <jb-form-item :label="$t('script.场景标签.label')" property="tags">
+      <jb-form-item
+        :label="$t('script.场景标签.label')"
+        property="tags">
         <jb-tag-select
           v-model="formData.tags"
           class="input"
@@ -54,14 +61,20 @@
           :placeholder="$t('script.在此处标注该脚本的备注和使用说明')"
           type="textarea" />
       </jb-form-item>
-      <jb-form-item :label="$t('script.版本号.label')" property="version" required>
+      <jb-form-item
+        :label="$t('script.版本号.label')"
+        property="version"
+        required>
         <jb-input
           v-model="formData.version"
           class="input"
           :maxlength="30"
           :placeholder="$t('script.输入版本号')" />
       </jb-form-item>
-      <jb-form-item :label="$t('script.脚本内容.label')" property="content" required>
+      <jb-form-item
+        :label="$t('script.脚本内容.label')"
+        property="content"
+        required>
         <div ref="content">
           <ace-editor
             v-model="formData.content"
@@ -90,12 +103,13 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import ScriptService from '@service/script-manage';
+
   import PublicScriptService from '@service/public-script-manage';
+  import ScriptService from '@service/script-manage';
+
   import {
-    formatScriptTypeValue,
     checkPublicScript,
+    formatScriptTypeValue,
     getOffset,
     scriptErrorConfirm,
   } from '@utils/assist';
@@ -103,9 +117,12 @@
     scriptNameRule,
     scriptVersionRule,
   } from '@utils/validator';
-  import JbInput from '@components/jb-input';
+
   import AceEditor from '@components/ace-editor';
+  import JbInput from '@components/jb-input';
   import JbTagSelect from '@components/jb-tag-select';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -114,7 +131,7 @@
       JbTagSelect,
       JbInput,
     },
-    data () {
+    data() {
       return {
         isContentLoading: false,
         isSbumiting: false,
@@ -130,7 +147,7 @@
         },
       };
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
 
@@ -189,14 +206,14 @@
         ],
       };
     },
-    mounted () {
+    mounted() {
       this.init();
     },
     methods: {
       /**
        * @desc 计算内容区的高度
        */
-      init () {
+      init() {
         const contentOffsetTop = getOffset(this.$refs.content).top;
         const contentHeight = window.innerHeight - contentOffsetTop + 20;
         this.contentHeight = contentHeight > 480 ? contentHeight : 480;
@@ -205,14 +222,14 @@
        * @desc 脚本语言类型切换
        * @param {String} scriptType 脚本语言
        */
-      handleTypeChange (scriptType) {
+      handleTypeChange(scriptType) {
         this.scriptType = scriptType;
         this.formData.type = formatScriptTypeValue(scriptType);
       },
       /**
        * @desc 保存脚本
        */
-      handleSubmit () {
+      handleSubmit() {
         this.isSbumiting = true;
         this.$refs.form.validate()
           .then(scriptErrorConfirm)
@@ -238,13 +255,13 @@
       /**
        * @desc 取消新建
        */
-      handleCancel () {
+      handleCancel() {
         this.routerBack();
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         if (this.publicScript) {
           this.$router.push({
             name: 'publicScriptList',

@@ -27,7 +27,10 @@
 
 <template>
   <div class="render-file-server">
-    <div class="server-agent-text" @click="handlerView" v-html="data.serverDesc" />
+    <div
+      class="server-agent-text"
+      @click="handlerView"
+      v-html="data.serverDesc" />
     <jb-dialog
       v-model="isShowDetail"
       class="step-view-server-detail-dialog"
@@ -36,7 +39,9 @@
       <template #header>
         <div class="variable-title">
           <span>{{ $t('template.服务器文件-服务器列表') }}</span>
-          <i class="server-detail-close bk-icon icon-close" @click="handleClose" />
+          <i
+            class="server-detail-close bk-icon icon-close"
+            @click="handleClose" />
         </div>
       </template>
       <div class="content-wraper">
@@ -51,8 +56,9 @@
 </template>
 <script>
   import TaskHostNodeModel from '@model/task-host-node';
-  import ScrollFaker from '@components/scroll-faker';
+
   import ServerPanel from '@components/choose-ip/server-panel';
+  import ScrollFaker from '@components/scroll-faker';
 
   export default {
     name: '',
@@ -66,7 +72,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       const { hostNodeInfo } = new TaskHostNodeModel({});
       return {
         isShowDetail: false,
@@ -75,11 +81,11 @@
     },
 
     methods: {
-      handlerView () {
+      handlerView() {
         this.hostNodeInfo = this.data.host.hostNodeInfo;
         this.isShowDetail = true;
       },
-      handleClose () {
+      handleClose() {
         this.isShowDetail = false;
       },
     },

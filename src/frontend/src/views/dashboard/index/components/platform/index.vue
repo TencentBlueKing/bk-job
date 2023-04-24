@@ -31,56 +31,64 @@
     class="platform-dashboard">
     <card-layout title="Linux OS">
       <div class="container">
-        <div class="nums">{{ data.LINUX | formatNumber }}</div>
+        <div class="nums">
+          {{ data.LINUX | formatNumber }}
+        </div>
         <div
           ref="LINUX"
           v-bk-tooltips.right="calcPercentage(data.LINUX)"
           class="dashboard"
           style="width: 24px; height: 24px;" />
       </div>
-      <Icon
+      <icon
         class="platform-flag"
         style="font-size: 38px;"
         type="linux" />
     </card-layout>
     <card-layout title="Windows OS">
       <div class="container">
-        <div class="nums">{{ data.WINDOWS | formatNumber }}</div>
+        <div class="nums">
+          {{ data.WINDOWS | formatNumber }}
+        </div>
         <div
           ref="WINDOWS"
           v-bk-tooltips.right="calcPercentage(data.WINDOWS)"
           class="dashboard"
           style="width: 24px; height: 24px;" />
       </div>
-      <Icon
+      <icon
         class="platform-flag"
         style="font-size: 28px;"
         type="windows" />
     </card-layout>
     <card-layout title="AIX OS">
       <div class="container">
-        <div class="nums">{{ data.AIX | formatNumber }}</div>
+        <div class="nums">
+          {{ data.AIX | formatNumber }}
+        </div>
         <div
           ref="AIX"
           v-bk-tooltips.right="calcPercentage(data.AIX)"
           class="dashboard"
           style="width: 24px; height: 24px;" />
       </div>
-      <Icon
+      <icon
         class="platform-flag"
         style="font-size: 24px;"
         type="aix" />
     </card-layout>
     <card-layout :title="$t('dashboard.未知 OS')">
       <div class="container">
-        <div class="nums">{{ data.OTHERS | formatNumber }}</div>
+        <div class="nums">
+          {{ data.OTHERS | formatNumber }}
+        </div>
         <div
           ref="OTHERS"
           v-bk-tooltips.right="calcPercentage(data.OTHERS)"
           class="dashboard"
           style="width: 24px; height: 24px;" />
       </div>
-      <Icon
+      <icon
         class="platform-flag"
         style="font-size: 28px;"
         type="others" />
@@ -89,7 +97,9 @@
 </template>
 <script>
   import * as echarts from 'echarts';
+
   import StatisticsService from '@service/statistics';
+
   import {
     formatNumber,
   } from '@utils/assist';
@@ -102,7 +112,7 @@
       CardLayout,
     },
     filters: {
-      formatNumber (value) {
+      formatNumber(value) {
         return formatNumber(value);
       },
     },
@@ -112,7 +122,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -124,15 +134,15 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchDistributionMetrics({
           date: this.date,
@@ -145,7 +155,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         const typeList = [
           'LINUX',
           'WINDOWS',
@@ -200,7 +210,7 @@
           });
         });
       },
-      calcPercentage (value) {
+      calcPercentage(value) {
         const {
           AIX,
           LINUX,

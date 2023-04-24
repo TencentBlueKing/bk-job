@@ -29,7 +29,9 @@
   <div class="bussiness-app-empty-page">
     <div class="page-header">
       <div class="header-wraper">
-        <div class="page-title">{{ $t('暂无业务权限，请先申请或创建') }}</div>
+        <div class="page-title">
+          {{ $t('暂无业务权限，请先申请或创建') }}
+        </div>
         <div class="page-desc">
           {{ $t('作业平台的核心功能包括面向服务器操作系统的命令执行、文件分发，以及将多个操作组合成作业流程，并支持设置定时执行。') }}
         </div>
@@ -58,7 +60,9 @@
               style="width: 220px; margin: 19px 26px 0 24px;">
           </div>
           <div class="feature-box">
-            <div class="feature-title">{{ $t('申请已有业务权限 / 创建新的业务') }}</div>
+            <div class="feature-title">
+              {{ $t('申请已有业务权限 / 创建新的业务') }}
+            </div>
             <div>
               {{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择') }}
               <a @click="handleGoApplyPermission">
@@ -82,7 +86,9 @@
               style="width: 230px; margin: 22px 32px 0 7px;">
           </div>
           <div class="feature-box">
-            <div class="feature-title">{{ $t('开始使用作业平台') }}</div>
+            <div class="feature-title">
+              {{ $t('开始使用作业平台') }}
+            </div>
             <div>
               <span>{{ $t('作业平台的目标服务器信息同样来自') }} </span>
               <a
@@ -109,7 +115,7 @@
             :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Quick-Starts/1.Create-system-account.md`"
             target="_blank">
             <span>{{ $t('快速入门技巧') }}</span>
-            <Icon type="link" />
+            <icon type="link" />
           </a>
         </div>
         <div style="margin-top: 10px;">
@@ -118,7 +124,7 @@
             :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/markdown/作业平台/产品白皮书/Introduction/What-is-Job.md`"
             target="_blank">
             <span>{{ $t('产品文档') }}</span>
-            <Icon type="link" />
+            <icon type="link" />
           </a>
         </div>
       </div>
@@ -126,11 +132,12 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import QueryGlobalSettingService from '@service/query-global-setting';
 
+  import I18n from '@/i18n';
+
   export default {
-    data () {
+    data() {
       return {
         isApplyLoading: false,
         relatedSystemUrls: {
@@ -140,25 +147,25 @@
         },
       };
     },
-    created () {
+    created() {
       this.fetchRelatedSystemUrls();
       document.title = I18n.t('无业务权限');
     },
     methods: {
-      fetchRelatedSystemUrls () {
+      fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
           });
       },
-      handleGoCreateApp () {
+      handleGoCreateApp() {
         if (!this.relatedSystemUrls.BK_CMDB_ROOT_URL) {
           alert(I18n.t('网络错误，请刷新页面重试'));
           return;
         }
         window.open(`${this.relatedSystemUrls.BK_CMDB_ROOT_URL}/#/resource/business`);
       },
-      handleGoApplyPermission () {
+      handleGoApplyPermission() {
         this.isApplyLoading = true;
         QueryGlobalSettingService.fetchApplyBusinessUrl({
           scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,

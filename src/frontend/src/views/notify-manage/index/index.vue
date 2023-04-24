@@ -28,7 +28,9 @@
 <template>
   <smart-action offset-target="bk-form-content">
     <div class="notify-message-page">
-      <bk-collapse v-if="!isLoading" v-model="activeResult">
+      <bk-collapse
+        v-if="!isLoading"
+        v-model="activeResult">
         <notify-collapse-item
           v-for="item in triggerTypeList"
           :key="item.code"
@@ -64,17 +66,19 @@
   </smart-action>
 </template>
 <script>
-  import I18n from '@/i18n';
   import NotifyService from '@service/notify';
+
   import NotifyCollapseItem from './components/notify-collapse-item';
   import TriggerSetting from './components/trigger-setting';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
       NotifyCollapseItem,
       TriggerSetting,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isSubmiting: false,
@@ -88,11 +92,11 @@
        * @desc 页面输入骨架片 loading
        * @returns { Boolean }
        */
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.isLoading = true;
       Promise.all([
         this.fetchPageTemplate(),
@@ -105,7 +109,7 @@
       /**
        * @desc 获取页面数据
        */
-      fetchPageTemplate () {
+      fetchPageTemplate() {
         return NotifyService.fetchPageTemplate()
           .then((data) => {
             const {
@@ -128,7 +132,7 @@
       /**
        * @desc 获取消息通知配置的值
        */
-      fetchPoliciesList () {
+      fetchPoliciesList() {
         return NotifyService.fetchPoliciesList()
           .then((data) => {
             const triggerPoliciesData = data.reduce((result, item) => {
@@ -153,7 +157,7 @@
       /**
        * @desc 保存
        */
-      handleSave () {
+      handleSave() {
         this.isSubmiting = true;
         const triggerPoliciesList = this.$refs.setting.map(settingItem => settingItem.getValue());
         NotifyService.defaultPoliciesUpdate({
@@ -170,7 +174,7 @@
       /**
        * @desc 重置
        */
-      handleCancel () {
+      handleCancel() {
         this.$refs.setting.forEach(item => item.reset());
         window.changeFlag = false;
       },

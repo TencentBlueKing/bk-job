@@ -25,12 +25,15 @@
 
 /* eslint-disable no-param-reassign */
 import _ from 'lodash';
+
 import CrontabVariableModel from '@model/crontab/variable';
-import I18n from '@/i18n';
+
 import {
   prettyDateTimeFormat,
 } from '@utils/assist';
 import Translate from '@utils/cron/translate';
+
+import I18n from '@/i18n';
 
 const STATUS_NOTSTARTED = 0;
 const STATUS_SUCCESS = 1;
@@ -41,17 +44,17 @@ export default class Crontab {
     [STATUS_NOTSTARTED]: I18n.t('未开始'),
     [STATUS_SUCCESS]: I18n.t('成功'),
     [STATUS_FAILURE]: I18n.t('失败'),
-        
+
   };
 
   static STATUS_ICON_TYPE = {
     [STATUS_NOTSTARTED]: 'sync-default',
     [STATUS_SUCCESS]: 'sync-success',
     [STATUS_FAILURE]: 'sync-failed',
-        
+
   };
 
-  constructor (payload) {
+  constructor(payload) {
     this.scopeType = payload.scopeType;
     this.scopeId = payload.scopeId;
     this.creator = payload.creator;
@@ -78,7 +81,7 @@ export default class Crontab {
 
     this.variableValue = this.initVariableValue(payload.variableValue);
     this.notifyUser = this.initNotifyUser(payload.notifyUser);
-        
+
     // 权限
     this.canManage = payload.canManage;
     // 异步数据获取状态
@@ -90,7 +93,7 @@ export default class Crontab {
      * @desc 执行策略类型（单次执行，周期执行）
      * @returns { String }
      */
-  get executeStrategy () {
+  get executeStrategy() {
     if (this.cronExpression) {
       return 'period';
     }
@@ -101,7 +104,7 @@ export default class Crontab {
      * @desc 执行策略类型显示文本
      * @returns { String }
      */
-  get executeStrategyText () {
+  get executeStrategyText() {
     if (this.cronExpression) {
       return I18n.t('周期执行');
     }
@@ -112,7 +115,7 @@ export default class Crontab {
      * @desc 执行事件tips
      * @returns { String }
      */
-  get executeTimeTips () {
+  get executeTimeTips() {
     if (this.cronExpression) {
       const [
         month,
@@ -122,7 +125,7 @@ export default class Crontab {
         minute,
       ] = Translate(this.cronExpression);
       let text = month;
-            
+
       if (dayOfMonth) {
         text += dayOfMonth;
       }
@@ -137,7 +140,7 @@ export default class Crontab {
 
         text += dayOfWeek;
       }
-            
+
       if (hour) {
         if (dayOfMonth || dayOfWeek) {
           text += '的';
@@ -154,7 +157,7 @@ export default class Crontab {
      * @desc 执行状态的标记 ICON
      * @returns { String }
      */
-  get statusIconType () {
+  get statusIconType() {
     return Crontab.STATUS_ICON_TYPE[this.lastExecuteStatus];
   }
 
@@ -162,7 +165,7 @@ export default class Crontab {
      * @desc 执行状态展示文本
      * @returns { String }
      */
-  get statusText () {
+  get statusText() {
     return Crontab.STATUS_MAP[this.lastExecuteStatus];
   }
 
@@ -170,7 +173,7 @@ export default class Crontab {
      * @desc 定时任务的执行策略
      * @returns { String }
      */
-  get policeText () {
+  get policeText() {
     if (this.cronExpression) {
       return this.cronExpression;
     }
@@ -181,7 +184,7 @@ export default class Crontab {
      * @desc 周期执行成功率显示文本
      * @returns { String }
      */
-  get successRateText () {
+  get successRateText() {
     if (!this.failCount && !this.totalCount) {
       return '--';
     }
@@ -213,7 +216,7 @@ export default class Crontab {
      * @desc 周期执行成功率 tips
      * @returns { Array }
      */
-  get successRateTips () {
+  get successRateTips() {
     const tips = `
             <p>
                 ${I18n.t('最近')}<span style="padding: 0 0.2em;">${this.totalCount}</span>${I18n.t('次')}
@@ -230,7 +233,7 @@ export default class Crontab {
      * @desc 周期执行成功率数据为空
      * @returns { Boolean }
      */
-  get isRateEmpty () {
+  get isRateEmpty() {
     return !this.failCount || !this.totalCount;
   }
 
@@ -238,7 +241,7 @@ export default class Crontab {
      * @desc 最新执行失败记录
      * @returns { Array }
      */
-  get lastFailRecordList () {
+  get lastFailRecordList() {
     const len = this.lastFailRecord.length;
     const MAX_LEN = 5;
     let lastFailRecords = this.lastFailRecord;
@@ -252,7 +255,7 @@ export default class Crontab {
      * @desc 更多失败记录
      * @returns { Boolean }
      */
-  get showMoreFailAcion () {
+  get showMoreFailAcion() {
     return this.lastFailRecord.length > 0;
   }
 
@@ -261,7 +264,7 @@ export default class Crontab {
      * @param { Array } variableValue
      * @returns { Array }
      */
-  initVariableValue (variableValue) {
+  initVariableValue(variableValue) {
     if (!_.isArray(variableValue)) {
       return [];
     }
@@ -273,7 +276,7 @@ export default class Crontab {
      * @param { Object } payload
      * @returns { Object }
      */
-  initNotifyUser (payload) {
+  initNotifyUser(payload) {
     if (!_.isObject(payload)) {
       return {
         roleList: [],

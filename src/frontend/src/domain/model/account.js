@@ -52,7 +52,7 @@ export default class Account {
     db2: TYPE_DB2,
   };
 
-  constructor (payload) {
+  constructor(payload) {
     this.id = payload.id;
     this.account = payload.account;
     this.alias = payload.alias;
@@ -76,7 +76,7 @@ export default class Account {
     this.canManage = payload.canManage;
   }
 
-  get isSystem () {
+  get isSystem() {
     return this.category === 1;
   }
 }

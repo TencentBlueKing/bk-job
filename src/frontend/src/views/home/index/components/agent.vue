@@ -26,29 +26,43 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="agent-box">
+  <div
+    v-bkloading="{ isLoading }"
+    class="agent-box">
     <div class="agent-statistics">
-      <div ref="agentStatistics" style="width: 126px; height: 126px;" />
+      <div
+        ref="agentStatistics"
+        style="width: 126px; height: 126px;" />
     </div>
     <div class="agent-statistics-detail">
-      <div class="detail-item normal"
+      <div
+        class="detail-item normal"
         @click="handleShowAgentDetail('normal', agentInfo.normalNum)"
         @mouseover="handlePieScale($t('home.正常'))">
         <span>{{ $t('home.正常') }}</span>
         <span class="detail-value">{{ agentInfo.normalNum }}</span>
       </div>
-      <div class="detail-item fail"
+      <div
+        class="detail-item fail"
         @click="handleShowAgentDetail('fail', agentInfo.normalNum)"
         @mouseover="handlePieScale($t('home.异常'))">
         <span>{{ $t('home.异常') }}</span>
         <span class="detail-value">{{ agentInfo.abnormalNum }}</span>
       </div>
     </div>
-    <sideslider-box :value="isShow" @change="handleClose">
-      <div slot="title">{{ listTitle }}</div>
+    <sideslider-box
+      :value="isShow"
+      @change="handleClose">
+      <div slot="title">
+        {{ listTitle }}
+      </div>
       <div slot="desc">
         <action-extend>
-          <div class="action-item" @click="handleCopyAll">{{ $t('home.复制全部') }}</div>
+          <div
+            class="action-item"
+            @click="handleCopyAll">
+            {{ $t('home.复制全部') }}
+          </div>
         </action-extend>
       </div>
       <host-list :status-type="statusType" />
@@ -56,15 +70,20 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import * as echarts from 'echarts';
+
   import HomeService from '@service/home';
-  import SidesliderBox from '@components/choose-ip/components/sideslider-box';
-  import ActionExtend from '@components/choose-ip/components/action-extend';
-  import HostList from './host-list';
+
   import {
     execCopy,
   } from '@utils/assist';
+
+  import ActionExtend from '@components/choose-ip/components/action-extend';
+  import SidesliderBox from '@components/choose-ip/components/sideslider-box';
+
+  import HostList from './host-list';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -73,7 +92,7 @@
       ActionExtend,
       HostList,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isShow: false,
@@ -83,24 +102,24 @@
       };
     },
     computed: {
-      listTitle () {
+      listTitle() {
         const statusListMap = {
           normal: I18n.t('home.Agent 正常的机器列表：'),
           fail: I18n.t('home.Agent 异常的机器列表：'),
         };
         return statusListMap[this.statusType];
       },
-      defaultHighlight () {
+      defaultHighlight() {
         return (this.agentInfo.abnormalNum || !this.agentInfo.normalNum)
           ? this.$t('home.异常')
           : this.$t('home.正常');
       },
     },
-    created () {
+    created() {
       this.fetchStatisticsAgent();
     },
     methods: {
-      fetchStatisticsAgent () {
+      fetchStatisticsAgent() {
         this.$request(HomeService.fetchStatisticsAgent(), () => {
           this.isLoading = true;
         }).then((data) => {
@@ -111,7 +130,7 @@
             this.isLoading = false;
           });
       },
-      handleShowAgentDetail (status, count) {
+      handleShowAgentDetail(status, count) {
         if (!count) {
           return;
         }
@@ -119,14 +138,14 @@
         this.statusType = status;
         this.fetchAllAgentStatus();
       },
-      handleClose () {
+      handleClose() {
         this.isShow = false;
       },
-      handleCopyAll () {
+      handleCopyAll() {
         const allIP = this.allHostList.map(_ => _.split(':').pop());
         execCopy(allIP.join('\n'), `${I18n.t('home.复制成功')}（${allIP.length}${I18n.t('home.个IP')}）`);
       },
-      fetchAllAgentStatus () {
+      fetchAllAgentStatus() {
         const agentStatus = this.statusType === 'fail' ? 0 : 1;
         HomeService.fetchAllAgentStatus({
           agentStatus,
@@ -134,7 +153,7 @@
           this.allHostList = data.data;
         });
       },
-      handlePieScale (curName) {
+      handlePieScale(curName) {
         const statusMap = [
           this.$t('home.正常'),
           this.$t('home.异常'),
@@ -146,7 +165,7 @@
         this.myChart.dispatchAction({ type: 'highlight', name: selectItem });
         this.myChart.dispatchAction({ type: 'downplay', name: unSelectItems });
       },
-      initAgentStatistics () {
+      initAgentStatistics() {
         this.myChart = echarts.init(this.$refs.agentStatistics);
         const option = {
           series: [

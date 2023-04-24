@@ -36,7 +36,12 @@
       @focus="handleFocus"
       @input="handleInput"
       @paste="handlePaste" />
-    <div v-if="showPlaceholder" class="mult-input-placeholder" @click="handleInputFocus">{{ placeholder }}</div>
+    <div
+      v-if="showPlaceholder"
+      class="mult-input-placeholder"
+      @click="handleInputFocus">
+      {{ placeholder }}
+    </div>
   </div>
 </template>
 <script>
@@ -49,14 +54,14 @@
       },
       placeholder: String,
     },
-    data () {
+    data() {
       return {
         localValue: this.value,
         focused: false,
       };
     },
     computed: {
-      stylees () {
+      stylees() {
         const styles = {};
         if (this.focused) {
           styles['z-index'] = 9999;
@@ -68,7 +73,7 @@
         }
         return styles;
       },
-      showPlaceholder () {
+      showPlaceholder() {
         if (this.focused) {
           return false;
         }
@@ -76,27 +81,27 @@
       },
     },
     methods: {
-      handleInputFocus () {
+      handleInputFocus() {
         this.$refs.input.focus();
         setTimeout(() => {
           this.$refs.input.selectionStart = this.localValue.length;
           this.$refs.input.selectionEnd = this.localValue.length;
         });
       },
-      handleInput (event) {
+      handleInput(event) {
         const value = event.target.outerText;
         this.localValue = value;
         this.$emit('input', value);
         this.$emit('change', value);
       },
-      handleFocus () {
+      handleFocus() {
         this.focused = true;
       },
-      handleBlur () {
+      handleBlur() {
         this.focused = false;
         this.$refs.input.scrollTop = 0;
       },
-      handlePaste (e) {
+      handlePaste(e) {
         e.preventDefault();
         e.stopPropagation();
         let text = '';

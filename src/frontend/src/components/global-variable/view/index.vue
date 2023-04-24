@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div class="global-variable-detail" :class="classes">
+  <div
+    class="global-variable-detail"
+    :class="classes">
     <div class="variable-name">
       <span>{{ data.name }}：</span>
     </div>
@@ -41,8 +43,8 @@
   </div>
 </template>
 <script>
-  import TypeText from './text';
   import TypeHost from './host';
+  import TypeText from './text';
 
   export default {
     props: {
@@ -63,14 +65,14 @@
         default: 'horizontal', // 水平：horizontal；垂直：vertical
       },
     },
-    data () {
+    data() {
       return {
         isError: false,
         isEmpty: false,
       };
     },
     computed: {
-      typeCom () {
+      typeCom() {
         const comMap = {
           1: TypeText,
           2: TypeText,
@@ -82,10 +84,10 @@
         if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
           return 'div';
         }
-                
+
         return comMap[this.type];
       },
-      classes () {
+      classes() {
         const classes = {};
         if (this.isEmpty) {
           return classes;
@@ -96,7 +98,7 @@
         return classes;
       },
     },
-    mounted () {
+    mounted() {
       const unWatch = this.$watch(() => this.$refs.value.isEmpty, (value) => {
         this.isEmpty = Boolean(value);
       }, {

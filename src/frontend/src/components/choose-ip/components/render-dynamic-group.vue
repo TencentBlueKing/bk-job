@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="choose-ip-dynamic-group">
+  <div
+    v-bkloading="{ isLoading }"
+    class="choose-ip-dynamic-group">
     <div class="group-search">
       <bk-input
         :placeholder="$t('搜索分组名称')"
@@ -34,10 +36,16 @@
         @input="handleGroupSearch" />
     </div>
     <template v-if="!isLoading">
-      <div v-if="hasNotGroup" class="group-empty">
-        {{ $t('无数据') }}，<a :href="CMDBCreateGroupUrl" target="_blank">{{ $t('去创建') }}</a>
+      <div
+        v-if="hasNotGroup"
+        class="group-empty">
+        {{ $t('无数据') }}，<a
+          :href="CMDBCreateGroupUrl"
+          target="_blank">{{ $t('去创建') }}</a>
       </div>
-      <div v-else class="group-list">
+      <div
+        v-else
+        class="group-list">
         <host-table :list="renderList">
           <thead>
             <tr>
@@ -48,25 +56,37 @@
                     @click.native="handleToggleWholeAll" />
                 </div>
               </th>
-              <th style="width: 450px;">{{ $t('分组名称') }}</th>
+              <th style="width: 450px;">
+                {{ $t('分组名称') }}
+              </th>
               <th>{{ $t('操作') }}</th>
             </tr>
           </thead>
           <tbody v-if="renderList.length > 0">
             <template v-for="group in renderList">
-              <tr :key="group.id" class="group-row">
+              <tr
+                :key="group.id"
+                class="group-row">
                 <td @click="handleGroupCheck(group.id)">
                   <bk-checkbox :checked="checkedMap[group.id]" />
                 </td>
-                <td @click="handleGroupCheck(group.id)">{{ group.name }}</td>
+                <td @click="handleGroupCheck(group.id)">
+                  {{ group.name }}
+                </td>
                 <td>
-                  <bk-button text @click="handlePreview(group)">{{ $t('预览') }}</bk-button>
+                  <bk-button
+                    text
+                    @click="handlePreview(group)">
+                    {{ $t('预览') }}
+                  </bk-button>
                 </td>
               </tr>
             </template>
           </tbody>
         </host-table>
-        <div v-if="pagination.pageSize > 0" style="padding: 16px 0;">
+        <div
+          v-if="pagination.pageSize > 0"
+          style="padding: 16px 0;">
           <bk-pagination
             align="right"
             :count="pagination.total"
@@ -84,13 +104,16 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import AppService from '@service/app-manage';
   import QueryGlobalSettingService from '@service/query-global-setting';
+
   import {
     encodeRegexp,
   } from '@utils/assist';
+
   import HostTable from './host-table';
-    
+
   export default {
     name: '',
     components: {
@@ -107,7 +130,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       this.selfChange = false;
       return {
         isLoading: false,
@@ -125,11 +148,11 @@
       };
     },
     computed: {
-      renderList  () {
+      renderList() {
         const { page, pageSize } = this.pagination;
         return Object.freeze(this.tempList.slice((page - 1) * pageSize, page * pageSize));
       },
-      pageCheckInfo () {
+      pageCheckInfo() {
         const info = {
           indeterminate: false,
           checked: false,
@@ -142,7 +165,7 @@
     },
     watch: {
       dynamicGroupList: {
-        handler (dynamicGroupList) {
+        handler(dynamicGroupList) {
           if (this.selfChange) {
             this.selfChange = false;
             return;
@@ -157,7 +180,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.calcPageSize();
       this.fetchDynamicGroup();
     },
@@ -167,7 +190,7 @@
        *
        * 动态分组列表为空可以跳转 cmdb 创建
        */
-      fetchDynamicGroup () {
+      fetchDynamicGroup() {
         this.isLoading = true;
         AppService.fetchDynamicGroup()
           .then((data) => {
@@ -186,7 +209,7 @@
       /**
        * @desc 没有动态分组时可以去 cmdb 创建
        */
-      fetchCMDBUrl () {
+      fetchCMDBUrl() {
         return QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.CMDBCreateGroupUrl = `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`;
@@ -195,7 +218,7 @@
       /**
        * @desc 计算PageSize
        */
-      calcPageSize () {
+      calcPageSize() {
         const topOffset = 154;
         const bottomOffset = 116;
         const pageSize = Math.floor((this.dialogHeight - topOffset - bottomOffset) / 40);
@@ -204,7 +227,7 @@
       /**
        * @desc 动态分组值更新
        */
-      trigger () {
+      trigger() {
         this.selfChange = true;
         this.$emit('on-change', 'dynamicGroupList', Object.keys(this.checkedMap));
       },
@@ -225,13 +248,13 @@
           });
           this.tempList = Object.freeze(group);
         }
-                
+
         this.pagination.total = this.tempList.length;
       }, 300),
       /**
        * @desc 列表跨页全选切换
        */
-      handleToggleWholeAll () {
+      handleToggleWholeAll() {
         const checkedMap = {
           ...this.checkedMap,
         };
@@ -250,7 +273,7 @@
        * @desc 选中单个分组
        * @param {Number} groupId
        */
-      handleGroupCheck (groupId) {
+      handleGroupCheck(groupId) {
         const checkedMap = {
           ...this.checkedMap,
         };
@@ -266,7 +289,7 @@
        * @desc 预览单个分组的主机详情
        * @param {Object} group
        */
-      handlePreview (group) {
+      handlePreview(group) {
         this.$emit('on-group-preview', {
           name: group.name,
           id: group.id,
@@ -276,7 +299,7 @@
        * @desc 列表翻页
        * @param {Number} page
        */
-      handlePageChange (page) {
+      handlePageChange(page) {
         this.pagination.page = page;
       },
     },

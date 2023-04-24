@@ -27,9 +27,13 @@
 
 <template>
   <resizeable-box>
-    <div v-bkloading="{ isLoading }" class="script-template-render-variable">
+    <div
+      v-bkloading="{ isLoading }"
+      class="script-template-render-variable">
       <scroll-faker theme="dark">
-        <div class="title">{{ $t('scriptTemplate.变量列表') }}</div>
+        <div class="title">
+          {{ $t('scriptTemplate.变量列表') }}
+        </div>
         <table class="script-variable-list">
           <thead>
             <tr>
@@ -38,7 +42,9 @@
               <td>{{ $t('scriptTemplate.示例') }}</td>
             </tr>
           </thead>
-          <tbody v-for="item in variableList" :key="item.name">
+          <tbody
+            v-for="item in variableList"
+            :key="item.name">
             <tr>
               <td>
                 <div
@@ -57,30 +63,33 @@
   </resizeable-box>
 </template>
 <script>
-  import I18n from '@/i18n';
   import ScriptTemplateService from '@service/script-template';
+
   import { execCopy } from '@utils/assist';
+
   import ResizeableBox from './resizeable-box';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
       ResizeableBox,
     },
     inheritAttrs: false,
-    data () {
+    data() {
       return {
         isLoading: false,
         variableList: [],
       };
     },
-    created () {
+    created() {
       this.fetchVariableList();
     },
     methods: {
       /**
        * @desc 获取变量列表
        */
-      fetchVariableList () {
+      fetchVariableList() {
         this.isLoading = true;
         ScriptTemplateService.fetchVaribaleList()
           .then((data) => {
@@ -93,7 +102,7 @@
       /**
        * @desc 复制变量（变量名被 {{}} 包裹）
        */
-      handleCopyScriptVariable (variableName) {
+      handleCopyScriptVariable(variableName) {
         execCopy(variableName, `${I18n.t('scriptTemplate.复制成功')} ${variableName}`);
       },
     },

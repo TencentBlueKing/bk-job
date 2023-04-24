@@ -26,15 +26,28 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="page-storage-strategy">
+  <div
+    v-bkloading="{ isLoading }"
+    class="page-storage-strategy">
     <div class="wraper">
       <div class="execute-block">
-        <div class="block-title">{{ $t('setting.执行历史保留') }}：</div>
-        <jb-form ref="form" form-type="vertical" :model="formData" :rules="rules">
+        <div class="block-title">
+          {{ $t('setting.执行历史保留') }}：
+        </div>
+        <jb-form
+          ref="form"
+          form-type="vertical"
+          :model="formData"
+          :rules="rules">
           <jb-form-item property="days">
-            <bk-input v-model="formData.days" :min="1" type="number">
+            <bk-input
+              v-model="formData.days"
+              :min="1"
+              type="number">
               <template slot="append">
-                <div class="group-text">{{ $t('setting.天') }}</div>
+                <div class="group-text">
+                  {{ $t('setting.天') }}
+                </div>
               </template>
             </bk-input>
           </jb-form-item>
@@ -48,19 +61,22 @@
           @click="handleSave">
           {{ $t('setting.保存') }}
         </bk-button>
-        <bk-button @click="handleReset">{{ $t('setting.重置') }}</bk-button>
+        <bk-button @click="handleReset">
+          {{ $t('setting.重置') }}
+        </bk-button>
       </div>
     </div>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import GlobalSettingService from '@service/global-setting';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
 
-    data () {
+    data() {
       return {
         isLoading: false,
         isSubmiting: false,
@@ -69,7 +85,7 @@
         },
       };
     },
-    created () {
+    created() {
       this.fetchData();
       this.memoDay = 0;
       this.rules = {
@@ -83,7 +99,7 @@
       };
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         GlobalSettingService.fetchHistroyExpire()
           .then((data) => {
@@ -94,7 +110,7 @@
             this.isLoading = false;
           });
       },
-      handleSave () {
+      handleSave() {
         this.$refs.form.validate().then(() => {
           this.isSubmiting = true;
           GlobalSettingService.updateHistroyExpire({
@@ -107,7 +123,7 @@
             });
         });
       },
-      handleReset () {
+      handleReset() {
         this.formData.days = this.memoDay;
       },
     },

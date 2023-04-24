@@ -49,7 +49,11 @@
       @mouseenter="handleVerticalMouseenter"
       @mouseleave="handleVerticalMouseleave"
       @scroll="handleVerticalScroll">
-      <div class="scrollbar-inner" :style="{ height: `${contentScrollHeight}px` }">&nbsp;</div>
+      <div
+        class="scrollbar-inner"
+        :style="{ height: `${contentScrollHeight}px` }">
+&nbsp;
+      </div>
     </div>
     <div
       v-if="isRenderHorizontalScrollbar"
@@ -58,7 +62,11 @@
       @mouseenter="handleHorizontalMouseenter"
       @mouseleave="handleHorizontalMouseleave"
       @scroll="handleHorizontalScroll">
-      <div class="scrollbar-inner" :style="{ width: `${contentScrollWidth}px` }">&nbsp;</div>
+      <div
+        class="scrollbar-inner"
+        :style="{ width: `${contentScrollWidth}px` }">
+&nbsp;
+      </div>
     </div>
   </div>
 </template>
@@ -73,7 +81,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         isRenderVerticalScroll: false,
         isRenderHorizontalScrollbar: false,
@@ -83,13 +91,13 @@
         contentScrollTop: 0,
       };
     },
-    created () {
+    created() {
       this.calcScroller = _.throttle(this.eventCalcScroller, 100);
       this.handleContentScroll = _.throttle(this.eventContentScroll, 30);
       this.handleVerticalScroll = _.throttle(this.eventVerticalScroll, 30);
       this.handleHorizontalScroll = _.throttle(this.eventHorizontalScroll, 30);
     },
-    mounted () {
+    mounted() {
       window.addEventListener('resize', this.calcScroller);
       const observer = new MutationObserver(() => {
         this.calcScroller();
@@ -113,7 +121,7 @@
       /**
        * @desc 初始化，计算内容的滚动高度和宽度
        */
-      eventCalcScroller () {
+      eventCalcScroller() {
         if (this.$refs.scrollBox && this.$refs.scrollContent) {
           const {
             scrollHeight,
@@ -121,7 +129,7 @@
           } = this.$refs.scrollContent;
           this.contentScrollHeight = scrollHeight;
           this.contentScrollWidth = scrollWidth;
-                    
+
           const {
             width: boxWidth,
             height: boxHeight,
@@ -155,14 +163,14 @@
               boxStyles.maxWidth = scrollBoxStyleMaxWidth;
             }
           }
-                    
+
           this.boxStyles = Object.freeze(boxStyles);
         }
       },
       /**
        * @desc 外部调用，获取容器滚动位置
        */
-      getScroll () {
+      getScroll() {
         const {
           scrollLeft,
           scrollTop,
@@ -177,7 +185,7 @@
        * @param {Number} scrollLeft
        * @param {Number} scrollTop
        */
-      scrollTo (scrollLeft, scrollTop) {
+      scrollTo(scrollLeft, scrollTop) {
         this.$refs.scrollContent.scrollTo(scrollLeft, scrollTop);
       },
       /**
@@ -185,11 +193,11 @@
        * @param {Number} scrollLeft
        * @param {Number} scrollTop
        */
-      contentScrollTo (scrollLeft, scrollTop) {
+      contentScrollTo(scrollLeft, scrollTop) {
         if (!this.$refs.scrollContent) {
           return;
         }
-                
+
         if (this.isHorizontalScroll && typeof scrollLeft !== 'undefined') {
           this.$refs.scrollContent.scrollLeft = scrollLeft;
         }
@@ -201,7 +209,7 @@
        * @desc 垂直滚动条跟随滚动
        * @param {Number} scrollLeft
        */
-      verticalScrollTop (scrollTop) {
+      verticalScrollTop(scrollTop) {
         if (this.isContentScroll && this.$refs.verticalScroll) {
           this.$refs.verticalScroll.scrollTo(0, scrollTop);
         }
@@ -210,7 +218,7 @@
        * @desc 水平滚动条跟随滚动
        * @param {Number} scrollLeft
        */
-      horizontalScrollLeft (scrollLeft) {
+      horizontalScrollLeft(scrollLeft) {
         if (this.isContentScroll && this.$refs.horizontalScrollbar) {
           this.$refs.horizontalScrollbar.scrollLeft = scrollLeft;
         }
@@ -218,20 +226,20 @@
       /**
        * @desc 鼠标在内容区状态
        */
-      handleContentMouseenter () {
+      handleContentMouseenter() {
         this.isContentScroll = true;
       },
       /**
        * @desc 鼠标离开内容区状态
        */
-      handleContentMouseleave () {
+      handleContentMouseleave() {
         this.isContentScroll = false;
       },
       /**
        * @desc 内容区滚动
        * @param {Object} event 鼠标滚动事件
        */
-      eventContentScroll (event) {
+      eventContentScroll(event) {
         const {
           scrollTop,
           scrollLeft,
@@ -243,39 +251,39 @@
       /**
        * @desc 鼠标在垂直滚动条区域
        */
-      handleVerticalMouseenter () {
+      handleVerticalMouseenter() {
         this.isVerticalScroll = true;
       },
       /**
        * @desc 鼠标离开垂直滚动条区域
        */
-      handleVerticalMouseleave () {
+      handleVerticalMouseleave() {
         this.isVerticalScroll = false;
       },
       /**
        * @desc 触发垂直滚动条滚动
        * @param {Object} event 鼠标滚动事件
        */
-      eventVerticalScroll (event) {
+      eventVerticalScroll(event) {
         this.contentScrollTo('', event.target.scrollTop);
       },
       /**
        * @desc 鼠标在水平滚动条区域
        */
-      handleHorizontalMouseenter () {
+      handleHorizontalMouseenter() {
         this.isHorizontalScroll = true;
       },
       /**
        * @desc 鼠标离开水平滚动条区域
        */
-      handleHorizontalMouseleave () {
+      handleHorizontalMouseleave() {
         this.isHorizontalScroll = false;
       },
       /**
        * @desc 触发水平滚动条滚动
        * @param {Object} event 鼠标滚动事件
        */
-      eventHorizontalScroll (event) {
+      eventHorizontalScroll(event) {
         this.contentScrollTo(event.target.scrollLeft);
       },
     },

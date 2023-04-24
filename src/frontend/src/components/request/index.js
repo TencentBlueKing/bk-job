@@ -28,7 +28,7 @@ const timeout = (ms = 300) => new Promise((resolve, reject) => {
   setTimeout(() => reject(timeoutError), ms);
 });
 export default {
-  install (Vue) {
+  install(Vue) {
     /* eslint-disable-next-line no-param-reassign */
     Vue.prototype.$request = (request, reject = () => {}, ms = 300) => Promise.race([
       request, timeout(ms),

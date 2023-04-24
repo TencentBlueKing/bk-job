@@ -32,13 +32,23 @@
     :class="{ 'path-error': !!error }"
     :data-error="error">
     <template v-if="mode === 'edit'">
-      <div class="path-text" :style="styles" @click="handleShowEdit">
+      <div
+        class="path-text"
+        :style="styles"
+        @click="handleShowEdit">
         <bk-popover placement="right">
-          <div v-for="(item, index) in displayRows" :key="index" class="path-text-row">
+          <div
+            v-for="(item, index) in displayRows"
+            :key="index"
+            class="path-text-row">
             {{ item }}
           </div>
-          <div v-if="hasMore">...</div>
-          <ul slot="content" class="source-file-tips-box">
+          <div v-if="hasMore">
+            ...
+          </div>
+          <ul
+            slot="content"
+            class="source-file-tips-box">
             <li
               v-for="(item, index) in renderValue"
               :key="index"
@@ -66,18 +76,24 @@
         @blur="handleCreteaBlur"
         @input="handleCreateSubmit" />
     </template>
-    <div v-if="error" v-bk-tooltips="error" class="error-flag">
-      <Icon type="info" />
+    <div
+      v-if="error"
+      v-bk-tooltips="error"
+      class="error-flag">
+      <icon type="info" />
     </div>
   </div>
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import SmartInput from '@components/smart-input';
+
   import {
     filePathRule,
   } from '@utils/validator';
+
+  import SmartInput from '@components/smart-input';
+
+  import I18n from '@/i18n';
 
   const formatValue = str => str.split('\n').reduce((result, item) => {
     const realValue = _.trim(item);
@@ -98,14 +114,14 @@
     props: {
       value: {
         type: Array,
-        default: '',
+        default: () => [],
       },
       mode: {
         type: String,
         default: 'edit',
       },
     },
-    data () {
+    data() {
       return {
         showEdit: false,
         isError: false,
@@ -115,13 +131,13 @@
       };
     },
     computed: {
-      displayRows () {
+      displayRows() {
         return this.renderValue.slice(0, DISPLAY_ROW_NUMS);
       },
-      hasMore () {
+      hasMore() {
         return this.renderValue.length > DISPLAY_ROW_NUMS;
       },
-      styles () {
+      styles() {
         if (this.showEdit) {
           return {
             visibility: 'hidden',
@@ -134,7 +150,7 @@
     },
     watch: {
       value: {
-        handler  (newValue) {
+        handler(newValue) {
           this.renderValue = newValue;
           this.tempValue = newValue.join('\n');
         },
@@ -142,27 +158,27 @@
       },
     },
     methods: {
-      handleShowEdit () {
+      handleShowEdit() {
         this.showEdit = true;
         this.$nextTick(() => {
           this.$refs.pathEdit.focus();
         });
       },
-      handleEditChange (value) {
+      handleEditChange(value) {
         this.error = '';
         if (!value) {
           this.error = I18n.t('路径不能为空');
         }
         this.tempValue = value;
       },
-      handleEditSubmit () {
+      handleEditSubmit() {
         if (this.error) {
           this.$refs.pathEdit.focused = true;
           return;
         }
-                
+
         const realValue = formatValue(this.tempValue);
-                
+
         const hasError = !realValue.every(item => filePathRule.validator(item));
         if (hasError) {
           this.error = I18n.t('路径格式不正确');
@@ -174,7 +190,7 @@
         this.renderValue = realValue;
         this.$emit('on-change', realValue);
       },
-      handleCreateSubmit (value) {
+      handleCreateSubmit(value) {
         this.tempValue = value;
         const realValue = formatValue(this.tempValue);
         const isError = !realValue.every(item => filePathRule.validator(item));
@@ -186,7 +202,7 @@
         this.renderValue = realValue;
         this.$emit('on-change', realValue);
       },
-      handleCreteaBlur () {
+      handleCreteaBlur() {
         if (this.error) {
           this.$refs.pathSubmit.focused = true;
         }

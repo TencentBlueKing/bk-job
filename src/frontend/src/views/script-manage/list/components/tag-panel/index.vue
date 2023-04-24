@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="script-list-tag-panel">
+  <div
+    v-bkloading="{ isLoading }"
+    class="script-list-tag-panel">
     <tab-item
       :id="1"
       :count="totalCount"
@@ -61,20 +63,23 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
-  import ScriptManageService from '@service/script-manage';
   import PublicScriptManageService from '@service/public-script-manage';
-  import TagManageService from '@service/tag-manage';
   import PubliceTagManageService from '@service/public-tag-manage';
+  import ScriptManageService from '@service/script-manage';
+  import TagManageService from '@service/tag-manage';
+
   import { checkPublicScript } from '@utils/assist';
+
   import TabItem from './tab-item';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'RenderTagTabItem',
     components: {
       TabItem,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         classesId: 1,
@@ -85,25 +90,25 @@
       };
     },
     computed: {
-      totalCount () {
+      totalCount() {
         return this.countMap.total || 0;
       },
-      unclassifiedCount () {
+      unclassifiedCount() {
         return this.countMap.unclassified || 0;
       },
     },
-    created () {
+    created() {
       this.isPublicScript = checkPublicScript(this.$route);
       this.init();
     },
-    mounted () {
+    mounted() {
       this.parseDefaultValueFromURL();
     },
     methods: {
       /**
        * @desc 获取tag列表
        */
-      fetchTagList () {
+      fetchTagList() {
         if (this.isPublicScript) {
           return PubliceTagManageService.fetchTagList();
         }
@@ -112,13 +117,13 @@
       /**
        * @desc 获取tag的使用数量
        */
-      fetchTagScriptNum () {
+      fetchTagScriptNum() {
         if (this.isPublicScript) {
           return PublicScriptManageService.fetchTagCount();
         }
         return ScriptManageService.fetchTagCount();
       },
-      init () {
+      init() {
         this.isLoading = true;
         Promise.all([
           this.fetchTagList(),
@@ -140,14 +145,14 @@
       /**
        * @desc 解析url中的默认tag
        */
-      parseDefaultValueFromURL () {
+      parseDefaultValueFromURL() {
         let classesId = 1;
         if (this.$route.query.panelType) {
           classesId = ~~this.$route.query.panelType || 1;
           this.handleClassesSelect(classesId);
           return;
         }
-                
+
         if (this.$route.query.panelTag) {
           const currentTagId = parseInt(this.$route.query.panelTag, 10);
           if (currentTagId > 0) {
@@ -160,7 +165,7 @@
        * @desc 分类切换
        * @param {Number} id 分类id
        */
-      handleClassesSelect (id) {
+      handleClassesSelect(id) {
         if (this.classesId === id) {
           return;
         }
@@ -175,7 +180,7 @@
        * @desc tag切换
        * @param {Number} id 分类id
        */
-      handleSelect (id) {
+      handleSelect(id) {
         if (id === this.tagId) return;
         this.tagId = id;
         this.classesId = 0;
@@ -190,7 +195,7 @@
        *
        * 编辑成功需要刷新标签数据
        */
-      handleEdit (payload) {
+      handleEdit(payload) {
         TagManageService.updateTag(payload)
           .then(() => {
             this.messageSuccess(I18n.t('script.标签名更新成功'));

@@ -34,7 +34,11 @@
       <span>{{ $t('个动态分组') }}</span>
     </span>
     <action-extend v-if="editable">
-      <div class="action-item" @click="handleRemoveAll">{{ $t('移除全部') }}</div>
+      <div
+        class="action-item"
+        @click="handleRemoveAll">
+        {{ $t('移除全部') }}
+      </div>
     </action-extend>
     <template #content>
       <div v-bkloading="{ isLoading }">
@@ -56,8 +60,12 @@
                   :tippy-tips="$t('该分组在配置平台已被删除')">{{ $t('无效') }}</span>
                 <span>{{ row }}</span>
               </td>
-              <td colspan="2">--</td>
-              <td v-if="editable" class="action-column">
+              <td colspan="2">
+                --
+              </td>
+              <td
+                v-if="editable"
+                class="action-column">
                 <bk-button
                   text
                   @click="handleInvalidRemove(index)">
@@ -71,16 +79,24 @@
               v-for="(row, index) in list"
               :key="index"
               :class="diff[row.id]">
-              <td style="width: 40%; cursor: pointer;" @click="handleView(row.id)">
+              <td
+                style="width: 40%; cursor: pointer;"
+                @click="handleView(row.id)">
                 {{ row.name }}
               </td>
               <td style="width: 150px;">
-                <div class="cell-text">共<span class="number strong">{{ row.total }}</span>台主机</div>
+                <div class="cell-text">
+                  共<span class="number strong">{{ row.total }}</span>台主机
+                </div>
               </td>
               <td @click="handleView(row.id)">
-                <statistics-text :data="row" style="cursor: pointer;" />
+                <statistics-text
+                  :data="row"
+                  style="cursor: pointer;" />
               </td>
-              <td v-if="editable" class="action-column">
+              <td
+                v-if="editable"
+                class="action-column">
                 <bk-button
                   text
                   @click="handleRemove(index)">
@@ -90,10 +106,17 @@
             </tr>
           </tbody>
         </host-table>
-        <bk-exception v-if="isRequestError" style="padding-bottom: 50px;" type="500">
+        <bk-exception
+          v-if="isRequestError"
+          style="padding-bottom: 50px;"
+          type="500">
           <div style="display: flex; font-size: 14px;">
             <span>数据拉取失败，请</span>
-            <bk-button text @click="handleRefresh">重试</bk-button>
+            <bk-button
+              text
+              @click="handleRefresh">
+              重试
+            </bk-button>
           </div>
         </bk-exception>
       </div>
@@ -102,15 +125,19 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import AppService from '@service/app-manage';
-  import I18n from '@/i18n';
+
   import JbCollapseItem from '@components/jb-collapse-item';
+
   import ActionExtend from '../components/action-extend';
   import HostTable from '../components/host-table';
   import StatisticsText from '../components/statistics-text';
   import {
     statisticsHost,
   } from '../components/utils';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'ViewGroup',
@@ -134,7 +161,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         list: [],
         invalidList: [],
@@ -144,7 +171,7 @@
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (this.isInnerChange) {
             this.isInnerChange = false;
             return;
@@ -158,7 +185,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.isInnerChange = false;
       // 缓存数据用查看分组的主机详情
       this.groupMap = {};
@@ -167,13 +194,13 @@
       /**
        * @desc 获取分组的主机信息
        */
-      fetchDynamicGroup () {
+      fetchDynamicGroup() {
         this.isLoading = true;
         const allGroupMap = this.data.reduce((result, groupId) => {
           result[groupId] = groupId;
           return result;
         }, {});
-                
+
         AppService.fetchHostOfDynamicGroup({
           id: this.data.join(','),
         }).then((data) => {
@@ -219,7 +246,7 @@
        * @desc 外部调用获取所有分组下的主机
        *
        */
-      getAllHost () {
+      getAllHost() {
         const stack = [];
         for (const groupId in this.groupMap) {
           stack.push(...this.groupMap[groupId].host);
@@ -229,11 +256,11 @@
       /**
        * @desc 外部调用移除所有无效的分组
        */
-      removeAllInvalidHost () {
+      removeAllInvalidHost() {
         this.invalidList = [];
         this.triggerChange();
       },
-      triggerChange () {
+      triggerChange() {
         this.isInnerChange = true;
         // 所有分组id
         const groupIdList = [...this.invalidList];
@@ -245,14 +272,14 @@
       /**
        * @desc 失败重试
        */
-      handleRefresh () {
+      handleRefresh() {
         this.fetchDynamicGroup();
       },
       /**
        * @desc 移除无效分组
        * @param {Number} index 分组的索引
        */
-      handleInvalidRemove (index) {
+      handleInvalidRemove(index) {
         const invalidList = [
           ...this.invalidList,
         ];
@@ -264,7 +291,7 @@
        * @desc 移除所有分组
        *
        */
-      handleRemoveAll () {
+      handleRemoveAll() {
         if (this.data.length < 1) {
           this.messageSuccess(I18n.t('你还未选择动态分组'));
           return;
@@ -279,7 +306,7 @@
        * @desc 移除分组
        * @param {Number} index 分组的索引
        */
-      handleRemove (index) {
+      handleRemove(index) {
         const currentNode = this.list[index];
         const list = [...this.list];
         list.splice(index, 1);
@@ -292,7 +319,7 @@
        * @desc 查看分组的主机详情
        * @param {String} id 分组的id
        */
-      handleView (id) {
+      handleView(id) {
         this.$emit('on-view', Object.freeze(this.groupMap[id]));
       },
     },

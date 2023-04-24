@@ -28,10 +28,12 @@
 */
 
 import _ from 'lodash';
-import I18n from '@/i18n';
+
 import TagModel from '@model/tag';
-import TaskStepModel from '@model/task/task-step';
 import GlobalVariableModel from '@model/task/global-variable';
+import TaskStepModel from '@model/task/task-step';
+
+import I18n from '@/i18n';
 
 const STATUS_SCRIPT_NEED_UPDATE = 1;
 const STATUS_SCRIPT_DISABLED = 2;
@@ -41,8 +43,8 @@ export default class Task {
   static STATUS_SCRIPT_NEED_UPDATE = STATUS_SCRIPT_NEED_UPDATE;
   static STATUS_SCRIPT_DISABLED = STATUS_SCRIPT_DISABLED;
   static STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE = STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE;
-    
-  constructor (payload, isClone = false) {
+
+  constructor(payload, isClone = false) {
     this.id = isClone ? -payload.id : payload.id;
     this.name = payload.name;
     this.description = payload.description || '';
@@ -54,7 +56,7 @@ export default class Task {
     this.creator = payload.creator;
     this.lastModifyTime = payload.lastModifyTime;
     this.lastModifyUser = payload.lastModifyUser;
-        
+
     this.stepList = this.initStepList(payload.stepList, isClone);
     this.tags = this.initTag(payload.tags);
     this.variables = this.initVariable(payload.variableList, isClone);
@@ -71,7 +73,7 @@ export default class Task {
      * @desc 作业模板 tag 展示文本
      * @returns { String }
      */
-  get tagText () {
+  get tagText() {
     if (this.tags.length < 1) {
       return '--';
     }
@@ -82,7 +84,7 @@ export default class Task {
      * @desc 执行脚本步骤，引用的脚本状态展示标记
      * @returns { String }
      */
-  get scriptStatusHtml () {
+  get scriptStatusHtml() {
     const stack = [];
     if ([
       STATUS_SCRIPT_NEED_UPDATE,
@@ -104,7 +106,7 @@ export default class Task {
   /**
      * @desc 切换作业模板的收藏状态
      */
-  toggleFavored () {
+  toggleFavored() {
     this.favored = !this.favored;
   }
 
@@ -114,7 +116,7 @@ export default class Task {
      * @param { Boolean } isClone
      * @returns { Array}
      */
-  initStepList (payload, isClone) {
+  initStepList(payload, isClone) {
     if (!_.isArray(payload)) {
       return [];
     }
@@ -126,7 +128,7 @@ export default class Task {
      * @param { Array } payload
      * @returns { Array }
      */
-  initTag (payload) {
+  initTag(payload) {
     if (!_.isArray(payload)) {
       return [];
     }
@@ -139,7 +141,7 @@ export default class Task {
      * @param { Boolean } isClone
      * @returns { Array }
      */
-  initVariable (payload, isClone) {
+  initVariable(payload, isClone) {
     if (!_.isArray(payload)) {
       return [];
     }

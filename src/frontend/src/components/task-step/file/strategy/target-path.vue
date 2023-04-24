@@ -51,8 +51,12 @@
         class="target-path-tips"
         @mouseenter="handleTipsMouseenter"
         @mouseleave="handleMouseleave">
-        <div class="row">{{ $t('传输至linux服务器需以\/开头的绝对路径，如：/data/xx') }}</div>
-        <div class="row">{{ $t('传输至Windows服务器需包含盘符开头，如：D:\\tmp\\') }}</div>
+        <div class="row">
+          {{ $t('传输至linux服务器需以\/开头的绝对路径，如：/data/xx') }}
+        </div>
+        <div class="row">
+          {{ $t('传输至Windows服务器需包含盘符开头，如：D:\\tmp\\') }}
+        </div>
         <div class="row">
           <div>{{ $t('目标路径支持的内置变量：（点击可直接复制使用）') }}</div>
           <table class="target-path-demo">
@@ -87,21 +91,25 @@
             </tbody>
           </table>
         </div>
-        <div class="row">{{ $t('（日期变量可传入标准的日期时间格式，如 yyyy-MM-dd_HH:mm:ss）') }}</div>
+        <div class="row">
+          {{ $t('（日期变量可传入标准的日期时间格式，如 yyyy-MM-dd_HH:mm:ss）') }}
+        </div>
       </div>
     </div>
   </div>
 </template>
 <script>
-  import _ from 'lodash';
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
-  import I18n from '@/i18n';
+  import _ from 'lodash';
+
   import {
     execCopy,
   } from '@utils/assist';
   import {
     filePathRule,
   } from '@utils/validator';
+
+  import I18n from '@/i18n';
 
   export default {
     props: {
@@ -119,13 +127,13 @@
       },
     },
     watch: {
-      tipsPlacement (tipsPlacement) {
+      tipsPlacement(tipsPlacement) {
         this.popperInstance && this.popperInstance.set({
           placement: tipsPlacement,
         });
       },
     },
-    created () {
+    created() {
       this.rules = [
         {
           required: true,
@@ -140,7 +148,7 @@
       ];
       this.isMouseenter = false;
     },
-    beforeDestroy () {
+    beforeDestroy() {
       if (this.popperInstance) {
         this.popperInstance.hide();
         this.popperInstance.destroy();
@@ -150,7 +158,7 @@
       /**
        * @desc 显示tips
        */
-      showTips () {
+      showTips() {
         if (!this.popperInstance) {
           this.popperInstance = Tippy(this.$refs.input.$el, {
             arrow: true,
@@ -168,13 +176,13 @@
           });
           this.popperInstance.setContent(this.$refs.targetPathTips);
         }
-                
+
         this.popperInstance.show();
       },
       /**
        * @desc 隐藏tips
        */
-      hideTips () {
+      hideTips() {
         if (this.isMouseenter) {
           return;
         }
@@ -183,14 +191,14 @@
       /**
        * @desc 鼠标移入的时候显示tips
        */
-      handleMouseenter () {
+      handleMouseenter() {
         clearTimeout(this.hideTimer);
         this.showTips();
       },
       /**
        * @desc 鼠标移出的时候隐藏tips
        */
-      handleMouseleave () {
+      handleMouseleave() {
         this.isMouseenter = false;
         this.hideTimer = setTimeout(() => {
           if (!this.isInputFocus) {
@@ -201,21 +209,21 @@
       /**
        * @desc 获得焦点是显示ips
        */
-      handleInputFocus () {
+      handleInputFocus() {
         this.isInputFocus = true;
         this.showTips();
       },
       /**
        * @desc 失去焦点是显示ips
        */
-      handleInputBlur () {
+      handleInputBlur() {
         this.isInputFocus = false;
         this.hideTips();
       },
       /**
        * @desc 鼠标在tips内部时取消隐藏tips定时器
        */
-      handleTipsMouseenter () {
+      handleTipsMouseenter() {
         clearTimeout(this.hideTimer);
         this.isMouseenter = true;
       },
@@ -223,13 +231,13 @@
        * @desc 复制变量
        * @param {String} variable 目标路径支持的内置变量
        */
-      handleCopy (variable) {
+      handleCopy(variable) {
         execCopy(variable);
       },
       /**
        * @desc 更新字段值
        */
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, _.trim(value));
       },
     },

@@ -27,13 +27,19 @@
 
 <template>
   <div class="toggle-display">
-    <div class="action" @click="handleToggle">
+    <div
+      class="action"
+      @click="handleToggle">
       <template v-if="isOpen">
-        <Icon class="toggle-arrow" type="angle-double-up" />
+        <icon
+          class="toggle-arrow"
+          type="angle-double-up" />
         <span>{{ $t('收起未引用的变量') }} ({{ count }})</span>
       </template>
       <template v-else>
-        <Icon class="toggle-arrow" type="angle-double-down" />
+        <icon
+          class="toggle-arrow"
+          type="angle-double-down" />
         <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
       </template>
     </div>
@@ -51,13 +57,13 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isOpen: false,
       };
     },
     methods: {
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
       },
     },

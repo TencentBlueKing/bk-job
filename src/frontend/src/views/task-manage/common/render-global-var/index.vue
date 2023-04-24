@@ -27,21 +27,23 @@
 
 <template>
   <div id="templateVariableRender">
-    <div v-if="showEmpty">--</div>
+    <div v-if="showEmpty">
+      --
+    </div>
     <template v-else>
       <div class="variable-batch-action">
         <bk-button
           v-if="isOperation"
           text
           @click="handleShowBatchOperation">
-          <Icon type="bulk-edit" />
+          <icon type="bulk-edit" />
           {{ $t('template.批量编辑') }}
         </bk-button>
         <bk-button
           v-if="isEditOfPlan"
           text
           @click="handleShowBatchEditOfPlan">
-          <Icon type="bulk-edit" />
+          <icon type="bulk-edit" />
           {{ $t('template.批量编辑变量值') }}
         </bk-button>
       </div>
@@ -68,13 +70,17 @@
               <div
                 :id="`globalVariableWithName_${item.name}`"
                 class="variable-type">
-                <Icon :type="item.icon" />
+                <icon :type="item.icon" />
               </div>
               <div class="variable-info">
-                <div class="variable-name">{{ item.name }}</div>
-                <div class="variable-description">{{ item.valueText }}</div>
+                <div class="variable-name">
+                  {{ item.name }}
+                </div>
+                <div class="variable-description">
+                  {{ item.valueText }}
+                </div>
               </div>
-              <Icon
+              <icon
                 v-if="isOperation"
                 class="variable-delete-btn"
                 type="close"
@@ -90,7 +96,9 @@
             v-test="{ type: 'button', value: 'create_global_variable' }"
             class="new-btn"
             @click="handleCreate">
-            <Icon class="create-flag" type="plus" />
+            <icon
+              class="create-flag"
+              type="plus" />
             <span>{{ $t('template.全局变量.label') }}</span>
           </div>
           <div
@@ -100,7 +108,7 @@
               active: isShowUseGuide,
             }"
             @click.stop="handleUseGuideToggle">
-            <Icon type="help-document-fill" />
+            <icon type="help-document-fill" />
           </div>
         </div>
       </div>
@@ -180,15 +188,18 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import VariableModel from '@model/task/global-variable';
-  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
-  import Operation from './operation';
+
+  import BatchEditOfPlan from './batch-edit-of-plan';
   import BatchOperation from './batch-operation';
   import Detail from './detail';
   import EditOfPlan from './edit-of-plan';
-  import BatchEditOfPlan from './batch-edit-of-plan';
+  import Operation from './operation';
   import PopoverDetail from './popover-detail';
+
+  import I18n from '@/i18n';
+  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
 
   export default {
     name: 'RenderGlobalVar',
@@ -231,7 +242,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isShowDetail: false,
         isShowUseGuide: false,
@@ -252,7 +263,7 @@
        * @desc 展示数据为空时的文本
        * @returns { Boolean }
        */
-      showEmpty () {
+      showEmpty() {
         if (this.isOperation) {
           return false;
         }
@@ -262,42 +273,42 @@
        * @desc 新建、编辑全局变量
        * @returns { Boolean }
        */
-      isOperation () {
+      isOperation() {
         return this.mode === 'operate';
       },
       /**
        * @desc 选择全局变量
        * @returns { Boolean }
        */
-      isSelect () {
+      isSelect() {
         return this.mode === 'select' || this.mode === 'editOfPlan';
       },
       /**
        * @desc 编辑执行方案中的全局变量
        * @returns { Boolean }
        */
-      isEditOfPlan () {
+      isEditOfPlan() {
         return this.mode === 'editOfPlan';
       },
       /**
        * @desc 查看全局变量
        * @returns { Boolean }
        */
-      isView () {
+      isView() {
         return !this.mode;
       },
       /**
        * @desc 插卡全局变量同步对比差异
        * @returns { Boolean }
        */
-      isDiff () {
+      isDiff() {
         return this.mode === 'diff';
       },
       /**
        * @desc 展示的全局变量不包含已删除
        * @returns { Array }
        */
-      realVariable () {
+      realVariable() {
         // 过滤掉已经删除的变量
         const validVariable = this.variable.filter(item => !item.delete);
         // 编辑操作不包含正在编辑的变量
@@ -310,7 +321,7 @@
        * @desc 变量编辑侧栏的展示信息
        * @returns { Object }
        */
-      operationSideSliderInfo () {
+      operationSideSliderInfo() {
         if (Object.keys(this.currentData).length < 1) {
           return {
             title: I18n.t('template.新建全局变量'),
@@ -325,45 +336,45 @@
     },
     watch: {
       list: {
-        handler (value) {
+        handler(value) {
           this.variable = _.cloneDeep(value);
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.batchOperationMediaQuery = [1080, 1280, 1520, 1800];
     },
     methods: {
       /**
        * @desc 更新外部数据
        */
-      triggerChange () {
+      triggerChange() {
         this.$emit('on-change', this.variable);
       },
       /**
        * @desc 显示全局变量详情tips
        * @param {Object} variableInfo 全局变量详情
        */
-      handleShowPopoverDetail (variableInfo) {
+      handleShowPopoverDetail(variableInfo) {
         this.currentPopoverDetail = variableInfo;
       },
       /**
        * @desc 隐藏全局变量详情tips
        */
-      handleHidePopoverDetail () {
+      handleHidePopoverDetail() {
         this.currentPopoverDetail = {};
       },
       /**
        * @desc 批量编辑
        */
-      handleShowBatchOperation () {
+      handleShowBatchOperation() {
         this.isShowBatchOperation = true;
       },
       /**
        * @desc 批量编辑执行方案中变量值
        */
-      handleShowBatchEditOfPlan () {
+      handleShowBatchEditOfPlan() {
         this.isShowBatchEditOfPlan = true;
       },
       /**
@@ -371,7 +382,7 @@
        * @param {Object} variableInfo 全局变量详情
        * @param {Index} index 点击变量的索引
        */
-      handlerOperation (variableInfo, index) {
+      handlerOperation(variableInfo, index) {
         this.currentData = variableInfo;
         if (this.isView) {
           this.detailMedia = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
@@ -390,7 +401,7 @@
        * @desc 删除全局变量
        * @param {Number} index 删除变量的索引
        */
-      handleDelete (index) {
+      handleDelete(index) {
         this.$bkInfo({
           title: I18n.t('template.确定删除该全局变量？'),
           subTitle: I18n.t('template.若该变量被步骤引用，请及时检查并更新步骤设置'),
@@ -412,7 +423,7 @@
       /**
        * @desc 显示新建全局变量弹层
        */
-      handleCreate () {
+      handleCreate() {
         this.currentOperation = 'create';
         this.currentData = {};
         this.isShowOperation = true;
@@ -422,7 +433,7 @@
        * @desc 执行方案全局变量编辑
        * @param {Object} payload 全局变量数据
        */
-      handlePlanEditSubmit (payload) {
+      handlePlanEditSubmit(payload) {
         const variable = new VariableModel(payload);
         this.variable.splice(this.currentIndex, 1, variable);
         this.triggerChange();
@@ -431,7 +442,7 @@
        * @desc 批量编辑执行方案全局变量
        * @param {Array} variableList 全局变量列表
        */
-      handleBatchPlanEditSubmit (variableList) {
+      handleBatchPlanEditSubmit(variableList) {
         const variables = variableList.map(item => new VariableModel(item));
         this.variable = variables;
         this.triggerChange();
@@ -440,7 +451,7 @@
        * @desc 全局变量编辑
        * @param {Object} payload 全局变量数据
        */
-      handleOperationSubmit (payload) {
+      handleOperationSubmit(payload) {
         const payloadModel = new VariableModel(payload);
         if (this.currentOperation === 'create') {
           // 新建变量——追加
@@ -456,14 +467,14 @@
        * @desc 全局变量批量编辑
        * @param {Array} variableList 全局变量数据
        */
-      handleBatchOperationSubmit (variableList) {
+      handleBatchOperationSubmit(variableList) {
         this.variable = variableList;
         this.triggerChange();
       },
-      handleUseGuideToggle () {
+      handleUseGuideToggle() {
         this.isShowUseGuide = !this.isShowUseGuide;
       },
-      handleUseGuideClose () {
+      handleUseGuideClose() {
         this.isShowUseGuide = false;
       },
     },

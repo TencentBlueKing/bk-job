@@ -23,10 +23,11 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import {
   transformTimeFriendly,
 } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 // 步骤类型
 const TYPE_SCRIPT = 1;
@@ -119,8 +120,8 @@ export default class TaskExecutionResultStep {
     success: 'step-next',
     pending: 'step-pending',
   };
-    
-  constructor (payload) {
+
+  constructor(payload) {
     this.stepInstanceId = payload.stepInstanceId;
     this.retryCount = payload.retryCount;
     this.name = payload.name;
@@ -144,23 +145,23 @@ export default class TaskExecutionResultStep {
      * @desc 总耗时
      * @returns { String }
      */
-  get totalTimeText () {
+  get totalTimeText() {
     return transformTimeFriendly(this.totalTime);
   }
-    
+
   /**
      * @desc 步骤类型 icon
      * @returns { String }
      */
-  get icon () {
+  get icon() {
     return TaskExecutionResultStep.typeIconMap[this.type];
   }
-    
+
   /**
      * @desc 人工审核类型的步骤
      * @returns { Boolean }
      */
-  get isApproval () {
+  get isApproval() {
     return this.type === TYPE_APPROVAL;
   }
 
@@ -168,7 +169,7 @@ export default class TaskExecutionResultStep {
      * @desc 人工审核类型的步骤——待审核
      * @returns { Boolean }
      */
-  get isApprovaling () {
+  get isApprovaling() {
     return [
       STATUS_MANUAL_CONFIRM,
     ].includes(this.status);
@@ -178,7 +179,7 @@ export default class TaskExecutionResultStep {
      * @desc 步骤执行进度icon
      * @returns { String }
      */
-  get lastStepIcon () {
+  get lastStepIcon() {
     if (this.status === STATUS_PENDING) {
       return 'step-pending';
     }
@@ -190,7 +191,7 @@ export default class TaskExecutionResultStep {
      * @param { Boolean } name
      * @returns { Boolean }
      */
-  get typeDesc () {
+  get typeDesc() {
     const typeMap = {
       [TYPE_SCRIPT]: I18n.t('执行脚本'),
       [TYPE_FILE]: I18n.t('分发文件'),
@@ -203,7 +204,7 @@ export default class TaskExecutionResultStep {
      * @desc 步骤正在执行中
      * @returns { Boolean }
      */
-  get isDoing () {
+  get isDoing() {
     return [
       STATUS_DOING,
       STATUS_FORCEDING,
@@ -214,7 +215,7 @@ export default class TaskExecutionResultStep {
      * @desc 步骤可以被强制终止
      * @returns { Boolean }
      */
-  get isForcedEnable () {
+  get isForcedEnable() {
     return [
       STATUS_DOING,
       STATUS_MANUAL_CONFIRM,
@@ -225,7 +226,7 @@ export default class TaskExecutionResultStep {
      * @desc 步骤还没开始执行
      * @returns { Boolean }
      */
-  get isNotStart () {
+  get isNotStart() {
     return this.status === STATUS_PENDING;
   }
 
@@ -233,7 +234,7 @@ export default class TaskExecutionResultStep {
      * @desc 展示样式风格
      * @returns { String }
      */
-  get displayStyle () {
+  get displayStyle() {
     const styleMap = {
       success: 'success',
       ingore: 'ingore',
@@ -253,7 +254,7 @@ export default class TaskExecutionResultStep {
      * @desc 人工审核类型的步骤——人工确认信息
      * @returns { String }
      */
-  get confirmReasonHtml () {
+  get confirmReasonHtml() {
     if (this.confirmReason) {
       return `<span>${this.confirmReason}</span>`;
     }
@@ -264,7 +265,7 @@ export default class TaskExecutionResultStep {
      * @desc 该步骤可以进行的操作
      * @returns { Array }
      */
-  get actions () {
+  get actions() {
     const actionMap = {
       success: [],
       ingore: [],

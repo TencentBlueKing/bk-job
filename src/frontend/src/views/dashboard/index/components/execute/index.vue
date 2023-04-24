@@ -37,15 +37,15 @@
       </div>
     </div>
     <div class="execute-dashboard-row">
-      <Rolling v-bind="$attrs" />
+      <rolling v-bind="$attrs" />
     </div>
   </div>
 </template>
 <script>
-  import TotalCount from './total-count';
   import FailCount from './fail-count';
-  import Statistics from './statistics';
   import Rolling from './rolling';
+  import Statistics from './statistics';
+  import TotalCount from './total-count';
 
   export default {
     name: '',
@@ -55,7 +55,7 @@
       Statistics,
       Rolling,
     },
-    data () {
+    data() {
       return {};
     },
 

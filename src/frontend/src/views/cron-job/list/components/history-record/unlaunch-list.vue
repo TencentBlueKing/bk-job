@@ -26,7 +26,10 @@
 -->
 
 <template>
-  <render-list ref="list" :data-source="fetchUnlaunchHistory" ignore-url>
+  <render-list
+    ref="list"
+    :data-source="fetchUnlaunchHistory"
+    ignore-url>
     <bk-table-column
       key="scheduledTime"
       align="left"
@@ -52,6 +55,7 @@
 </template>
 <script>
   import TimeTaskService from '@service/time-task';
+
   import RenderList from '@components/render-list';
 
   export default {
@@ -65,20 +69,20 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         searchParams: {},
       };
     },
-    created () {
+    created() {
       this.searchParams.cronTaskId = this.data.id;
       this.fetchUnlaunchHistory = TimeTaskService.fetchUnlaunchHistory;
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', this.searchParams);
       },
     },

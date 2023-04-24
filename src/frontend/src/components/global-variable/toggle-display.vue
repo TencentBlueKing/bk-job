@@ -34,11 +34,15 @@
       }"
       @click="handleToggle">
       <div v-show="isOpen">
-        <Icon class="toggle-arrow" type="angle-double-up" />
+        <icon
+          class="toggle-arrow"
+          type="angle-double-up" />
         <span>{{ $t('收起未引用的变量') }} ({{ count }})</span>
       </div>
       <div v-show="!isOpen">
-        <Icon class="toggle-arrow" type="angle-double-down" />
+        <icon
+          class="toggle-arrow"
+          type="angle-double-down" />
         <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
       </div>
     </div>
@@ -49,20 +53,20 @@
 </template>
 <script>
   export default {
-    name: 'globalVariableToggleDisplay',
+    name: 'GlobalVariableToggleDisplay',
     props: {
       count: {
         type: Number,
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isOpen: false,
       };
     },
     methods: {
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
       },
     },

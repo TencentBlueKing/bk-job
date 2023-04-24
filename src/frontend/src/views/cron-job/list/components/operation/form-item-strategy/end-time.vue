@@ -27,7 +27,11 @@
 
 <template>
   <jb-form-item>
-    <bk-checkbox :value="isEndTime" @change="handleChange">{{ $t('cron.设置结束时间') }}</bk-checkbox>
+    <bk-checkbox
+      :value="isEndTime"
+      @change="handleChange">
+      {{ $t('cron.设置结束时间') }}
+    </bk-checkbox>
     <div v-if="isEndTime">
       <bk-date-picker
         :clearable="false"
@@ -54,14 +58,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isEndTime: false,
       };
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           if (this.formData.endTime) {
             this.isEndTime = true;
           }
@@ -69,20 +73,20 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.dateOptions = {
-        disabledDate (date) {
+        disabledDate(date) {
           return date.valueOf() < Date.now() - 86400000;
         },
       };
     },
     methods: {
-      handleChange (value) {
+      handleChange(value) {
         this.isEndTime = value;
         const endTime = value ? prettyDateTimeFormat(Date.now() + 86400000) : '';
         this.handleEndTimeChange(endTime);
       },
-      handleEndTimeChange (value) {
+      handleEndTimeChange(value) {
         this.$emit('on-change', {
           endTime: value,
         });

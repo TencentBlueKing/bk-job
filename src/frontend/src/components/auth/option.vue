@@ -26,7 +26,10 @@
 -->
 
 <template>
-  <bk-option v-bind="$attrs" :name="name" v-on="$listeners">
+  <bk-option
+    v-bind="$attrs"
+    :name="name"
+    v-on="$listeners">
     <auth-component
       :auth="auth"
       :permission="permission"
@@ -36,7 +39,9 @@
       <slot>
         {{ name }}
       </slot>
-      <div slot="forbid" class="jb-select-option-permission">
+      <div
+        slot="forbid"
+        class="jb-select-option-permission">
         <slot>
           {{ name }}
         </slot>

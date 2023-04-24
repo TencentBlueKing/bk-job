@@ -26,13 +26,17 @@
 -->
 
 <template>
-  <div v-show="show" class="bk-exception bk-exception-center">
+  <div
+    v-show="show"
+    class="bk-exception bk-exception-center">
     <img :src="image">
     <template v-if="$slots.message">
       <slot name="message" />
     </template>
     <template v-else>
-      <h2 class="exception-text">{{ message }}</h2>
+      <h2 class="exception-text">
+        {{ message }}
+      </h2>
     </template>
   </div>
 </template>
@@ -63,7 +67,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       let message = '';
       let image = '';
 
@@ -99,7 +103,7 @@
         image,
       };
     },
-    created () {
+    created() {
       setTimeout(() => {
         this.show = true;
       }, this.delay);

@@ -207,7 +207,9 @@
           @setting-change="handleSettingChange" />
       </bk-table-column>
     </render-list>
-    <lower-component :custom="isShowOperation" level="custom">
+    <lower-component
+      :custom="isShowOperation"
+      level="custom">
       <operation-tag
         v-model="isShowOperation"
         :data="editData"
@@ -229,15 +231,19 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import NotifyService from '@service/notify';
   import TagManageService from '@service/tag-manage';
+
   import { listColumnsCache } from '@utils/cache-helper';
-  import ListActionLayout from '@components/list-action-layout';
-  import RenderList from '@components/render-list';
+
   import JbSearchSelect from '@components/jb-search-select';
+  import ListActionLayout from '@components/list-action-layout';
   import OperationTag from '@components/operation-tag';
+  import RenderList from '@components/render-list';
+
   import BatchEditRelate from './components/batch-edit-relate';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'tag_manage_columns';
 
@@ -249,7 +255,7 @@
       OperationTag,
       BatchEditRelate,
     },
-    data () {
+    data() {
       return {
         isShowOperation: false,
         isShowEditRelate: false,
@@ -262,20 +268,20 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      operationDialogInfo () {
+      operationDialogInfo() {
         return {};
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
     },
-    created () {
+    created() {
       this.dataSource = TagManageService.fetchTagList;
       this.searchSelect = [
         {
@@ -357,20 +363,20 @@
       /**
        * @desc 获取列表数据
        */
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', this.searchParams);
       },
       /**
        * @desc 列表数据刷新
        * @param { Object } data tag列表数据
        */
-      handleListChange (data) {
+      handleListChange(data) {
         this.tagList = Object.freeze(data.data);
       },
       /**
        * @desc 表格自定时设置
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -382,21 +388,21 @@
        * @desc 表格自定时设置
        * @param {Object} params 搜索条件
        */
-      handleSearch (params) {
+      handleSearch(params) {
         this.searchParams = params;
         this.fetchData();
       },
       /**
        * @desc 显示新建账号弹层
        */
-      handleCreate () {
+      handleCreate() {
         this.editData = {};
         this.isShowOperation = true;
       },
       /**
        * @desc 标签有更新重新获取列表数据
        */
-      handleOperationChange () {
+      handleOperationChange() {
         this.fetchData();
         if (this.$refs.batchEditRelate) {
           this.$refs.batchEditRelate.refresh();
@@ -405,7 +411,7 @@
       /**
        * @desc 批量流转重新获取列表数据
        */
-      handleRelateChange () {
+      handleRelateChange() {
         this.fetchData();
         if (this.$refs.batchEditRelate) {
           this.$refs.batchEditRelate.refresh();
@@ -415,7 +421,7 @@
        * @desc 编辑 账号
        * @param {Object} data 某一行tag数据
        */
-      handleEdit (data) {
+      handleEdit(data) {
         this.editData = Object.freeze(data);
         this.isShowOperation = true;
       },
@@ -423,7 +429,7 @@
        * @desc 操作的 tag 数据
        * @param { Object } tag
        */
-      handleEditRelate (tag) {
+      handleEditRelate(tag) {
         this.editData = tag;
         this.isShowEditRelate = true;
       },
@@ -433,7 +439,7 @@
        *
        *  删除成功后刷新列表数据
        */
-      handleDelete (id) {
+      handleDelete(id) {
         return TagManageService.remove({
           id,
         }).then(() => {

@@ -40,17 +40,18 @@
   </jb-popover-confirm>
 </template>
 <script>
-  import I18n from '@/i18n';
+  import ActionAllRetry from './all-retry';
   import ActionConfirm from './confirm';
   import ActionConfirmForced from './confirm-forced';
   import ActionConfirmRetry from './confirm-retry';
-  import ActionAllRetry from './all-retry';
   import ActionFailIpRetry from './fail-ip-retry';
-  import ActionSkip from './skip';
   import ActionForced from './forced';
   import ActionForcedRetry from './forced-retry';
   import ActionForcedSkip from './forced-skip';
   import ActionNext from './next';
+  import ActionSkip from './skip';
+
+  import I18n from '@/i18n';
 
   const ACTION_FAIL_IP_RETRY = 2;
   const ACTION_SKIP = 3;
@@ -130,7 +131,7 @@
       },
     },
     computed: {
-      actionCom () {
+      actionCom() {
         const comMap = {
           confirm: ActionConfirm,
           confirmForced: ActionConfirmForced,
@@ -145,18 +146,18 @@
         };
         return comMap[this.name];
       },
-      confirmInfo () {
+      confirmInfo() {
         return actionMap[this.name];
       },
     },
     methods: {
-      handleConfirm () {
+      handleConfirm() {
         return this.confirmHandler(this.confirmInfo.operationCode);
       },
-      handleConfirmShow () {
+      handleConfirmShow() {
         this.$emit('on-show');
       },
-      handleConfirmCancel () {
+      handleConfirmCancel() {
         this.$emit('on-cancel');
       },
     },

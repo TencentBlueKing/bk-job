@@ -28,8 +28,12 @@
 <template>
   <div class="sync-plan-side-anchor">
     <scroll-faker ref="scroll">
-      <div ref="anchor" class="anchor-wraper">
-        <div class="item-title">{{ $t('template.全局变量.label') }}</div>
+      <div
+        ref="anchor"
+        class="anchor-wraper">
+        <div class="item-title">
+          {{ $t('template.全局变量.label') }}
+        </div>
         <div
           v-for="item in variable"
           :key="`variable_${item.id}_${item.name}`"
@@ -41,9 +45,13 @@
           @click="handleChoose(`variable_${item.id}_${item.name}`)"
           @mouseenter="handleShowTips(item.name, `variable_${item.id}_${item.name}`)"
           @mouseleave="handleShowTips('', '')">
-          <div class="anchor-text">{{ item.name }}</div>
+          <div class="anchor-text">
+            {{ item.name }}
+          </div>
         </div>
-        <div class="item-title">{{ $t('template.作业步骤.label') }}</div>
+        <div class="item-title">
+          {{ $t('template.作业步骤.label') }}
+        </div>
         <div
           v-for="item in step"
           :key="`step_${item.id}`"
@@ -55,16 +63,23 @@
           @click="handleChoose(`step_${item.id}`)"
           @mouseenter="handleShowTips(item.name, `step_${item.id}`)"
           @mouseleave="handleShowTips('', '')">
-          <div class="anchor-text">{{ item.name }}</div>
+          <div class="anchor-text">
+            {{ item.name }}
+          </div>
         </div>
       </div>
-      <tips v-if="tips.name" :key="tips.name" :data="tips" />
+      <tips
+        v-if="tips.name"
+        :key="tips.name"
+        :data="tips" />
     </scroll-faker>
   </div>
 </template>
 <script>
   import _ from 'lodash';
+
   import { scrollTopSmooth } from '@utils/assist';
+
   import Tips from './tips';
 
   export default {
@@ -82,7 +97,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         active: '',
         tips: {
@@ -91,7 +106,7 @@
         },
       };
     },
-    created () {
+    created() {
       if (this.variable.length > 0) {
         const [{ id, name }] = this.variable;
         this.active = `variable_${id}_${name}`;
@@ -101,7 +116,7 @@
       this.scrollNum = 0;
       this.offsetTopMap = {};
     },
-    mounted () {
+    mounted() {
       const $scrollContent = document.querySelector('#asynContent').querySelector('.scroll-faker-content');
       $scrollContent.addEventListener('scroll', this.setActive);
       this.$once('hook:beforeDestroy', () => {
@@ -110,7 +125,7 @@
       this.init();
     },
     methods: {
-      init () {
+      init() {
         this.$refs.anchor.querySelectorAll('.item').forEach((item) => {
           const anchorTarget = `${item.getAttribute('data-anchor')}`;
           this.offsetTopMap[anchorTarget] = document.querySelector(`#sync-after_${anchorTarget}`).offsetTop;
@@ -132,13 +147,13 @@
           this.$refs.scroll.scrollTo(26 * this.scrollNum);
         });
       }, 50),
-      handleShowTips (name, target) {
+      handleShowTips(name, target) {
         this.tips = {
           name,
           target,
         };
       },
-      handleChoose (active) {
+      handleChoose(active) {
         const target = document.querySelector(`#sync-after_${active}`);
         const scrollTop = target.offsetTop - 24;
         this.active = active;

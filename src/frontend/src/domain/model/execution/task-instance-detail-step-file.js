@@ -24,8 +24,10 @@
 */
 
 import _ from 'lodash';
-import I18n from '@/i18n';
+
 import TaskHostNodeModel from '@model/task-host-node';
+
+import I18n from '@/i18n';
 
 const transferModeMap = {
   1: I18n.t('严谨模式'),
@@ -34,7 +36,7 @@ const transferModeMap = {
 };
 
 export default class TaskInstanceDetailStepFile {
-  constructor (payload = {}) {
+  constructor(payload = {}) {
     this.timeout = payload.timeout;
     this.uploadSpeedLimit = payload.uploadSpeedLimit || 0;
     this.downloadSpeedLimit = payload.downloadSpeedLimit || 0;
@@ -43,7 +45,7 @@ export default class TaskInstanceDetailStepFile {
     this.transferMode = payload.transferMode || 1;
     this.ignoreError = payload.ignoreError || 0;
     this.rollingEnabled = Boolean(payload.rollingEnabled);
-        
+
     this.fileDestination = this.initFileDestination(payload.fileDestination);
     this.fileSourceList = this.initFileSourceList(payload.fileSourceList);
     this.rollingConfig = this.initRollingConfig(payload.rollingConfig);
@@ -53,7 +55,7 @@ export default class TaskInstanceDetailStepFile {
      * @desc 上传限速展示文本
      * @returns { String }
      */
-  get uploadSpeedLimitText () {
+  get uploadSpeedLimitText() {
     if (this.uploadSpeedLimit < 1) {
       return I18n.t('否');
     }
@@ -64,7 +66,7 @@ export default class TaskInstanceDetailStepFile {
      * @desc 下载限速展示文本
      * @returns { String }
      */
-  get downloadSpeedLimitText () {
+  get downloadSpeedLimitText() {
     if (this.downloadSpeedLimit < 1) {
       return I18n.t('否');
     }
@@ -75,7 +77,7 @@ export default class TaskInstanceDetailStepFile {
      * @desc 忽略错误展示文本
      * @returns { String }
      */
-  get ignoreErrorText () {
+  get ignoreErrorText() {
     return this.ignoreError === 0 ? I18n.t('不忽略') : I18n.t('自动忽略错误');
   }
 
@@ -83,7 +85,7 @@ export default class TaskInstanceDetailStepFile {
      * @desc 传输模式展示文本
      * @returns { String }
      */
-  get transferModeText () {
+  get transferModeText() {
     return transferModeMap[this.transferMode];
   }
 
@@ -92,7 +94,7 @@ export default class TaskInstanceDetailStepFile {
      * @param { Object } fileDestination
      * @returns { Object }
      */
-  initFileDestination (fileDestination) {
+  initFileDestination(fileDestination) {
     const {
       account,
       path,
@@ -110,7 +112,7 @@ export default class TaskInstanceDetailStepFile {
      * @param { Array } fileSourceList
      * @returns { Array }
      */
-  initFileSourceList (fileSourceList) {
+  initFileSourceList(fileSourceList) {
     if (!_.isArray(fileSourceList)) {
       return [];
     }
@@ -131,7 +133,7 @@ export default class TaskInstanceDetailStepFile {
      * @param { Object } rollingConfig 滚动执行配置
      * @returns { Object }
      */
-  initRollingConfig (rollingConfig) {
+  initRollingConfig(rollingConfig) {
     const config = {
       expr: '',
       mode: 1,

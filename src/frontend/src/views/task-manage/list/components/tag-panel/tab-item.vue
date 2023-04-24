@@ -35,7 +35,9 @@
       'edit-error': !!error,
     }"
     @click.stop="">
-    <Icon class="tag-flag" :type="icon" />
+    <icon
+      class="tag-flag"
+      :type="icon" />
     <template v-if="!isEditable">
       <div
         v-bk-tooltips="{
@@ -64,11 +66,15 @@
         v-if="canEdit"
         auth="tag/edit"
         :resource-id="id">
-        <div class="edit-action" @click="handleEdit">
-          <Icon type="edit-2" />
+        <div
+          class="edit-action"
+          @click="handleEdit">
+          <icon type="edit-2" />
         </div>
-        <div slot="forbid" class="edit-action">
-          <Icon type="edit-2" />
+        <div
+          slot="forbid"
+          class="edit-action">
+          <icon type="edit-2" />
         </div>
       </auth-component>
     </template>
@@ -80,8 +86,11 @@
         @blur="handleBlur"
         @change="handleChange"
         @keyup="handleEnter" />
-      <div v-if="error" v-bk-tooltips="errorTipsConfig" class="input-edit-info">
-        <Icon type="info" />
+      <div
+        v-if="error"
+        v-bk-tooltips="errorTipsConfig"
+        class="input-edit-info">
+        <icon type="info" />
       </div>
     </template>
     <div style="display: none;">
@@ -92,13 +101,17 @@
           <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
             {{ $t('template.标签名称：') }}
           </td>
-          <td style="word-break: break-all; vertical-align: top;">{{ displayName }}</td>
+          <td style="word-break: break-all; vertical-align: top;">
+            {{ displayName }}
+          </td>
         </tr>
         <tr>
           <td style="color: #979ba5; text-align: right; white-space: nowrap; vertical-align: top;">
             {{ $t('template.标签描述：') }}
           </td>
-          <td style="word-break: break-all; vertical-align: top;">{{ description || '--' }}</td>
+          <td style="word-break: break-all; vertical-align: top;">
+            {{ description || '--' }}
+          </td>
         </tr>
       </table>
     </div>
@@ -106,8 +119,10 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import { tagNameRule } from '@utils/validator';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -148,7 +163,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         displayName: this.name,
         isEditable: false,
@@ -160,14 +175,14 @@
        * @desc 重名检测
        * @returns { Array }
        */
-      checkRenameList () {
+      checkRenameList() {
         return this.tagList.filter(_ => _.name !== this.name);
       },
       /**
        * @desc 编辑时错误信息提示
        * @returns { Object }
        */
-      errorTipsConfig () {
+      errorTipsConfig() {
         const errorMap = {
           1: I18n.t('template.标签名不可为空'),
           2: I18n.t('template.标签名已存在，请重新输入'),
@@ -180,10 +195,10 @@
         };
       },
     },
-    created () {
+    created() {
       this.sefId = `tag_${_.random(1, 1000)}_${Date.now()}`;
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('click', this.hideEdit);
       this.$once('hook:beforeDestroy', () => {
         document.body.removeEventListener('click', this.hideEdit);
@@ -194,13 +209,13 @@
        * @desc 选中当前 TAG
        * @returns { viod }
        */
-      handleSelect () {
+      handleSelect() {
         this.$emit('on-select', this.id, this.name);
       },
       /**
        * @desc 编辑状态值更新
        */
-      triggerChange () {
+      triggerChange() {
         if (this.displayName === this.name) {
           this.isEditable = false;
           return;
@@ -220,7 +235,7 @@
         this.error = '';
 
         this.isEditable = false;
-                
+
         this.$emit('on-edit', {
           id: this.id,
           name: this.displayName,
@@ -229,7 +244,7 @@
       /**
        * @desc 开始编辑
        */
-      handleEdit () {
+      handleEdit() {
         document.body.click();
         this.isEditable = true;
         this.$nextTick(() => {
@@ -239,19 +254,19 @@
       /**
        * @desc 输入框值更新
        */
-      handleChange (value) {
+      handleChange(value) {
         this.displayName = value.trim();
       },
       /**
        * @desc 输入框失去焦点
        */
-      handleBlur () {
+      handleBlur() {
         this.triggerChange();
       },
       /**
        * @desc Enter 触发值更新
        */
-      handleEnter (value, event) {
+      handleEnter(value, event) {
         if (!this.isEditable) return;
         if (event.key === 'Enter' && event.keyCode === 13) {
           this.triggerChange();
@@ -260,7 +275,7 @@
       /**
        * @desc 取消编辑状态
        */
-      hideEdit () {
+      hideEdit() {
         if (!this.isEditable) {
           return;
         }

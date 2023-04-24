@@ -26,18 +26,29 @@
 -->
 
 <template>
-  <div class="cron-job"
+  <div
+    class="cron-job"
     :class="[
       { 'is-error': isError },
       `error-${errorField}`,
       `select-${selectIndex}`,
     ]">
     <div class="time-describe">
-      <span class="time-text minute" @click="handleTimeTextChange('minute')">{{ $t('cron.分') }}</span>
-      <span class="time-text hour" @click="handleTimeTextChange('hour')">{{ $t('cron.时') }}</span>
-      <span class="time-text dayOfMonth" @click="handleTimeTextChange('dayOfMonth')">{{ $t('cron.日') }}</span>
-      <span class="time-text month" @click="handleTimeTextChange('month')">{{ $t('cron.月') }}</span>
-      <span class="time-text dayOfWeek" @click="handleTimeTextChange('dayOfWeek')">{{ $t('cron.周') }}</span>
+      <span
+        class="time-text minute"
+        @click="handleTimeTextChange('minute')">{{ $t('cron.分') }}</span>
+      <span
+        class="time-text hour"
+        @click="handleTimeTextChange('hour')">{{ $t('cron.时') }}</span>
+      <span
+        class="time-text dayOfMonth"
+        @click="handleTimeTextChange('dayOfMonth')">{{ $t('cron.日') }}</span>
+      <span
+        class="time-text month"
+        @click="handleTimeTextChange('month')">{{ $t('cron.月') }}</span>
+      <span
+        class="time-text dayOfWeek"
+        @click="handleTimeTextChange('dayOfWeek')">{{ $t('cron.周') }}</span>
     </div>
     <div class="time-input">
       <input
@@ -51,7 +62,9 @@
         @keyup.right="handleSelectText"
         @mousedown="handleSelectText">
     </div>
-    <div v-if="parseValue.length > 1" class="time-parse">
+    <div
+      v-if="parseValue.length > 1"
+      class="time-parse">
       <template v-if="parseValue[0]">
         <span class="month">{{ parseValue[0] }}</span>
       </template>
@@ -67,22 +80,36 @@
       </template>
       <span class="minute">{{ parseValue[4] }}</span>
     </div>
-    <div v-if="nextTime.length > 0" class="time-next" :class="{ active: isTimeMore }">
-      <div class="label">{{ $t('cron.下次：') }}</div>
-      <div class="value">
-        <div v-for="(time, index) in nextTime" :key="`${time}_${index}`">{{ time }}</div>
+    <div
+      v-if="nextTime.length > 0"
+      class="time-next"
+      :class="{ active: isTimeMore }">
+      <div class="label">
+        {{ $t('cron.下次：') }}
       </div>
-      <div class="arrow" @click="handleShowMore">
-        <Icon class="arrow-button" type="angle-double-down" />
+      <div class="value">
+        <div
+          v-for="(time, index) in nextTime"
+          :key="`${time}_${index}`">
+          {{ time }}
+        </div>
+      </div>
+      <div
+        class="arrow"
+        @click="handleShowMore">
+        <icon
+          class="arrow-button"
+          type="angle-double-down" />
       </div>
     </div>
   </div>
 </template>
 <script>
-  import _ from 'lodash';
   import CronExpression from 'cron-parser-custom';
-  import Translate from '@utils/cron/translate';
+  import _ from 'lodash';
+
   import { prettyDateTimeFormat } from '@utils/assist';
+  import Translate from '@utils/cron/translate';
 
   const labelIndexMap = {
     minute: 0,
@@ -105,7 +132,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         selectIndex: '',
         nativeValue: this.value,
@@ -116,7 +143,7 @@
         isTimeMore: false,
       };
     },
-    mounted () {
+    mounted() {
       if (!this.nativeValue) {
         return;
       }
@@ -126,7 +153,7 @@
       /**
        * @desc 检测crontab格式和翻译
        */
-      checkAndTranslate (value) {
+      checkAndTranslate(value) {
         const interval = CronExpression.parse(`0 ${value.trim()}`, {
           currentDate: new Date(),
         });
@@ -146,7 +173,7 @@
        * @desc 选中crontab字段
        * @param {String} lable 选中的字段名
        */
-      handleTimeTextChange (label) {
+      handleTimeTextChange(label) {
         if (!this.nativeValue) {
           return;
         }
@@ -167,14 +194,14 @@
       /**
        * @desc 输入框失去焦点
        */
-      handleBlur () {
+      handleBlur() {
         this.selectIndex = '';
       },
       /**
        * @desc 选中输入框文本
        * @param {Object} event 文本选择事件
        */
-      handleSelectText (event) {
+      handleSelectText(event) {
         const $target = event.target;
         const value = _.trim($target.value);
         this.nativeValue = value;
@@ -223,7 +250,7 @@
       /**
        * @desc 展示下次执行时间列表
        */
-      handleShowMore () {
+      handleShowMore() {
         this.isTimeMore = !this.isTimeMore;
       },
     },

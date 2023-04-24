@@ -32,7 +32,7 @@
         v-bk-tooltips.bottom="$t('history.操作记录')"
         class="action-btn"
         @click="handleShowOperationRecord">
-        <Icon type="history" />
+        <icon type="history" />
       </div>
       <jb-sideslider
         :is-show.sync="isShow"
@@ -61,16 +61,16 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShow: false,
       };
     },
     methods: {
-      handleShowOperationRecord () {
+      handleShowOperationRecord() {
         this.isShow = true;
       },
-      handleOperationRecordChange () {
+      handleOperationRecordChange() {
         this.isShow = false;
       },
     },

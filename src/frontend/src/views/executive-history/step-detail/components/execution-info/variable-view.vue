@@ -33,16 +33,24 @@
       <table>
         <thead>
           <tr>
-            <td style="width: 90px;">{{ $t('history.变量名称') }}</td>
-            <td style="width: 90px;">{{ $t('history.变量类型') }}</td>
+            <td style="width: 90px;">
+              {{ $t('history.变量名称') }}
+            </td>
+            <td style="width: 90px;">
+              {{ $t('history.变量类型') }}
+            </td>
             <td>{{ $t('history.变量值') }}</td>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in variableList" :key="index">
+          <tr
+            v-for="(item, index) in variableList"
+            :key="index">
             <td>{{ item.name }}</td>
             <td>{{ item.typeText }}</td>
-            <td class="variable-value">{{ item.value }}</td>
+            <td class="variable-value">
+              {{ item.value }}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -51,7 +59,7 @@
 </template>
 <script>
   import TaskExecuteService from '@service/task-execute';
-    
+
   export default {
     name: '',
     inheritAttrs: false,
@@ -65,7 +73,7 @@
         type: String,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         variableList: [],
@@ -73,7 +81,7 @@
     },
     watch: {
       name: {
-        handler () {
+        handler() {
           this.isLoading = true;
           this.fetchStepVariables();
         },
@@ -82,7 +90,7 @@
     },
     methods: {
       // 步骤使用的变量
-      fetchStepVariables () {
+      fetchStepVariables() {
         if (!this.ip) {
           this.isLoading = false;
           return;

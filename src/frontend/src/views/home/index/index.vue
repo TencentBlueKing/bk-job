@@ -33,12 +33,16 @@
           <layout-card class="user-card">
             <user />
           </layout-card>
-          <layout-card class="agent-card" :title="$t('home.Agent 状态分布')">
+          <layout-card
+            class="agent-card"
+            :title="$t('home.Agent 状态分布')">
             <agent />
           </layout-card>
         </div>
         <div class="layout-row">
-          <layout-card class="my-task" :title="$t('home.我收藏的作业')">
+          <layout-card
+            class="my-task"
+            :title="$t('home.我收藏的作业')">
             <favor-task />
           </layout-card>
         </div>
@@ -46,7 +50,9 @@
       <div class="layout-right">
         <div class="layout-row content-top">
           <layout-card class="work-statistics-card">
-            <work-statistics link="taskList" type="job-statistics">
+            <work-statistics
+              link="taskList"
+              type="job-statistics">
               <template #default="{ jobNum }">
                 <span>{{ jobNum }}</span>
               </template>
@@ -54,7 +60,9 @@
             </work-statistics>
           </layout-card>
           <layout-card class="work-statistics-card">
-            <work-statistics link="scriptList" type="script-statistics">
+            <work-statistics
+              link="scriptList"
+              type="script-statistics">
               <template #default="{ scriptNum }">
                 <span>{{ scriptNum }}</span>
               </template>
@@ -63,7 +71,9 @@
           </layout-card>
         </div>
         <div class="layout-row">
-          <layout-card class="record-card" :title="$t('home.最近执行记录')">
+          <layout-card
+            class="record-card"
+            :title="$t('home.最近执行记录')">
             <history-record />
           </layout-card>
         </div>
@@ -78,13 +88,15 @@
 <script>
   import marked from 'marked';
   import xss from 'xss';
+
   import QueryGlobalSettingService from '@service/query-global-setting';
-  import LayoutCard from './components/card';
-  import User from './components/user';
+
   import Agent from './components/agent';
-  import WorkStatistics from './components/work-statistics';
+  import LayoutCard from './components/card';
   import FavorTask from './components/favor-task';
   import HistoryRecord from './components/history-record';
+  import User from './components/user';
+  import WorkStatistics from './components/work-statistics';
 
   const xssHTML = (html) => {
     const attrs = ['class', 'title', 'target', 'style'];
@@ -107,17 +119,17 @@
       FavorTask,
       HistoryRecord,
     },
-    data () {
+    data() {
       return {
         footerLink: '',
         footerCopyRight: '',
       };
     },
-    created () {
+    created() {
       this.fetchTitleAndFooter();
     },
     methods: {
-      fetchTitleAndFooter () {
+      fetchTitleAndFooter() {
         const formatLink = link => link.replace(/(?=( href))/g, ' target="_blank"');
         QueryGlobalSettingService.fetchFooterConfig()
           .then((data) => {

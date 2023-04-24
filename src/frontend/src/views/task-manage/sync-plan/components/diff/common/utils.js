@@ -24,9 +24,11 @@
 */
 
 import _ from 'lodash';
-import I18n from '@/i18n';
-import TaskStepModel from '@model/task/task-step';
+
 import VariableModel from '@model/task/global-variable';
+import TaskStepModel from '@model/task/task-step';
+
+import I18n from '@/i18n';
 
 export const ipStatistics = (hostNodeList) => {
   const stack = [];
@@ -39,7 +41,7 @@ export const ipStatistics = (hostNodeList) => {
   if (hostNodeList.dynamicGroupList.length > 0) {
     stack.push(`${hostNodeList.dynamicGroupList.length}${I18n.t('template.个分组')}`);
   }
-    
+
   return stack.join('，');
 };
 

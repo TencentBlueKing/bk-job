@@ -27,12 +27,12 @@ export default class EntryTask {
   preQueue = [];
   postQueue = [];
   context = {};
-  add (preTask, postTask) {
+  add(preTask, postTask) {
     this.preQueue.push(preTask);
     this.postQueue.push(postTask);
   }
 
-  start () {
+  start() {
     const queue = [];
     this.preQueue.forEach((task) => {
       if (typeof task === 'function') {

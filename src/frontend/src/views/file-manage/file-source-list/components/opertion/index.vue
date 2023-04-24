@@ -71,7 +71,9 @@
             v-for="item in sourceTypeList"
             :key="item.code"
             :value="item.code">
-            <img :src="item.icon" style="width: 1em; height: 1em; vertical-align: middle;">
+            <img
+              :src="item.icon"
+              style="width: 1em; height: 1em; vertical-align: middle;">
             <span style="vertical-align: middle;">{{ item.name }}</span>
           </bk-radio-button>
         </bk-radio-group>
@@ -184,17 +186,21 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
-  import FileSourceModel from '@model/file/file-source';
+  import AppManageService from '@service/app-manage';
   import FileSourceManageService from '@service/file-source-manage';
   import FileSourceTypeService from '@service/file-source-type';
-  import TicketManageService from '@service/ticket-manage';
   import FileWorkerService from '@service/file-worker';
-  import AppManageService from '@service/app-manage';
+  import TicketManageService from '@service/ticket-manage';
+
+  import FileSourceModel from '@model/file/file-source';
+
   import {
     fileSourceAliasNameRule,
   } from '@utils/validator';
+
   import RenderFileSourceParam from './components/render-file-source-param';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     // ID,更新文件源的时候需要传入，新建文件源不需要
@@ -238,7 +244,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         formData: getDefaultData(),
@@ -262,7 +268,7 @@
        * @desc 自定义文件前缀名
        * @return {Boolean}
        */
-      isCustomFilePrefix () {
+      isCustomFilePrefix() {
         return this.filePrefixType !== FileSourceModel.FILE_PERFIX_UUID;
       },
     },
@@ -270,7 +276,7 @@
       /**
        * @desc 共享对象为全业务，清空 sharedScopeList
        */
-      'formData.shareToAllApp' (newVal) {
+      'formData.shareToAllApp'(newVal) {
         if (newVal) {
           this.formData.sharedScopeList = [];
         }
@@ -279,20 +285,20 @@
        * @desc 接入点选择范围——获取文件接入点列表
        * 重置接入点为自动选择
        */
-      'formData.workerSelectScope' () {
+      'formData.workerSelectScope'() {
         this.fetchWorkersList();
         this.isWorkerSelectScopeAuto = true;
       },
       /**
        * @desc 自动选择接入点——workerId 为空
        */
-      isWorkerSelectScopeAuto (isWorkerSelectScopeAuto) {
+      isWorkerSelectScopeAuto(isWorkerSelectScopeAuto) {
         if (isWorkerSelectScopeAuto) {
           this.formData.workerId = '';
         }
       },
     },
-    created () {
+    created() {
       const taskQueue = [
         this.fetchSourceTypeList(),
         this.fetchScopeList(),
@@ -369,7 +375,7 @@
       /**
        * @desc 获取文件源类型列表
        */
-      fetchSourceTypeList () {
+      fetchSourceTypeList() {
         return FileSourceTypeService.sourceTypeList()
           .then((data) => {
             this.sourceTypeList = Object.freeze(data);
@@ -383,7 +389,7 @@
        *
        * 需过滤掉当前业务
        */
-      fetchScopeList () {
+      fetchScopeList() {
         return AppManageService.fetchAppList()
           .then((data) => {
             const {
@@ -402,7 +408,7 @@
       /**
        * @desc 获取身份凭证列表数据
        */
-      fetchTicketList () {
+      fetchTicketList() {
         return TicketManageService.fetchList()
           .then((res) => {
             this.fileFourceTicketList = Object.freeze(res.data);
@@ -411,7 +417,7 @@
       /**
        * @desc 获取接入点列表数据
        */
-      fetchWorkersList () {
+      fetchWorkersList() {
         return FileWorkerService.workersList({
           workerSelectScope: this.formData.workerSelectScope,
         }).then((data) => {
@@ -421,7 +427,7 @@
       /**
        * @desc 获取文件源详情
        */
-      fetchFileSourceDetail () {
+      fetchFileSourceDetail() {
         return FileSourceManageService.getSourceInfo({
           id: this.formData.id,
         }).then((data) => {
@@ -466,14 +472,14 @@
       /**
        * @desc 文件源改变重置文件源参数
        */
-      handleFileSourceChange () {
+      handleFileSourceChange() {
         this.formData.fileSourceInfoMap = {};
       },
       /**
        * @desc 文件源参数变化
        * @param {Object} params 文件源参数
        */
-      handleFileSourceParamsChange (params) {
+      handleFileSourceParamsChange(params) {
         this.formData.fileSourceInfoMap = params;
       },
       /**
@@ -481,11 +487,11 @@
        *
        * 校验表单通过后,根据文件源ID是否存在判断新建或编辑
        */
-      submit () {
+      submit() {
         return this.$refs.fileSourceform.validate()
           .then(() => {
             const params = Object.assign({}, this.formData);
-                        
+
             // workerId 不为空手动选择接入点
             // workerId 为空自动选择接入点
             params.workerSelectMode = params.workerId ? 'MANUAL' : 'AUTO';
@@ -499,7 +505,7 @@
                 id,
               };
             });
-                        
+
             if (params.id < 0) {
               return FileSourceManageService.addSource(params)
                 .then(() => {

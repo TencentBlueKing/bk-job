@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <Layout class="job-site" :class="{ loading }">
+  <layout
+    class="job-site"
+    :class="{ loading }">
     <template #back>
       <router-back />
     </template>
@@ -37,7 +39,7 @@
         theme="light site-header-dropdown"
         :tippy-options="{ hideOnClick: false }">
         <div class="flag-box">
-          <Icon
+          <icon
             id="siteLocal"
             class="lang-flag"
             :type="currentLangType" />
@@ -47,14 +49,18 @@
             class="item"
             :class="{ active: currentLangType === 'lang-en' }"
             @click="handleToggleLang('en')">
-            <Icon class="lang-flag" type="lang-en" />
+            <icon
+              class="lang-flag"
+              type="lang-en" />
             <span>English</span>
           </div>
           <div
             class="item"
             :class="{ active: currentLangType === 'lang-zh' }"
             @click="handleToggleLang('zh-CN')">
-            <Icon class="lang-flag" type="lang-zh" />
+            <icon
+              class="lang-flag"
+              type="lang-zh" />
             <span>中文</span>
           </div>
         </div>
@@ -65,12 +71,26 @@
         theme="light site-header-dropdown"
         :tippy-options="{ hideOnClick: false }">
         <div class="flag-box">
-          <Icon id="siteHelp" type="help-document-fill" />
+          <icon
+            id="siteHelp"
+            type="help-document-fill" />
         </div>
         <div slot="content">
-          <div class="item" @click="handleLocationDocument">{{ $t('产品文档') }}</div>
-          <div class="item" @click="handleShowSystemLog">{{ $t('版本日志') }}</div>
-          <div class="item" @click="handleLocationFeedback">{{ $t('问题反馈') }}</div>
+          <div
+            class="item"
+            @click="handleLocationDocument">
+            {{ $t('产品文档') }}
+          </div>
+          <div
+            class="item"
+            @click="handleShowSystemLog">
+            {{ $t('版本日志') }}
+          </div>
+          <div
+            class="item"
+            @click="handleLocationFeedback">
+            {{ $t('问题反馈') }}
+          </div>
         </div>
       </bk-popover>
       <bk-popover
@@ -92,18 +112,23 @@
     </template>
     <router-view />
     <system-log v-model="showSystemLog" />
-  </Layout>
+  </layout>
 </template>
 <script>
   import Cookie from 'js-cookie';
-  import I18n, { setLocale } from '@/i18n';
-  import UserService from '@service/user';
-  import QueryGlobalSettingService from '@service/query-global-setting';
+
   import LogoutService from '@service/logout';
+  import QueryGlobalSettingService from '@service/query-global-setting';
+  import UserService from '@service/user';
+
   import EventBus from '@utils/event-bus';
+
   import RouterBack from '@components/router-back';
   import SystemLog from '@components/system-log';
+
   import Layout from './layout-new';
+
+  import I18n, { setLocale } from '@/i18n';
 
   export default {
     name: 'App',
@@ -113,7 +138,7 @@
       SystemLog,
     },
 
-    data () {
+    data() {
       return {
         loading: true,
         titleConfig: {
@@ -127,7 +152,7 @@
       };
     },
     computed: {
-      currentLangType () {
+      currentLangType() {
         if (this.$i18n.locale === 'en-US') {
           return 'lang-en';
         }
@@ -135,14 +160,14 @@
       },
     },
     watch: {
-      '$route' () {
+      '$route'() {
         this.updateDocumentTitle();
       },
     },
     /**
      * @desc 获取系统信息
      */
-    created () {
+    created() {
       this.fetchUserInfo();
       this.fetchTitleConfig();
       this.fetchRelatedSystemUrls();
@@ -152,7 +177,7 @@
      *
      * loading用于控制页面切换效果
      */
-    mounted () {
+    mounted() {
       setTimeout(() => {
         this.loading = false;
       }, 100);
@@ -161,7 +186,7 @@
       /**
        * @desc 获取登陆用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
@@ -170,7 +195,7 @@
       /**
        * @desc 获取系统title自定义配置
        */
-      fetchTitleConfig () {
+      fetchTitleConfig() {
         QueryGlobalSettingService.fetchTitleConfig()
           .then((data) => {
             this.titleConfig = data;
@@ -188,7 +213,7 @@
       /**
        * @desc 获取系统关联的外链
        */
-      fetchRelatedSystemUrls () {
+      fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
@@ -197,7 +222,7 @@
       /**
        * @desc 更新网站title
        */
-      updateDocumentTitle () {
+      updateDocumentTitle() {
         const { matched } = this.$route;
         let title = this.titleConfig.titleHead;
         matched.forEach((matcheRoute) => {
@@ -212,7 +237,7 @@
        * @desc 切换语言
        * @param {String} lang 语言类型
        */
-      handleToggleLang (lang) {
+      handleToggleLang(lang) {
         Cookie.remove('blueking_language', { path: '' });
         Cookie.set('blueking_language', lang, {
           expires: 3600,
@@ -223,13 +248,13 @@
       /**
        * @desc 显示版本更新日志
        */
-      handleShowSystemLog () {
+      handleShowSystemLog() {
         this.showSystemLog = true;
       },
       /**
        * @desc 打开产品文档
        */
-      handleLocationDocument () {
+      handleLocationDocument() {
         if (!this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL) {
           this.messageError(I18n.t('网络错误，请刷新页面重试'));
           return;
@@ -239,7 +264,7 @@
       /**
        * @desc 打开问题反馈
        */
-      handleLocationFeedback () {
+      handleLocationFeedback() {
         if (!this.relatedSystemUrls.BK_FEED_BACK_ROOT_URL) {
           this.messageError(I18n.t('网络错误，请刷新页面重试'));
           return;
@@ -249,7 +274,7 @@
       /**
        * @desc 退出登录
        */
-      handleLogout () {
+      handleLogout() {
         this.$bkInfo({
           title: I18n.t('确认退出登录？'),
           confirmFn: () => {

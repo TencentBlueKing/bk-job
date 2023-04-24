@@ -27,19 +27,21 @@
 
 <template>
   <layout>
-    <div slot="title">{{ $t('script.编辑脚本') }}</div>
+    <div slot="title">
+      {{ $t('script.编辑脚本') }}
+    </div>
     <template slot="sub-header">
-      <Icon
+      <icon
         v-bk-tooltips="$t('上传脚本')"
         v-test="{ type: 'button', value: 'uploadScript' }"
         type="upload"
         @click="handleUploadScript" />
-      <Icon
+      <icon
         v-bk-tooltips="$t('历史缓存')"
         v-test="{ type: 'button', value: 'scriptEditHistory' }"
         type="history"
         @click.stop="handleShowHistory" />
-      <Icon
+      <icon
         v-bk-tooltips="$t('全屏')"
         v-test="{ type: 'button', value: 'scriptEditFullscreen' }"
         type="full-screen"
@@ -56,7 +58,9 @@
         <jb-form-item
           :label="$t('script.版本号.label')"
           required>
-          <bk-input readonly :value="formData.version" />
+          <bk-input
+            readonly
+            :value="formData.version" />
         </jb-form-item>
         <jb-form-item :label="$t('script.版本日志.label')">
           <bk-input
@@ -103,18 +107,23 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import ScriptManageService from '@service/script-manage';
+
   import PublicScriptManageService from '@service/public-script-manage';
-  import AceEditor from '@components/ace-editor';
+  import ScriptManageService from '@service/script-manage';
+
   import {
     checkPublicScript,
-    leaveConfirm,
     getOffset,
+    leaveConfirm,
     scriptErrorConfirm,
   } from '@utils/assist';
   import { debugScriptCache } from '@utils/cache-helper';
+
+  import AceEditor from '@components/ace-editor';
+
   import Layout from './components/layout';
+
+  import I18n from '@/i18n';
 
   const genDefaultFormData = () => ({
     id: '',
@@ -140,7 +149,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isSubmiting: false,
         contentHeight: 0,
@@ -149,7 +158,7 @@
     },
     watch: {
       scriptInfo: {
-        handler (scriptInfo) {
+        handler(scriptInfo) {
           if (!scriptInfo.id) {
             return;
           }
@@ -179,7 +188,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptManageService : ScriptManageService;
 
@@ -210,7 +219,7 @@
         window.removeEventListener('resize', this.init);
       });
     },
-    mounted () {
+    mounted() {
       this.calcContentHeight();
       const handleResize = _.throttle(this.calcContentHeight, 60);
       window.addEventListener('resize', handleResize);
@@ -222,23 +231,23 @@
       /**
        * @desc 计算内容区高度
        */
-      calcContentHeight () {
+      calcContentHeight() {
         const contentOffsetTop = getOffset(this.$refs.content).top;
         this.contentHeight = window.innerHeight - contentOffsetTop - 26;
       },
-      handleUploadScript () {
+      handleUploadScript() {
         this.$refs.aceEditor.handleUploadScript();
       },
-      handleShowHistory () {
+      handleShowHistory() {
         this.$refs.aceEditor.handleShowHistory();
       },
-      handleFullScreen () {
+      handleFullScreen() {
         this.$refs.aceEditor.handleFullScreen();
       },
       /**
        * @desc 保存脚本
        */
-      handleSubmit () {
+      handleSubmit() {
         if (!this.formData.content) {
           this.messageError(I18n.t('script.脚本内容不能为空'));
           return;
@@ -277,7 +286,7 @@
       /**
        * @desc 跳转到快速执行脚本页面调试脚本
        */
-      handleDebugScript () {
+      handleDebugScript() {
         debugScriptCache.setItem(this.formData.content);
         const { href } = this.$router.resolve({
           name: 'fastExecuteScript',
@@ -290,7 +299,7 @@
       /**
        * @desc 取消编辑
        */
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => {
             this.$emit('on-edit-cancel', {

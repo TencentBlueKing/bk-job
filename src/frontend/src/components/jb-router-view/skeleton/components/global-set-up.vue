@@ -31,24 +31,108 @@
       :height="439"
       :width="maxWidth"
       v-bind="$attrs">
-      <rect height="40" rx="2" width="100" x="0" y="0" />
-      <rect height="40" rx="2" width="100" x="110" y="0" />
-      <rect height="40" rx="2" width="100" x="220" y="0" />
-      <rect height="40" rx="2" width="100" x="330" y="0" />
-      <rect height="40" rx="2" width="100" x="440" y="0" />
-      <rect height="32" rx="2" width="68" x="558" y="589" />
-      <rect height="20" rx="2" width="152" :x="xPosition" y="78" />
-      <rect height="20" rx="2" width="152" :x="xPosition" y="498" />
-      <rect height="32" rx="2" width="120" :x="xPosition" y="589" />
-      <rect height="60" rx="2" width="960" :x="xPosition" y="130" />
-      <rect height="20" rx="2" width="960" :x="xPosition" y="222" />
-      <rect height="20" rx="2" width="960" :x="xPosition" y="261" />
-      <rect height="20" rx="2" width="960" :x="xPosition" y="304" />
-      <rect height="20" rx="2" width="960" :x="xPosition" y="347" />
-      <rect height="20" rx="2" width="960" :x="xPosition" y="388" />
-      <rect height="20" rx="2" width="960" :x="xPosition" y="431" />
-      <rect height="20" rx="2" width="960" :x="xPosition" y="537" />
-           
+      <rect
+        height="40"
+        rx="2"
+        width="100"
+        x="0"
+        y="0" />
+      <rect
+        height="40"
+        rx="2"
+        width="100"
+        x="110"
+        y="0" />
+      <rect
+        height="40"
+        rx="2"
+        width="100"
+        x="220"
+        y="0" />
+      <rect
+        height="40"
+        rx="2"
+        width="100"
+        x="330"
+        y="0" />
+      <rect
+        height="40"
+        rx="2"
+        width="100"
+        x="440"
+        y="0" />
+      <rect
+        height="32"
+        rx="2"
+        width="68"
+        x="558"
+        y="589" />
+      <rect
+        height="20"
+        rx="2"
+        width="152"
+        :x="xPosition"
+        y="78" />
+      <rect
+        height="20"
+        rx="2"
+        width="152"
+        :x="xPosition"
+        y="498" />
+      <rect
+        height="32"
+        rx="2"
+        width="120"
+        :x="xPosition"
+        y="589" />
+      <rect
+        height="60"
+        rx="2"
+        width="960"
+        :x="xPosition"
+        y="130" />
+      <rect
+        height="20"
+        rx="2"
+        width="960"
+        :x="xPosition"
+        y="222" />
+      <rect
+        height="20"
+        rx="2"
+        width="960"
+        :x="xPosition"
+        y="261" />
+      <rect
+        height="20"
+        rx="2"
+        width="960"
+        :x="xPosition"
+        y="304" />
+      <rect
+        height="20"
+        rx="2"
+        width="960"
+        :x="xPosition"
+        y="347" />
+      <rect
+        height="20"
+        rx="2"
+        width="960"
+        :x="xPosition"
+        y="388" />
+      <rect
+        height="20"
+        rx="2"
+        width="960"
+        :x="xPosition"
+        y="431" />
+      <rect
+        height="20"
+        rx="2"
+        width="960"
+        :x="xPosition"
+        y="537" />
     </content-loader>
   </div>
 </template>
@@ -67,7 +151,7 @@
       },
     },
     computed: {
-      xPosition () {
+      xPosition() {
         return (this.maxWidth - 960) / 2;
       },
     },

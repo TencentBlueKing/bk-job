@@ -66,24 +66,30 @@
         @click="handleSubmit">
         {{ dialogInfo.okText }}
       </bk-button>
-      <bk-button @click="handleCancel">{{ $t('取消') }}</bk-button>
+      <bk-button @click="handleCancel">
+        {{ $t('取消') }}
+      </bk-button>
     </template>
   </jb-dialog>
 </template>
 <script>
+  import TagManageService from '@service/tag-manage';
+
+  import TagModel from '@model/tag';
+
+  import { leaveConfirm } from '@utils/assist';
+  import { tagNameRule } from '@utils/validator';
+
   import {
+    computed,
+    getCurrentInstance,
     reactive,
     ref,
     toRefs,
     watch,
-    computed,
-    getCurrentInstance,
   } from '@vue/composition-api';
+
   import I18n from '@/i18n';
-  import TagManageService from '@service/tag-manage';
-  import TagModel from '@model/tag';
-  import { leaveConfirm } from '@utils/assist';
-  import { tagNameRule } from '@utils/validator';
 
   const genDefaultData = () => ({
     name: '',
@@ -102,7 +108,7 @@
         default: () => genDefaultData(),
       },
     },
-    setup (props, ctx) {
+    setup(props, ctx) {
       const state = reactive({
         isSubmiting: false,
         formData: genDefaultData(),

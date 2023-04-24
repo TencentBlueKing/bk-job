@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import Model from '@model/model';
+
+import I18n from '@/i18n';
 
 const APP_ID_SECRET_KEY = 'APP_ID_SECRET_KEY';
 const PASSWORD = 'PASSWORD';
@@ -39,7 +40,7 @@ export default class Ticket extends Model {
     [SECRET_KEY]: I18n.t('单一SecretKey'),
   };
 
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.description = payload.description;
     this.id = payload.id;

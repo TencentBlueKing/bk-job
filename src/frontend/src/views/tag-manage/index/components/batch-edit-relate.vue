@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="batch-edit-relate-box">
+  <div
+    v-bkloading="{ isLoading }"
+    class="batch-edit-relate-box">
     <jb-form
       ref="formRef"
       form-type="vertical"
@@ -57,7 +59,9 @@
             :spellcheck="false"
             :value="search"
             @change="handleSearch" />
-          <div class="wrapper" style="height: 210px;">
+          <div
+            class="wrapper"
+            style="height: 210px;">
             <scroll-faker
               v-if="renderList.length > 0"
               ref="scrollRef">
@@ -70,7 +74,7 @@
                   class="tag-item"
                   :value="tagItem.id">
                   {{ tagItem.name }}
-                  <Icon
+                  <icon
                     v-if="tagItem.isNew"
                     class="new-tag-flag"
                     svg
@@ -78,7 +82,7 @@
                 </bk-checkbox>
               </bk-checkbox-group>
             </scroll-faker>
-            <Empty
+            <empty
               v-else-if="search"
               style="margin-top: 20px;"
               type="search">
@@ -88,16 +92,20 @@
                 @click="handleClearSearch">
                 {{ $t('tag.清空搜索') }}
               </bk-button>
-            </Empty>
+            </empty>
           </div>
           <auth-component auth="tag/create">
-            <div class="tag-create" @click="handleNew">
+            <div
+              class="tag-create"
+              @click="handleNew">
               <bk-icon
                 style=" margin-right: 8px; font-size: 16px;"
                 type="plus-circle" />
               <span>{{ $t('tag.新建标签') }}</span>
             </div>
-            <div slot="forbid" class="tag-create">
+            <div
+              slot="forbid"
+              class="tag-create">
               <bk-icon
                 style=" margin-right: 8px; font-size: 16px;"
                 type="plus-circle" />
@@ -117,19 +125,24 @@
   </div>
 </template>
 <script>
+  import _ from 'lodash';
+
+  import TagManageService from '@service/tag-manage';
+
+  import { encodeRegexp } from '@utils/assist';
+
+  import OperationTag from '@components/operation-tag';
+
   import {
-    reactive,
     computed,
+    getCurrentInstance,
+    onBeforeMount,
+    reactive,
     ref,
     toRefs,
-    onBeforeMount,
-    getCurrentInstance,
   } from '@vue/composition-api';
-  import _ from 'lodash';
+
   import I18n from '@/i18n';
-  import TagManageService from '@service/tag-manage';
-  import { encodeRegexp } from '@utils/assist';
-  import OperationTag from '@components/operation-tag';
 
   export default {
     name: '',
@@ -142,7 +155,7 @@
         required: true,
       },
     },
-    setup (props, ctx) {
+    setup(props, ctx) {
       const state = reactive({
         isLoading: true,
         isShowCreateTag: false,

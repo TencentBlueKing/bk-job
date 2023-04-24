@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="script-manage-sync-confirm">
+  <div
+    v-bkloading="{ isLoading }"
+    class="script-manage-sync-confirm">
     <bk-input
       v-model="value"
       class="search-input"
@@ -42,7 +44,9 @@
       :data="tableData"
       row-class-name="template-script-record"
       @selection-change="handleSelectionChange">
-      <bk-table-column type="selection" width="60" />
+      <bk-table-column
+        type="selection"
+        width="60" />
       <bk-table-column
         :label="$t('script.作业模板名称')"
         prop="name"
@@ -53,7 +57,9 @@
             text
             @click="handleGoTemplateDetail(row.templateId)">
             {{ row.templateName }}
-            <Icon class="template-link" type="edit" />
+            <icon
+              class="template-link"
+              type="edit" />
           </bk-button>
         </template>
       </bk-table-column>
@@ -114,7 +120,7 @@
     <script-detail
       :is-show.sync="showSideslider"
       :script-version-id="selectScriptVersionId" />
-    <Diff
+    <diff
       v-if="showDiff"
       :data="diffList"
       :new-version-id="lastVersionScriptInfo.scriptVersionId"
@@ -125,19 +131,24 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import ScriptService from '@service/script-manage';
+
   import PublicScriptService from '@service/public-script-manage';
+  import ScriptService from '@service/script-manage';
+
   import { checkPublicScript } from '@utils/assist';
+
   import Diff from '../common/diff.vue';
+
   import ScriptDetail from './components/script-detail';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
       ScriptDetail,
       Diff,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         data: [],
@@ -153,14 +164,14 @@
       };
     },
     computed: {
-      tableData () {
+      tableData() {
         if (this.value.length) {
           return this.filterData;
         }
         return this.data;
       },
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
       this.scriptId = this.$route.params.scriptId;
@@ -178,7 +189,7 @@
       /**
        * @desc 获取引用脚本的模板
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         this.serviceHandler.scriptRefTemplateSteps({
           id: this.scriptId,
@@ -193,7 +204,7 @@
       /**
        * @desc 最新脚本版本数据
        */
-      fetchLastScriptVersionDetail () {
+      fetchLastScriptVersionDetail() {
         this.serviceHandler.versionDetail({
           id: this.$route.params.scriptVersionId,
         }).then((data) => {
@@ -210,7 +221,7 @@
        * @desc 跳转模板详情
        * @param {Number} id 模板ID
        */
-      handleGoTemplateDetail (id) {
+      handleGoTemplateDetail(id) {
         const routerUrl = this.$router.resolve({
           name: 'templateDetail',
           params: {
@@ -222,14 +233,14 @@
       /**
        * @desc 列表行选择
        */
-      handleSelectionChange (selection) {
+      handleSelectionChange(selection) {
         this.selectedList = Object.freeze(selection);
       },
       /**
        * @desc 脚本对比
        * @param {Object}  row 脚本数据
        */
-      handleComparison (row) {
+      handleComparison(row) {
         this.serviceHandler.versionDetail({
           id: row.scriptVersionId,
         }).then((data) => {
@@ -244,19 +255,19 @@
       /**
        * @desc 关闭脚本对比
        */
-      handleDiffClose () {
+      handleDiffClose() {
         this.showDiff = false;
       },
       /**
        * @desc 取消
        */
-      handleCancel () {
+      handleCancel() {
         this.routerBack();
       },
       /**
        * @desc 跳转到同步任务页面
        */
-      handleSync () {
+      handleSync() {
         const stepList = this.selectedList.map(({ templateId, stepId }) => ({
           templateId,
           stepId,
@@ -274,21 +285,21 @@
       /**
        * @desc 列表过滤
        */
-      statusFilterMethod (value, row, column) {
+      statusFilterMethod(value, row, column) {
         return row.scriptStatus === value;
       },
       /**
        * @desc 显示脚本详情
        * @param {Number} scriptVersionId 脚本版本id
        */
-      handleShowScriptDetail (scriptVersionId) {
+      handleShowScriptDetail(scriptVersionId) {
         this.selectScriptVersionId = scriptVersionId;
         this.showSideslider = true;
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const routerName = this.publicScript ? 'publicScriptVersion' : 'scriptVersion';
         this.$router.push({
           name: routerName,

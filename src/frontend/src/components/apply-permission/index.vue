@@ -28,22 +28,36 @@
 <template>
   <div class="jb-apply-permission">
     <div class="no-permission-tips">
-      <img class="lock" src="/static/images/no-permission.svg">
-      <p class="tips-text">{{ titleText }}</p>
+      <img
+        class="lock"
+        src="/static/images/no-permission.svg">
+      <p class="tips-text">
+        {{ titleText }}
+      </p>
     </div>
-    <div v-bkloading="{ isLoading: loading }" class="apply-permission-content" :style="listStyle">
-      <bk-table v-if="!loading" class="apply-permission-table" :data="permissionList">
+    <div
+      v-bkloading="{ isLoading: loading }"
+      class="apply-permission-content"
+      :style="listStyle">
+      <bk-table
+        v-if="!loading"
+        class="apply-permission-table"
+        :data="permissionList">
         <bk-table-column
           :label="actionText"
           :width="300">
-          <template slot-scope="{ row }">{{ row.actionName }}</template>
+          <template slot-scope="{ row }">
+            {{ row.actionName }}
+          </template>
         </bk-table-column>
         <bk-table-column
           :label="resourceText">
           <template slot-scope="{ row }">
             <div class="resource-content">
               <template v-if="row.relatedResources.length > 0">
-                <p v-for="(resource, index) in row.relatedResources" :key="index">
+                <p
+                  v-for="(resource, index) in row.relatedResources"
+                  :key="index">
                   <span>{{ resource.resourceTypeName }}</span>：
                   <span>{{ resource.resourceName }}</span>
                 </p>
@@ -77,7 +91,7 @@
       },
     },
     computed: {
-      listStyle () {
+      listStyle() {
         const styles = {};
         if (this.loading) {
           styles['min-height'] = '80px';
@@ -89,7 +103,7 @@
         return styles;
       },
     },
-    created () {
+    created() {
       this.titleText = I18n.t('该操作需要以下权限');
       this.actionText = I18n.t('需申请的权限');
       this.resourceText = I18n.t('关联的资源实例');

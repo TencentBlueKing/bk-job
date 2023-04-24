@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="script-manage-batch-edit-tag">
+  <div
+    v-bkloading="{ isLoading }"
+    class="script-manage-batch-edit-tag">
     <div style="margin-bottom: 8px;">
       {{ $t('script.范围') }}：{{ $t('script.共') }}<span class="strong number">{{ templateNums }}</span>{{ $t('script.个脚本') }}
     </div>
@@ -81,7 +83,7 @@
                 </bk-checkbox>
               </bk-checkbox-group>
             </scroll-faker>
-            <Empty
+            <empty
               v-else-if="search"
               style="margin-top: 20px;"
               type="search">
@@ -91,17 +93,21 @@
                 @click="handleClearSearch">
                 {{ $t('script.清空搜索') }}
               </bk-button>
-            </Empty>
+            </empty>
           </div>
           <template v-if="!isPublicScript">
             <auth-component auth="tag/create">
-              <div class="tag-create" @click="handleNew">
+              <div
+                class="tag-create"
+                @click="handleNew">
                 <bk-icon
                   style=" margin-right: 8px; font-size: 16px;"
                   type="plus-circle" />
                 <span>{{ $t('script.新建标签') }}</span>
               </div>
-              <div slot="forbid" class="tag-create">
+              <div
+                slot="forbid"
+                class="tag-create">
                 <bk-icon
                   style=" margin-right: 8px; font-size: 16px;"
                   type="plus-circle" />
@@ -122,25 +128,30 @@
   </div>
 </template>
 <script>
-  import {
-    reactive,
-    ref,
-    toRefs,
-    computed,
-    onBeforeMount,
-    getCurrentInstance,
-  } from '@vue/composition-api';
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import PubliceTagManageService from '@service/public-tag-manage';
-  import TagManageService from '@service/tag-manage';
-  import ScriptManageService from '@service/script-manage';
+
   import PublicScriptManageService from '@service/public-script-manage';
+  import PubliceTagManageService from '@service/public-tag-manage';
+  import ScriptManageService from '@service/script-manage';
+  import TagManageService from '@service/tag-manage';
+
   import {
     checkPublicScript,
     encodeRegexp,
   } from '@utils/assist';
+
   import OperationTag from '@components/operation-tag';
+
+  import {
+    computed,
+    getCurrentInstance,
+    onBeforeMount,
+    reactive,
+    ref,
+    toRefs,
+  } from '@vue/composition-api';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
@@ -153,7 +164,7 @@
       },
     },
     emit: ['on-change'],
-    setup (props, ctx) {
+    setup(props, ctx) {
       const { proxy } = getCurrentInstance();
       const state = reactive({
         isLoading: true,

@@ -26,20 +26,26 @@
 -->
 
 <template>
-  <div class="jb-edit-host" :class="mode">
-    <div class="render-value-box" @click.stop="handleBlockShowEdit">
+  <div
+    class="jb-edit-host"
+    :class="mode">
+    <div
+      class="render-value-box"
+      @click.stop="handleBlockShowEdit">
       <div class="value-text">
-        <slot v-bind:value="localValue">
-          <div style="margin-left: -4px;" v-html="renderHtml" />
+        <slot :value="localValue">
+          <div
+            style="margin-left: -4px;"
+            v-html="renderHtml" />
         </slot>
       </div>
       <div class="edit-action-box">
-        <Icon
+        <icon
           v-if="!isBlock && !isSubmiting"
           class="edit-action"
           type="edit-2"
           @click.self.stop="handleShowEdit" />
-        <Icon
+        <icon
           v-if="isSubmiting"
           class="edit-loading"
           type="loading-circle" />
@@ -53,9 +59,12 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskHostNodeModel from '@model/task-host-node';
+
   import ChooseIp from '@components/choose-ip';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'JbEditHost',
@@ -104,7 +113,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         localValue: this.value,
         isShowChooseIp: false,
@@ -114,7 +123,7 @@
       };
     },
     computed: {
-      renderHtml () {
+      renderHtml() {
         if (!this.localValue) {
           return '--';
         }
@@ -135,18 +144,18 @@
         }
         return strs.length > 0 ? strs.join('\n') : '--';
       },
-      styles () {
+      styles() {
         return {
           width: this.width,
         };
       },
-      isBlock () {
+      isBlock() {
         return this.mode === 'block';
       },
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           this.localValue = Object.freeze(_.cloneDeep(value));
         },
         immediate: true,
@@ -156,7 +165,7 @@
       /**
        * @desc 值验证
        */
-      doValidator () {
+      doValidator() {
         const checkValidator = (rule, value) => new Promise((resolve, reject) => {
           if (rule.required && !value) {
             reject(rule.message);
@@ -182,7 +191,7 @@
             resolve();
           }
         });
-                
+
         const allPromise = this.rules.map(rule => checkValidator(rule, this.localValue));
         this.isValidatoring = true;
         return Promise.all(allPromise).finally(() => {
@@ -192,7 +201,7 @@
       /**
        * @desc 提交编辑
        */
-      triggerChange () {
+      triggerChange() {
         this.doValidator()
           .then(() => {
             this.isEditing = false;
@@ -219,7 +228,7 @@
             this.error = error;
           });
       },
-      handleBlockShowEdit () {
+      handleBlockShowEdit() {
         if (!this.isBlock) {
           return;
         }
@@ -228,12 +237,12 @@
       /**
        * @desc 显示input
        */
-      handleShowEdit () {
+      handleShowEdit() {
         document.body.click();
         this.isShowChooseIp = true;
       },
-            
-      handleHostChange (hostNodeInfo) {
+
+      handleHostChange(hostNodeInfo) {
         this.localValue = Object.freeze({
           ...this.localValue,
           hostNodeInfo,

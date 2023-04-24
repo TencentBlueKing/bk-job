@@ -29,13 +29,15 @@
   <card-layout
     class="plan-count-dashboard"
     :title="$t('dashboard.执行方案量')">
-    <render-trend :date="date" metric="TASK_PLAN_COUNT" />
+    <render-trend
+      :date="date"
+      metric="TASK_PLAN_COUNT" />
     <div slot="extend">
-      <Icon
+      <icon
         v-bk-tooltips="$t('dashboard.查看趋势图')"
         type="line-chart-line"
         @click="handleShowTrend" />
-      <Icon
+      <icon
         v-bk-tooltips="$t('dashboard.查看列表')"
         type="table-line"
         @click="handleShowList" />
@@ -46,7 +48,9 @@
       metric="TASK_PLAN_COUNT"
       :name="$t('dashboard.执行方案量')"
       :title="$t('dashboard.执行方案量趋势图')" />
-    <lower-component :custom="isShowList" level="custom">
+    <lower-component
+      :custom="isShowList"
+      level="custom">
       <jb-dialog
         v-model="isShowList"
         header-position="left"
@@ -56,7 +60,9 @@
         <div
           v-bkloading="{ isLoading: isListLoading, opacity: 0.8 }"
           style="margin-top: 12px;">
-          <bk-table :data="listData" :max-height="420">
+          <bk-table
+            :data="listData"
+            :max-height="420">
             <bk-table-column
               key="scopeName"
               align="left"
@@ -80,6 +86,7 @@
 </template>
 <script>
   import StatisticsService from '@service/statistics';
+
   import CardLayout from '../card-layout';
   import RenderTrend from '../common/render-trend';
   import TrendDialog from '../common/trend-dialog';
@@ -97,7 +104,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isListLoading: false,
         listData: [],
@@ -106,10 +113,10 @@
       };
     },
     methods: {
-      handleShowTrend () {
+      handleShowTrend() {
         this.isShowTrend = true;
       },
-      handleShowList () {
+      handleShowList() {
         this.isShowList = true;
         this.isListLoading = true;
         StatisticsService.fetchListByPerAppMetrics({

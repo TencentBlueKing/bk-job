@@ -27,27 +27,42 @@
 
 <template>
   <div class="page-global-set-up">
-    <bk-tab :active="page" :before-toggle="handleTabChange" class="page-tab">
-      <bk-tab-panel :label="$t('setting.通知设置')" name="notify" />
+    <bk-tab
+      :active="page"
+      :before-toggle="handleTabChange"
+      class="page-tab">
+      <bk-tab-panel
+        :label="$t('setting.通知设置')"
+        name="notify" />
       <!-- <bk-tab-panel name="strategy" :label="$t('setting.存储策略')" /> -->
-      <bk-tab-panel :label="$t('setting.账号命名规则')" name="account" />
-      <bk-tab-panel :label="$t('setting.平台信息')" name="platform" />
-      <bk-tab-panel :label="$t('setting.文件上传设置')" name="fileUpload" />
+      <bk-tab-panel
+        :label="$t('setting.账号命名规则')"
+        name="account" />
+      <bk-tab-panel
+        :label="$t('setting.平台信息')"
+        name="platform" />
+      <bk-tab-panel
+        :label="$t('setting.文件上传设置')"
+        name="fileUpload" />
     </bk-tab>
     <div class="set-up-wraper">
       <transition name="slide">
-        <component :is="pageCom" ref="page" class="set-up-content" />
+        <component
+          :is="pageCom"
+          ref="page"
+          class="set-up-content" />
       </transition>
     </div>
   </div>
 </template>
 <script>
   import { leaveConfirm } from '@utils/assist';
-  import NotifyManage from './pages/notify-manage';
-  import StorageStrategy from './pages/storage-strategy';
+
   import AccountRule from './pages/account-rule';
-  import PlatformInfo from './pages/platform-info';
   import FileUpload from './pages/file-upload';
+  import NotifyManage from './pages/notify-manage';
+  import PlatformInfo from './pages/platform-info';
+  import StorageStrategy from './pages/storage-strategy';
 
   export default {
     name: '',
@@ -58,16 +73,16 @@
       PlatformInfo,
       FileUpload,
     },
-    data () {
+    data() {
       return {
         page: 'notify',
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.page.isLoading;
       },
-      pageCom () {
+      pageCom() {
         const pageMap = {
           notify: NotifyManage,
           strategy: StorageStrategy,
@@ -79,7 +94,7 @@
       },
     },
     methods: {
-      handleTabChange (value) {
+      handleTabChange(value) {
         return leaveConfirm().then(() => {
           this.page = value;
         });

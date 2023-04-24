@@ -37,14 +37,17 @@
     @mouseleave="handleHidePopover">
     <div class="step-wraper">
       <div class="step-icon">
-        <Icon :type="data.icon" />
+        <icon :type="data.icon" />
       </div>
       <img
         v-if="data.isDoing"
         class="loading-progress"
         src="/static/images/task-loading.png">
     </div>
-    <Icon class="step-next" svg :type="data.lastStepIcon" />
+    <icon
+      class="step-next"
+      svg
+      :type="data.lastStepIcon" />
     <component
       :is="popoverCom"
       v-show="isShowPopover"
@@ -58,8 +61,8 @@
 </template>
 <script>
   import ApprovalView from './view/approval';
-  import NormalView from './view/normal';
   import NotStartView from './view/no-start';
+  import NormalView from './view/normal';
 
   let activeHandler = null;
 
@@ -73,7 +76,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShowPopover: false,
         confirmReason: '',
@@ -85,7 +88,7 @@
       };
     },
     computed: {
-      popoverCom () {
+      popoverCom() {
         if (this.data.isApproval) {
           return ApprovalView;
         }
@@ -94,7 +97,7 @@
         }
         return NormalView;
       },
-      popoverStyles () {
+      popoverStyles() {
         const { top, left, zIndex } = this.popoverPosition;
         return {
           position: 'absolute',
@@ -104,21 +107,21 @@
         };
       },
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.destroyePopover();
     },
     methods: {
-      handleSelect () {
+      handleSelect() {
         this.$emit('on-select', this.data);
       },
-      handleTaskStatusUpdate (payload) {
+      handleTaskStatusUpdate(payload) {
         this.$emit('on-update', payload);
       },
-      handleShowPopover () {
+      handleShowPopover() {
         if (activeHandler) {
           activeHandler.handleClosePopover();
         }
-                
+
         this.isShowPopover = true;
         activeHandler = this;
         let offset = 0;
@@ -152,22 +155,20 @@
       },
       // 人工确认步骤——如果没有确认需要手动关闭
       // 其它步骤鼠标离开自动关闭
-      handleHidePopover () {
+      handleHidePopover() {
         if (this.data.isApproval && this.data.displayStyle !== 'success') {
           return;
         }
         this.isShowPopover = false;
       },
-      handleClosePopover () {
+      handleClosePopover() {
         this.isShowPopover = false;
       },
-      destroyePopover () {
-        try {
-          activeHandler = null;
-          if (this.$refs.popover.$el && document.body.hasChildNodes(this.$refs.popover.$el)) {
-            document.body.removeChild(this.$refs.popover.$el);
-          }
-        } catch {}
+      destroyePopover() {
+        activeHandler = null;
+        if (this.$refs.popover.$el && document.body.hasChildNodes(this.$refs.popover.$el)) {
+          this.$refs.popover.$el.parentNode.removeChild(this.$refs.popover.$el);
+        }
       },
     },
   };

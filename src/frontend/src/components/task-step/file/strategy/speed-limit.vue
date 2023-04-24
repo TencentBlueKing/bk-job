@@ -30,7 +30,9 @@
     <jb-form-item :label="label">
       <div class="speed-limit-wraper">
         <div class="speed-limit-content form-item-content">
-          <bk-checkbox :value="enabled" @change="handleEnableChange">
+          <bk-checkbox
+            :value="enabled"
+            @change="handleEnableChange">
             {{ $t('启用限速') }}
           </bk-checkbox>
           <bk-input
@@ -41,20 +43,28 @@
             :value="formData[field]"
             @change="handleChange">
             <template slot="append">
-              <div class="group-text">MB/s</div>
+              <div class="group-text">
+                MB/s
+              </div>
             </template>
           </bk-input>
         </div>
-        <Icon
+        <icon
           v-show="enabled"
           v-bk-tooltips="speedLimitTipsConfig"
           class="tips-flag"
           type="info" />
       </div>
     </jb-form-item>
-    <div id="targetPathTips" class="speed-limit-tips">
-      <div class="row">{{ $t('请根据机器的网卡情况酌情配置速率，以免影响其他服务的正常使用；') }}</div>
-      <div class="row">{{ $t('未开启时，将按 Agent 默认配置规则限速 （Agent会根据机器资源使用情况，有自身保护机制）') }}</div>
+    <div
+      id="targetPathTips"
+      class="speed-limit-tips">
+      <div class="row">
+        {{ $t('请根据机器的网卡情况酌情配置速率，以免影响其他服务的正常使用；') }}
+      </div>
+      <div class="row">
+        {{ $t('未开启时，将按 Agent 默认配置规则限速 （Agent会根据机器资源使用情况，有自身保护机制）') }}
+      </div>
     </div>
   </div>
 </template>
@@ -77,14 +87,14 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         enabled: false,
       };
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           if (formData[this.field] > 0) {
             this.enabled = true;
           }
@@ -92,7 +102,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.speedLimitTipsConfig = {
         allowHtml: true,
         width: '325px',
@@ -103,11 +113,11 @@
       };
     },
     methods: {
-      handleEnableChange (enabled) {
+      handleEnableChange(enabled) {
         this.enabled = enabled;
         this.$emit('on-change', this.field, enabled ? 10 : 0);
       },
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

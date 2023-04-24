@@ -24,6 +24,7 @@
 */
 
 import Cookie from 'js-cookie';
+
 import enUS from './en-US';
 import zhCN from './zh-CN';
 

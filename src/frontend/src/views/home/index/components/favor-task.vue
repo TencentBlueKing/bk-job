@@ -26,10 +26,19 @@
 -->
 
 <template>
-  <div ref="container" v-bkloading="{ isLoading }" class="favor-task-box">
+  <div
+    ref="container"
+    v-bkloading="{ isLoading }"
+    class="favor-task-box">
     <template v-if="!isLoading">
-      <bk-table v-if="favorList.length > 0" :data="favorList" :height="height">
-        <bk-table-column :label="$t('home.作业模板名称')" prop="name" show-overflow-tooltip>
+      <bk-table
+        v-if="favorList.length > 0"
+        :data="favorList"
+        :height="height">
+        <bk-table-column
+          :label="$t('home.作业模板名称')"
+          prop="name"
+          show-overflow-tooltip>
           <template slot-scope="{ row }">
             <auth-router-link
               auth="job_template/view"
@@ -60,7 +69,10 @@
           :label="$t('home.更新时间')"
           prop="lastModifyTime"
           width="180" />
-        <bk-table-column class-name="task-action" :label="$t('home.操作')" width="200">
+        <bk-table-column
+          class-name="task-action"
+          :label="$t('home.操作')"
+          width="200">
           <template slot-scope="{ row }">
             <auth-router-link
               auth="job_template/view"
@@ -101,10 +113,18 @@
           </template>
         </bk-table-column>
       </bk-table>
-      <div v-else class="list-empty">
-        <img class="empty-flag" src="/static/images/favor-task-empty.png">
-        <div style="margin-top: 12px; font-size: 14px; color: #63656e;">{{ $t('home.暂无收藏的作业') }}</div>
-        <div style="margin-top: 10px; font-size: 12px; color: #979ba5;">{{ $t('home.将鼠标悬浮到作业模板行，点击收藏图标') }}</div>
+      <div
+        v-else
+        class="list-empty">
+        <img
+          class="empty-flag"
+          src="/static/images/favor-task-empty.png">
+        <div style="margin-top: 12px; font-size: 14px; color: #63656e;">
+          {{ $t('home.暂无收藏的作业') }}
+        </div>
+        <div style="margin-top: 10px; font-size: 12px; color: #979ba5;">
+          {{ $t('home.将鼠标悬浮到作业模板行，点击收藏图标') }}
+        </div>
       </div>
     </template>
   </div>
@@ -113,17 +133,17 @@
   import HomeService from '@service/home';
 
   export default {
-    data () {
+    data() {
       return {
         isLoading: true,
         height: undefined,
         favorList: [],
       };
     },
-    created () {
+    created() {
       this.fetchMyFavorList();
     },
-    mounted () {
+    mounted() {
       this.init();
       window.addEventListener('resize', this.init);
       this.$once('hook:beforeDestroy', () => {
@@ -131,7 +151,7 @@
       });
     },
     methods: {
-      fetchMyFavorList () {
+      fetchMyFavorList() {
         HomeService.fetchMyFavorList()
           .then((data) => {
             this.favorList = Object.freeze(data);
@@ -140,7 +160,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         const { height } = this.$refs.container.getBoundingClientRect();
         this.height = height;
       },

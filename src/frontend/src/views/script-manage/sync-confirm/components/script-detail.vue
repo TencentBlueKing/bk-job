@@ -33,17 +33,24 @@
     :title="$t('script.查看脚本')"
     :width="900"
     @update:isShow="handleCancel">
-    <div v-if="isShow" v-bkloading="{ isLoading }">
-      <script-detail v-if="!isLoading" :offset-bottom="0" :script-info="scriptInfo" />
+    <div
+      v-if="isShow"
+      v-bkloading="{ isLoading }">
+      <script-detail
+        v-if="!isLoading"
+        :offset-bottom="0"
+        :script-info="scriptInfo" />
     </div>
   </jb-sideslider>
 </template>
 <script>
-  import ScriptService from '@service/script-manage';
   import PublicScriptService from '@service/public-script-manage';
+  import ScriptService from '@service/script-manage';
+
   import {
     checkPublicScript,
   } from '@utils/assist';
+
   import ScriptDetail from '../../common/detail';
 
   export default {
@@ -61,25 +68,25 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         scriptInfo: {},
       };
     },
     watch: {
-      isShow (isShow) {
+      isShow(isShow) {
         if (isShow && this.scriptVersionId > 0) {
           this.fetchScriptDetail();
         }
       },
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
     },
     methods: {
-      fetchScriptDetail () {
+      fetchScriptDetail() {
         this.isLoading = true;
         this.serviceHandler.versionDetail({
           id: this.scriptVersionId,
@@ -90,7 +97,7 @@
             this.isLoading = false;
           });
       },
-      handleCancel () {
+      handleCancel() {
         this.$emit('update:isShow', false);
       },
     },

@@ -28,16 +28,25 @@
 <template>
   <div class="job-router-view">
     <page-guide v-show="isShowView" />
-    <skeleton :type="skeletonType" :visiable="!isShowView" />
-    <permission v-if="isNotPermission" :auth-result="authResult" :class="{ 'permission-pending': !isShowView }" />
-    <router-view v-if="!isNotPermission" ref="routerView" :class="{ 'view-pending': !isShowView }" />
+    <skeleton
+      :type="skeletonType"
+      :visiable="!isShowView" />
+    <permission
+      v-if="isNotPermission"
+      :auth-result="authResult"
+      :class="{ 'permission-pending': !isShowView }" />
+    <router-view
+      v-if="!isNotPermission"
+      ref="routerView"
+      :class="{ 'view-pending': !isShowView }" />
   </div>
 </template>
 <script>
   import EventBus from '@utils/event-bus';
-  import Skeleton from './skeleton';
+
   import PageGuide from './guide';
   import Permission from './permission';
+  import Skeleton from './skeleton';
 
   export default {
     name: 'JbRouterView',
@@ -46,7 +55,7 @@
       Permission,
       PageGuide,
     },
-    data () {
+    data() {
       return {
         isShowSkeleton: false,
         isShowView: true,
@@ -59,14 +68,14 @@
     },
     watch: {
       $route: {
-        handler () {
+        handler() {
           const { meta = {} } = this.$route;
           if (Object.prototype.hasOwnProperty.call(meta, 'skeleton')) {
             this.isShowView = false;
             this.isShowSkeleton = true;
             this.skeletonType = meta.skeleton;
           }
-                    
+
           this.isNotPermission = false;
           this.skeletonTimer = '';
           setTimeout(() => {
@@ -76,7 +85,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.pendingStartTime = Date.now();
       EventBus.$on('permission-page', this.permissionHold);
       this.$once('hook:beforeDestroy', () => {
@@ -84,7 +93,7 @@
       });
     },
     methods: {
-      init () {
+      init() {
         if (!this.$refs.routerView || this.$refs.routerView.isSkeletonLoading === undefined) {
           this.isShowView = true;
           this.isShowSkeleton = false;
@@ -114,7 +123,7 @@
           clearTimeout(this.skeletonTimer);
         });
       },
-      permissionHold (authResult) {
+      permissionHold(authResult) {
         this.isNotPermission = true;
         this.authResult = authResult;
       },

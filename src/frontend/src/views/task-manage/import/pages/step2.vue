@@ -35,31 +35,73 @@
         :size="Infinity"
         :tip="$t('template.仅支持上传来自作业平台专属导出的压缩包')"
         url="/" />
-      <div v-if="uploadFilename" class="upload-result" :class="uploadStatus">
+      <div
+        v-if="uploadFilename"
+        class="upload-result"
+        :class="uploadStatus">
         <div class="file-pic">
           <img src="/static/images/package.svg">
         </div>
         <div class="file-info">
-          <div class="file-name">{{ uploadFilename }}</div>
-          <div v-if="uploadStatus === 'waiting'" class="upload-progress">
-            <div class="progress-bar" :style="{ width: uploadProgress }" />
+          <div class="file-name">
+            {{ uploadFilename }}
           </div>
-          <div v-if="uploadStatus === 'success'" class="file-status">{{ $t('template.上传成功') }}</div>
-          <div v-if="uploadStatus === 'failed'" class="file-status">{{ $t('template.上传失败') }}</div>
-          <div v-if="uploadStatus === 'error'" class="file-status">{{ uploadErrorMsg }}</div>
+          <div
+            v-if="uploadStatus === 'waiting'"
+            class="upload-progress">
+            <div
+              class="progress-bar"
+              :style="{ width: uploadProgress }" />
+          </div>
+          <div
+            v-if="uploadStatus === 'success'"
+            class="file-status">
+            {{ $t('template.上传成功') }}
+          </div>
+          <div
+            v-if="uploadStatus === 'failed'"
+            class="file-status">
+            {{ $t('template.上传失败') }}
+          </div>
+          <div
+            v-if="uploadStatus === 'error'"
+            class="file-status">
+            {{ uploadErrorMsg }}
+          </div>
         </div>
-        <Icon v-if="uploadStatus === 'failed'" class="file-refresh" type="refresh" @click="handleFileRefresh" />
-        <Icon class="file-delete" type="close-big" @click="hanleFileDelete" />
+        <icon
+          v-if="uploadStatus === 'failed'"
+          class="file-refresh"
+          type="refresh"
+          @click="handleFileRefresh" />
+        <icon
+          class="file-delete"
+          type="close-big"
+          @click="hanleFileDelete" />
       </div>
     </div>
-    <div v-if="isShowLog" v-bkloading="{ isLoading: isLogLoading }" class="upload-log-box" @click="handleLogAction">
+    <div
+      v-if="isShowLog"
+      v-bkloading="{ isLoading: isLogLoading }"
+      class="upload-log-box"
+      @click="handleLogAction">
       <template v-for="(item, index) in importInfo.log">
-        <div :key="index" v-html="renderLogRow(item, index, importInfo.log)" />
+        <div
+          :key="index"
+          v-html="renderLogRow(item, index, importInfo.log)" />
       </template>
     </div>
     <action-bar>
-      <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-      <bk-button class="mr10" @click="handleLast">{{ $t('template.上一步') }}</bk-button>
+      <bk-button
+        class="mr10"
+        @click="handleCancel">
+        {{ $t('template.取消') }}
+      </bk-button>
+      <bk-button
+        class="mr10"
+        @click="handleLast">
+        {{ $t('template.上一步') }}
+      </bk-button>
       <bk-button
         class="w120"
         :disabled="!isUploadSuccess"
@@ -68,7 +110,9 @@
         {{ $t('template.下一步') }}
       </bk-button>
     </action-bar>
-    <lower-component :custom="isShowPassword" level="custom">
+    <lower-component
+      :custom="isShowPassword"
+      level="custom">
       <jb-dialog
         v-model="isShowPassword"
         class="setting-password-dialog"
@@ -78,8 +122,15 @@
         render-directive="if"
         :title="$t('template.文件包解密确认')"
         :width="480">
-        <jb-form ref="passwordForm" form-type="vertical" :model="passwordFormData" :rules="rules">
-          <jb-form-item :label="$t('template.文件包密码')" property="password" required>
+        <jb-form
+          ref="passwordForm"
+          form-type="vertical"
+          :model="passwordFormData"
+          :rules="rules">
+          <jb-form-item
+            :label="$t('template.文件包密码')"
+            property="password"
+            required>
             <bk-input
               v-model="passwordFormData.password"
               :native-attributes="{ autofocus: 'autofocus' }"
@@ -88,7 +139,9 @@
               @keydown="handleEnter" />
           </jb-form-item>
         </jb-form>
-        <div slot="footer" class="setting-password-footer">
+        <div
+          slot="footer"
+          class="setting-password-footer">
           <bk-button
             class="mr10"
             :loading="isPasswordSubmiting"
@@ -96,18 +149,23 @@
             @click="handleSubmitPassword">
             {{ $t('template.提交') }}
           </bk-button>
-          <bk-button @click="handleClosePassword">{{ $t('template.取消') }}</bk-button>
+          <bk-button @click="handleClosePassword">
+            {{ $t('template.取消') }}
+          </bk-button>
         </div>
       </jb-dialog>
     </lower-component>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import BackupService from '@service/backup';
+
   import { prettyDateTimeFormat } from '@utils/assist';
   import { taskImport } from '@utils/cache-helper';
+
   import ActionBar from '../components/action-bar';
+
+  import I18n from '@/i18n';
 
   const escapeHTML = str => str.replace(/&/g, '&#38;').replace(/"/g, '&#34;')
     .replace(/'/g, '&#39;')
@@ -129,7 +187,7 @@
     components: {
       ActionBar,
     },
-    data () {
+    data() {
       return {
         isShowPassword: false,
         isShowLog: false,
@@ -152,12 +210,12 @@
     },
 
     computed: {
-      isUploadSuccess () {
+      isUploadSuccess() {
         return this.importInfo.status === TASK_STATUS_PACKAGE_PARSE_SUCCESS;
       },
     },
 
-    created () {
+    created() {
       this.fileMemo = null;
       this.uploadErrorMsg = '';
       this.pollingQueue = [];
@@ -178,12 +236,12 @@
       }
     },
 
-    beforeDestroy () {
+    beforeDestroy() {
       this.clearTimer();
     },
 
     methods: {
-      fetchImportInfo () {
+      fetchImportInfo() {
         this.isShowLog = true;
         this.$request(BackupService.fetchImportInfo({
           id: this.id,
@@ -217,7 +275,7 @@
           });
       },
 
-      renderLogRow (row, index, list) {
+      renderLogRow(row, index, list) {
         // eslint-disable-next-line max-len
         const logContent = `<span class="log-header">[ ${escapeHTML(row.timestamp)} ]</span> ${escapeHTML(row.content)}`;
         const errorTypeMap = {
@@ -239,7 +297,7 @@
         return logContent;
       },
 
-      startTimer () {
+      startTimer() {
         if (this.isClearTimer) {
           return;
         }
@@ -252,11 +310,11 @@
         }, 1000);
       },
 
-      clearTimer () {
+      clearTimer() {
         this.isClearTimer = true;
       },
 
-      handleUploadRequest (option) {
+      handleUploadRequest(option) {
         this.uploadFilename = option.fileObj.name;
 
         if (!/\.jobexport$/.test(option.fileObj.name)) {
@@ -291,11 +349,11 @@
           });
       },
 
-      handleFileRefresh () {
+      handleFileRefresh() {
         this.handleUploadRequest(this.fileMemo);
       },
 
-      hanleFileDelete () {
+      hanleFileDelete() {
         if (this.uploadRequestCancelSource) {
           this.uploadRequestCancelSource.cancel(I18n.t('template.上传任务已取消'));
         }
@@ -311,11 +369,11 @@
         this.isShowLog = false;
         taskImport.clearItem();
       },
-      handleInputPassword () {
+      handleInputPassword() {
         this.passwordFormData.password = '';
         this.isShowPassword = true;
       },
-      handleClosePassword () {
+      handleClosePassword() {
         this.isShowPassword = false;
         window.changeFlag = false;
         this.$refs.passwordForm.clearError();
@@ -329,7 +387,7 @@
           type: LOG_TYPE_ERROR_PASSWORD,
         });
       },
-      handleEnter (value, event) {
+      handleEnter(value, event) {
         if (event.isComposing) {
           // 跳过输入发复合时间
           return;
@@ -340,7 +398,7 @@
         }
         this.handleSubmitPassword();
       },
-      handleSubmitPassword () {
+      handleSubmitPassword() {
         this.isPasswordSubmiting = true;
         this.$refs.passwordForm.validate()
           .then(() => BackupService.checkImportPassword({
@@ -355,7 +413,7 @@
             this.isPasswordSubmiting = false;
           });
       },
-      handleLogAction (event) {
+      handleLogAction(event) {
         const $target = event.target;
         if (!$target.classList.contains('action')) {
           return;
@@ -371,14 +429,14 @@
         default:
         }
       },
-      handleCancel () {
+      handleCancel() {
         this.hanleFileDelete();
         this.$emit('on-cancle');
       },
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 1);
       },
-      handleNext () {
+      handleNext() {
         this.$emit('on-change', 3);
       },
     },

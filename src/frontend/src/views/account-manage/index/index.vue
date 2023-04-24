@@ -183,14 +183,18 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import AccountService from '@service/account-manage';
   import NotifyService from '@service/notify';
+
   import { listColumnsCache } from '@utils/cache-helper';
+
+  import JbSearchSelect from '@components/jb-search-select';
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
-  import JbSearchSelect from '@components/jb-search-select';
+
   import Operation from './components/operation';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'account_manage_columns';
 
@@ -201,7 +205,7 @@
       JbSearchSelect,
       Operation,
     },
-    data () {
+    data() {
       return {
         showOperation: false,
         editData: {},
@@ -212,16 +216,16 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
-      operationSidesliderInfo () {
+      operationSidesliderInfo() {
         if (this.editData.id) {
           return {
             title: I18n.t('account.编辑账号'),
@@ -234,7 +238,7 @@
         };
       },
     },
-    created () {
+    created() {
       this.dataSource = AccountService.fetchAccountList;
       this.searchSelect = [
         {
@@ -332,13 +336,13 @@
       /**
        * @desc 获取列表数据
        */
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', this.searchParams);
       },
       /**
        * @desc 表格自定时设置
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -350,14 +354,14 @@
        * @desc 表格自定时设置
        * @param {Object} params 搜索条件
        */
-      handleSearch (params) {
+      handleSearch(params) {
         this.searchParams = params;
         this.fetchData();
       },
       /**
        * @desc 显示新建账号弹层
        */
-      handleAdd () {
+      handleAdd() {
         this.editData = {};
         this.showOperation = true;
       },
@@ -365,7 +369,7 @@
        * @desc 编辑 账号
        * @param {Object} data 某一行账号
        */
-      handleEdit (data) {
+      handleEdit(data) {
         this.editData = { ...data };
         this.showOperation = true;
       },
@@ -375,7 +379,7 @@
        *
        * 编辑成功后刷新列表数据
        */
-      handleDelete (id) {
+      handleDelete(id) {
         return AccountService.deleteAccount({
           id,
         }).then(() => {
@@ -387,7 +391,7 @@
       /**
        * @desc 新建成功后刷新列表数据
        */
-      handleOperationSubmit () {
+      handleOperationSubmit() {
         this.fetchData();
       },
     },

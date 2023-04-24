@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="service-state-info">
+  <div
+    v-bkloading="{ isLoading }"
+    class="service-state-info">
     <bk-table
       :data="serviceData"
       :expand-row-keys="expandRow"
@@ -71,7 +73,9 @@
               :label="$t('service.状态.colHead')"
               prop="status">
               <template slot-scope="scope">
-                <Icon svg :type="statusIcon(scope.row)" />
+                <icon
+                  svg
+                  :type="statusIcon(scope.row)" />
                 <span v-html="statusHtml(scope.row)" />
               </template>
             </bk-table-column>
@@ -81,9 +85,14 @@
               prop="ip"
               width="150">
               <template slot-scope="scope">
-                <span class="service-ip" @click="handleCopyIp(scope.row.ip)">
+                <span
+                  class="service-ip"
+                  @click="handleCopyIp(scope.row.ip)">
                   {{ scope.row.ip }}
-                  <Icon class="ml5 copy-ip-icon" svg type="step-copy" />
+                  <icon
+                    class="ml5 copy-ip-icon"
+                    svg
+                    type="step-copy" />
                   <!-- <Icon class="skip-icon" type="edit" svg /> -->
                 </span>
               </template>
@@ -119,26 +128,34 @@
         prop="instanceList">
         <template slot-scope="{ row }">
           <div v-bk-tooltips="instanceTips(row)">
-            <span v-if="row.abnormalNum" class="service-instance-num abnormal">{{ row.abnormalNum }}</span>
-            <span v-if="row.unknownNum" class="service-instance-num unknown">{{ row.unknownNum }}</span>
-            <span v-if="row.normalNum" class="service-instance-num normal">{{ row.normalNum }}</span>
+            <span
+              v-if="row.abnormalNum"
+              class="service-instance-num abnormal">{{ row.abnormalNum }}</span>
+            <span
+              v-if="row.unknownNum"
+              class="service-instance-num unknown">{{ row.unknownNum }}</span>
+            <span
+              v-if="row.normalNum"
+              class="service-instance-num normal">{{ row.normalNum }}</span>
           </div>
         </template>
       </bk-table-column>
     </bk-table>
   </div>
 </template>
- 
+
 <script>
-  import I18n from '@/i18n';
   import ServiceStateService from '@service/service-state';
+
   import {
     execCopy,
   } from '@utils/assist';
 
+  import I18n from '@/i18n';
+
   export default {
     name: 'Service',
-    data () {
+    data() {
       return {
         isLoading: false,
         tableSize: 'small',
@@ -149,21 +166,21 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
-    destroyed () {
+    destroyed() {
       clearInterval(this.timer);
     },
     methods: {
       /**
        * @desc 获取服务运行状态数据,每三秒轮询一次
        */
-      fetchData () {
+      fetchData() {
         ServiceStateService.serviceList({}, {
           permission: 'page',
         })
@@ -211,7 +228,7 @@
        * @desc 控制折叠表格只能展开一项
        * @param {Object} row 表格当前行数据
        */
-      toggleRowExpansion (row) {
+      toggleRowExpansion(row) {
         if (this.expandRow.includes(row.name)) {
           this.expandRow = [];
         } else {
@@ -225,14 +242,14 @@
        * @desc 控制折叠表格只能展开一项
        * @param {Object} row 表格当前行数据
        */
-      onBeforeExpandChange ({ row }) {
+      onBeforeExpandChange({ row }) {
         this.toggleRowExpansion(row);
       },
 
       /**
        * @desc 自定义表格状态内容
        */
-      statusHtml (row) {
+      statusHtml(row) {
         const styles = 'color: #aaacb5';
         const statusHtmlMap = {
           0: `<span>${I18n.t('异常')}<span style="${styles}"> #SERVICE UNAVAILABLE (503)</span></span>`,
@@ -245,7 +262,7 @@
       /**
        * @desc 自定义表格状态图标
        */
-      statusIcon (row) {
+      statusIcon(row) {
         const statusIcomMap = {
           0: 'abnormal',
           1: 'normal',
@@ -257,7 +274,7 @@
       /**
        * @desc 自定义实例状态tooltips内容
        */
-      instanceTips (row) {
+      instanceTips(row) {
         let tipsStr = '';
         if (row.abnormalNum) {
           tipsStr = `${I18n.t('异常')}: ${row.abnormalNum}`;
@@ -274,7 +291,7 @@
       /**
        * @desc 复制IP
        */
-      handleCopyIp (ip) {
+      handleCopyIp(ip) {
         execCopy(ip, `${I18n.t('复制成功')}`);
       },
     },

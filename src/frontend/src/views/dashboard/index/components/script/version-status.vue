@@ -31,7 +31,9 @@
     class="script-version-dashboard"
     :title="$t('dashboard.脚本版本状态分布')">
     <div class="wraper">
-      <div ref="dashboard" style="width: 180px; height: 180px;" />
+      <div
+        ref="dashboard"
+        style="width: 180px; height: 180px;" />
       <div class="item-list">
         <div
           v-for="item in list"
@@ -46,14 +48,17 @@
   </card-layout>
 </template>
 <script>
-  import _ from 'lodash';
   import * as echarts from 'echarts';
-  import I18n from '@/i18n';
+  import _ from 'lodash';
+
   import StatisticsService from '@service/statistics';
+
   import CardLayout from '../card-layout';
   import {
     chartsOptionsBase,
   } from '../common/assist';
+
+  import I18n from '@/i18n';
 
   const colorMap = {
     ONLINE: '#85CCA8',
@@ -73,7 +78,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -85,11 +90,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    created () {
+    created() {
       this.list = [
         {
           label: I18n.t('dashboard.已上线'),
@@ -114,11 +119,11 @@
         },
       ];
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchDistributionMetrics({
           date: this.date,
@@ -131,7 +136,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         this.myChart = echarts.init(this.$refs.dashboard);
         const data = [];
         let maxItem = this.list[0];// eslint-disable-line prefer-destructuring
@@ -201,7 +206,7 @@
           this.handleMouseover(params.data.name);
         });
       },
-      calcItemCircleStyles (value) {
+      calcItemCircleStyles(value) {
         return {
           width: '8px',
           height: '8px',
@@ -210,7 +215,7 @@
           backgroundColor: colorMap[value],
         };
       },
-      handleMouseover (label) {
+      handleMouseover(label) {
         const others = _.filter(this.list, _ => _.label !== label).map(_ => _.label);
         this.myChart.dispatchAction({ type: 'highlight', name: label });
         this.myChart.dispatchAction({ type: 'downplay', name: others });

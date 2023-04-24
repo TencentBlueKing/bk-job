@@ -26,14 +26,19 @@
 -->
 
 <template>
-  <div v-if="value" id="chooseIPServerPreview" class="server-preview">
+  <div
+    v-if="value"
+    id="chooseIPServerPreview"
+    class="server-preview">
     <div class="preview-header">
       <div>{{ $t('已选项预览') }}</div>
       <div class="server-description">
         <span v-html="resultText" />
       </div>
     </div>
-    <scroll-faker class="preview-content" style="height: calc(100% - 118px);">
+    <scroll-faker
+      class="preview-content"
+      style="height: calc(100% - 118px);">
       <server-panel
         editable
         :host-detail-append="getElementTarget"
@@ -42,8 +47,15 @@
         @on-change="handleServerPanelChange" />
     </scroll-faker>
     <div class="preview-footer">
-      <bk-button class="mr10" theme="primary" @click="handleSubmit">{{ $t('确定') }}</bk-button>
-      <bk-button @click="handleClose">{{ $t('关闭') }}</bk-button>
+      <bk-button
+        class="mr10"
+        theme="primary"
+        @click="handleSubmit">
+        {{ $t('确定') }}
+      </bk-button>
+      <bk-button @click="handleClose">
+        {{ $t('关闭') }}
+      </bk-button>
     </div>
   </div>
 </template>
@@ -51,8 +63,9 @@
 /**
      * 预览已选主机数据
     */
-  import I18n from '@/i18n';
   import ServerPanel from './server-panel';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -77,13 +90,13 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         hostNodeInfoLocal: {},
       };
     },
     computed: {
-      hostNodeInfo () {
+      hostNodeInfo() {
         return {
           ipList: this.host,
           dynamicGroupList: this.group,
@@ -94,7 +107,7 @@
        * @desc 选择结果的展示
        * @returns {String}
        */
-      resultText () {
+      resultText() {
         const {
           dynamicGroupList = [],
           ipList = [],
@@ -119,30 +132,30 @@
     },
     watch: {
       hostNodeInfo: {
-        handler (hostNodeInfo) {
+        handler(hostNodeInfo) {
           this.hostNodeInfoLocal = Object.freeze(hostNodeInfo);
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.innerChange = false;
     },
     methods: {
-      getElementTarget () {
+      getElementTarget() {
         return document.querySelector('#chooseIPServerPreview');
       },
-      handleServerPanelChange (hostNodeInfo) {
+      handleServerPanelChange(hostNodeInfo) {
         this.innerChange = true;
         this.hostNodeInfoLocal = Object.freeze(hostNodeInfo);
       },
-      handleSubmit () {
+      handleSubmit() {
         if (this.innerChange) {
           this.$emit('on-change', this.hostNodeInfoLocal);
         }
         this.handleClose();
       },
-      handleClose () {
+      handleClose() {
         this.innerChange = false;
         this.$emit('input', false);
         this.$emit('change', false);

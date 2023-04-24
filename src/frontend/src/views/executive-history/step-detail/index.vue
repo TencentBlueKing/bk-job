@@ -38,9 +38,13 @@
         @on-confirm="operationCode => handleStatusUpdate(operationCode)" />
       <div class="step-info-header">
         <div class="step-info-wraper">
-          <div class="step-type-text">{{ stepTypeText }}</div>
+          <div class="step-type-text">
+            {{ stepTypeText }}
+          </div>
           <div class="step-name-box">
-            <div class="step-name-text">{{ data.name }}</div>
+            <div class="step-name-text">
+              {{ data.name }}
+            </div>
             <execution-history-select
               ref="executionHistorySelect"
               :batch="params.batch"
@@ -66,8 +70,12 @@
               v-model="searchModel"
               :clearable="false"
               style="width: 100px;">
-              <bk-option id="log" :name="$t('history.搜索日志')" />
-              <bk-option id="ip" :name="$t('history.搜索 IP')" />
+              <bk-option
+                id="log"
+                :name="$t('history.搜索日志')" />
+              <bk-option
+                id="ip"
+                :name="$t('history.搜索 IP')" />
             </bk-select>
             <bk-input
               v-if="searchModel === 'log'"
@@ -86,11 +94,19 @@
               :value="params.searchIp"
               @keyup="handleIPSearch" />
           </compose-form-item>
-          <div v-if="isLogSearching" class="search-loading">
-            <Icon class="loading-flag" type="loading" />
+          <div
+            v-if="isLogSearching"
+            class="search-loading">
+            <icon
+              class="loading-flag"
+              type="loading" />
           </div>
-          <div v-if="isIPSearching" class="search-loading">
-            <Icon class="loading-flag" type="loading" />
+          <div
+            v-if="isIPSearching"
+            class="search-loading">
+            <icon
+              class="loading-flag"
+              type="loading" />
           </div>
         </div>
         <export-log
@@ -115,7 +131,9 @@
         ref="detailContainer"
         class="detail-container"
         :style="defailContainerStyles">
-        <div v-bkloading="{ isLoading: isHostLoading }" class="container-left">
+        <div
+          v-bkloading="{ isLoading: isHostLoading }"
+          class="container-left">
           <!-- 主机列表 -->
           <!-- eslint-disable max-len -->
           <ip-list
@@ -147,7 +165,10 @@
       </div>
     </task-status>
     <!-- 步骤执行操作——强制终止 -->
-    <execution-status-bar v-if="data.name" :data="data" type="step">
+    <execution-status-bar
+      v-if="data.name"
+      :data="data"
+      type="step">
       <step-action
         v-if="data.isForcedEnable"
         key="forced"
@@ -161,25 +182,31 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskExecuteService from '@service/task-execute';
+
   import {
     execCopy,
   } from '@utils/assist';
+
   import ComposeFormItem from '@components/compose-form-item';
+
   import ExecutionStatusBar from '../common/execution-status-bar';
   import StepAction from '../common/step-action';
-  import RollingBatch from './components/rolling-batch';
-  import TaskStatus from './components/task-status';
+
   import ExecutionHistorySelect from './components/execution-history-select';
-  import GroupTab from './components/group-tab';
-  import IpList from './components/ip-list';
   import ExecutionInfo from './components/execution-info';
   import ExportLog from './components/export-log';
+  import GroupTab from './components/group-tab';
+  import IpList from './components/ip-list';
+  import mixins from './components/mixins';
+  import RollingBatch from './components/rolling-batch';
+  import TaskStatus from './components/task-status';
   import ViewGlobalVariable from './components/view-global-variable';
   import ViewOperationRecord from './components/view-operation-record';
   import ViewStepInfo from './components/view-step-info';
-  import mixins from './components/mixins';
+
+  import I18n from '@/i18n';
 
   const appendURLParams = (params = {}) => {
     const curSearchParams = new URLSearchParams(window.location.search);
@@ -209,12 +236,12 @@
       ViewGlobalVariable,
       ViewOperationRecord,
       ViewStepInfo,
-            
+
     },
     mixins: [
       mixins,
     ],
-    data () {
+    data() {
       return {
         isLoading: true,
         isLogSearching: false,
@@ -264,7 +291,7 @@
       /**
        * @desc 骨架屏loading
        */
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
       /**
@@ -272,7 +299,7 @@
        *
        * 对作业里面的步骤需要显示当前步骤在作业中的索引
        */
-      stepTypeText () {
+      stepTypeText() {
         let text = '';
         if (this.isTask) {
           const index = _.findIndex(this.taskStepList, _ => _.stepInstanceId === this.params.id);
@@ -285,7 +312,7 @@
         } else {
           text = `${text} ${I18n.t('history.脚本执行')}`;
         }
-                
+
         return text;
       },
       /**
@@ -293,13 +320,13 @@
        *
        * 主要用于任务结束后切换分组的场景
        */
-      isHostLoading () {
+      isHostLoading() {
         return this.data.finished ? this.isLoading : false;
       },
       /**
        * @desc 展示被选中的分组信息
        */
-      dispalyGroup () {
+      dispalyGroup() {
         const targetGroup = _.find(this.data.resultGroups, _ => _.groupName === this.currentGroup.groupName);
         if (targetGroup) {
           return targetGroup;
@@ -310,19 +337,19 @@
         };
       },
     },
-    created () {
+    created() {
       this.taskInstanceId = 0;
       this.params.batch = this.$route.query.batch || '';
       this.isForceing = false;
       this.$Progress.start();
     },
-    mounted () {
+    mounted() {
       window.addEventListener('rezie', this.calcDetailContainerStyle);
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('rezie', this.calcDetailContainerStyle);
       });
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.$Progress.finish();
     },
     methods: {
@@ -336,7 +363,7 @@
         if (this.params.id < 1 || this.params.maxIpsPerResultGroup < 1) {
           return;
         }
-                
+
         this.isLoading = true;
         TaskExecuteService.fetchStepExecutionResult({
           ...this.params,
@@ -362,7 +389,7 @@
             this.$Progress.finish();
             return;
           }
-                    
+
           this.$pollingQueueRun(this.fetchStep);
         })
           .catch((error) => {
@@ -396,7 +423,7 @@
        *
        * 前置获取步骤关联的作业执行详情
        */
-      handleTaskInit (payload) {
+      handleTaskInit(payload) {
         this.params = {
           ...this.params,
           id: payload.stepInstanceId,
@@ -418,7 +445,7 @@
        * 切换批次时不主动获取步骤执行数据，
        * 切换批次时会导致组件 execution-history-select 刷新数据，这个时候会主动获取步骤执行数据
        */
-      handleBatchChange (batch) {
+      handleBatchChange(batch) {
         this.params = {
           ...this.params,
           batch,
@@ -437,7 +464,7 @@
        *
        * 刷新步骤执行详情
        */
-      handleRetryCountChange (retryCount) {
+      handleRetryCountChange(retryCount) {
         this.params = {
           ...this.params,
           retryCount,
@@ -454,7 +481,7 @@
        * 刷新步骤执行详情
        *
        */
-      handelGroupChange (group) {
+      handelGroupChange(group) {
         this.currentGroup = group;
         this.fetchStep();
       },
@@ -462,14 +489,14 @@
        * @desc 选中主机
        * @param {Object} host 选中的主机
        */
-      handleHostChange (host) {
+      handleHostChange(host) {
         this.currentHost = Object.freeze(host);
       },
       /**
        * @desc 组件列表分页
        * @param {Number} pageSize 每页条数
        */
-      handlePaginationChange (pageSize) {
+      handlePaginationChange(pageSize) {
         this.params.maxIpsPerResultGroup = pageSize;
         this.paginationChangeLoading = true;
         this.fetchStep();
@@ -478,14 +505,14 @@
        * @desc 主机排序
        * @param {Object} payload 排序信息
        */
-      handleSort (payload) {
+      handleSort(payload) {
         this.params = Object.assign({}, this.params, payload);
         this.fetchStep();
       },
       /**
        * @desc 清空搜索条件
        */
-      handleClearSearch () {
+      handleClearSearch() {
         this.params.keyword = '';
         this.params.searchIp = '';
         this.isLogSearching = true;
@@ -496,7 +523,7 @@
        *
        * 主机列表是分页加载，复制全部主机时需要全量请求一次
        */
-      handleCopyHost () {
+      handleCopyHost() {
         TaskExecuteService.fetchStepGroupHost({
           ...this.params,
           resultType: this.currentGroup.resultType,
@@ -518,7 +545,7 @@
       /**
        * @desc 导出脚本执行日志
        */
-      handleExportExecutionLog () {
+      handleExportExecutionLog() {
         TaskExecuteService.fetchStepExecutionLogFile({
           id: this.params.id,
         }).then(() => {
@@ -531,14 +558,14 @@
       /**
        * @desc 开始强制终止
        */
-      handleStartForceTask () {
+      handleStartForceTask() {
         this.isForceing = true;
         this.$Progress.start();
       },
       /**
        * @desc 取消强制终止
        */
-      handleCancelForceTask () {
+      handleCancelForceTask() {
         this.isForceing = false;
         this.$Progress.start();
         this.fetchStep();
@@ -548,7 +575,7 @@
        *
        * 强制终止成功需要刷新作业的状态和执行历史记录
        */
-      handleForceTask () {
+      handleForceTask() {
         this.$Progress.start();
         return TaskExecuteService.updateTaskExecutionStepOperateTerminate({
           taskInstanceId: this.taskInstanceId,
@@ -566,7 +593,7 @@
        *
        * 强制终止成功需要刷新作业的状态和执行历史记录
        */
-      handleStatusUpdate (operationCode) {
+      handleStatusUpdate(operationCode) {
         this.$Progress.start();
         return TaskExecuteService.updateTaskExecutionStepOperate({
           id: this.params.id,
@@ -596,7 +623,7 @@
        * 2，enter建触发搜索
        * 3，重置页码（ip-list组件处理）
        */
-      handleIPSearch (value, event) {
+      handleIPSearch(value, event) {
         if (event.isComposing) {
           // 跳过输入法复合事件
           return;
@@ -621,7 +648,7 @@
        * 2，enter建触发搜索
        * 3，重置页码（ip-list组件处理）
        */
-      handleLogSearch (value, event) {
+      handleLogSearch(value, event) {
         if (event.isComposing) {
           // 跳过输入法复合事件
           return;
@@ -642,7 +669,7 @@
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'historyTask') {
           this.$router.push({

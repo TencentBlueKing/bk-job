@@ -26,8 +26,14 @@
 -->
 
 <template>
-  <jb-form ref="varNamespaceForm" :model="formData" :rules="rules">
-    <jb-form-item :label="$t('template.变量名称')" :property="'name'" required>
+  <jb-form
+    ref="varNamespaceForm"
+    :model="formData"
+    :rules="rules">
+    <jb-form-item
+      :label="$t('template.变量名称')"
+      :property="'name'"
+      required>
       <jb-input
         v-model="formData.name"
         :maxlength="30"
@@ -37,7 +43,9 @@
       :desc="$t('template.仅作用于创建执行方案时的初始变量值，后续更改不会同步到执行方案')"
       :label="$t('template.初始值')"
       property="defaultValue">
-      <bk-input v-model="formData.defaultValue" :placeholder="$t('template.请输入变量的初始值 [可选]')" />
+      <bk-input
+        v-model="formData.defaultValue"
+        :placeholder="$t('template.请输入变量的初始值 [可选]')" />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量描述')">
       <bk-input
@@ -47,18 +55,23 @@
         type="textarea" />
     </jb-form-item>
     <jb-form-item style="margin-bottom: 0;">
-      <bk-checkbox v-model="formData.required" :false-value="0" :true-value="1">
+      <bk-checkbox
+        v-model="formData.required"
+        :false-value="0"
+        :true-value="1">
         {{ $t('template.执行时必填') }}
       </bk-checkbox>
     </jb-form-item>
   </jb-form>
 </template>
 <script>
-  import I18n from '@/i18n';
   import {
     globalVariableNameRule,
   } from '@utils/validator';
+
   import JbInput from '@components/jb-input';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'VarNamespace',
@@ -68,7 +81,7 @@
     props: {
       variable: {
         type: Array,
-        default () {
+        default() {
           return [];
         },
       },
@@ -77,12 +90,12 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: { ...this.data },
       };
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -104,7 +117,7 @@
       };
     },
     methods: {
-      submit () {
+      submit() {
         return this.$refs.varNamespaceForm.validate()
           .then(() => {
             this.$emit('on-change', {

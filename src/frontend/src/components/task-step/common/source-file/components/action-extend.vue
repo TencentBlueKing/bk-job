@@ -26,8 +26,11 @@
 -->
 
 <template>
-  <div class="source-file-action-extend" @click.stop="" @mouseleave="handleHide">
-    <Icon type="more" />
+  <div
+    class="source-file-action-extend"
+    @click.stop=""
+    @mouseleave="handleHide">
+    <icon type="more" />
     <div
       ref="popoverContent"
       class="source-file-action-content"
@@ -43,18 +46,18 @@
 
   export default {
     name: 'SourceFileExtendAction',
-    created () {
+    created() {
       this.id = `action_extend_${Math.random()}_${Date.now()}`;
     },
-    mounted () {
+    mounted() {
       this.init();
     },
-    beforeDestroy () {
+    beforeDestroy() {
       instanceMap[this.id].hide();
       delete instanceMap[this.id];
     },
     methods: {
-      init () {
+      init() {
         instanceMap[this.id] = this.$bkPopover(this.$el, {
           theme: 'source-file-action-extend-popover',
           interactive: true,
@@ -71,18 +74,18 @@
           },
         });
       },
-      handleWraperClick () {
+      handleWraperClick() {
         this.handleClose();
       },
-      handleHide () {
+      handleHide() {
         this.leaveTimer = setTimeout(() => {
           this.handleClose();
         }, 3000);
       },
-      handleShow () {
+      handleShow() {
         clearTimeout(this.leaveTimer);
       },
-      handleClose () {
+      handleClose() {
         instanceMap[this.id] && instanceMap[this.id].hide();
       },
     },

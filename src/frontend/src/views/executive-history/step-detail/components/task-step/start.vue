@@ -26,12 +26,17 @@
 -->
 
 <template functional>
-  <div key="start" class="task-execute-bar-step start">
+  <div
+    key="start"
+    class="task-execute-bar-step start">
     <div class="step-wraper">
       <div class="step-icon">
         <span>{{ parent.$t('history.始') }}</span>
       </div>
     </div>
-    <Icon class="step-next" svg type="step-next" />
+    <icon
+      class="step-next"
+      svg
+      type="step-next" />
   </div>
 </template>

@@ -73,7 +73,9 @@
             auth="cron/view"
             :permission="row.canManage"
             :resource-id="row.id">
-            <span class="time-task-name" @click="handleViewDetail(row)">
+            <span
+              class="time-task-name"
+              @click="handleViewDetail(row)">
               {{ row.name }}
             </span>
             <span slot="forbid">{{ row.name }}</span>
@@ -112,9 +114,14 @@
         min-width="200"
         show-overflow-tooltip>
         <template slot-scope="{ row }">
-          <div v-if="row.isPlanLoading" class="sync-fetch">
+          <div
+            v-if="row.isPlanLoading"
+            class="sync-fetch">
             <div class="sync-fetch-loading">
-              <Icon style="color: #3a84ff;" svg type="sync-pending" />
+              <icon
+                style="color: #3a84ff;"
+                svg
+                type="sync-pending" />
             </div>
           </div>
           <router-link
@@ -188,7 +195,7 @@
         sortable="custom"
         width="150">
         <template slot-scope="{ row }">
-          <Icon
+          <icon
             style="font-size: 16px; vertical-align: middle;"
             svg
             :type="row.statusIconType" />
@@ -203,9 +210,14 @@
         :render-header="renderHeader"
         width="150">
         <template slot-scope="{ row }">
-          <div v-if="row.isStatictisLoading" class="sync-fetch">
+          <div
+            v-if="row.isStatictisLoading"
+            class="sync-fetch">
             <div class="sync-fetch-loading">
-              <Icon style="color: #3a84ff;" svg type="sync-pending" />
+              <icon
+                style="color: #3a84ff;"
+                svg
+                type="sync-pending" />
             </div>
           </div>
           <template v-else>
@@ -213,11 +225,19 @@
               <p v-html="row.successRateText" />
             </template>
             <template v-else>
-              <bk-popover placement="right" theme="light">
-                <p style="padding-right: 10px;" v-html="row.successRateText" />
-                <div slot="content" style="color: #63656e;">
+              <bk-popover
+                placement="right"
+                theme="light">
+                <p
+                  style="padding-right: 10px;"
+                  v-html="row.successRateText" />
+                <div
+                  slot="content"
+                  style="color: #63656e;">
                   <div v-html="row.successRateTips" />
-                  <div v-if="row.showMoreFailAcion" class="more-fail-action">
+                  <div
+                    v-if="row.showMoreFailAcion"
+                    class="more-fail-action">
                     <bk-button
                       text
                       @click="handleHistoryRecord(row, true)">
@@ -327,18 +347,22 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
-  import TimeTaskService from '@service/time-task';
   import NotifyService from '@service/notify';
+  import TimeTaskService from '@service/time-task';
+
   import { listColumnsCache } from '@utils/cache-helper';
-  import ListActionLayout from '@components/list-action-layout';
-  import RenderList from '@components/render-list';
+
+  import JbPopoverConfirm from '@components/jb-popover-confirm';
   import JbSearchSelect from '@components/jb-search-select';
   import JbSideslider from '@components/jb-sideslider';
-  import JbPopoverConfirm from '@components/jb-popover-confirm';
-  import TaskOperation from './components/operation';
+  import ListActionLayout from '@components/list-action-layout';
+  import RenderList from '@components/render-list';
+
   import TaskDetail from './components/detail';
   import HistoryRecord from './components/history-record';
+  import TaskOperation from './components/operation';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'cron_list_columns';
 
@@ -354,7 +378,7 @@
       TaskDetail,
       HistoryRecord,
     },
-    data () {
+    data() {
       return {
         showOperation: false,
         showDetail: false,
@@ -372,16 +396,16 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
-      operationSidesliderInfo () {
+      operationSidesliderInfo() {
         if (this.cronJobDetailInfo.id) {
           return {
             title: I18n.t('cron.编辑定时任务'),
@@ -395,18 +419,18 @@
       },
     },
     watch: {
-      '$route' () {
+      '$route'() {
         this.initParseURL();
       },
     },
-    created () {
+    created() {
       this.getCronJobList = TimeTaskService.timeTaskList;
       this.searchSelect = [
         {
           name: 'ID',
           id: 'cronJobId',
           description: I18n.t('cron.将覆盖其它条件'),
-          validate (values, item) {
+          validate(values, item) {
             const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('cron.ID只支持数字') : true;
           },
@@ -500,20 +524,20 @@
         ]);
       }
     },
-    mounted () {
+    mounted() {
       this.initParseURL();
     },
     methods: {
       /**
        * @desc 获取列表数据
        */
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', this.searchParams);
       },
       /**
        * @desc 解析 URL 参数
        */
-      initParseURL () {
+      initParseURL() {
         // 在列表通过url指定查看定时任务详情
         const {
           name,
@@ -563,7 +587,7 @@
        * @param { Object } data 表格配置信息
        * @returns { vNode }
        */
-      renderHeader (h, data) {
+      renderHeader(h, data) {
         return (
           <span>
             <span>{ data.column.label }</span>
@@ -587,7 +611,7 @@
        * @desc 表格列自定义
        * @param { Object } 列信息
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -599,7 +623,7 @@
        * @desc 搜索
        * @param { Object } searchParams
        */
-      handleSearch (searchParams) {
+      handleSearch(searchParams) {
         this.searchParams = searchParams;
         this.fetchData();
       },
@@ -608,7 +632,7 @@
        * @param { Object } crontabData 定时任务信息
        * @param { Boolean } showFailed 显示失败记录
        */
-      handleHistoryRecord (crontabData, showFailed = false) {
+      handleHistoryRecord(crontabData, showFailed = false) {
         this.cronJobDetailInfo = crontabData;
         this.showHistoryFailedRecord = showFailed;
         this.historyRecordDialogTitle = `定时执行记录${crontabData.name}`;
@@ -618,14 +642,14 @@
        * @desc 定时任务详情
        * @param { Object } crontabData 定时任务信息
        */
-      handleViewDetail (crontabData) {
+      handleViewDetail(crontabData) {
         this.cronJobDetailInfo = crontabData;
         this.showDetail = true;
       },
       /**
        * @desc 新建定时任务
        */
-      handleCreate () {
+      handleCreate() {
         this.cronJobDetailInfo = {};
         this.showOperation = true;
       },
@@ -633,21 +657,21 @@
        * @desc 编辑定时任务
        * @param { Object } crontabData 定时任务信息
        */
-      handleEdit (crontabData) {
+      handleEdit(crontabData) {
         this.cronJobDetailInfo = crontabData;
         this.showOperation = true;
       },
       /**
        * @desc 从详情切换为编辑状态
        */
-      handleToggelEdit () {
+      handleToggelEdit() {
         this.showDetail = false;
         this.showOperation = true;
       },
       /**
        * @desc 定时任务有更新刷新列表数据
        */
-      handleCronChange () {
+      handleCronChange() {
         this.fetchData();
       },
       /**
@@ -655,7 +679,7 @@
        * @param { Boolean } enable 开启状态
        * @param { Object } crontabData 定时任务信息
        */
-      handleStatusChange (enable, crontabData) {
+      handleStatusChange(enable, crontabData) {
         const enableMemo = crontabData.enable;
         crontabData.enable = enable;
         TimeTaskService.timeTaskStatusUpdate({
@@ -674,7 +698,7 @@
        *
        * 删除成功后刷新列表数据
        */
-      handleDelete (crontabData) {
+      handleDelete(crontabData) {
         return TimeTaskService.timeTaskDelete({
           id: crontabData.id,
         }).then(() => {

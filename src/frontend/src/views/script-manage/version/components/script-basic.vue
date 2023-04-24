@@ -34,9 +34,13 @@
       <div class="script-type-flag">
         <img :src="`/static/images/script/${data.typeName}.svg`">
       </div>
-      <div class="detail-column" style="width: 270px;">
+      <div
+        class="detail-column"
+        style="width: 270px;">
         <div class="detail-col">
-          <div class="item-label">{{ $t('script.脚本名：') }}</div>
+          <div class="item-label">
+            {{ $t('script.脚本名：') }}
+          </div>
           <div class="item-value">
             <auth-component
               auth="script/edit"
@@ -46,46 +50,80 @@
                 :remote-hander="val => handleUpdateScript('scriptName', val)"
                 style="width: 100%;"
                 :value="data.name" />
-              <div slot="forbid">{{ data.name }}</div>
+              <div slot="forbid">
+                {{ data.name }}
+              </div>
             </auth-component>
           </div>
         </div>
         <div class="detail-col">
-          <div class="item-label">{{ $t('script.更新人：') }}</div>
+          <div class="item-label">
+            {{ $t('script.更新人：') }}
+          </div>
           <div class="item-value">
-            <div v-bk-overflow-tips class="text-box">{{ data.lastModifyUser }}</div>
+            <div
+              v-bk-overflow-tips
+              class="text-box">
+              {{ data.lastModifyUser }}
+            </div>
           </div>
         </div>
         <div class="detail-col">
-          <div class="item-label">{{ $t('script.创建人：') }}</div>
+          <div class="item-label">
+            {{ $t('script.创建人：') }}
+          </div>
           <div class="item-value">
-            <div v-bk-overflow-tips class="text-box">{{ data.creator }}</div>
+            <div
+              v-bk-overflow-tips
+              class="text-box">
+              {{ data.creator }}
+            </div>
           </div>
         </div>
       </div>
-      <div class="detail-column" style="width: 282px;">
+      <div
+        class="detail-column"
+        style="width: 282px;">
         <div class="detail-col">
-          <div class="item-label">{{ $t('script.脚本语言：') }}</div>
+          <div class="item-label">
+            {{ $t('script.脚本语言：') }}
+          </div>
           <div class="item-value">
-            <div class="text-box">{{ data.typeName }}</div>
+            <div class="text-box">
+              {{ data.typeName }}
+            </div>
           </div>
         </div>
         <div class="detail-col">
-          <div class="item-label">{{ $t('script.更新时间：') }}</div>
+          <div class="item-label">
+            {{ $t('script.更新时间：') }}
+          </div>
           <div class="item-value">
-            <div v-bk-overflow-tips class="text-box">{{ data.lastModifyTime }}</div>
+            <div
+              v-bk-overflow-tips
+              class="text-box">
+              {{ data.lastModifyTime }}
+            </div>
           </div>
         </div>
         <div class="detail-col">
-          <div class="item-label">{{ $t('script.创建时间：') }}</div>
-          <div v-bk-overflow-tips class="item-value">
-            <div class="text-box">{{ data.createTime }}</div>
+          <div class="item-label">
+            {{ $t('script.创建时间：') }}
+          </div>
+          <div
+            v-bk-overflow-tips
+            class="item-value">
+            <div class="text-box">
+              {{ data.createTime }}
+            </div>
           </div>
         </div>
       </div>
       <div class="detail-column last">
         <div class="detail-col">
-          <div class="item-label">{{ $t('script.场景标签：') }}</div>
+          <div class="item-label">
+            {{ $t('script.场景标签：') }}
+          </div>
           <div class="item-value">
             <auth-component
               auth="script/edit"
@@ -96,12 +134,16 @@
                 :remote-hander="val => handleUpdateScript('scriptTags', val)"
                 :rows="1"
                 :value="data.tags" />
-              <div slot="forbid">{{ data.tagText }}</div>
+              <div slot="forbid">
+                {{ data.tagText }}
+              </div>
             </auth-component>
           </div>
         </div>
         <div class="detail-col">
-          <div class="item-label">{{ $t('script.脚本描述：') }}</div>
+          <div class="item-label">
+            {{ $t('script.脚本描述：') }}
+          </div>
           <div class="item-value">
             <jb-edit-textarea
               field="scriptDesc"
@@ -118,9 +160,11 @@
   </div>
 </template>
 <script>
-  import ScriptService from '@service/script-manage';
   import PublicScriptService from '@service/public-script-manage';
+  import ScriptService from '@service/script-manage';
+
   import { checkPublicScript } from '@utils/assist';
+
   import JbEditInput from '@components/jb-edit/input';
   import JbEditTag from '@components/jb-edit/tag';
   import JbEditTextarea from '@components/jb-edit/textarea';
@@ -132,13 +176,13 @@
       JbEditTag,
       JbEditTextarea,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {},
       };
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
       this.scriptId = this.$route.params.id;
@@ -148,7 +192,7 @@
       /**
        * @desc 获取脚本基本信息
        */
-      fetchScriptBasic () {
+      fetchScriptBasic() {
         this.isLoading = true;
         this.serviceHandler.fetchBasicInfo({
           id: this.scriptId,
@@ -163,7 +207,7 @@
       /**
        * @desc 计算脚本lable的宽度
        */
-      calcLableWidth () {
+      calcLableWidth() {
         this.$refs.wraper.querySelectorAll('.detail-column').forEach((columnEl) => {
           const $lableEles = columnEl.querySelectorAll('.item-label');
           let maxWidth = 0;
@@ -181,7 +225,7 @@
        * @param {String} field 指定更新的字段名
        * @param {Object} payload 更新的字段key和value
        */
-      handleUpdateScript (field, payload) {
+      handleUpdateScript(field, payload) {
         return this.serviceHandler.scriptUpdateMeta({
           id: this.scriptId,
           ...payload,

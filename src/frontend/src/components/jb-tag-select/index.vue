@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="job-tag-select">
+  <div
+    v-bkloading="{ isLoading }"
+    class="job-tag-select">
     <bk-select
       ref="select"
       :clearable="false"
@@ -40,7 +42,9 @@
         :id="tagItem.id"
         :key="tagItem.id"
         :name="tagItem.name" />
-      <template v-if="!publicScript" slot="extension">
+      <template
+        v-if="!publicScript"
+        slot="extension">
         <auth-component auth="tag/create">
           <div @click="handleCreate">
             <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建标签') }}
@@ -51,7 +55,9 @@
         </auth-component>
       </template>
     </bk-select>
-    <lower-component :custom="isShowCreate" level="custom">
+    <lower-component
+      :custom="isShowCreate"
+      level="custom">
       <operation-tag
         v-model="isShowCreate"
         @on-change="handleTagNew" />
@@ -61,7 +67,9 @@
 <script>
   import PubliceTagManageService from '@service/public-tag-manage';
   import TagManageService from '@service/tag-manage';
+
   import { checkPublicScript } from '@utils/assist';
+
   import OperationTag from '@components/operation-tag';
 
   export default {
@@ -75,7 +83,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         // tag 列表loading
         isLoading: true,
@@ -88,22 +96,22 @@
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           this.realValue = value.map(_ => _.id);
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
-            
+
       this.fetchData();
     },
     methods: {
       /**
        * @desc 获取 tag 列表
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         const requestHandler = this.publicScript ? PubliceTagManageService.fetchTagList : TagManageService.fetchWholeList;
         return requestHandler()
@@ -117,14 +125,14 @@
       /**
        * @desc 外部调用显示tag选择面板
        */
-      show () {
+      show() {
         this.$refs.select.show();
       },
-            
+
       /**
        * @desc 更新选中的tag
        */
-      handleChange (value) {
+      handleChange(value) {
         const valueMap = value.reduce((result, item) => {
           result[item] = true;
           return result;
@@ -142,7 +150,7 @@
       /**
        * @desc 显示新建tag弹框
        */
-      handleCreate () {
+      handleCreate() {
         this.$refs.select.close();
         this.isShowCreate = true;
       },
@@ -150,7 +158,7 @@
        * @desc 新建标签
        * @param { Object } tag
        */
-      handleTagNew (tag) {
+      handleTagNew(tag) {
         this.fetchData()
           .then(() => {
             this.realValue.push(tag.id);

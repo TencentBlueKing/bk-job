@@ -36,9 +36,15 @@
         style="width: 100%;"
         :value="props.formData.type"
         @change="value => props.change('type', value)">
-        <bk-option :id="9" name="Mysql" />
-        <bk-option :id="10" name="Oracle" />
-        <bk-option :id="11" name="DB2" />
+        <bk-option
+          :id="9"
+          name="Mysql" />
+        <bk-option
+          :id="10"
+          name="Oracle" />
+        <bk-option
+          :id="11"
+          name="DB2" />
       </bk-select>
     </jb-form-item>
     <jb-form-item

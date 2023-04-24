@@ -46,8 +46,12 @@
               v-model="info.unit"
               class="unit-item"
               :clearable="false">
-              <bk-option id="GB" name="GB" />
-              <bk-option id="MB" name="MB" />
+              <bk-option
+                id="GB"
+                name="GB" />
+              <bk-option
+                id="MB"
+                name="MB" />
             </bk-select>
           </div>
         </jb-form-item>
@@ -79,7 +83,9 @@
               :value="info.suffixList"
               @change="handleSuffixChange" />
           </jb-form-item>
-          <div class="form-item-error" v-html="suffixError" />
+          <div
+            class="form-item-error"
+            v-html="suffixError" />
         </div>
       </jb-form>
       <template #action>
@@ -98,6 +104,7 @@
   import _ from 'lodash';
 
   import GlobalSettingService from '@service/global-setting';
+
   import I18n from '@/i18n';
 
   const checkSuffixError = (suffixList) => {
@@ -146,7 +153,7 @@
   };
 
   export default {
-    data () {
+    data() {
       return {
         isLoading: true,
         isSubmiting: false,
@@ -159,14 +166,14 @@
         suffixError: '',
       };
     },
-    created () {
+    created() {
       this.fetchJobConfig();
     },
     methods: {
       /**
        * @desc 获取配置信息
        */
-      fetchJobConfig () {
+      fetchJobConfig() {
         this.isLoading = true;
         GlobalSettingService.fetchFileUpload()
           .then((data) => {
@@ -183,17 +190,17 @@
             this.isLoading = false;
           });
       },
-      handleRestrictModeChange () {
+      handleRestrictModeChange() {
         this.suffixError = '';
       },
-      handleSuffixChange (tagList) {
+      handleSuffixChange(tagList) {
         this.suffixError = '';
         this.info.suffixList = tagList.map(tagItem => tagItem.replace(/ /g, ''));
       },
       /**
        * @desc 提交修改
        */
-      handleSubmit () {
+      handleSubmit() {
         const params = { ...this.info };
 
         this.suffixError = '';

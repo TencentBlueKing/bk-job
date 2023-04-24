@@ -62,7 +62,6 @@
             </bk-button>
           </div>
         </jb-form-item>
-
       </jb-form>
       <template #action>
         <bk-button
@@ -93,7 +92,7 @@
     components: {
       SmartAction,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isSubmitting: false,
@@ -101,7 +100,7 @@
         formData: {},
       };
     },
-    created () {
+    created() {
       this.fetchData();
       this.defaultRules = [];
       this.selfLastRules = [];
@@ -140,7 +139,7 @@
       };
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         GlobalSettingService.fetchAllNameRule()
           .then((data) => {
@@ -153,16 +152,16 @@
             this.isLoading = false;
           });
       },
-      handleChange (field, value, index) {
+      handleChange(field, value, index) {
         window.changeFlag = true;
         this.currentRules[index][field] = value;
         this.currentRules = [...this.currentRules];
       },
-      handleReset (index) {
+      handleReset(index) {
         const currentRule = _.cloneDeep(this.defaultRules[index]);
         this.currentRules.splice(index, 1, currentRule);
       },
-      handleSave () {
+      handleSave() {
         this.$refs.form.validate()
           .then(() => {
             this.isSubmitting = true;
@@ -178,7 +177,7 @@
               });
           });
       },
-      handleResetAll () {
+      handleResetAll() {
         this.currentRules = _.cloneDeep(this.selfLastRules);
       },
     },

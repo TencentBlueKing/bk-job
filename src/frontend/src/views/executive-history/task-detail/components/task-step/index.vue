@@ -34,11 +34,14 @@
     :handle-change-status="handleChangeStatus" />
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskExecuteService from '@service/task-execute';
-  import ThemeNormal from './theme/normal';
-  import ThemeApproval from './theme/approval';
+
   import StepAction from '../../../common/step-action';
+
+  import ThemeApproval from './theme/approval';
+  import ThemeNormal from './theme/normal';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'TaskStep',
@@ -52,7 +55,7 @@
       },
     },
     computed: {
-      themeCom () {
+      themeCom() {
         if (this.data.isApproval && !this.data.isNotStart) {
           return ThemeApproval;
         }
@@ -60,7 +63,7 @@
       },
     },
     methods: {
-      handleChoose () {
+      handleChoose() {
         if (this.data.isApproval) {
           return;
         }
@@ -72,10 +75,10 @@
           });
           return;
         }
-                
+
         this.$emit('on-select', this.data);
       },
-      handleChangeStatus (operationCode, confirmReason) {
+      handleChangeStatus(operationCode, confirmReason) {
         return TaskExecuteService.updateTaskExecutionStepOperate({
           id: this.data.stepInstanceId,
           operationCode,

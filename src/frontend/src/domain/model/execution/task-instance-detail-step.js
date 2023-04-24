@@ -24,12 +24,13 @@
 */
 
 import _ from 'lodash';
+
 import TaskInstanceDetailStepFileModel from '@model/execution/task-instance-detail-step-file';
 import TaskInstanceDetailStepScriptModel from '@model/execution/task-instance-detail-step-script';
 
 // 作业执行的步骤实例
 export default class TaskInstanceDetailStep {
-  constructor (payload) {
+  constructor(payload) {
     this.id = payload.id || '';
     this.name = payload.name || '';
     this.type = payload.type;
@@ -47,7 +48,7 @@ export default class TaskInstanceDetailStep {
      * @param { Object } fileStepInfo
      * @returns { Object }
      */
-  initFileStepInfo (fileStepInfo) {
+  initFileStepInfo(fileStepInfo) {
     if (!_.isObject(fileStepInfo)) {
       return {};
     }
@@ -59,14 +60,14 @@ export default class TaskInstanceDetailStep {
      * @param { Object } scriptStepInfo
      * @returns { Object }
      */
-  initScriptStepInfo (scriptStepInfo) {
+  initScriptStepInfo(scriptStepInfo) {
     if (!_.isObject(scriptStepInfo)) {
       return {};
     }
     return new TaskInstanceDetailStepScriptModel(scriptStepInfo);
   }
 
-  initRollingConfig (rollingConfig) {
+  initRollingConfig(rollingConfig) {
     if (!_.isObject(rollingConfig)) {
       return {
         expr: '',

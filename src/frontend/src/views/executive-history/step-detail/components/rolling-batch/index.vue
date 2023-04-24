@@ -36,7 +36,7 @@
         disabled: isPrePageBtnDisabled,
       }"
       @click="handlePreScroll">
-      <Icon type="arrow-full-down" />
+      <icon type="arrow-full-down" />
     </div>
     <div
       class="batch-content"
@@ -69,7 +69,7 @@
           disabled: isNextPageBtnDisabled,
         }"
         @click="handleNextBatch">
-        <Icon type="arrow-full-down" />
+        <icon type="arrow-full-down" />
       </div>
       <render-more-btn
         :step-data="data"
@@ -90,8 +90,9 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
+  import _ from 'lodash';
+
   import RenderAll from './render-all';
   import RenderItem from './render-item';
   import RenderMoreBtn from './render-more-btn';
@@ -107,7 +108,7 @@
       data: Object,
       value: [Number, String],
     },
-    data () {
+    data() {
       return {
         list: [],
         selectBatch: '',
@@ -126,7 +127,7 @@
        * @desc 当前正在执行的批次，全部执行完成返回 0
        * @returns { Number }
        */
-      currentRunningBatch () {
+      currentRunningBatch() {
         const running = _.find(this.list, ({ latestBatch }) => latestBatch);
         if (running) {
           return running.batch;
@@ -137,14 +138,14 @@
        * @desc 全部批次是否固定
        * @returns { Boolean }
        */
-      isTotalBtnFixed () {
+      isTotalBtnFixed() {
         return this.scrollPosition !== 0;
       },
       /**
        * @desc 批次列表可查看范围宽度
        * @returns { Object }
        */
-      contentStyles () {
+      contentStyles() {
         return {
           width: this.contentWidth,
         };
@@ -153,7 +154,7 @@
        * @desc 批次列表滚动
        * @returns { Object }
        */
-      scrollStyles () {
+      scrollStyles() {
         return {
           width: `${this.itemTotalWidth}px`,
           transform: `translate(${this.scrollPosition}px, 0)`,
@@ -162,7 +163,7 @@
       },
     },
     watch: {
-      data () {
+      data() {
         this.list = Object.freeze(this.data.rollingTasks);
         if (this.selectBatch !== this.data.runningBatchOrder) {
           // 当前执行中批次变化且用户没有进行主动选择批次，每次自动选中正在执行的批次
@@ -174,14 +175,14 @@
         this.showConfirmActionPanel();
       },
     },
-    created () {
+    created() {
       this.list = Object.freeze(this.data.rollingTasks);
       // url 上面有 batch 参数默认选中 url 指定的批次
       const URLQueryBatch = parseInt(this.$route.query.batch, 10);
       this.selectBatch = URLQueryBatch > -1 ? URLQueryBatch : this.data.runningBatchOrder;
       this.isAutoSelectRunningBatch = !(URLQueryBatch > -1);
     },
-    mounted () {
+    mounted() {
       this.initRender();
 
       setTimeout(() => {
@@ -195,7 +196,7 @@
         window.removeEventListener('resize', resizeHandler);
       });
     },
-    beforeDestroy () {
+    beforeDestroy() {
       if (this.popperInstance) {
         this.popperInstance.hide();
         this.popperInstance.destroy();
@@ -205,7 +206,7 @@
       /**
        * @desc 展示效果初始化
        */
-      initRender () {
+      initRender() {
         const $listEL = this.$refs.box;
         const $itemList = $listEL.querySelectorAll('.batch-item');
         const allBtnWidth = this.$refs.allBtn.getBoundingClientRect().width;
@@ -239,7 +240,7 @@
       /**
        * @desc 批次需要人工确认，弹出操作框
        */
-      showConfirmActionPanel () {
+      showConfirmActionPanel() {
         setTimeout(() => {
           const $targetItemEl = this.$refs.box.querySelector('.batch-item.confirm');
           // 确认批次变更
@@ -288,7 +289,7 @@
           this.popperInstance.show();
         });
       },
-      triggerChange () {
+      triggerChange() {
         this.$emit('change', this.selectBatch);
         this.$emit('input', this.selectBatch);
       },
@@ -297,13 +298,13 @@
        *
        * 参考API文档继续滚动code为13
        */
-      handleConfirmExecute () {
+      handleConfirmExecute() {
         this.$emit('on-confirm', 13);
       },
       /**
        * @desc 查看全部批次
        */
-      handleSelectAll () {
+      handleSelectAll() {
         this.selectBatch = 0;
         this.isAutoSelectRunningBatch = false;
         this.triggerChange();
@@ -315,7 +316,7 @@
        *
        * 批次按钮显示不完整需要左移、右移显示完整
        */
-      handleSelectBatch (selectBatch, event) {
+      handleSelectBatch(selectBatch, event) {
         this.selectBatch = selectBatch;
         this.isAutoSelectRunningBatch = false;
         this.triggerChange();
@@ -350,7 +351,7 @@
        * @desc 跳转到指定批次，选中的批次居中显示
        * @param { Number } selectBatch
        */
-      handleLocalBatchChange (selectBatch) {
+      handleLocalBatchChange(selectBatch) {
         this.selectBatch = selectBatch;
         this.isAutoSelectRunningBatch = false;
         this.handleGoBatch(selectBatch);
@@ -359,7 +360,7 @@
       /**
        * @desc 跳转到指定批次
        */
-      handleGoBatch (selectBatch) {
+      handleGoBatch(selectBatch) {
         const $listEl = this.$refs.list;
         const {
           width: containerWidth,
@@ -380,7 +381,7 @@
         // 将要定位的批次在可见范围之内，不进行滚动位移
         if (locationItemStart + 10 > containerStart && locationItemEnd + 10 < containerEnd) {
           return;
-        } else if (selectBatch > $itemListEl.length) {
+        } if (selectBatch > $itemListEl.length) {
           // 已经到最后一个了
           this.startIndex = $itemListEl.length - this.scrollNum;
           this.scrollPosition = maxOffset;
@@ -408,7 +409,7 @@
       /**
        * @desc 上一页
        */
-      handlePreScroll () {
+      handlePreScroll() {
         setTimeout(() => {
           this.showConfirmActionPanel();
         }, 160);
@@ -434,7 +435,7 @@
       /**
        * @desc 下一页
        */
-      handleNextBatch () {
+      handleNextBatch() {
         setTimeout(() => {
           this.showConfirmActionPanel();
         }, 160);

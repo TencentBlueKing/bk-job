@@ -27,9 +27,15 @@
 
 <template>
   <div class="notify-collapse-item">
-    <bk-collapse-item ref="collapseItem" v-bind="$attrs" hide-arrow v-on="$listeners">
+    <bk-collapse-item
+      ref="collapseItem"
+      v-bind="$attrs"
+      hide-arrow
+      v-on="$listeners">
       <template #default>
-        <Icon style="color: #979ba5;" :type="iconType" />
+        <icon
+          style="color: #979ba5;"
+          :type="iconType" />
         <span style="display: none;">{{ iconType }}</span>
         <slot />
       </template>
@@ -42,12 +48,12 @@
 <script>
   export default {
     inject: ['collapse'],
-    data () {
+    data() {
       return {
         iconType: 'arrow-full-right',
       };
     },
-    mounted () {
+    mounted() {
       const unwatch = this.$watch(() => this.$refs.collapseItem.isActive, (newValue) => {
         this.iconType = newValue ? 'arrow-full-down' : 'arrow-full-right';
       }, {

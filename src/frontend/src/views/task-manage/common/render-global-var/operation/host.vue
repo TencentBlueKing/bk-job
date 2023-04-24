@@ -27,8 +27,14 @@
 
 <template>
   <div>
-    <jb-form ref="varHostForm" :model="formData" :rules="rules">
-      <jb-form-item :label="$t('template.变量名称')" :property="'name'" required>
+    <jb-form
+      ref="varHostForm"
+      :model="formData"
+      :rules="rules">
+      <jb-form-item
+        :label="$t('template.变量名称')"
+        :property="'name'"
+        required>
         <jb-input
           v-model="formData.name"
           :maxlength="30"
@@ -40,11 +46,15 @@
         :label="$t('template.初始值')"
         property="defaultTargetValue">
         <div>
-          <bk-button class="mr10" @click="handleOpenChooseIp">
-            <Icon type="plus" />
+          <bk-button
+            class="mr10"
+            @click="handleOpenChooseIp">
+            <icon type="plus" />
             {{ $t('template.选择主机') }}
           </bk-button>
-          <bk-button v-if="isShowClear" @click="handleClearDefault">
+          <bk-button
+            v-if="isShowClear"
+            @click="handleClearDefault">
             {{ $t('template.清空') }}
           </bk-button>
         </div>
@@ -64,7 +74,10 @@
           type="textarea" />
       </jb-form-item>
       <jb-form-item style="margin-bottom: 0;">
-        <bk-checkbox v-model="formData.required" :false-value="0" :true-value="1">
+        <bk-checkbox
+          v-model="formData.required"
+          :false-value="0"
+          :true-value="1">
           {{ $t('template.执行时必填') }}
         </bk-checkbox>
       </jb-form-item>
@@ -76,15 +89,18 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskGlobalVariableModel from '@model/task/global-variable';
   import TaskHostNodeModel from '@model/task-host-node';
+
   import {
     globalVariableNameRule,
   } from '@utils/validator';
-  import JbInput from '@components/jb-input';
+
   import ChooseIp from '@components/choose-ip';
   import ServerPanel from '@components/choose-ip/server-panel';
+  import JbInput from '@components/jb-input';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'VarHost',
@@ -103,7 +119,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: { ...this.data },
         isShowChooseIp: false,
@@ -114,11 +130,11 @@
        * @desc 显示清空按钮
        * @returns { Boolean }
        */
-      isShowClear () {
+      isShowClear() {
         return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
       },
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -144,26 +160,26 @@
        * @desc 编辑主机信息
        * @param { hostNodeInfo } 主机信息
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
       },
       /**
        * @desc 显示 IP 选择器
        */
-      handleOpenChooseIp () {
+      handleOpenChooseIp() {
         this.isShowChooseIp = true;
       },
       /**
        * @desc 清空主机信息
        */
-      handleClearDefault () {
+      handleClearDefault() {
         const { hostNodeInfo } = new TaskHostNodeModel({});
         this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
       },
       /**
        * @desc 保存变量
        */
-      submit () {
+      submit() {
         return this.$refs.varHostForm.validate()
           .then(() => {
             this.$emit('on-change', {

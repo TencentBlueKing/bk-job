@@ -30,21 +30,33 @@
     <table>
       <thead>
         <tr>
-          <th style="width: 130px;">{{ $t('template.变量类型') }}<span class="require-flag" /></th>
+          <th style="width: 130px;">
+            {{ $t('template.变量类型') }}<span class="require-flag" />
+          </th>
           <th>{{ $t('template.变量名称') }}<span class="require-flag" /></th>
           <th>
-            <span v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')" class="hover-tips">
+            <span
+              v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')"
+              class="hover-tips">
               {{ $t('template.初始值') }}
             </span>
           </th>
-          <th style="width: 320px;">{{ $t('template.变量描述') }}</th>
+          <th style="width: 320px;">
+            {{ $t('template.变量描述') }}
+          </th>
           <th style="width: 80px;">
-            <span v-bk-tooltips="$t('template.变量的值在执行中可变')" class="hover-tips">
+            <span
+              v-bk-tooltips="$t('template.变量的值在执行中可变')"
+              class="hover-tips">
               {{ $t('template.赋值可变') }}
             </span>
           </th>
-          <th style="width: 100px;">{{ $t('template.执行时必填') }}</th>
-          <th style="width: 80px;">{{ $t('template.操作') }}</th>
+          <th style="width: 100px;">
+            {{ $t('template.执行时必填') }}
+          </th>
+          <th style="width: 80px;">
+            {{ $t('template.操作') }}
+          </th>
         </tr>
       </thead>
       <template v-for="(variableItem, index) in variableList">
@@ -72,17 +84,20 @@
       v-if="isEmpty"
       class="empty-box"
       @click="handleAppendVariable(0)">
-      <Icon type="add-fill" />
+      <icon type="add-fill" />
       <span>{{ $t('template.全局变量.label') }}</span>
     </div>
   </div>
 </template>
 <script>
   import _ from 'lodash';
+
   import GlobalVariableModel from '@model/task/global-variable';
-  import RenderTableRow from './render-table-row.vue';
-  import CreateTableRow from './create-table-row.vue';
+
   import { createVariable } from '../util';
+
+  import CreateTableRow from './create-table-row.vue';
+  import RenderTableRow from './render-table-row.vue';
 
   export default {
     name: '',
@@ -96,13 +111,13 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         variableList: _.cloneDeep(this.variable),
       };
     },
     computed: {
-      isEmpty () {
+      isEmpty() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.variableList.length; i++) {
           if (!this.variableList[i].delete) {
@@ -120,7 +135,7 @@
        *
        * 不包含变量名为空和已删除的变量
        */
-      calcExcludeNameList (variableData) {
+      calcExcludeNameList(variableData) {
         return this.variableList.reduce((result, item) => {
           if (variableData.id !== item.id
             && item.name
@@ -135,7 +150,7 @@
        * @param {Number} index 编辑的变量索引
        * @param {Object} variableData 全局变量数据
        */
-      handleChange (index, variableData) {
+      handleChange(index, variableData) {
         const variableList = [...this.variableList];
         const variable = new GlobalVariableModel(variableData);
         variableList.splice(index, 1, variable);
@@ -146,7 +161,7 @@
        * @desc 删除指定索引的变量
        * @param {Number} index 编辑的变量索引
        */
-      handleDelete (index) {
+      handleDelete(index) {
         const variableList = [...this.variableList];
         const editVariable = variableList[index];
         if (editVariable.id > 0) {
@@ -163,7 +178,7 @@
        * @desc 在指定索引位置添加一个新变量
        * @param {Number} index 编辑的变量索引
        */
-      handleAppendVariable (index) {
+      handleAppendVariable(index) {
         this.variableList.splice(index + 1, 0, createVariable());
         window.changeFlag = true;
       },
@@ -171,7 +186,7 @@
        * @desc 提交编辑
        * @returns {Promise}
        */
-      submit () {
+      submit() {
         const queue = [];
         if (this.$refs.variableEdit) {
           queue.push(...this.$refs.variableEdit.map(item => item.validate()));

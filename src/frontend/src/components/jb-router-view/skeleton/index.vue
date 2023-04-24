@@ -27,7 +27,10 @@
 
 <template>
   <transition name="skeleton">
-    <div v-if="visiable" ref="wraper" class="jb-view-skeleton">
+    <div
+      v-if="visiable"
+      ref="wraper"
+      class="jb-view-skeleton">
       <component
         :is="realCom"
         :max-width="width"
@@ -38,18 +41,18 @@
   </transition>
 </template>
 <script>
+  import Dashboard from './components/dashboard';
+  import ExecutePlan from './components/execute-plan';
+  import GlobalSetUp from './components/global-set-up';
+  import HistoryStep from './components/history-step';
   import List from './components/list';
+  import Notify from './components/notify';
+  import ScriptVersion from './components/script-version';
   import SetVariable from './components/set-variable';
-  import TaskList from './components/task-list';
   import TaskDetail from './components/task-detail';
   import TaskExecutiveDetail from './components/task-execute-detail';
-  import HistoryStep from './components/history-step';
+  import TaskList from './components/task-list';
   import TaskStepDetail from './components/task-step-detail';
-  import ExecutePlan from './components/execute-plan';
-  import Notify from './components/notify';
-  import GlobalSetUp from './components/global-set-up';
-  import Dashboard from './components/dashboard';
-  import ScriptVersion from './components/script-version';
 
   const comMap = {
     list: List,
@@ -75,20 +78,20 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         width: 0,
       };
     },
     computed: {
-      realCom () {
+      realCom() {
         if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
           return 'div';
         }
         return comMap[this.type];
       },
     },
-    mounted () {
+    mounted() {
       this.init();
       window.addEventListener('resize', this.init);
       this.$once('hook:beforeDestroy', () => {
@@ -96,7 +99,7 @@
       });
     },
     methods: {
-      init () {
+      init() {
         if (!this.$refs.wraper) {
           return;
         }

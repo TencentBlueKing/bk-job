@@ -32,9 +32,13 @@
     :theme="theme"
     :trigger="trigger">
     <div :class="['job-more-action', triggerCls]">
-      <Icon class="icon" :type="icon" />
+      <icon
+        class="icon"
+        :type="icon" />
     </div>
-    <div slot="content" :class="['job-action-wrapper', actionCls]">
+    <div
+      slot="content"
+      :class="['job-action-wrapper', actionCls]">
       <slot />
     </div>
   </bk-popover>
@@ -51,7 +55,7 @@
       },
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
@@ -66,7 +70,7 @@
       theme: {
         type: String,
         default: 'light',
-        validator (value) {
+        validator(value) {
           if (['light', 'dark'].indexOf(value) < 0) {
             console.error(`theme property is not valid: '${value}'`);
             return false;
@@ -87,11 +91,11 @@
         default: '',
       },
     },
-    created () {
+    created() {
       this.id = `${_.random(1, 1000)}_${Date.now()}_PopoverRef`;
     },
     methods: {
-      handleMoreAction (actionId, payload) {
+      handleMoreAction(actionId, payload) {
         if (this.trigger === 'click') {
           this.$refs[`${this.id}PopoverRef`].instance.hide();
         }

@@ -26,7 +26,10 @@
 -->
 
 <template>
-  <div v-test="{ type: 'navigation', value: index }" :class="classes" @click="handleClick">
+  <div
+    v-test="{ type: 'navigation', value: index }"
+    :class="classes"
+    @click="handleClick">
     <slot />
   </div>
 </template>
@@ -40,14 +43,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {};
     },
     computed: {
-      active () {
+      active() {
         return this.index === this.jbMenu.activeIndex;
       },
-      classes () {
+      classes() {
         return {
           'jb-menu-item': true,
           active: this.index === this.jbMenu.activeIndex,
@@ -57,7 +60,7 @@
     },
     watch: {
       $route: {
-        handler  (route) {
+        handler(route) {
           route.matched.forEach((currentMatch) => {
             if (currentMatch.name === this.index) {
               this.jbMenu.activeIndex = this.index;
@@ -67,11 +70,11 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.jbMenu.addItem(this);
     },
     methods: {
-      handleClick () {
+      handleClick() {
         this.jbMenu.$emit('item-click', this);
         this.$emit('click', this);
       },

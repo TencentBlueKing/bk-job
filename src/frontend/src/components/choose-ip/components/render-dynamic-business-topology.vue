@@ -39,7 +39,9 @@
     </div>
     <empty v-if="emptyTopologyOfAllBusiness" />
     <template v-else>
-      <empty v-show="isSearchEmpty" class="topology-empty" />
+      <empty
+        v-show="isSearchEmpty"
+        class="topology-empty" />
       <div class="topology-node-tree">
         <scroll-faker>
           <bk-big-tree
@@ -48,40 +50,49 @@
             show-checkbox
             show-link-line
             @check-change="handleCheckChange">
-            <div slot-scope="{ node: nodeItem, data }" class="node-box">
-              <div class="node-name">{{ data.name }}</div>
+            <div
+              slot-scope="{ node: nodeItem, data }"
+              class="node-box">
+              <div class="node-name">
+                {{ data.name }}
+              </div>
               <div
                 v-if="nodeItem.level === 0"
                 class="node-filter"
                 @click="handleFilterEmptyToggle">
                 <template v-if="isRenderEmptyTopoNode">
-                  <Icon type="eye-slash-shape" />
+                  <icon type="eye-slash-shape" />
                   <span>{{ $t('隐藏空节点') }}</span>
                 </template>
                 <template v-else>
-                  <Icon type="eye-shape" />
+                  <icon type="eye-shape" />
                   <span>{{ $t('恢复完整拓扑') }}</span>
                 </template>
               </div>
-              <div class="node-count">{{ data.payload.count }}</div>
+              <div class="node-count">
+                {{ data.payload.count }}
+              </div>
             </div>
           </bk-big-tree>
         </scroll-faker>
       </div>
-            
     </template>
   </div>
 </template>
 <script>
   import _ from 'lodash';
+
   import UserService from '@service/user';
+
   import { topoNodeCache } from '@utils/cache-helper';
+
   import Empty from '@components/empty';
+
   import {
-    findAllChildNodeId,
-    resetTree,
-    parseIdInfo,
     filterTopology,
+    findAllChildNodeId,
+    parseIdInfo,
+    resetTree,
   } from './utils';
 
   export default {
@@ -104,7 +115,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         currentUser: {},
         isRenderEmptyTopoNode: false,
@@ -117,7 +128,7 @@
       /**
        * @desc 更新 topo 树节点的选中状态
        */
-      topoNodeList (newTopoNodeList, oldTopoNodeList) {
+      topoNodeList(newTopoNodeList, oldTopoNodeList) {
         if (this.isSelfChange) {
           this.isSelfChange = false;
           return;
@@ -137,12 +148,12 @@
         this.recoverTreeState(newTopoNodeList, oldTopoNodeList);
       },
     },
-    created () {
+    created() {
       this.isSelfChange = false;
       this.isTreeRefresh = false;
       this.fetchUserInfo();
     },
-    mounted () {
+    mounted() {
       if (this.emptyTopologyOfAllBusiness) {
         return;
       }
@@ -158,7 +169,7 @@
       /**
        * @desc 获取登陆用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
@@ -172,12 +183,12 @@
        *
        * 外部传入值还原树的选中状态
        */
-      recoverTreeState (newTopoNodeList, oldTopoNodeList = []) {
+      recoverTreeState(newTopoNodeList, oldTopoNodeList = []) {
         this.isSearchEmpty = this.topologyNodeTree.length < 1;
         const isRemove = newTopoNodeList.length < oldTopoNodeList.length;
         const oldNodeId = oldTopoNodeList.map(item => `#${item.type}#${item.id}`);
         const newNodeId = newTopoNodeList.map(item => `#${item.type}#${item.id}`);
-                
+
         if (isRemove) {
           // 外部删除操作
           const needRemoveCheckNode = _.difference(oldNodeId, newNodeId);
@@ -198,8 +209,8 @@
           }
         }
       },
-            
-      handleFilterEmptyToggle (event) {
+
+      handleFilterEmptyToggle(event) {
         this.isRenderEmptyTopoNode = !this.isRenderEmptyTopoNode;
         if (this.isRenderEmptyTopoNode) {
           // 显示所有节点，节点的选中状态不变
@@ -238,7 +249,7 @@
        * @param {Array} allCheckNode 所有选中的节点
        * @param {Object} node 当前操作的节点
        */
-      handleCheckChange (allCheckNode, node) {
+      handleCheckChange(allCheckNode, node) {
         const filterCheckNode = (nodeList) => {
           const expireNodeMap = {};
           if (nodeList.length < 1) {
@@ -259,7 +270,7 @@
             if (index >= list.length) {
               return list;
             }
-                        
+
             const currentNodeChildIds = findAllChildNodeId(currentNode);
             const validList = _.difference(list, currentNodeChildIds);
             expireNodeMap[currentNode.id] = true;

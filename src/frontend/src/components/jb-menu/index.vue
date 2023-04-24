@@ -33,7 +33,7 @@
 <script>
   export default {
     name: 'JbMenu',
-    provide () {
+    provide() {
       return {
         jbMenu: this,
       };
@@ -45,30 +45,30 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         activeIndex: this.defaultActive,
       };
     },
     watch: {
-      defaultActive (defaultActive) {
+      defaultActive(defaultActive) {
         if (!this.items[defaultActive]) {
           this.activeIndex = null;
         }
       },
     },
-    created () {
+    created() {
       this.items = {};
       this.$on('item-click', this.handleItemClick);
     },
-    mounted () {
-            
+    mounted() {
+
     },
     methods: {
-      addItem (item) {
+      addItem(item) {
         this.items[item.index] = item;
       },
-      handleItemClick (item) {
+      handleItemClick(item) {
         this.activeIndex = item.index;
         this.$emit('select', item.index);
       },

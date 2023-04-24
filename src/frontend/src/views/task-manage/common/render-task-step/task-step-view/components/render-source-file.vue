@@ -39,8 +39,12 @@
         <template #content>
           <table>
             <tbody>
-              <tr v-for="(row, index) in localFileList" :key="index">
-                <td style="width: 40%; word-break: break-all;">{{ row.fileLocationText }}</td>
+              <tr
+                v-for="(row, index) in localFileList"
+                :key="index">
+                <td style="width: 40%; word-break: break-all;">
+                  {{ row.fileLocationText }}
+                </td>
                 <td>{{ row.fileSizeText }}</td>
               </tr>
             </tbody>
@@ -55,18 +59,27 @@
         <template #content>
           <table>
             <thead>
-              <th style="width: 40%;">{{ $t('文件名称') }}</th>
+              <th style="width: 40%;">
+                {{ $t('文件名称') }}
+              </th>
               <th>{{ $t('文件源.text') }}</th>
             </thead>
             <tbody class="source-file-list">
-              <tr v-for="(row, index) in sourceFileList" :key="index">
+              <tr
+                v-for="(row, index) in sourceFileList"
+                :key="index">
                 <td>
                   <render-file-path :data="row.fileLocation" />
                 </td>
                 <td>
-                  <span class="source-file-alias" @click="handleGoSource(row, index)">
+                  <span
+                    class="source-file-alias"
+                    @click="handleGoSource(row, index)">
                     {{ fileSourceAliasList[index] }}
-                    <Icon class="source-file-icon" svg type="edit" />
+                    <icon
+                      class="source-file-icon"
+                      svg
+                      type="edit" />
                   </span>
                 </td>
               </tr>
@@ -82,13 +95,21 @@
         <template #content>
           <table>
             <thead>
-              <th style="width: 40%;">{{ $t('template.文件路径') }}</th>
-              <th style="width: 15%;">{{ $t('template.服务器列表') }}</th>
+              <th style="width: 40%;">
+                {{ $t('template.文件路径') }}
+              </th>
+              <th style="width: 15%;">
+                {{ $t('template.服务器列表') }}
+              </th>
               <th>{{ $t('template.Agent 状态') }}</th>
-              <th style="width: 20%;">{{ $t('template.服务器账号') }}</th>
+              <th style="width: 20%;">
+                {{ $t('template.服务器账号') }}
+              </th>
             </thead>
             <tbody>
-              <tr v-for="(row, index) in serverFileList" :key="index">
+              <tr
+                v-for="(row, index) in serverFileList"
+                :key="index">
                 <td>
                   <render-file-path :data="row.fileLocation" />
                 </td>
@@ -125,13 +146,17 @@
 </template>
 <script>
   import FileManageService from '@service/file-source-manage';
+
   import TaskHostNodeModel from '@model/task-host-node';
-  import SourceFileVO from '@domain/variable-object/source-file';
+
   import JbCollapseItem from '@components/jb-collapse-item';
   import RenderServerAgent from '@components/render-server-agent';
+
+  import SourceFileVO from '@domain/variable-object/source-file';
+
   import RenderFilePath from './render-file-path';
-  import RenderGlobalVariable from './render-global-variable';
   import RenderFileServer from './render-file-server';
+  import RenderGlobalVariable from './render-global-variable';
 
   export default {
     name: '',
@@ -156,7 +181,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         activeResult: [],
         localFileList: [],
@@ -167,19 +192,19 @@
       };
     },
     computed: {
-      isShowLocalFile () {
+      isShowLocalFile() {
         return this.localFileList.length > 0;
       },
-      isShowServerFile () {
+      isShowServerFile() {
         return this.serverFileList.length > 0;
       },
-      isShowSourceFile () {
+      isShowSourceFile() {
         return this.sourceFileList.length > 0;
       },
     },
     watch: {
       data: {
-        handler (fileList) {
+        handler(fileList) {
           fileList.forEach((fileItem) => {
             const fileSource = new SourceFileVO(fileItem);
             if (fileSource.isServerFile) {
@@ -205,7 +230,7 @@
       },
       // 根据文件源ID获取文件源Alias
       fileSourceIdsList: {
-        handler (newVal) {
+        handler(newVal) {
           if (newVal.length) {
             const promiseList = newVal.map(id => FileManageService.getSourceInfo({
               id,
@@ -221,7 +246,7 @@
       },
     },
     methods: {
-      findVariableValue (variable) {
+      findVariableValue(variable) {
         const curVariable = this.variable.find(item => item.name === variable);
         if (!curVariable) {
           const { hostNodeInfo } = new TaskHostNodeModel({});
@@ -229,14 +254,14 @@
         }
         return curVariable.defaultTargetValue.hostNodeInfo;
       },
-      findAccountAlias (payload) {
+      findAccountAlias(payload) {
         const accountData = this.account.find(item => item.id === payload);
         if (accountData) {
           return accountData.alias;
         }
         return '';
       },
-      handleGoSource (payload, index) {
+      handleGoSource(payload, index) {
         const { fileSourceId } = payload;
         const sourceAlias = this.fileSourceAliasList[index];
         const { href } = this.$router.resolve({

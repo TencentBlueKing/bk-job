@@ -32,9 +32,14 @@
         v-for="(item, index) in describeMap"
         :key="index"
         class="variable-item">
-        <td class="info-label">{{ item.label }}</td>
+        <td class="info-label">
+          {{ item.label }}
+        </td>
         <td class="info-value">
-          <jb-edit-textarea :field="item.filed" readonly :value="data[item.filed]" />
+          <jb-edit-textarea
+            :field="item.filed"
+            readonly
+            :value="data[item.filed]" />
         </td>
       </tr>
     </table>
@@ -47,10 +52,12 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import GlobalVariableModel from '@model/task/global-variable';
+
   import ServerPanel from '@components/choose-ip/server-panel';
   import JbEditTextarea from '@components/jb-edit/textarea';
+
+  import I18n from '@/i18n';
 
   const type = () => ({ label: I18n.t('template.变量类型'), filed: 'typeText' });
   const name = () => ({ label: I18n.t('template.变量名称'), filed: 'name' });
@@ -67,7 +74,7 @@
     [GlobalVariableModel.TYPE_RELATE_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
     [GlobalVariableModel.TYPE_INDEX_ARRAY]: [type(), name(), defaultValue(defaultField), description(), required()],
   });
-    
+
   export default {
     name: 'GlobalVarView',
     components: {
@@ -77,7 +84,7 @@
     props: {
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
@@ -87,7 +94,7 @@
       },
     },
     computed: {
-      describeMap () {
+      describeMap() {
         return generateVariableDescribeMap(this.defaultField)[this.data.type];
       },
     },

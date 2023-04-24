@@ -58,10 +58,16 @@
         label="IP">
         <template slot-scope="{ row }">
           <template v-if="row.ipList.length > 1">
-            <bk-popover placement="right" theme="light">
+            <bk-popover
+              placement="right"
+              theme="light">
               <span>{{ row.ip }}</span>
               <div slot="content">
-                <p v-for="(item, index) in row.ipList" :key="index">{{ item }}</p>
+                <p
+                  v-for="(item, index) in row.ipList"
+                  :key="index">
+                  {{ item }}
+                </p>
               </div>
             </bk-popover>
           </template>
@@ -171,19 +177,23 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import AppManageService from '@service/app-manage';
-  import WhiteIpService from '@service/white-ip';
   import NotifyService from '@service/notify';
+  import WhiteIpService from '@service/white-ip';
+
   import {
     listColumnsCache,
   } from '@utils/cache-helper';
-  import ListActionLayout from '@components/list-action-layout';
-  import RenderList from '@components/render-list';
+
+  import JbPopoverConfirm from '@components/jb-popover-confirm';
   import JbSearchSelect from '@components/jb-search-select';
   import JbSideslider from '@components/jb-sideslider';
-  import JbPopoverConfirm from '@components/jb-popover-confirm';
+  import ListActionLayout from '@components/list-action-layout';
+  import RenderList from '@components/render-list';
+
   import Operation from './components/operation';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'white_ip_list_columns';
 
@@ -197,7 +207,7 @@
       JbPopoverConfirm,
       Operation,
     },
-    data () {
+    data() {
       return {
         searchParams: [],
         isShowCreateWhiteIp: false,
@@ -207,16 +217,16 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
-      operationSidesliderInfo () {
+      operationSidesliderInfo() {
         if (this.editInfo.id) {
           return {
             title: I18n.t('whiteIP.编辑IP白名单'),
@@ -229,7 +239,7 @@
         };
       },
     },
-    created () {
+    created() {
       this.getWhiteList = WhiteIpService.whiteIpList;
       this.searchSelect = [
         {
@@ -310,25 +320,25 @@
       /**
        * @desc 获取表单数据
        */
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', this.searchParams);
       },
       /**
        * @desc 获取拥有权限的业务列表
        */
-      fetchAppList () {
+      fetchAppList() {
         return AppManageService.fetchAppList();
       },
       /**
        * @desc 获取生效范围列表
        */
-      fetchActionScope () {
+      fetchActionScope() {
         return WhiteIpService.getScope();
       },
       /**
        * @desc 列表展示列设置
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -339,7 +349,7 @@
       /**
        * @desc 显示新建弹层
        */
-      handleCreate () {
+      handleCreate() {
         this.editInfo = {};
         this.isShowCreateWhiteIp = true;
       },
@@ -347,7 +357,7 @@
        * @desc 列表字段搜索
        * @param {Object} params 搜索条件
        */
-      handleSearch (params) {
+      handleSearch(params) {
         this.searchParams = params;
         this.fetchData();
       },
@@ -355,7 +365,7 @@
        * @desc 编辑一行数据
        * @param {Object} data  列表莫一行的数据
        */
-      handleEdit (data) {
+      handleEdit(data) {
         this.isShowCreateWhiteIp = true;
         this.editInfo = data;
       },
@@ -363,7 +373,7 @@
        * @desc 删除一行数据
        * @param {Object} data 列表莫一行的数据
        */
-      handleDelete (data) {
+      handleDelete(data) {
         return WhiteIpService.whiteDelete({
           id: data.id,
         }).then(() => {
@@ -374,7 +384,7 @@
       /**
        * @desc 刷新列表数据
        */
-      handleWhiteIpUpdate () {
+      handleWhiteIpUpdate() {
         this.fetchData();
       },
     },

@@ -33,13 +33,17 @@
         :width="645"
         @on-last="handleBackLast">
         <jb-breadcrumb-item>
-          <Icon style="font-size: 20px;" type="folder-open" />
+          <icon
+            style="font-size: 20px;"
+            type="folder-open" />
           <span @click="handleGoSourceList">{{ $t('文件源列表') }}</span>
         </jb-breadcrumb-item>
         <jb-breadcrumb-item>
           <span @click="handlePathLocation('')">{{ fileSourceInfo.alias }}</span>
         </jb-breadcrumb-item>
-        <jb-breadcrumb-item v-for="(item) in pathStack" :key="item.path">
+        <jb-breadcrumb-item
+          v-for="(item) in pathStack"
+          :key="item.path">
           <span @click="handlePathLocation(item.path)">{{ item.name }}</span>
         </jb-breadcrumb-item>
       </jb-breadcrumb>
@@ -72,7 +76,9 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import FileService from '@service/file';
+
   import ListActionLayout from '@components/list-action-layout';
   import RenderFileListColumn, {
     checkIsCheckboxColumn,
@@ -94,7 +100,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         renderColumns: {},
@@ -119,11 +125,11 @@
        * @desc 面包屑路径
        * @return {Array}
        */
-      pathStack () {
+      pathStack() {
         return this.path.split('/').reduce((result, item) => {
           if (item) {
             const last = result.length > 0 ? result[result.length - 1].path : '';
-                         
+
             result.push({
               path: `${last}${item}/`,
               name: item,
@@ -136,7 +142,7 @@
        * @desc 列表选择状态
        * @return {Object}
        */
-      isPageCheckedInfo () {
+      isPageCheckedInfo() {
         let checkNums = 0;
         let dirNums = 0;
         const listNums = this.tableData.length;
@@ -164,7 +170,7 @@
         /**
          * @desc 编辑状态处理默认显示路径
          */
-        handler (fileLocation) {
+        handler(fileLocation) {
           if (this.isInnerChange) {
             this.isInnerChange = false;
             return;
@@ -193,7 +199,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.wholeTableRowSelect = false;
       this.isInnerChange = false;
     },
@@ -201,7 +207,7 @@
       /**
        * @desc 获取bucket存储桶数据列表
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         FileService.fetchgetListFileNode({
           fileSourceId: this.fileSourceId,
@@ -223,7 +229,7 @@
             this.isLoading = false;
           });
       },
-      renderHeader (h) {
+      renderHeader(h) {
         return (
                 <bk-checkbox value={this.wholeTableRowSelect} onChange={this.handlePageSelectToggle} />
         );
@@ -231,19 +237,19 @@
       /**
        * @desc 重置文件筛选条件
        */
-      resetSearchParams () {
+      resetSearchParams() {
         this.wholeTableRowSelect = false;
         this.name = '';
         this.pagination.current = 1;
       },
-      triggerChange () {
+      triggerChange() {
         this.isInnerChange = true;
         this.$emit('on-file-change', Object.keys(this.rowSelectMemo));
       },
       /**
        * @desc 文件路径返回上一级
        */
-      handleBackLast () {
+      handleBackLast() {
         const lastPath = this.pathStack[this.pathStack.length - 2];
         this.handlePathLocation(lastPath.path);
       },
@@ -252,7 +258,7 @@
        *
        * 重置已选的文件源
        */
-      handleGoSourceList () {
+      handleGoSourceList() {
         this.$emit('on-source-change', {
           id: '',
         });
@@ -264,7 +270,7 @@
        * 重置 name 筛选
        * 重置翻页
        */
-      handlePathLocation (path) {
+      handlePathLocation(path) {
         if (_.trim(path, '/') === _.trim(this.path, '/')) {
           return;
         }
@@ -279,7 +285,7 @@
        * 重置 name 筛选
        * 重置翻页
        */
-      handleLink (path) {
+      handleLink(path) {
         this.resetSearchParams();
         this.path = path;
         this.fetchData();
@@ -290,7 +296,7 @@
        *
        * 重置翻页
        */
-      handleSearch (name) {
+      handleSearch(name) {
         this.resetSearchParams();
         this.name = name;
         this.fetchData();
@@ -299,7 +305,7 @@
        * @desc 切换表格的全选状态
        * @param {Boolean} isChecked 最新选中状态
        */
-      handlePageSelectToggle (isChecked) {
+      handlePageSelectToggle(isChecked) {
         this.isLoading = true;
         FileService.fetchgetListFileNode({
           fileSourceId: this.fileSourceId,
@@ -337,7 +343,7 @@
        * @param {String} completePath 最新展示页
        * @param {Boolean} isChecked 最新选中状态
        */
-      handleRowSelect (completePath, isChecked) {
+      handleRowSelect(completePath, isChecked) {
         const rowSelectMemo = Object.assign({}, this.rowSelectMemo);
         if (isChecked) {
           rowSelectMemo[completePath] = true;
@@ -351,7 +357,7 @@
        * @desc 翻页
        * @param {Number} current 最新展示页
        */
-      handlePageChange (current) {
+      handlePageChange(current) {
         this.pagination.current = current;
         this.fetchData();
       },

@@ -26,12 +26,25 @@
 -->
 
 <template>
-  <jb-form-item :label="$t('传输模式')" required>
+  <jb-form-item
+    :label="$t('传输模式')"
+    required>
     <div class="form-item-content">
       <div class="file-step-transfer-mode-wraper">
-        <bk-radio-group class="radio-check" :value="formData[field]" @change="handleChange">
-          <bk-radio v-bk-tooltips="constraintTips" :value="2">{{ $t('强制模式') }}</bk-radio>
-          <bk-radio v-bk-tooltips="strictTips" :value="1">{{ $t('严谨模式') }}</bk-radio>
+        <bk-radio-group
+          class="radio-check"
+          :value="formData[field]"
+          @change="handleChange">
+          <bk-radio
+            v-bk-tooltips="constraintTips"
+            :value="2">
+            {{ $t('强制模式') }}
+          </bk-radio>
+          <bk-radio
+            v-bk-tooltips="strictTips"
+            :value="1">
+            {{ $t('严谨模式') }}
+          </bk-radio>
         </bk-radio-group>
       </div>
     </div>
@@ -52,7 +65,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         radioValue: 2,
       };
@@ -60,14 +73,14 @@
     computed: {
       // radio 选择框的值是-1表示是保险模式
       // 保险模式有两种类型可选
-      showSelectCheck () {
+      showSelectCheck() {
         return this.radioValue === -1;
       },
     },
     watch: {
       formData: {
         // 值是3、4归类为保险模式
-        handler  (formData) {
+        handler(formData) {
           const transferMode = parseInt(formData[this.field], 10);
           if ([
             3,
@@ -82,7 +95,7 @@
         deep: true,
       },
     },
-    created () {
+    created() {
       this.strictTips = {
         content: I18n.t('严谨判断目标路径是否存在，若不存在将直接终止任务。'),
         width: 180,
@@ -97,11 +110,11 @@
       };
     },
     methods: {
-      handleChange (transferMode) {
+      handleChange(transferMode) {
         const realValue = transferMode === -1 ? 3 : transferMode;
         this.$emit('on-change', this.field, realValue);
       },
-      handleSelectChange (transferMode) {
+      handleSelectChange(transferMode) {
         this.$emit('on-change', this.field, transferMode);
       },
     },

@@ -46,7 +46,8 @@
             :title="$t('template.「对作业模板的修改不会立即自动更新执行方案，需要由用户手动触发」')" />
           <jb-form-item
             :label="$t('template.模板名称')"
-            property="name" required>
+            property="name"
+            required>
             <jb-input
               v-model="formData.name"
               class="input form-item-content"
@@ -117,17 +118,23 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskManageService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
+
   import { taskTemplateName } from '@utils/validator';
-  import JbTagSelect from '@components/jb-tag-select';
-  import JbInput from '@components/jb-input';
+
   import BackTop from '@components/back-top';
+  import JbInput from '@components/jb-input';
+  import JbTagSelect from '@components/jb-tag-select';
   import ResizeLayout from '@components/resize-layout';
+
   import RenderGlobalVar from '../common/render-global-var';
   import RenderTaskStep from '../common/render-task-step';
+
   import ToggleDisplay from './components/toggle-display';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -140,7 +147,7 @@
       RenderGlobalVar,
       RenderTaskStep,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isPlanListLoading: true,
@@ -157,13 +164,13 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
     watch: {
       formData: {
-        handler  () {
+        handler() {
           if (this.isLoading) {
             return;
           }
@@ -172,7 +179,7 @@
         deep: true,
       },
     },
-    created () {
+    created() {
       this.taskId = this.$route.params.id || 0;
       this.isEdit = this.$route.name === 'templateEdit';
       this.isClone = this.$route.name === 'templateClone';
@@ -220,7 +227,7 @@
        * @desc 获取模板详情
        * @param {Boolean} isFirst 是否是第一次执行
        */
-      fetchData (isFirst = false) {
+      fetchData(isFirst = false) {
         this.isLoading = true;
         const requestHandler = this.isEdit ? TaskManageService.taskDetail : TaskManageService.taskClone;
         requestHandler({
@@ -273,7 +280,7 @@
       /**
        * @desc 获取模板关联的执行方案
        */
-      fetchPlanList () {
+      fetchPlanList() {
         this.isPlanListLoading = true;
         TaskPlanService.fetchTaskPlan({
           id: this.taskId,
@@ -289,13 +296,13 @@
        * @param {String} name 作业模板名
        *
        */
-      checkName (name) {
+      checkName(name) {
         return TaskManageService.taskCheckName({
           id: this.isEdit ? this.taskId : 0,
           name,
         });
       },
-      getScrollParent () {
+      getScrollParent() {
         return this
           .$refs
           .resizeLayout
@@ -306,7 +313,7 @@
       /**
        * @desc 克隆作业模板时提示密文变量
        */
-      searchCiphertextVariable () {
+      searchCiphertextVariable() {
         const stack = [];
 
         this.formData.variables.forEach((current) => {
@@ -333,7 +340,7 @@
        *
        * 忽略已经删除的步骤
        */
-      syncStepVarialbeDelete (stepList, deleteMap) {
+      syncStepVarialbeDelete(stepList, deleteMap) {
         let changeFlag = false;
         // 所有主机全局变量
         stepList.forEach((currentStep) => {
@@ -385,7 +392,7 @@
        *
        * 忽略已经删除的步骤
        */
-      syncStepVariableRename (stepList, renameMap) {
+      syncStepVariableRename(stepList, renameMap) {
         stepList.forEach((currentStep) => {
           // 步骤已经删除
           if (currentStep.delete) {
@@ -430,7 +437,7 @@
        * 删除主机变量
        *  -将使用了该全局变量的步骤标记为待补全
        */
-      handleGlobalVariableChange (variableList) {
+      handleGlobalVariableChange(variableList) {
         const newVariableMap = variableList.reduce((result, variable) => {
           result[variable.id] = {
             name: variable.name,
@@ -471,7 +478,7 @@
        * @desc 步骤更新
        * @param {Array} steps 最新的步骤列表
        */
-      handleTaskStepChange (steps) {
+      handleTaskStepChange(steps) {
         this.formData.steps = steps;
         this.$refs.templateOperateRef.clearError();
       },
@@ -481,7 +488,7 @@
        * 需要对作模板数据做逻辑验证处理
        * - 步骤的基本数据是否完整
        */
-      handlerSubmit () {
+      handlerSubmit() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.formData.steps.length; i++) {
           if (this.formData.steps[i].delete !== 1
@@ -527,7 +534,7 @@
        * @desc 创建作业模板成功
        * @param {Number} taskId 作业模板id
        */
-      createSuccessCallback (taskId) {
+      createSuccessCallback(taskId) {
         let confirmInfo = '';
         let isClickClose = false;
         const handleGoTemplateEdit = () => {
@@ -614,7 +621,7 @@
        * @param {Number} taskId 作业模板id
        * @param {Boolean} planSync 执行方案是否需要同步
        */
-      editSuccessCallback (taskId, planSync) {
+      editSuccessCallback(taskId, planSync) {
         let confirmInfo = '';
         let isClickClose = false;
         const handleGoTemplateDetail = () => {
@@ -695,13 +702,13 @@
       /**
        * @desc 取消
        */
-      handleCancel () {
+      handleCancel() {
         this.routerBack();
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'templateDetail') {
           this.$router.push({

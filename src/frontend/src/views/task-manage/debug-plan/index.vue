@@ -43,7 +43,9 @@
             mode="editOfPlan"
             :select-value="selectedVariable" />
         </detail-item>
-        <detail-item class="task-step-item" label="">
+        <detail-item
+          class="task-step-item"
+          label="">
           <div class="task-step-selection">
             <div
               class="detail-item-title"
@@ -92,17 +94,21 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskExecuteService from '@service/task-execute';
   import ExecPlanService from '@service/task-plan';
-  import BackTop from '@components/back-top';
-  import DetailLayout from '@components/detail-layout';
-  import DetailItem from '@components/detail-layout/item';
+
   import {
     findUsedVariable,
   } from '@utils/assist';
+
+  import BackTop from '@components/back-top';
+  import DetailLayout from '@components/detail-layout';
+  import DetailItem from '@components/detail-layout/item';
+
   import RenderGlobalVar from '../common/render-global-var';
   import RenderTaskStep from '../common/render-task-step';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     id: 0,
@@ -121,7 +127,7 @@
       RenderGlobalVar,
       RenderTaskStep,
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
         variableList: [],
@@ -130,21 +136,21 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
-      selectedVariable () {
+      selectedVariable() {
         const selectedSteps = this.taskStepList.filter(step => this.formData.enableSteps.includes(step.id));
         return findUsedVariable(selectedSteps);
       },
-      hasSelectAll () {
+      hasSelectAll() {
         return this.formData.enableSteps.length >= this.taskStepList.length;
       },
-      enableStepsNotEmpty () {
+      enableStepsNotEmpty() {
         return this.formData.enableSteps.length > 0;
       },
     },
-    created () {
+    created() {
       this.formData.templateId = Number(this.$route.params.id);
 
       this.fetchData();
@@ -153,7 +159,7 @@
       /**
        * @desc 获取调试数据
        */
-      fetchData () {
+      fetchData() {
         ExecPlanService.fetchDebugInfo({
           templateId: this.formData.templateId,
         }).then((data) => {
@@ -184,7 +190,7 @@
       /**
        * @desc 执行调试任务
        */
-      taskExecution () {
+      taskExecution() {
         this.isExecuting = true;
         TaskExecuteService.taskExecution({
           taskId: this.formData.id,
@@ -210,7 +216,7 @@
        * @desc 选择模板步骤
        * @param {String} payload 模板步骤
        */
-      handleSelectStep (payload) {
+      handleSelectStep(payload) {
         const index = this.formData.enableSteps.findIndex(item => item === payload.id);
         if (index > -1) {
           this.formData.enableSteps.splice(index, 1);
@@ -221,13 +227,13 @@
       /**
        * @desc 选择模板的所有步骤
        */
-      handleSelectAll () {
+      handleSelectAll() {
         this.formData.enableSteps = this.taskStepList.map(item => item.id);
       },
       /**
        * @desc 情况模板步骤选择
        */
-      handleDeselectAll () {
+      handleDeselectAll() {
         this.formData.enableSteps = [];
       },
       /**
@@ -236,7 +242,7 @@
        * 1，任务没有全局变量时直接执行任务
        * 2，任务没有选举变量时需要先设置变量
        */
-      handleSubmitExec () {
+      handleSubmitExec() {
         this.isExecuting = true;
         ExecPlanService.planUpdate(this.formData)
           .then(() => {
@@ -270,13 +276,13 @@
       /**
        * @desc 取消调试
        */
-      handleCancle () {
+      handleCancle() {
         this.routerBack();
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'taskList') {
           this.$router.push({

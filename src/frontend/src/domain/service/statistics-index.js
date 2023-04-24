@@ -27,7 +27,7 @@
 import StatisticsIndexSource from '../source/statistics-index';
 
 export default {
-  fetchAnalysisResult () {
+  fetchAnalysisResult() {
     return StatisticsIndexSource.getAnalysisResult()
       .then(({ data }) => data);
   },

@@ -37,8 +37,15 @@
     :value="value"
     :width="480"
     @cancel="handleCancel">
-    <jb-form ref="form" form-type="vertical" :model="formData" :rules="rules">
-      <jb-form-item :label="$t('template.作业模板')" property="templateId" required>
+    <jb-form
+      ref="form"
+      form-type="vertical"
+      :model="formData"
+      :rules="rules">
+      <jb-form-item
+        :label="$t('template.作业模板')"
+        property="templateId"
+        required>
         <bk-select
           v-model="formData.templateId"
           :clearable="false"
@@ -52,7 +59,9 @@
             :name="item.name" />
           <template slot="extension">
             <auth-component auth="job_template/create">
-              <div style="cursor: pointer;" @click="handleCreate">
+              <div
+                style="cursor: pointer;"
+                @click="handleCreate">
                 <i class="bk-icon icon-plus-circle" />{{ $t('template.新建模板') }}
               </div>
               <div slot="forbid">
@@ -73,16 +82,20 @@
         @click="handleSubmit">
         {{ $t('template.确定') }}
       </auth-button>
-      <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
+      <bk-button @click="handleCancel">
+        {{ $t('template.取消') }}
+      </bk-button>
     </div>
   </jb-dialog>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskManageService from '@service/task-manage';
+
   import {
     leaveConfirm,
   } from '@utils/assist';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -92,7 +105,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         templateList: [],
         formData: {
@@ -102,7 +115,7 @@
     },
     watch: {
       value: {
-        handler  (value) {
+        handler(value) {
           if (value) {
             this.fetchData();
           }
@@ -110,7 +123,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.rules = {
         templateId: [
           {
@@ -122,7 +135,7 @@
       };
     },
     methods: {
-      fetchData (search) {
+      fetchData(search) {
         TaskManageService.taskList({
           name: search,
           start: 0,
@@ -131,13 +144,13 @@
           this.templateList = Object.freeze(data.data);
         });
       },
-      handleCreate () {
+      handleCreate() {
         const router = this.$router.resolve({
           name: 'templateCreate',
         });
         window.open(router.href);
       },
-      handleSubmit () {
+      handleSubmit() {
         this.$refs.form.validate()
           .then(() => {
             window.changeFlag = false;
@@ -145,7 +158,7 @@
             this.$emit('on-change', this.formData.templateId);
           });
       },
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => {
             this.$emit('input', false);

@@ -39,7 +39,10 @@
         :key="item.id"
         :name="item.name" />
     </bk-select>
-    <div v-show="!isEditing" class="value-box" @click.stop="handleEdit">
+    <div
+      v-show="!isEditing"
+      class="value-box"
+      @click.stop="handleEdit">
       <div
         class="action-text"
         :class="textClass">
@@ -51,6 +54,7 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import DangerousRuleService from '@service/dangerous-rule';
 
   export default {
@@ -61,21 +65,21 @@
         require: true,
       },
     },
-    data () {
+    data() {
       return {
         isEditing: false,
         actionList: [],
       };
     },
     computed: {
-      text () {
+      text() {
         const action = _.find(this.actionList, _ => _.id === this.value);
         if (!action) {
           return '--';
         }
         return action.name;
       },
-      textClass () {
+      textClass() {
         const classMap = {
           1: 'normal',
           2: 'hight',
@@ -83,11 +87,11 @@
         return classMap[this.value];
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         DangerousRuleService.fetchActionList()
           .then((data) => {
             this.actionList = Object.freeze(data);
@@ -96,7 +100,7 @@
       /**
        * @desc 开始编辑
        */
-      handleEdit () {
+      handleEdit() {
         this.isEditing = true;
         this.$nextTick(() => {
           this.$refs.select.$el.querySelector('.bk-select-name').click();
@@ -105,7 +109,7 @@
       /**
        * @desc 下拉面板收起，取消编辑状态
        */
-      handleSelectToggle (toggle) {
+      handleSelectToggle(toggle) {
         if (!toggle) {
           this.isEditing = false;
         }
@@ -113,7 +117,7 @@
       /**
        * @desc 触发change 事件
        */
-      handleChange (value) {
+      handleChange(value) {
         if (this.value === value) {
           return;
         }

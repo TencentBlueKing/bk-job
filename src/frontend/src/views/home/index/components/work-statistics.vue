@@ -26,13 +26,23 @@
 -->
 
 <template>
-  <router-link class="work-statistics-box" :to="{ name: link }">
+  <router-link
+    class="work-statistics-box"
+    :to="{ name: link }">
     <div class="work-flag">
-      <Icon class="hexagon" svg type="hexagon" />
-      <Icon class="statistics" svg :type="type" />
+      <icon
+        class="hexagon"
+        svg
+        type="hexagon" />
+      <icon
+        class="statistics"
+        svg
+        :type="type" />
     </div>
     <div class="work-total">
-      <slot v-bind:job-num="jobNum" v-bind:script-num="scriptNum" />
+      <slot
+        :job-num="jobNum"
+        :script-num="scriptNum" />
     </div>
     <div class="work-name">
       <slot name="name" />
@@ -54,17 +64,17 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         jobNum: 0,
         scriptNum: 0,
       };
     },
-    created () {
+    created() {
       this.fetchStatisticsJobAndScript();
     },
     methods: {
-      fetchStatisticsJobAndScript () {
+      fetchStatisticsJobAndScript() {
         HomeService.fetchStatisticsJobAndScript()
           .then(({ jobNum, scriptNum }) => {
             this.jobNum = jobNum;

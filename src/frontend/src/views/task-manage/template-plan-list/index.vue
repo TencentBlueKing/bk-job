@@ -29,12 +29,15 @@
   <div>
     <plan-list ref="list" />
     <element-teleport v-if="templateName">
-      <div style="padding-left: 10px; font-size: 12px; color: #63656e;">（{{ templateName }}）</div>
+      <div style="padding-left: 10px; font-size: 12px; color: #63656e;">
+        （{{ templateName }}）
+      </div>
     </element-teleport>
   </div>
 </template>
 <script>
   import TaskManageService from '@service/task-manage';
+
   import PlanList from '../common/plan/list';
 
   export default {
@@ -42,17 +45,17 @@
     components: {
       PlanList,
     },
-    data () {
+    data() {
       return {
         templateName: '',
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
     },
-    created () {
+    created() {
       this.templateId = this.$route.params.templateId;
       this.fetchData();
     },
@@ -60,7 +63,7 @@
       /**
        * @desc 获取作业模板名
        */
-      fetchData () {
+      fetchData() {
         TaskManageService.taskDetail({
           id: this.templateId,
         }, {
@@ -72,7 +75,7 @@
       /**
        * @desc 路由 回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'settingVar') {
           this.$router.push({

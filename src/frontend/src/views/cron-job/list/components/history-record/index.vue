@@ -32,25 +32,37 @@
         class="tab-item"
         :class="{ active: listTab === 'launch' }"
         @click="handleTabChange('launch')">
-        <div class="tab-name">{{ $t('cron.任务正常启动') }}</div>
-        <Icon
+        <div class="tab-name">
+          {{ $t('cron.任务正常启动') }}
+        </div>
+        <icon
           v-if="isLaunchLoading"
           class="loading-flag"
           svg
           type="sync-pending" />
-        <div v-else class="tab-nums">{{ launchNums }}</div>
+        <div
+          v-else
+          class="tab-nums">
+          {{ launchNums }}
+        </div>
       </div>
       <div
         class="tab-item"
         :class="{ active: listTab === 'unlaunch' }"
         @click="handleTabChange('unlaunch')">
-        <div class="tab-name">{{ $t('cron.任务未能启动') }}</div>
-        <Icon
+        <div class="tab-name">
+          {{ $t('cron.任务未能启动') }}
+        </div>
+        <icon
           v-if="isUnlaunchLoading"
           class="loading-flag"
           svg
           type="sync-pending" />
-        <div v-else class="tab-nums">{{ unLaunchNums }}</div>
+        <div
+          v-else
+          class="tab-nums">
+          {{ unLaunchNums }}
+        </div>
       </div>
     </div>
     <component
@@ -63,6 +75,7 @@
 <script>
   import TaskExecuteService from '@service/task-execute';
   import TimeTaskService from '@service/time-task';
+
   import LaunchList from './launch-list';
   import UnlaunchList from './unlaunch-list';
 
@@ -79,7 +92,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         listTab: 'launch',
         isLaunchLoading: true,
@@ -89,18 +102,18 @@
       };
     },
     computed: {
-      listCom () {
+      listCom() {
         return listComMap[this.listTab];
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      handleTabChange (value) {
+      handleTabChange(value) {
         this.listTab = value;
       },
-      fetchData () {
+      fetchData() {
         TaskExecuteService.fetchExecutionHistoryList({
           cronTaskId: this.data.id,
           startTime: '',

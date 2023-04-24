@@ -24,17 +24,19 @@
 */
 
 import _ from 'lodash';
+
 import {
-  downloadUrl,
   buildURLParams,
+  downloadUrl,
 } from '@utils/assist';
-import Request from './lib/request';
+
 import Cache from './lib/cache';
+import Request from './lib/request';
 
 const request = new Request(Cache);
 
 export default new Proxy(request, {
-  get (target, key) {
+  get(target, key) {
     return (url, config = {}) => {
       if (key === 'download') {
         // eslint-disable-next-line  max-len

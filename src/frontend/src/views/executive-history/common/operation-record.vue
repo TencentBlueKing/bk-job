@@ -26,9 +26,13 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="job-execute-record">
+  <div
+    v-bkloading="{ isLoading }"
+    class="job-execute-record">
     <template v-if="!isLoading">
-      <bk-table v-if="data.length > 0" :data="data">
+      <bk-table
+        v-if="data.length > 0"
+        :data="data">
         <bk-table-column
           :label="$t('history.时间')"
           prop="createTime"
@@ -60,16 +64,21 @@
                 {{ row.detail }}
               </bk-button>
             </template>
-            <div v-else>{{ row.detail }}</div>
+            <div v-else>
+              {{ row.detail }}
+            </div>
           </template>
         </bk-table-column>
       </bk-table>
-      <empty v-else class="empty" />
+      <empty
+        v-else
+        class="empty" />
     </template>
   </div>
 </template>
 <script>
   import TaskExecuteService from '@service/task-execute';
+
   import Empty from '@components/empty';
 
   export default {
@@ -87,17 +96,17 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: [],
       };
     },
-    created () {
+    created() {
       this.fetchTaskOperationLog();
     },
     methods: {
-      fetchTaskOperationLog (id) {
+      fetchTaskOperationLog(id) {
         this.$request(TaskExecuteService.fetchTaskOperationLog({
           id: this.id,
         }), () => {
@@ -109,15 +118,15 @@
             this.isLoading = false;
           });
       },
-      chekcIsCurrentUrl (data) {
+      chekcIsCurrentUrl(data) {
         const urlSearch = new URLSearchParams(window.location.search);
         const stepInstanceId = urlSearch.get('stepInstanceId');
         const retryCount = urlSearch.get('retryCount');
-                
+
         return parseInt(stepInstanceId, 10) === data.stepInstanceId
           && parseInt(retryCount, 10) === data.retry;
       },
-      handleView (payload) {
+      handleView(payload) {
         const routerInfo = {
           name: 'historyStep',
           params: {
@@ -130,7 +139,7 @@
             from: this.from || this.$route.query.from,
           },
         };
-                
+
         this.$emit('on-change');
         this.$router.push(routerInfo);
       },

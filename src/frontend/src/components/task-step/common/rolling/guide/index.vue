@@ -27,30 +27,35 @@
 
 <template>
   <div class="rolling-expr-guides">
-    <div class="content" v-html="contentHtml" />
-    <div class="close-btn" @click="handleClose">
-      <Icon type="close" />
+    <div
+      class="content"
+      v-html="contentHtml" />
+    <div
+      class="close-btn"
+      @click="handleClose">
+      <icon type="close" />
     </div>
   </div>
 </template>
 <script>
-  import 'highlight.js/styles/googlecode.css';
-  import expr from './expr.md';
   import exprEN from './expr.en.md';
+  import expr from './expr.md';
+
+  import 'highlight.js/styles/googlecode.css';
 
   export default {
     name: '',
-    data () {
+    data() {
       return {
       };
     },
     computed: {
-      contentHtml () {
+      contentHtml() {
         return this.$i18n.locale === 'zh-CN' ? expr : exprEN;
       },
     },
     methods: {
-      handleClose () {
+      handleClose() {
         this.$emit('on-close');
       },
     },

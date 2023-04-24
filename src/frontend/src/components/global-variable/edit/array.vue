@@ -33,7 +33,11 @@
       :readonly="readonly"
       :value="value"
       @change="handleChange" />
-    <p v-if="isError" class="variable-error">{{ $t('该变量的值必填') }}</p>
+    <p
+      v-if="isError"
+      class="variable-error">
+      {{ $t('该变量的值必填') }}
+    </p>
   </div>
 </template>
 <script>
@@ -52,20 +56,20 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         showError: false,
         value: '',
       };
     },
     computed: {
-      isError () {
+      isError() {
         if (this.data.required !== 1) {
           return false;
         }
         return !this.value;
       },
-      descPopover () {
+      descPopover() {
         return {
           theme: 'light',
           extCls: 'variable-desc-tippy',
@@ -77,26 +81,26 @@
       },
     },
     watch: {
-      placement (newVal) {
+      placement(newVal) {
         // eslint-disable-next-line no-underscore-dangle
         if (this.data.description) this.$refs.input.$el._tippy.set({ placement: newVal });
       },
     },
-    created () {
+    created() {
       this.init();
     },
     methods: {
-      init () {
+      init() {
         this.value = this.data.defaultValue || this.data.value;
       },
-      handleChange (value) {
+      handleChange(value) {
         this.value = value.trim();
         window.changeFlag = true;
       },
-      reset () {
+      reset() {
         this.init();
       },
-      validate () {
+      validate() {
         const { type, id, name } = this.data;
         const data = {
           id,

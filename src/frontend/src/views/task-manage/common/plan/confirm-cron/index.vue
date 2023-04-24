@@ -26,7 +26,10 @@
 -->
 
 <template>
-  <div class="plan-manage-confirm-cron" :empty="isEmpty" :loading="isLoading">
+  <div
+    class="plan-manage-confirm-cron"
+    :empty="isEmpty"
+    :loading="isLoading">
     <div class="layout-left">
       <scroll-faker>
         <div
@@ -38,9 +41,14 @@
             auth="cron/view"
             :permission="cronJobItem.canManage"
             :resource-id="cronJobItem.id">
-            <div class="tab-container" @click="handleTabChange(cronJobItem.id)">
+            <div
+              class="tab-container"
+              @click="handleTabChange(cronJobItem.id)">
               <span class="job-name">{{ cronJobItem.name }}</span>
-              <Icon v-if="cronJobItem.hasConfirm" class="job-check" type="check" />
+              <icon
+                v-if="cronJobItem.hasConfirm"
+                class="job-check"
+                type="check" />
               <div @click.stop="">
                 <bk-switcher
                   class="job-switch"
@@ -50,9 +58,14 @@
                   @change="value => handleEnableChange(cronJobItem.id, value)" />
               </div>
             </div>
-            <div slot="forbid" class="tab-container">
+            <div
+              slot="forbid"
+              class="tab-container">
               <span class="job-name">{{ cronJobItem.name }}</span>
-              <Icon v-if="cronJobItem.hasConfirm" class="job-check" type="check" />
+              <icon
+                v-if="cronJobItem.hasConfirm"
+                class="job-check"
+                type="check" />
               <div @click.stop="">
                 <bk-switcher
                   class="job-switch"
@@ -81,7 +94,9 @@
 </template>
 <script>
   import TimeTaskService from '@service/time-task';
+
   import ScrollFaker from '@components/scroll-faker';
+
   import CronDetail from './cron-detail';
 
   const generatorData = ({ id, name, enable }) => ({
@@ -112,7 +127,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isEmpty: false,
@@ -121,17 +136,17 @@
       };
     },
     computed: {
-      detailInfo () {
+      detailInfo() {
         return this.timeTaskList.find(item => item.id === this.currentTaskId) || {};
       },
     },
-    created () {
+    created() {
       this.templateId = this.templateInfo.id;
       this.templateVariableList = this.templateInfo.variables;
       this.fetchTimeTaskList();
     },
     methods: {
-      fetchTimeTaskList () {
+      fetchTimeTaskList() {
         if (this.cronJobList.length > 0) {
           this.timeTaskList = this.cronJobList;
           this.currentTaskId = this.cronJobList[0].id;
@@ -154,7 +169,7 @@
             this.isLoading = false;
           });
       },
-      trigger () {
+      trigger() {
         const cronJob = this.timeTaskList.reduce((result, item) => {
           // 关闭的定时任务传全局变量
           result.push({
@@ -165,22 +180,22 @@
         }, []);
         this.$emit('on-change', cronJob);
       },
-      handleTabChange (id) {
+      handleTabChange(id) {
         this.currentTaskId = id;
       },
-      handleEnableChange (id, enable) {
+      handleEnableChange(id, enable) {
         const timeTask = this.timeTaskList.find(item => item.id === id);
         timeTask.enable = enable;
         timeTask.hasConfirm = false;
         this.trigger();
       },
-      handleVariableChange (payload) {
+      handleVariableChange(payload) {
         const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
         timeTask.variableValue = Object.freeze(payload);
         timeTask.hasConfirm = true;
         this.trigger();
       },
-      handleUpdateConfirm (payload) {
+      handleUpdateConfirm(payload) {
         const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
         timeTask.hasConfirm = payload;
         this.trigger();

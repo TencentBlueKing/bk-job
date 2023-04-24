@@ -26,13 +26,16 @@
 -->
 
 <template>
-  <component :is="com" class="guide-page" />
+  <component
+    :is="com"
+    class="guide-page" />
 </template>
 <script>
   import EventBus from '@utils/event-bus';
-  import TaskList from './task-list';
-  import ScriptList from './script-list';
+
   import CrontabList from './corntab-list';
+  import ScriptList from './script-list';
+  import TaskList from './task-list';
 
   const comMap = {
     taskList: TaskList,
@@ -42,14 +45,14 @@
 
   export default {
     name: '',
-    data () {
+    data() {
       return {
         isEmpty: false,
         page: '',
       };
     },
     computed: {
-      com () {
+      com() {
         if (!this.isEmpty) {
           return '';
         }
@@ -58,14 +61,14 @@
     },
     watch: {
       $route: {
-        handler  (route) {
+        handler(route) {
           this.page = route.name;
           this.isEmpty = false;
         },
         immediate: true,
       },
     },
-    created () {
+    created() {
       EventBus.$on('page-empty', () => {
         this.isEmpty = true;
       });

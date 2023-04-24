@@ -47,25 +47,37 @@
             class="log-tab"
             :class="{ active: index === activeIndex }"
             @click="handleTabChange(index)">
-            <div class="title">{{ log.version }}</div>
-            <div class="date">{{ log.time }}</div>
-            <div v-if="index === 0" class="new-flag">{{ $t('当前版本') }}</div>
+            <div class="title">
+              {{ log.version }}
+            </div>
+            <div class="date">
+              {{ log.time }}
+            </div>
+            <div
+              v-if="index === 0"
+              class="new-flag">
+              {{ $t('当前版本') }}
+            </div>
           </div>
         </scroll-faker>
       </div>
       <div class="layout-right">
         <scroll-faker class="content-wraper">
-          <div class="markdowm-container" v-html="logContent" />
+          <div
+            class="markdowm-container"
+            v-html="logContent" />
         </scroll-faker>
       </div>
     </div>
   </jb-dialog>
 </template>
 <script>
-  import marked from 'marked';
-  import Cookie from 'js-cookie';
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
+  import Cookie from 'js-cookie';
+  import marked from 'marked';
+
   import WebGlobalService from '@service/web-global';
+
   import ScrollFaker from '@components/scroll-faker';
 
   export default {
@@ -79,7 +91,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         activeIndex: 0,
@@ -87,15 +99,15 @@
       };
     },
     computed: {
-      logContent () {
+      logContent() {
         if (this.list.length < 1) {
           return '';
         }
         return marked(this.list[this.activeIndex].content);
       },
     },
-        
-    created () {
+
+    created() {
       this.fetchData();
       // 对比版本号，每次版本更新自动显示版本日志
       this.isDefaultShow = false;
@@ -110,7 +122,7 @@
       /**
        * @desc 或版本日志数据
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         const requestHandler = this.$i18n.locale === 'en-US'
           ? WebGlobalService.fetchVersionENLog
@@ -126,7 +138,7 @@
       /**
        * @desc 日志收起时显示 tips
        */
-      showTips () {
+      showTips() {
         if (!this.popperInstance) {
           this.popperInstance = Tippy(document.querySelector('#siteHelp'), {
             arrow: true,
@@ -154,14 +166,14 @@
       /**
        * @desc 关闭日志收起 tips
        */
-      hideTips () {
+      hideTips() {
         this.popperInstance && this.popperInstance.hide();
       },
       /**
        * @desc 切换版本日志内容
        * @param { Number } index 日志索引
        */
-      handleTabChange (index) {
+      handleTabChange(index) {
         this.activeIndex = index;
       },
       /**
@@ -170,7 +182,7 @@
        * 写入cookie版本号标记，每次发版自动弹出
        * 关闭时有收起动画，显示tips，动画持续事件400ms
        */
-      handleClose () {
+      handleClose() {
         this.$emit('input', false);
         this.$emit('change', false);
         Cookie.set('job_supermen', process.env.JOB_VERSION, { expires: 3600 });

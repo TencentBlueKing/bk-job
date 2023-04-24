@@ -26,27 +26,38 @@
 -->
 
 <template>
-  <sideslider-box class="server-group-host-preview" :value="value" @change="handleClose">
-    <div slot="title">{{ $t('分组预览') }}——{{ data.name }}</div>
+  <sideslider-box
+    class="server-group-host-preview"
+    :value="value"
+    @change="handleClose">
+    <div slot="title">
+      {{ $t('分组预览') }}——{{ data.name }}
+    </div>
     <div slot="desc">
       <statistics-text :data="statisticsData" />
-      <action-extend copyable :list="list" />
+      <action-extend
+        copyable
+        :list="list" />
     </div>
-    <div v-bkloading="{ isLoading }" class="preview-wraper">
+    <div
+      v-bkloading="{ isLoading }"
+      class="preview-wraper">
       <host-table :list="list" />
     </div>
   </sideslider-box>
 </template>
 <script>
   import AppService from '@service/app-manage';
-  import HostTable from './host-table';
-  import SidesliderBox from './sideslider-box';
-  import StatisticsText from './statistics-text';
-  import ActionExtend from './action-extend';
+
   import {
     sortHost,
     statisticsHost,
   } from '../components/utils';
+
+  import ActionExtend from './action-extend';
+  import HostTable from './host-table';
+  import SidesliderBox from './sideslider-box';
+  import StatisticsText from './statistics-text';
 
   export default {
     name: '',
@@ -66,20 +77,20 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         statisticsData: {},
         list: [],
       };
     },
-    created () {
+    created() {
       if (this.data.id) {
         this.fetchDynamicGroup();
       }
     },
     methods: {
-      fetchDynamicGroup () {
+      fetchDynamicGroup() {
         this.isLoading = true;
         AppService.fetchHostOfDynamicGroup({
           id: this.data.id,
@@ -95,7 +106,7 @@
             this.isLoading = false;
           });
       },
-      handleClose () {
+      handleClose() {
         this.list = [];
         this.statisticsData = {};
         this.$emit('input', false);

@@ -27,7 +27,9 @@
 
 <template>
   <div class="smart-style-item">
-    <div class="smart-arrow" :style="arrowStyles" />
+    <div
+      class="smart-arrow"
+      :style="arrowStyles" />
     <div class="smart-item-content">
       <slot />
     </div>
@@ -49,7 +51,7 @@
       },
     },
     computed: {
-      arrowStyles () {
+      arrowStyles() {
         const index = _.findIndex(this.sourceTypeList, _ => _.code === this.fileSourceType);
         if (index < 0) {
           return {

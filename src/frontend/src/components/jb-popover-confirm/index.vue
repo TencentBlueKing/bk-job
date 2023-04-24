@@ -28,27 +28,39 @@
 <template>
   <div class="jb-popover-confirm">
     <slot />
-    <div ref="popoverContent" class="jb-popover-content"
+    <div
+      ref="popoverContent"
+      class="jb-popover-content"
       :style="{
         width: parsedWidth,
         minWidth: parsedMinWidth,
       }">
-      <h2 ref="confirmTitle" class="confirm-title">
-        <slot name="title">{{ title }}</slot>
+      <h2
+        ref="confirmTitle"
+        class="confirm-title">
+        <slot name="title">
+          {{ title }}
+        </slot>
       </h2>
-      <p ref="confirmContent" class="confirm-content">
-        <slot name="content">{{ content }}</slot>
+      <p
+        ref="confirmContent"
+        class="confirm-content">
+        <slot name="content">
+          {{ content }}
+        </slot>
       </p>
       <div class="confirm-options">
         <slot name="options">
-          <bk-button class="confirm-option-button"
+          <bk-button
+            class="confirm-option-button"
             :loading="pending"
             size="small"
             theme="primary"
             @click="handleConfirm">
             {{ confirmText }}
           </bk-button>
-          <bk-button class="confirm-option-button"
+          <bk-button
+            class="confirm-option-button"
             :disabled="pending"
             size="small"
             @click="handleCancel">
@@ -107,37 +119,37 @@
       confirmHandler: Function,
       cancelHandler: Function,
     },
-    data () {
+    data() {
       return {
         instance: null,
         pending: false,
       };
     },
     computed: {
-      parsedWidth () {
+      parsedWidth() {
         const width = parseInt(this.contentWidth, 10);
         return isNaN(width) ? 'auto' : (`${width}px`);
       },
-      parsedMinWidth () {
+      parsedMinWidth() {
         const minWidth = parseInt(this.contentMinWidth, 10);
         return isNaN(minWidth) ? 'auto' : (`${minWidth}px`);
       },
     },
     watch: {
-      disabled (disabled) {
+      disabled(disabled) {
         if (this.instance) {
           disabled ? this.instance.disable() : this.instance.enable();
         }
       },
     },
-    mounted () {
+    mounted() {
       this.init();
     },
-    beforeDestroy () {
+    beforeDestroy() {
       this.instance = null;
     },
     methods: {
-      init () {
+      init() {
         this.instance = this.$bkPopover(this.$el, {
           theme: `${this.theme} jb-popover-confirm`,
           interactive: true,
@@ -154,7 +166,7 @@
         });
         this.disabled && this.instance.disable();
       },
-      async handleConfirm () {
+      async handleConfirm() {
         if (typeof this.confirmHandler === 'function') {
           try {
             this.pending = true;
@@ -168,10 +180,10 @@
         this.instance && this.hide();
         this.$emit('confirm', this);
       },
-      hide () {
+      hide() {
         this.instance && this.instance.hide();
       },
-      handleCancel () {
+      handleCancel() {
         this.hide();
         this.$emit('cancel', this);
       },

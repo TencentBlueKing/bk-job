@@ -29,18 +29,24 @@
   <tbody>
     <tr v-if="!isEdit">
       <td colspan="4">
-        <bk-button text @click="handleToggle">
-          <Icon type="plus" />
+        <bk-button
+          text
+          @click="handleToggle">
+          <icon type="plus" />
           {{ $t('setting.新增检测规则') }}
         </bk-button>
       </td>
     </tr>
     <tr v-else>
       <td>
-        <bk-input v-model="formData.expression" class="input" />
+        <bk-input
+          v-model="formData.expression"
+          class="input" />
       </td>
       <td>
-        <bk-input v-model="formData.description" class="input" />
+        <bk-input
+          v-model="formData.description"
+          class="input" />
       </td>
       <td>
         <bk-select
@@ -56,16 +62,25 @@
         </bk-select>
       </td>
       <td>
-        <bk-button text @click="handleSubmit">{{ $t('setting.保存') }}</bk-button>
-        <bk-button text @click="handleCancel">{{ $t('setting.取消') }}</bk-button>
+        <bk-button
+          text
+          @click="handleSubmit">
+          {{ $t('setting.保存') }}
+        </bk-button>
+        <bk-button
+          text
+          @click="handleCancel">
+          {{ $t('setting.取消') }}
+        </bk-button>
       </td>
     </tr>
   </tbody>
 </template>
 <script>
-  import I18n from '@/i18n';
   import GlobalSettingService from '@service/global-setting';
   import PublicScriptManageService from '@service/public-script-manage';
+
+  import I18n from '@/i18n';
 
   const generatorDefautlData = () => ({
     expression: '',
@@ -74,7 +89,7 @@
   });
 
   export default {
-    data () {
+    data() {
       return {
         isEdit: false,
         isSubmiting: false,
@@ -82,24 +97,24 @@
         scriptTypeList: [],
       };
     },
-    created () {
+    created() {
       this.fetchScriptType();
     },
     methods: {
-      fetchScriptType () {
+      fetchScriptType() {
         PublicScriptManageService.scriptTypeList()
           .then((data) => {
             this.scriptTypeList = data;
           });
       },
-      handleToggle () {
+      handleToggle() {
         this.isEdit = true;
       },
-      handleCancel () {
+      handleCancel() {
         this.isEdit = false;
         this.formData = generatorDefautlData();
       },
-      handleSubmit () {
+      handleSubmit() {
         if (this.isSubmiting) {
           return;
         }

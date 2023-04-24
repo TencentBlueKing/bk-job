@@ -27,7 +27,7 @@
 
 <template>
   <div class="retry">
-    <Icon type="retry" />
+    <icon type="retry" />
     <span>{{ $t('history.全部重试') }}</span>
   </div>
 </template>

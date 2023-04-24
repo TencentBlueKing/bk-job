@@ -26,8 +26,14 @@
 -->
 
 <template>
-  <jb-form ref="varStringForm" :model="formData" :rules="rules">
-    <jb-form-item :label="$t('template.变量名称')" property="name" required>
+  <jb-form
+    ref="varStringForm"
+    :model="formData"
+    :rules="rules">
+    <jb-form-item
+      :label="$t('template.变量名称')"
+      property="name"
+      required>
       <jb-input
         v-model="formData.name"
         :maxlength="30"
@@ -70,11 +76,13 @@
   </jb-form>
 </template>
 <script>
-  import I18n from '@/i18n';
   import {
     globalVariableNameRule,
   } from '@utils/validator';
+
   import JbInput from '@components/jb-input';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'VarString',
@@ -84,7 +92,7 @@
     props: {
       variable: {
         type: Array,
-        default () {
+        default() {
           return [];
         },
       },
@@ -93,12 +101,12 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: { ...this.data },
       };
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -120,7 +128,7 @@
       };
     },
     methods: {
-      submit () {
+      submit() {
         return this.$refs.varStringForm.validate()
           .then(() => {
             this.$emit('on-change', {

@@ -24,16 +24,16 @@
 */
 
 export default {
-  install (Vue) {
+  install(Vue) {
     Vue.directive('test', {
-      bind (el, binding) {
+      bind(el, binding) {
         const {
           type,
           value,
         } = binding.value;
         el.setAttribute('data-test-id', `${type}_${value}`);
       },
-      update (el, binding) {
+      update(el, binding) {
         const {
           type,
           value,

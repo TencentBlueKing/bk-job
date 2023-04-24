@@ -27,20 +27,39 @@
 
 <template>
   <div class="internal-variable-wrapper">
-    <Icon class="close-dialog" type="close" @click.stop="handleClose(false)" />
+    <icon
+      class="close-dialog"
+      type="close"
+      @click.stop="handleClose(false)" />
     <header>{{ $t('setting.内置变量列表') }}</header>
-    <bk-tab :active="variableType"
+    <bk-tab
+      :active="variableType"
       :before-toggle="handleTabChange"
       class="variable-tab"
       type="unborder-card">
-      <bk-tab-panel :label="$t('setting.通用变量')" name="general" />
-      <bk-tab-panel :label="$t('setting.作业变量')" name="job" />
-      <bk-tab-panel :label="$t('setting.定时任务变量')" name="cron" />
+      <bk-tab-panel
+        :label="$t('setting.通用变量')"
+        name="general" />
+      <bk-tab-panel
+        :label="$t('setting.作业变量')"
+        name="job" />
+      <bk-tab-panel
+        :label="$t('setting.定时任务变量')"
+        name="cron" />
     </bk-tab>
-    <bk-table class="variable-table" :data="renderList">
-      <bk-table-column :label="$t('setting.变量名称')" prop="name" />
-      <bk-table-column :label="$t('setting.含义')" prop="meaning" />
-      <bk-table-column :label="$t('setting.示例')" prop="examples" :width="320" />
+    <bk-table
+      class="variable-table"
+      :data="renderList">
+      <bk-table-column
+        :label="$t('setting.变量名称')"
+        prop="name" />
+      <bk-table-column
+        :label="$t('setting.含义')"
+        prop="meaning" />
+      <bk-table-column
+        :label="$t('setting.示例')"
+        prop="examples"
+        :width="320" />
     </bk-table>
   </div>
 </template>
@@ -55,18 +74,18 @@
         type: Function,
       },
     },
-    data () {
+    data() {
       return {
         variableType: 'general',
       };
     },
     computed: {
-      renderList () {
+      renderList() {
         return InternalVariables[this.variableType];
       },
     },
     methods: {
-      handleTabChange (tab) {
+      handleTabChange(tab) {
         this.variableType = tab;
       },
     },

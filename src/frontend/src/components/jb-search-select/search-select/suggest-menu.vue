@@ -27,6 +27,7 @@
 
 <script>
   import _ from 'lodash';
+
   import {
     encodeRegexp,
   } from './helper';
@@ -37,14 +38,14 @@
     mixins: [
       Mixin,
     ],
-    data () {
+    data() {
       return {
         activeIndex: -1,
         list: [],
       };
     },
     computed: {
-      needRender () {
+      needRender() {
         // 没有有选中key，且输入框中有输入值
         if (!this.searchSelect.menu.id && !!this.searchSelect.localValue) {
           return true;
@@ -53,7 +54,7 @@
       },
     },
     watch: {
-      list (list) {
+      list(list) {
         const {
           primaryKey,
           defaultInputKey,
@@ -63,7 +64,7 @@
         if (!defaultInputKey) {
           return;
         }
-                
+
         list.forEach((item, index) => {
           if (defaultInputKey[primaryKey] === item.keyId) {
             this.activeIndex = index;
@@ -71,18 +72,18 @@
         });
       },
     },
-    created () {
+    created() {
       // eslint-disable-next-line no-underscore-dangle
       this.generatorList = _.debounce(this._generatorList, 100);
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('keydown', this.handleKeydown);
     },
-    beforeDestroy () {
+    beforeDestroy() {
       document.body.removeEventListener('keydown', this.handleKeydown);
     },
     methods: {
-      _generatorList () {
+      _generatorList() {
         const {
           data,
           chipList,
@@ -113,7 +114,7 @@
           }
 
           const children = _remoteKeyImmediateChildrenMap[current[primaryKey]] || current.children;
-                    
+
           if (children) {
             // 搜索本地配置子项
             children.forEach((currentChild) => {
@@ -130,7 +131,7 @@
             });
             continue;
           }
-                    
+
           // 匹配验证规则
           if (typeof current.validate === 'function') {
             if (current.validate([
@@ -139,7 +140,7 @@
               continue;
             }
           }
-                    
+
           stack.push({
             keyName: current[displayKey],
             keyId: current[primaryKey],
@@ -151,8 +152,8 @@
 
         this.list = Object.freeze(stack);
       },
-            
-      handleKeydown (event) {
+
+      handleKeydown(event) {
         if (!this.needRender) {
           return;
         }
@@ -170,8 +171,8 @@
         this.scrollActiveToView(event);
         this.$emit('enter-invalid-toggle', true);
       },
-            
-      handleClick (payload) {
+
+      handleClick(payload) {
         const { displayKey } = this.searchSelect;
         const { primaryKey } = this.searchSelect;
 
@@ -186,8 +187,8 @@
           ],
         });
       },
-            
-      renderList (h) {
+
+      renderList(h) {
         // 列表为空
         if (this.list.length < 1) {
           return (
@@ -228,7 +229,7 @@
         );
       },
     },
-    render (h) {
+    render(h) {
       if (!this.needRender) {
         return null;
       }

@@ -32,7 +32,7 @@
         v-bk-tooltips.bottom="$t('history.步骤内容')"
         class="action-btn"
         @click="handleShowStepDetail">
-        <Icon type="detail-line" />
+        <icon type="detail-line" />
       </div>
       <jb-sideslider
         :is-show.sync="isShow"
@@ -65,13 +65,13 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShow: false,
       };
     },
     methods: {
-      handleShowStepDetail () {
+      handleShowStepDetail() {
         this.isShow = true;
       },
     },

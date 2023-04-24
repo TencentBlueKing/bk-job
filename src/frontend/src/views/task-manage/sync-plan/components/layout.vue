@@ -26,14 +26,22 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading: loading }" class="sync-plan-layout">
-    <div class="wraper" :class="{ loading }">
-      <Empty v-if="empty" class="layout-empty">
-        <div class="empty-text">{{ $t('template.暂无关联的定时任务') }}</div>
+  <div
+    v-bkloading="{ isLoading: loading }"
+    class="sync-plan-layout">
+    <div
+      class="wraper"
+      :class="{ loading }">
+      <empty
+        v-if="empty"
+        class="layout-empty">
+        <div class="empty-text">
+          {{ $t('template.暂无关联的定时任务') }}
+        </div>
         <div>
           <slot name="empty" />
         </div>
-      </Empty>
+      </empty>
       <template v-else>
         <slot />
       </template>

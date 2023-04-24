@@ -33,7 +33,9 @@
         class="list-breadcrumb"
         @on-last="handleBackLast">
         <jb-breadcrumb-item>
-          <Icon style="font-size: 20px;" type="folder-open" />
+          <icon
+            style="font-size: 20px;"
+            type="folder-open" />
           <span @click="handleGoFileSource">{{ $t('file.文件源列表') }}</span>
         </jb-breadcrumb-item>
         <jb-breadcrumb-item>
@@ -74,11 +76,14 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import FileService from '@service/file';
+
   import ListActionLayout from '@components/list-action-layout';
-  import RenderList from '@components/render-list';
   import RenderFileListColumn from '@components/render-file-list-column';
+  import RenderList from '@components/render-list';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'FileList',
@@ -87,7 +92,7 @@
       RenderList,
       RenderFileListColumn,
     },
-    data () {
+    data() {
       return {
         renderColumns: [],
         path: '',
@@ -95,18 +100,18 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
       /**
        * @desc 面包屑路径
        * @return {Array}
        */
-      pathStack () {
+      pathStack() {
         return this.path.split('/').reduce((result, item) => {
           if (item) {
             const last = result.length > 0 ? result[result.length - 1].path : '';
-                         
+
             result.push({
               path: `${last}${item}/`,
               name: item,
@@ -116,18 +121,18 @@
         }, []);
       },
     },
-    created () {
+    created() {
       this.parseUrl();
       this.getBucketList = FileService.fetchgetListFileNode;
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
       /**
        * @desc 获取bucket储存桶数据
        */
-      fetchData () {
+      fetchData() {
         this.$refs.list.$emit('onFetch', {
           fileSourceId: this.fileSourceId,
           path: this.path,
@@ -137,7 +142,7 @@
       /**
        * @desc 解析url参数
        */
-      parseUrl () {
+      parseUrl() {
         const {
           fileSourceId = '',
           path = '',
@@ -151,7 +156,7 @@
       /**
        * @desc 文件路径返回上一级
        */
-      handleBackLast () {
+      handleBackLast() {
         const lastPath = this.pathStack[this.pathStack.length - 2];
         this.handlePathLocation(lastPath.path);
       },
@@ -161,7 +166,7 @@
        *
        * 重新拉取数据
        */
-      handleListRefresh (data) {
+      handleListRefresh(data) {
         // 过滤掉 checkbox 列
         this.renderColumns = Object.freeze(data.metaData.properties.filter(_ => _.type !== 'checkbox'));
         this.fileSourceInfo = Object.freeze(data.fileSourceInfo);
@@ -172,14 +177,14 @@
        *
        * 重新拉取数据
        */
-      handleSearch (name) {
+      handleSearch(name) {
         this.name = name;
         this.fetchData();
       },
       /**
        * @desc 跳转到文件源列表
        */
-      handleGoFileSource () {
+      handleGoFileSource() {
         this.$router.push({
           name: 'sourceFileList',
         });
@@ -188,7 +193,7 @@
        * @desc 面包屑切换列表
        * @param {String} path 文件路径
        */
-      handlePathLocation (path) {
+      handlePathLocation(path) {
         if (_.trim(path, '/') === _.trim(this.path, '/')) {
           return;
         }
@@ -200,7 +205,7 @@
        * @desc 行数据跳转链接
        * @param {String} path 文件路径
        */
-      handleLink (path) {
+      handleLink(path) {
         this.name = '';
         this.path = path;
         this.fetchData();
@@ -210,7 +215,7 @@
        * @param {String} actionCode 操作类型code
        * @param {Object} params 操作所需参数
        */
-      handleAction (actionCode, params) {
+      handleAction(actionCode, params) {
         return FileService.executeAction({
           fileSourceId: this.fileSourceId,
           actionCode,
@@ -223,7 +228,7 @@
       /**
        * @desc 跳转到文件源列表页面
        */
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'sourceFileList',
         });

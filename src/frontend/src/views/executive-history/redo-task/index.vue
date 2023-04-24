@@ -26,8 +26,12 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="setting-variable">
-    <h2 class="title">{{ $t('history.全局变量') }}</h2>
+  <div
+    v-bkloading="{ isLoading }"
+    class="setting-variable">
+    <h2 class="title">
+      {{ $t('history.全局变量') }}
+    </h2>
     <smart-action offset-target="variable-value">
       <global-variable-layout>
         <global-variable
@@ -45,20 +49,27 @@
           @click="handleGoExec">
           {{ $t('history.执行') }}
         </bk-button>
-        <bk-button @click="handleCancle">{{ $t('history.取消') }}</bk-button>
+        <bk-button @click="handleCancle">
+          {{ $t('history.取消') }}
+        </bk-button>
       </template>
     </smart-action>
     <element-teleport v-if="taskName">
-      <div style="font-size: 12px; color: #63656e;">（{{ taskName }}）</div>
+      <div style="font-size: 12px; color: #63656e;">
+        （{{ taskName }}）
+      </div>
     </element-teleport>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskExecuteService from '@service/task-execute';
+
   import TaskHostNodeModel from '@model/task-host-node';
-  import GlobalVariableLayout from '@components/global-variable/layout';
+
   import GlobalVariable from '@components/global-variable/edit';
+  import GlobalVariableLayout from '@components/global-variable/layout';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -66,7 +77,7 @@
       GlobalVariableLayout,
       GlobalVariable,
     },
-    data () {
+    data() {
       return {
         taskName: '',
         taskVariables: [],
@@ -77,11 +88,11 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.taskInstanceId = this.$route.params.taskInstanceId;
       this.fetchData();
     },
@@ -89,7 +100,7 @@
       /**
        * @desc 获取任务详情数据
        */
-      fetchData () {
+      fetchData() {
         TaskExecuteService.fetchTaskInstance({
           id: this.taskInstanceId,
         }).then((data) => {
@@ -117,7 +128,7 @@
       /**
        * @desc 任务重做执行
        */
-      handleGoExec () {
+      handleGoExec() {
         if (!this.$refs.variable) {
           return;
         }
@@ -154,13 +165,13 @@
       /**
        * @desc 取消重做
        */
-      handleCancle () {
+      handleCancle() {
         this.routerBack();
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'historyList',
         });

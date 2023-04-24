@@ -26,8 +26,12 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="history-record-box">
-    <div v-if="!isLoading" class="history-record">
+  <div
+    v-bkloading="{ isLoading }"
+    class="history-record-box">
+    <div
+      v-if="!isLoading"
+      class="history-record">
       <template v-if="recordList.length > 0">
         <scroll-faker>
           <div
@@ -37,18 +41,27 @@
             :class="record.statusClass"
             @click="handleViewExecuteDetail(record)">
             <div class="item-header">
-              <div class="record-name">{{ record.name }}</div>
-              <div class="record-label" v-html="record.statusDescHtml" />
+              <div class="record-name">
+                {{ record.name }}
+              </div>
+              <div
+                class="record-label"
+                v-html="record.statusDescHtml" />
             </div>
             <div class="item-body">
               <span>{{ record.startTime }}</span>
               <span class="record-operator">{{ record.operator }}</span>
-              <div class="record-total-time">{{ record.totalTimeText }}</div>
+              <div class="record-total-time">
+                {{ record.totalTimeText }}
+              </div>
             </div>
           </div>
         </scroll-faker>
       </template>
-      <Empty v-else class="record-empty" :title="$t('home.暂无执行记录')" />
+      <empty
+        v-else
+        class="record-empty"
+        :title="$t('home.暂无执行记录')" />
       <div class="record-actions">
         <bk-radio-group
           class="record-filter"
@@ -61,7 +74,9 @@
             {{ $t('home.我执行') }}
           </bk-radio-button>
         </bk-radio-group>
-        <router-link class="action-btn" :to="{ name: 'historyList' }">
+        <router-link
+          class="action-btn"
+          :to="{ name: 'historyList' }">
           {{ $t('home.更多') }}
         </router-link>
       </div>
@@ -71,13 +86,14 @@
 <script>
   import TaskExecuteService from '@service/task-execute';
   import UserService from '@service/user';
+
   import Empty from '@components/empty';
 
   export default {
     components: {
       Empty,
     },
-    data () {
+    data() {
       return {
         userInfo: {},
         isLoading: true,
@@ -85,7 +101,7 @@
         recordList: [],
       };
     },
-    created () {
+    created() {
       this.fetchUserInfo();
       this.fetchExecuteHistory();
     },
@@ -93,7 +109,7 @@
       /**
        * @desc 获取登录用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.userInfo = Object.freeze(data);
@@ -104,7 +120,7 @@
        *
        * 时间返回默认是 30 天
        */
-      fetchExecuteHistory () {
+      fetchExecuteHistory() {
         this.isLoading = true;
 
         const params = {
@@ -126,7 +142,7 @@
        * @desc 筛选登录用户执行列表
        * @param {String} operator 登录用户名
        */
-      handleRecordFilterChange (operator) {
+      handleRecordFilterChange(operator) {
         this.recordOperator = operator;
         this.fetchExecuteHistory();
       },
@@ -134,7 +150,7 @@
        * @desc 跳转任务执行详情页面
        * @param {Object} taskInstance 任务执行实例
        */
-      handleViewExecuteDetail (taskInstance) {
+      handleViewExecuteDetail(taskInstance) {
         if (taskInstance.isTask) {
           this.$router.push({
             name: 'historyTask',

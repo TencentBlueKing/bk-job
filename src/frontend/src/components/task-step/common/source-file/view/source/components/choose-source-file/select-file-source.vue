@@ -30,7 +30,9 @@
     <list-action-layout>
       <jb-breadcrumb :width="645">
         <jb-breadcrumb-item>
-          <Icon style="font-size: 20px;" type="folder-open" />
+          <icon
+            style="font-size: 20px;"
+            type="folder-open" />
           <span>{{ $t('请选择文件源') }}</span>
         </jb-breadcrumb-item>
       </jb-breadcrumb>
@@ -69,7 +71,9 @@
           <span
             v-else
             v-bk-tooltips="$t('接入点异常，暂时不可用')">
-            <bk-button disabled text>{{ row.alias }}</bk-button>
+            <bk-button
+              disabled
+              text>{{ row.alias }}</bk-button>
           </span>
         </template>
       </bk-table-column>
@@ -82,7 +86,9 @@
         :label="$t('状态')"
         prop="status">
         <template slot-scope="{ row }">
-          <Icon svg :type="row.statusIcon" />
+          <icon
+            svg
+            :type="row.statusIcon" />
           {{ row.statusText }}
         </template>
       </bk-table-column>
@@ -104,27 +110,28 @@
 </template>
 <script>
   import FileSourceManageService from '@service/file-source-manage';
+
   import ListActionLayout from '@components/list-action-layout';
-    
+
   export default {
     components: {
       ListActionLayout,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         tableData: [],
         searchParams: [],
       };
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
       /**
        * @desc 获取文件源数据列表
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         FileSourceManageService.availableSourceList(this.searchParams).then(({ data }) => {
           this.tableData = Object.freeze(data);
@@ -140,7 +147,7 @@
        *
        * 重新拉取数据
        */
-      handleSearch (alias) {
+      handleSearch(alias) {
         this.searchParams = {
           alias,
         };
@@ -153,7 +160,7 @@
        *
        * 选中数据与将要跳转的组件名称传递到父组件
        */
-      handleGoBucket (fileSource) {
+      handleGoBucket(fileSource) {
         this.$emit('on-source-change', fileSource);
       },
     },
