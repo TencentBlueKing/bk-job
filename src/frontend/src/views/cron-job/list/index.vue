@@ -587,22 +587,22 @@
        */
       renderHeader(h, data) {
         return (
-                <span>
-                    <span>{ data.column.label }</span>
-                    <bk-popover>
-                        <icon
-                            type="circle-italics-info"
-                            style="margin-left: 8px; font-size: 12px;" />
-                        <div slot="content">
-                            <div style="font-weight: bold">{ I18n.t('cron.「周期成功率」采样规则和计算公式') }</div>
-                            <div style="margin-top: 8px; font-weight: bold">{ I18n.t('cron.采样规则：') }</div>
-                            <div>{ I18n.t('cron.近 24小时执行次数 ＞10，则 “分母” 为近 24 小时执行总数') }</div>
-                            <div>{ I18n.t('cron.近 24小时执行次数 ≤ 10，则 “分母” 为近 10 次执行任务') }</div>
-                            <div style="margin-top: 6px; font-weight: bold">{ I18n.t('cron.计算公式：') }</div>
-                            <div>{ I18n.t('cron.成功次数(分子) / 分母 * 100 = 周期成功率（%）') }</div>
-                        </div>
-                    </bk-popover>
-                </span>
+          <span>
+            <span>{ data.column.label }</span>
+            <bk-popover>
+              <icon
+                type="circle-italics-info"
+                style="margin-left: 8px; font-size: 12px;" />
+              <div slot="content">
+                <div style="font-weight: bold">{ I18n.t('cron.「周期成功率」采样规则和计算公式') }</div>
+                <div style="margin-top: 8px; font-weight: bold">{ I18n.t('cron.采样规则：') }</div>
+                <div>{ I18n.t('cron.近 24小时执行次数 ＞10，则 “分母” 为近 24 小时执行总数') }</div>
+                <div>{ I18n.t('cron.近 24小时执行次数 ≤ 10，则 “分母” 为近 10 次执行任务') }</div>
+                <div style="margin-top: 6px; font-weight: bold">{ I18n.t('cron.计算公式：') }</div>
+                <div>{ I18n.t('cron.成功次数(分子) / 分母 * 100 = 周期成功率（%）') }</div>
+              </div>
+            </bk-popover>
+          </span>
         );
       },
       /**

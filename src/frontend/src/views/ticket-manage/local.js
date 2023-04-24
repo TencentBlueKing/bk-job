@@ -43,7 +43,7 @@ export default {
     描述: 'DESCRIPTION',
     创建时间: 'CREATED ON',
     更新人: 'LAST MODIFY BY',
-    更新时间: 'LAST MODIFIED ON',
+    更新时间: 'LAST MODIFIED AT',
     操作: 'ACTIONS',
     删除: 'Delete',
     用户名: 'Username',

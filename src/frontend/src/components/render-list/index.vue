@@ -398,20 +398,20 @@
           );
         };
         return (
-                <div class="select-cell">
-                    {renderCheckbox()}
-                    <bk-popover
-                        placement="bottom-start"
-                        theme="light jb-table-select-menu"
-                        arrow={ false }
-                        size="regular">
-                        <icon class="select-menu-flag" type="down-small" />
-                        <div slot="content" class="jb-table-select-plan">
-                            <div class="item" onClick={this.handlePageSelect}>{I18n.t('本页全选')}</div>
-                            <div class="item" onClick={this.fetchWhole}>{I18n.t('跨页全选')}</div>
-                        </div>
-                    </bk-popover>
-                </div>
+          <div class="select-cell">
+              {renderCheckbox()}
+              <bk-popover
+                  placement="bottom-start"
+                  theme="light jb-table-select-menu"
+                  arrow={ false }
+                  size="regular">
+                  <icon class="select-menu-flag" type="down-small" />
+                  <div slot="content" class="jb-table-select-plan">
+                      <div class="item" onClick={this.handlePageSelect}>{I18n.t('本页全选')}</div>
+                      <div class="item" onClick={this.fetchWhole}>{I18n.t('跨页全选')}</div>
+                  </div>
+              </bk-popover>
+          </div>
         );
       },
       /**

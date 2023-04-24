@@ -54,8 +54,7 @@
 </template>
 <script>
   import _ from 'lodash';
-
-  import I18n from '@/i18n';
+  import DangerousRuleService from '@service/dangerous-rule';
 
   export default {
     name: '',
@@ -68,11 +67,16 @@
     data() {
       return {
         isEditing: false,
+        actionList: [],
       };
     },
     computed: {
-      text() {
-        return _.find(this.actionList, _ => _.id === this.value).name;
+      text () {
+        const action = _.find(this.actionList, _ => _.id === this.value);
+        if (!action) {
+          return '--';
+        }
+        return action.name;
       },
       textClass() {
         const classMap = {
@@ -82,19 +86,16 @@
         return classMap[this.value];
       },
     },
-    created() {
-      this.actionList = [
-        {
-          id: 1,
-          name: I18n.t('dangerousRule.扫描'),
-        },
-        {
-          id: 2,
-          name: I18n.t('dangerousRule.拦截'),
-        },
-      ];
+    created () {
+      this.fetchData();
     },
     methods: {
+      fetchData () {
+        DangerousRuleService.fetchActionList()
+          .then((data) => {
+            this.actionList = Object.freeze(data);
+          });
+      },
       /**
        * @desc 开始编辑
        */
@@ -115,7 +116,10 @@
       /**
        * @desc 触发change 事件
        */
-      handleChange(value) {
+      handleChange (value) {
+        if (this.value === value) {
+          return;
+        }
         this.$emit('on-change', value);
       },
     },

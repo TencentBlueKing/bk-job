@@ -396,7 +396,7 @@ export default {
   状态: 'STATES',
   类型: 'TYPE',
   更新人: 'LAST MODIFIED BY',
-  更新时间: 'LAST MODIFIED ON',
+  更新时间: 'LAST MODIFIED AT',
   个源文件文件: 'File(s) selected from FILE SOURCES',
   搜索文件名: 'Search By File Name...',
   '搜索 bucket名称': 'Search By Bucket Name...',
@@ -578,4 +578,6 @@ export default {
   存在不同版本: 'different version detected',
   滚动策略必填: 'Strategy is required',
   滚动策略格式不正确: 'Strategy is incorrect format',
+  扫描: 'Scan',
+  拦截: 'Block',
 };
