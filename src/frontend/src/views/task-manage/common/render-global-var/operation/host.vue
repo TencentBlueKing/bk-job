@@ -58,13 +58,6 @@
             {{ $t('template.清空') }}
           </bk-button>
         </div>
-        <!-- <server-panel
-                    v-if="isShowClear"
-                    class="view-server-panel"
-                    :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-                    editable
-                    detail-fullscreen
-                    @on-change="handleHostChange" /> -->
         <ip-selector
           :original-value="originalHostNodeInfo"
           :show-dialog="isShowChooseIp"
@@ -89,10 +82,6 @@
         </bk-checkbox>
       </jb-form-item>
     </jb-form>
-    <!-- <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-            @on-change="handleHostChange" /> -->
   </div>
 </template>
 <script>
@@ -108,15 +97,11 @@
   import JbInput from '@components/jb-input';
 
   import I18n from '@/i18n';
-  // import ChooseIp from '@components/choose-ip';
-  // import ServerPanel from '@components/choose-ip/server-panel';
 
   export default {
     name: 'VarHost',
     components: {
       JbInput,
-      // ChooseIp,
-      // ServerPanel,
     },
     props: {
       variable: {
@@ -144,7 +129,12 @@
       },
     },
     created() {
-      this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
+      if (this.$route.name !== 'templateCreate') {
+        this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
+      } else {
+        this.originalHostNodeInfo = null;
+      }
+
       this.rules = {
         name: [
           {

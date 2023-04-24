@@ -92,7 +92,7 @@
   </card-layout>
 </template>
 <script>
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import _ from 'lodash';
 
   import StatisticsService from '@service/statistics';

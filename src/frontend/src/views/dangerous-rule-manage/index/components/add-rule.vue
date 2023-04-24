@@ -1,0 +1,131 @@
+<template>
+  <jb-form
+    ref="form"
+    form-type="vertical"
+    :model="formData"
+    :rules="rules">
+    <jb-form-item
+      :label="$t('dangerousRule.语法检测表达式.label')"
+      property="expression"
+      required>
+      <bk-input v-model="formData.expression" />
+    </jb-form-item>
+    <jb-form-item
+      :label="$t('dangerousRule.规则说明.label')"
+      property="description"
+      required>
+      <bk-input v-model="formData.description" />
+    </jb-form-item>
+    <jb-form-item
+      :label="$t('dangerousRule.脚本类型.label')"
+      property="scriptTypeList"
+      required>
+      <bk-select
+        v-model="formData.scriptTypeList"
+        :clearable="false"
+        multiple
+        show-select-all>
+        <bk-option
+          v-for="item in scriptTypeList"
+          :id="item.id"
+          :key="item.id"
+          :name="item.name" />
+      </bk-select>
+    </jb-form-item>
+    <jb-form-item
+      :label="$t('dangerousRule.动作.label')"
+      property="action"
+      required>
+      <bk-select
+        v-model="formData.action"
+        :clearable="false">
+        <bk-option
+          :id="1"
+          :name="$t('dangerousRule.扫描')" />
+        <bk-option
+          :id="2"
+          :name="$t('dangerousRule.拦截')" />
+      </bk-select>
+    </jb-form-item>
+  </jb-form>
+</template>
+<script>
+  import DangerousRuleService from '@service/dangerous-rule';
+  import PublicScriptManageService from '@service/public-script-manage';
+
+  import I18n from '@/i18n';
+
+  const generatorDefautlData = () => ({
+    expression: '',
+    description: '',
+    scriptTypeList: 1,
+    action: 1,
+  });
+
+  export default {
+    data() {
+      return {
+        formData: generatorDefautlData(),
+        scriptTypeList: [],
+      };
+    },
+    created() {
+      this.fetchScriptType();
+
+      this.rules = {
+        expression: [
+          {
+            required: true,
+            message: I18n.t('dangerousRule.语法检测表达式必填'),
+            trigger: 'change',
+          },
+        ],
+        description: [
+          {
+            required: true,
+            message: I18n.t('dangerousRule.规则说明必填'),
+            trigger: 'change',
+          },
+        ],
+        scriptTypeList: [
+          {
+            validator: value => value.length > 0,
+            message: I18n.t('dangerousRule.脚本类型必填'),
+            trigger: 'change',
+          },
+        ],
+        action: [
+          {
+            required: true,
+            message: I18n.t('dangerousRule.动作必填'),
+            trigger: 'change',
+          },
+        ],
+      };
+    },
+    methods: {
+      /**
+       * @desc 获取脚本类型列表
+       */
+      fetchScriptType() {
+        PublicScriptManageService.scriptTypeList()
+          .then((data) => {
+            this.scriptTypeList = data;
+          });
+      },
+      /**
+       * @desc 提交用户数据
+       */
+      submit() {
+        return this.$refs.form.validate()
+          .then(() => DangerousRuleService.update({
+            id: -1,
+            ...this.formData,
+          }).then(() => {
+            this.messageSuccess(I18n.t('dangerousRule.新增成功'));
+            this.$emit('on-change');
+          }));
+      },
+    },
+  };
+</script>

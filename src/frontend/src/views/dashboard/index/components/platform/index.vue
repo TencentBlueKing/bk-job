@@ -96,7 +96,7 @@
   </div>
 </template>
 <script>
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
 
   import StatisticsService from '@service/statistics';
 

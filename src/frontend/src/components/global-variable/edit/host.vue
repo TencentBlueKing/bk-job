@@ -119,7 +119,7 @@
        * @desc 解析默认值
        */
       init() {
-        if (this.data.defaultTargetValue) {
+        if (!this.data.defaultTargetValue.isEmpty) {
           this.hostNodeInfo = this.data.defaultTargetValue.hostNodeInfo;
         } else {
           this.hostNodeInfo = this.data.targetValue.hostNodeInfo;
