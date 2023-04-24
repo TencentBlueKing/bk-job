@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.InSufficientPermissionException;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbFastPushFileResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -56,8 +57,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RestController
 @Slf4j
@@ -119,7 +118,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
             log.warn("Fast transfer file, appId invalid!appId is empty or invalid!");
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "bk_biz_id");
         }
-        if (!validateFileSystemPath(request.getTargetPath())) {
+        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(request.getTargetPath())) {
             log.warn("Fast transfer file, target path is invalid!path={}", request.getTargetPath());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "file_target_path");
         }
@@ -161,7 +160,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
                 return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source.files");
             }
             for (String file : files) {
-                if (!validateFileSystemPath(file)) {
+                if (!FilePathValidateUtil.validateFileSystemAbsolutePath(file)) {
                     log.warn("Invalid path:{}", file);
                     return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "file_source.files");
                 }
@@ -180,32 +179,6 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
             }
         }
         return ValidateResult.pass();
-    }
-
-    private boolean validateFileSystemPath(String path) {
-        if (StringUtils.isBlank(path)) {
-            return false;
-        }
-        if (path.indexOf(' ') != -1) {
-            return false;
-        }
-        Pattern p1 = Pattern.compile("(//|\\\\)+");
-        Matcher m1 = p1.matcher(path);
-        if (m1.matches()) {
-            return false;
-        }
-
-        Pattern p2 = Pattern.compile("^[a-zA-Z]:(/|\\\\).*");//windows
-        Matcher m2 = p2.matcher(path);
-
-        if (!m2.matches()) { //非windows
-            if (path.charAt(0) == '/') {
-                return !path.contains("\\\\");
-            } else {
-                return false;
-            }
-        }
-        return true;
     }
 
     private TaskInstanceDTO buildFastFileTaskInstance(EsbFastPushFileRequest request) {
