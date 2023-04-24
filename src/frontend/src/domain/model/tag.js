@@ -26,7 +26,7 @@
 import Model from '@model/model';
 
 export default class Tag extends Model {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.id = payload.id;
     this.name = payload.name;
@@ -37,7 +37,7 @@ export default class Tag extends Model {
     this.createTime = payload.createTime;
     this.lastModifyUser = payload.lastModifyUser;
     this.lastModifyTime = payload.lastModifyTime;
-        
+
     // 权限
     this.canManage = payload.canManage;
   }
@@ -46,11 +46,11 @@ export default class Tag extends Model {
      * @desc 描述展示文本
      * @returns { String }
      */
-  get descriptionText () {
+  get descriptionText() {
     return this.getDefaultValue(this.description);
   }
 
-  get isEditRelateDisabled () {
+  get isEditRelateDisabled() {
     return this.relatedScriptNum < 1 && this.relatedTaskTemplateNum < 1;
   }
 }

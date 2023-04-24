@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="task-import-step5">
+  <div
+    v-bkloading="{ isLoading }"
+    class="task-import-step5">
     <div class="flag">
       <img src="/static/images/import.svg">
     </div>
@@ -38,22 +40,30 @@
       </template>
     </div>
     <div class="log-container">
-      <div ref="log" class="log-box">
+      <div
+        ref="log"
+        class="log-box">
         <template v-for="(item, index) in log">
           <div :key="index">
             <span>[ {{ item.timestamp }} ]</span> {{ item.content }}
-            <span v-if="item.type === 4" class="action" @click="handleLocationTemplate(item)">
+            <span
+              v-if="item.type === 4"
+              class="action"
+              @click="handleLocationTemplate(item)">
               {{ $t('template.查看详情') }}
-              <Icon type="jump" />
+              <icon type="jump" />
             </span>
-            <span v-if="item.type === 5" class="action" @click="handleLocationPlan(item)">
+            <span
+              v-if="item.type === 5"
+              class="action"
+              @click="handleLocationPlan(item)">
               {{ $t('template.查看详情') }}
-              <Icon type="jump" />
+              <icon type="jump" />
             </span>
           </div>
         </template>
       </div>
-      <Icon
+      <icon
         class="log-copy"
         :tippy-tips="$t('template.复制日志')"
         type="log-copy"
@@ -72,8 +82,10 @@
 </template>
 <script>
   import BackupService from '@service/backup';
+
   import { execCopy } from '@utils/assist';
   import { taskImport } from '@utils/cache-helper';
+
   import ActionBar from '../components/action-bar';
 
   const TASK_STATUS_DEFAULT = 0;
@@ -87,7 +99,7 @@
     components: {
       ActionBar,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         status: 0,
@@ -95,19 +107,19 @@
       };
     },
     computed: {
-      isImportSuccess () {
+      isImportSuccess() {
         return [
           TASK_STATUS_SUCCESS,
           TASK_STATUS_CANCEL,
         ].includes(this.status);
       },
-      isImportFailed () {
+      isImportFailed() {
         return [
           TASK_STATUS_FAILED,
         ].includes(this.status);
       },
     },
-    created () {
+    created() {
       this.id = taskImport.getItem('id');
       this.pollingQueue = [];
       taskImport.clearItem();
@@ -118,7 +130,7 @@
       });
     },
     methods: {
-      fetchData () {
+      fetchData() {
         BackupService.fetchImportInfo({
           id: this.id,
         }).then((data) => {
@@ -138,7 +150,7 @@
             this.isLoading = false;
           });
       },
-      startTimer () {
+      startTimer() {
         if (this.isClearTimer) {
           return;
         }
@@ -150,10 +162,10 @@
           this.startTimer();
         }, 2000);
       },
-      clearTimer () {
+      clearTimer() {
         this.isClearTimer = true;
       },
-      handleLocationTemplate (payload) {
+      handleLocationTemplate(payload) {
         const { href } = this.$router.resolve({
           name: 'templateDetail',
           params: {
@@ -162,7 +174,7 @@
         });
         window.open(href);
       },
-      handleLocationPlan (payload) {
+      handleLocationPlan(payload) {
         const { href } = this.$router.resolve({
           name: 'viewPlan',
           params: {
@@ -174,10 +186,10 @@
         });
         window.open(href);
       },
-      handleCopyLog () {
+      handleCopyLog() {
         execCopy(this.$refs.log.innerText);
       },
-      handleFinish () {
+      handleFinish() {
         this.$emit('on-cancle');
       },
     },

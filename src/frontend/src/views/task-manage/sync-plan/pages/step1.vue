@@ -63,15 +63,16 @@
 <script>
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
-  import Layout from '../components/layout';
+
   import RenderGlobalVar from '../../common/render-global-var';
   import RenderTaskStep from '../../common/render-task-step';
+  import Layout from '../components/layout';
   import {
-    mergeList,
-    diffVariableSimple,
     diffStepSimple,
+    diffVariableSimple,
+    mergeList,
   } from '../components/utils';
-    
+
   export default {
     name: 'SyncPlanStep1',
     components: {
@@ -97,7 +98,7 @@
         }),
       },
     },
-    data () {
+    data() {
       return {
         templateVariableList: [],
         templateStepList: [],
@@ -105,10 +106,10 @@
         stepDiff: {},
       };
     },
-    created () {
+    created() {
       this.templateVariableList = Object.freeze(mergeList(this.templateInfo.variables, this.planInfo.variableList));
       this.variableDiff = Object.freeze(diffVariableSimple(this.templateInfo.variables, this.planInfo.variableList));
-           
+
       const [
         templateStepList,
         stepDiff,
@@ -120,13 +121,13 @@
       /**
        * @desc 切换下一步
        */
-      handleNext () {
+      handleNext() {
         this.$emit('on-change', 2);
       },
       /**
        * @desc 取消同步
        */
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancel');
       },
     },

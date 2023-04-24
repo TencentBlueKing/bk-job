@@ -26,9 +26,16 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="notify-set-manange">
-    <jb-form v-if="!isLoading" class="wraper" :model="formData">
-      <div class="block-title">{{ $t('setting.用户可选择的通知渠道') }}：</div>
+  <div
+    v-bkloading="{ isLoading }"
+    class="notify-set-manange">
+    <jb-form
+      v-if="!isLoading"
+      class="wraper"
+      :model="formData">
+      <div class="block-title">
+        {{ $t('setting.用户可选择的通知渠道') }}：
+      </div>
       <notify-channel
         :channel-code="formData.channelCode"
         :channle-list="channleList"
@@ -52,11 +59,19 @@
           @click="handleSave">
           {{ $t('setting.保存') }}
         </bk-button>
-        <bk-button @click="handleReset">{{ $t('setting.重置') }}</bk-button>
+        <bk-button @click="handleReset">
+          {{ $t('setting.重置') }}
+        </bk-button>
       </div>
     </jb-form>
-    <jb-sideslider :is-show.sync="showTemplateEdit" :title="$t('setting.消息模板编辑')" :width="680">
-      <edit-of-template ref="editTemplate" :data="templateDetail" @on-change="handleNotifyContent" />
+    <jb-sideslider
+      :is-show.sync="showTemplateEdit"
+      :title="$t('setting.消息模板编辑')"
+      :width="680">
+      <edit-of-template
+        ref="editTemplate"
+        :data="templateDetail"
+        @on-change="handleNotifyContent" />
       <template #footer>
         <bk-button
           class="slider-action"
@@ -65,20 +80,32 @@
           @click="handleTriggerSave">
           {{ $t('setting.保存') }}
         </bk-button>
-        <bk-button class="slider-action" @click="handleTriggerReset">{{ $t('setting.重置') }}</bk-button>
-        <bk-button class="slider-action" @click="handleTriggerInit">{{ $t('setting.初始化') }}</bk-button>
+        <bk-button
+          class="slider-action"
+          @click="handleTriggerReset">
+          {{ $t('setting.重置') }}
+        </bk-button>
+        <bk-button
+          class="slider-action"
+          @click="handleTriggerInit">
+          {{ $t('setting.初始化') }}
+        </bk-button>
       </template>
     </jb-sideslider>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import _ from 'lodash';
+
   import GlobalSettingService from '@service/global-setting';
-  import NotifyChannel from '../components/notify-channel-table';
+
   import JbSideslider from '@components/jb-sideslider';
-  import editOfTemplate from '../components/edit-of-template';
   import JbUserSelector from '@components/jb-user-selector';
+
+  import editOfTemplate from '../components/edit-of-template';
+  import NotifyChannel from '../components/notify-channel-table';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'NotifyManage',
@@ -88,7 +115,7 @@
       JbSideslider,
       editOfTemplate,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isSubmiting: false,
@@ -106,7 +133,7 @@
         users: [],
       };
     },
-    created () {
+    created() {
       this.backlistConfig = {
         width: 202,
         placement: 'top',
@@ -118,7 +145,7 @@
       this.usersMemo = [];
     },
     methods: {
-      fetchAllChannelConfig () {
+      fetchAllChannelConfig() {
         GlobalSettingService.fetchAllNotifyChannelConfig({}, {
           permission: 'page',
         }).then((data) => {
@@ -135,7 +162,7 @@
             this.isLoading = false;
           });
       },
-      fetchAllUserBlacklist () {
+      fetchAllUserBlacklist() {
         GlobalSettingService.fetchAllUserBlacklist({}, {
           permission: 'page',
         }).then((data) => {
@@ -143,10 +170,10 @@
           this.usersMemo = [...this.users];
         });
       },
-      handleBlackListChange (user, role) {
+      handleBlackListChange(user, role) {
         this.formData.users = user;
       },
-      handleToggleChannel (code) {
+      handleToggleChannel(code) {
         const index = this.formData.channelCode.indexOf(code);
         if (index > -1) {
           this.formData.channelCode.splice(index, 1);
@@ -154,7 +181,7 @@
           this.formData.channelCode.push(code);
         }
       },
-      handleEditTemplate (channel, template) {
+      handleEditTemplate(channel, template) {
         GlobalSettingService.fetchChannelTemplate({
           channelCode: channel,
           messageTypeCode: template,
@@ -168,7 +195,7 @@
             this.showTemplateEdit = true;
           });
       },
-      handleSave () {
+      handleSave() {
         this.isSubmiting = true;
         Promise.all([
           GlobalSettingService.updateNotifyChannel({
@@ -189,14 +216,14 @@
             this.isSubmiting = false;
           });
       },
-      handleReset () {
+      handleReset() {
         this.formData.channelCode = [...this.channelCodeMemo];
         this.formData.users = [...this.usersMemo];
       },
-      handleNotifyContent (value, filed) {
+      handleNotifyContent(value, filed) {
         this.templateDetail[filed] = value;
       },
-      handleTriggerSave () {
+      handleTriggerSave() {
         this.$refs.editTemplate.$refs.templateForm.validate().then(() => {
           const { code, messageTypeCode, content, title } = this.templateDetail;
           const params = {
@@ -215,10 +242,10 @@
             });
         });
       },
-      handleTriggerReset () {
+      handleTriggerReset() {
         this.templateDetail = _.cloneDeep(this.currentTemplate);
       },
-      handleTriggerInit () {
+      handleTriggerInit() {
         this.templateDetail = _.cloneDeep(this.currentDefaultTemplate);
       },
     },

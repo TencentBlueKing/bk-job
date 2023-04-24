@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="task-manage-batch-edit-tag">
+  <div
+    v-bkloading="{ isLoading }"
+    class="task-manage-batch-edit-tag">
     <div style="margin-bottom: 8px;">
       {{ $t('template.范围') }}：{{ $t('template.共') }}<span class="strong number">{{ templateNums }}</span>{{ $t('template.个作业') }}
     </div>
@@ -81,22 +83,30 @@
                 </bk-checkbox>
               </bk-checkbox-group>
             </scroll-faker>
-            <Empty
+            <empty
               v-else-if="search"
               style="margin-top: 20px;"
               type="search">
               <span>{{ $t('template.搜索结果为空') }}，</span>
-              <bk-button text @click="handleClearSearch">{{ $t('template.清空搜索') }}</bk-button>
-            </Empty>
+              <bk-button
+                text
+                @click="handleClearSearch">
+                {{ $t('template.清空搜索') }}
+              </bk-button>
+            </empty>
           </div>
           <auth-component auth="tag/create">
-            <div class="tag-create" @click="handleNew">
+            <div
+              class="tag-create"
+              @click="handleNew">
               <bk-icon
                 style=" margin-right: 8px; font-size: 16px;"
                 type="plus-circle" />
               <span>{{ $t('template.新建标签') }}</span>
             </div>
-            <div slot="forbid" class="tag-create">
+            <div
+              slot="forbid"
+              class="tag-create">
               <bk-icon
                 style=" margin-right: 8px; font-size: 16px;"
                 type="plus-circle" />
@@ -116,20 +126,25 @@
   </div>
 </template>
 <script>
+  import _ from 'lodash';
+
+  import TagManageService from '@service/tag-manage';
+  import TaskManageService from '@service/task-manage';
+
+  import { encodeRegexp } from '@utils/assist';
+
+  import OperationTag from '@components/operation-tag';
+
   import {
+    computed,
+    getCurrentInstance,
+    onBeforeMount,
     reactive,
     ref,
     toRefs,
-    computed,
-    onBeforeMount,
-    getCurrentInstance,
   } from '@vue/composition-api';
-  import _ from 'lodash';
-  import TagManageService from '@service/tag-manage';
-  import TaskManageService from '@service/task-manage';
+
   import I18n from '@/i18n';
-  import { encodeRegexp } from '@utils/assist';
-  import OperationTag from '@components/operation-tag';
 
   export default {
     components: {
@@ -142,7 +157,7 @@
       },
     },
     emit: ['on-change'],
-    setup (props, ctx) {
+    setup(props, ctx) {
       const state = reactive({
         isLoading: true,
         isShowCreate: false,

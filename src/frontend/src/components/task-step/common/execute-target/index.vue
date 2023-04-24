@@ -45,7 +45,7 @@
           <bk-button
             class="mr10"
             @click="handleShowChooseIp">
-            <Icon type="plus" />
+            <icon type="plus" />
             {{ $t('添加服务器') }}
           </bk-button>
         </template>
@@ -57,8 +57,12 @@
               :style="targetSelectorStyle"
               :value="targetType"
               @change="handleTargetTypeChange">
-              <bk-option id="variable" :name="$t('全局变量')" />
-              <bk-option id="hostNodeInfo" :name="$t('手动添加')" />
+              <bk-option
+                id="variable"
+                :name="$t('全局变量')" />
+              <bk-option
+                id="hostNodeInfo"
+                :name="$t('手动添加')" />
             </bk-select>
             <template v-if="isGolbalVariableType">
               <bk-select
@@ -75,8 +79,10 @@
               </bk-select>
             </template>
             <template v-else>
-              <bk-button class="w120 mr10" @click="handleShowChooseIp">
-                <Icon type="plus" />
+              <bk-button
+                class="w120 mr10"
+                @click="handleShowChooseIp">
+                <icon type="plus" />
                 {{ $t('添加服务器') }}
               </bk-button>
             </template>
@@ -89,17 +95,25 @@
               class="mr10"
               type="primary">
               <span>{{ $t('复制IP') }}</span>
-              <Icon class="action-flag" type="down-small" />
+              <icon
+                class="action-flag"
+                type="down-small" />
             </bk-button>
-            <ul slot="dropdown-content" class="bk-dropdown-list">
+            <ul
+              slot="dropdown-content"
+              class="bk-dropdown-list">
               <li><a @click="handleCopyAll">{{ $t('全部IP') }}</a></li>
               <li><a @click="handleCopyFail">{{ $t('异常IP') }}</a></li>
             </ul>
           </bk-dropdown-menu>
-          <bk-button class="mr10" @click="handleClearAll">
+          <bk-button
+            class="mr10"
+            @click="handleClearAll">
             <span>{{ $t('清空') }}</span>
           </bk-button>
-          <bk-button type="primary" @click="handleRefreshHost">
+          <bk-button
+            type="primary"
+            @click="handleRefreshHost">
             {{ $t('刷新状态') }}
           </bk-button>
         </template>
@@ -111,7 +125,9 @@
           :value="searchText"
           @change="handleHostSearch" />
       </div>
-      <lower-component :custom="isShowServerPanel" level="custom">
+      <lower-component
+        :custom="isShowServerPanel"
+        level="custom">
         <server-panel
           v-show="isShowServerPanel"
           ref="serverPanel"
@@ -131,12 +147,16 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import TaskHostNodeModel from '@model/task-host-node';
-  import I18n from '@/i18n';
+
   import { execCopy } from '@utils/assist';
-  import ComposeFormItem from '@components/compose-form-item';
+
   import ChooseIp from '@components/choose-ip';
   import ServerPanel from '@components/choose-ip/server-panel';
+  import ComposeFormItem from '@components/compose-form-item';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
@@ -162,7 +182,7 @@
         default: '', // onlyHost: 快速执行只可以选择主机列表
       },
     },
-    data () {
+    data() {
       return {
         isShowChooseIp: false,
         searchText: '',
@@ -178,14 +198,14 @@
        * @desc 执行目标是否是全局变量
        * @returns {Boolean}
        */
-      isGolbalVariableType () {
+      isGolbalVariableType() {
         return this.targetType === 'variable';
       },
       /**
        * @desc 是否显示主机结果面板
        * @returns {Boolean}
        */
-      isShowServerPanel () {
+      isShowServerPanel() {
         if (this.isGolbalVariableType) {
           return false;
         }
@@ -195,7 +215,7 @@
        * @desc 是否显示主机结果快捷操作
        * @returns {Boolean}
        */
-      isShowServerAction () {
+      isShowServerAction() {
         if (this.isGolbalVariableType) {
           return false;
         }
@@ -205,14 +225,14 @@
        * @desc 清除异常主机是否可用
        * @returns {Boolean}
        */
-      isClearFailDisabled () {
+      isClearFailDisabled() {
         return this.localHost.ipList.length < 1;
       },
       /**
        * @desc 选择的主机才显示主机搜索框
        * @returns {Boolean}
        */
-      isShowHostSearchInput () {
+      isShowHostSearchInput() {
         if (this.isGolbalVariableType) {
           return false;
         }
@@ -222,7 +242,7 @@
        * @desc 切换执行目标选择的展示样式
        * @returns {Object}
        */
-      targetSelectorStyle () {
+      targetSelectorStyle() {
         return {
           width: this.$i18n.locale === 'en-US' ? '156px' : '120px',
         };
@@ -230,7 +250,7 @@
     },
     watch: {
       taskHostNode: {
-        handler (taskHostNode) {
+        handler(taskHostNode) {
           const {
             hostNodeInfo,
             variable,
@@ -250,7 +270,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       // 执行目标是主机变量
       if (this.isGolbalVariableType) {
         if (this.localVariable) {
@@ -271,7 +291,7 @@
           }
         }
       }
-            
+
       this.rules = [
         {
           validator: () => {
@@ -289,7 +309,7 @@
       /**
        * @desc 执行目标值更新
        */
-      triggerChange () {
+      triggerChange() {
         const taskHostNode = new TaskHostNodeModel({});
         if (this.isGolbalVariableType) {
           taskHostNode.variable = this.localVariable;
@@ -304,14 +324,14 @@
       /**
        * @desc 执行目标类型改变
        */
-      handleTargetTypeChange (value) {
+      handleTargetTypeChange(value) {
         this.targetType = value;
         this.triggerChange();
       },
       /**
        * @desc 弹出ip选择器弹层
        */
-      handleShowChooseIp () {
+      handleShowChooseIp() {
         this.isShowChooseIp = true;
         this.searchText = '';
       },
@@ -319,7 +339,7 @@
        * @desc 选择全局变量
        * @param {String} value 全局变量名
        */
-      handleVariableChange (value) {
+      handleVariableChange(value) {
         this.localVariable = value;
         this.triggerChange();
       },
@@ -327,7 +347,7 @@
        * @desc 主机值更新
        * @param {Object} hostNodeInfo 主机信息
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.localHost = Object.freeze(hostNodeInfo);
         this.triggerChange();
         setTimeout(() => {
@@ -337,31 +357,31 @@
       /**
        * @desc 复制所有主机
        */
-      handleCopyAll () {
+      handleCopyAll() {
         const allIP = this.$refs.serverPanel.getAllIP();
         if (allIP.length < 1) {
           this.messageWarn(I18n.t('你还未选择主机'));
           return;
         }
-                
+
         execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
       },
       /**
        * @desc 复制所有异常主机
        */
-      handleCopyFail () {
+      handleCopyFail() {
         const allFailIP = this.$refs.serverPanel.getAllIP(true);
         if (allFailIP.length < 1) {
           this.messageWarn(I18n.t('暂无异常主机'));
           return;
         }
-                
+
         execCopy(allFailIP.join('\n'), `${I18n.t('复制成功')}（${allFailIP.length}${I18n.t('个IP')}）`);
       },
       /**
        * @desc 复制所有主机数据
        */
-      handleClearAll () {
+      handleClearAll() {
         const { hostNodeInfo } = new TaskHostNodeModel({});
         this.localHost = Object.freeze(hostNodeInfo);
         this.messageSuccess(I18n.t('清空成功'));
@@ -370,14 +390,14 @@
       /**
        * @desc 刷新所有主机的状态信息
        */
-      handleRefreshHost () {
+      handleRefreshHost() {
         this.$refs.serverPanel.refresh();
       },
       /**
        * @desc 筛选主机
        * @param {String} search 筛选值
        */
-      handleHostSearch (search) {
+      handleHostSearch(search) {
         this.searchText = _.trim(search);
         this.searchData = Object.freeze(this.$refs.serverPanel.getAllHost(search));
       },

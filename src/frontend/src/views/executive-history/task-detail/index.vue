@@ -38,10 +38,14 @@
         :data="step"
         @on-select="handleSelectStep"
         @on-update="handleUpdateStepStatus" />
-      <task-step-end key="end" :finished="formData.taskExecution.isSuccess" />
+      <task-step-end
+        key="end"
+        :finished="formData.taskExecution.isSuccess" />
     </div>
     <div class="step-list-action">
-      <back-top :fixed="false" size="small" />
+      <back-top
+        :fixed="false"
+        size="small" />
       <execution-process
         v-if="!isLoading"
         class="execution-process"
@@ -56,32 +60,36 @@
           v-bk-tooltips.bottom="$t('history.去重做')"
           class="action-btn"
           @click="handleGoRetry">
-          <Icon type="redo" />
+          <icon type="redo" />
         </div>
-        <div slot="forbid" class="action-btn">
-          <Icon type="redo" />
+        <div
+          slot="forbid"
+          class="action-btn">
+          <icon type="redo" />
         </div>
       </auth-component>
       <div
         v-bk-tooltips.bottom="$t('history.全局变量')"
         class="action-btn"
         @click="handleShowGlobalVariable">
-        <Icon type="global-var" />
+        <icon type="global-var" />
       </div>
       <div
         v-bk-tooltips.bottom="$t('history.执行方案')"
         class="action-btn"
         @click="handleGoPlan">
-        <Icon type="flow" />
+        <icon type="flow" />
       </div>
       <div
         v-bk-tooltips.bottom="$t('history.操作记录')"
         class="action-btn"
         @click="handleShowOperationRecord">
-        <Icon type="clock" />
+        <icon type="clock" />
       </div>
     </div>
-    <execution-status-bar :data="formData.taskExecution" type="task">
+    <execution-status-bar
+      :data="formData.taskExecution"
+      type="task">
       <step-action
         v-if="formData.taskExecution.isForcedEnable"
         :confirm-handler="handleForceTask"
@@ -110,17 +118,21 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskExecuteService from '@service/task-execute';
+
   import BackTop from '@components/back-top';
-  import TaskStep from './components/task-step';
-  import ExecutionProcess from './components/execution-process';
-  import TaskStepStart from './components/task-step/theme/start';
-  import TaskStepEnd from './components/task-step/theme/end';
+
+  import ExecutionStatusBar from '../common/execution-status-bar';
   import GlobalVariable from '../common/global-variable';
   import OperationRecord from '../common/operation-record';
   import StepAction from '../common/step-action';
-  import ExecutionStatusBar from '../common/execution-status-bar';
+
+  import ExecutionProcess from './components/execution-process';
+  import TaskStep from './components/task-step';
+  import TaskStepEnd from './components/task-step/theme/end';
+  import TaskStepStart from './components/task-step/theme/start';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -135,7 +147,7 @@
       TaskStepEnd,
       ExecutionStatusBar,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         taskInstanceId: 0,
@@ -151,11 +163,11 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.timer = '';
       this.taskPollingQueue = [];
       this.taskInstanceId = this.$route.params.id;
@@ -166,13 +178,13 @@
         this.clearTimer();
       });
     },
-        
+
     methods: {
-      fetchData (isFirst = true) {
+      fetchData(isFirst = true) {
         if (isFirst) {
           this.isLoading = true;
         }
-                
+
         TaskExecuteService.fetchTaskExecutionResult({
           id: this.taskInstanceId,
         }, {
@@ -202,7 +214,7 @@
             this.isLoading = false;
           });
       },
-      startTimer () {
+      startTimer() {
         if (this.timerClear) {
           return;
         }
@@ -214,11 +226,11 @@
           this.startTimer();
         }, 1000);
       },
-      clearTimer () {
+      clearTimer() {
         this.timerClear = true;
         this.taskPollingQueue = [];
       },
-      handleSelectStep (stepInstance) {
+      handleSelectStep(stepInstance) {
         this.$router.push({
           name: 'historyStep',
           params: {
@@ -231,14 +243,14 @@
           },
         });
       },
-      handleStartForceTask () {
+      handleStartForceTask() {
         this.isForceing = true;
       },
-      handleCancelForceTask () {
+      handleCancelForceTask() {
         this.isForceing = false;
         this.fetchData();
       },
-      handleForceTask () {
+      handleForceTask() {
         return TaskExecuteService.updateTaskExecutionStepOperateTerminate({
           taskInstanceId: this.taskInstanceId,
         }).then(() => {
@@ -248,10 +260,10 @@
           return true;
         });
       },
-      handleUpdateStepStatus () {
+      handleUpdateStepStatus() {
         this.fetchData();
       },
-      handleGoRetry () {
+      handleGoRetry() {
         this.isLoading = true;
         TaskExecuteService.fetchTaskInstance({
           id: this.taskInstanceId,
@@ -299,13 +311,13 @@
             this.isLoading = false;
           });
       },
-      handleShowGlobalVariable () {
+      handleShowGlobalVariable() {
         this.isShowGlobalVariable = true;
       },
-      handleShowOperationRecord () {
+      handleShowOperationRecord() {
         this.isShowOperationRecord = true;
       },
-      handleGoPlan () {
+      handleGoPlan() {
         let router = {};
         if (this.formData.taskExecution.debugTask) {
           router = this.$router.resolve({
@@ -332,7 +344,7 @@
         }
         window.open(router.href);
       },
-      routerBack () {
+      routerBack() {
         if (this.formData.taskExecution.debugTask) {
           this.$router.push({
             name: 'templateDetail',
@@ -365,7 +377,7 @@
           });
           return;
         }
-                
+
         this.$router.push({
           name: 'historyList',
         });

@@ -34,24 +34,44 @@
       'not-start': data.isNotStart,
     }">
     <div class="confirm-wraper">
-      <div class="step-name">{{ data.name }}</div>
+      <div class="step-name">
+        {{ data.name }}
+      </div>
       <div class="approval-info">
-        <div v-if="data.roleNameList.length || data.userList.length" class="approval-person">
+        <div
+          v-if="data.roleNameList.length || data.userList.length"
+          class="approval-person">
           <span class="persion-label">{{ $t('history.确认人') }}：</span>
-          <div v-for="item in data.roleNameList" :key="`role_${item}`" class="person">
-            <Icon class="role-flag" type="user-group-gray" />
+          <div
+            v-for="item in data.roleNameList"
+            :key="`role_${item}`"
+            class="person">
+            <icon
+              class="role-flag"
+              type="user-group-gray" />
             {{ item }}
           </div>
-          <div v-for="item in data.userList" :key="`user_${item}`" class="person">
-            <Icon class="role-flag" type="user" />
+          <div
+            v-for="item in data.userList"
+            :key="`user_${item}`"
+            class="person">
+            <icon
+              class="role-flag"
+              type="user" />
             {{ item }}
           </div>
         </div>
-        <div v-if="data.notifyChannelNameList.length > 0" class="approval-channel">
+        <div
+          v-if="data.notifyChannelNameList.length > 0"
+          class="approval-channel">
           {{ $t('history.通知方式') }}：{{ data.notifyChannelNameList.join('，') }}
         </div>
       </div>
-      <div v-if="data.confirmMessage" class="step-desc">{{ data.confirmMessage }}</div>
+      <div
+        v-if="data.confirmMessage"
+        class="step-desc">
+        {{ data.confirmMessage }}
+      </div>
       <template v-if="!data.isNotStart">
         <bk-input
           v-if="data.isApprovaling"
@@ -61,11 +81,18 @@
           :placeholder="$t('history.可在此处输入确认或终止的因由')"
           :rows="3"
           type="textarea" />
-        <div v-else-if="data.operator" class="confirm-reason-text">
-          <div class="person">{{ data.operator }}</div>
+        <div
+          v-else-if="data.operator"
+          class="confirm-reason-text">
+          <div class="person">
+            {{ data.operator }}
+          </div>
           <span v-html="data.confirmReasonHtml" />
         </div>
-        <div v-if="data.actions.length > 0" class="step-action" @click.stop="">
+        <div
+          v-if="data.actions.length > 0"
+          class="step-action"
+          @click.stop="">
           <step-action
             v-for="action in data.actions"
             :key="action"
@@ -74,13 +101,19 @@
         </div>
       </template>
     </div>
-    <Icon v-if="data.displayStyle !== 'success'" class="approval-close" type="close" @click="handleClose" />
+    <icon
+      v-if="data.displayStyle !== 'success'"
+      class="approval-close"
+      type="close"
+      @click="handleClose" />
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskExecuteService from '@service/task-execute';
+
   import StepAction from '../../../../common/step-action';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -93,14 +126,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         confirmReason: '',
       };
     },
 
     methods: {
-      handleChangeStatus (operationCode) {
+      handleChangeStatus(operationCode) {
         return TaskExecuteService.updateTaskExecutionStepOperate({
           id: this.data.stepInstanceId,
           operationCode,
@@ -115,7 +148,7 @@
           return true;
         });
       },
-      handleClose () {
+      handleClose() {
         this.$emit('on-close');
       },
     },

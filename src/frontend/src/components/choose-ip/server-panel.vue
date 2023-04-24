@@ -58,13 +58,17 @@
           @on-view="handleView" />
       </bk-collapse>
     </div>
-    <lower-component :custom="showDetail" level="custom">
+    <lower-component
+      :custom="showDetail"
+      level="custom">
       <host-detail
         v-model="showDetail"
         :append="hostDetailAppend"
         :data="viewInfo" />
     </lower-component>
-    <lower-component :custom="searchMode" level="custom">
+    <lower-component
+      :custom="searchMode"
+      level="custom">
       <host-search
         v-show="searchMode"
         :data="searchData"
@@ -74,14 +78,16 @@
   </div>
 </template>
 <script>
-  import { encodeRegexp } from '@utils/assist';
   import TaskHostNodeModel from '@model/task-host-node';
-  import ServerNode from './view/node';
-  import ServerHost from './view/host';
+
+  import { encodeRegexp } from '@utils/assist';
+
+  import { generateHostRealId } from './components/utils';
   import ServerGroup from './view/group';
+  import ServerHost from './view/host';
   import HostDetail from './view/host-detail';
   import HostSearch from './view/host-search';
-  import { generateHostRealId } from './components/utils';
+  import ServerNode from './view/node';
 
   const addCollapsePanel = (target, name) => {
     if (target.length > 0) {
@@ -144,7 +150,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         activePanel: [],
         showDetail: false,
@@ -156,13 +162,13 @@
       };
     },
     computed: {
-      needRender () {
+      needRender() {
         if (this.renderWithEmpty) {
           return true;
         }
         return this.nodeInfo.length || this.hostList.length || this.groupList.length;
       },
-      classes () {
+      classes() {
         const stack = [];
         if (this.searchMode) {
           stack.push('show-search');
@@ -172,7 +178,7 @@
     },
     watch: {
       hostNodeInfo: {
-        handler (hostNodeInfo) {
+        handler(hostNodeInfo) {
           const { dynamicGroupList, ipList, topoNodeList } = hostNodeInfo;
           this.hostList = Object.freeze(ipList);
           if (ipList.length > 0) {
@@ -197,7 +203,7 @@
        *
        * 获取面板中的所有ip(主机)，根据ip去重
        */
-      getAllIP (returnErrorIP = false) {
+      getAllIP(returnErrorIP = false) {
         const allHostList = [];
         if (this.$refs.host) {
           allHostList.push(...this.$refs.host.getAllHost());
@@ -229,7 +235,7 @@
        *
        * 获取主机面板中的所有主机信息，根据（ip + 云区域）去重
        */
-      getAllHost (filter = '') {
+      getAllHost(filter = '') {
         if (filter.trim() === '') {
           return this.$refs.host.getAllHost();
         }
@@ -253,7 +259,7 @@
       /**
        * @desc 外部调用——移除无效主机
        */
-      removeAllInvalidHost () {
+      removeAllInvalidHost() {
         this.$refs.host && this.$refs.host.removeAllInvalidHost();
         this.$refs.node && this.$refs.node.removeAllInvalidHost();
         this.$refs.group && this.$refs.group.removeAllInvalidHost();
@@ -263,7 +269,7 @@
        *
        * 获取主机面板中的所有主机（主机），根据（ip + 云区域）去重
        */
-      refresh () {
+      refresh() {
         this.$refs.host && this.$refs.host.refresh();
         this.$refs.node && this.$refs.node.refresh();
         this.$refs.group && this.$refs.group.refresh();
@@ -271,7 +277,7 @@
       /**
        * @desc 触发值的改变
        */
-      trigger () {
+      trigger() {
         this.$emit('on-change', {
           ipList: this.hostList,
           topoNodeList: this.nodeInfo,
@@ -282,7 +288,7 @@
        * @desc 面板的loading状态
        * @param {Boolean} loading 每个面板的loading状态
        */
-      handleLoading (loading) {
+      handleLoading(loading) {
         if (loading) {
           this.requestQueue.push(true);
         } else {
@@ -293,7 +299,7 @@
        * @desc 查看分组和节点下的主机列表
        * @param {Boolean} payload 查看详情的数据
        */
-      handleView (payload) {
+      handleView(payload) {
         this.showDetail = true;
         this.viewInfo = Object.freeze(payload);
       },
@@ -301,7 +307,7 @@
        * @desc 更新主机
        * @param {Array} hostList 最新的主机列表
        */
-      handleHostChange (hostList) {
+      handleHostChange(hostList) {
         this.hostList = Object.freeze(hostList);
         this.trigger();
       },
@@ -309,7 +315,7 @@
        * @desc 更新节点
        * @param {Array} nodeInfo 最新的节点列表
        */
-      handleNodeChange (nodeInfo) {
+      handleNodeChange(nodeInfo) {
         this.nodeInfo = Object.freeze(nodeInfo);
         this.trigger();
       },
@@ -317,7 +323,7 @@
        * @desc 更新分组
        * @param {Array} groupList 最新的分组列表
        */
-      handleGroupChange (groupList) {
+      handleGroupChange(groupList) {
         this.groupList = Object.freeze(groupList);
         this.trigger();
       },
@@ -325,7 +331,7 @@
        * @desc 搜索主机面板删除了主机
        * @param {Array} removeHostList 在搜索面板中被删除的主机
        */
-      handleSearchChange (removeHostList) {
+      handleSearchChange(removeHostList) {
         const removeHostMap = {};
         removeHostList.forEach((item) => {
           removeHostMap[item.realId] = true;

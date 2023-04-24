@@ -26,13 +26,18 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="exec-script-view" :class="{ loading: isLoading }">
+  <div
+    v-bkloading="{ isLoading }"
+    class="exec-script-view"
+    :class="{ loading: isLoading }">
     <detail-item :label="$t('template.脚本来源：')">
       {{ stepInfo.scriptSourceText }}
     </detail-item>
-    <detail-item v-if="isReferScript" :label="$t('template.脚本引用：')">
+    <detail-item
+      v-if="isReferScript"
+      :label="$t('template.脚本引用：')">
       <span>{{ scriptName }}</span>
-      <Icon
+      <icon
         v-bk-tooltips="$t('template.脚本详情')"
         class="script-detail"
         type="jump"
@@ -47,12 +52,16 @@
           @click="handleShowScriptVersionDiff">
           {{ $t('template.版本对比') }}
         </bk-button>
-        <bk-button text @click="handleUpdateScript">
+        <bk-button
+          text
+          @click="handleUpdateScript">
           {{ $t('template.去更新') }}
         </bk-button>
       </div>
     </detail-item>
-    <detail-item :label="$t('template.脚本内容：')" layout="vertical">
+    <detail-item
+      :label="$t('template.脚本内容：')"
+      layout="vertical">
       <ace-editor
         :lang="language"
         :options="languageOption"
@@ -61,19 +70,33 @@
     </detail-item>
     <div>
       <detail-item :label="$t('template.脚本参数：')">
-        <jb-edit-textarea field="scriptParam" readonly :value="stepInfo.scriptParam" />
+        <jb-edit-textarea
+          field="scriptParam"
+          readonly
+          :value="stepInfo.scriptParam" />
       </detail-item>
-      <detail-item :label="$t('template.超时时长：')">{{ stepInfo.timeout }}（s）</detail-item>
-      <detail-item :label="$t('template.错误处理：')">{{ stepInfo.ignoreErrorText }}</detail-item>
-      <detail-item :label="$t('template.执行账号：')">{{ executeAccountText }}</detail-item>
+      <detail-item :label="$t('template.超时时长：')">
+        {{ stepInfo.timeout }}（s）
+      </detail-item>
+      <detail-item :label="$t('template.错误处理：')">
+        {{ stepInfo.ignoreErrorText }}
+      </detail-item>
+      <detail-item :label="$t('template.执行账号：')">
+        {{ executeAccountText }}
+      </detail-item>
     </div>
-    <detail-item v-if="stepInfo.executeTarget.variable" :label="$t('template.执行目标：')">
+    <detail-item
+      v-if="stepInfo.executeTarget.variable"
+      :label="$t('template.执行目标：')">
       <render-global-variable
         :data="variable"
         :name="stepInfo.executeTarget.variable"
         :type="$t('template.执行目标')" />
     </detail-item>
-    <detail-item v-else :label="$t('template.执行目标：')" layout="vertical">
+    <detail-item
+      v-else
+      :label="$t('template.执行目标：')"
+      layout="vertical">
       <server-panel
         detail-fullscreen
         :host-node-info="stepInfo.executeTarget.hostNodeInfo" />
@@ -86,16 +109,19 @@
   </div>
 </template>
 <script>
-  import ScriptService from '@service/script-manage';
   import AccountManageService from '@service/account-manage';
+  import ScriptService from '@service/script-manage';
+
+  import {
+    formatScriptTypeValue,
+  } from '@utils/assist';
+
   import AceEditor from '@components/ace-editor';
   import ServerPanel from '@components/choose-ip/server-panel';
   import DetailItem from '@components/detail-layout/item';
   import JbEditTextarea from '@components/jb-edit/textarea';
+
   import RenderGlobalVariable from './components/render-global-variable';
-  import {
-    formatScriptTypeValue,
-  } from '@utils/assist';
   import SyncScriptVersionDiff from './components/sync-script-version-diff';
 
   export default {
@@ -118,7 +144,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         stepInfo: {},
         executeAccountText: '',
@@ -131,14 +157,14 @@
       };
     },
     computed: {
-      isLoading () {
+      isLoading() {
         return this.requestQueue.length > 0;
       },
-      isReferScript () {
+      isReferScript() {
         return this.data.scriptStepInfo.scriptSource && this.data.scriptStepInfo.scriptSource !== 1;
       },
     },
-    created () {
+    created() {
       this.stepInfo = Object.freeze(this.data.scriptStepInfo);
       this.language = formatScriptTypeValue(this.stepInfo.scriptLanguage);
       this.languageOption = [
@@ -153,7 +179,7 @@
       /**
        * @desc 更新脚本版本获取版本详情
        */
-      fetchScriptDetail () {
+      fetchScriptDetail() {
         this.requestQueue.push(true);
         ScriptService.versionDetail({
           id: this.stepInfo.scriptVersionId,
@@ -169,7 +195,7 @@
       /**
        * @desc 获取完整的账号列表
        */
-      fetchAccount () {
+      fetchAccount() {
         this.requestQueue.push(true);
         AccountManageService.fetchAccountWhole()
           .then((data) => {
@@ -187,7 +213,7 @@
       /**
        * @desc 新开窗口跳转脚本版本列表
        */
-      handleGoScriptDetail () {
+      handleGoScriptDetail() {
         const routerName = this.scriptInfo.publicScript ? 'publicScriptVersion' : 'scriptVersion';
 
         const router = this.$router.resolve({
@@ -204,16 +230,16 @@
       /**
        * @desc 脚本版本对比
        */
-      handleShowScriptVersionDiff () {
+      handleShowScriptVersionDiff() {
         this.isShowDiff = true;
       },
-      handleDiffClose () {
+      handleDiffClose() {
         this.isShowDiff = false;
       },
       /**
        * @desc 编辑作业模板，更新步骤引用的脚本版本
        */
-      handleUpdateScript () {
+      handleUpdateScript() {
         this.$router.push({
           name: 'templateEdit',
           params: {

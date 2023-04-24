@@ -47,10 +47,10 @@ export const bigTreeTransformTopologyOfTopology = (target, level = 0) => {
   if (!target || target.length < 1) {
     return [];
   }
-                
+
   return target.map((item) => {
     const { instanceId, instanceName, child, objectId, count } = item;
-        
+
     const children = bigTreeTransformTopologyOfTopology(child, level + 1);
 
     return Object.freeze({
@@ -153,7 +153,7 @@ export const mergeInputHost = (first, second) => {
       result.push(item);
     }
   });
-    
+
   return result;
 };
 
@@ -162,7 +162,7 @@ export const mergeTopologyHost = (target, preList, lastList) => {
   lastList.forEach((item) => {
     lastListMap[item.realId] = true;
   });
-    
+
   // 如果是删除操作
   if (preList.length > lastList.length) {
     // 找到删除的主机
@@ -182,7 +182,7 @@ export const mergeTopologyHost = (target, preList, lastList) => {
     });
     return result;
   }
-    
+
   // 添加主机——和IP输入逻辑相同
   return mergeInputHost(target, lastList);
 };
@@ -261,6 +261,6 @@ export const sortHost = (hostList) => {
   Object.values(uniqueNormalMap).forEach((value) => {
     result.push(value);
   });
-    
+
   return result;
 };

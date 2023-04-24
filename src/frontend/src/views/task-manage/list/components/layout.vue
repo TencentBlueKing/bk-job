@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div ref="handler" class="task-layout">
+  <div
+    ref="handler"
+    class="task-layout">
     <div
       :class="{
         'layout-left': true,
@@ -39,8 +41,13 @@
       </scroll-faker>
     </div>
     <div class="layout-right">
-      <div class="toggle-button" @click="handleToggle">
-        <Icon class="toggle-arrow" :class="{ open: isOpen }" type="down-small" />
+      <div
+        class="toggle-button"
+        @click="handleToggle">
+        <icon
+          class="toggle-arrow"
+          :class="{ open: isOpen }"
+          type="down-small" />
       </div>
       <slot />
     </div>
@@ -51,20 +58,20 @@
   const TASK_TAG_PANEL_TOGGLE = 'task_tag_panel_toggle';
 
   export default {
-    data () {
+    data() {
       let isOpen = localStorage.getItem(TASK_TAG_PANEL_TOGGLE);
       if (!isOpen) {
         isOpen = true;
       } else {
         isOpen = JSON.parse(isOpen);
       }
-            
+
       return {
         isOpen,
         styles: {},
       };
     },
-    mounted () {
+    mounted() {
       const {
         top,
       } = getOffset(this.$refs.handler);
@@ -73,7 +80,7 @@
       };
     },
     methods: {
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
         localStorage.setItem(TASK_TAG_PANEL_TOGGLE, JSON.stringify(this.isOpen));
       },

@@ -27,34 +27,60 @@
 
 <template>
   <div>
-    <div class="row" :class="diff.approvalUser">
-      <div class="label">{{ $t('template.确认人：') }}</div>
+    <div
+      class="row"
+      :class="diff.approvalUser">
+      <div class="label">
+        {{ $t('template.确认人：') }}
+      </div>
       <div class="value">
         <div class="approval-wraper">
-          <div v-for="role in renderRoleList" :key="role" class="item">
-            <Icon class="approval-flag" type="user-group-gray" />
+          <div
+            v-for="role in renderRoleList"
+            :key="role"
+            class="item">
+            <icon
+              class="approval-flag"
+              type="user-group-gray" />
             {{ role }}
           </div>
-          <div v-for="user in data.approvalUser.userList" :key="user" class="item">
-            <Icon class="approval-flag" type="user" />
+          <div
+            v-for="user in data.approvalUser.userList"
+            :key="user"
+            class="item">
+            <icon
+              class="approval-flag"
+              type="user" />
             {{ user }}
           </div>
         </div>
       </div>
     </div>
-    <div class="row" :class="diff.notifyChannel">
-      <div class="label">{{ $t('template.通知方式：') }}</div>
-      <div class="value">{{ renderChannel }}</div>
+    <div
+      class="row"
+      :class="diff.notifyChannel">
+      <div class="label">
+        {{ $t('template.通知方式：') }}
+      </div>
+      <div class="value">
+        {{ renderChannel }}
+      </div>
     </div>
-    <div class="row" :class="diff.approvalMessage">
-      <div class="label">{{ $t('template.确认描述：') }}</div>
-      <div class="value">{{ data.approvalMessage || '-' }}</div>
+    <div
+      class="row"
+      :class="diff.approvalMessage">
+      <div class="label">
+        {{ $t('template.确认描述：') }}
+      </div>
+      <div class="value">
+        {{ data.approvalMessage || '-' }}
+      </div>
     </div>
   </div>
 </template>
 <script>
-  import QueryGlobalSettingService from '@service/query-global-setting';
   import NotifyService from '@service/notify';
+  import QueryGlobalSettingService from '@service/query-global-setting';
 
   export default {
     name: '',
@@ -69,13 +95,13 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         renderRoleList: [],
         renderChannel: '',
       };
     },
-    created () {
+    created() {
       Promise.all([
         this.fetchRoleList(),
         this.fetchAllChannel(),
@@ -84,7 +110,7 @@
       });
     },
     methods: {
-      fetchRoleList () {
+      fetchRoleList() {
         NotifyService.fetchRoleList()
           .then((data) => {
             const roleMap = {};
@@ -94,7 +120,7 @@
             this.renderRoleList = this.data.approvalUser.roleList.map(_ => roleMap[_]);
           });
       },
-      fetchAllChannel () {
+      fetchAllChannel() {
         QueryGlobalSettingService.fetchActiveNotifyChannel()
           .then((data) => {
             const channelMap = {};

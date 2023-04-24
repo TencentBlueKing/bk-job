@@ -27,7 +27,7 @@
 
 <template>
   <div class="render-server-agent">
-    <Icon
+    <icon
       v-if="isLoading"
       class="rotate-loading"
       svg
@@ -40,12 +40,16 @@
         {{ $t('正常') }}:<span class="success number">{{ data.normalNum }}</span>
       </div>
       <div v-if="data.abnormalNum > 0">
-        <span v-if="data.normalNum > 0" class="splite" />
+        <span
+          v-if="data.normalNum > 0"
+          class="splite" />
         {{ $t('异常') }}:<span class="error number">{{ data.abnormalNum }}</span>
       </div>
       <span v-if="isEmpty">--</span>
     </div>
-    <lower-component :custom="isShowDetail" level="custom">
+    <lower-component
+      :custom="isShowDetail"
+      level="custom">
       <jb-dialog
         v-model="isShowDetail"
         class="render-server-detail-dialog"
@@ -54,7 +58,9 @@
         <template #header>
           <div class="variable-title">
             <span>{{ title }}</span>
-            <i class="global-variable-dialog-close bk-icon icon-close" @click="handleClose" />
+            <i
+              class="global-variable-dialog-close bk-icon icon-close"
+              @click="handleClose" />
           </div>
         </template>
         <div class="content-wraper">
@@ -70,9 +76,11 @@
 </template>
 <script>
   import AppManageService from '@service/app-manage';
+
   import TaskHostNodeModel from '@model/task-host-node';
+
   import ServerPanel from '@components/choose-ip/server-panel';
-    
+
   export default {
     name: '',
     components: {
@@ -92,7 +100,7 @@
         default: '，',
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isShowDetail: false,
@@ -103,20 +111,20 @@
       };
     },
     computed: {
-      isEmpty () {
+      isEmpty() {
         return TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
       },
     },
     watch: {
-      hostNodeInfo () {
+      hostNodeInfo() {
         this.fetchData();
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         if (this.isEmpty || this.isLoading) {
           this.isLoading = false;
           return;
@@ -137,10 +145,10 @@
             this.isLoading = false;
           });
       },
-      handleShowDetail () {
+      handleShowDetail() {
         this.isShowDetail = true;
       },
-      handleClose () {
+      handleClose() {
         this.isShowDetail = false;
       },
     },

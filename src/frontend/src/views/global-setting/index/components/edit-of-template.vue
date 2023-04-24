@@ -51,14 +51,30 @@
         </div>
       </div>
     </div>
-    <jb-form ref="templateForm" class="notify-template-form" form-type="vertical" :model="formData" :rules="rules">
-      <jb-form-item v-if="formData.code === 'mail'" :label="$t('setting.邮件主题')" :property="'title'" required>
+    <jb-form
+      ref="templateForm"
+      class="notify-template-form"
+      form-type="vertical"
+      :model="formData"
+      :rules="rules">
+      <jb-form-item
+        v-if="formData.code === 'mail'"
+        :label="$t('setting.邮件主题')"
+        :property="'title'"
+        required>
         <bk-input
           v-model="formData.title"
           @change="value => handleChange(value, 'title')" />
       </jb-form-item>
-      <jb-form-item :label="$t('setting.模板内容')" :property="'content'" required>
-        <bk-button text @click="toggleShowVariable(true)">{{ $t('setting.内置变量') }}</bk-button>
+      <jb-form-item
+        :label="$t('setting.模板内容')"
+        :property="'content'"
+        required>
+        <bk-button
+          text
+          @click="toggleShowVariable(true)">
+          {{ $t('setting.内置变量') }}
+        </bk-button>
         <bk-input
           v-model="formData.content"
           type="textarea"
@@ -66,8 +82,14 @@
       </jb-form-item>
     </jb-form>
     <div class="message-preview">
-      <bk-button text @click="isShowPreviewSend = !isShowPreviewSend">{{ $t('setting.消息预览') }}</bk-button>
-      <render-strategy v-if="isShowPreviewSend" left="20">
+      <bk-button
+        text
+        @click="isShowPreviewSend = !isShowPreviewSend">
+        {{ $t('setting.消息预览') }}
+      </bk-button>
+      <render-strategy
+        v-if="isShowPreviewSend"
+        left="20">
         <div class="send-message-content">
           <jb-user-selector
             class="input"
@@ -90,17 +112,20 @@
       class="internal-variable-dialog"
       :show-footer="false"
       :width="960">
-      <internalVariable :handle-close="toggleShowVariable" />
+      <internal-variable :handle-close="toggleShowVariable" />
     </jb-dialog>
   </div>
 </template>
 
 <script>
-  import I18n from '@/i18n';
   import GlobalSettingService from '@service/global-setting';
-  import RenderStrategy from '@components/render-strategy';
-  import InternalVariable from './internal-variable';
+
   import JbUserSelector from '@components/jb-user-selector';
+  import RenderStrategy from '@components/render-strategy';
+
+  import InternalVariable from './internal-variable';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     // 渠道code
@@ -133,7 +158,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isShowPreviewSend: false,
         isShowVariable: false,
@@ -143,11 +168,11 @@
       };
     },
     watch: {
-      data (newVal) {
+      data(newVal) {
         if (newVal) this.formData = newVal;
       },
     },
-    created () {
+    created() {
       this.formData = this.data || {};
       this.rules = {
         content: [
@@ -161,16 +186,16 @@
       }
     },
     methods: {
-      toggleShowVariable (isShow) {
+      toggleShowVariable(isShow) {
         this.isShowVariable = isShow;
       },
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', value);
       },
-      handleApprovalUserChange (user, role) {
+      handleApprovalUserChange(user, role) {
         this.reciverList = user;
       },
-      handleSend () {
+      handleSend() {
         const { code, messageTypeCode, content, title } = this.formData;
         const params = {
           channelCode: code,

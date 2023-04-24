@@ -24,19 +24,21 @@
 */
 
 /* eslint-disable no-param-reassign */
-import TicketSource from '../source/ticket-manage';
 import FileManageService from '@service/file-source-manage';
+
 import TicketModel from '@model/ticket';
 
+import TicketSource from '../source/ticket-manage';
+
 export default {
-  fetchList (params) {
+  fetchList(params) {
     return TicketSource.getAll(params)
       .then(({ data }) => {
         data.data = data.data.map(ticket => new TicketModel(ticket));
         return data;
       });
   },
-  fetchListWithRelate (params) {
+  fetchListWithRelate(params) {
     return TicketSource.getAll(params)
       .then(({ data }) => {
         data.data = data.data.map(ticket => new TicketModel(ticket));
@@ -53,10 +55,10 @@ export default {
         return data;
       });
   },
-  update (params) {
+  update(params) {
     return TicketSource.update(params);
   },
-  remove (params) {
+  remove(params) {
     return TicketSource.delete(params);
   },
 };

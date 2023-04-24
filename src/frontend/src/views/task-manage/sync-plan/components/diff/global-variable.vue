@@ -26,10 +26,13 @@
 -->
 
 <template>
-  <div :id="`${type}_variable_${data.id}_${data.name}`" class="diff-global-variable" :class="classes">
+  <div
+    :id="`${type}_variable_${data.id}_${data.name}`"
+    class="diff-global-variable"
+    :class="classes">
     <div class="name">
       <div class="type-flag">
-        <Icon :type="data.icon" />
+        <icon :type="data.icon" />
       </div>
       <span>{{ data.name }}</span>
     </div>
@@ -97,14 +100,14 @@
       },
     },
     computed: {
-      classes () {
+      classes() {
         const diffKey = `${this.data.realId}`;
         if (this.diff[diffKey]) {
           return this.diff[diffKey].type;
         }
         return '';
       },
-      diffValue () {
+      diffValue() {
         const diffKey = `${this.data.realId}`;
         if (this.diff[diffKey]) {
           return this.diff[diffKey].value || {};

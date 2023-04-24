@@ -29,7 +29,9 @@
   <layout class="script-manage-detail-box">
     <div slot="title">
       <span>{{ scriptInfo.version }}</span>
-      <span class="script-status" v-html="scriptInfo.statusHtml" />
+      <span
+        class="script-status"
+        v-html="scriptInfo.statusHtml" />
     </div>
     <template slot="sub-header">
       <span style="font-size: 12px; color: #63656e;">
@@ -37,7 +39,7 @@
         <span>|</span>
         <span>{{ scriptInfo.lastModifyTime }}</span>
       </span>
-      <Icon
+      <icon
         v-if="contentTab === 'content'"
         v-bk-tooltips="$t('全屏')"
         v-test="{ type: 'button', value: 'scriptEditFullscreen' }"
@@ -61,7 +63,10 @@
       </div>
     </div>
     <div class="version-content">
-      <div ref="content" class="content-dispaly" :style="contentStyles">
+      <div
+        ref="content"
+        class="content-dispaly"
+        :style="contentStyles">
         <keep-alive v-if="contentHeight > 0">
           <component
             :is="contentCom"
@@ -190,20 +195,26 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import ScriptService from '@service/script-manage';
+
   import PublicScriptService from '@service/public-script-manage';
+  import ScriptService from '@service/script-manage';
+
   import {
     checkPublicScript,
     getOffset,
   } from '@utils/assist';
   import { debugScriptCache } from '@utils/cache-helper';
+
   import AceEditor from '@components/ace-editor';
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
+
   import Layout from '../components/layout';
+
   import RenderLog from './components/render-log';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -226,7 +237,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isExceLoading: false,
@@ -235,7 +246,7 @@
       };
     },
     computed: {
-      contentCom () {
+      contentCom() {
         const comMap = {
           content: AceEditor,
           log: RenderLog,
@@ -246,21 +257,21 @@
        * @desc 已存在未上线版本不允许新建版本
        * @returns { Boolean }
        */
-      isCopyCreateDisabled () {
+      isCopyCreateDisabled() {
         return !!_.find(this.scriptVersionList, scriptVersion => scriptVersion.isDraft);
       },
-      contentStyles () {
+      contentStyles() {
         return {
           height: `${this.contentHeight}px`,
         };
       },
     },
     watch: {
-      scriptInfo () {
+      scriptInfo() {
         this.contentTab = 'content';
       },
     },
-    created () {
+    created() {
       window.changeFlag = false;
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
@@ -270,7 +281,7 @@
         window.removeEventListener('resize', this.init);
       });
     },
-    mounted () {
+    mounted() {
       this.calcContentHeight();
       const handleResize = _.throttle(this.calcContentHeight, 60);
       window.addEventListener('resize', handleResize);
@@ -282,11 +293,11 @@
       /**
        * @desc 计算内容区高度
        */
-      calcContentHeight () {
+      calcContentHeight() {
         const contentOffsetTop = getOffset(this.$refs.content).top;
         this.contentHeight = window.innerHeight - contentOffsetTop - 20;
       },
-      handleFullScreen () {
+      handleFullScreen() {
         if (this.contentTab === 'content') {
           this.$refs.aceEditor.handleFullScreen();
         }
@@ -295,13 +306,13 @@
        * @desc 脚本内容和脚本版本日志切换
        * @param {String} tab 切换面板
        */
-      handleChangeDispaly (tab) {
+      handleChangeDispaly(tab) {
         this.contentTab = tab;
       },
       /**
        * @desc 上线脚本
        */
-      handleOnline () {
+      handleOnline() {
         return this.serviceHandler.scriptVersionOnline({
           id: this.scriptInfo.id,
           versionId: this.scriptInfo.scriptVersionId,
@@ -313,7 +324,7 @@
       /**
        * @desc 删除脚本
        */
-      handleRemove () {
+      handleRemove() {
         return this.serviceHandler.scriptVersionRemove({
           versionId: this.scriptInfo.scriptVersionId,
         }).then(() => {
@@ -334,7 +345,7 @@
       /**
        * @desc 下线脚本
        */
-      handleOffline () {
+      handleOffline() {
         return this.serviceHandler.scriptVersionOffline({
           id: this.scriptInfo.id,
           versionId: this.scriptInfo.scriptVersionId,
@@ -346,7 +357,7 @@
       /**
        * @desc 复制新建
        */
-      handleCopyAndCreate () {
+      handleCopyAndCreate() {
         this.$emit('on-go-copy-create', {
           scriptVersionId: this.scriptInfo.scriptVersionId,
         });
@@ -354,7 +365,7 @@
       /**
        * @desc 调整到快速执行脚本页面调试脚本
        */
-      handleDebugScript () {
+      handleDebugScript() {
         debugScriptCache.setItem({
           type: this.scriptInfo.type,
           content: this.scriptInfo.content,
@@ -370,7 +381,7 @@
       /**
        * @desc 同步脚本
        */
-      handleGoSync () {
+      handleGoSync() {
         const routerName = this.publicScript ? 'scriptPublicSync' : 'scriptSync';
         this.$router.push({
           name: routerName,
@@ -383,7 +394,7 @@
       /**
        * @desc 编辑脚本
        */
-      handleEdit (payload) {
+      handleEdit(payload) {
         this.$emit('on-go-edit', {
           scriptVersionId: this.scriptInfo.scriptVersionId,
         });
@@ -391,7 +402,7 @@
       /**
        * @desc 调整到快速执行脚本页面执行脚本
        */
-      handleGoExce () {
+      handleGoExce() {
         this.$router.push({
           name: 'fastExecuteScript',
           params: {

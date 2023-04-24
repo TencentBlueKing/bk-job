@@ -26,9 +26,18 @@
 -->
 
 <template>
-  <jb-form ref="form" form-type="vertical" :model="formData" :rules="rules">
-    <jb-form-item :label="$t('ticket.密码')" property="value1" required>
-      <bk-input v-model="formData.value1" type="password" />
+  <jb-form
+    ref="form"
+    form-type="vertical"
+    :model="formData"
+    :rules="rules">
+    <jb-form-item
+      :label="$t('ticket.密码')"
+      property="value1"
+      required>
+      <bk-input
+        v-model="formData.value1"
+        type="password" />
     </jb-form-item>
     <jb-form-item :label="$t('ticket.描述')">
       <bk-input
@@ -54,7 +63,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         formData: {
           value1: this.data.value1,
@@ -62,7 +71,7 @@
         },
       };
     },
-    created () {
+    created() {
       if (this.type !== 'PASSWORD') {
         this.formData.value1 = '';
       }
@@ -82,7 +91,7 @@
        *
        * 校验成功传递表单数据到父组件
        */
-      getData () {
+      getData() {
         return this.$refs.form.validate()
           .then(validator => this.formData, validator => Promise.reject(validator.content));
       },

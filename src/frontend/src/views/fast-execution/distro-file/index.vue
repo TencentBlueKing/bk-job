@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="push-file-page">
+  <div
+    v-bkloading="{ isLoading }"
+    class="push-file-page">
     <resize-layout
       class="push-file-content"
       :right-fixed="true"
@@ -121,15 +123,23 @@
           </bk-button>
         </template>
       </smart-action>
-      <div id="rollingExprGuide" slot="right" />
+      <div
+        id="rollingExprGuide"
+        slot="right" />
     </resize-layout>
     <div
       v-if="historyList.length > 0"
       class="execution-history"
       :class="{ active: isShowHistory }">
-      <div class="toggle-btn" @click="handleShowHistory">
-        <Icon class="toggle-flag" type="angle-double-left" />
-        <div class="recent-result">{{ $t('execution.最近结果') }}</div>
+      <div
+        class="toggle-btn"
+        @click="handleShowHistory">
+        <icon
+          class="toggle-flag"
+          type="angle-double-left" />
+        <div class="recent-result">
+          {{ $t('execution.最近结果') }}
+        </div>
       </div>
       <div class="history-content">
         <div
@@ -148,22 +158,27 @@
   import {
     mapState,
   } from 'vuex';
-  import I18n from '@/i18n';
+
   import TaskExecuteService from '@service/task-execute';
+
   import TaskStepModel from '@model/task/task-step';
   import TaskHostNodeModel from '@model/task-host-node';
-  import JbForm from '@components/jb-form';
-  import CardLayout from '@components/task-step/file/card-layout';
-  import ItemFactory from '@components/task-step/file/item-factory';
-  import ResizeLayout from '@components/resize-layout';
+
   import {
-    genDefaultName,
     compareHost,
     detectionSourceFileDupLocation,
+    genDefaultName,
   } from '@utils/assist';
   import {
     pushFileHistory,
   } from '@utils/cache-helper';
+
+  import JbForm from '@components/jb-form';
+  import ResizeLayout from '@components/resize-layout';
+  import CardLayout from '@components/task-step/file/card-layout';
+  import ItemFactory from '@components/task-step/file/item-factory';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     // 快速执行name
@@ -204,7 +219,7 @@
       ItemFactory,
       ResizeLayout,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         formData: getDefaultData(),
@@ -219,12 +234,12 @@
         isEditNewSourceFile: state => state.isEditNewSourceFile,
       }),
     },
-    created () {
+    created() {
       window.IPInputScope = 'FILE_DISTRIBUTION';
       this.init();
       this.calcTargetPathTipsPlacement();
     },
-    mounted () {
+    mounted() {
       window.addEventListener('resize', this.calcTargetPathTipsPlacement);
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', this.calcTargetPathTipsPlacement);
@@ -239,7 +254,7 @@
        *
        * 通过任务taskInstanceId获取任务的详情
        */
-      fetchData () {
+      fetchData() {
         this.$request(TaskExecuteService.fetchTaskInstance({
           id: this.taskInstanceId,
         }), () => {
@@ -294,7 +309,7 @@
        *     -- 路由回退重做
        *     -- 执行历史指定任务重做
        */
-      init () {
+      init() {
         this.taskInstanceId = parseInt(this.$route.params.taskInstanceId, 10);
         this.timeTravel();
 
@@ -327,7 +342,7 @@
        * @desc 回溯执行历史
        *
        */
-      timeTravel () {
+      timeTravel() {
         this.historyList = Object.freeze(pushFileHistory.getItem());
       },
       /**
@@ -335,7 +350,7 @@
        * @param {Array} history 执行历史记录
        *
        */
-      pushLocalStorage (history) {
+      pushLocalStorage(history) {
         const historyList = pushFileHistory.getItem();
         historyList.unshift(history);
         pushFileHistory.setItem(historyList);
@@ -344,14 +359,14 @@
        * @desc 展开执行历史列表
        *
        */
-      handleShowHistory () {
+      handleShowHistory() {
         this.isShowHistory = !this.isShowHistory;
       },
       /**
        * @desc 查看执行历史记录任务详情
        *
        */
-      handleGoHistoryDetail (payload) {
+      handleGoHistoryDetail(payload) {
         this.$router.push({
           name: 'quickLaunchStep',
           params: {
@@ -368,14 +383,14 @@
        * @param {String} field 字段名
        * @param {Any} value  字段最新值
        */
-      handleChange (field, value) {
+      handleChange(field, value) {
         this.formData[field] = value;
       },
       /**
        * @desc 批量更新字段
        * @param {Object} payload 将要更新的字段值
        */
-      handleReset (payload) {
+      handleReset(payload) {
         this.formData = {
           ...this.formData,
           ...payload,
@@ -384,7 +399,7 @@
       /**
        * @desc 执行
        */
-      handleSubmit () {
+      handleSubmit() {
         this.isSubmiting = true;
         this.$refs.pushFileForm.validate()
           // 检测没有保存的源文件
@@ -535,7 +550,7 @@
       /**
        * @desc 重置
        */
-      handleCancel () {
+      handleCancel() {
         this.$refs.pushFileForm.clearError();
         this.formData = getDefaultData();
       },

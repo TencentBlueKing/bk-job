@@ -37,26 +37,26 @@
         <bk-button
           class="mr10"
           @click="handleAddServerFile">
-          <Icon type="plus" />
+          <icon type="plus" />
           {{ $t('添加服务器文件') }}
         </bk-button>
         <bk-button
           v-if="ENABLE_FEATURE_FILE_MANAGE"
           class="mr10"
           @click="handleAddSourceFile">
-          <Icon type="plus" />
+          <icon type="plus" />
           {{ $t('添加文件源文件') }}
         </bk-button>
         <bk-button
           class="mr10"
           :loading="isConfigLoading"
           @click="handlerUploadLocalFile">
-          <Icon type="plus" />
+          <icon type="plus" />
           {{ $t('添加本地文件') }}
         </bk-button>
         <span class="source-file-tips">
           {{ $t('添加本地文件会有同名文件覆盖风险') }}
-          <Icon
+          <icon
             v-bk-tooltips="uploadFileTipsConfig"
             class="tips-flag"
             type="info" />
@@ -71,20 +71,33 @@
         v-bind="$attrs"
         @on-change="handleSourceFileChange" />
     </jb-form-item>
-    <div id="uploadFileTips" class="upload-file-tips">
-      <div class="row">{{ $t('支持中文文件名，本地上传文件大小不能超过') }} {{ fileMaxUploadSize }}</div>
-      <div class="row">{{ $t('文件名支持使用通配符，如： /tmp/jobsvr_2020*.log') }}</div>
-      <div class="row">{{ $t('文件名支持正则表达式写法以匹配多个文件，文件名前 需加 REGEX: 前缀，如：/tmp/REGEX:myfile-[A-Za-z]{0,10}.tar.gz') }}</div>
-      <div class="row">{{ $t('如需分发文件目录，文件名请以/结束') }}</div>
+    <div
+      id="uploadFileTips"
+      class="upload-file-tips">
+      <div class="row">
+        {{ $t('支持中文文件名，本地上传文件大小不能超过') }} {{ fileMaxUploadSize }}
+      </div>
+      <div class="row">
+        {{ $t('文件名支持使用通配符，如： /tmp/jobsvr_2020*.log') }}
+      </div>
+      <div class="row">
+        {{ $t('文件名支持正则表达式写法以匹配多个文件，文件名前 需加 REGEX: 前缀，如：/tmp/REGEX:myfile-[A-Za-z]{0,10}.tar.gz') }}
+      </div>
+      <div class="row">
+        {{ $t('如需分发文件目录，文件名请以/结束') }}
+      </div>
     </div>
   </div>
 </template>
 <script>
   import _ from 'lodash';
   import { mapMutations } from 'vuex';
-  import I18n from '@/i18n';
+
   import QuertGlobalSettingService from '@service/query-global-setting';
+
   import ViewFile from './view';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'SourceFileBase',
@@ -102,7 +115,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isConfigLoading: true,
         isAddServerFile: false,
@@ -114,7 +127,7 @@
     },
     watch: {
       data: {
-        handler (newSourceFileList) {
+        handler(newSourceFileList) {
           if (this.isSelfChange) {
             this.isSelfChange = false;
             return;
@@ -130,13 +143,13 @@
         },
         immediate: true,
       },
-      sourceFileList (sourceFileList) {
+      sourceFileList(sourceFileList) {
         if (sourceFileList.length > 0) {
           this.$refs.item.clearValidator();
         }
       },
     },
-    created () {
+    created() {
       this.rules = [
         {
           validator: () => {
@@ -232,7 +245,7 @@
       };
       this.fetchJobConfig();
     },
-    mounted () {
+    mounted() {
       const unWatch = this.$watch(() => this.$refs.serverFileView.isShow, (value) => {
         this.showFileView = value;
       }, {
@@ -252,7 +265,7 @@
        *
        * 本地文件上传大小限制
        */
-      fetchJobConfig () {
+      fetchJobConfig() {
         this.isConfigLoading = true;
         QuertGlobalSettingService.fetchJobConfig()
           .then((data) => {
@@ -267,26 +280,26 @@
       /**
        * @desc 触发change事件
        */
-      triggerChange () {
+      triggerChange() {
         this.isSelfChange = true;
         this.$emit('on-change', this.sourceFileList);
       },
       /**
        * @desc 显示添加服务器文件输入框
        */
-      handleAddServerFile () {
+      handleAddServerFile() {
         this.isAddServerFile = true;
       },
       /**
        * @desc 显示添加文件源文件弹框
        */
-      handleAddSourceFile () {
+      handleAddSourceFile() {
         this.$refs.serverFileView.handleAddSourceFile();
       },
       /**
        * @desc 选择本地文件开始上传
        */
-      handlerUploadLocalFile () {
+      handlerUploadLocalFile() {
         this.isAddLocalFile = true;
         this.$refs.serverFileView.startUploadLocalFile();
       },
@@ -294,7 +307,7 @@
        * @desc 更新文件来源的值
        * @param {Array} souceFileList 文件源文件
        */
-      handleSourceFileChange (souceFileList) {
+      handleSourceFileChange(souceFileList) {
         this.sourceFileList = Object.freeze(souceFileList);
         this.triggerChange();
       },

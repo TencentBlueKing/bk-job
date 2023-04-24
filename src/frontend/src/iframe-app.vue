@@ -26,9 +26,13 @@
 -->
 
 <template>
-  <div class="iframe-navigation-container" :class="{ loading }">
+  <div
+    class="iframe-navigation-container"
+    :class="{ loading }">
     <div class="container-header">
-      <div id="sitePageTitle" class="container-header-title">
+      <div
+        id="sitePageTitle"
+        class="container-header-title">
         <router-back mode="iframe" />
         <span>{{ routerTitle }}</span>
         <div id="siteHeaderStatusBar" />
@@ -47,7 +51,7 @@
     components: {
       RouterBack,
     },
-    data () {
+    data() {
       return {
         loading: true,
         routerTitle: '',
@@ -55,7 +59,7 @@
     },
     watch: {
       $route: {
-        handler (route) {
+        handler(route) {
           this.routerTitle = (route.meta.title || route.meta.pageTitle);
         },
         immediate: true,
@@ -66,7 +70,7 @@
      *
      * loading用于控制页面切换效果
      */
-    mounted () {
+    mounted() {
       setTimeout(() => {
         this.loading = false;
       }, 100);

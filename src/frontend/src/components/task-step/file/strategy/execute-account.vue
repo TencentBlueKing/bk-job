@@ -26,7 +26,11 @@
 -->
 
 <template>
-  <jb-form-item :label="$t('执行账号')" :property="field" required :rules="rules">
+  <jb-form-item
+    :label="$t('执行账号')"
+    :property="field"
+    required
+    :rules="rules">
     <account-select
       class="form-item-content"
       type="system"
@@ -35,8 +39,9 @@
   </jb-form-item>
 </template>
 <script>
-  import I18n from '@/i18n';
   import AccountSelect from '@components/account-select';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
@@ -52,7 +57,7 @@
         required: true,
       },
     },
-    created () {
+    created() {
       this.rules = [
         {
           required: true,
@@ -62,7 +67,7 @@
       ];
     },
     methods: {
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

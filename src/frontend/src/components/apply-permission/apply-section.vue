@@ -26,12 +26,25 @@
 -->
 
 <template>
-  <div v-if="isNotPermission" class="apply-permission-page">
+  <div
+    v-if="isNotPermission"
+    class="apply-permission-page">
     <div class="page-main">
       <ask-permission :permission-list="authResult.requiredPermissions" />
       <div class="footer">
-        <bk-button v-if="isAppleFlag" class="mr10" theme="primary" @click="handleApply">{{ applyText }}</bk-button>
-        <bk-button v-else theme="primary" @click="handleReload">{{ appliedText }}</bk-button>
+        <bk-button
+          v-if="isAppleFlag"
+          class="mr10"
+          theme="primary"
+          @click="handleApply">
+          {{ applyText }}
+        </bk-button>
+        <bk-button
+          v-else
+          theme="primary"
+          @click="handleReload">
+          {{ appliedText }}
+        </bk-button>
       </div>
     </div>
   </div>
@@ -41,20 +54,22 @@
 </template>
 <script>
   import EventBus from '@utils/event-bus';
-  import I18n from '@/i18n';
+
   import AskPermission from './index';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
       AskPermission,
     },
-    data () {
+    data() {
       return {
         isAppleFlag: true,
         isNotPermission: false,
       };
     },
-    created () {
+    created() {
       this.applyText = I18n.t('去申请');
       this.appliedText = I18n.t('已申请');
       EventBus.$once('permission-catch', this.permissionHold);
@@ -66,24 +81,24 @@
       /**
        * @desc 捕获权限异常
        */
-      permissionHold (authResult) {
+      permissionHold(authResult) {
         this.isNotPermission = true;
         this.authResult = authResult;
       },
       /**
        * @desc 跳转权限中心
        */
-      handleApply () {
+      handleApply() {
         window.open(this.authResult.applyUrl, '_blank');
         this.isAppleFlag = false;
       },
       /**
        * @desc 已申请刷新页面
        */
-      handleReload () {
+      handleReload() {
         location.reload();
       },
-            
+
     },
   };
 </script>

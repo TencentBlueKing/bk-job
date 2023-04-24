@@ -23,11 +23,12 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import Model from '@model/model';
 
+import I18n from '@/i18n';
+
 export default class WhiteIp extends Model {
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.actionScopeList = payload.actionScopeList;
     this.appList = payload.appList || [];
@@ -42,18 +43,18 @@ export default class WhiteIp extends Model {
     this.canManage = payload.canManage;
   }
 
-  get ip () {
+  get ip() {
     if (this.ipList.length < 2) {
       return this.ipList[0];
     }
     return `${I18n.t('共')}${this.ipList.length}${I18n.t('个')}`;
   }
 
-  get scopeText () {
+  get scopeText() {
     return this.actionScopeList.map(item => item.name).join('，');
   }
 
-  get appText () {
+  get appText() {
     return this.appList.map(_ => _.name).join('，');
   }
 }

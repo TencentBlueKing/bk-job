@@ -24,6 +24,7 @@
 */
 
 import Model from '@model/model';
+
 import I18n from '@/i18n';
 
 const STATUS_DRAFT = 0; // 未上线
@@ -47,7 +48,7 @@ export default class ScriptSync extends Model {
     [SYNC_STATUS_FAILED]: 'sync-failed',
   };
 
-  constructor (payload) {
+  constructor(payload) {
     super();
     this.templateId = payload.templateId;
     this.templateName = payload.templateName;
@@ -70,7 +71,7 @@ export default class ScriptSync extends Model {
      * @desc 同步失败
      * @returns { Boolean }
      */
-  get isSyncFailed () {
+  get isSyncFailed() {
     return this.syncStatus === SYNC_STATUS_FAILED;
   }
 
@@ -78,7 +79,7 @@ export default class ScriptSync extends Model {
      * @desc 脚本状态 tag
      * @returns { HTMLElement }
      */
-  get statusHtml () {
+  get statusHtml() {
     let styles = 'display: inline-block; padding: 0 6px; line-height: 18px; font-size: 12px; border-radius: 2px;';
     if (this.scriptStatus === STATUS_ONLINE) {
       styles += 'background: #E5F6EA; color: #3FC06D';
@@ -92,7 +93,7 @@ export default class ScriptSync extends Model {
      * @desc 同步状态icon展示
      * @returns { String }
      */
-  get syncIcon () {
+  get syncIcon() {
     return ScriptSync.SYNC_STATUS_ICON_MAP[this.syncStatus];
   }
 
@@ -100,7 +101,7 @@ export default class ScriptSync extends Model {
      * @desc 同步状态
      * @returns { String }
      */
-  get syncStatusMsg () {
+  get syncStatusMsg() {
     if (this.syncStatus === 1) {
       return I18n.t('同步成功');
     }
@@ -114,7 +115,7 @@ export default class ScriptSync extends Model {
      * @desc 同步失败重试按钮展示
      * @returns { String }
      */
-  get syncTry () {
+  get syncTry() {
     return [
       this.syncStatus === 2 ? 'try-show' : 'try-hide',
     ];

@@ -28,15 +28,20 @@
 <template>
   <div class="job-tab">
     asdasd
-    <Icon class="job-check" type="check" />
-    <bk-switcher class="job-switch" size="min" theme="primary" />
+    <icon
+      class="job-check"
+      type="check" />
+    <bk-switcher
+      class="job-switch"
+      size="min"
+      theme="primary" />
   </div>
 </template>
 <script>
   export default {
     name: '',
 
-    data () {
+    data() {
       return {};
     },
 

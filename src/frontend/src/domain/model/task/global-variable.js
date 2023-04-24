@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import TaskHostNodeModel from '@model/task-host-node';
+
+import I18n from '@/i18n';
 
 const TYPE_STRING = 1;
 const TYPE_NAMESPACE = 2;
@@ -57,8 +58,8 @@ export default class GlobalVariable {
     [TYPE_RELATE_ARRAY]: I18n.t('数组'),
     [TYPE_INDEX_ARRAY]: I18n.t('数组'),
   };
-    
-  constructor (payload, isClone = false) {
+
+  constructor(payload, isClone = false) {
     this.id = isClone ? -payload.id : payload.id;
     this.name = payload.name || '';
     this.type = payload.type || TYPE_STRING;
@@ -76,7 +77,7 @@ export default class GlobalVariable {
      * @desc 主机变量
      * @returns { Boolean }
      */
-  get isHost () {
+  get isHost() {
     return this.type === TYPE_HOST;
   }
 
@@ -84,7 +85,7 @@ export default class GlobalVariable {
      * @desc 密文变量
      * @returns { Boolean }
      */
-  get isPassword () {
+  get isPassword() {
     return this.type === TYPE_PASSWORD;
   }
 
@@ -92,7 +93,7 @@ export default class GlobalVariable {
      * @desc 变量值是否为空
      * @returns { Boolean }
      */
-  get isEmpty () {
+  get isEmpty() {
     if (this.type === TYPE_HOST) {
       return this.defaultTargetValue.isEmpty;
     }
@@ -103,7 +104,7 @@ export default class GlobalVariable {
      * @desc 变量值是否必填
      * @returns { Boolean }
      */
-  get isRequired () {
+  get isRequired() {
     return !!this.required;
   }
 
@@ -111,7 +112,7 @@ export default class GlobalVariable {
      * @desc 变量的icon
      * @returns { String }
      */
-  get icon () {
+  get icon() {
     return GlobalVariable.iconMap[this.type];
   }
 
@@ -119,7 +120,7 @@ export default class GlobalVariable {
      * @desc 类型的文本展示
      * @returns { String }
      */
-  get typeText () {
+  get typeText() {
     return GlobalVariable.typeTextMap[this.type];
   }
 
@@ -127,7 +128,7 @@ export default class GlobalVariable {
      * @desc 类型的分类描述
      * @returns { String }
      */
-  get typeDescription () {
+  get typeDescription() {
     const descriptionMap = {
       [TYPE_STRING]: 'string',
       [TYPE_NAMESPACE]: 'namespace',
@@ -138,12 +139,12 @@ export default class GlobalVariable {
     };
     return descriptionMap[this.type];
   }
-    
+
   /**
      * @desc 可变的文本描述
      * @returns { String }
      */
-  get changeableText () {
+  get changeableText() {
     return this.changeable ? I18n.t('是') : I18n.t('否');
   }
 
@@ -151,7 +152,7 @@ export default class GlobalVariable {
      * @desc 必填的问题描述
      * @returns { String }
      */
-  get requiredText () {
+  get requiredText() {
     return this.required ? I18n.t('是') : I18n.t('否');
   }
 
@@ -159,7 +160,7 @@ export default class GlobalVariable {
      * @desc 展示的值
      * @returns { String }
      */
-  get valueText () {
+  get valueText() {
     if ([
       TYPE_HOST,
     ].includes(this.type)) {
@@ -177,7 +178,7 @@ export default class GlobalVariable {
      * @desc 鼠标hover的title展示
      * @returns { String }
      */
-  get title () {
+  get title() {
     if (this.type === TYPE_PASSWORD) {
       return '';
     }

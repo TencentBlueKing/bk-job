@@ -27,16 +27,17 @@
 
 <script>
   import _ from 'lodash';
+
+  import { encodeRegexp } from './helper';
   import locale from './locale';
   import Mixin from './mixin';
-  import { encodeRegexp } from './helper';
 
   export default {
     name: 'BKSearchValue',
     mixins: [
       Mixin,
     ],
-    data () {
+    data() {
       return {
         activeIndex: -1, // 上下键选中项索引，多选时不支持上下键位操作
         list: [],
@@ -50,7 +51,7 @@
     },
     computed: {
       // 是否弹出面板
-      needRender () {
+      needRender() {
         const { currentItem } = this;
         // 未选中key
         if (!currentItem.id) {
@@ -72,7 +73,7 @@
         return true;
       },
       // 是否多选
-      isMultiable () {
+      isMultiable() {
         const { currentItem } = this;
         // 1，如果是条件筛选则只支持单选
         if (currentItem.conditions && currentItem.conditions.length) {
@@ -82,7 +83,7 @@
         return currentItem.multiable;
       },
       // 是否展示conditions
-      isCondition () {
+      isCondition() {
         // 1，有配置conditions
         // 2，未选择conditions
         const { currentItem } = this;
@@ -91,11 +92,11 @@
     },
     watch: {
       // 处理默认选中、筛选选中状态
-      list (list) {
+      list(list) {
         this.activeIndex = -1;
         if (this.isMultiable) {
           // 多选
-                        
+
           // 没有过滤项默认不选中——不做选中处理
           if (!this.search) {
             return;
@@ -141,7 +142,7 @@
         }
       },
     },
-    created () {
+    created() {
       setTimeout(() => {
         const checkMap = this.menu.checked.reduce((result, item) => {
           result[item.id] = item;
@@ -152,17 +153,17 @@
       // eslint-disable-next-line no-underscore-dangle
       this.generatorList = _.debounce(this._generatorList, 200);
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('keydown', this.handleKeydown);
     },
-    beforeDestroy () {
+    beforeDestroy() {
       document.body.removeEventListener('keydown', this.handleKeydown);
     },
     methods: {
       /**
        * @desc 生成 value 面板的列表
        */
-      async _generatorList () {
+      async _generatorList() {
         const { currentItem } = this;
         this.error = false;
 
@@ -221,8 +222,8 @@
           }
         }
       },
-            
-      handleClick (item) {
+
+      handleClick(item) {
         // 禁用
         if (item.disabled) {
           return false;
@@ -233,7 +234,7 @@
           return;
         }
         const { primaryKey } = this.searchSelect;
-                
+
         // 多选
         if (this.isMultiable) {
           const checkeMap = { ...this.checkeMap };
@@ -254,8 +255,8 @@
           this.handleSubmit();
         }
       },
-            
-      handleKeydown (e) {
+
+      handleKeydown(e) {
         if (!this.needRender) {
           return;
         }
@@ -273,18 +274,18 @@
         }
         this.scrollActiveToView(event);
       },
-            
-      handleSubmit (e) {
+
+      handleSubmit(e) {
         this.$emit('select-check', Object.values(this.checkeMap));
-                
+
         this.$emit('change');
       },
-            
-      handleCancel () {
+
+      handleCancel() {
         this.$emit('cancel');
       },
 
-      renderContent (h) {
+      renderContent(h) {
         // 显示错误
         if (this.error) {
           return (
@@ -312,7 +313,7 @@
                     <ul ref="list" class="search-menu">
                         { this.list.map((item, index) => {
                             const id = item[primaryKey];
-                                
+
                             return (
                                 <li class={{
                                     'search-menu-item': true,
@@ -364,8 +365,8 @@
         );
       },
     },
-        
-    render (h) {
+
+    render(h) {
       if (!this.needRender) {
         return null;
       }

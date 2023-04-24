@@ -27,29 +27,46 @@
 
 <template>
   <div class="create-ticket-page">
-    <jb-form ref="ticketForm" form-type="vertical" :model="formData" :rules="rules">
-      <jb-form-item :label="$t('ticket.名称')" property="name" required>
+    <jb-form
+      ref="ticketForm"
+      form-type="vertical"
+      :model="formData"
+      :rules="rules">
+      <jb-form-item
+        :label="$t('ticket.名称')"
+        property="name"
+        required>
         <bk-input v-model="formData.name" />
       </jb-form-item>
       <jb-form-item :label="$t('ticket.类型.label')">
         <div class="ticket-type-wraper">
-          <bk-select v-model="formData.type" :clearable="false">
-            <bk-option id="PASSWORD" :name="$t('ticket.单一密码')">
+          <bk-select
+            v-model="formData.type"
+            :clearable="false">
+            <bk-option
+              id="PASSWORD"
+              :name="$t('ticket.单一密码')">
               <div class="ticket-name-option">
                 <span>{{ $t('ticket.单一密码') }}</span>
               </div>
             </bk-option>
-            <bk-option id="USERNAME_PASSWORD" :name="$t('ticket.用户名+密码')">
+            <bk-option
+              id="USERNAME_PASSWORD"
+              :name="$t('ticket.用户名+密码')">
               <div class="ticket-name-option">
                 <span>{{ $t('ticket.用户名+密码') }}</span>
               </div>
             </bk-option>
-            <bk-option id="SECRET_KEY" :name="$t('ticket.单一SecretKey')">
+            <bk-option
+              id="SECRET_KEY"
+              :name="$t('ticket.单一SecretKey')">
               <div class="ticket-name-option">
                 <span>{{ $t('ticket.单一SecretKey') }}</span>
               </div>
             </bk-option>
-            <bk-option id="APP_ID_SECRET_KEY" :name="$t('ticket.AppID+SecretKey')">
+            <bk-option
+              id="APP_ID_SECRET_KEY"
+              :name="$t('ticket.AppID+SecretKey')">
               <div class="ticket-name-option">
                 <span>{{ $t('ticket.AppID+SecretKey') }}</span>
               </div>
@@ -68,12 +85,14 @@
 </template>
 
 <script>
-  import I18n from '@/i18n';
   import TicketService from '@service/ticket-manage';
-  import UsernamePassword from './components/username-password';
+
   import SecretkeyAppid from './components/app-id-secret-key';
-  import Secretkey from './components/secret-key';
   import Password from './components/password';
+  import Secretkey from './components/secret-key';
+  import UsernamePassword from './components/username-password';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     name: '',
@@ -91,14 +110,14 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
         type: '',
       };
     },
     computed: {
-      formItemCom () {
+      formItemCom() {
         const formItemMap = {
           PASSWORD: Password,
           USERNAME_PASSWORD: UsernamePassword,
@@ -110,7 +129,7 @@
     },
     watch: {
     },
-    created () {
+    created() {
       if (this.data.id) {
         this.formData = { ...this.data };
         this.type = this.formData.type;
@@ -137,7 +156,7 @@
        *
        * 校验通过后,根据文件源ID是否存在提示新建、编辑提示语
        */
-      submit () {
+      submit() {
         return Promise.all([
           this.$refs.handler.getData(),
           this.$refs.ticketForm.validate(),

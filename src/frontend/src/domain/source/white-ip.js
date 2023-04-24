@@ -26,34 +26,34 @@
 import Request from '@utils/request';
 
 class WhiteIp {
-  constructor () {
+  constructor() {
     this.module = '/job-manage/web/whiteIP';
   }
 
   // 新增/更新IP白名单
-  update (params) {
+  update(params) {
     return Request.post(`${this.module}/`, {
       params,
     });
   }
 
   // 获取业务下云区域列表
-  getAllCloudArea () {
+  getAllCloudArea() {
     return Request.get(`${this.module}/cloudAreas/list`);
   }
 
   // 获取IP白名单记录详情
-  getDataById ({ id }) {
+  getDataById({ id }) {
     return Request.get(`${this.module}/ids/${id}`);
   }
 
   // 删除IP白名单
-  deleteDataById ({ id }) {
+  deleteDataById({ id }) {
     return Request.delete(`${this.module}/ids/${id}`);
   }
 
   // 获取IP白名单列表
-  getAll (params, payload = {}) {
+  getAll(params, payload = {}) {
     return Request.get(`${this.module}/list`, {
       params,
       payload,
@@ -61,7 +61,7 @@ class WhiteIp {
   }
 
   // 获取生效范围列表
-  getActionScope () {
+  getActionScope() {
     return Request.get(`${this.module}/actionScope/list`);
   }
 }

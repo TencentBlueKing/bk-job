@@ -24,28 +24,30 @@
 */
 
 /* eslint-disable no-param-reassign */
-import DangerousRuleSource from '../source/dangerous-rule';
 import DangerousRuleModel from '@model/dangerous-rule';
+
+import DangerousRuleSource from '../source/dangerous-rule';
+
 import I18n from '@/i18n';
 
 export default {
-  fetchList (params = {}, payload = {}) {
+  fetchList(params = {}, payload = {}) {
     return DangerousRuleSource.getData(params, payload)
       .then(({ data }) => data.map(item => new DangerousRuleModel(item)));
   },
-  update (params) {
+  update(params) {
     return DangerousRuleSource.update(params)
       .then(({ data }) => data);
   },
-  remove (params) {
+  remove(params) {
     return DangerousRuleSource.removeById(params)
       .then(({ data }) => data);
   },
-  updateSort (params) {
+  updateSort(params) {
     return DangerousRuleSource.move(params)
       .then(({ data }) => data);
   },
-  fetchActionList () {
+  fetchActionList() {
     return Promise.resolve([
       {
         id: 1,

@@ -26,9 +26,13 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="export-job">
+  <div
+    v-bkloading="{ isLoading }"
+    class="export-job">
     <div class="steps">
-      <bk-steps :cur-step.sync="curStep" :steps="steps" />
+      <bk-steps
+        :cur-step.sync="curStep"
+        :steps="steps" />
     </div>
     <div class="page-wraper">
       <scroll-faker>
@@ -41,17 +45,20 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import BackupService from '@service/backup';
+
   import { taskExport } from '@utils/cache-helper';
+
   import Step1 from './components/step1';
   import Step2 from './components/step2';
   import Step3 from './components/step3';
   import Step4 from './components/step4';
-    
+
+  import I18n from '@/i18n';
+
   export default {
     name: 'ExportJob',
-    data () {
+    data() {
       const step = parseInt(this.$route.query.step, 10);
       return {
         isLoading: true,
@@ -59,7 +66,7 @@
       };
     },
     computed: {
-      pageCom () {
+      pageCom() {
         if (this.isLoading) {
           return 'div';
         }
@@ -72,7 +79,7 @@
         return comMap[this.curStep];
       },
     },
-    created () {
+    created() {
       this.steps = [
         { title: I18n.t('template.用户须知.header'), icon: 1 },
         { title: I18n.t('template.导出内容确认'), icon: 2 },
@@ -82,7 +89,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         BackupService.fetchInfo()
           .then((data) => {
@@ -116,16 +123,16 @@
             this.isLoading = false;
           });
       },
-      handleStepChange (step) {
+      handleStepChange(step) {
         this.curStep = step;
         const searchParams = new URLSearchParams(window.location.search);
         searchParams.set('step', step);
         window.history.replaceState({}, '', `?${searchParams.toString()}`);
       },
-      handleCancel () {
+      handleCancel() {
         this.routerBack();
       },
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'taskList',
         });

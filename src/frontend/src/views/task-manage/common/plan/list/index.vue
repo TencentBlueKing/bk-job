@@ -59,10 +59,14 @@
           :placeholder="$t('template.输入 ID、执行方案名、作业模板名、更新人 或 创建人 进行搜索...')"
           style="width: 420px;"
           @on-change="handleSearch" />
-        <bk-button @click="handleMyPlan">{{ $t('template.我的方案') }}</bk-button>
+        <bk-button @click="handleMyPlan">
+          {{ $t('template.我的方案') }}
+        </bk-button>
       </template>
     </list-action-layout>
-    <layout :flod="isListFlod" @on-flod="handleLayoutFlod">
+    <layout
+      :flod="isListFlod"
+      @on-flod="handleLayoutFlod">
       <render-list
         ref="list"
         v-test="{ type: 'list', value: 'plan' }"
@@ -79,8 +83,10 @@
           slot="prepend"
           class="create-plan-placeholder"
           :class="{ active: selectPlanInfo.id === -1 }">
-          <div class="name-box">{{ newPlanName || '--' }}</div>
-          <Icon
+          <div class="name-box">
+            {{ newPlanName || '--' }}
+          </div>
+          <icon
             style="font-size: 26px; color: #ff9c01;"
             svg
             type="new-3" />
@@ -132,25 +138,26 @@
                         planId: row.id,
                       },
                     }">
-                    <Icon svg type="job-timing" />
+                    <icon
+                      svg
+                      type="job-timing" />
                     <span style="margin-left: 2px;">{{ row.cronJobCount }}</span>
                   </router-link>
                   <span
                     v-if="row.needUpdate"
                     class="update-flag">
-                    <Icon
+                    <icon
                       svg
                       :tippy-tips="$t('template.未同步')"
                       type="sync-8" />
                   </span>
-                                    
                 </div>
-                <Icon
+                <icon
                   class="collection-flag"
                   :class="{ favored: row.favored }"
                   type="collection"
                   @click.stop="handleCollection(row)" />
-                <Icon
+                <icon
                   v-if="selectPlanInfo.id === row.id"
                   class="select-flag"
                   type="arrow-full-right" />
@@ -174,19 +181,21 @@
                                             <div>${$t('template.点击前往查看')}</div>
                                         `"
                     class="cron-job-tag">
-                    <Icon svg type="job-timing" />
+                    <icon
+                      svg
+                      type="job-timing" />
                     <span style="margin-left: 2px;">{{ row.cronJobCount }}</span>
                   </span>
                   <span
                     v-if="row.needUpdate"
                     class="update-flag">
-                    <Icon
+                    <icon
                       svg
                       :tippy-tips="$t('template.未同步')"
                       type="sync-8" />
                   </span>
                 </div>
-                <Icon
+                <icon
                   class="collection-flag"
                   :class="{ favored: row.favored }"
                   type="collection" />
@@ -309,7 +318,9 @@
             </list-operation-extend>
           </template>
         </bk-table-column>
-        <bk-table-column v-if="!isListFlod" type="setting">
+        <bk-table-column
+          v-if="!isListFlod"
+          type="setting">
           <bk-table-setting-content
             :fields="tableColumn"
             :selected="selectedTableColumn"
@@ -332,12 +343,16 @@
           @on-name-change="handleCreatePlanNameChange" />
       </template>
     </layout>
-    <lower-component :custom="isShowTemplateSelect" level="custom">
+    <lower-component
+      :custom="isShowTemplateSelect"
+      level="custom">
       <template-select
         v-model="isShowTemplateSelect"
         @on-change="handleTemplateChange" />
     </lower-component>
-    <lower-component :custom="isShowBatchGlobalVariable" level="custom">
+    <lower-component
+      :custom="isShowBatchGlobalVariable"
+      level="custom">
       <batch-edit-global-variable
         v-model="isShowBatchGlobalVariable"
         :data="listSelect"
@@ -352,23 +367,28 @@
      * 用于作业模板详情展示指定作业模板的执行方案（固定搜索项作业模板名称）
      * 用执行方案列表展示所有执行方案列表
     */
-  import I18n from '@/i18n';
-  import UserService from '@service/user';
   import NotifyService from '@service/notify';
-  import ExecPlanService from '@service/task-plan';
   import TaskExecuteService from '@service/task-execute';
-  import ListActionLayout from '@components/list-action-layout';
-  import RenderList from '@components/render-list';
-  import JbSearchSelect from '@components/jb-search-select';
-  import ListOperationExtend from '@components/list-operation-extend';
-  import { listColumnsCache } from '@utils/cache-helper';
+  import ExecPlanService from '@service/task-plan';
+  import UserService from '@service/user';
+
   import { leaveConfirm } from '@utils/assist';
+  import { listColumnsCache } from '@utils/cache-helper';
+
+  import JbSearchSelect from '@components/jb-search-select';
+  import ListActionLayout from '@components/list-action-layout';
+  import ListOperationExtend from '@components/list-operation-extend';
+  import RenderList from '@components/render-list';
+
+  import PlanCreate from '../create';
   import PlanDetail from '../detail';
   import PlanEdit from '../edit';
-  import PlanCreate from '../create';
+
+  import BatchEditGlobalVariable from './components/batch-edit-gobal-variable';
   import Layout from './components/layout';
   import TemplateSelect from './components/template-select';
-  import BatchEditGlobalVariable from './components/batch-edit-gobal-variable';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'task_plan_list_columns';
 
@@ -385,7 +405,7 @@
       TemplateSelect,
       BatchEditGlobalVariable,
     },
-    data () {
+    data() {
       return {
         searchValue: [],
         listSelect: [],
@@ -405,10 +425,10 @@
       };
     },
     computed: {
-      isLoading () {
+      isLoading() {
         return this.$refs.list.isLoading;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         if (this.isListFlod) {
           return {
             name: true,
@@ -419,7 +439,7 @@
           return result;
         }, {});
       },
-      planCom () {
+      planCom() {
         const planComMap = {
           detail: PlanDetail,
           edit: PlanEdit,
@@ -430,17 +450,17 @@
         }
         return planComMap[this.planComType];
       },
-      isCreatePlan () {
+      isCreatePlan() {
         return this.planComType === 'create';
       },
-      isListFlod () {
+      isListFlod() {
         return Boolean(this.planComType);
       },
       /**
        * @desc 批量同步按钮禁用tips
        * 当所选执行方案中有执行方案中不需要同步或者有执行方案中没有权限同步，禁用批量同步操作
        */
-      batchSyncDisableTips () {
+      batchSyncDisableTips() {
         if (this.listSelect.length < 1) {
           return I18n.t('template.请选择要同步的执行方案');
         }
@@ -466,7 +486,7 @@
        * @desc 批量编辑全局变量按钮禁用tips
        * 当所选执行方案中有执行方案中没有权限编辑禁用批量编辑操作
        */
-      batchEditGlobalVariableTips () {
+      batchEditGlobalVariableTips() {
         if (this.listSelect.length < 1) {
           return I18n.t('template.请选择要编辑的执行方案');
         }
@@ -479,27 +499,27 @@
             break;
           }
         }
-                
+
         if (!canEdit) {
           return I18n.t('template.已选结果中有执行方案中没有权限编辑');
         }
         return '';
       },
     },
-    created () {
+    created() {
       this.parseUrl();
 
       this.fetchUserInfo();
 
       this.listDataSource = ExecPlanService.fetchAllPlan;
-            
+
       // 查看指定作业模板的执行方案列表，不支持作业模板名称搜索
       this.searchData = [
         {
           name: 'ID',
           id: 'planId',
           description: I18n.t('template.将覆盖其它条件'),
-          validate (values, item) {
+          validate(values, item) {
             const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('template.ID只支持数字') : true;
           },
@@ -528,7 +548,7 @@
           id: 'templateName',
         });
       }
-            
+
       // 列表可显示列
       this.tableColumn = [
         {
@@ -581,7 +601,7 @@
        * 查看指定作业模板的执行方案列表
        *  - api请求固定作业模板id，url查询参数需要拼接viewPlanId表示当前正常查看的执行方案
        */
-      fetchData () {
+      fetchData() {
         const searchParams = {
           ...this.searchParams,
         };
@@ -593,7 +613,7 @@
       /**
        * @desc 登陆用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
@@ -602,12 +622,12 @@
       /**
        * @desc 解析 url 参数
        */
-      parseUrl () {
+      parseUrl() {
         // 查看作业模板的执行方案
         this.isViewTemplatePlanList = this.$route.name === 'viewPlan';
         // 执行方案列表所属的作业模板
         this.templateId = '';
-                
+
         if (this.isViewTemplatePlanList) {
           // 查看指定作业模板的执行方案列表
 
@@ -618,7 +638,7 @@
           templateId = Number(templateId);
           // 记录 templateId
           this.templateId = templateId;
-                    
+
           const {
             viewPlanId,
             mode,
@@ -628,7 +648,7 @@
             setTimeout(() => {
               this.handleCreatePlan();
             });
-                        
+
             return;
           }
           // url 记录了指定查看那个执行方案
@@ -661,13 +681,13 @@
           }
         }
       },
-      caclRowClassName ({ row }) {
+      caclRowClassName({ row }) {
         return row.id === this.selectPlanInfo.id ? 'active' : '';
       },
       /**
        * @desc 表格列表配置
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -682,7 +702,7 @@
        * 在查看所有执行方案列表页面，需要先选中作业模板然后才开始创建执行方案
        *
        */
-      handleCreatePlan () {
+      handleCreatePlan() {
         if (this.isViewTemplatePlanList) {
           this.handleTemplateChange(this.templateId);
         } else {
@@ -695,7 +715,7 @@
        *
        * 需要判断将要新建的执行方案是否是改模板下面的第一个执行方案
        */
-      handleTemplateChange (templateId) {
+      handleTemplateChange(templateId) {
         this.selectPlanInfo = {
           templateId,
           id: -1,
@@ -708,13 +728,13 @@
        * @desc 新建执行方案时执行方案名更新
        * @param {String} planName 执行方案名
        */
-      handleCreatePlanNameChange (planName) {
+      handleCreatePlanNameChange(planName) {
         this.newPlanName = planName;
       },
       /**
        * @desc 批量同步已选的执行方案
        */
-      handleSyncBatch () {
+      handleSyncBatch() {
         this.$router.push({
           name: 'syncPlanBatch',
           query: {
@@ -726,21 +746,21 @@
       /**
        * @desc 批量更新变量值
        */
-      handleBatchEditGlobalVariable () {
+      handleBatchEditGlobalVariable() {
         this.isShowBatchGlobalVariable = true;
       },
       /**
        * @desc 列表搜索
        * @param {Object} params 搜索参数
        */
-      handleSearch (params) {
+      handleSearch(params) {
         this.searchParams = params;
         this.fetchData();
       },
       /**
        * @desc 筛选我的执行方案
        */
-      handleMyPlan () {
+      handleMyPlan() {
         const currentUserName = this.currentUser.username;
         const creator = {
           name: I18n.t('template.创建人'),
@@ -763,7 +783,7 @@
        * @desc 列表选择
        * @param {Array} selectPlan 选中的执行方案
        */
-      handleSelection (selectPlan) {
+      handleSelection(selectPlan) {
         this.listSelect = Object.freeze(selectPlan);
       },
       /**
@@ -771,7 +791,7 @@
        *
        * 收起时需要更新 url 参数
        */
-      handleLayoutFlod () {
+      handleLayoutFlod() {
         this.planComType = '';
         this.selectPlanInfo = {
           templateId: -1,
@@ -791,7 +811,7 @@
        * 显示执行方案详情面板
        * url 查询参数拼接viewPlanId记录当前选中的执行方案id
        */
-      handlePlanSelect (row, mode = 'detail') {
+      handlePlanSelect(row, mode = 'detail') {
         const currentPlanId = row.id;
         if (currentPlanId === this.selectPlanInfo.id) {
           return;
@@ -817,7 +837,7 @@
        * @desc 收藏执行方案
        * @param {Object} plan 操作的执行方案数据
        */
-      handleCollection (plan) {
+      handleCollection(plan) {
         const requestHander = plan.favored ? ExecPlanService.deleteFavorite : ExecPlanService.updateFavorite;
         requestHander({
           id: plan.id,
@@ -831,7 +851,7 @@
        * @desc 跳转执行方案关联的定时任务列表
        * @param {Object} plan 操作的执行方案数据
        */
-      handleGoCronJobList (plan) {
+      handleGoCronJobList(plan) {
         const { href } = this.$router.resolve({
           name: 'cronList',
           query: {
@@ -844,7 +864,7 @@
        * @desc 执行选中的执行方案
        * @param {Object} row 操作的执行方案数据
        */
-      handleExecute (row) {
+      handleExecute(row) {
         // 获取作业详情
         ExecPlanService.fetchPlanDetailInfo({
           id: row.id,
@@ -895,14 +915,14 @@
        * @desc 编辑执行方案
        * @param {Object} row 操作的执行方案数据
        */
-      handleEdit (row) {
+      handleEdit(row) {
         this.handlePlanSelect(row, 'edit');
       },
       /**
        * @desc 同步执行方案
        * @param {Object} row 操作的执行方案数据
        */
-      handleUpdate (row) {
+      handleUpdate(row) {
         this.$router.push({
           name: 'syncPlan',
           params: {
@@ -919,7 +939,7 @@
        * @desc 新建执行方案
        * @param {Object} row 操作的执行方案数据
        */
-      handleGoCreateCronJob (row) {
+      handleGoCreateCronJob(row) {
         const { href } = this.$router.resolve({
           name: 'cronList',
           query: {
@@ -934,7 +954,7 @@
        * @desc 删除执行方案
        * @param {Object} row 操作的执行方案数据
        */
-      handleDelete (row) {
+      handleDelete(row) {
         return ExecPlanService.planDelete({
           id: row.id,
           templateId: row.templateId,
@@ -952,7 +972,7 @@
        *
        * 执行方案创建成功重新拉取列表数据，并切换到新执行方案详情的查看页面
        */
-      handleCreateSubmit (planId) {
+      handleCreateSubmit(planId) {
         this.fetchData();
         this.handlePlanSelect({
           templateId: this.selectPlanInfo.templateId,
@@ -962,7 +982,7 @@
       /**
        * @desc 切换编辑执行方案面板
        */
-      handleShowPlanEdit () {
+      handleShowPlanEdit() {
         this.planComType = 'edit';
       },
       /**
@@ -970,20 +990,20 @@
        *
        * 收起面板，刷新列表数据
        */
-      handlePlanDelete () {
+      handlePlanDelete() {
         this.handleLayoutFlod();
         this.fetchData();
       },
       /**
        * @desc 取消编辑执行方案
        */
-      handleEditCancle () {
+      handleEditCancle() {
         this.planComType = 'detail';
       },
       /**
        * @desc 编辑执行方案成功，刷新列表数据
        */
-      handleEditSuccess () {
+      handleEditSuccess() {
         this.fetchData();
       },
       /**
@@ -993,7 +1013,7 @@
        *  - 刷新执行方案面板数据
        *  - 重置 table 行选中状态
        */
-      handleBatchEditGlobalVariableSuccess () {
+      handleBatchEditGlobalVariableSuccess() {
         this.$refs.list.resetSelect();
         if (this.$refs.planHandler) {
           this.$refs.planHandler.refresh();

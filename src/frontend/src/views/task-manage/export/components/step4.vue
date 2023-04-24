@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="export-task-step4-page">
+  <div
+    v-bkloading="{ isLoading }"
+    class="export-task-step4-page">
     <div>
       <div class="notice">
         <img src="/static/images/export.svg">
@@ -35,14 +37,22 @@
             <div>{{ $t('template.作业导出成功！请及时保存并妥善保管。') }}</div>
             <div class="export-download">
               <span>{{ $t('template.如果页面未出现提示保存窗口，请点击') }}</span>
-              <span class="btn" @click="handleDownloadFile">{{ $t('template.重新下载文件') }}</span>
+              <span
+                class="btn"
+                @click="handleDownloadFile">{{ $t('template.重新下载文件') }}</span>
             </div>
           </div>
-          <div v-else>{{ $t('template.正在导出作业，请稍候') }}<span class="loading" /></div>
+          <div v-else>
+            {{ $t('template.正在导出作业，请稍候') }}<span class="loading" />
+          </div>
         </div>
       </div>
       <div class="log-content">
-        <div v-for="(item, index) in logList" :key="index">[{{ item.timestamp }}] {{ item.content }}</div>
+        <div
+          v-for="(item, index) in logList"
+          :key="index">
+          [{{ item.timestamp }}] {{ item.content }}
+        </div>
       </div>
     </div>
     <div class="action-footer">
@@ -58,11 +68,13 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import BackupService from '@service/backup';
+
   import {
     taskExport,
   } from '@utils/cache-helper';
+
+  import I18n from '@/i18n';
 
   const TASK_STATUS_DEFAULT = 0;
   const TASK_STATUS_DOING = 5;
@@ -72,7 +84,7 @@
 
   export default {
     name: 'Exporting',
-    data () {
+    data() {
       return {
         isLoading: true,
         isFinishing: false,
@@ -83,7 +95,7 @@
       };
     },
     computed: {
-      isExportSuccess () {
+      isExportSuccess() {
         return [
           TASK_STATUS_SUCCESS,
           TASK_STATUS_FAILED,
@@ -92,7 +104,7 @@
       },
     },
 
-    created () {
+    created() {
       // 自定义路由切换确认框
       this.$route.meta.leavaConfirm = () => new Promise((resolve, reject) => {
         if (!window.changeFlag) {
@@ -168,7 +180,7 @@
     },
 
     methods: {
-      fetchData () {
+      fetchData() {
         if (!this.id) {
           this.isLoading = false;
           return;
@@ -199,7 +211,7 @@
           });
       },
 
-      startTimer () {
+      startTimer() {
         if (this.isClearTimer) {
           return;
         }
@@ -212,11 +224,11 @@
         }, 2000);
       },
 
-      clearTimer () {
+      clearTimer() {
         this.isClearTimer = true;
       },
 
-      handleDownloadFile () {
+      handleDownloadFile() {
         BackupService.fetchExportFile({
           id: this.id,
         }).then(() => {
@@ -224,7 +236,7 @@
         });
       },
 
-      handleFinish () {
+      handleFinish() {
         this.isFinishing = true;
         BackupService.updateExportComplete({
           id: this.id,

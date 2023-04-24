@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <lower-component :custom="value" level="custom">
+  <lower-component
+    :custom="value"
+    level="custom">
     <jb-dialog
       v-bind="$attrs"
       class="data-trend-dialog"
@@ -50,7 +52,9 @@
             :value="defaultDateRang"
             @change="handleDateChange" />
         </div>
-        <div ref="trend" style="width: 100%; height: 384px;" />
+        <div
+          ref="trend"
+          style="width: 100%; height: 384px;" />
       </div>
     </jb-dialog>
   </lower-component>
@@ -58,12 +62,15 @@
 <script>
   import * as echarts from 'echarts';
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import StatisticsService from '@service/statistics';
+
   import {
     formatNumber,
     prettyDateFormat,
   } from '@utils/assist';
+
+  import I18n from '@/i18n';
 
   const styleMap = {
     up: {
@@ -123,14 +130,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
       };
     },
     watch: {
       date: {
-        handler (date) {
+        handler(date) {
           this.endDate = date;
           this.startDate = prettyDateFormat(new Date(date) - 6 * 86400000);
           this.defaultDateRang = [
@@ -140,7 +147,7 @@
           this.shortcuts = [
             {
               text: I18n.t('dashboard.今天'),
-              value () {
+              value() {
                 const start = new Date(date);
                 return [
                   start,
@@ -150,7 +157,7 @@
             },
             {
               text: I18n.t('dashboard.昨天'),
-              value () {
+              value() {
                 const end = new Date(date);
                 const start = new Date();
                 start.setTime(end - 86400000);
@@ -162,7 +169,7 @@
             },
             {
               text: I18n.t('dashboard.最近3天'),
-              value () {
+              value() {
                 const end = new Date(date);
                 const start = new Date();
                 start.setTime(end - 2 * 86400000);
@@ -174,7 +181,7 @@
             },
             {
               text: I18n.t('dashboard.最近7天'),
-              value () {
+              value() {
                 const end = new Date(date);
                 const start = new Date();
                 start.setTime(end - 6 * 86400000);
@@ -186,7 +193,7 @@
             },
             {
               text: I18n.t('dashboard.最近30天'),
-              value () {
+              value() {
                 const end = new Date(date);
                 const start = new Date();
                 start.setTime(end - 30 * 86400000);
@@ -200,19 +207,19 @@
         },
         immediate: true,
       },
-      value (value) {
+      value(value) {
         if (value) {
           this.fetchData();
         }
       },
     },
-    created () {
+    created() {
       this.datePickerOptions = {
         disabledDate: date => date.getTime() > Date.now(),
       };
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchTrendsMetrics({
           endDate: this.endDate,
@@ -225,7 +232,7 @@
             this.isLoading = false;
           });
       },
-      initTrend (data) {
+      initTrend(data) {
         if (!this.myChart) {
           this.myChart = echarts.init(this.$refs.trend);
         }
@@ -337,7 +344,7 @@
         }
         this.myChart.setOption(options);
       },
-      handleDateChange (value) {
+      handleDateChange(value) {
         const [
           startDate,
           endDate,
@@ -346,7 +353,7 @@
         this.endDate = endDate;
         this.fetchData();
       },
-      handleInput (value) {
+      handleInput(value) {
         this.$emit('input', value);
         this.$emit('change', value);
       },

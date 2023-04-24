@@ -28,7 +28,9 @@
 <template>
   <div class="task-export-step2-page">
     <div class="layout-wraper">
-      <div v-bkloading="{ isLoading }" class="layout-left">
+      <div
+        v-bkloading="{ isLoading }"
+        class="layout-left">
         <scroll-faker>
           <div
             v-for="item in jobList"
@@ -38,17 +40,23 @@
               class="job-item"
               :class="{ active: currentTemplateId === item.id }"
               @click="handlePlanBasic(item.id)">
-              <div class="text">[{{ item.id }}] {{ item.name }}</div>
+              <div class="text">
+                [{{ item.id }}] {{ item.name }}
+              </div>
             </div>
           </div>
         </scroll-faker>
       </div>
-      <div v-bkloading="{ isLoading: isPlanLoading }" class="layout-right">
+      <div
+        v-bkloading="{ isLoading: isPlanLoading }"
+        class="layout-right">
         <scroll-faker>
           <div
             v-if="currentTemplateId"
             class="content">
-            <p class="title">{{ templateTitle }}</p>
+            <p class="title">
+              {{ templateTitle }}
+            </p>
             <div
               v-if="renderPlanList.length > 0"
               class="export-project">
@@ -125,14 +133,16 @@
 <script>
   import TaskManageService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
+
   import { taskExport } from '@utils/cache-helper';
+
   import Empty from '@components/empty';
 
   export default {
     components: {
       Empty,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isPlanLoading: false,
@@ -144,13 +154,13 @@
       };
     },
     computed: {
-      renderPlanList () {
+      renderPlanList() {
         if (!this.currentTemplateId) {
           return [];
         }
         return this.templateInfoMap[this.currentTemplateId].planList;
       },
-      templateTitle () {
+      templateTitle() {
         let titleStr = '';
         this.jobList.forEach((item) => {
           if (item.id === this.currentTemplateId) {
@@ -160,14 +170,14 @@
         return titleStr;
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
       /**
        * @desc 批量获取选中模板的基本数据
        */
-      fetchData () {
+      fetchData() {
         this.$request(TaskManageService.fetchBasic({
           ids: this.taskIds.join(','),
         }), () => {
@@ -196,7 +206,7 @@
       /**
        * @desc 获取指定模板的执行方案数据
        */
-      fetchPlanList () {
+      fetchPlanList() {
         this.isPlanLoading = true;
         TaskPlanService.fetchTaskPlan({
           id: this.currentTemplateId,
@@ -218,7 +228,7 @@
        * @desc 查看执行方案详情
        * @param { Object } planData
        */
-      handleGoPlanDetail (planData) {
+      handleGoPlanDetail(planData) {
         const routerUrl = this.$router.resolve({
           name: 'viewPlan',
           params: {
@@ -236,7 +246,7 @@
        * @desc 获取模板的执行方案详情
        * @params { Number } 作业模板ID
        */
-      handlePlanBasic (currentTemplateId) {
+      handlePlanBasic(currentTemplateId) {
         this.currentTemplateId = currentTemplateId;
         // 已经请求过执行方案列表
         if (this.templateInfoMap[currentTemplateId].planList.length > 0) {
@@ -248,7 +258,7 @@
        * @desc 选中执行方案
        * @param { Boolean } name
        */
-      handlePlanCheck (planId) {
+      handlePlanCheck(planId) {
         const templateInfoMap = { ...this.templateInfoMap };
         const currentTemplate = templateInfoMap[this.currentTemplateId];
         if (currentTemplate.planSelectedMap[planId]) {
@@ -256,15 +266,14 @@
           currentTemplate.exportAll = 0;
         } else {
           currentTemplate.planSelectedMap[planId] = true;
-          currentTemplate.exportAll
-            = Object.keys(currentTemplate.planSelectedMap).length === currentTemplate.planList.length ? 1 : 0;
+          currentTemplate.exportAll            = Object.keys(currentTemplate.planSelectedMap).length === currentTemplate.planList.length ? 1 : 0;
         }
         this.templateInfoMap = Object.freeze(templateInfoMap);
       },
       /**
        * @desc 选中所有执行方案
        */
-      handleAllSelect () {
+      handleAllSelect() {
         const templateInfoMap = { ...this.templateInfoMap };
         const currTemplate = templateInfoMap[this.currentTemplateId];
         currTemplate.planList.forEach((planItem) => {
@@ -276,7 +285,7 @@
       /**
        * @desc 取消选中
        */
-      handleCancelSelect () {
+      handleCancelSelect() {
         const templateInfoMap = { ...this.templateInfoMap };
         const currTemplate = templateInfoMap[this.currentTemplateId];
         currTemplate.planSelectedMap = {};
@@ -286,7 +295,7 @@
       /**
        * @desc 下一步
        */
-      handleNext () {
+      handleNext() {
         const templateInfo = [];
         for (const templteId in this.templateInfoMap) {
           const currentTemplate = this.templateInfoMap[templteId];
@@ -302,10 +311,10 @@
       /**
        * @desc 上一步
        */
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 1);
       },
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancle');
       },
     },

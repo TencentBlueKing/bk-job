@@ -66,7 +66,9 @@
           <span
             v-else
             v-bk-tooltips="$t('ticket.接入点异常，暂时不可用')">
-            <bk-button disabled text>{{ row.alias }}</bk-button>
+            <bk-button
+              disabled
+              text>{{ row.alias }}</bk-button>
           </span>
         </template>
       </bk-table-column>
@@ -81,7 +83,9 @@
         :label="$t('ticket.状态')"
         width="80">
         <template slot-scope="{ row }">
-          <Icon svg :type="row.statusIcon" />
+          <icon
+            svg
+            :type="row.statusIcon" />
           {{ row.statusText }}
         </template>
       </bk-table-column>
@@ -97,10 +101,12 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import FileManageService from '@service/file-source-manage';
+
   import JbSearchSelect from '@components/jb-search-select';
   import RenderList from '@components/render-list';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'RelatedTicket',
@@ -113,15 +119,15 @@
         type: String,
       },
     },
-    data () {
+    data() {
       return {
         sourceFileList: [],
       };
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
-    created () {
+    created() {
       this.fetchFileSourceList = FileManageService.fetchFileSourceList;
       this.searchSelect = [
         {
@@ -134,7 +140,7 @@
       /**
        * @desc 获取被引用文件源列表
        */
-      fetchData () {
+      fetchData() {
         this.$refs.fileSourcelist.$emit('onFetch', {
           ...this.searchParams,
           credentialId: this.credentialId,
@@ -146,7 +152,7 @@
        *
        * 重新拉取数据
        */
-      handleSearch (payload) {
+      handleSearch(payload) {
         this.searchParams = payload;
         this.fetchData();
       },

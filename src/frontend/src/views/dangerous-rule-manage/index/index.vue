@@ -147,7 +147,7 @@
                 :disabled="index === 0"
                 text
                 @click="handleMove(index, -1)">
-                <Icon type="increase-line" />
+                <icon type="increase-line" />
               </bk-button>
               <bk-button
                 v-if="!isSearching"
@@ -157,7 +157,7 @@
                 :disabled="index + 1 === list.length"
                 text
                 @click="handleMove(index, 1)">
-                <Icon type="decrease-line" />
+                <icon type="decrease-line" />
               </bk-button>
               <jb-popover-confirm
                 class="ml10"
@@ -182,26 +182,30 @@
         </bk-table-column>
       </bk-table>
     </div>
-    <JbSideslider
+    <jb-sideslider
       :is-show.sync="isShowOperation"
       :title="$t('dangerousRule.新增检测规则')"
       :width="650">
       <add-rule @on-change="handleAddRuleChange" />
-    </JbSideslider>
+    </jb-sideslider>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import DangerousRuleService from '@service/dangerous-rule';
   import PublicScriptManageService from '@service/public-script-manage';
+
+  import { listColumnsCache } from '@utils/cache-helper';
+
   import JbEditInput from '@components/jb-edit/input';
   import JbEditSelect from '@components/jb-edit/select';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
-  import EditAction from './components/edit-action';
-  import ListActionLayout from '@components/list-action-layout';
-  import AddRule from './components/add-rule';
   import JbSearchSelect from '@components/jb-search-select';
-  import { listColumnsCache } from '@utils/cache-helper';
+  import ListActionLayout from '@components/list-action-layout';
+
+  import AddRule from './components/add-rule';
+  import EditAction from './components/edit-action';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'accout_list_columns';
 
@@ -216,7 +220,7 @@
       AddRule,
       JbSearchSelect,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isShowOperation: false,
@@ -228,20 +232,20 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
-      isSearching () {
+      isSearching() {
         return Object.keys(this.searchParams).length > 0;
       },
     },
-    created () {
+    created() {
       this.editRule = {};
       this.fetchScriptType();
 
@@ -337,14 +341,14 @@
         ]);
       }
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
       /**
        * @desc 获取高危语句规则
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         DangerousRuleService.fetchList({
           ...this.searchParams,
@@ -358,7 +362,7 @@
             this.isLoading = false;
           });
       },
-      renderActionHead (h, data) {
+      renderActionHead(h, data) {
         return (
           <span>
             <span>{ data.column.label }</span>
@@ -378,7 +382,7 @@
           </span>
         );
       },
-      renderOperationHeader (h, data) {
+      renderOperationHeader(h, data) {
         return (
           <span>
             <span>{ data.column.label }</span>
@@ -397,7 +401,7 @@
        * @desc 表格列自定义
        * @param { Object } 列信息
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -408,16 +412,16 @@
       /**
        * @desc 获取支持的脚本类型列表
        */
-      fetchScriptType () {
+      fetchScriptType() {
         PublicScriptManageService.scriptTypeList()
           .then((data) => {
             this.scriptTypeList = data;
           });
       },
-      handleCreate () {
+      handleCreate() {
         this.isShowOperation = true;
       },
-      handleSearch (searchParams) {
+      handleSearch(searchParams) {
         this.searchParams = searchParams;
         this.fetchData();
       },
@@ -426,7 +430,7 @@
        * @param {String} rule 高危语句规则
        * @param {Array} scriptTypeList 脚本语言列表哦
        */
-      handleScriptTypeUpdate (rule, scriptTypeList) {
+      handleScriptTypeUpdate(rule, scriptTypeList) {
         this.editRule = {
           ...rule,
           scriptTypeList,
@@ -436,7 +440,7 @@
        * @desc 脚本语言下拉框收起时提交更新
        * @param {Boolean} toggle 脚本语言下拉框收起状态
        */
-      handleSubmitScriptTypeChange (toggle) {
+      handleSubmitScriptTypeChange(toggle) {
         if (!toggle
           && this.editRule.scriptTypeList
           && this.editRule.scriptTypeList.length > 0) {
@@ -452,7 +456,7 @@
        * @param {Object} rule 高危语句规则
        * @param {Object} payload 脚本语言列表哦
        */
-      handleUpdate (rule, payload) {
+      handleUpdate(rule, payload) {
         console.log('from handle update = ', rule, payload);
         return DangerousRuleService.update({
           ...rule,
@@ -465,7 +469,7 @@
       /**
        * @desc 添加一条高危语句
        */
-      handleAddRuleChange () {
+      handleAddRuleChange() {
         this.fetchData();
       },
       /**
@@ -473,7 +477,7 @@
        * @param {Number} index 当前语句的位置索引
        * @param {Number} step 移动的步数
        */
-      handleMove (index, step) {
+      handleMove(index, step) {
         this.isLoading = true;
         DangerousRuleService.updateSort({
           id: this.list[index].id,
@@ -493,7 +497,7 @@
        * @desc 删除高危语句
        * @param {Number} id 高危语句的id
        */
-      handleDelete (id) {
+      handleDelete(id) {
         return DangerousRuleService.remove({
           id,
         }).then(() => {

@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="host-list-wrapper">
+  <div
+    v-bkloading="{ isLoading }"
+    class="host-list-wrapper">
     <bk-table
       :data="hostList"
       ext-cls="host-table"
@@ -34,15 +36,24 @@
       width="100%"
       @page-change="handlePageChange"
       @page-limit-change="handleLimitChange">
-      <bk-table-column class-name="ip-item" label="IP" prop="ip" />
+      <bk-table-column
+        class-name="ip-item"
+        label="IP"
+        prop="ip" />
       <bk-table-column :label="$t('home.云区域')">
-        <template slot-scope="{ row }">{{ row.cloudAreaInfo.name || '--' }}</template>
+        <template slot-scope="{ row }">
+          {{ row.cloudAreaInfo.name || '--' }}
+        </template>
       </bk-table-column>
       <bk-table-column :label="$t('home.主机名')">
-        <template slot-scope="{ row }">{{ row.ipDesc || '--' }}</template>
+        <template slot-scope="{ row }">
+          {{ row.ipDesc || '--' }}
+        </template>
       </bk-table-column>
       <bk-table-column :label="$t('home.操作系统名称')">
-        <template slot-scope="{ row }">{{ row.os || '--' }}</template>
+        <template slot-scope="{ row }">
+          {{ row.os || '--' }}
+        </template>
       </bk-table-column>
     </bk-table>
   </div>
@@ -58,7 +69,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         hostList: [],
@@ -69,11 +80,11 @@
         },
       };
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         const pageSize = this.pagination.limit;
         const start = parseInt(this.pagination.current - 1, 10) * pageSize;
         const params = {
@@ -94,11 +105,11 @@
             this.isLoading = false;
           });
       },
-      handlePageChange (value) {
+      handlePageChange(value) {
         this.pagination.current = value;
         this.fetchData();
       },
-      handleLimitChange (value) {
+      handleLimitChange(value) {
         this.pagination.current = 1;
         this.pagination.limit = value;
         this.fetchData();

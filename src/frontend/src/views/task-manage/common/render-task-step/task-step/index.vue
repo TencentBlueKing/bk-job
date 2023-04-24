@@ -47,19 +47,19 @@
               <bk-radio-button
                 :disabled="isStepTypeReadOnly"
                 :value="1">
-                <Icon type="add-script" />
+                <icon type="add-script" />
                 <span>{{ $t('template.执行脚本') }}</span>
               </bk-radio-button>
               <bk-radio-button
                 :disabled="isStepTypeReadOnly"
                 :value="2">
-                <Icon type="add-file" />
+                <icon type="add-file" />
                 <span>{{ $t('template.分发文件') }}</span>
               </bk-radio-button>
               <bk-radio-button
                 :disabled="isStepTypeReadOnly"
                 :value="3">
-                <Icon type="add-approval" />
+                <icon type="add-approval" />
                 <span>{{ $t('template.人工确认') }}</span>
               </bk-radio-button>
             </bk-radio-group>
@@ -75,7 +75,7 @@
           class="variable-guide-btn"
           text
           @click="handleShowVariableGuide">
-          <Icon type="book" />
+          <icon type="book" />
           {{ $t('template.变量使用指引') }}
         </bk-button>
       </div>
@@ -85,21 +85,25 @@
           @on-close="handleHideVariableGuide" />
       </div>
     </resize-layout>
-        
   </div>
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskStepModel from '@model/task/task-step';
-  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
-  import ResizeLayout from '@components/resize-layout';
+
   import {
     genDefaultName,
   } from '@utils/assist';
+
+  import ResizeLayout from '@components/resize-layout';
+
+  import StepApproval from './components/approval';
   import StepDistroFile from './components/distro-file';
   import StepExecScript from './components/exec-script';
-  import StepApproval from './components/approval';
+
+  import I18n from '@/i18n';
+  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
 
   const dataFieldMap = {
     1: 'scriptStepInfo',
@@ -135,7 +139,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         stepType: '',
         stepData: {},
@@ -148,7 +152,7 @@
        * @desc 步骤渲染组件
        * @returns { Object }
        */
-      stepCom () {
+      stepCom() {
         const taskStepMap = {
           1: StepExecScript,
           2: StepDistroFile,
@@ -159,7 +163,7 @@
         }
         return taskStepMap[this.stepType];
       },
-      layoutStyles () {
+      layoutStyles() {
         const windownInnerHeight = window.innerHeight;
         const containerMaxHeight = windownInnerHeight - 114;
         if (this.containerHeight < containerMaxHeight) {
@@ -173,10 +177,10 @@
        * @desc 有ID的步骤不可编辑，id大于0已经提交后端保存过的步骤，id小于0本地新建的步骤
        * @returns { Boolean }
        */
-      isStepTypeReadOnly () {
+      isStepTypeReadOnly() {
         return Boolean(this.data.id);
       },
-      formMarginLeftWidth () {
+      formMarginLeftWidth() {
         return this.$i18n.locale === 'en-US'
           && this.stepType === TaskStepModel.TYPE_FILE
           ? 140
@@ -185,13 +189,13 @@
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           this.stepType = data.type;
-                    
+
           const stepDataField = dataFieldMap[this.stepType];
 
           this.defaultStepName = genDefaultStepName(data.type);
-                    
+
           const {
             id,
             name = this.defaultStepName,
@@ -208,10 +212,10 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.originWraperWidth = 0;
     },
-    mounted () {
+    mounted() {
       const $targetSideslider = document.querySelector('#taskStepOperationSideslider');
       $targetSideslider
         .querySelector('.jb-sideslider-footer')
@@ -246,7 +250,7 @@
        * - 编辑过，切换类型步骤名保持不变
        * - 没有编辑过，切换步骤类型时自动生成新的步骤名
        */
-      handleTypeChange (stepType) {
+      handleTypeChange(stepType) {
         if (this.defaultStepName === this.$refs.handler.formData.name) {
           this.defaultStepName = genDefaultStepName(stepType);
           this.stepData.name = this.defaultStepName;
@@ -258,7 +262,7 @@
       /**
        * @desc 显示变量指引
        */
-      handleShowVariableGuide () {
+      handleShowVariableGuide() {
         if (this.isShowVariableGuide) {
           return;
         }
@@ -278,17 +282,17 @@
       /**
        * @desc 关闭变量指引
        */
-      handleHideVariableGuide () {
+      handleHideVariableGuide() {
         const $wraper = document
           .querySelector('#taskStepOperationSideslider')
           .querySelector('.bk-sideslider-wrapper');
         $wraper.style.width = `${this.originWraperWidth}px`;
         this.isShowVariableGuide = false;
       },
-      submit () {
+      submit() {
         return this.$refs.handler.submit && this.$refs.handler.submit();
       },
-      reset () {
+      reset() {
         this.stepType = '';
         return this.$refs.handler.reset && this.$refs.handler.reset();
       },

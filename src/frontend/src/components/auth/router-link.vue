@@ -26,10 +26,17 @@
 -->
 
 <template>
-  <router-link v-if="permission" v-bind="$attrs" v-on="$listeners">
+  <router-link
+    v-if="permission"
+    v-bind="$attrs"
+    v-on="$listeners">
     <slot />
   </router-link>
-  <span v-else v-cursor class="not-permission" @click="handleCheckPermission">
+  <span
+    v-else
+    v-cursor
+    class="not-permission"
+    @click="handleCheckPermission">
     <slot />
   </span>
 </template>
@@ -62,7 +69,7 @@
       /**
        * @desc 无权限时弹框提示资源权限申请
        */
-      handleCheckPermission () {
+      handleCheckPermission() {
         permissionDialog({
           operation: this.auth,
           resourceId: this.resourceId,

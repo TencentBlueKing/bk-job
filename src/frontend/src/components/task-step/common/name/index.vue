@@ -26,7 +26,11 @@
 -->
 
 <template>
-  <jb-form-item :label="label" :property="field" required :rules="rules">
+  <jb-form-item
+    :label="label"
+    :property="field"
+    required
+    :rules="rules">
     <jb-input
       class="form-item-content"
       :maxlength="60"
@@ -36,8 +40,9 @@
   </jb-form-item>
 </template>
 <script>
-  import I18n from '@/i18n';
   import JbInput from '@components/jb-input';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
@@ -61,14 +66,14 @@
         default: I18n.t('请输入步骤名称'),
       },
     },
-    created () {
+    created() {
       this.rules = [
         {
           required: true,
           message: `${this.label}${I18n.t('必填')}`,
           trigger: 'blur',
         },
-                
+
         {
           validator: value => /^[^\\|/:*<>"?]{1,60}$/.test(value),
           message: `${this.label}${I18n.t('不允许包含')}\\ | / : * < > " ?`,
@@ -77,7 +82,7 @@
       ];
     },
     methods: {
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

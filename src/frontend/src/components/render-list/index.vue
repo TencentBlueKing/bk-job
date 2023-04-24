@@ -47,10 +47,14 @@
       @page-limit-change="handleLimitChange"
       @sort-change="handleSort">
       <template slot="prepend">
-        <div v-if="selectNums > 0" class="jb-table-select-tips">
+        <div
+          v-if="selectNums > 0"
+          class="jb-table-select-tips">
           <!-- eslint-disable-next-line max-len -->
           <span>{{ $t('已选择.select') }}<span class="number strong">{{ selectNums }}</span>{{ $t('条.total') }}</span>
-          <span class="action-clear" @click="handleClearAllSelect">，{{ $t('清除所有勾选') }}</span>
+          <span
+            class="action-clear"
+            @click="handleClearAllSelect">，{{ $t('清除所有勾选') }}</span>
         </div>
         <slot name="prepend" />
       </template>
@@ -66,10 +70,18 @@
         </template>
       </bk-table-column>
       <slot />
-      <div v-if="isRequesting" slot="empty" style="height: 200px;" />
-      <Empty v-else-if="isSearching" slot="empty" type="search">
+      <div
+        v-if="isRequesting"
+        slot="empty"
+        style="height: 200px;" />
+      <empty
+        v-else-if="isSearching"
+        slot="empty"
+        type="search">
         <div>
-          <div style="font-size: 14px; color: #63656e;">{{ $t('搜索结果为空') }}</div>
+          <div style="font-size: 14px; color: #63656e;">
+            {{ $t('搜索结果为空') }}
+          </div>
           <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
             <span>{{ $t('可以尝试调整关键词') }}</span>
             <template v-if="searchControl">
@@ -82,20 +94,23 @@
             </template>
           </div>
         </div>
-      </Empty>
+      </empty>
     </bk-table>
   </div>
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import Empty from '@components/empty';
-  import EventBus from '@utils/event-bus';
+
   import {
-    getOffset,
     buildURLParams,
+    getOffset,
   } from '@utils/assist';
   import { routerCache } from '@utils/cache-helper';
+  import EventBus from '@utils/event-bus';
+
+  import Empty from '@components/empty';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
@@ -135,7 +150,7 @@
         type: Function,
       },
     },
-    data () {
+    data() {
       return {
         isRendered: false, // 组件是否已渲染
         isRequesting: false, // api 数据请求中
@@ -159,7 +174,7 @@
        * @desc 列表当前页是否全选
        * @returns {Boolean}
        */
-      isPageChecked () {
+      isPageChecked() {
         if (Object.keys(this.rowSelectMemo).length < 1) {
           return false;
         }
@@ -177,14 +192,14 @@
        * @desc 是否全选
        * @returns {Boolean}
        */
-      isWholeChecked () {
+      isWholeChecked() {
         return this.selectNums > 0 && this.selectNums >= this.pagination.count;
       },
       /**
        * @desc 列表分页的状态
        * @returns {Object}
        */
-      realPagination () {
+      realPagination() {
         return {
           ...this.pagination,
           small: this.paginationSmall,
@@ -192,14 +207,14 @@
       },
     },
     watch: {
-      rowSelectMemo () {
+      rowSelectMemo() {
         this.selectNums = Object.keys(this.rowSelectMemo).length;
         this.data = [
           ...this.data,
         ];
       },
     },
-    created () {
+    created() {
       // 页面回退时返回列表选择（url标记listSelectIds）
       const { listSelectIds } = this.$route.query;
       if (listSelectIds) {
@@ -217,7 +232,7 @@
         this.parseURL();
       }
     },
-    mounted () {
+    mounted() {
       this.init();
       this.$on('onFetch', (params) => {
         if (params) {
@@ -280,7 +295,7 @@
       /**
        * @desc 计算默认分页、表格高度
        */
-      init () {
+      init() {
         const { top } = getOffset(this.$refs.renderList);
         const windowHeight = window.innerHeight;
         const tableHeadHeight = 42;
@@ -307,7 +322,7 @@
       /**
        * @desc 解析url
        */
-      parseURL () {
+      parseURL() {
         this.URLQuery = this.$route.query;
         const pageSize = ~~this.URLQuery.pageSize;
         const start = ~~this.URLQuery.start;
@@ -340,13 +355,13 @@
       /**
        * @desc 外部调用，重置 table 的选择状态
        */
-      resetSelect () {
+      resetSelect() {
         this.handleClearAllSelect();
       },
       /**
        * @desc 跨页全选
        */
-      fetchWhole () {
+      fetchWhole() {
         if (this.isWholeChecked) {
           return;
         }
@@ -371,7 +386,7 @@
       /**
        * @desc 自定义表头
        */
-      renderHeader (h) {
+      renderHeader(h) {
         const renderCheckbox = () => {
           if (this.isWholeChecked) {
             return (
@@ -402,7 +417,7 @@
       /**
        * @desc 触发行选中
        */
-      triggerSelectChange () {
+      triggerSelectChange() {
         const result = [];
         Object.keys(this.rowSelectMemo).forEach((idKey) => {
           if (_.isObject(this.rowSelectMemo[idKey])) {
@@ -421,7 +436,7 @@
        * @desc 触发排序
        * @param {Object} payload 表格行的数据
        */
-      handleSort (payload) {
+      handleSort(payload) {
         const sort = {
           descending: 0,
           ascending: 1,
@@ -447,7 +462,7 @@
        * @desc 翻页
        * @param {Number} value 最新展示页
        */
-      handlePageChange (value) {
+      handlePageChange(value) {
         this.pagination.current = value;
         this.$emit('onFetch');
       },
@@ -455,7 +470,7 @@
        * @desc 每页条数
        * @param {Number} value 最新每页展示条数
        */
-      handleLimitChange (value) {
+      handleLimitChange(value) {
         this.pagination.current = 1;
         this.pagination.limit = value;
         this.$emit('onFetch');
@@ -463,7 +478,7 @@
       /**
        * @desc 列表全选切换
        */
-      handlePageSelectToggle () {
+      handlePageSelectToggle() {
         const rowSelectMemo = { ...this.rowSelectMemo };
         this.data.forEach((item) => {
           if (this.isPageChecked) {
@@ -478,7 +493,7 @@
       /**
        * @desc 列表单页全选切换
        */
-      handlePageSelect () {
+      handlePageSelect() {
         if (this.isPageChecked) {
           return;
         }
@@ -495,7 +510,7 @@
        * @param {Object} row 表格行数据
        * @param {Boolean} value 行的选中状态
        */
-      handleRowSelect (row, value) {
+      handleRowSelect(row, value) {
         const rowSelectMemo = { ...this.rowSelectMemo };
         if (value) {
           rowSelectMemo[row[this.primaryKey]] = row;
@@ -508,7 +523,7 @@
       /**
        * @desc 清除选中状态
        */
-      handleClearAllSelect () {
+      handleClearAllSelect() {
         this.rowSelectMemo = Object.create(null);
         this.triggerSelectChange();
       },
@@ -516,7 +531,7 @@
        * @desc 检测搜索条件是否为空
        * @returns {Boolean}
        */
-      checkSearchEmpty () {
+      checkSearchEmpty() {
         if (!this.searchControl || typeof this.searchControl !== 'function') {
           return false;
         }
@@ -529,7 +544,7 @@
       /**
        * @desc 清除列表筛选参数
        */
-      handleClearSearch () {
+      handleClearSearch() {
         const searchControl = this.searchControl();
         if (typeof searchControl.reset === 'function') {
           searchControl.reset();

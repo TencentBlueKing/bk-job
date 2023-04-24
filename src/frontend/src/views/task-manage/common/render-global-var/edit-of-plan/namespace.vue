@@ -26,9 +26,13 @@
 -->
 
 <template>
-  <jb-form ref="varNamespaceForm" :model="formData">
+  <jb-form
+    ref="varNamespaceForm"
+    :model="formData">
     <jb-form-item :label="$t('template.变量名称')">
-      <bk-input v-model="formData.name" disabled />
+      <bk-input
+        v-model="formData.name"
+        disabled />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量值')">
       <bk-input
@@ -72,19 +76,19 @@
     props: {
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
       };
     },
     watch: {
       data: {
-        handler (value) {
+        handler(value) {
           if (Object.keys(value).length) {
             const { name, defaultValue, description, required, id } = value;
             const del = value.delete;
@@ -96,14 +100,14 @@
       },
     },
     methods: {
-      submit () {
+      submit() {
         return Promise.resolve({
           ...this.formData,
           type: 2,
         });
       },
 
-      reset () {
+      reset() {
         this.formData = getDefaultData();
       },
     },

@@ -11,7 +11,9 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import AppManageService from '@service/app-manage';
+
   import I18n from '@/i18n';
 
   export default {
@@ -22,7 +24,7 @@
         require: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isButtonDisable: true,
@@ -30,19 +32,19 @@
     },
     watch: {
       hostVariableList: {
-        handler () {
+        handler() {
           this.fetchData();
         },
       },
     },
-    created () {
+    created() {
       this.tooltops = {
         disabled: true,
         content: I18n.t('template.未发现无效主机'),
       };
     },
     methods: {
-      fetchData () {
+      fetchData() {
         if (!this.isLoading) {
           return;
         }
@@ -103,7 +105,7 @@
             this.isLoading = false;
           });
       },
-      handleRemoveAllInvalidHost () {
+      handleRemoveAllInvalidHost() {
         this.$emits('change');
       },
     },

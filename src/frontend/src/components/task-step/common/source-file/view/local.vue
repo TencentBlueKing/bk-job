@@ -29,8 +29,12 @@
   <div>
     <table>
       <tbody>
-        <tr v-for="(row, index) in fileList" :key="index">
-          <td style="width: 40%;">{{ row.fileLocationText }}</td>
+        <tr
+          v-for="(row, index) in fileList"
+          :key="index">
+          <td style="width: 40%;">
+            {{ row.fileLocationText }}
+          </td>
           <td style="width: auto;">
             <template v-if="row.fileSize > 0">
               <p v-if="row.uploadStatus === 'success'">
@@ -74,11 +78,15 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import TaskExecuteService from '@service/task-execute';
+
   import QuertGlobalSettingService from '@service/query-global-setting';
-  import SourceFileVO from '@domain/variable-object/source-file';
+  import TaskExecuteService from '@service/task-execute';
+
   import { encodeRegexp } from '@utils/assist';
+
+  import SourceFileVO from '@domain/variable-object/source-file';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -88,7 +96,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         fileList: [],
         FILE_UPLOAD_SETTING: {
@@ -104,7 +112,7 @@
        * @desc 上传文件最大字节数
        * @returns { String }
        */
-      fileUploadMaxBytes () {
+      fileUploadMaxBytes() {
         const { amount, unit } = this.FILE_UPLOAD_SETTING;
         const unitMap = {
           GB: 1073741824,
@@ -119,14 +127,14 @@
        * @desc 上传文件最大字节数显示文本
        * @returns { String }
        */
-      fileMaxUploadSizeText () {
+      fileMaxUploadSizeText() {
         const { amount, unit } = this.FILE_UPLOAD_SETTING;
         return `${amount}${unit}`;
       },
     },
     watch: {
       data: {
-        handler (newData) {
+        handler(newData) {
           if (this.innerChange) {
             this.innerChange = false;
             return;
@@ -136,7 +144,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.fetchJobConfig();
     },
     methods: {
@@ -145,7 +153,7 @@
        *
        * 本地文件上传大小限制
        */
-      fetchJobConfig () {
+      fetchJobConfig() {
         QuertGlobalSettingService.fetchJobConfig()
           .then((data) => {
             this.FILE_UPLOAD_SETTING = data.FILE_UPLOAD_SETTING;
@@ -154,13 +162,13 @@
       /**
        * @desc 暴露给外部的API，开始选择文件
        */
-      startUpload () {
+      startUpload() {
         this.$refs.uploadInput.click();
       },
       /**
        * @desc 触发change事件
        */
-      triggerChange () {
+      triggerChange() {
         this.innerChange = true;
         this.$emit('on-change', [...this.fileList]);
       },
@@ -171,7 +179,7 @@
        * 1，检测重名
        * 2，检测文件大小是否超过限制
        */
-      handleStartUpload (event) {
+      handleStartUpload(event) {
         const { files } = event.target;
         const uploadFileQueue = [];
         const params = new FormData();
@@ -275,7 +283,7 @@
        * @desc 删除上传文件
        * @param {Number} index input事件
        */
-      handlerRemove (index) {
+      handlerRemove(index) {
         this.fileList.splice(index, 1);
         this.triggerChange();
       },

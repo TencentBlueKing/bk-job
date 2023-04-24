@@ -24,9 +24,12 @@
 */
 
 import _ from 'lodash';
+
 import TaskHostNodeModel from '@model/task-host-node';
-import I18n from '@/i18n';
+
 import { bytePretty } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 const AGENT_STATUS_NORMAL = 1; // 正常
 const AGENT_STATUS_ABNORMAL = 0; // 异常
@@ -48,7 +51,7 @@ export default class SourceFile {
   static typeLocal = FILE_TYPE_LOCAL;
   static typeSource = FILE_TYPE_SOURCE;
 
-  constructor (payload) {
+  constructor(payload) {
     this.id = payload.id || 0;
     // 文件类型, 1：服务器文件， 2：本地文件，3：文件源文件
     this.fileType = payload.fileType || '';
@@ -86,7 +89,7 @@ export default class SourceFile {
      *
      * 服务列表为空则使用的是全局变量
     */
-  get isVar () {
+  get isVar() {
     return TaskHostNodeModel.isHostNodeInfoEmpty(this.host.hostNodeInfo);
   }
 
@@ -94,7 +97,7 @@ export default class SourceFile {
      * @desc 服务器文件
      * @returns {Boolean}
     */
-  get isServerFile () {
+  get isServerFile() {
     return this.fileType === FILE_TYPE_SERVER;
   }
 
@@ -102,7 +105,7 @@ export default class SourceFile {
      * @desc 本地文件
      * @returns {Boolean}
     */
-  get isLocalFile () {
+  get isLocalFile() {
     return this.fileType === FILE_TYPE_LOCAL;
   }
 
@@ -110,7 +113,7 @@ export default class SourceFile {
      * @desc 文件源文件
      * @returns {Boolean}
     */
-  get isSourceFile () {
+  get isSourceFile() {
     return this.fileType === FILE_TYPE_SOURCE;
   }
 
@@ -118,7 +121,7 @@ export default class SourceFile {
      * @desc 本地文件——文件大小
      * @returns {String}
     */
-  get fileSizeText () {
+  get fileSizeText() {
     return bytePretty(this.fileSize);
   }
 
@@ -126,7 +129,7 @@ export default class SourceFile {
      * @desc 本地文件——上传进度
      * @returns {Number}
     */
-  get uploadProgress () {
+  get uploadProgress() {
     return this.loaded / this.loadTotal;
   }
 
@@ -134,7 +137,7 @@ export default class SourceFile {
      * @desc 服务器文件——主机为空
      * @returns {Boolean}
     */
-  get isHostEmpty () {
+  get isHostEmpty() {
     return TaskHostNodeModel.isHostNodeInfoEmpty(this.host.hostNodeInfo);
   }
 
@@ -142,7 +145,7 @@ export default class SourceFile {
      * @desc 文件来源的唯一标记（服务器文件可能出现重复值）
      * @returns {String}
      */
-  get realId () {
+  get realId() {
     if (this.fileType === FILE_TYPE_SERVER) {
       return `${this.fileLocation}____${this.account}`;
     }
@@ -156,7 +159,7 @@ export default class SourceFile {
      * 本地文件（路径）只显示文件名
      * 服务器文件显示完成字符串
      */
-  get fileLocationText () {
+  get fileLocationText() {
     if (this.fileType === FILE_TYPE_LOCAL) {
       return this.fileLocation.map(fileItem => _.last(fileItem.split('/'))).join('\n');
     }
@@ -167,7 +170,7 @@ export default class SourceFile {
      * @desc 新建时是否可以保存
      * @returns { Boolean }
      */
-  get isDisableSave () {
+  get isDisableSave() {
     // 文件路径为空
     if (!this.fileLocation || this.fileLocation.length < 1) {
       return true;
@@ -188,7 +191,7 @@ export default class SourceFile {
      * @desc 获取服务器文件使用的全局变量
      * @returns { String }
      */
-  get variable () {
+  get variable() {
     if (this.host.variable) {
       return this.host.variable;
     }
@@ -199,7 +202,7 @@ export default class SourceFile {
      * @desc 服务器列表统计文本
      * @returns { String }
      */
-  get serverDesc () {
+  get serverDesc() {
     if (this.host.variable) {
       return this.host.variable;
     }

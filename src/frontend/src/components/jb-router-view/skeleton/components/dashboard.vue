@@ -31,35 +31,173 @@
       :height="400"
       :width="maxWidth"
       v-bind="$attrs">
-      <rect fill="#D8D8D8" height="18" rx="2" width="49" x="0" y="0" />
+      <rect
+        fill="#D8D8D8"
+        height="18"
+        rx="2"
+        width="49"
+        x="0"
+        y="0" />
       <!--  -->
-      <rect fill="#D8D8D8" height="18" rx="2" width="80" x="19" y="54" />
-      <rect fill="#D8D8D8" height="12" rx="2" width="80" x="19" y="133" />
-      <rect fill="#D8D8D8" height="12" rx="2" width="80" x="19" y="159" />
-      <rect fill="#D8D8D8" height="24" rx="2" width="54" x="19" y="91" />
-      <rect fill="#D8D8D8" height="60" rx="2" width="120" x="120" y="111" />
+      <rect
+        fill="#D8D8D8"
+        height="18"
+        rx="2"
+        width="80"
+        x="19"
+        y="54" />
+      <rect
+        fill="#D8D8D8"
+        height="12"
+        rx="2"
+        width="80"
+        x="19"
+        y="133" />
+      <rect
+        fill="#D8D8D8"
+        height="12"
+        rx="2"
+        width="80"
+        x="19"
+        y="159" />
+      <rect
+        fill="#D8D8D8"
+        height="24"
+        rx="2"
+        width="54"
+        x="19"
+        y="91" />
+      <rect
+        fill="#D8D8D8"
+        height="60"
+        rx="2"
+        width="120"
+        x="120"
+        y="111" />
       <!--  -->
-      <rect fill="#D8D8D8" height="18" rx="2" width="80" x="280" y="54" />
-      <rect fill="#D8D8D8" height="12" rx="2" width="80" x="280" y="133" />
-      <rect fill="#D8D8D8" height="12" rx="2" width="80" x="280" y="159" />
-      <rect fill="#D8D8D8" height="24" rx="2" width="54" x="280" y="91" />
-      <rect fill="#D8D8D8" height="60" rx="2" width="120" x="380" y="111" />
+      <rect
+        fill="#D8D8D8"
+        height="18"
+        rx="2"
+        width="80"
+        x="280"
+        y="54" />
+      <rect
+        fill="#D8D8D8"
+        height="12"
+        rx="2"
+        width="80"
+        x="280"
+        y="133" />
+      <rect
+        fill="#D8D8D8"
+        height="12"
+        rx="2"
+        width="80"
+        x="280"
+        y="159" />
+      <rect
+        fill="#D8D8D8"
+        height="24"
+        rx="2"
+        width="54"
+        x="280"
+        y="91" />
+      <rect
+        fill="#D8D8D8"
+        height="60"
+        rx="2"
+        width="120"
+        x="380"
+        y="111" />
       <!--  -->
-      <rect fill="#D8D8D8" height="18" rx="2" width="80" x="559" y="54" />
-      <rect fill="#D8D8D8" height="24" rx="2" width="102" x="559" y="91" />
-      <rect fill="#D8D8D8" height="38" rx="2" width="40" x="559" y="133" />
+      <rect
+        fill="#D8D8D8"
+        height="18"
+        rx="2"
+        width="80"
+        x="559"
+        y="54" />
+      <rect
+        fill="#D8D8D8"
+        height="24"
+        rx="2"
+        width="102"
+        x="559"
+        y="91" />
+      <rect
+        fill="#D8D8D8"
+        height="38"
+        rx="2"
+        width="40"
+        x="559"
+        y="133" />
       <!--  -->
-      <rect fill="#D8D8D8" height="18" rx="2" width="80" :x="559 + leftBlockOffset" y="54" />
-      <rect fill="#D8D8D8" height="24" rx="2" width="102" :x="559 + leftBlockOffset" y="91" />
-      <rect fill="#D8D8D8" height="38" rx="2" width="40" :x="559 + leftBlockOffset" y="133" />
+      <rect
+        fill="#D8D8D8"
+        height="18"
+        rx="2"
+        width="80"
+        :x="559 + leftBlockOffset"
+        y="54" />
+      <rect
+        fill="#D8D8D8"
+        height="24"
+        rx="2"
+        width="102"
+        :x="559 + leftBlockOffset"
+        y="91" />
+      <rect
+        fill="#D8D8D8"
+        height="38"
+        rx="2"
+        width="40"
+        :x="559 + leftBlockOffset"
+        y="133" />
       <!--  -->
-      <rect fill="#D8D8D8" height="18" rx="2" width="80" :x="559 + leftBlockOffset * 2" y="54" />
-      <rect fill="#D8D8D8" height="24" rx="2" width="102" :x="559 + leftBlockOffset * 2" y="91" />
-      <rect fill="#D8D8D8" height="38" rx="2" width="40" :x="559 + leftBlockOffset * 2" y="133" />
+      <rect
+        fill="#D8D8D8"
+        height="18"
+        rx="2"
+        width="80"
+        :x="559 + leftBlockOffset * 2"
+        y="54" />
+      <rect
+        fill="#D8D8D8"
+        height="24"
+        rx="2"
+        width="102"
+        :x="559 + leftBlockOffset * 2"
+        y="91" />
+      <rect
+        fill="#D8D8D8"
+        height="38"
+        rx="2"
+        width="40"
+        :x="559 + leftBlockOffset * 2"
+        y="133" />
       <!--  -->
-      <rect fill="#D8D8D8" height="18" rx="2" width="80" :x="559 + leftBlockOffset * 3" y="54" />
-      <rect fill="#D8D8D8" height="24" rx="2" width="102" :x="559 + leftBlockOffset * 3" y="91" />
-      <rect fill="#D8D8D8" height="38" rx="2" width="40" :x="559 + leftBlockOffset * 3" y="133" />
+      <rect
+        fill="#D8D8D8"
+        height="18"
+        rx="2"
+        width="80"
+        :x="559 + leftBlockOffset * 3"
+        y="54" />
+      <rect
+        fill="#D8D8D8"
+        height="24"
+        rx="2"
+        width="102"
+        :x="559 + leftBlockOffset * 3"
+        y="91" />
+      <rect
+        fill="#D8D8D8"
+        height="38"
+        rx="2"
+        width="40"
+        :x="559 + leftBlockOffset * 3"
+        y="133" />
     </content-loader>
   </div>
 </template>
@@ -78,7 +216,7 @@
       },
     },
     computed: {
-      leftBlockOffset () {
+      leftBlockOffset() {
         return (this.maxWidth - 40 - 559) / 4;
       },
     },

@@ -29,8 +29,10 @@
   <div>
     <div class="name">
       <span>{{ data.name }}</span>
-      <span class="remove-flag" @click="handleRemove">
-        <Icon type="reduce-fill" />
+      <span
+        class="remove-flag"
+        @click="handleRemove">
+        <icon type="reduce-fill" />
       </span>
     </div>
     <div>
@@ -39,17 +41,22 @@
         v-bk-tooltips="descPopover"
         style="width: 160px;"
         @click="handleChooseIp">
-        <Icon type="plus" />
+        <icon type="plus" />
         {{ $t('template.添加服务器') }}
       </bk-button>
-      <div v-else class="host-value-text" @click="handleChooseIp">
+      <div
+        v-else
+        class="host-value-text"
+        @click="handleChooseIp">
         <div class="host-type">
-          <Icon type="host" />
+          <icon type="host" />
         </div>
         <div>
           {{ valueText }}
         </div>
-        <Icon class="host-edit" type="edit-2" />
+        <icon
+          class="host-edit"
+          type="edit-2" />
       </div>
     </div>
     <choose-ip
@@ -60,6 +67,7 @@
 </template>
 <script>
   import TaskHostNodeModel from '@model/task-host-node';
+
   import ChooseIp from '@components/choose-ip';
 
   export default {
@@ -76,20 +84,20 @@
         default: () => new TaskHostNodeModel({}),
       },
     },
-    data () {
+    data() {
       return {
         isShowChooseIp: false,
         hostNodeInfo: {},
       };
     },
     computed: {
-      isValueEmpty () {
+      isValueEmpty() {
         return TaskHostNodeModel.isHostNodeInfoEmpty(this.value.hostNodeInfo);
       },
-      valueText  () {
+      valueText() {
         return new TaskHostNodeModel(this.value).text;
       },
-      descPopover () {
+      descPopover() {
         return {
           theme: 'light',
           extCls: 'variable-desc-tippy',
@@ -101,19 +109,19 @@
         };
       },
     },
-        
+
     methods: {
-      handleRemove () {
+      handleRemove() {
         this.$emit('on-remove');
       },
-      handleChooseIp () {
+      handleChooseIp() {
         this.isShowChooseIp = true;
         this.hostNodeInfo = this.value.hostNodeInfo;
       },
-      handleClear () {
+      handleClear() {
         this.$emit('on-change', new TaskHostNodeModel({}));
       },
-      handleChange (hostNodeInfo) {
+      handleChange(hostNodeInfo) {
         this.$emit('on-change', {
           hostNodeInfo,
         });

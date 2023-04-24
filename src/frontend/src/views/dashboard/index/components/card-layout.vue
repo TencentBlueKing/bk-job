@@ -59,11 +59,11 @@
         type: String,
       },
     },
-    data () {
+    data() {
       return {};
     },
     computed: {
-      needRenderTips () {
+      needRenderTips() {
         return !!this.titleTips;
       },
     },

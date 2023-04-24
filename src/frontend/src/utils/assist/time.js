@@ -73,7 +73,7 @@ export const generatorDefaultCronTime = () => {
   const month = formatStr(d.getMonth() + 1);
   const date = formatStr(d.getDate());
   const hours = formatStr(d.getHours());
-    
+
   return `${year}-${month}-${date} ${hours}:00:00`;
 };
 

@@ -26,16 +26,29 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="page-platform-info">
+  <div
+    v-bkloading="{ isLoading }"
+    class="page-platform-info">
     <smart-action offset-target="bk-form-content">
       <div class="wraper">
-        <jb-form ref="platformForm" :model="formData" :rules="rules">
-          <bk-popover :distance="-10" placement="top" theme="light" :width="320">
+        <jb-form
+          ref="platformForm"
+          :model="formData"
+          :rules="rules">
+          <bk-popover
+            :distance="-10"
+            placement="top"
+            theme="light"
+            :width="320">
             <div class="backlist block-title">
               <span>{{ $t('setting.网页 Title 设置:') }}</span>
             </div>
-            <div slot="content" class="title-example-popover">
-              <img class="example-image" src="/static/images/title-example.png">
+            <div
+              slot="content"
+              class="title-example-popover">
+              <img
+                class="example-image"
+                src="/static/images/title-example.png">
             </div>
           </bk-popover>
           <hgroup>
@@ -83,18 +96,25 @@
           class="w120 mr10"
           :loading="isSubmitting"
           theme="primary"
-          @click="handleSave">{{ $t('setting.保存') }}</bk-button>
-        <bk-button @click="handleReset">{{ $t('setting.重置') }}</bk-button>
+          @click="handleSave">
+          {{ $t('setting.保存') }}
+        </bk-button>
+        <bk-button @click="handleReset">
+          {{ $t('setting.重置') }}
+        </bk-button>
       </template>
     </smart-action>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import _ from 'lodash';
+
   import GlobalSettingService from '@service/global-setting';
-  import SmartAction from '@components/smart-action';
+
   import JbInput from '@components/jb-input';
+  import SmartAction from '@components/smart-action';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     titleHead: '',
@@ -109,7 +129,7 @@
       SmartAction,
       JbInput,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isSubmitting: false,
@@ -118,7 +138,7 @@
         defaultTitleFooter: {},
       };
     },
-    created () {
+    created() {
       this.fetchTitleAndFooter();
       this.rules = {
         titleHead: [
@@ -138,7 +158,7 @@
       };
     },
     methods: {
-      fetchTitleAndFooter () {
+      fetchTitleAndFooter() {
         this.isLoading = true;
         GlobalSettingService.fetchTitleAndFooterConfig()
           .then((data) => {
@@ -150,13 +170,13 @@
             this.isLoading = false;
           });
       },
-      handleRestore () {
+      handleRestore() {
         this.formData = _.cloneDeep(this.defaultTitleFooter);
       },
-      handleReset () {
+      handleReset() {
         this.formData = _.cloneDeep(this.currentTitleFooter);
       },
-      handleSave () {
+      handleSave() {
         this.$refs.platformForm.validate()
           .then((validator) => {
             this.isSubmitting = true;

@@ -35,7 +35,7 @@ export const findUsedVariable = (stepList) => {
       variableSet.add(variableName);
     });
   });
-    
+
   return [
     ...variableSet,
   ];

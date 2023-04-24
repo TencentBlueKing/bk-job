@@ -26,8 +26,13 @@
 -->
 
 <template>
-  <div ref="tips" class="sync-plan-side-anchor-tips" :style="styles">
-    <div ref="content" class="wraper">
+  <div
+    ref="tips"
+    class="sync-plan-side-anchor-tips"
+    :style="styles">
+    <div
+      ref="content"
+      class="wraper">
       {{ data.name }}
     </div>
   </div>
@@ -44,7 +49,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         position: 'left',
         top: 0,
@@ -52,7 +57,7 @@
       };
     },
     computed: {
-      styles () {
+      styles() {
         return {
           position: 'absolute',
           top: `${this.top}px`,
@@ -61,7 +66,7 @@
         };
       },
     },
-    mounted () {
+    mounted() {
       this.$target = document.querySelector('.sync-plan-side-anchor').querySelector(`[data-anchor="${this.data.target}"]`);
       const scrollParent = getScrollParent(this.$target);
       if (scrollParent) {
@@ -70,24 +75,22 @@
           scrollParent.removeEventListener('scroll', this.calcPosition);
         });
       }
-            
+
       this.init();
     },
-    beforeDestroy () {
-      try {
-        if (this.$refs.detail) {
-          document.body.removeChild(this.$refs.detail);
-        }
-      } catch (error) {}
+    beforeDestroy() {
+      if (this.$refs.detail) {
+        this.$refs.detail.parentNode.removeChild(this.$refs.detail);
+      }
     },
     methods: {
-      init () {
+      init() {
         this.$nextTick(() => {
           this.calcPosition();
         });
         document.body.appendChild(this.$refs.tips);
       },
-      calcPosition () {
+      calcPosition() {
         const tipsHeight = this.$refs.tips.getBoundingClientRect().height;
         const { top, left, height } = this.$target.getBoundingClientRect();
         this.top = top - (tipsHeight - height) / 2;

@@ -30,7 +30,8 @@
     <div class="muti-item">
       <jb-input
         :placeholder="$t('脚本执行时传入的参数，同脚本在终端执行时的传参格式，如：./test.sh xxxx xxx xxx')"
-        :value="formData[paramField]" @change="handleParamChange" />
+        :value="formData[paramField]"
+        @change="handleParamChange" />
     </div>
   </jb-form-item>
 </template>
@@ -52,7 +53,7 @@
       },
     },
     methods: {
-      handleParamChange (value) {
+      handleParamChange(value) {
         this.$emit('on-change', this.paramField, value);
       },
     },

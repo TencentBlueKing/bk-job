@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <resizeable-box :parent-width="parentWidth" :width="parentWidth / 2">
+  <resizeable-box
+    :parent-width="parentWidth"
+    :width="parentWidth / 2">
     <div
       v-bkloading="{ isLoading }"
       class="script-template-preview-template">
@@ -37,23 +39,28 @@
           class="refresh-flag"
           @click="handleRefresh">
           <span class="dot">
-            <Icon type="refresh-2" />
+            <icon type="refresh-2" />
           </span>
           <span style="color: #d74242;">{{ $t('scriptTemplate.有更新') }}</span>
         </div>
       </div>
-      <div :id="editorId" class="preview-content" />
+      <div
+        :id="editorId"
+        class="preview-content" />
     </div>
   </resizeable-box>
 </template>
 <script>
-  import _ from 'lodash';
+  import ace from 'ace/ace';
   import { Base64 } from 'js-base64';
+  import _ from 'lodash';
+
   import ScriptTemplateService from '@service/script-template';
+
   import {
     formatScriptTypeValue,
   } from '@utils/assist';
-  import ace from 'ace/ace';
+
   import ResizeableBox from './resizeable-box';
 
   const LANG_MAP = {
@@ -85,20 +92,20 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         needRefresh: false,
       };
     },
     computed: {
-      mode () {
+      mode() {
         return `ace/mode/${LANG_MAP[this.scriptLanguage]}`;
       },
     },
     watch: {
       scriptContent: {
-        handler () {
+        handler() {
           if (this.hasRendered) {
             this.needRefresh = true;
             return;
@@ -107,25 +114,25 @@
         },
         immediate: true,
       },
-      scriptLanguage () {
+      scriptLanguage() {
         this.fetchRenderScript();
         setTimeout(() => {
           this.editor.getSession().setMode(this.mode);
         });
       },
     },
-    created () {
+    created() {
       this.hasRendered = false;
       this.editorId = `scriptTemplatePrevice${_.random(1, 1000)}_${Date.now()}`;
     },
-    mounted () {
+    mounted() {
       this.initEditor();
     },
     methods: {
       /**
        * 初始化脚本编辑器
        */
-      initEditor () {
+      initEditor() {
         const editor = ace.edit(this.editorId);
         editor.getSession().setMode(this.mode);
         editor.setOptions({
@@ -145,7 +152,7 @@
         editor.setShowPrintMargin(false);
         editor.$blockScrolling = Infinity;
         editor.setReadOnly(true);
-                
+
         // 先保存 editor 在设置 value
         editor.scrollToLine(Infinity);
         editor.setValue('');
@@ -159,7 +166,7 @@
       /**
        * @desc 预览脚本模板
        */
-      fetchRenderScript () {
+      fetchRenderScript() {
         this.isLoading = true;
         ScriptTemplateService.fetchRenderScript({
           scriptContent: this.scriptContent,
@@ -177,7 +184,7 @@
       /**
        * @desc 有更新，重新预览脚本模板
        */
-      handleRefresh () {
+      handleRefresh() {
         this.fetchRenderScript();
       },
     },

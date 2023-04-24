@@ -50,7 +50,7 @@
           :value="formData.name"
           @blur="handleShowNameError"
           @change="value => handleChange('name', value)" />
-        <Icon
+        <icon
           v-if="isNameError"
           v-bk-tooltips="errorNameText"
           class="input-error"
@@ -63,7 +63,9 @@
           v-if="formData.defaultTargetValue.isEmpty"
           class="add-host-btn offset-left"
           @click="handleShowChooseIp">
-          <Icon style="margin-right: 6px;" type="plus" />
+          <icon
+            style="margin-right: 6px;"
+            type="plus" />
           {{ $t('添加服务器') }}
         </div>
         <jb-edit-host
@@ -101,8 +103,14 @@
         @change="value => handleChange('required', value)" />
     </td>
     <td class="action-row">
-      <Icon class="action-btn" type="add-fill" @click="handleCreate" />
-      <Icon class="action-btn" type="reduce-fill" @click="handleDelete" />
+      <icon
+        class="action-btn"
+        type="add-fill"
+        @click="handleCreate" />
+      <icon
+        class="action-btn"
+        type="reduce-fill"
+        @click="handleDelete" />
     </td>
     <choose-ip
       v-model="isShowChooseIp"
@@ -112,12 +120,17 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
-  import { globalVariableNameRule } from '@utils/validator';
+
   import GlobalVariableModel from '@model/task/global-variable';
+
+  import { globalVariableNameRule } from '@utils/validator';
+
   import ChooseIp from '@components/choose-ip';
   import JbEditHost from '@components/jb-edit/host';
+
   import { createVariable } from '../util';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -134,7 +147,7 @@
         require: true,
       },
     },
-    data () {
+    data() {
       return {
         formData: _.cloneDeep(this.data),
         isShowChooseIp: false,
@@ -147,7 +160,7 @@
        * @desc 是否有赋值可变选项
        * @returns { Boolean }
        */
-      withChangable () {
+      withChangable() {
         return [
           GlobalVariableModel.TYPE_STRING,
           GlobalVariableModel.TYPE_RELATE_ARRAY,
@@ -158,7 +171,7 @@
        * @desc 主机变量
        * @returns { Boolean }
        */
-      isHostVarialbe () {
+      isHostVarialbe() {
         return [
           GlobalVariableModel.TYPE_HOST,
         ].includes(this.formData.type);
@@ -167,11 +180,11 @@
        * @desc 变量名验证失败
        * @returns { Boolean }
        */
-      isNameError () {
+      isNameError() {
         return this.isShowNameError && this.errorNameText;
       },
     },
-    created () {
+    created() {
       this.typeList = [
         {
           id: GlobalVariableModel.TYPE_STRING,
@@ -203,7 +216,7 @@
       /**
        * @desc 验证变量名
        */
-      validate () {
+      validate() {
         this.isShowNameError = true;
         this.errorNameText = '';
         if (!this.formData.name) {
@@ -223,26 +236,26 @@
       /**
        * @desc 触发 change 事件
        */
-      triggerChange () {
+      triggerChange() {
         this.$emit('on-change', this.formData);
       },
       /**
        * @desc name 编辑框失去焦点时进行验证
        */
-      handleShowNameError () {
+      handleShowNameError() {
         this.validate();
       },
       /**
        * @desc 设置主机变量的值
        */
-      handleShowChooseIp () {
+      handleShowChooseIp() {
         this.isShowChooseIp = true;
       },
       /**
        * @desc 更新主机变量
        * @param { Object } hostNodeInfo 主机信息
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
         this.triggerChange();
       },
@@ -251,7 +264,7 @@
        * @param { String } field 字段名
        * @param { Any } value 字段值
        */
-      handleChange (field, value) {
+      handleChange(field, value) {
         if (field === 'type') {
           this.formData = createVariable(this.formData.id);
         }
@@ -262,16 +275,16 @@
       /**
        * @desc 添加新变量
        */
-      handleCreate () {
+      handleCreate() {
         this.$emit('on-append');
       },
       /**
        * @desc 删除自己
        */
-      handleDelete () {
+      handleDelete() {
         this.$emit('on-delete');
       },
-            
+
     },
   };
 </script>

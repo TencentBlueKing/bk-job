@@ -32,7 +32,7 @@
         v-bk-tooltips.bottom="$t('history.全局变量')"
         class="action-btn"
         @click="handleShowGlobalVariable">
-        <Icon type="global-var-line" />
+        <icon type="global-var-line" />
       </div>
       <jb-sideslider
         :is-show.sync="isShow"
@@ -59,14 +59,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShow: false,
       };
     },
 
     methods: {
-      handleShowGlobalVariable () {
+      handleShowGlobalVariable() {
         this.isShow = true;
       },
     },

@@ -35,14 +35,22 @@
     <bk-alert :title="$t('template.同步执行方案需要重新确认定时任务的全局变量，不使用的定时任务可以直接停用。')" />
     <div class="title">
       <span>「{{ info.name }}」{{ $t('template.的全局变量') }}</span>
-      <span v-if="!data.enable" class="disable">{{ $t('template.已停用') }}</span>
-      <span v-else-if="data.hasConfirm" class="confirm">{{ $t('template.已确认') }}</span>
-      <span v-else class="waiting">{{ $t('template.待确认') }}</span>
+      <span
+        v-if="!data.enable"
+        class="disable">{{ $t('template.已停用') }}</span>
+      <span
+        v-else-if="data.hasConfirm"
+        class="confirm">{{ $t('template.已确认') }}</span>
+      <span
+        v-else
+        class="waiting">{{ $t('template.待确认') }}</span>
     </div>
     <div v-if="!isLoading">
       <empty v-if="isEmpty">
         <p>{{ $t('template.无关联的全局变量') }}</p>
-        <p style="margin-top: 8px;">{{ $t('template.已直接确认') }}</p>
+        <p style="margin-top: 8px;">
+          {{ $t('template.已直接确认') }}
+        </p>
       </empty>
       <global-variable-layout v-else>
         <div>
@@ -90,11 +98,14 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TimeTaskService from '@service/time-task';
-  import GlobalVariableLayout from '@components/global-variable/layout';
-  import GlobalVariable from '@components/global-variable/edit';
+
   import Empty from '@components/empty';
+  import GlobalVariable from '@components/global-variable/edit';
+  import GlobalVariableLayout from '@components/global-variable/layout';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -113,7 +124,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isEmpty: false,
@@ -128,14 +139,14 @@
       };
     },
     computed: {
-      readonly () {
+      readonly() {
         if (!this.data.enable) {
           return true;
         }
         return this.isEditing ? false : this.info.hasConfirm;
       },
     },
-    created () {
+    created() {
       if (!this.data.id) {
         return;
       }
@@ -149,7 +160,7 @@
       }
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         TimeTaskService.getDetail({
           id: this.data.id,
@@ -179,11 +190,11 @@
             this.isLoading = false;
           });
       },
-      handleToggleEdit () {
+      handleToggleEdit() {
         this.isEditing = true;
         this.$emit('on-update-confirm', false);
       },
-      handleSubmit () {
+      handleSubmit() {
         Promise.all(this.$refs.variable.map(item => item.validate()))
           .then((variableValue) => {
             window.changeFlag = false;
@@ -194,7 +205,7 @@
             this.$emit('on-change', Object.freeze(variableValue));
           });
       },
-      handleReset () {
+      handleReset() {
         this.$refs.variable.forEach(item => item.reset());
       },
     },

@@ -30,7 +30,7 @@ export default {
     isTotalBtnFixed: Boolean,
     selectBatch: Number,
   },
-  render (h, context) {
+  render(h, context) {
     const {
       stepData,
       isTotalBtnFixed,

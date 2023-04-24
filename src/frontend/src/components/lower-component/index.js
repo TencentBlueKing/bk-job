@@ -24,10 +24,10 @@
 */
 
 const STRATEGY_MAP = {
-  'async' (callback) {
+  'async'(callback) {
     setTimeout(() => callback(), 300);
   },
-  'viewport' (callback) {
+  'viewport'(callback) {
     const windowHeight = window.innerHeight;
     const check = () => {
       const { top } = this.$refs.lowerComponent.getBoundingClientRect();
@@ -59,12 +59,12 @@ export default {
       default: () => Promise.resolve(),
     },
   },
-  data () {
+  data() {
     return {
       isRender: false,
     };
   },
-  mounted () {
+  mounted() {
     if (this.level === 'custom') {
       if (typeof this.custom === 'function') {
         const customPromise = this.custom();
@@ -98,11 +98,11 @@ export default {
     STRATEGY_MAP[this.level].call(this, this.updateLevel);
   },
   methods: {
-    updateLevel () {
+    updateLevel() {
       this.isRender = true;
     },
   },
-  render (h) {
+  render(h) {
     if (this.isRender) {
       if (this.$slots.default) {
         return this.$slots.default[0];

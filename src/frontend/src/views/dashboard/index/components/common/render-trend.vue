@@ -26,9 +26,13 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading, opacity: 0.8 }" class="render-trend-box">
+  <div
+    v-bkloading="{ isLoading, opacity: 0.8 }"
+    class="render-trend-box">
     <div class="data-wraper">
-      <div class="total">{{ data.count }}</div>
+      <div class="total">
+        {{ data.count }}
+      </div>
       <div
         class="data-row"
         :class="{
@@ -39,9 +43,15 @@
         style="margin-top: 12px;">
         <span class="label">{{ $t('dashboard.同比') }}</span>
         <span>
-          <Icon v-if="data.yoyTrend < 0" type="decrease-line" />
-          <Icon v-if="data.yoyTrend === 0" type="equally" />
-          <Icon v-if="data.yoyTrend > 0" type="increase-line" />
+          <icon
+            v-if="data.yoyTrend < 0"
+            type="decrease-line" />
+          <icon
+            v-if="data.yoyTrend === 0"
+            type="equally" />
+          <icon
+            v-if="data.yoyTrend > 0"
+            type="increase-line" />
         </span>
         <span>{{ data.yoyValue }}</span>
       </div>
@@ -55,22 +65,32 @@
         style="margin-top: 10px;">
         <span class="label">{{ $t('dashboard.环比') }}</span>
         <span>
-          <Icon v-if="data.momTrend < 0" type="decrease-line" />
-          <Icon v-if="data.momTrend === 0" type="equally" />
-          <Icon v-if="data.momTrend > 0" type="increase-line" />
+          <icon
+            v-if="data.momTrend < 0"
+            type="decrease-line" />
+          <icon
+            v-if="data.momTrend === 0"
+            type="equally" />
+          <icon
+            v-if="data.momTrend > 0"
+            type="increase-line" />
         </span>
         <span>{{ data.momValue }}</span>
       </div>
     </div>
     <div class="data-chart">
-      <div ref="trend" style="width: 100%; height: 60px;" />
+      <div
+        ref="trend"
+        style="width: 100%; height: 60px;" />
     </div>
   </div>
 </template>
 <script>
-  import _ from 'lodash';
   import * as echarts from 'echarts';
+  import _ from 'lodash';
+
   import StatisticsService from '@service/statistics';
+
   import { prettyDateFormat } from '@utils/assist';
 
   const styleMap = {
@@ -122,7 +142,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -133,11 +153,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    mounted () {
+    mounted() {
       this.trendData = [];
       this.fetchData();
       const resize = _.throttle(() => {
@@ -149,7 +169,7 @@
       });
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         Promise.all([
           StatisticsService.fetchTotalMetrics({
@@ -169,7 +189,7 @@
           this.isLoading = false;
         });
       },
-      initTrend (data) {
+      initTrend(data) {
         this.myChart = echarts.init(this.$refs.trend);
         const dateList = [];
         const valueList = [];

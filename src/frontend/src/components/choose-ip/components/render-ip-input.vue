@@ -40,30 +40,34 @@
         @change="handleIPChange" />
     </div>
     <div class="input-action">
-      <div v-if="isError" class="input-error">
+      <div
+        v-if="isError"
+        class="input-error">
         <div>{{ $t('以上内容存在错误：') }}</div>
         <div v-if="invalidIPList.length > 0">
           <span>{{ $t('IP 在本业务下不存在') }}</span>
-          <Icon
+          <icon
             v-bk-tooltips="$t('标识错误')"
             class="error-action"
             type="ip-audit"
             @click="handleHighlightInvilad" />
-          <Icon
+          <icon
             v-bk-tooltips="$t('一键清除')"
             class="error-action"
             type="delete"
             @click="handleRemoveInvalid" />
         </div>
-        <div v-if="invalidIPList.length > 0 && errorIPList.length > 0">；</div>
+        <div v-if="invalidIPList.length > 0 && errorIPList.length > 0">
+          ；
+        </div>
         <div v-if="errorIPList.length > 0">
           <span>{{ $t('内容格式错误，无法识别') }}</span>
-          <Icon
+          <icon
             v-bk-tooltips="$t('标识错误')"
             class="error-action"
             type="ip-audit"
             @click="handleHightlightError" />
-          <Icon
+          <icon
             v-bk-tooltips="$t('一键清除')"
             class="error-action"
             type="delete"
@@ -89,8 +93,11 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import AppManageService from '@service/app-manage';
+
   import { encodeRegexp } from '@utils/assist';
+
   import { generateHostRealId } from './utils';
 
   export default {
@@ -106,7 +113,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isSubmiting: false,
         ipInputText: '',
@@ -117,14 +124,14 @@
       };
     },
     computed: {
-      inputRows () {
+      inputRows() {
         const offsetTop = 65;
         const offsetBottom = 130;
         const inputPadding = 15;
 
         return Math.floor((this.dialogHeight - offsetTop - offsetBottom - inputPadding) / 18);
       },
-      isError () {
+      isError() {
         return this.invalidIPList.length > 0 || this.errorIPList.length > 0;
       },
     },
@@ -132,7 +139,7 @@
       /**
        * @desc 更新输入框内容
        */
-      updateInputValue () {
+      updateInputValue() {
         this.ipInputText = [
           ...this.invalidIPList,
           ...this.errorIPList,
@@ -145,13 +152,13 @@
       /**
        * @desc 用户点击输入框时切换选中文本样式
        */
-      handleInputClick () {
+      handleInputClick() {
         this.isFocusError = false;
       },
       /**
        * @desc 高亮输入框内无效的 IP 输入
        */
-      handleHighlightInvilad () {
+      handleHighlightInvilad() {
         this.isFocusError = true;
         const $inputEl = this.$refs.input.$el.querySelector('textarea');
         const errorText = this.invalidIPList.join('\n');
@@ -162,14 +169,14 @@
       /**
        * @desc 清空输入框内无效的 IP 输入
        */
-      handleRemoveInvalid () {
+      handleRemoveInvalid() {
         this.invalidIPList = [];
         this.updateInputValue();
       },
       /**
        * @desc 高亮输入框内错误格式的 IP 输入
        */
-      handleHightlightError () {
+      handleHightlightError() {
         this.isFocusError = true;
         const $inputEl = this.$refs.input.$el.querySelector('textarea');
         $inputEl.focus();
@@ -182,7 +189,7 @@
       /**
        * @desc 清空输入框内错误格式的 IP 输入
        */
-      handleRemoveError () {
+      handleRemoveError() {
         this.errorIPList = [];
         this.updateInputValue();
       },
@@ -208,7 +215,7 @@
       /**
        * @desc 提交输入结果
        */
-      handleAddHost () {
+      handleAddHost() {
         if (this.inputItemList.length < 1) {
           return;
         }
@@ -238,7 +245,7 @@
             errorIPList.push(IPText);
           }
         });
-                
+
         this.isSubmiting = true;
 
         const params = {
@@ -253,7 +260,7 @@
             // 输入的有效 IP
             const hostList = [];
             const hostIPMap = {};
-                        
+
             data.forEach((host) => {
               const {
                 ip,
@@ -284,7 +291,7 @@
             this.errorIPList = errorIPList;
             // 提交成功后重置用户输入内容的分隔符解析
             this.inputItemList = [];
-                        
+
             this.updateInputValue();
             this.$emit('on-input-change', false);
           })

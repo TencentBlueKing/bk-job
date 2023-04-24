@@ -35,7 +35,10 @@
           :name="item.name"
           :width="item.width">
       </template>
-      <col key="setting" name="setting" width="40">
+      <col
+        key="setting"
+        name="setting"
+        width="40">
     </colgroup>
     <thead>
       <tr>
@@ -54,13 +57,22 @@
               @click="handleCopyIP">
               {{ $t('history.复制') }}
             </span>
-            <span v-if="item.orderField" class="sort-box" :data-order="item.order">
-              <span class="top" :class="{ active: item.order === 1 }" />
-              <span class="bottom" :class="{ active: item.order === 0 }" />
+            <span
+              v-if="item.orderField"
+              class="sort-box"
+              :data-order="item.order">
+              <span
+                class="top"
+                :class="{ active: item.order === 1 }" />
+              <span
+                class="bottom"
+                :class="{ active: item.order === 0 }" />
             </span>
           </th>
         </template>
-        <th class="list-action" @click="handleShowSetting">
+        <th
+          class="list-action"
+          @click="handleShowSetting">
           <i class="bk-icon icon-cog-shape" />
         </th>
       </tr>
@@ -86,7 +98,7 @@
        * @param { Boolean } payload
        * @returns { undefined }
        */
-      handleSort (payload) {
+      handleSort(payload) {
         if (payload.label === 'IP') {
           return;
         }
@@ -95,13 +107,13 @@
       /**
        * @desc 复制IP
        */
-      handleCopyIP () {
+      handleCopyIP() {
         this.$emit('on-copy');
       },
       /**
        * @desc 显示表格配置
        */
-      handleShowSetting () {
+      handleShowSetting() {
         this.$emit('on-show-setting');
       },
     },

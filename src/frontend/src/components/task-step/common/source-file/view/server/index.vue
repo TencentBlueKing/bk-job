@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="server-file-edit-box">
+  <div
+    v-bkloading="{ isLoading }"
+    class="server-file-edit-box">
     <table>
       <thead>
         <th>{{ $t('文件路径') }}</th>
@@ -36,7 +38,9 @@
         <th>{{ $t('操作') }}</th>
       </thead>
       <tbody>
-        <tr v-for="(row, index) in serverFileList" :key="index">
+        <tr
+          v-for="(row, index) in serverFileList"
+          :key="index">
           <td>
             <edit-file-path
               :value="row.fileLocation"
@@ -61,7 +65,7 @@
                   :key="variableIndex"
                   :name="option.name" />
               </bk-select>
-              <Icon
+              <icon
                 v-if="!row.host.variable"
                 v-bk-tooltips="$t('全局变量被删除，重新设置')"
                 class="error-tips"
@@ -98,7 +102,9 @@
               @change="value => handleAccountChange(value, index)" />
           </td>
           <td>
-            <bk-button text @click="handlerRemove(index)">
+            <bk-button
+              text
+              @click="handlerRemove(index)">
               {{ $t('移除') }}
             </bk-button>
           </td>
@@ -114,7 +120,9 @@
         @on-cancel="handleAddCancel"
         @on-change="handleAddSave" />
     </table>
-    <lower-component :custom="isShowChooseIp" level="custom">
+    <lower-component
+      :custom="isShowChooseIp"
+      level="custom">
       <choose-ip
         v-model="isShowChooseIp"
         :host-node-info="currentHost"
@@ -125,14 +133,19 @@
 </template>
 <script>
   import { mapMutations } from 'vuex';
+
   import AccountManageService from '@service/account-manage';
+
   import TaskHostNodeModel from '@model/task-host-node';
+
+  import AccountSelect from '@components/account-select';
   import ChooseIp from '@components/choose-ip';
   import RenderServerAgent from '@components/render-server-agent';
-  import AccountSelect from '@components/account-select';
-  import AddOnlyHost from './only-host';
-  import AddHostAndVariable from './host-and-variable';
+
   import EditFilePath from '../../components/edit-file-path';
+
+  import AddHostAndVariable from './host-and-variable';
+  import AddOnlyHost from './only-host';
 
   export default {
     name: 'SourceFileServer',
@@ -159,7 +172,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         serverFileList: [],
@@ -170,7 +183,7 @@
       };
     },
     computed: {
-      addCom () {
+      addCom() {
         if (this.isLoading) {
           return 'div';
         }
@@ -179,7 +192,7 @@
         }
         return AddHostAndVariable;
       },
-      agentSeparator () {
+      agentSeparator() {
         if (this.mode === 'onlyHost') {
           return '、';
         }
@@ -188,7 +201,7 @@
     },
     watch: {
       data: {
-        handler (newData) {
+        handler(newData) {
           if (this.innerChange) {
             this.innerChange = false;
             return;
@@ -198,7 +211,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.fetchAccount();
       this.editNewSourceFile(false);
     },
@@ -209,7 +222,7 @@
       /**
        * @desc 获取系统账号列表
        */
-      fetchAccount () {
+      fetchAccount() {
         AccountManageService.fetchAccountWhole({
           category: 1,
         }).then((data) => {
@@ -223,7 +236,7 @@
        * @desc 从全局变量列表中查找指定全局变量的值
        * @param {String} variableName 全局变量名
        */
-      findVariableValue (variableName) {
+      findVariableValue(variableName) {
         const curVariable = this.variable.find(item => item.name === variableName);
         if (!curVariable) {
           const {
@@ -236,7 +249,7 @@
       /**
        * @desc 服务器文件更新
        */
-      triggerChange () {
+      triggerChange() {
         this.innerChange = true;
         this.$emit('on-change', [
           ...this.serverFileList,
@@ -247,7 +260,7 @@
        * @param {Array} fileLocation 服务器文件
        * @param {Number} index 编辑中的服务器文件的索引
        */
-      handleFilePathEdit (fileLocation, index) {
+      handleFilePathEdit(fileLocation, index) {
         this.serverFileList[index].fileLocation = fileLocation;
         this.triggerChange();
       },
@@ -255,7 +268,7 @@
        * @desc 开始编辑服务器文件的主机——显示ip选择器弹框
        * @param {Number} index 编辑中的服务器文件的索引
        */
-      handleHostEdit (index) {
+      handleHostEdit(index) {
         this.isShowChooseIp = true;
         this.currentIndex = index;
         this.currentHost = this.data[index].host.hostNodeInfo;
@@ -264,7 +277,7 @@
        * @desc 更新编辑服务器文件的主机
        * @param {Object} hostNodeInfo 服务器主机信息
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.serverFileList[this.currentIndex].host.hostNodeInfo = hostNodeInfo;
         this.triggerChange();
       },
@@ -273,7 +286,7 @@
        * @param {Array} variable 服务器主机信息
        * @param {Number} index 编辑中的服务器文件的索引
        */
-      handleVariableChange (variable, index) {
+      handleVariableChange(variable, index) {
         this.serverFileList[index].host.variable = variable;
         this.triggerChange();
       },
@@ -281,7 +294,7 @@
        * @desc 开始编辑服务器文件的服务器账号
        * @param {Number} index 编辑中的服务器文件的索引
        */
-      handleEditAccount (index) {
+      handleEditAccount(index) {
         this.serverFileList[index].isEditAccount = true;
         this.editAccountIndex = index;
         this.triggerChange();
@@ -291,7 +304,7 @@
        * @param {Number} account 服务器账号id
        * @param {Number} index 编辑中的服务器文件的索引
        */
-      handleAccountChange (account, index) {
+      handleAccountChange(account, index) {
         const serverFile = this.serverFileList[index];
         serverFile.account = account;
         this.triggerChange();
@@ -300,7 +313,7 @@
        * @desc 删除指定的服务器文件
        * @param {Number} index 服务器文件的索引
        */
-      handlerRemove (index) {
+      handlerRemove(index) {
         this.serverFileList.splice(index, 1);
         this.triggerChange();
       },
@@ -308,14 +321,14 @@
        * @desc 添加一条服务器文件
        * @param {Object} serverFile 服务器文件
        */
-      handleAddSave (serverFile) {
+      handleAddSave(serverFile) {
         this.serverFileList.push(serverFile);
         this.triggerChange();
       },
       /**
        * @desc 取消添加一条服务器文件
        */
-      handleAddCancel () {
+      handleAddCancel() {
         if (this.serverFileList.length < 1) {
           this.$emit('on-close');
         }

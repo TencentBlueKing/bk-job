@@ -26,9 +26,13 @@
 -->
 
 <template>
-  <jb-form ref="varPasswordForm" :model="formData">
+  <jb-form
+    ref="varPasswordForm"
+    :model="formData">
     <jb-form-item :label="$t('template.变量名称')">
-      <bk-input v-model="formData.name" disabled />
+      <bk-input
+        v-model="formData.name"
+        disabled />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量值')">
       <bk-input
@@ -38,7 +42,12 @@
         type="password" />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量描述')">
-      <bk-input v-model="formData.description" disabled maxlength="100" :row="8" type="textarea" />
+      <bk-input
+        v-model="formData.description"
+        disabled
+        maxlength="100"
+        :row="8"
+        type="textarea" />
     </jb-form-item>
     <jb-form-item>
       <bk-checkbox
@@ -69,19 +78,19 @@
     props: {
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
       };
     },
     watch: {
       data: {
-        handler (value) {
+        handler(value) {
           if (Object.keys(value).length) {
             const { name, defaultValue, description, required, id } = value;
             const del = value.delete;
@@ -93,14 +102,14 @@
       },
     },
     methods: {
-      submit () {
+      submit() {
         return Promise.resolve({
           ...this.formData,
           type: 4,
         });
       },
 
-      reset () {
+      reset() {
         this.formData = getDefaultData();
       },
     },

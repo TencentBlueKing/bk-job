@@ -26,8 +26,12 @@
 -->
 
 <template>
-  <div class="step-view-global-variable" @click="handlerView">
-    <Icon class="type-flag" type="audit" />
+  <div
+    class="step-view-global-variable"
+    @click="handlerView">
+    <icon
+      class="type-flag"
+      type="audit" />
     <jb-dialog
       v-model="isShowDetail"
       class="host-variable-detail-dialog"
@@ -70,13 +74,17 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskHostNodeModel from '@model/task-host-node';
+
   import {
     findParent,
   } from '@utils/vdom';
-  import ScrollFaker from '@components/scroll-faker';
+
   import ServerPanel from '@components/choose-ip/server-panel';
+  import ScrollFaker from '@components/scroll-faker';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'StepViewGlobalVariable',
@@ -102,7 +110,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isShowDetail: false,
         isShowDiff: false,
@@ -117,14 +125,14 @@
       };
     },
     computed: {
-      title () {
+      title() {
         if (this.type) {
           return this.type;
         }
         return `${I18n.t('template.全局变量.label')} - ${this.name}`;
       },
     },
-    mounted () {
+    mounted() {
       this.composeNode = [];
       this.diffNodeMemo = {};
       this.composeHost = [];
@@ -134,7 +142,7 @@
       this.checkDiff();
     },
     methods: {
-      checkDiff () {
+      checkDiff() {
         const createVariable = () => {
           const {
             hostNodeInfo,
@@ -157,7 +165,7 @@
 
         const planValue = currentPlanVariable.defaultTargetValue.hostNodeInfo;
         const templateValue = currentTemplateVariable.defaultTargetValue.hostNodeInfo;
-                
+
         // 对比节点
         const nodeDiffMap = {};
         const topoNodeList = [];
@@ -176,7 +184,7 @@
         });
         this.composeNode = Object.freeze(topoNodeList);
         this.diffNodeMemo = Object.freeze(nodeDiffMap);
-                
+
         // 对比主机
         const hostDiffMap = {};
         const ipList = [];
@@ -211,11 +219,11 @@
             dynamicGroupList.push(group);
           }
         });
-                
+
         this.composeGroup = Object.freeze(dynamicGroupList);
         this.diffGroupMemo = Object.freeze(groupDiffMap);
       },
-      handlerView () {
+      handlerView() {
         // const {
         //     dynamicGroupList,
         //     ipList,
@@ -230,7 +238,7 @@
         this.groupDiff = {};
         this.isShowDetail = true;
       },
-      handleToggleDiff (value) {
+      handleToggleDiff(value) {
         if (value) {
           this.hostNodeInfo = Object.freeze({
             dynamicGroupList: this.composeGroup,

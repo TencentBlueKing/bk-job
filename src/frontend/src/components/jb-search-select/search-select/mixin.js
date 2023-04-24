@@ -25,7 +25,7 @@
 
 export default {
   methods: {
-    scrollActiveToView (event) {
+    scrollActiveToView(event) {
       // 上下键位移动选中
       if (![
         38, 40,
@@ -45,7 +45,7 @@ export default {
       if (this.activeIndex < 0) {
         this.activeIndex = 0;
       }
-            
+
       const $list = this.$refs.list;
       this.$nextTick(() => {
         const wraperHeight = $list.getBoundingClientRect().height;

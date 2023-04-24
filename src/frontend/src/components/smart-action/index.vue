@@ -58,7 +58,7 @@
         default: 0,
       },
     },
-    data () {
+    data() {
       return {
         isPlaceholderShow: false,
         isFixed: false,
@@ -71,7 +71,7 @@
        * @desc 操作按钮站位区域的样式
        * @returns {Object}
        */
-      placeholderStyles () {
+      placeholderStyles() {
         return {
           height: this.isFixed ? '50px' : 'auto',
         };
@@ -80,14 +80,14 @@
        * @desc 动态定位块的 class
        * @returns {String}
        */
-      dymaicClasses () {
+      dymaicClasses() {
         return this.isFixed ? 'smart' : '';
       },
       /**
        * @desc 动态定位块的 style
        * @returns {Object}
        */
-      dymaicStyles () {
+      dymaicStyles() {
         return {
           'padding-left': this.isFixed ? `${this.paddingLeft}px` : '0',
         };
@@ -96,13 +96,13 @@
        * @desc 内容区的 style
        * @returns {Object}
        */
-      actionContentstyles () {
+      actionContentstyles() {
         return {
           'padding-left': `${this.offsetLeft + this.fill}px`,
         };
       },
     },
-    mounted () {
+    mounted() {
       window.addEventListener('resize', this.smartPosition);
       const observer = new MutationObserver(() => {
         this.calcOffsetLeft();
@@ -122,7 +122,7 @@
       this.calcOffsetLeft();
       this.smartPosition();
     },
-    beforeDestroy () {
+    beforeDestroy() {
       if (this.$refs.action) {
         this.$refs.action.parentNode.removeChild(this.$refs.action);
       }

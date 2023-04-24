@@ -55,9 +55,13 @@
             {{ $t('dashboard.按执行耗时统计') }}
           </div>
         </template>
-        <div v-if="isDrillDown" class="tab-back">
-          <span class="tab-back-action" @click="handleDimensionBack">
-            <Icon type="back1" />
+        <div
+          v-if="isDrillDown"
+          class="tab-back">
+          <span
+            class="tab-back-action"
+            @click="handleDimensionBack">
+            <icon type="back1" />
             {{ $t('dashboard.返回') }}
           </span>
           <span>{{ $t('dashboard.类型统计') }}</span>
@@ -85,23 +89,29 @@
       </div>
     </div>
     <div v-bkloading="{ isLoading, opacity: 0.8 }">
-      <div ref="dashboard" style="width: 100%; height: 325px;" />
+      <div
+        ref="dashboard"
+        style="width: 100%; height: 325px;" />
     </div>
   </div>
 </template>
 <script>
 /* eslint-disable max-len */
-  import _ from 'lodash';
-  import I18n from '@/i18n';
-  import StatisticsService from '@service/statistics';
   import * as echarts from 'echarts';
+  import _ from 'lodash';
+
+  import StatisticsService from '@service/statistics';
+
   import {
     formatNumber,
     prettyDateFormat,
   } from '@utils/assist';
+
   import {
     chartsOptionsBase,
   } from '../common/assist';
+
+  import I18n from '@/i18n';
 
   const tooltipFormatter = (params) => {
     const generatorHtml = (data) => {
@@ -122,7 +132,7 @@
             <td style="text-align: right">${value}</td>
           </tr>
         `;
-      } else if (seriesType === 'line') {
+      } if (seriesType === 'line') {
         return `
           <tr>
             <td style="padding-right: 24px; color: #fff; vertical-align: middle;">
@@ -154,7 +164,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         dimension: '',
@@ -163,11 +173,11 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.handleDaysChange(this.days);
       },
     },
-    mounted () {
+    mounted() {
       // 下钻的作业类型
       this.drillDowntaskType = '';
 
@@ -195,7 +205,7 @@
        * @desc 按渠道统计
        * @param {Array} data 数据
        */
-      initTaskStartupMode (data) {
+      initTaskStartupMode(data) {
         const dateList = [];
         const normalList = [];
         const cronList = [];
@@ -362,7 +372,7 @@
        * @desc 按任务类型统计
        * @param {Array} data 数据
        */
-      initTaskType (data) {
+      initTaskType(data) {
         const dateList = [];
         const fastPushFileList = [];
         const fastExecuteScriptList = [];
@@ -522,7 +532,7 @@
        * @desc 按执行耗时统计
        * @param {Array} data 数据
        */
-      initTaskTimeConsuming (data) {
+      initTaskTimeConsuming(data) {
         const dateList = [];
         const overTenMinList = [];
         const oneMinToTenMinList = [];
@@ -676,7 +686,7 @@
        * @param {Array} data 数据
        *
        */
-      initExecutedFastScriptDrillDown (data) {
+      initExecutedFastScriptDrillDown(data) {
         const dateList = [];
         const BatList = [];
         const PerlList = [];
@@ -873,7 +883,7 @@
        * @param {Array} data 数据
        *
        */
-      initExecutedFastFileDrillDown (data) {
+      initExecutedFastFileDrillDown(data) {
         const dateList = [];
         const forceList = [];
         const strictList = [];
@@ -1013,7 +1023,7 @@
        * @param {String} dimension 统计纬度
        *
        */
-      handleDimensionChange (dimension) {
+      handleDimensionChange(dimension) {
         this.isLoading = true;
         this.dimension = dimension;
         const actionMap = {
@@ -1038,7 +1048,7 @@
        * @param {String} days 统计纬度
        *
        */
-      handleDaysChange (days) {
+      handleDaysChange(days) {
         this.days = days;
         if (this.isDrillDown) {
           this.handleTaskTypeChange(this.drillDowntaskType);
@@ -1051,7 +1061,7 @@
        * @param {String} taskType 作业类型
        *
        */
-      handleTaskTypeChange (taskType) {
+      handleTaskTypeChange(taskType) {
         this.isLoading = true;
         this.isDrillDown = true;
         this.drillDowntaskType = taskType;
@@ -1087,7 +1097,7 @@
        * @desc 返回按类型统计
        *
        */
-      handleDimensionBack () {
+      handleDimensionBack() {
         this.isDrillDown = false;
         this.drillDowntaskType = '';
         this.handleDimensionChange(this.dimension);

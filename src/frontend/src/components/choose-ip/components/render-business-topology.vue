@@ -27,7 +27,9 @@
 
 <template>
   <div class="choose-ip-business-topology">
-    <div v-bkloading="{ isLoading: topologyLoading }" class="topology-data">
+    <div
+      v-bkloading="{ isLoading: topologyLoading }"
+      class="topology-data">
       <div class="topology-node-search">
         <bk-input
           :placeholder="$t('搜索拓扑节点')"
@@ -43,28 +45,36 @@
               selectable
               show-link-line
               @select-change="handleNodeChange">
-              <div slot-scope="{ node, data }" class="node-box">
-                <div class="node-name">{{ node.name }}</div>
+              <div
+                slot-scope="{ node, data }"
+                class="node-box">
+                <div class="node-name">
+                  {{ node.name }}
+                </div>
                 <div
                   v-if="node.level === 0"
                   class="node-filter"
                   @click="handleFilterEmptyToggle">
                   <template v-if="isRenderEmptyTopoNode">
-                    <Icon type="eye-slash-shape" />
+                    <icon type="eye-slash-shape" />
                     <span>{{ $t('隐藏空节点') }}</span>
                   </template>
                   <template v-else>
-                    <Icon type="eye-shape" />
+                    <icon type="eye-shape" />
                     <span>{{ $t('恢复完整拓扑') }}</span>
                   </template>
                 </div>
-                <div class="node-count">{{ data.payload.count }}</div>
+                <div class="node-count">
+                  {{ data.payload.count }}
+                </div>
               </div>
             </bk-big-tree>
           </div>
         </scroll-faker>
       </div>
-      <empty v-if="isNodeEmpty" class="topology-empty" />
+      <empty
+        v-if="isNodeEmpty"
+        class="topology-empty" />
     </div>
     <div class="host-list">
       <mult-input
@@ -82,8 +92,12 @@
                 :value="isCheckedAll"
                 @click.native="handleToggleWholeAll" />
             </th>
-            <th style="width: 18.9%;">{{ $t('主机IP') }}</th>
-            <th style="width: 12.8%;">{{ $t('云区域') }}</th>
+            <th style="width: 18.9%;">
+              {{ $t('主机IP') }}
+            </th>
+            <th style="width: 12.8%;">
+              {{ $t('云区域') }}
+            </th>
             <th style="width: 13.4%;">
               <div
                 class="head-cell"
@@ -92,7 +106,9 @@
                 }">
                 <span>{{ $t('Agent 状态') }}</span>
                 <dropdown-menu>
-                  <Icon class="filer-flag" type="filter-fill" />
+                  <icon
+                    class="filer-flag"
+                    type="filter-fill" />
                   <div slot="menu">
                     <div
                       class="dropdown-menu-item"
@@ -117,7 +133,9 @@
               </div>
             </th>
             <th>{{ $t('主机名') }}</th>
-            <th style="width: 14.7%;">{{ $t('操作系统名称') }}</th>
+            <th style="width: 14.7%;">
+              {{ $t('操作系统名称') }}
+            </th>
           </tr>
         </thead>
         <tbody v-if="renderList.length > 0">
@@ -130,32 +148,48 @@
                 <bk-checkbox :checked="!!checkedMap[row.realId]" />
               </td>
               <td>
-                <div class="cell-text">{{ row.displayIp }}</div>
+                <div class="cell-text">
+                  {{ row.displayIp }}
+                </div>
               </td>
               <td>
-                <div class="cell-text">{{ row.cloudAreaInfo.name || '--' }}</div>
+                <div class="cell-text">
+                  {{ row.cloudAreaInfo.name || '--' }}
+                </div>
               </td>
               <td>
                 <span v-if="row.alive">
-                  <icon style="vertical-align: middle;" svg type="normal" />
+                  <icon
+                    style="vertical-align: middle;"
+                    svg
+                    type="normal" />
                   <span style="vertical-align: middle;">{{ $t('正常') }}</span>
                 </span>
                 <span v-else>
-                  <icon style="vertical-align: middle;" svg type="abnormal" />
+                  <icon
+                    style="vertical-align: middle;"
+                    svg
+                    type="abnormal" />
                   <span style="vertical-align: middle;">{{ $t('异常') }}</span>
                 </span>
               </td>
               <td>
-                <div class="cell-text">{{ row.ipDesc || '--' }}</div>
+                <div class="cell-text">
+                  {{ row.ipDesc || '--' }}
+                </div>
               </td>
               <td>
-                <div class="cell-text">{{ row.os || '--' }}</div>
+                <div class="cell-text">
+                  {{ row.os || '--' }}
+                </div>
               </td>
             </tr>
           </template>
         </tbody>
       </host-table>
-      <div v-if="pagination.pageSize > 0" style="padding: 16px 0;">
+      <div
+        v-if="pagination.pageSize > 0"
+        style="padding: 16px 0;">
         <bk-pagination
           align="right"
           :count="pagination.total"
@@ -172,18 +206,22 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import AppManageService from '@service/app-manage';
   import UserService from '@service/user';
+
   import { topoNodeCache } from '@utils/cache-helper';
+
   import Empty from '@components/empty';
+
+  import DropdownMenu from './dropdown-menu';
+  import HostTable from './host-table';
+  import MultInput from './mult-input';
   import {
+    filterTopology,
     generateHostRealId,
     parseIdInfo,
-    filterTopology,
   } from './utils';
-  import MultInput from './mult-input';
-  import HostTable from './host-table';
-  import DropdownMenu from './dropdown-menu';
 
   const ROOT_NODE_ID = `#${window.PROJECT_CONFIG.SCOPE_TYPE}#${window.PROJECT_CONFIG.SCOPE_ID}`;
 
@@ -214,7 +252,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       this.selfChange = false;
       return {
         isLoading: true,
@@ -240,7 +278,7 @@
       /**
        * @desc 表格的全选状态
        */
-      pageCheckInfo () {
+      pageCheckInfo() {
         const info = {
           indeterminate: false,
           checked: false,
@@ -248,10 +286,10 @@
         const checkedNums = Object.keys(this.checkedMap).length;
         info.indeterminate = checkedNums > 0;
         info.checked = checkedNums > 0 && checkedNums >= this.pagination.total;
-                
+
         return info;
       },
-      isSearch () {
+      isSearch() {
         return [
           0, 1,
         ].includes(this.agentFilter) || !!this.searchContent;
@@ -262,7 +300,7 @@
        * @desc 选中的主机更新
        */
       ipList: {
-        handler (ipList) {
+        handler(ipList) {
           if (this.selfChange) {
             this.selfChange = false;
             return;
@@ -276,16 +314,16 @@
         },
         immediate: true,
       },
-      topologyLoading (topologyLoading) {
+      topologyLoading(topologyLoading) {
         if (!topologyLoading) {
           this.resetTopoTree();
         }
       },
     },
-    created () {
+    created() {
       this.fetchUserInfo();
     },
-    mounted () {
+    mounted() {
       this.calcPageSize();
       // 根节点 ID 默认已知，主动拉取节点下面的主机
       this.fetchTopologyHost();
@@ -294,7 +332,7 @@
       /**
        * @desc 获取登陆用户信息
        */
-      fetchUserInfo () {
+      fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
@@ -386,7 +424,7 @@
        * @param {Array} expandIds 需要展开的节点
        * @param {Boolean} emitEvent 选中节点时触发选中事件
        */
-      resetTopoTree (expandIds, emitEvent = false) {
+      resetTopoTree(expandIds, emitEvent = false) {
         const topologyNodeTree = filterTopology(this.topologyNodeTree, this.isRenderEmptyTopoNode);
         const expandIdArr = expandIds && expandIds.length > 0 ? expandIds : [this.selectedNodeId];
         this.$refs.tree.setData(topologyNodeTree);
@@ -405,7 +443,7 @@
       /**
        * @desc 计算PageSize
        */
-      calcPageSize () {
+      calcPageSize() {
         const topOffset = 154;
         const bottomOffset = 116;
         const pageSize = Math.floor((this.dialogHeight - topOffset - bottomOffset) / 41);
@@ -414,7 +452,7 @@
       /**
        * @desc 更新静态ip值
        */
-      triggerChange () {
+      triggerChange() {
         this.selfChange = true;
         this.$emit('on-change', 'ipList', Object.values(this.checkedMap));
       },
@@ -423,7 +461,7 @@
        *
        * 缓存状态，切换过程中保持节点的展开状态
        */
-      handleFilterEmptyToggle (event) {
+      handleFilterEmptyToggle(event) {
         this.isRenderEmptyTopoNode = !this.isRenderEmptyTopoNode;
         const selectNode = this.$refs.tree.getNodeById(this.selectedNodeId);
         if (this.isRenderEmptyTopoNode) {
@@ -446,7 +484,7 @@
           }
           return result;
         }, []);
-                
+
         this.resetTopoTree(expandIdArr, true);
       },
       /**
@@ -470,7 +508,7 @@
        *
        * 节点切换时重新拉取主机列表
        */
-      handleNodeChange (node) {
+      handleNodeChange(node) {
         this.selectedNodeId = node.id;
         this.pagination.page = 1;
         if (!node.expanded) {
@@ -486,16 +524,16 @@
        */
       handleHostSearch: _.debounce(function (str) {
         const value = _.trim(str);
-                
+
         // 前后两次搜索内容相同直接返回
         if (this.searchContent === value) {
           return;
         }
-                
+
         // 搜索框内容为空格换行等空白符直接用空字符串搜索
         const realValue = value.replace(/\s/g, '');
         this.searchContent = realValue ? value : '';
-                
+
         this.pagination.page = 1;
         this.fetchTopologyHost();
       }, 300),
@@ -503,7 +541,7 @@
        * @desc Agent状态筛选
        * @param {String} type 筛选字符
        */
-      handleAgentFiler (type) {
+      handleAgentFiler(type) {
         this.pagination.page = 1;
         this.agentFilter = type;
         this.fetchTopologyHost();
@@ -511,7 +549,7 @@
       /**
        * @desc 全选节点下的所有主机
        */
-      handleToggleWholeAll () {
+      handleToggleWholeAll() {
         this.isCheckedAll = !this.isCheckedAll;
         this.fetchTopologyHostWhole(this.isCheckedAll);
       },
@@ -519,7 +557,7 @@
        * @desc 选择单台主机
        * @param {Object} host 主机信息
        */
-      handleHostCheck (host) {
+      handleHostCheck(host) {
         const checkedMap = Object.assign({}, this.checkedMap);
         if (checkedMap[host.realId]) {
           delete checkedMap[host.realId];
@@ -539,7 +577,7 @@
        * @desc 切换分页
        * @param {Number} page 页码
        */
-      handlePageChange (page) {
+      handlePageChange(page) {
         this.pagination.page = page;
         this.fetchTopologyHost();
       },

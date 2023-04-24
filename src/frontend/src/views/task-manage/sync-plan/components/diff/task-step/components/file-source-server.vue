@@ -26,10 +26,13 @@
 -->
 
 <template>
-  <ip-detail :last-host="realLastHost" :pre-host="realPreHost" />
+  <ip-detail
+    :last-host="realLastHost"
+    :pre-host="realPreHost" />
 </template>
 <script>
   import TaskHostNodeModel from '@model/task-host-node';
+
   import IpDetail from '../../common/ip-detail';
 
   const generatorHost = () => new TaskHostNodeModel({});
@@ -49,7 +52,7 @@
         default: () => ({}),
       },
     },
-    created () {
+    created() {
       if (!this.preHost || !this.preHost.hostNodeInfo) {
         this.realPreHost = generatorHost();
       } else {

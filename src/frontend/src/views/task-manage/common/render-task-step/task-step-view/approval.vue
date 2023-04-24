@@ -26,27 +26,44 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="artificial-view">
+  <div
+    v-bkloading="{ isLoading }"
+    class="artificial-view">
     <detail-item :label="$t('template.确认人：')">
       <div class="approval-wraper">
-        <div v-for="role in renderRoleList" :key="role" class="item">
-          <Icon class="approval-flag" type="user-group-gray" />
+        <div
+          v-for="role in renderRoleList"
+          :key="role"
+          class="item">
+          <icon
+            class="approval-flag"
+            type="user-group-gray" />
           {{ role }}
         </div>
-        <div v-for="user in stepInfo.approvalUser.userList" :key="user" class="item">
-          <Icon class="approval-flag" type="user" />
+        <div
+          v-for="user in stepInfo.approvalUser.userList"
+          :key="user"
+          class="item">
+          <icon
+            class="approval-flag"
+            type="user" />
           {{ user }}
         </div>
       </div>
     </detail-item>
-    <detail-item :label="$t('template.通知方式：')">{{ renderChannel }}</detail-item>
-    <detail-item :label="$t('template.确认描述：')">{{ stepInfo.approvalMessage || '--' }}</detail-item>
+    <detail-item :label="$t('template.通知方式：')">
+      {{ renderChannel }}
+    </detail-item>
+    <detail-item :label="$t('template.确认描述：')">
+      {{ stepInfo.approvalMessage || '--' }}
+    </detail-item>
     <slot />
   </div>
 </template>
 <script>
-  import QueryGlobalSettingService from '@service/query-global-setting';
   import NotifyService from '@service/notify';
+  import QueryGlobalSettingService from '@service/query-global-setting';
+
   import DetailItem from '@components/detail-layout/item';
 
   export default {
@@ -61,7 +78,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         stepInfo: {},
@@ -69,7 +86,7 @@
         renderChannel: '',
       };
     },
-    created () {
+    created() {
       this.stepInfo = Object.freeze(this.data.approvalStepInfo);
       Promise.all([
         this.fetchRoleList(),
@@ -79,7 +96,7 @@
       });
     },
     methods: {
-      fetchRoleList () {
+      fetchRoleList() {
         NotifyService.fetchRoleList()
           .then((data) => {
             const roleMap = {};
@@ -95,7 +112,7 @@
             }, []);
           });
       },
-      fetchAllChannel () {
+      fetchAllChannel() {
         if (this.stepInfo.notifyChannel.length < 1) {
           this.renderChannel = '--';
           return Promise.resolve();

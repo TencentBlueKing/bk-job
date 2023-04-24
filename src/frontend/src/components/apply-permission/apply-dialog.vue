@@ -54,20 +54,24 @@
           {{ appliedText }}
         </bk-button>
       </template>
-      <bk-button @click="handleCancle">{{ cancelText }}</bk-button>
+      <bk-button @click="handleCancle">
+        {{ cancelText }}
+      </bk-button>
     </template>
   </jb-dialog>
 </template>
 <script>
   import PermissionCheckService from '@service/permission-check';
-  import I18n from '@/i18n';
+
   import AskPermission from './index';
+
+  import I18n from '@/i18n';
 
   export default {
     components: {
       AskPermission,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         isShowDialog: false,
@@ -77,7 +81,7 @@
       };
     },
     computed: {
-      permissionList () {
+      permissionList() {
         if (this.isLoading) {
           return [];
         }
@@ -87,7 +91,7 @@
         return [];
       },
     },
-    created () {
+    created() {
       this.applyText = I18n.t('去申请');
       this.appliedText = I18n.t('已申请');
       this.cancelText = I18n.t('取消');
@@ -96,7 +100,7 @@
       /**
        * @desc 申请资源权限
        */
-      fetchPermission () {
+      fetchPermission() {
         this.isLoading = true;
         PermissionCheckService.fetchPermission({
           ...this.authParams,
@@ -113,7 +117,7 @@
       /**
        * @desc 供外部调用，显示权限申请弹框
        */
-      show () {
+      show() {
         this.isShowDialog = true;
         if (this.authParams && !this.authResult.requiredPermissions) {
           this.fetchPermission();
@@ -122,18 +126,18 @@
       /**
        * @desc 跳转权限中心
        */
-      handleApply () {
+      handleApply() {
         window.open(this.authResult.applyUrl, '_blank');
         this.isAppleFlag = false;
       },
       /**
        * @desc 权限已申请刷新页面
        */
-      handleHasApplyed () {
+      handleHasApplyed() {
         this.handleCancle();
         window.location.reload();
       },
-      handleCancle () {
+      handleCancle() {
         this.isAppleFlag = true;
         this.isShowDialog = false;
         this.authResult = {};

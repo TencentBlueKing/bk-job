@@ -27,7 +27,9 @@
 
 <template>
   <div>
-    <div v-if="data.isEmpty">--</div>
+    <div v-if="data.isEmpty">
+      --
+    </div>
     <server-panel
       v-else
       detail-fullscreen

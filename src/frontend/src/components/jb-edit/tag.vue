@@ -26,13 +26,22 @@
 -->
 
 <template>
-  <div class="jb-edit-tag" :class="{ shortcurt }" @click.stop="">
+  <div
+    class="jb-edit-tag"
+    :class="{ shortcurt }"
+    @click.stop="">
     <div
       v-if="!isEditing"
       class="render-value-box"
       @click.stop="handleTextClick">
-      <div ref="content" v-bk-overflow-tips class="value-text" tag-edit-tag>
-        <slot v-bind:value="text">{{ text || '--' }}</slot>
+      <div
+        ref="content"
+        v-bk-overflow-tips
+        class="value-text"
+        tag-edit-tag>
+        <slot :value="text">
+          {{ text || '--' }}
+        </slot>
       </div>
       <template v-if="!isLoading">
         <div
@@ -40,30 +49,34 @@
           class="tag-shortcurt-box"
           @click.stop="">
           <div class="shortcurt-action-btn">
-            <Icon
+            <icon
               v-bk-tooltips="$t('复制')"
               type="copy"
               @click="handleCopy" />
-            <Icon
+            <icon
               v-bk-tooltips="$t('粘贴')"
               class="paste-btn"
               type="paste"
               @click="handlePaste" />
           </div>
         </div>
-        <div v-else class="tag-normal-box">
-          <Icon
+        <div
+          v-else
+          class="tag-normal-box">
+          <icon
             class="edit-action"
             type="edit-2"
             @click.self.stop="handleEdit" />
         </div>
       </template>
-      <Icon
+      <icon
         v-if="isLoading"
         class="tag-edit-loading"
         type="loading-circle" />
     </div>
-    <div v-else class="edit-value-box">
+    <div
+      v-else
+      class="edit-value-box">
       <jb-tag-select
         ref="tagSelect"
         :value="localValue"
@@ -73,9 +86,12 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import { execCopy } from '@utils/assist';
+
   import JbTagSelect from '@components/jb-tag-select';
+
+  import I18n from '@/i18n';
 
   let copyMemo = [];
 
@@ -124,7 +140,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isEditing: false,
         isLoading: false,
@@ -136,20 +152,20 @@
        * @desc 标签显示文本
        * @returns { String }
        */
-      text () {
+      text() {
         return this.localValue.map(_ => _.name).join('，');
       },
     },
     watch: {
       value: {
-        handler (value) {
+        handler(value) {
           this.localValue = value;
           this.memoValue = [...this.value];
         },
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('click', this.hideEdit);
       this.$once('hook:beforeDestroy', () => {
         document.body.removeEventListener('click', this.hideEdit);
@@ -160,7 +176,7 @@
       /**
        * @desc 触发标签修改操作
        */
-      triggerRemote () {
+      triggerRemote() {
         this.isEditing = false;
 
         if (isEqual(this.memoValue, this.localValue)) {
@@ -185,7 +201,7 @@
       /**
        * @desc 切换编辑状态
        */
-      hideEdit (event) {
+      hideEdit(event) {
         if (!this.isEditing) return;
         const eventPath = event.composedPath();
         // eslint-disable-next-line no-plusplus
@@ -204,13 +220,13 @@
        * @desc tag 值更新
        * @param { Array } tagList
        */
-      handleTagValueChange (tagList) {
+      handleTagValueChange(tagList) {
         this.localValue = Object.freeze(tagList);
       },
       /**
        * @desc 编辑 tag
        */
-      handleEdit () {
+      handleEdit() {
         document.body.click();
         this.$nextTick(() => {
           this.isEditing = true;
@@ -222,7 +238,7 @@
       /**
        * @desc 点击 tag 文本开始编辑状态
        */
-      handleTextClick () {
+      handleTextClick() {
         if (!this.shortcurt) {
           return;
         }
@@ -231,7 +247,7 @@
       /**
        * @desc 复制 tag
        */
-      handleCopy () {
+      handleCopy() {
         if (this.localValue.length < 1) {
           this.$bkMessage({
             theme: 'warning',
@@ -245,7 +261,7 @@
       /**
        * @desc 粘贴 tag
        */
-      handlePaste () {
+      handlePaste() {
         if (copyMemo.length < 1) {
           this.$bkMessage({
             theme: 'warning',

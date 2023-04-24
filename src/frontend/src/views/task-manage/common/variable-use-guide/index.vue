@@ -46,30 +46,35 @@
     </div>
     <scroll-faker style="height: calc(100% - 88px);">
       <div class="content">
-        <div style="margin-top: -24px;" v-html="contentHtml" />
+        <div
+          style="margin-top: -24px;"
+          v-html="contentHtml" />
       </div>
     </scroll-faker>
-    <div class="close-btn" @click="handleClose">
-      <Icon type="close" />
+    <div
+      class="close-btn"
+      @click="handleClose">
+      <icon type="close" />
     </div>
   </div>
 </template>
 <script>
-  import 'highlight.js/styles/googlecode.css';
-  import globalVariable from './global-variable.md';
   import globalVariableEN from './global-variable.en.md';
-  import magicVariable from './magic-variable.md';
+  import globalVariable from './global-variable.md';
   import magicVariableEN from './magic-variable.en.md';
+  import magicVariable from './magic-variable.md';
+
+  import 'highlight.js/styles/googlecode.css';
 
   export default {
     name: '',
-    data () {
+    data() {
       return {
         tab: 'global',
       };
     },
     computed: {
-      contentHtml () {
+      contentHtml() {
         const contentMap = {
           global: globalVariableEN,
           magic: magicVariableEN,
@@ -84,10 +89,10 @@
       },
     },
     methods: {
-      handleTabToggle (tab) {
+      handleTabToggle(tab) {
         this.tab = tab;
       },
-      handleClose () {
+      handleClose() {
         this.$emit('on-close');
       },
     },

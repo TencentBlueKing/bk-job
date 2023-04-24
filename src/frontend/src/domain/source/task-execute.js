@@ -24,36 +24,37 @@
 */
 
 import Request from '@utils/request';
+
 import ModuleBase from './module-base';
 
 /* eslint-disable max-len */
 class TaskExecute extends ModuleBase {
-  constructor () {
+  constructor() {
     super();
     this.module = '/job-execute/web/execution';
   }
 
   // 获取作业执行历史列表
-  getAll (params = {}) {
+  getAll(params = {}) {
     return Request.get(`${this.path}/task-execution-history/list`, {
       params,
     });
   }
 
   // 获取作业执行情况
-  getOneTaskById ({ id }, payload = {}) {
+  getOneTaskById({ id }, payload = {}) {
     return Request.get(`${this.path}/task-execution-result/${id}`, {
       payload,
     });
   }
 
   // 获取作业实例
-  getOneTaskInstanceById ({ id }) {
+  getOneTaskInstanceById({ id }) {
     return Request.get(`${this.path}/task-instance/${id}`);
   }
 
   // 获取ip对应的日志内容
-  getLogByIp (params) {
+  getLogByIp(params) {
     const { stepInstanceId, retryCount, ip } = params;
     const realParams = { ...params };
     delete realParams.stepInstanceId;
@@ -65,7 +66,7 @@ class TaskExecute extends ModuleBase {
   }
 
   // 获取文件分发步骤IP的日志基本信息
-  getFileLogByIP (params = {}) {
+  getFileLogByIP(params = {}) {
     const realParams = { ...params };
     const { stepInstanceId, retryCount, ip } = params;
     delete realParams.stepInstanceId;
@@ -78,7 +79,7 @@ class TaskExecute extends ModuleBase {
   }
 
   // 获取文件分发指定文件的日志内容
-  getFileLogByFileId (params = {}) {
+  getFileLogByFileId(params = {}) {
     const realParams = { ...params };
     const { stepInstanceId, retryCount } = params;
     delete realParams.stepInstanceId;
@@ -90,12 +91,12 @@ class TaskExecute extends ModuleBase {
   }
 
   // 根据日志搜索结果显示ip
-  getIpByLog ({ stepInstanceId, retryCount }) {
+  getIpByLog({ stepInstanceId, retryCount }) {
     return Request.get(`${this.path}/step-execution-result/agent-execution-list/${stepInstanceId}/${retryCount}`);
   }
 
   // 获取作业步骤执行情况
-  getOneStep (params = {}, payload) {
+  getOneStep(params = {}, payload) {
     const tempParams = {
       ...params,
     };
@@ -108,50 +109,50 @@ class TaskExecute extends ModuleBase {
   }
 
   // 获取作业步骤实例详情
-  getOneStepInstance ({ id }) {
+  getOneStepInstance({ id }) {
     return Request.get(`${this.path}/task-instance/step_instance/${id}`);
   }
 
   // 获取作业实例全局参数
-  getAllStepInstanceParam ({ id }) {
+  getAllStepInstanceParam({ id }) {
     return Request.get(`${this.path}/task-instance/task-variables/${id}`);
   }
 
   // 重做执行作业
-  updateRedoTask (params) {
+  updateRedoTask(params) {
     return Request.post(`${this.path}/task-execution/redo-task`, {
       params,
     });
   }
 
   // 快速执行脚本
-  executeScript (params = {}) {
+  executeScript(params = {}) {
     return Request.post(`${this.path}/fast-execute-script`, {
       params,
     });
   }
 
   // 快速分发文件
-  pushFile (params = {}) {
+  pushFile(params = {}) {
     return Request.post(`${this.path}/fast-push-file`, {
       params,
     });
   }
 
   // 执行作业
-  taskExecution (params = {}) {
+  taskExecution(params = {}) {
     return Request.post(`${this.path}/task-execution`, {
       params,
     });
   }
 
   // 终止作业
-  terminateTaskById (params = {}) {
+  terminateTaskById(params = {}) {
     return Request.post(`${this.path}/taskInstance/${params.taskInstanceId}/terminate`);
   }
 
   // 上传文件获取内容
-  uploadFileGetContent (params = {}, payload = {}) {
+  uploadFileGetContent(params = {}, payload = {}) {
     return Request.post('/job-manage/web/upload/localFile', {
       params,
       payload: {
@@ -162,7 +163,7 @@ class TaskExecute extends ModuleBase {
   }
 
   // 执行作业步骤操作
-  taskExecutionStepOperate (payload) {
+  taskExecutionStepOperate(payload) {
     const params = { ...payload };
     delete params.id;
     return Request.post(`${this.path}/do-step-operation/stepInstanceId/${payload.id}`, {
@@ -171,17 +172,17 @@ class TaskExecute extends ModuleBase {
   }
 
   // 获取作业操作日志
-  getTaskOperationLog ({ id }) {
+  getTaskOperationLog({ id }) {
     return Request.get(`${this.path}/task-instance/operation-log/${id}`);
   }
 
   // 获取执行步骤主机对应的变量列表
-  getStepVariables ({ id, ip }) {
+  getStepVariables({ id, ip }) {
     return Request.get(`${this.path}/step-execution-result/variable/${id}/${ip}`);
   }
 
   // 请求日志打包结果
-  getLogFilePackageInfo (params = {}) {
+  getLogFilePackageInfo(params = {}) {
     const realParams = { ...params };
     delete realParams.stepInstanceId;
 
@@ -191,7 +192,7 @@ class TaskExecute extends ModuleBase {
   }
 
   // 下载执行日志文件
-  getLogFile (payload) {
+  getLogFile(payload) {
     const params = {};
     if (payload.ip) {
       params.ip = payload.ip;
@@ -202,12 +203,12 @@ class TaskExecute extends ModuleBase {
   }
 
   // 获取作业实例基本信息(所有业务下搜索)
-  getTaskInstanceFromAllApp (params = {}) {
+  getTaskInstanceFromAllApp(params = {}) {
     return Request.get(`${this.module}/task_instance/${params.taskInstanceId}`);
   }
 
   // 获取执行结果分组下的主机列表
-  getStepGroupHost (params = {}) {
+  getStepGroupHost(params = {}) {
     const realParams = { ...params };
     delete realParams.id;
     delete realParams.retryCount;
@@ -218,7 +219,7 @@ class TaskExecute extends ModuleBase {
   }
 
   // 获取步骤执行历史
-  getStepExecutionHistory (params = {}) {
+  getStepExecutionHistory(params = {}) {
     const realParams = { ...params };
     delete realParams.stepInstanceId;
     return Request.get(`${this.path}/step-execution-history/${params.stepInstanceId}`, {

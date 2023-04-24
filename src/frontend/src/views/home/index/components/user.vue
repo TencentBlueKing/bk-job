@@ -26,16 +26,27 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="user-box">
-    <div class="user-name">Hi, {{ userInfo.username }}</div>
+  <div
+    v-bkloading="{ isLoading }"
+    class="user-box">
+    <div class="user-name">
+      Hi, {{ userInfo.username }}
+    </div>
     <greeting />
     <div
       class="work-tips"
       @mouseleave="handleBeginSwiper"
       @mousemove="handleStopSwiper">
-      <div class="work-tips-container" :style="workTipsStyles">
-        <div v-for="(analysis, index) in analysisList" :key="index" class="item">
-          <div @click="handleShowList" v-html="analysis.description" />
+      <div
+        class="work-tips-container"
+        :style="workTipsStyles">
+        <div
+          v-for="(analysis, index) in analysisList"
+          :key="index"
+          class="item">
+          <div
+            @click="handleShowList"
+            v-html="analysis.description" />
         </div>
       </div>
     </div>
@@ -46,15 +57,25 @@
       :width="520">
       <div class="list-wraper">
         <div class="data-row-header">
-          <div class="td-name">{{ listInfo.columnName }}</div>
-          <div class="td-action">{{ $t('home.操作') }}</div>
+          <div class="td-name">
+            {{ listInfo.columnName }}
+          </div>
+          <div class="td-action">
+            {{ $t('home.操作') }}
+          </div>
         </div>
         <div
           v-for="(item, index) in listData"
           :key="`${item.id}_${index}`"
           class="data-row">
-          <div class="td-name">{{ item.content }}</div>
-          <div class="td-action" @click="handleGoDetail(item)">{{ $t('home.查看详情') }}</div>
+          <div class="td-name">
+            {{ item.content }}
+          </div>
+          <div
+            class="td-action"
+            @click="handleGoDetail(item)">
+            {{ $t('home.查看详情') }}
+          </div>
         </div>
       </div>
       <template #footer>
@@ -70,10 +91,13 @@
 <script>
   import _ from 'lodash';
   import marked from 'marked';
-  import I18n from '@/i18n';
+
   import StatisticsIndexService from '@service/statistics-index';
   import UserService from '@service/user';
+
   import Greeting from './greeting';
+
+  import I18n from '@/i18n';
 
   const dialogTitleMap = {
     ForbiddenScriptFinder: I18n.t('home.使用禁用脚本的作业模板/执行方案'),
@@ -92,7 +116,7 @@
     components: {
       Greeting,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isShowList: false,
@@ -106,7 +130,7 @@
       };
     },
     computed: {
-      workTipsStyles () {
+      workTipsStyles() {
         const classes = {
           transform: `translateY(${-100 * this.analysisIndex}%)`,
         };
@@ -115,14 +139,14 @@
         }
         return classes;
       },
-      listInfo () {
+      listInfo() {
         return {
           dialogTitle: dialogTitleMap[this.listType],
           columnName: columnNameMap[this.listType],
         };
       },
     },
-    created () {
+    created() {
       this.analysisResultTimer = '';
       this.analysisMap = {};
       Promise.all([
@@ -133,13 +157,13 @@
       });
     },
     methods: {
-      fetchUserInfo () {
+      fetchUserInfo() {
         return UserService.fetchUserInfo()
           .then((data) => {
             this.userInfo = Object.freeze(data);
           });
       },
-      fetchAnalysisResult () {
+      fetchAnalysisResult() {
         return StatisticsIndexService.fetchAnalysisResult()
           .then((data) => {
             const analysisList = [];
@@ -162,10 +186,10 @@
             this.swiperAnalysisResult();
           });
       },
-      handleHideList () {
+      handleHideList() {
         this.isShowList = false;
       },
-      handleShowList (event) {
+      handleShowList(event) {
         const $target = event.target;
         if ($target.className !== 'action-list') {
           return;
@@ -175,7 +199,7 @@
         this.listData = Object.freeze(this.analysisMap[id].contents);
         this.isShowList = true;
       },
-      handleGoDetail (payload) {
+      handleGoDetail(payload) {
         let router = {};
         if (payload.type === 'TEMPLATE') {
           router = this.$router.resolve({
@@ -208,13 +232,13 @@
         }
         window.open(router.href);
       },
-      handleStopSwiper () {
+      handleStopSwiper() {
         clearTimeout(this.analysisResultTimer);
       },
-      handleBeginSwiper () {
+      handleBeginSwiper() {
         this.swiperAnalysisResult();
       },
-      swiperAnalysisResult () {
+      swiperAnalysisResult() {
         if (this.analysisList.length < 1) {
           return;
         }

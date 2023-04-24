@@ -175,26 +175,30 @@
 </template>
 
 <script>
-  import I18n from '@/i18n';
+  import AppManageService from '@service/app-manage';
+  import DangerousRecordService from '@service/dangerous-record';
+  import NotifyService from '@service/notify';
+
   import {
     prettyDateTimeFormat,
   } from '@utils/assist';
   import {
     listColumnsCache,
   } from '@utils/cache-helper';
-  import NotifyService from '@service/notify';
-  import AppManageService from '@service/app-manage';
-  import DangerousRecordService from '@service/dangerous-record';
-  import RenderList from '@components/render-list';
-  import JbSideslider from '@components/jb-sideslider';
+
   import JbSearchSelect from '@components/jb-search-select';
+  import JbSideslider from '@components/jb-sideslider';
   import ListActionLayout from '@components/list-action-layout';
+  import RenderList from '@components/render-list';
+
   import RenderScriptContent from './components/render-script-content';
+
+  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'detect_records_list_columns';
 
   export default {
-    name: 'detectRecordsList',
+    name: 'DetectRecordsList',
     components: {
       RenderList,
       JbSideslider,
@@ -202,7 +206,7 @@
       ListActionLayout,
       RenderScriptContent,
     },
-    data () {
+    data() {
       return {
         searchParams: {},
         defaultDateTime: [
@@ -215,17 +219,17 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
-      allRenderColumnMap () {
+      allRenderColumnMap() {
         return this.selectedTableColumn.reduce((result, item) => {
           result[item.id] = true;
           return result;
         }, {});
       },
     },
-    created () {
+    created() {
       this.parseDefaultDateTime();
       this.fetchDetectRecordsList = DangerousRecordService.recordList;
       this.searchSelect = [
@@ -289,7 +293,7 @@
       this.shortcuts = [
         {
           text: I18n.t('detectRecords.近1小时'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 3600000);
@@ -300,7 +304,7 @@
         },
         {
           text: I18n.t('detectRecords.近12小时'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 43200000);
@@ -311,7 +315,7 @@
         },
         {
           text: I18n.t('detectRecords.近1天'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 86400000);
@@ -322,7 +326,7 @@
         },
         {
           text: I18n.t('detectRecords.近7天'),
-          value () {
+          value() {
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 604800000);
@@ -393,7 +397,7 @@
       /**
        * @desc 获取列表数据
        */
-      fetchData () {
+      fetchData() {
         const searchParams = {
           ...this.searchParams,
         };
@@ -404,7 +408,7 @@
        * @desc 日期值显示为至今
        * @param {Array} date 日期值
        */
-      setToNowText (date) {
+      setToNowText(date) {
         this.$refs.datePicker.shortcut = {
           text: `${date[0]} ${I18n.t('detectRecords.至今')}`,
         };
@@ -412,7 +416,7 @@
       /**
        * @desc 列表默认的执行时间筛选值
        */
-      parseDefaultDateTime () {
+      parseDefaultDateTime() {
         const defaultDateTime = [
           '', '',
         ];
@@ -449,7 +453,7 @@
       /**
        * @desc 自定义表头
        */
-      renderPatternHeader (h, data) {
+      renderPatternHeader(h, data) {
         const tips = [
           {
             title: this.$t('detectRecords.【扫描】'),
@@ -485,7 +489,7 @@
        * @desc 列表搜索
        * @param {Object} params 搜索条件
        */
-      handleSearch (payload) {
+      handleSearch(payload) {
         const { startTime, endTime } = this.searchParams;
         this.searchParams = {
           ...payload,
@@ -499,7 +503,7 @@
        * @desc 时间选择器改变时间并查询数据
        * @param {Array} date 时间
        */
-      handleDateChange (date) {
+      handleDateChange(date) {
         this.searchParams.startTime = date[0];// eslint-disable-line prefer-destructuring
         this.searchParams.endTime = date[1];// eslint-disable-line prefer-destructuring
         this.fetchData();
@@ -508,7 +512,7 @@
       /**
        * @desc 自定义表格显示
        */
-      handleSettingChange ({ fields, size }) {
+      handleSettingChange({ fields, size }) {
         this.selectedTableColumn = Object.freeze(fields);
         this.tableSize = size;
         listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
@@ -522,7 +526,7 @@
        * @param {Object} row 用户点击当前行的检测记录数据
        */
 
-      handleShowScriptContent (row) {
+      handleShowScriptContent(row) {
         this.isShowScriptContent = true;
         this.scriptData = Object.freeze(row);
       },

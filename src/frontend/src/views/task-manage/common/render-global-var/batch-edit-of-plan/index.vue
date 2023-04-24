@@ -33,7 +33,7 @@
       ref="used"
       :data="variable"
       :type="variable.type" />
-    <Empty
+    <empty
       v-if="usedList.length < 1"
       key="empty"
       style="height: 160px; max-width: 960px; background-color: #f0f1f5;"
@@ -54,8 +54,8 @@
   </global-variable-layout>
 </template>
 <script>
-  import GlobalVariableLayout from '@components/global-variable/layout';
   import GlobalVariable from '@components/global-variable/edit';
+  import GlobalVariableLayout from '@components/global-variable/layout';
   import ToggleDisplay from '@components/global-variable/toggle-display';
 
   export default {
@@ -72,7 +72,7 @@
         default: () => [],
       },
     },
-    created () {
+    created() {
       const selectedNameMap = this.selectedList.reduce((result, name) => {
         result[name] = true;
         return result;
@@ -90,7 +90,7 @@
       });
     },
     methods: {
-      submit () {
+      submit() {
         const validateQueue = [];
         if (this.$refs.used) {
           this.$refs.used.forEach((instance) => {

@@ -52,20 +52,25 @@
         theme="primary"
         @click="handleSubmit">
         <span>{{ $t('添加') }}</span>
-        <span v-if="!isSelectedEmpty" class="result-nums">{{ fileLocation.length }}</span>
+        <span
+          v-if="!isSelectedEmpty"
+          class="result-nums">{{ fileLocation.length }}</span>
       </bk-button>
-      <bk-button @click="handleCancle">{{ $t('取消') }}</bk-button>
+      <bk-button @click="handleCancle">
+        {{ $t('取消') }}
+      </bk-button>
     </template>
   </jb-dialog>
 </template>
 <script>
   import SourceFileVO from '@domain/variable-object/source-file';
-  import SelectFileSource from './select-file-source';
+
   import SelectFile from './select-file';
+  import SelectFileSource from './select-file-source';
 
   const SELECT_FILE_SOURCE = 'selectFileSource';
   const SELECT_FILE = 'selectFile';
-    
+
   export default {
     components: {
       SelectFileSource,
@@ -81,7 +86,7 @@
         defaule: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         selectStep: SELECT_FILE_SOURCE,
@@ -90,7 +95,7 @@
       };
     },
     computed: {
-      panelCom () {
+      panelCom() {
         if (!this.fileSourceId) {
           return SelectFileSource;
         }
@@ -100,7 +105,7 @@
         };
         return comMap[this.selectStep];
       },
-      isSelectedEmpty () {
+      isSelectedEmpty() {
         return this.fileLocation.length < 1;
       },
     },
@@ -115,7 +120,7 @@
          *  先选择文件源
          *
          */
-        handler (value) {
+        handler(value) {
           if (!value) {
             return;
           }
@@ -144,7 +149,7 @@
        * 选中fileSource时列表需要切换成bucket列表
        *
        */
-      handleSourceChange (fileSource) {
+      handleSourceChange(fileSource) {
         this.fileSourceId = fileSource.id;
         this.selectStep = SELECT_FILE;
         this.fileLocation = [];
@@ -153,7 +158,7 @@
        * @desc 选中文件
        * @param {Array} fileLocation 选中的文件源
        */
-      handelFileChange (fileLocation) {
+      handelFileChange(fileLocation) {
         this.fileLocation = Object.freeze([...fileLocation]);
       },
 
@@ -163,7 +168,7 @@
        * 选中文件后,过滤重新选择的文件与已选中文件
        * 数据传递到父组件,关闭对话框
        */
-      handleSubmit () {
+      handleSubmit() {
         const fileSourceObj = new SourceFileVO({
           fileSourceId: this.fileSourceId,
           fileType: 3,
@@ -176,7 +181,7 @@
       /**
        * @desc 取消按钮事件
        */
-      handleCancle () {
+      handleCancle() {
         this.$emit('input', false);
       },
 

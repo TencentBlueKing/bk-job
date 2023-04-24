@@ -318,7 +318,7 @@ export const composeList = (template, plan) => {
       if (templateRealIdCollect[curTemplate.realId]) {
         // 在模板中存在
         templateStack.push(curTemplate);
-                
+
         if (planRealIdCollect[curTemplate.realId]) {
           // 同样存在执行方案中存在
           planStask.push(planRealIdCollect[curTemplate.realId]);
@@ -332,7 +332,7 @@ export const composeList = (template, plan) => {
       if (planRealIdCollect[curPlan.realId]) {
         // 在执行方案中存在
         planStask.push(curPlan);
-                
+
         if (templateRealIdCollect[curPlan.realId]) {
           // 同样存在与模板
           templateStack.push(templateRealIdCollect[curPlan.realId]);
@@ -353,7 +353,7 @@ export const composeList = (template, plan) => {
       planStask.push(curPlan);
       templateStack.push(curPlan);
     }
-        
+
     j++;
   }
   while (i < templateLength) {
@@ -362,7 +362,7 @@ export const composeList = (template, plan) => {
       planStask.push('');
       templateStack.push(curTemplate);
     }
-        
+
     i++;
   }
   return [
@@ -377,7 +377,7 @@ const checkChild = (template, plan, patchNode) => {
   plan = [
     ...plan,
   ];
-    
+
   let templateStartIndex = 0;
   let templateEndIndex = template.length - 1;
   let [templateStartNode] = template;

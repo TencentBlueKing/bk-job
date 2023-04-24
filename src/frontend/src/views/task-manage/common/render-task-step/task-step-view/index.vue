@@ -26,9 +26,15 @@
 -->
 
 <template>
-  <detail-layout class="detail-layout-wrapper" mode="see">
-    <detail-item :label="$t('template.步骤类型：')">{{ stepTypeText }}</detail-item>
-    <detail-item :label="$t('template.步骤名称：')">{{ data.name }}</detail-item>
+  <detail-layout
+    class="detail-layout-wrapper"
+    mode="see">
+    <detail-item :label="$t('template.步骤类型：')">
+      {{ stepTypeText }}
+    </detail-item>
+    <detail-item :label="$t('template.步骤名称：')">
+      {{ data.name }}
+    </detail-item>
     <component
       :is="stepCom"
       ref="stepCom"
@@ -39,12 +45,14 @@
   </detail-layout>
 </template>
 <script>
-  import I18n from '@/i18n';
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
+
+  import StepApproval from './approval';
   import StepDistroFile from './distro-file';
   import StepExecScript from './exec-script';
-  import StepApproval from './approval';
+
+  import I18n from '@/i18n';
 
   const STEP_TYPE_LIST = {
     1: I18n.t('template.执行脚本'),
@@ -71,10 +79,10 @@
       },
     },
     computed: {
-      stepTypeText () {
+      stepTypeText() {
         return STEP_TYPE_LIST[this.data.type];
       },
-      stepCom () {
+      stepCom() {
         const taskStepMap = {
           1: StepExecScript,
           2: StepDistroFile,

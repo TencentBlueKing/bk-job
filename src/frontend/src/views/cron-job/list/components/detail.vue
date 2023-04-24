@@ -43,7 +43,9 @@
         {{ data.policeText }}
       </span>
     </detail-item>
-    <detail-item v-if="data.endTime" :label="$t('cron.结束时间：')">
+    <detail-item
+      v-if="data.endTime"
+      :label="$t('cron.结束时间：')">
       {{ data.endTime }}
     </detail-item>
     <detail-item
@@ -55,23 +57,37 @@
       v-if="renderRoleList.length > 0 || data.notifyUser.userList.length > 0"
       :label="$t('cron.通知对象：')">
       <div class="approval-wraper">
-        <div v-for="role in renderRoleList" :key="role" class="item">
-          <Icon class="approval-flag" type="user-group-gray" />
+        <div
+          v-for="role in renderRoleList"
+          :key="role"
+          class="item">
+          <icon
+            class="approval-flag"
+            type="user-group-gray" />
           {{ role }}
         </div>
-        <div v-for="user in data.notifyUser.userList" :key="user" class="item">
-          <Icon class="approval-flag" type="user" />
+        <div
+          v-for="user in data.notifyUser.userList"
+          :key="user"
+          class="item">
+          <icon
+            class="approval-flag"
+            type="user" />
           {{ user }}
         </div>
       </div>
     </detail-item>
-    <detail-item v-if="renderChannel" :label="$t('cron.通知方式：')">
+    <detail-item
+      v-if="renderChannel"
+      :label="$t('cron.通知方式：')">
       {{ renderChannel }}
     </detail-item>
     <detail-item :label="$t('cron.执行方案：')">
       {{ data.taskPlanName }}
     </detail-item>
-    <render-strategy v-bkloading="{ isVarLoading }" left="20">
+    <render-strategy
+      v-bkloading="{ isVarLoading }"
+      left="20">
       <template v-if="!isVarLoading">
         <span
           v-if="currentPlanVariableList.length < 1"
@@ -92,13 +108,15 @@
   </detail-layout>
 </template>
 <script>
-  import QueryGlobalSettingService from '@service/query-global-setting';
   import NotifyService from '@service/notify';
+  import QueryGlobalSettingService from '@service/query-global-setting';
   import TaskPlanService from '@service/task-plan';
+
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
   import GlobalVariableLayout from '@components/global-variable/layout';
   import GlobalVariable from '@components/global-variable/view';
+
   import RenderStrategy from './render-strategy';
 
   export default {
@@ -116,7 +134,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isVarLoading: false,
@@ -125,8 +143,8 @@
         currentPlanVariableList: [],
       };
     },
-        
-    created () {
+
+    created() {
       Promise.all([
         this.fetchData(),
         this.fetchRoleList(),
@@ -139,7 +157,7 @@
       /**
        * @desc 获取定时人详情
        */
-      fetchData () {
+      fetchData() {
         TaskPlanService.fetchPlanDetailInfo({
           templateId: this.data.taskTemplateId,
           id: this.data.taskPlanId,
@@ -168,7 +186,7 @@
       /**
        * @desc 通知人列表
        */
-      fetchRoleList () {
+      fetchRoleList() {
         NotifyService.fetchRoleList()
           .then((data) => {
             const roleMap = {};
@@ -181,7 +199,7 @@
       /**
        * @desc 通知渠道
        */
-      fetchAllChannel () {
+      fetchAllChannel() {
         QueryGlobalSettingService.fetchActiveNotifyChannel()
           .then((data) => {
             const channelMap = {};

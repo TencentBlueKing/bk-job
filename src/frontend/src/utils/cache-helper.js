@@ -27,17 +27,17 @@ import _ from 'lodash';
 
 export const scopeCache = {
   key: 'scope',
-  setItem (value) {
+  setItem(value) {
     localStorage.setItem(scopeCache.key, JSON.stringify(value));
   },
-  getItem () {
+  getItem() {
     return JSON.parse(localStorage.getItem(scopeCache.key) || '{}');
   },
 };
 
 export const routerCache = {
   key: 'router_history',
-  setItem (key, value) {
+  setItem(key, value) {
     let cacheMap = JSON.parse(localStorage.getItem(routerCache.key));
     if (_.isPlainObject(cacheMap)) {
       cacheMap[key] = value;
@@ -48,7 +48,7 @@ export const routerCache = {
     }
     localStorage.setItem(routerCache.key, JSON.stringify(cacheMap));
   },
-  getItem (key) {
+  getItem(key) {
     const cacheMap = JSON.parse(localStorage.getItem(routerCache.key));
     if (_.isPlainObject(cacheMap)) {
       if (!key) {
@@ -60,7 +60,7 @@ export const routerCache = {
     }
     return '';
   },
-  clearItem (key) {
+  clearItem(key) {
     if (!key) {
       return false;
     }
@@ -86,14 +86,14 @@ export const routerCache = {
 */
 export const taskExport = {
   key: 'task_export_info',
-  setItem (key, value) {
+  setItem(key, value) {
     const oldValue = taskExport.getItem() || {};
     localStorage.setItem(taskExport.key, JSON.stringify({
       ...oldValue,
       [key]: value,
     }));
   },
-  getItem (key) {
+  getItem(key) {
     try {
       const value = JSON.parse(localStorage.getItem(taskExport.key));
       if (!_.isPlainObject(value)) {
@@ -107,7 +107,7 @@ export const taskExport = {
       return false;
     }
   },
-  clearItem () {
+  clearItem() {
     localStorage.removeItem(taskExport.key);
   },
 };
@@ -117,14 +117,14 @@ export const taskExport = {
 */
 export const taskImport = {
   key: 'task_import_info',
-  setItem (key, value) {
+  setItem(key, value) {
     const oldValue = taskImport.getItem() || {};
     localStorage.setItem(taskImport.key, JSON.stringify({
       ...oldValue,
       [key]: value,
     }));
   },
-  getItem (key) {
+  getItem(key) {
     try {
       const value = JSON.parse(localStorage.getItem(taskImport.key));
       if (!_.isPlainObject(value)) {
@@ -138,7 +138,7 @@ export const taskImport = {
       return false;
     }
   },
-  clearItem () {
+  clearItem() {
     localStorage.removeItem(taskImport.key);
   },
 };
@@ -149,7 +149,7 @@ export const taskImport = {
 export const execScriptHistory = {
   key: `exec_script_history_${Date.now()}`,
   write: false,
-  getItem () {
+  getItem() {
     try {
       const record = JSON.parse(localStorage.getItem(execScriptHistory.key));
       if (!record) {
@@ -160,7 +160,7 @@ export const execScriptHistory = {
       return [];
     }
   },
-  setItem (value) {
+  setItem(value) {
     localStorage.setItem(execScriptHistory.key, JSON.stringify(value.slice(0, 5)));
     if (!execScriptHistory.write) {
       window.addEventListener('unload', () => {
@@ -169,7 +169,7 @@ export const execScriptHistory = {
     }
     execScriptHistory.write = true;
   },
-  clearItem () {
+  clearItem() {
     localStorage.removeItem(execScriptHistory.key);
   },
 };
@@ -180,7 +180,7 @@ export const execScriptHistory = {
 export const pushFileHistory = {
   key: `push_file_history_${Date.now()}`,
   write: false,
-  getItem () {
+  getItem() {
     try {
       const record = JSON.parse(localStorage.getItem(pushFileHistory.key));
       if (!record) {
@@ -191,7 +191,7 @@ export const pushFileHistory = {
       return [];
     }
   },
-  setItem (value) {
+  setItem(value) {
     localStorage.setItem(pushFileHistory.key, JSON.stringify(value.slice(0, 5)));
     if (!pushFileHistory.write) {
       window.addEventListener('unload', () => {
@@ -200,7 +200,7 @@ export const pushFileHistory = {
     }
     pushFileHistory.write = true;
   },
-  clearItem () {
+  clearItem() {
     localStorage.removeItem(pushFileHistory.key);
   },
 };
@@ -210,14 +210,14 @@ export const pushFileHistory = {
 */
 export const listColumnsCache = {
   key: 'list_column_display',
-  setItem (key, value) {
+  setItem(key, value) {
     const lastValue = listColumnsCache.getItem() || {};
     localStorage.setItem(listColumnsCache.key, JSON.stringify({
       ...lastValue,
       [key]: value,
     }));
   },
-  getItem (key) {
+  getItem(key) {
     try {
       const allCache = JSON.parse(localStorage.getItem(listColumnsCache.key));
       if (!_.isPlainObject(allCache)) {
@@ -237,7 +237,7 @@ export const listColumnsCache = {
       return false;
     }
   },
-  clearItem () {
+  clearItem() {
     localStorage.removeItem(listColumnsCache.key);
   },
 };
@@ -247,17 +247,17 @@ export const listColumnsCache = {
 */
 export const debugScriptCache = {
   key: 'debug_script',
-  setItem (value) {
+  setItem(value) {
     localStorage.setItem(debugScriptCache.key, JSON.stringify(value));
   },
-  getItem () {
+  getItem() {
     const scriptInfo = JSON.parse(localStorage.getItem(debugScriptCache.key));
     if (!_.isPlainObject(scriptInfo)) {
       return null;
     }
     return scriptInfo;
   },
-  clearItem () {
+  clearItem() {
     localStorage.removeItem(debugScriptCache.key);
   },
 };
@@ -267,12 +267,12 @@ export const debugScriptCache = {
 */
 export const topoNodeCache = {
   key: 'ip_selector_topo_node',
-  setItem (username = 'local') {
+  setItem(username = 'local') {
     localStorage.setItem(topoNodeCache.key, JSON.stringify({
       [username]: Date.now(),
     }));
   },
-  getItem (username = 'local') {
+  getItem(username = 'local') {
     const target = localStorage.getItem(topoNodeCache.key);
     if (!target) {
       return true;
@@ -283,7 +283,7 @@ export const topoNodeCache = {
     }
     return false;
   },
-  clearItem () {
+  clearItem() {
     localStorage.removeItem(topoNodeCache.key);
   },
 };
@@ -293,12 +293,12 @@ export const topoNodeCache = {
 */
 export const userSearchCache = {
   key: 'user_search_record',
-  setItem (value) {
+  setItem(value) {
     const records = userSearchCache.getItem();
     records.unshift(value);
     localStorage.setItem(userSearchCache.key, JSON.stringify([...new Set(records)].slice(0, 5)));
   },
-  getItem () {
+  getItem() {
     return JSON.parse(localStorage.getItem(userSearchCache.key) || '[]');
   },
 };

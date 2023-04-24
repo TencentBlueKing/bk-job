@@ -26,16 +26,22 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="page-sentence-rule">
+  <div
+    v-bkloading="{ isLoading }"
+    class="page-sentence-rule">
     <table class="rule-table">
       <thead>
         <tr>
-          <th style="width: 20%;">{{ $t('setting.语法检测表达式') }}</th>
+          <th style="width: 20%;">
+            {{ $t('setting.语法检测表达式') }}
+          </th>
           <th>{{ $t('setting.规则说明') }}</th>
-          <th style="width: 300px;">{{ $t('setting.脚本类型') }}</th>
+          <th style="width: 300px;">
+            {{ $t('setting.脚本类型') }}
+          </th>
           <th style="width: 240px;">
             {{ $t('setting.操作') }}
-            <Icon
+            <icon
               v-bk-tooltips="{
                 theme: 'light',
                 content: $t('setting.规则的排序越靠前，表示检测优先级越高'),
@@ -46,7 +52,9 @@
         </tr>
       </thead>
       <table-action-row @on-change="handleAdd" />
-      <tbody v-for="(rule, index) in list" :key="rule.id">
+      <tbody
+        v-for="(rule, index) in list"
+        :key="rule.id">
         <tr>
           <td>
             <jb-edit-input
@@ -94,7 +102,9 @@
                 :confirm-handler="() => handleDelete(rule.id)"
                 :content="$t('setting.脚本编辑器中匹配该规则将不会再收到提醒')"
                 :title="$t('setting.确定删除该规则？')">
-                <bk-button text>{{ $t('setting.删除') }}</bk-button>
+                <bk-button text>
+                  {{ $t('setting.删除') }}
+                </bk-button>
               </jb-popover-confirm>
             </div>
           </td>
@@ -104,12 +114,15 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import GlobalSettingService from '@service/global-setting';
   import PublicScriptManageService from '@service/public-script-manage';
+
   import JbEditInput from '@components/jb-edit/input';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
+
   import TableActionRow from '../components/table-action-row';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -118,14 +131,14 @@
       JbPopoverConfirm,
       TableActionRow,
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         list: [],
         scriptTypeList: [],
       };
     },
-    created () {
+    created() {
       this.editRule = {};
       this.fetchData();
       this.fetchScriptType();
@@ -134,7 +147,7 @@
       /**
        * @desc 获取高危语句规则
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         GlobalSettingService.fetchDangerousRules()
           .then((data) => {
@@ -147,7 +160,7 @@
       /**
        * @desc 获取支持的脚本类型列表
        */
-      fetchScriptType () {
+      fetchScriptType() {
         PublicScriptManageService.scriptTypeList()
           .then((data) => {
             this.scriptTypeList = data;
@@ -158,7 +171,7 @@
        * @param {String} rule 高危语句规则
        * @param {Array} scriptTypeList 脚本语言列表哦
        */
-      handleScriptTypeUpdate (rule, scriptTypeList) {
+      handleScriptTypeUpdate(rule, scriptTypeList) {
         this.editRule = {
           ...rule,
           scriptTypeList,
@@ -168,7 +181,7 @@
        * @desc 脚本语言下拉框收起时提交更新
        * @param {Boolean} toggle 脚本语言下拉框收起状态
        */
-      handleSubmitType (toggle) {
+      handleSubmitType(toggle) {
         if (!toggle && this.editRule.scriptTypeList && this.editRule.scriptTypeList.length > 0) {
           GlobalSettingService.updateDangerousRules({
             ...this.editRule,
@@ -182,7 +195,7 @@
        * @param {String} rule 高危语句规则
        * @param {Object} payload 脚本语言列表哦
        */
-      handleUpdate (rule, payload) {
+      handleUpdate(rule, payload) {
         return GlobalSettingService.updateDangerousRules({
           ...rule,
           ...payload,
@@ -193,7 +206,7 @@
       /**
        * @desc 添加一条高危语句
        */
-      handleAdd () {
+      handleAdd() {
         this.fetchData();
       },
       /**
@@ -201,7 +214,7 @@
        * @param {Number} index 当前语句的位置索引
        * @param {Number} step 移动的步数
        */
-      handleMove (index, step) {
+      handleMove(index, step) {
         this.isLoading = true;
         GlobalSettingService.updateDangerousRulesSort({
           id: this.list[index].id,
@@ -221,7 +234,7 @@
        * @desc 删除高危语句
        * @param {Number} id 高危语句的id
        */
-      handleDelete (id) {
+      handleDelete(id) {
         return GlobalSettingService.deleteDangerousRule({
           id,
         }).then(() => {

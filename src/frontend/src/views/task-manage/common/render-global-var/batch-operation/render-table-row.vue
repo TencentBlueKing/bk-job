@@ -75,19 +75,28 @@
           :value="data.required" />
       </td>
       <td class="action-row">
-        <Icon class="action-btn" type="add-fill" @click="handleAppend" />
-        <Icon class="action-btn" type="reduce-fill" @click="handleDelete" />
+        <icon
+          class="action-btn"
+          type="add-fill"
+          @click="handleAppend" />
+        <icon
+          class="action-btn"
+          type="reduce-fill"
+          @click="handleDelete" />
       </td>
     </tr>
   </tbody>
 </template>
 <script>
   import GlobalVariableModel from '@model/task/global-variable';
-  import I18n from '@/i18n';
+
   import { globalVariableNameRule } from '@utils/validator';
+
+  import JbEditHost from '@components/jb-edit/host';
   import JbEditInput from '@components/jb-edit/input';
   import JbEditTextarea from '@components/jb-edit/textarea';
-  import JbEditHost from '@components/jb-edit/host';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -110,7 +119,7 @@
        * @desc 是否有赋值可变选项
        * @returns { Boolean }
        */
-      withChangable () {
+      withChangable() {
         return [
           GlobalVariableModel.TYPE_STRING,
           GlobalVariableModel.TYPE_RELATE_ARRAY,
@@ -118,7 +127,7 @@
         ].includes(this.data.type);
       },
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -144,7 +153,7 @@
        * @desc 验证变量名
        * @returns {Promise}
        */
-      validate () {
+      validate() {
         this.errorNameText = '';
         if (!this.data.name) {
           this.errorNameText = I18n.t('template.变量名称必填');
@@ -162,19 +171,19 @@
        * @desc 更新变量
        * @param {Object} payload 更新字段数据
        */
-      handleChange (payload) {
+      handleChange(payload) {
         this.$emit('on-change', Object.assign({}, this.data, payload));
       },
       /**
        * @desc 删除自己
        */
-      handleDelete () {
+      handleDelete() {
         this.$emit('on-delete');
       },
       /**
        * @desc 添加新变量
        */
-      handleAppend () {
+      handleAppend() {
         this.$emit('on-append');
       },
     },

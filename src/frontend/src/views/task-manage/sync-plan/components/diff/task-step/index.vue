@@ -26,19 +26,26 @@
 -->
 
 <template>
-  <div :id="`${type}_step_${data.id}`" class="diff-task-step" :class="classes">
+  <div
+    :id="`${type}_step_${data.id}`"
+    class="diff-task-step"
+    :class="classes">
     <div class="name">
       <div class="type-flag">
-        <Icon :type="data.icon" />
+        <icon :type="data.icon" />
       </div>
       {{ data.name }}
     </div>
     <div class="info">
-      <div class="row" :class="diffValue.type">
+      <div
+        class="row"
+        :class="diffValue.type">
         <span class="label">{{ $t('template.步骤类型：') }}</span>
         <span class="value">{{ data.typeText }}</span>
       </div>
-      <div class="row" :class="diffValue.name">
+      <div
+        class="row"
+        :class="diffValue.name">
         <span class="label">{{ $t('template.步骤名称：') }}</span>
         <span class="value">{{ data.name }}</span>
       </div>
@@ -53,9 +60,10 @@
 </template>
 <script>
   import TaskStepModel from '@model/task/task-step';
-  import TypeScript from './script';
-  import TypeFile from './file';
+
   import TypeApproval from './approval';
+  import TypeFile from './file';
+  import TypeScript from './script';
 
   const comMap = {
     [TaskStepModel.TYPE_SCRIPT]: TypeScript,
@@ -81,10 +89,10 @@
       },
     },
     computed: {
-      infoCom () {
+      infoCom() {
         return comMap[this.data.type];
       },
-      info () {
+      info() {
         const fieldMap = {
           [TaskStepModel.TYPE_SCRIPT]: 'scriptStepInfo',
           [TaskStepModel.TYPE_FILE]: 'fileStepInfo',
@@ -92,14 +100,14 @@
         };
         return this.data[fieldMap[this.data.type]];
       },
-      classes () {
+      classes() {
         const diffKey = `${this.data.realId}`;
         if (this.diff[diffKey]) {
           return this.diff[diffKey].type;
         }
         return '';
       },
-      diffValue () {
+      diffValue() {
         const diffKey = `${this.data.realId}`;
         if (this.diff[diffKey]) {
           return this.diff[diffKey].value || {};

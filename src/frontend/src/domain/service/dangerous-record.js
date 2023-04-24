@@ -24,11 +24,12 @@
 */
 
 /* eslint-disable no-param-reassign */
-import dangerousRecord from '../source/dangerous-record';
 import DangerousRecordModel from '@model/dangerous-record';
 
+import dangerousRecord from '../source/dangerous-record';
+
 export default {
-  recordList (params, payload) {
+  recordList(params, payload) {
     return dangerousRecord.getDangerousRecordList(params, payload)
       .then(({ data }) => {
         if (data.data) {

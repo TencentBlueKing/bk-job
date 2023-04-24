@@ -104,7 +104,7 @@ export default class TaskInstance {
 
   };
 
-  constructor (payload) {
+  constructor(payload) {
     this.id = payload.id;
     this.taskId = payload.taskId;
     this.cronTaskId = payload.cronTaskId;
@@ -133,7 +133,7 @@ export default class TaskInstance {
      * @desc 任务状态的 icon
      * @returns { String }
      */
-  get statusIconType () {
+  get statusIconType() {
     const iconMap = {
       fail: 'sync-failed',
       success: 'sync-success',
@@ -151,7 +151,7 @@ export default class TaskInstance {
      * @desc 任务正在执行
      * @returns { Boolean }
      */
-  get isDoing () {
+  get isDoing() {
     return [
       STATUS_DOING,
       STATUS_FORCEDING,
@@ -162,7 +162,7 @@ export default class TaskInstance {
      * @desc 表示任务状态 css 的 class
      * @returns { String }
      */
-  get statusClass () {
+  get statusClass() {
     return calcStatusGroup(this.status);
   }
 
@@ -170,7 +170,7 @@ export default class TaskInstance {
      * @desc 表示任务状态文本描述
      * @returns { String }
      */
-  get statusDescHtml () {
+  get statusDescHtml() {
     const statusColorMap = {
       fail: '#EA3636',
       success: '#2DCB8D',
@@ -188,7 +188,7 @@ export default class TaskInstance {
      * @desc 任务执行总耗时
      * @returns { String }
      */
-  get totalTimeText () {
+  get totalTimeText() {
     return transformTimeFriendly(this.totalTime);
   }
 
@@ -196,7 +196,7 @@ export default class TaskInstance {
      * @desc 任务类型为作业执行
      * @returns { Boolean }
      */
-  get isTask () {
+  get isTask() {
     return this.type === TASK_TYPE_TASK;
   }
 
@@ -204,7 +204,7 @@ export default class TaskInstance {
      * @desc 任务类型为快速执行脚本
      * @returns { Boolean }
      */
-  get isScript () {
+  get isScript() {
     return this.type === TASK_TYPE_SCRIPT;
   }
 
@@ -212,7 +212,7 @@ export default class TaskInstance {
      * @desc 任务类型为快速分发文件
      * @returns { Boolean }
      */
-  get isFile () {
+  get isFile() {
     return this.type === TASK_TYPE_FILE;
   }
 }

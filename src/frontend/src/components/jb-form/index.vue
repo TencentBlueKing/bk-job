@@ -53,7 +53,7 @@
         type: Object,
       },
     },
-    data () {
+    data() {
       return {
         max: 0,
         isApplyChange: false,
@@ -61,7 +61,7 @@
     },
     watch: {
       model: {
-        handler () {
+        handler() {
           setTimeout(() => {
             if (this.isApplyChange) {
               window.changeFlag = true;
@@ -71,13 +71,13 @@
         deep: true,
       },
     },
-    created () {
+    created() {
       this.timer = Date.now();
     },
-    updated () {
+    updated() {
       this.calcLableWidth();
     },
-    mounted () {
+    mounted() {
       this.resetDefaultFeature();
       setTimeout(() => {
         const isShowForm = this.$refs.jobForm && this.$refs.jobForm.getBoundingClientRect().width > 0;
@@ -91,7 +91,7 @@
       /**
        * @desc 动态计算label的宽度
        */
-      calcLableWidth () {
+      calcLableWidth() {
         if (Date.now() - 20 > this.timer) {
           this.timer = Date.now();
         } else {
@@ -125,7 +125,7 @@
       /**
        * @desc 处理表单项的自动聚焦
        */
-      autoFocus () {
+      autoFocus() {
         // 表单项自动获取焦点
         const $autoFocusItem = this.$refs.jobForm.querySelector('[autofocus="autofocus"]');
         if ($autoFocusItem) {
@@ -137,7 +137,7 @@
       /**
        * @desc 设置表单项的默认特性
        */
-      resetDefaultFeature () {
+      resetDefaultFeature() {
         const $inputList = this.$refs.jobForm.querySelectorAll('input');
         $inputList.forEach((inputItem) => {
           inputItem.spellcheck = false;
@@ -146,13 +146,13 @@
       /**
        * @desc 标记用户是否主动操作过表单项
        */
-      handleApplyChange () {
+      handleApplyChange() {
         this.isApplyChange = true;
       },
       /**
        * @desc 验证表单
        */
-      validate () {
+      validate() {
         return this.$refs.bkForm.validate().catch((error) => {
           this.$refs.jobForm.querySelector('.jb-form-item.is-error').scrollIntoView();
           return Promise.reject(error);
@@ -161,7 +161,7 @@
       /**
        * @desc 清除表单验证信息
        */
-      clearError (fields) {
+      clearError(fields) {
         if (!fields) {
           for (const fieldItem of this.$refs.bkForm.formItems) {
             fieldItem.clearValidator();

@@ -26,8 +26,12 @@
 -->
 
 <template>
-  <smart-action class="task-template-detail" offset-target="detail-content">
-    <detail-layout class="task-template-detail-layout" mode="see">
+  <smart-action
+    class="task-template-detail"
+    offset-target="detail-content">
+    <detail-layout
+      class="task-template-detail-layout"
+      mode="see">
       <detail-item :label="$t('template.模板名称：')">
         <auth-component
           auth="job_template/edit"
@@ -38,7 +42,9 @@
             :remote-hander="handleUpdateTemplate"
             :rules="rules.name"
             :value="formData.name" />
-          <div slot="forbid">{{ formData.name }}</div>
+          <div slot="forbid">
+            {{ formData.name }}
+          </div>
         </auth-component>
       </detail-item>
       <detail-item :label="$t('template.场景标签：')">
@@ -50,7 +56,9 @@
             field="tags"
             :remote-hander="handleUpdateTemplate"
             :value="formData.tags" />
-          <div slot="forbid">{{ formData.tagText }}</div>
+          <div slot="forbid">
+            {{ formData.tagText }}
+          </div>
         </auth-component>
       </detail-item>
       <detail-item :label="$t('template.模板描述：')">
@@ -64,13 +72,19 @@
             :placeholder="$t('template.填写该模板的功能介绍等详细描述...')"
             :remote-hander="handleUpdateTemplate"
             :value="formData.description" />
-          <div slot="forbid">{{ formData.description || '--' }}</div>
+          <div slot="forbid">
+            {{ formData.description || '--' }}
+          </div>
         </auth-component>
       </detail-item>
-      <detail-item class="gloval-var-item" :label="$t('template.全局变量：')">
+      <detail-item
+        class="gloval-var-item"
+        :label="$t('template.全局变量：')">
         <render-global-var :list="formData.variables" />
       </detail-item>
-      <detail-item class="task-step-item" :label="$t('template.作业步骤：')">
+      <detail-item
+        class="task-step-item"
+        :label="$t('template.作业步骤：')">
         <render-task-step
           ref="step"
           :list="formData.stepList"
@@ -110,8 +124,11 @@
             :loading="isPlanListLoading"
             @click="handleGoSyncPlan">
             {{ $t('template.同步方案') }}
-            <div v-if="!isNotNeedUpdate" v-bk-tooltips="$t('template.待同步')" class="update-flag">
-              <Icon type="sync-8" />
+            <div
+              v-if="!isNotNeedUpdate"
+              v-bk-tooltips="$t('template.待同步')"
+              class="update-flag">
+              <icon type="sync-8" />
             </div>
           </bk-button>
         </span>
@@ -131,26 +148,33 @@
       </div>
     </template>
     <element-teleport v-if="formData.name">
-      <div style="font-size: 12px; color: #63656e;">（{{ formData.name }}）</div>
+      <div style="font-size: 12px; color: #63656e;">
+        （{{ formData.name }}）
+      </div>
     </element-teleport>
     <back-top />
   </smart-action>
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskManageService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
+
   import { taskTemplateName } from '@utils/validator';
+
+  import BackTop from '@components/back-top';
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
-  import BackTop from '@components/back-top';
   import JbEditInput from '@components/jb-edit/input';
   import JbEditTag from '@components/jb-edit/tag';
   import JbEditTextarea from '@components/jb-edit/textarea';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
+
   import RenderGlobalVar from '../common/render-global-var';
   import RenderTaskStep from '../common/render-task-step';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     createTime: '',
@@ -180,7 +204,7 @@
       JbEditTextarea,
       JbPopoverConfirm,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isPlanListLoading: true,
@@ -190,21 +214,21 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
       /**
        * @desc 模板关联的执行方案是否需要同步
        * @returns { Boolean }
        */
-      isNotNeedUpdate () {
+      isNotNeedUpdate() {
         return !this.planList.some(_ => _.needUpdate);
       },
       /**
        * @desc 模板关联的执行方案同步 tips
        * @returns { Boolean }
        */
-      notNeedUpdateTips () {
+      notNeedUpdateTips() {
         if (this.planList.length < 1) {
           return I18n.t('template.该模板下面没有执行方案');
         }
@@ -214,7 +238,7 @@
         return '';
       },
     },
-    created () {
+    created() {
       this.taskId = this.$route.params.id;
       // 是否默认显示需要更新脚本的执行脚本步骤
       this.initShowScriptUpdateStep = this.$route.query.mode === 'scriptUpdate';
@@ -222,7 +246,7 @@
 
       this.fetchData();
       this.fetchPlanList();
-            
+
       this.rules = {
         name: [
           {
@@ -248,7 +272,7 @@
        * @desc 获取作业模板详情
        * @param {Boolean} refresh 更新元数据重新获取
        */
-      fetchData (refresh = false) {
+      fetchData(refresh = false) {
         TaskManageService.taskDetail({
           id: this.taskId,
         }, {
@@ -297,7 +321,7 @@
       /**
        * @desc 获取作业模板关联的执行方案列表
        */
-      fetchPlanList () {
+      fetchPlanList() {
         this.isPlanListLoading = true;
         TaskPlanService.fetchTaskPlan({
           id: this.taskId,
@@ -311,7 +335,7 @@
       /**
        * @desc 检测作业模板名是否存在
        */
-      checkName (name) {
+      checkName(name) {
         return TaskManageService.taskCheckName({
           id: this.taskId,
           name,
@@ -321,7 +345,7 @@
        * @desc 更新作业模板元数据
        * @param {Object} payload 将要更新的字段名和值
        */
-      handleUpdateTemplate (payload) {
+      handleUpdateTemplate(payload) {
         const { name, description, tags } = this.formDataLocal;
         return TaskManageService.taskUpdateBasic({
           id: this.taskId,
@@ -336,7 +360,7 @@
       /**
        * @desc 执行执行方案
        */
-      handleGoExec () {
+      handleGoExec() {
         this.$router.push({
           name: 'viewPlan',
           params: {
@@ -350,7 +374,7 @@
       /**
        * @desc 调试执行方案
        */
-      handleGoDebug () {
+      handleGoDebug() {
         this.$router.push({
           name: 'debugPlan',
           params: {
@@ -364,7 +388,7 @@
       /**
        * @desc 同步执行方案
        */
-      handleGoSyncPlan () {
+      handleGoSyncPlan() {
         this.$router.push({
           name: 'syncPlanBatch',
           query: {
@@ -376,7 +400,7 @@
       /**
        * @desc 编辑作业模板
        */
-      handleGoEdit () {
+      handleGoEdit() {
         this.$router.push({
           name: 'templateEdit',
           params: {
@@ -390,7 +414,7 @@
       /**
        * @desc 删除作业模板，然后路由回退
        */
-      handleDelete () {
+      handleDelete() {
         return TaskManageService.taskDelete({
           id: this.taskId,
         }).then(() => {
@@ -401,7 +425,7 @@
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         this.$router.push({
           name: 'taskList',
         });

@@ -31,10 +31,14 @@
       <div class="sync-wraper">
         <div class="sync-layout sync-header">
           <div class="sync-before">
-            <div class="title">{{ $t('template.同步前') }}</div>
+            <div class="title">
+              {{ $t('template.同步前') }}
+            </div>
           </div>
           <div class="sync-after">
-            <div class="title">{{ $t('template.同步后') }}</div>
+            <div class="title">
+              {{ $t('template.同步后') }}
+            </div>
           </div>
         </div>
         <div class="sync-content">
@@ -50,7 +54,9 @@
               </div>
             </div>
             <template v-for="index in templateVariableList.length">
-              <div :key="`${'variable' + index}`" class="sync-layout">
+              <div
+                :key="`${'variable' + index}`"
+                class="sync-layout">
                 <div class="sync-before">
                   <diff-global-variable
                     v-if="planVariableList[index - 1]"
@@ -67,11 +73,17 @@
               </div>
             </template>
             <div class="sync-layout">
-              <div class="sync-before block-title">{{ $t('template.作业步骤.label') }}</div>
-              <div class="sync-after block-title">{{ $t('template.作业步骤.label') }}</div>
+              <div class="sync-before block-title">
+                {{ $t('template.作业步骤.label') }}
+              </div>
+              <div class="sync-after block-title">
+                {{ $t('template.作业步骤.label') }}
+              </div>
             </div>
             <template v-for="index in templateStepList.length">
-              <div :key="`${'step' + index}`" class="sync-layout">
+              <div
+                :key="`${'step' + index}`"
+                class="sync-layout">
                 <div class="sync-before">
                   <diff-task-step
                     v-if="planStepList[index - 1]"
@@ -93,11 +105,18 @@
           </scroll-faker>
         </div>
       </div>
-      <side-anchor class="side-anchor" :step="templateStepList" :variable="templateVariableList" />
+      <side-anchor
+        class="side-anchor"
+        :step="templateStepList"
+        :variable="templateVariableList" />
     </div>
     <template #footer>
-      <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-      <bk-button @click="handleLast">{{ $t('template.上一步') }}</bk-button>
+      <bk-button @click="handleCancel">
+        {{ $t('template.取消') }}
+      </bk-button>
+      <bk-button @click="handleLast">
+        {{ $t('template.上一步') }}
+      </bk-button>
       <bk-button
         v-if="!isView"
         class="w120"
@@ -110,16 +129,19 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import AccountManageService from '@service/account-manage';
+
   import ScrollFaker from '@components/scroll-faker';
-  import Layout from '../components/layout';
+
   import DiffGlobalVariable from '../components/diff/global-variable';
   import DiffTaskStep from '../components/diff/task-step';
+  import Layout from '../components/layout';
   import SideAnchor from '../components/side-anchor';
   import {
     composeList,
-    diffVariable,
     diffStep,
+    diffVariable,
   } from '../components/utils';
 
   export default {
@@ -147,7 +169,7 @@
         }),
       },
     },
-    data () {
+    data() {
       return {
         accountList: [],
         templateVariableList: [],
@@ -160,7 +182,7 @@
         stepDiff: {},
       };
     },
-    created () {
+    created() {
       this.isView = this.$route.query.mode === 'view';
       this.fetchAccount();
       this.init();
@@ -169,7 +191,7 @@
       /**
        * @desc 计算差异
        */
-      init () {
+      init() {
         const templateInfoVariableList = _.cloneDeep(this.templateInfo.variables);
         const templateInfoStepList = _.cloneDeep(this.templateInfo.stepList);
         const planInfoVariableList = _.cloneDeep(this.planInfo.variableList);
@@ -210,7 +232,7 @@
       /**
        * @desc 获取账号列表
        */
-      fetchAccount () {
+      fetchAccount() {
         AccountManageService.fetchAccountWhole()
           .then((data) => {
             this.accountList = data;
@@ -219,19 +241,19 @@
       /**
        * @desc 回退到上一步
        */
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 1);
       },
       /**
        * @desc 下一步
        */
-      handleNext () {
+      handleNext() {
         this.$emit('on-change', 3);
       },
       /**
        * @desc 取消同步
        */
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancel');
       },
     },

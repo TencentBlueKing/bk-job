@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <lower-component :custom="isShowDialog" level="custom">
+  <lower-component
+    :custom="isShowDialog"
+    level="custom">
     <jb-dialog
       v-model="isShowDialog"
       class="choose-ip-dialog"
@@ -35,25 +37,41 @@
       :mask-close="false"
       :media="mediaWidth"
       :width="1240">
-      <div class="choose-ip-container" :style="containerStyles">
+      <div
+        class="choose-ip-container"
+        :style="containerStyles">
         <template v-if="isShowDialog">
           <div class="action-tab">
             <div class="tab-container">
-              <div class="tab-item" :class="{ active: activeTab === 'static' }" @click="handleTabChange('static')">
+              <div
+                class="tab-item"
+                :class="{ active: activeTab === 'static' }"
+                @click="handleTabChange('static')">
                 {{ $t('静态 - IP 选择') }}
               </div>
-              <div class="tab-item" :class="{ active: activeTab === 'dynamic' }" @click="handleTabChange('dynamic')">
+              <div
+                class="tab-item"
+                :class="{ active: activeTab === 'dynamic' }"
+                @click="handleTabChange('dynamic')">
                 {{ $t('动态 - 拓扑选择') }}
               </div>
-              <div class="tab-item" :class="{ active: activeTab === 'group' }" @click="handleTabChange('group')">
+              <div
+                class="tab-item"
+                :class="{ active: activeTab === 'group' }"
+                @click="handleTabChange('group')">
                 {{ $t('动态 - 分组选择') }}
               </div>
-              <div class="tab-item" :class="{ active: activeTab === 'input' }" @click="handleTabChange('input')">
+              <div
+                class="tab-item"
+                :class="{ active: activeTab === 'input' }"
+                @click="handleTabChange('input')">
                 {{ $t('手动输入') }}
               </div>
             </div>
           </div>
-          <div class="action-content" :style="contentStyles">
+          <div
+            class="action-content"
+            :style="contentStyles">
             <keep-alive>
               <component
                 :is="panelCom"
@@ -75,7 +93,9 @@
         </template>
       </div>
       <template v-if="showGroupPreview">
-        <preview-group v-model="showGroupPreview" :data="previewGroup" />
+        <preview-group
+          v-model="showGroupPreview"
+          :data="previewGroup" />
       </template>
       <template v-if="showChoosePreview">
         <preview
@@ -84,11 +104,15 @@
           :host="ipList"
           :node="topoNodeList"
           @on-change="handlePreviewChange">
-          <div slot="desc" v-html="actionResult" />
+          <div
+            slot="desc"
+            v-html="actionResult" />
         </preview>
       </template>
       <template slot="footer">
-        <span v-if="error" class="ip-error">{{ error }}</span>
+        <span
+          v-if="error"
+          class="ip-error">{{ error }}</span>
         <div
           :id="previewId"
           class="choose-result"
@@ -100,7 +124,11 @@
           :confirm-handler="handleSubmit"
           :content="$t('手动输入框有内容未添加到“已选择”列表，确认结束操作？')"
           :title="$t('操作确认')">
-          <bk-button class="mr10" theme="primary">{{ $t('确定') }}</bk-button>
+          <bk-button
+            class="mr10"
+            theme="primary">
+            {{ $t('确定') }}
+          </bk-button>
         </jb-popover-confirm>
         <bk-button
           v-if="!ipInputStatus"
@@ -110,29 +138,35 @@
           @click="handleSubmit">
           {{ $t('确定') }}
         </bk-button>
-        <bk-button @click="handleCancle">{{ $t('取消') }}</bk-button>
+        <bk-button @click="handleCancle">
+          {{ $t('取消') }}
+        </bk-button>
       </template>
     </jb-dialog>
   </lower-component>
 </template>
 <script>
   import _ from 'lodash';
+
   import AppService from '@service/app-manage';
-  import I18n from '@/i18n';
+
   import TaskHostNodeModel from '@model/task-host-node';
-  import {
-    bigTreeTransformTopologyOfTopology,
-    mergeInputHost,
-    mergeTopologyHost,
-    generateHostRealId,
-  } from './components/utils';
+
+  import PreviewGroup from './components/preview-group';
   import RenderBusinessTopology from './components/render-business-topology';
   import RenderDynamicBusinessTopology from './components/render-dynamic-business-topology';
   import RenderDynamicGroup from './components/render-dynamic-group';
   import RenderIpInput from './components/render-ip-input';
-  import PreviewGroup from './components/preview-group';
   import SidesliderBox from './components/sideslider-box';
+  import {
+    bigTreeTransformTopologyOfTopology,
+    generateHostRealId,
+    mergeInputHost,
+    mergeTopologyHost,
+  } from './components/utils';
   import Preview from './preview';
+
+  import I18n from '@/i18n';
 
   const DIALOG_FOOTER_HEIGHT = 58;
   const CONTENT_TAB_HEIGHT = 42;
@@ -174,7 +208,7 @@
         default: I18n.t('服务器不能为空'),
       },
     },
-    data () {
+    data() {
       this.ipListTopolagyLast = [];
       return {
         isShowDialog: false,
@@ -203,7 +237,7 @@
        * @desc 渲染tab组件
        * @returns {Object}
        */
-      panelCom () {
+      panelCom() {
         const comMap = {
           static: RenderBusinessTopology,
           dynamic: RenderDynamicBusinessTopology,
@@ -216,7 +250,7 @@
        * @desc 弹框内容区样式
        * @returns {Object}
        */
-      containerStyles () {
+      containerStyles() {
         return {
           height: `${this.dialogHeight - DIALOG_FOOTER_HEIGHT}px`,
         };
@@ -225,7 +259,7 @@
        * @desc tab内容区样式
        * @returns {Object}
        */
-      contentStyles () {
+      contentStyles() {
         return {
           height: `${this.dialogHeight - DIALOG_FOOTER_HEIGHT - CONTENT_TAB_HEIGHT}px`,
         };
@@ -234,14 +268,14 @@
        * @desc 主机是否为空
        * @returns {Boolean}
        */
-      isEmpty () {
+      isEmpty() {
         return !this.topoNodeList.length && !this.ipList.length && !this.dynamicGroupList.length;
       },
       /**
        * @desc 选择结果的展示
        * @returns {String}
        */
-      actionResult () {
+      actionResult() {
         const result = [];
         if (this.ipList.length > 0) {
           result.push(`<span class="strong number choose-host">${this.ipList.length}</span>${I18n.t('台主机.select')}`);
@@ -268,7 +302,7 @@
          * @desc 每次打开重新拉取拓扑节点树
          * @param {Boolean} show 显示 ip 选择器
          */
-        handler (show) {
+        handler(show) {
           if (show) {
             this.fetchTopologyWithCount();
           }
@@ -283,7 +317,7 @@
          * @desc 处理默认值
          * @param {Object} hostNodeInfo 主机信息
          */
-        handler (hostNodeInfo) {
+        handler(hostNodeInfo) {
           if (this.isSelfChange) {
             this.isSelfChange = false;
             return;
@@ -307,7 +341,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.previewId = `chooseIPPreview_${_.random(1, 99999999)}`;
       this.isSelfChange = false;
       this.hostInput = [];
@@ -315,14 +349,14 @@
         1240, 1400, 1560, 1720,
       ];
     },
-    mounted () {
+    mounted() {
       this.calcDialogHeight();
     },
     methods: {
       /**
        * @desc 获取拓扑节点树
        */
-      fetchTopologyWithCount () {
+      fetchTopologyWithCount() {
         this.isLoading = true;
         AppService.fetchTopologyWithCount()
           .then((data) => {
@@ -337,14 +371,14 @@
       /**
        * @desc 动态计算弹框高度占浏览器窗口的 80%
        */
-      calcDialogHeight () {
+      calcDialogHeight() {
         const dialogHeight = window.innerHeight * 0.8;
         this.dialogHeight = dialogHeight < 660 ? 660 : dialogHeight;
       },
       /**
        * @desc tab 面板切换
        */
-      handleTabChange (payload) {
+      handleTabChange(payload) {
         this.activeTab = payload;
       },
       /**
@@ -354,7 +388,7 @@
        *
        * 静态 ip 选择和手动输入的结果需要合并
        */
-      handleChange (field, value) {
+      handleChange(field, value) {
         this.error = '';
         switch (field) {
         case 'ipList':
@@ -383,7 +417,7 @@
        *
        * 有输入结果但是没有添加需要给出提示结果
        */
-      handleInputChange (status) {
+      handleInputChange(status) {
         this.ipInputStatus = status;
       },
       /**
@@ -392,13 +426,13 @@
        *
        * 动画没结束禁止提交
        */
-      handleInputAnimate (running) {
+      handleInputAnimate(running) {
         this.isSubmitDisable = running;
       },
       /**
        * @desc 预览结果
        */
-      handleShowChoosePreview () {
+      handleShowChoosePreview() {
         this.showChoosePreview = true;
       },
       /**
@@ -406,7 +440,7 @@
        * @param {Object} hostNodeInfo 主机信息
        *
        */
-      handlePreviewChange (hostNodeInfo) {
+      handlePreviewChange(hostNodeInfo) {
         const {
           dynamicGroupList,
           ipList,
@@ -421,14 +455,14 @@
        * @param {Object} groupInfo 分组信息
        *
        */
-      handleGroupPreview (groupInfo) {
+      handleGroupPreview(groupInfo) {
         this.previewGroup = groupInfo;
         this.showGroupPreview = true;
       },
       /**
        * @desc 外部调用，重置选中状态
        */
-      reset () {
+      reset() {
         this.topoNodeList = [];
         this.ipList = [];
         this.dynamicGroupList = [];
@@ -436,7 +470,7 @@
       /**
        * @desc 弹框关闭
        */
-      close () {
+      close() {
         this.activeTab = 'static';
         this.$emit('on-cancel');
         this.$emit('input', false);
@@ -444,7 +478,7 @@
       /**
        * @desc 提交操作结果
        */
-      handleSubmit () {
+      handleSubmit() {
         return Promise.resolve()
           .then(() => {
             if (this.required && this.isEmpty) {
@@ -470,7 +504,7 @@
        *
        * 重置默认数据
        */
-      handleCancle () {
+      handleCancle() {
         const {
           dynamicGroupList = [],
           ipList = [],

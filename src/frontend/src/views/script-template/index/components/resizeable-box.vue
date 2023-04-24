@@ -26,12 +26,15 @@
 -->
 
 <template>
-  <div ref="handle" class="resizeable-box" :style="styles">
+  <div
+    ref="handle"
+    class="resizeable-box"
+    :style="styles">
     <slot />
     <div
       class="mouse-flag"
       @mousedown="handleMousedown">
-      <Icon type="many-dot" />
+      <icon type="many-dot" />
     </div>
   </div>
 </template>
@@ -55,19 +58,19 @@
         default: 400,
       },
     },
-    data () {
+    data() {
       return {
         styles: {
           width: `${this.width}px`,
         },
       };
     },
-    created () {
+    created() {
       this.moveStartWidth = this.width;
       this.isResizeable = false;
       this.handleMousemove = _.throttle(this.eventMousemove, 30);
     },
-    mounted () {
+    mounted() {
       document.body.addEventListener('mousemove', this.handleMousemove);
       document.body.addEventListener('mouseup', this.handleMouseup);
       this.$once('hook:beforeDestroy', () => {
@@ -80,7 +83,7 @@
        * @desc mousedown 事件，记录鼠标按下时容器的宽度
        * @param {Object} event
        */
-      handleMousedown (event) {
+      handleMousedown(event) {
         this.isResizeable = true;
         this.clientX = event.clientX;
         this.moveStartWidth = this.$refs.handle.getBoundingClientRect().width;
@@ -89,7 +92,7 @@
       /**
        * @desc mouseup 事件，取消可拖动特性
        */
-      handleMouseup () {
+      handleMouseup() {
         this.isResizeable = false;
         document.body.style.userSelect = '';
       },
@@ -97,7 +100,7 @@
        * @desc mousemove 事件，动态更新容器宽度
        * @param {Object} event
        */
-      eventMousemove (event) {
+      eventMousemove(event) {
         if (!this.isResizeable) {
           return;
         }

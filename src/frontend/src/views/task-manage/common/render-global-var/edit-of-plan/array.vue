@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <jb-form ref="varArrayForm" :model="formData">
+  <jb-form
+    ref="varArrayForm"
+    :model="formData">
     <jb-form-item :label="$t('template.数组类型')">
       <div class="array-type-group">
         <bk-radio-group :value="arrayType">
@@ -46,7 +48,9 @@
       </div>
     </jb-form-item>
     <jb-form-item :label="$t('template.变量名称')">
-      <bk-input v-model="formData.name" disabled />
+      <bk-input
+        v-model="formData.name"
+        disabled />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量值')">
       <bk-input
@@ -54,7 +58,12 @@
         :native-attributes="{ autofocus: 'autofocus' }" />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量描述')">
-      <bk-input v-model="formData.description" disabled maxlength="100" :row="5" type="textarea" />
+      <bk-input
+        v-model="formData.description"
+        disabled
+        maxlength="100"
+        :row="5"
+        type="textarea" />
     </jb-form-item>
     <jb-form-item>
       <bk-checkbox
@@ -96,12 +105,12 @@
     props: {
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         arrayType: 5,
         formData: getDefaultData(),
@@ -109,7 +118,7 @@
     },
     watch: {
       data: {
-        handler (value) {
+        handler(value) {
           if (Object.keys(value).length) {
             const { name, defaultValue, description, changeable, required, id, type } = value;
             this.formData = {
@@ -128,14 +137,14 @@
       },
     },
     methods: {
-      submit () {
+      submit() {
         return Promise.resolve({
           ...this.formData,
           type: this.arrayType,
         });
       },
 
-      reset () {
+      reset() {
         this.formData = getDefaultData();
       },
     },

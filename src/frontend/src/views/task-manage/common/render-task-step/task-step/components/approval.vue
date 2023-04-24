@@ -80,10 +80,12 @@
   </jb-form>
 </template>
 <script>
-  import I18n from '@/i18n';
   import QueryGlobalSettingService from '@service/query-global-setting';
+
   import JbUserSelector from '@components/jb-user-selector';
   import ItemFactory from '@components/task-step/file/item-factory';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     id: -1,
@@ -117,20 +119,20 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: getDefaultData(),
         channleList: [],
       };
     },
     computed: {
-      isChannelAll () {
+      isChannelAll() {
         if (this.channleList.length < 1) {
           return false;
         }
         return this.formData.notifyChannel.length === this.channleList.length;
       },
-      isChannelIndeterminate () {
+      isChannelIndeterminate() {
         if (this.formData.notifyChannel.length < 1) {
           return false;
         }
@@ -139,7 +141,7 @@
     },
     watch: {
       data: {
-        handler (newData) {
+        handler(newData) {
           // 本地新建的步骤id为-1，已提交后端保存的id大于0
           this.formData = Object.assign({}, this.formData, newData);
           // 有数据需要自动验证一次
@@ -152,7 +154,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.rules = {
         approvalUser: [
           {
@@ -165,7 +167,7 @@
       this.fetchAllChannel();
     },
     methods: {
-      fetchAllChannel () {
+      fetchAllChannel() {
         QueryGlobalSettingService.fetchActiveNotifyChannel()
           .then((data) => {
             this.channleList = data;
@@ -174,22 +176,22 @@
             this.isLoading = false;
           });
       },
-      handleToggleAllChannel () {
+      handleToggleAllChannel() {
         if (this.isChannelAll) {
           this.formData.notifyChannel = [];
         } else {
           this.formData.notifyChannel = this.channleList.map(_ => _.code);
         }
       },
-      handleNameChange (field, name) {
+      handleNameChange(field, name) {
         this.formData[field] = name.trim();
       },
-            
-      handleApprovalUserChange (user, role) {
+
+      handleApprovalUserChange(user, role) {
         this.formData.approvalUser.roleList = role;
         this.formData.approvalUser.userList = user;
       },
-      submit () {
+      submit() {
         const {
           name,
           id,

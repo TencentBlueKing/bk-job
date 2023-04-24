@@ -60,7 +60,7 @@
               active: isShowGuide,
             }"
             @click="handleShowGuide">
-            <Icon
+            <icon
               v-bk-tooltips="`${$t('查看使用指引')}`"
               type="help-document-fill" />
           </div>
@@ -75,24 +75,33 @@
           :clearable="false"
           :value="formData[modeField]"
           @change="handleRollingModeChange">
-          <bk-option :id="1" :name="$t('默认（执行失败则暂停）')" />
-          <bk-option :id="2" :name="$t('忽略失败，自动滚动下一批')" />
-          <bk-option :id="3" :name="$t('不自动，每批次都人工确认')" />
+          <bk-option
+            :id="1"
+            :name="$t('默认（执行失败则暂停）')" />
+          <bk-option
+            :id="2"
+            :name="$t('忽略失败，自动滚动下一批')" />
+          <bk-option
+            :id="3"
+            :name="$t('不自动，每批次都人工确认')" />
         </bk-select>
       </jb-form-item>
     </div>
     <element-teleport
       v-if="isShowGuide"
       target="#rollingExprGuide">
-      <Guide @on-close="handleHideGuide" />
+      <guide @on-close="handleHideGuide" />
     </element-teleport>
   </div>
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import rollingExprParse from '@utils/rolling-expr-parse';
+
   import Guide from './guide';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -117,7 +126,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isShowGuide: false,
         tips: '',
@@ -129,7 +138,7 @@
        * @desc 滚动策略验证规则，不需要滚动执行时不进行验证
        * @returns { Array }
        */
-      rollingExprRule () {
+      rollingExprRule() {
         if (!this.formData[this.enabledField]) {
           return [];
         }
@@ -160,7 +169,7 @@
     },
     watch: {
       formData: {
-        handler (formData) {
+        handler(formData) {
           this.validatorExpr(formData[this.exprField]);
         },
         immediate: true,
@@ -172,7 +181,7 @@
        * @desc 验证滚动规则
        * @param { String } expr
        */
-      validatorExpr (expr) {
+      validatorExpr(expr) {
         try {
           this.errorMessage = '';
           this.tips = rollingExprParse(expr);
@@ -185,7 +194,7 @@
        * @desc 是否启用滚动
        * @param { Boolean } enabled
        */
-      handleRollingEnableChange (enabled) {
+      handleRollingEnableChange(enabled) {
         this.$emit('on-change', this.enabledField, enabled);
         if (!enabled) {
           this.tips = '';
@@ -219,13 +228,13 @@
        * @desc 滚动机制更新
        * @param { Number } rollingMode
        */
-      handleRollingModeChange (rollingMode) {
+      handleRollingModeChange(rollingMode) {
         this.$emit('on-change', this.modeField, rollingMode);
       },
-      handleShowGuide () {
+      handleShowGuide() {
         this.isShowGuide = !this.isShowGuide;
       },
-      handleHideGuide () {
+      handleHideGuide() {
         this.isShowGuide = false;
       },
     },

@@ -28,8 +28,12 @@
 <template>
   <div class="jb-menu-item-group">
     <div class="title">
-      <slot v-if="!isFlod" name="title" />
-      <slot v-if="isFlod" name="flod-title" />
+      <slot
+        v-if="!isFlod"
+        name="title" />
+      <slot
+        v-if="isFlod"
+        name="flod-title" />
     </div>
     <slot />
   </div>
@@ -39,7 +43,7 @@
     name: 'JbMenuItemGroup',
     inject: ['jbMenu'],
     computed: {
-      isFlod () {
+      isFlod() {
         return this.jbMenu.flod;
       },
     },

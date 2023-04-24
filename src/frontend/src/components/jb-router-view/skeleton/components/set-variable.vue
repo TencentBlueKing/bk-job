@@ -30,14 +30,54 @@
     :height="716"
     :width="maxWidth"
     v-bind="$attrs">
-    <rect height="32" rx="2" width="960" x="0" y="22" />
-    <rect height="32" rx="2" width="960" x="0" y="106" />
-    <rect height="32" rx="2" width="960" x="0" y="190" />
-    <rect height="32" rx="2" width="960" x="0" y="274" />
-    <rect height="16" rx="1" width="105" x="0" y="0" />
-    <rect height="16" rx="1" width="207" x="0" y="84" />
-    <rect height="16" rx="1" width="145" x="0" y="168" />
-    <rect height="16" rx="1" width="207" x="0" y="252" />
+    <rect
+      height="32"
+      rx="2"
+      width="960"
+      x="0"
+      y="22" />
+    <rect
+      height="32"
+      rx="2"
+      width="960"
+      x="0"
+      y="106" />
+    <rect
+      height="32"
+      rx="2"
+      width="960"
+      x="0"
+      y="190" />
+    <rect
+      height="32"
+      rx="2"
+      width="960"
+      x="0"
+      y="274" />
+    <rect
+      height="16"
+      rx="1"
+      width="105"
+      x="0"
+      y="0" />
+    <rect
+      height="16"
+      rx="1"
+      width="207"
+      x="0"
+      y="84" />
+    <rect
+      height="16"
+      rx="1"
+      width="145"
+      x="0"
+      y="168" />
+    <rect
+      height="16"
+      rx="1"
+      width="207"
+      x="0"
+      y="252" />
   </content-loader>
 </template>
 <script>

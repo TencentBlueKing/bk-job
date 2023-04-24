@@ -30,7 +30,7 @@ const BATCH_STATUS_SUCCESS = 3;
 const BATCH_STATUS_FAIL = 4;
 const BATCH_STATUS_INGORE_ERROR = 6;
 const BATCH_STATUS_MANUAL_CONFIRM = 7;
-    
+
 export default {
   functional: true,
   props: {
@@ -38,7 +38,7 @@ export default {
     data: Object,
     currentRunningBatch: Number,
   },
-  render (h, context) {
+  render(h, context) {
     const {
       data,
       selectBatch,

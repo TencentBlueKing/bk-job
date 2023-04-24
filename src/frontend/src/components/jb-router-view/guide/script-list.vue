@@ -29,7 +29,9 @@
   <div class="script-list-empty-page">
     <div class="page-header">
       <div class="header-wraper">
-        <div class="page-title">{{ $t('当前业务暂无脚本，请先创建') }}</div>
+        <div class="page-title">
+          {{ $t('当前业务暂无脚本，请先创建') }}
+        </div>
         <div class="page-desc">
           {{ $t('脚本模块提供标准规范的版本管理功能，帮助用户有效的管理脚本各版本的状态和被作业引用的情况，提高脚本使用的安全性和可复用率。') }}
         </div>
@@ -46,20 +48,28 @@
       <div class="page-container">
         <div class="feature-item">
           <div class="feature-pic">
-            <img src="/static/images/guide/script-new.svg" style="width: 220px; margin: 39px 39px 0 31px;">
+            <img
+              src="/static/images/guide/script-new.svg"
+              style="width: 220px; margin: 39px 39px 0 31px;">
           </div>
           <div class="feature-box">
-            <div class="feature-title">{{ $t('创建一个全新的脚本') }}</div>
+            <div class="feature-title">
+              {{ $t('创建一个全新的脚本') }}
+            </div>
             <div>{{ $t('我们鼓励大家将业务脚本升迁到作业平台，通过 “云化”管理模式有序地整理业务脚本、有效地维护脚本使用场景的调用关系，提高使用的安全性。') }}</div>
           </div>
         </div>
         <div class="divide-line" />
         <div class="feature-item">
           <div class="feature-pic">
-            <img src="/static/images/guide/script-version.svg" style="width: 230px; margin: 32px 27px 0 7px;">
+            <img
+              src="/static/images/guide/script-version.svg"
+              style="width: 230px; margin: 32px 27px 0 7px;">
           </div>
           <div class="feature-box">
-            <div class="feature-title">{{ $t('管理脚本各个版本的内容和状态') }}</div>
+            <div class="feature-title">
+              {{ $t('管理脚本各个版本的内容和状态') }}
+            </div>
             <div>{{ $t('版本管理功能提供除了基础的版本代码内容切换查看和对比以外，支持根据需求设置版本的状态，以及维护脚本和作业的引用和同步关系。') }}</div>
           </div>
         </div>
@@ -71,7 +81,7 @@
             :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Features/Scripts.md`"
             target="_blank">
             <span>{{ $t('脚本功能介绍') }}</span>
-            <Icon type="link" />
+            <icon type="link" />
           </a>
           <span>{{ $t('了解更多细节') }}</span>
         </div>
@@ -81,7 +91,7 @@
             :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Best-Practices/How-to-stop-the-spread-of-the-problem-script-immediately.md`"
             target="_blank">
             <span>{{ $t('立即查看') }}</span>
-            <Icon type="link" />
+            <icon type="link" />
           </a>
         </div>
       </div>
@@ -92,24 +102,24 @@
   import QueryGlobalSettingService from '@service/query-global-setting';
 
   export default {
-    data () {
+    data() {
       return {
         relatedSystemUrls: {
           BK_DOC_CENTER_ROOT_URL: '/',
         },
       };
     },
-    created () {
+    created() {
       this.fetchRelatedSystemUrls();
     },
     methods: {
-      fetchRelatedSystemUrls () {
+      fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
           });
       },
-      handleGoCreateScript () {
+      handleGoCreateScript() {
         this.$router.push({
           name: 'createScript',
         });

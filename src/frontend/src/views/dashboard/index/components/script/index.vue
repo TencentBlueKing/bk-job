@@ -44,8 +44,8 @@
   import ScriptCount from './count';
   import ScriptRelate from './releate';
   import ScriptType from './type';
-  import ScriptVersionUse from './version-use';
   import ScriptVersionStatus from './version-status';
+  import ScriptVersionUse from './version-use';
 
   export default {
     name: '',
@@ -56,7 +56,7 @@
       ScriptVersionUse,
       ScriptVersionStatus,
     },
-    data () {
+    data() {
       return {};
     },
 

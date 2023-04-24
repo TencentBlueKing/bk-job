@@ -26,21 +26,39 @@
 -->
 
 <template>
-  <div ref="layout" class="plan-list-page-layout" :class="{ toggled: isOpen }">
+  <div
+    ref="layout"
+    class="plan-list-page-layout"
+    :class="{ toggled: isOpen }">
     <div class="layout-left">
-      <div class="left-wraper" :style="styles">
+      <div
+        class="left-wraper"
+        :style="styles">
         <slot />
       </div>
-      <div v-if="flod" class="toggle-button" @click="handleToggle">
-        <Icon class="toggle-arrow" type="down-small" />
+      <div
+        v-if="flod"
+        class="toggle-button"
+        @click="handleToggle">
+        <icon
+          class="toggle-arrow"
+          type="down-small" />
       </div>
     </div>
-    <div v-if="flod" class="layout-right">
-      <div class="right-wraper" :class="{ active: isShowRight }">
-        <slot v-if="isShowRight" name="flod" />
+    <div
+      v-if="flod"
+      class="layout-right">
+      <div
+        class="right-wraper"
+        :class="{ active: isShowRight }">
+        <slot
+          v-if="isShowRight"
+          name="flod" />
       </div>
-      <div class="close-btn" @click="handleClose">
-        <Icon type="close-big" />
+      <div
+        class="close-btn"
+        @click="handleClose">
+        <icon type="close-big" />
       </div>
     </div>
   </div>
@@ -58,7 +76,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isShowRight: false,
         isOpen: false,
@@ -66,7 +84,7 @@
       };
     },
     computed: {
-      styles () {
+      styles() {
         if (this.flod) {
           return {
             width: '370px',
@@ -79,7 +97,7 @@
     },
     watch: {
       flod: {
-        handler (flod) {
+        handler(flod) {
           if (flod) {
             setTimeout(() => {
               this.isShowRight = flod;
@@ -91,7 +109,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.calcWidth();
       window.addEventListener('resize', this.calcWidth);
       this.$once('hook:beforeDestroy', () => {
@@ -99,14 +117,14 @@
       });
     },
     methods: {
-      calcWidth () {
+      calcWidth() {
         const layoutWidth = this.$refs.layout.getBoundingClientRect().width;
         this.layoutWidth = `${layoutWidth}px`;
       },
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
       },
-      handleClose () {
+      handleClose() {
         leaveConfirm()
           .then(() => {
             this.isOpen = false;

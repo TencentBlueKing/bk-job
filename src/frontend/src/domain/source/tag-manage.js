@@ -24,30 +24,31 @@
 */
 
 import Request from '@utils/request';
+
 import ModuleBase from './module-base';
 
 class TagManage extends ModuleBase {
-  constructor () {
+  constructor() {
     super();
     this.module = '/job-manage/web/tag';
   }
 
   // 获取所有tag
-  getAll (params = {}) {
+  getAll(params = {}) {
     return Request.get(`${this.path}/tag/list`, {
       params,
       cache: 2000,
     });
   }
 
-  getAllWithBasic (params = {}) {
+  getAllWithBasic(params = {}) {
     return Request.get(`${this.path}/tag/basic/list`, {
       params,
       cache: 2000,
     });
   }
 
-  update (params = {}) {
+  update(params = {}) {
     const realParams = { ...params };
     delete realParams.id;
 
@@ -56,17 +57,17 @@ class TagManage extends ModuleBase {
     });
   }
 
-  create (params = {}) {
+  create(params = {}) {
     return Request.post(`${this.path}/tag`, {
       params,
     });
   }
 
-  remove (params = {}) {
+  remove(params = {}) {
     return Request.delete(`${this.path}/tag/${params.id}`);
   }
 
-  batchUpdate (params = {}) {
+  batchUpdate(params = {}) {
     const realParams = { ...params };
     delete realParams.id;
 
@@ -75,7 +76,7 @@ class TagManage extends ModuleBase {
     });
   }
 
-  checkName (params = {}) {
+  checkName(params = {}) {
     const realParams = { ...params };
     delete realParams.id;
 

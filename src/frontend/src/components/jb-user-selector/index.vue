@@ -46,10 +46,14 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import NotifyService from '@service/notify';
+
   import { encodeRegexp } from '@utils/assist';
+
   import UserSelector from '@blueking/user-selector';
+
+  import I18n from '@/i18n';
 
   const CACHE_KEY = 'job-user-selector-cache';
 
@@ -90,7 +94,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         checkedUserNums: 0,
@@ -100,13 +104,13 @@
       };
     },
     computed: {
-      realLimit () {
+      realLimit() {
         return this.limit + this.checkedUserNums;
       },
     },
     watch: {
       user: {
-        handler () {
+        handler() {
           let valueList = [...this.user];
           if (this.showRole) {
             valueList = [...this.role].concat(valueList);
@@ -116,7 +120,7 @@
         immediate: true,
       },
       role: {
-        handler () {
+        handler() {
           const valueList = [
             ...this.role,
             ...this.user,
@@ -126,7 +130,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.historyKey = CACHE_KEY;
       this.roleCacheMap = {};
       this.fetchRoleList();
@@ -137,7 +141,7 @@
        *
        * 如果不需要显示角色则不用请求接口
        */
-      fetchRoleList () {
+      fetchRoleList() {
         if (!this.showRole) {
           return;
         }
@@ -170,7 +174,7 @@
        * @param { String } username
        * @returns { Boolean }
        */
-      checkUsernameFilter (username) {
+      checkUsernameFilter(username) {
         return this.filterList.includes(username);
       },
       /**
@@ -178,9 +182,9 @@
        *
        * 显示角色列表，显示用户最近输入缓存
        */
-      formatDefaultAlternate () {
+      formatDefaultAlternate() {
         const stack = [];
-                
+
         if (this.roleList.length > 0) {
           stack.push({
             display_name: I18n.t('角色'),
@@ -212,7 +216,7 @@
        * @desc 模糊搜索
        * @param { String } keyword 用户搜索关键字
        */
-      handleFuzzySearch (keyword) {
+      handleFuzzySearch(keyword) {
         const params = {
           limit: this.realLimit,
           prefixStr: keyword,
@@ -236,10 +240,10 @@
           if (target.length < 1) {
             return stack;
           }
-                    
+
           this.disabledUsers = [];
           const userList = [];
-                
+
           target.forEach((curUser) => {
             // 被过滤掉的用户
             if (this.filterList.includes(curUser.englishName)) {
@@ -258,7 +262,7 @@
               type: 'user',
             });
           });
-                
+
           stack.push({
             display_name: I18n.t('用户'),
             username: 'user',
@@ -272,7 +276,7 @@
             results: formatData(data, keyword),
           }));
       },
-      renderTag (h, node) {
+      renderTag(h, node) {
         let { username } = node;
         let iconType = 'user';
         // 角色
@@ -280,7 +284,7 @@
           username = this.roleCacheMap[node.username];
           iconType = 'user-group-gray';
         }
-                
+
         return (
                     <div class='jb-user-seletor-member-tag' key={node.index} title={username}>
                         <icon type={iconType} class='tag-icon' />
@@ -288,9 +292,9 @@
                     </div>
         );
       },
-      renterMerberItem (h, payload) {
+      renterMerberItem(h, payload) {
         const curData = payload.user;
-                
+
         const renderLogoHtml = () => {
           if (curData.logo) {
             return (
@@ -313,7 +317,7 @@
           }
           return '';
         };
-                
+
         return (
                     <div
                         class={{
@@ -327,7 +331,7 @@
                     </div>
         );
       },
-      handleChange (payload) {
+      handleChange(payload) {
         const role = [];
         const user = [];
         payload.forEach((item) => {

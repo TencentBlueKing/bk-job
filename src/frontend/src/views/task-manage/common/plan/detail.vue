@@ -33,7 +33,9 @@
         :loading="isLoading"
         :plan-name="planInfo.name"
         :title="planInfo.name">
-        <div slot="title" class="view-title">
+        <div
+          slot="title"
+          class="view-title">
           <edit-title
             :data="planInfo"
             @on-edit-success="handleEditSuccess" />
@@ -45,18 +47,22 @@
                         `"
             class="cron-job-tag"
             @click="handleGoCronList">
-            <Icon svg type="job-timing" />
+            <icon
+              svg
+              type="job-timing" />
             <span style="margin-left: 2px;">{{ planInfo.cronJobCount }}</span>
           </span>
         </div>
-        <div slot="sub-title" class="link-wraper">
+        <div
+          slot="sub-title"
+          class="link-wraper">
           <auth-button
             auth="job_template/view"
             :resource-id="templateId"
             text
             @click="handleGoTemplate">
             <span>{{ $t('template.所属作业模板') }}</span>
-            <Icon type="jump" />
+            <icon type="jump" />
           </auth-button>
         </div>
         <jb-form form-type="vertical">
@@ -130,8 +136,12 @@
                 :resource-id="id"
                 @click="handleSync">
                 <span>{{ $t('template.去同步') }}</span>
-                <div v-if="planInfo.needUpdate" class="update-flag">
-                  <Icon :tippy-tips="$t('template.未同步')" type="sync-8" />
+                <div
+                  v-if="planInfo.needUpdate"
+                  class="update-flag">
+                  <icon
+                    :tippy-tips="$t('template.未同步')"
+                    type="sync-8" />
                 </div>
               </auth-button>
             </span>
@@ -156,16 +166,21 @@
   </permission-section>
 </template>
 <script>
-  import I18n from '@/i18n';
-  import TaskPlanService from '@service/task-plan';
   import TaskExecuteService from '@service/task-execute';
+  import TaskPlanService from '@service/task-plan';
+
   import { findUsedVariable } from '@utils/assist';
+
   import PermissionSection from '@components/apply-permission/apply-section';
+
   import RenderGlobalVar from '../render-global-var';
   import RenderTaskStep from '../render-task-step';
+
+  import EditTitle from './components/edit-title.vue';
   import Layout from './components/layout';
   import ToggleDisplay from './components/toggle-display';
-  import EditTitle from './components/edit-title.vue';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -187,7 +202,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         planInfo: {
           variableList: [],
@@ -200,10 +215,10 @@
         deleteLoading: false,
       };
     },
-        
+
     watch: {
       id: {
-        handler (value) {
+        handler(value) {
           this.fetchData(value);
         },
         immediate: true,
@@ -213,7 +228,7 @@
       /**
        * @desc 获取执行方案详情
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         TaskPlanService.fetchPlanDetailInfo({
           id: this.id,
@@ -248,7 +263,7 @@
       /**
        * @desc 立即执行执行方案
        */
-      fetchTaskExecution () {
+      fetchTaskExecution() {
         this.execLoading = true;
         TaskExecuteService.taskExecution({
           taskId: this.id,
@@ -275,13 +290,13 @@
       /**
        * @desc 外部调用——刷新接口数据
        */
-      refresh () {
+      refresh() {
         this.fetchData();
       },
       /**
        * @desc 编辑执行方案
        */
-      handleEdit () {
+      handleEdit() {
         this.$emit('on-edit', {
           id: this.templateId,
           active: this.id,
@@ -290,13 +305,13 @@
       /**
        * @desc 执行方案编辑成功
        */
-      handleEditSuccess () {
+      handleEditSuccess() {
         this.$emit('on-edit-success');
       },
       /**
        * @desc 查看执行方案关联的定时任务列表
        */
-      handleGoCronList () {
+      handleGoCronList() {
         const { href } = this.$router.resolve({
           name: 'cronList',
           query: {
@@ -308,7 +323,7 @@
       /**
        * @desc 查看执行方案关联的作业模板详情
        */
-      handleGoTemplate () {
+      handleGoTemplate() {
         const { href } = this.$router.resolve({
           name: 'templateDetail',
           params: {
@@ -320,7 +335,7 @@
       /**
        * 以当前执行方案新建定时任务
        */
-      handleGoCron () {
+      handleGoCron() {
         const { href } = this.$router.resolve({
           name: 'cronList',
           query: {
@@ -334,7 +349,7 @@
       /**
        * @desc 删除执行方案
        */
-      handleDelete () {
+      handleDelete() {
         return TaskPlanService.planDelete({
           id: this.id,
           templateId: this.templateId,
@@ -352,7 +367,7 @@
       /**
        * @desc 同步执行方案
        */
-      handleSync () {
+      handleSync() {
         this.$router.push({
           name: 'syncPlan',
           params: {
@@ -370,7 +385,7 @@
        * 执行方案中没有变量——直接执行
        * 执行方案中有变量——跳转到设置变量页面
        */
-      handleExec () {
+      handleExec() {
         if (!this.planInfo.variableList.length) {
           this.$bkInfo({
             title: I18n.t('template.确认执行？'),

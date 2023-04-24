@@ -28,7 +28,7 @@ class Node {
   static TYPE_RANG = 2;
   static TYPE_REPEAT = 3;
   static TYPE_RANG_REPEAT = 4;
-  constructor ({
+  constructor({
     type,
     value,
     min,

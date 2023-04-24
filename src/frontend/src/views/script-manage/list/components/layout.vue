@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div ref="handler" class="script-manage-list-layout">
+  <div
+    ref="handler"
+    class="script-manage-list-layout">
     <div
       v-if="$slots.tag"
       :class="{
@@ -46,7 +48,7 @@
         v-if="$slots.tag"
         class="toggle-button"
         @click="handleToggle">
-        <Icon
+        <icon
           class="toggle-arrow"
           :class="{ open: isOpen }"
           type="down-small" />
@@ -60,20 +62,20 @@
   const TASK_TAG_PANEL_TOGGLE = 'script_list_tag_panel_toggle';
 
   export default {
-    data () {
+    data() {
       let isOpen = localStorage.getItem(TASK_TAG_PANEL_TOGGLE);
       if (!isOpen) {
         isOpen = true;
       } else {
         isOpen = JSON.parse(isOpen);
       }
-            
+
       return {
         isOpen,
         styles: {},
       };
     },
-    mounted () {
+    mounted() {
       const {
         top,
       } = getOffset(this.$refs.handler);
@@ -82,7 +84,7 @@
       };
     },
     methods: {
-      handleToggle () {
+      handleToggle() {
         this.isOpen = !this.isOpen;
         localStorage.setItem(TASK_TAG_PANEL_TOGGLE, JSON.stringify(this.isOpen));
       },

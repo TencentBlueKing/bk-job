@@ -50,9 +50,10 @@
   </jb-form>
 </template>
 <script>
-  import I18n from '@/i18n';
   import DangerousRuleService from '@service/dangerous-rule';
   import PublicScriptManageService from '@service/public-script-manage';
+
+  import I18n from '@/i18n';
 
   const generatorDefautlData = () => ({
     expression: '',
@@ -62,13 +63,13 @@
   });
 
   export default {
-    data () {
+    data() {
       return {
         formData: generatorDefautlData(),
         scriptTypeList: [],
       };
     },
-    created () {
+    created() {
       this.fetchScriptType();
 
       this.rules = {
@@ -106,7 +107,7 @@
       /**
        * @desc 获取脚本类型列表
        */
-      fetchScriptType () {
+      fetchScriptType() {
         PublicScriptManageService.scriptTypeList()
           .then((data) => {
             this.scriptTypeList = data;
@@ -115,7 +116,7 @@
       /**
        * @desc 提交用户数据
        */
-      submit () {
+      submit() {
         return this.$refs.form.validate()
           .then(() => DangerousRuleService.update({
             id: -1,

@@ -34,7 +34,7 @@ const ERROR_MAP = {
 const ACTION_SCAN = 1;
 // const ACTION_PREVENT = 2;
 export default class ScriptError {
-  constructor (payload) {
+  constructor(payload) {
     this.row = payload.line - 1;
     this.column = 1;
     this.level = payload.level;
@@ -47,15 +47,15 @@ export default class ScriptError {
      * @desc 是否是高危语句提示
      * @returns { Boolean }
      */
-  get isDangerous () {
+  get isDangerous() {
     return this.level === 3;
   }
 
-  get isActionScan () {
+  get isActionScan() {
     return this.action === ACTION_SCAN;
   }
 
-  initText (payload) {
+  initText(payload) {
     let text = '';
     if (this.level === 3) {
       text = `${I18n.t('检测到代码存在高危语句：')}\n${payload.matchContent}\n\n${I18n.t('详细说明：')}\n`;

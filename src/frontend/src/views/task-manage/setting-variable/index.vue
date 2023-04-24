@@ -28,14 +28,16 @@
 <template>
   <div class="setting-variable-page">
     <smart-action offset-target="variable-value">
-      <global-variable-layout style="padding-bottom: 20px;" type="vertical">
+      <global-variable-layout
+        style="padding-bottom: 20px;"
+        type="vertical">
         <global-variable
           v-for="variable in usedList"
           :key="variable.id"
           ref="used"
           :data="variable"
           :type="variable.type" />
-        <Empty
+        <empty
           v-if="usedList.length < 1"
           key="empty"
           style="height: 160px; max-width: 960px; background-color: #f0f1f5;"
@@ -77,21 +79,28 @@
     </smart-action>
     <back-top />
     <element-teleport v-if="planName">
-      <div style="font-size: 12px; color: #63656e;">（{{ planName }}）</div>
+      <div style="font-size: 12px; color: #63656e;">
+        （{{ planName }}）
+      </div>
     </element-teleport>
   </div>
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskExecuteService from '@service/task-execute';
   import TaskPlanService from '@service/task-plan';
+
   import { findUsedVariable } from '@utils/assist';
-  import GlobalVariableLayout from '@components/global-variable/layout';
-  import GlobalVariable from '@components/global-variable/edit';
-  import ToggleDisplay from '@components/global-variable/toggle-display';
+
   import BackTop from '@components/back-top';
+  import GlobalVariable from '@components/global-variable/edit';
+  import GlobalVariableLayout from '@components/global-variable/layout';
+  import ToggleDisplay from '@components/global-variable/toggle-display';
+
   import RemoveInvalid from './components/remove-invalid.vue';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -102,7 +111,7 @@
       BackTop,
       RemoveInvalid,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isSubmiting: false,
@@ -113,11 +122,11 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
     },
-    created () {
+    created() {
       this.taskId = this.$route.params.id;
       this.templateId = this.$route.params.templateId;
       this.isDebugPlan = Boolean(this.$route.params.debug);
@@ -127,7 +136,7 @@
       /**
        * @desc 获取执行方案数据
        */
-      fetchData () {
+      fetchData() {
         const serviceHandler = this.isDebugPlan
           ? TaskPlanService.fetchDebugInfo
           : TaskPlanService.fetchPlanDetailInfo;
@@ -183,7 +192,7 @@
       /**
        * @desc 开始执行
        */
-      handleGoExec () {
+      handleGoExec() {
         const validateQueue = [];
         if (this.$refs.used) {
           this.$refs.used.forEach((item) => {
@@ -235,20 +244,20 @@
       /**
        * @desc 取消执行
        */
-      handleCancle () {
+      handleCancle() {
         this.routerBack();
       },
       /**
        * @desc 一键移除所有无效主机
        */
-      handleRemoveAllInvalidHost () {
+      handleRemoveAllInvalidHost() {
         this.$refs.used && this.$refs.used.forEach(item => item.removeAllInvalidHost());
         this.$refs.unused && this.$refs.unused.forEach(item => item.removeAllInvalidHost());
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'debugPlan') {
           this.$router.push({

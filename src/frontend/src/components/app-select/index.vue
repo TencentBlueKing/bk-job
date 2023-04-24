@@ -26,9 +26,16 @@
 -->
 
 <template>
-  <div ref="app" class="job-app-select" :class="{ focus: isFocus }">
+  <div
+    ref="app"
+    class="job-app-select"
+    :class="{ focus: isFocus }">
     <div>
-      <div v-if="showIcon" class="app-icon">{{ icon }}</div>
+      <div
+        v-if="showIcon"
+        class="app-icon">
+        {{ icon }}
+      </div>
       <template v-else>
         <input
           class="app-name"
@@ -41,7 +48,9 @@
       </template>
     </div>
     <div style="display: none;">
-      <div ref="panel" class="app-panel">
+      <div
+        ref="panel"
+        class="app-panel">
         <div class="app-search">
           <input
             ref="search"
@@ -54,7 +63,9 @@
             @keydown.up.prevent="handleStep('prev')">
           <i class="bk-icon icon-search app-search-flag" />
         </div>
-        <div ref="list" class="app-list">
+        <div
+          ref="list"
+          class="app-list">
           <template v-for="(app, index) in renderList">
             <auth-component
               :key="app.id"
@@ -76,13 +87,13 @@
                   <span class="app-id">({{ app.scopeId }})</span>
                 </div>
                 <div class="app-collection">
-                  <Icon
+                  <icon
                     v-if="app.favor"
                     class="favor"
                     svg
                     type="collection"
                     @click.stop="handleFavor(app.scopeType, app.scopeId, false)" />
-                  <Icon
+                  <icon
                     v-else
                     class="unfavor"
                     svg
@@ -90,7 +101,9 @@
                     @click.stop="handleFavor(app.scopeType, app.scopeId, true)" />
                 </div>
               </div>
-              <div slot="forbid" class="app-wrapper">
+              <div
+                slot="forbid"
+                class="app-wrapper">
                 <span class="app-name">{{ app.name }}</span>
                 <span class="app-id">(#{{ app.scopeId }})</span>
               </div>
@@ -113,11 +126,13 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
-  import I18n from '@/i18n';
   import pinyin from 'bk-magic-vue/lib/utils/pinyin';
-  import QueryGlobalSettingService from '@service/query-global-setting';
+  import _ from 'lodash';
+
   import AppManageService from '@service/app-manage';
+  import QueryGlobalSettingService from '@service/query-global-setting';
+
+  import I18n from '@/i18n';
   import {
     encodeRegexp,
     prettyDateTimeFormat,
@@ -178,7 +193,7 @@
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isFocus: false,
         renderList: [],
@@ -193,23 +208,23 @@
       };
     },
     computed: {
-      icon () {
+      icon() {
         return this.scopeName.slice(0, 1);
       },
     },
-    created () {
+    created() {
       this.list = [];
       this.fetchRelatedSystemUrls();
       this.fetchWholeAppList();
     },
-    mounted () {
+    mounted() {
       this.initPopover();
     },
     methods: {
       /**
        * @desc 获取系统配置项
        */
-      fetchRelatedSystemUrls () {
+      fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
@@ -218,7 +233,7 @@
       /**
        * @desc 获取业务列表
        */
-      fetchWholeAppList () {
+      fetchWholeAppList() {
         AppManageService.fetchWholeAppList()
           .then((data) => {
             this.list = data.data.map(item => ({
@@ -246,7 +261,7 @@
       /**
        * @desc 下拉列表
        */
-      initPopover () {
+      initPopover() {
         if (!this.popperInstance) {
           this.popperInstance = this.$bkPopover(this.$refs.app, {
             theme: 'light app-list',
@@ -282,7 +297,7 @@
       /**
        * @desc 跳转cmdb创建新的业务
        */
-      handleGoCreateApp () {
+      handleGoCreateApp() {
         if (!this.relatedSystemUrls.BK_CMDB_ROOT_URL) {
           alert(I18n.t('网络错误，请刷新页面重试'));
           return;
@@ -293,7 +308,7 @@
        * @desc 键盘上下键选择
        * @param {String} step 移动方向
        */
-      handleStep (step) {
+      handleStep(step) {
         if (step === 'next') {
           this.activeIndex += 1;
           if (this.activeIndex === this.renderList.length) {
@@ -321,7 +336,7 @@
        * @desc 鼠标选择
        * @param {Number} index 鼠标选中的索引
        */
-      handleMouseenter (index) {
+      handleMouseenter(index) {
         this.activeIndex = index;
       },
       /**
@@ -329,7 +344,7 @@
        *
        * 对于无权限的业务通过click事件触发鉴权逻辑
        */
-      handleSelect () {
+      handleSelect() {
         this.$refs.list.querySelector('.hover').click();
       },
       /**
@@ -361,7 +376,7 @@
        * @param {String} scopeId 业务id
        * @param {Boolean} favor 收藏状态
        */
-      handleFavor (scopeType, scopeId, favor) {
+      handleFavor(scopeType, scopeId, favor) {
         const app = _.find(this.list, _ => _.scopeType === scopeType && _.scopeId === scopeId);
         if (favor) {
           AppManageService.favorApp({
@@ -392,19 +407,19 @@
        * @desc 切换业务
        * @param { object } appInfo 最新业务信息
        */
-      handleAppChange (appInfo) {
+      handleAppChange(appInfo) {
         const {
           scopeType,
           scopeId,
         } = appInfo;
-                
+
         this.loading = true;
         const pathRoot = `/${scopeType}/${scopeId}`;
         if (!window.PROJECT_CONFIG.SCOPE_TYPE || !window.PROJECT_CONFIG.SCOPE_ID) {
           window.location.href = pathRoot;
           return;
         }
-                
+
         scopeCache.setItem({
           scopeType,
           scopeId,
@@ -418,6 +433,7 @@
         // 1，当前路由不带参数，切换业务时停留在当前页面
         const currentRoute = this.$route;
         let currentRouteHasNotParams = true;
+        // eslint-disable-next-line no-restricted-syntax
         for (const paramKey in currentRoute.params) {
           if (currentRoute.params[paramKey] === undefined || currentRoute.params[paramKey] === null) {
             break;
@@ -436,7 +452,7 @@
           reload(path);
           return;
         }
-                
+
         // 路由有多层嵌套
         /* eslint-disable prefer-destructuring */
         const { path, redirect } = matched[1];

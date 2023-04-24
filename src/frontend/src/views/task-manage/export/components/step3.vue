@@ -28,7 +28,10 @@
 <template>
   <div class="export-task-step3-page">
     <div class="form">
-      <jb-form ref="form" :model="formData" :rules="rules">
+      <jb-form
+        ref="form"
+        :model="formData"
+        :rules="rules">
         <jb-form-item
           :label="$t('template.压缩包名')"
           property="packageName"
@@ -45,8 +48,12 @@
           <bk-select
             v-model="formData.secretHandler"
             :clearable="false">
-            <bk-option :id="1" :name="$t('template.保存为空值')" />
-            <bk-option :id="2" :name="$t('template.保存真实值')" />
+            <bk-option
+              :id="1"
+              :name="$t('template.保存为空值')" />
+            <bk-option
+              :id="2"
+              :name="$t('template.保存真实值')" />
           </bk-select>
         </jb-form-item>
         <jb-form-item
@@ -55,8 +62,12 @@
           required>
           <div class="encrypt-wraper">
             <bk-radio-group v-model="formData.isEncrypt">
-              <bk-radio :value="1">{{ $t('template.是') }}</bk-radio>
-              <bk-radio :value="2">{{ $t('template.否') }}</bk-radio>
+              <bk-radio :value="1">
+                {{ $t('template.是') }}
+              </bk-radio>
+              <bk-radio :value="2">
+                {{ $t('template.否') }}
+              </bk-radio>
             </bk-radio-group>
           </div>
         </jb-form-item>
@@ -85,7 +96,9 @@
           :label="$t('template.文件有效期')"
           property="expireTime"
           required>
-          <bk-radio-group v-model="formData.expireTime" class="expire-time-box">
+          <bk-radio-group
+            v-model="formData.expireTime"
+            class="expire-time-box">
             <bk-radio-button
               v-for="item in expireTimeList"
               :key="item.id"
@@ -99,7 +112,9 @@
           class="expire-time-custom"
           label=" "
           property="customNum">
-          <bk-input v-model="formData.customNum" :placeholder="$t('template.请输入整数，不可超过365')">
+          <bk-input
+            v-model="formData.customNum"
+            :placeholder="$t('template.请输入整数，不可超过365')">
             <template slot="append">
               <div class="group-text">
                 <span class="text">{{ $t('template.天') }}</span>
@@ -109,25 +124,51 @@
         </jb-form-item>
       </jb-form>
     </div>
-    <div id="html-config-password" class="html-config-password">
-      <div class="item" :class="{ active: passwordLengthResult }">{{ $t('template.长度6-20个字符') }}</div>
-      <div class="item" :class="{ active: passwordFormatResult }">{{ $t('template.必须包含英文字母、数字和特殊符号') }}</div>
+    <div
+      id="html-config-password"
+      class="html-config-password">
+      <div
+        class="item"
+        :class="{ active: passwordLengthResult }">
+        {{ $t('template.长度6-20个字符') }}
+      </div>
+      <div
+        class="item"
+        :class="{ active: passwordFormatResult }">
+        {{ $t('template.必须包含英文字母、数字和特殊符号') }}
+      </div>
     </div>
     <div class="action-footer">
-      <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-      <bk-button class="mr10" @click="handleLast">{{ $t('template.上一步') }}</bk-button>
-      <bk-button class="w120" :loading="isSubmiting" theme="primary" @click="handleNext">{{ $t('template.下一步') }}</bk-button>
+      <bk-button
+        class="mr10"
+        @click="handleCancel">
+        {{ $t('template.取消') }}
+      </bk-button>
+      <bk-button
+        class="mr10"
+        @click="handleLast">
+        {{ $t('template.上一步') }}
+      </bk-button>
+      <bk-button
+        class="w120"
+        :loading="isSubmiting"
+        theme="primary"
+        @click="handleNext">
+        {{ $t('template.下一步') }}
+      </bk-button>
     </div>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import BackupService from '@service/backup';
+
   import { genDefaultName } from '@utils/assist';
   import { taskExport } from '@utils/cache-helper';
 
+  import I18n from '@/i18n';
+
   export default {
-    data () {
+    data() {
       this.rules = {};
       return {
         isSubmiting: false,
@@ -143,13 +184,13 @@
       };
     },
     computed: {
-      isPasswordRequired () {
+      isPasswordRequired() {
         return this.formData.isEncrypt === 1;
       },
-      passwordLengthResult () {
+      passwordLengthResult() {
         return this.formData.password.length >= 6 && this.formData.password.length <= 20;
       },
-      passwordFormatResult () {
+      passwordFormatResult() {
         return !/^[A-Za-z0-9]*$/.test(this.formData.password);
       },
     },
@@ -158,7 +199,7 @@
        * @desc 文件加密时需要验证密码
        */
       'formData.isEncrypt': {
-        handler (isEncrypt) {
+        handler(isEncrypt) {
           const passwordRule = [
             {
               validator: (val) => {
@@ -207,7 +248,7 @@
       /**
        * @desc 自定义文件有效期时对输入框的值进行验证
        */
-      'formData.expireTime' () {
+      'formData.expireTime'() {
         if (this.formData.expireTime === 'custom') {
           this.rules.customNum = [
             {
@@ -226,7 +267,7 @@
         }
       },
     },
-    created () {
+    created() {
       this.expireTimeList = [
         { id: 0, name: I18n.t('template.永久') },
         { id: 1, name: I18n.t('template.1 天') },
@@ -279,13 +320,13 @@
       });
     },
     methods: {
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancle');
       },
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 2);
       },
-      handleNext () {
+      handleNext() {
         const templateInfo = taskExport.getItem('templateInfo');
         if (!templateInfo) {
           return;

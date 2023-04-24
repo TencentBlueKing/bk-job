@@ -31,7 +31,10 @@
     fullscreen
     :value="isShow"
     @cancel="handleClose">
-    <div v-bkloading="{ isLoading }" class="confirm-cron-wraper" @keyup.esc="handleClose">
+    <div
+      v-bkloading="{ isLoading }"
+      class="confirm-cron-wraper"
+      @keyup.esc="handleClose">
       <confirm-cron
         v-if="!isLoading"
         :cron-job-list="cronJobInfoList"
@@ -43,6 +46,7 @@
 </template>
 <script>
   import TaskManageService from '@service/task-manage';
+
   import ConfirmCron from '../../common/plan/confirm-cron';
 
   export default {
@@ -68,7 +72,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         isShowDialog: false,
         isLoading: true,
@@ -76,7 +80,7 @@
       };
     },
     watch: {
-      templateId (templateId) {
+      templateId(templateId) {
         if (templateId < 0) {
           return;
         }
@@ -84,7 +88,7 @@
       },
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         TaskManageService.taskDetail({
           id: this.templateId,
@@ -95,10 +99,10 @@
             this.isLoading = false;
           });
       },
-      handleClose () {
+      handleClose() {
         this.$emit('on-close');
       },
-      handleConfirmCron (cronJonList) {
+      handleConfirmCron(cronJonList) {
         this.$emit('on-change', cronJonList);
       },
     },

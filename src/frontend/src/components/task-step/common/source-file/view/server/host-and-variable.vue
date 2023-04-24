@@ -26,11 +26,15 @@
 -->
 
 <template>
-  <tbody :key="reset" class="create-server-file">
+  <tbody
+    :key="reset"
+    class="create-server-file">
     <tr v-if="hasSaved">
       <td colspan="4">
-        <bk-button text @click="handleAddNew">
-          <Icon type="plus" />
+        <bk-button
+          text
+          @click="handleAddNew">
+          <icon type="plus" />
           {{ $t('添加一行') }}
         </bk-button>
       </td>
@@ -55,8 +59,12 @@
               style="width: 78px;"
               :value="sourceFileType"
               @change="handleSourceFileTypeChange">
-              <bk-option id="globalVar" :name="$t('全局变量')" />
-              <bk-option id="manualAddition" :name="$t('手动添加')" />
+              <bk-option
+                id="globalVar"
+                :name="$t('全局变量')" />
+              <bk-option
+                id="manualAddition"
+                :name="$t('手动添加')" />
             </bk-select>
             <div class="line" />
             <template v-if="sourceFileType === 'globalVar'">
@@ -67,15 +75,20 @@
                 searchable
                 :value="serverFile.host.variable"
                 @change="handleVariableChange">
-                <bk-option v-for="(option, index) in variable"
+                <bk-option
+                  v-for="(option, index) in variable"
                   :id="option.name"
                   :key="index"
                   :name="option.name" />
               </bk-select>
             </template>
             <template v-else>
-              <div class="server-add-host" @click="handleShowChooseIp">
-                <Icon class="add-flag" type="plus" />
+              <div
+                class="server-add-host"
+                @click="handleShowChooseIp">
+                <icon
+                  class="add-flag"
+                  type="plus" />
                 {{ $t('添加服务器') }}
               </div>
             </template>
@@ -84,7 +97,9 @@
       </template>
       <template v-else>
         <td>
-          <div class="file-edit-server" @click="handleShowChooseIp">
+          <div
+            class="file-edit-server"
+            @click="handleShowChooseIp">
             <p v-html="serverFile.serverDesc" />
           </div>
         </td>
@@ -104,7 +119,11 @@
           @click="handlerSave">
           {{ $t('保存') }}
         </bk-button>
-        <bk-button text @click="handlerCancel">{{ $t('取消') }}</bk-button>
+        <bk-button
+          text
+          @click="handlerCancel">
+          {{ $t('取消') }}
+        </bk-button>
       </td>
     </tr>
     <choose-ip
@@ -116,11 +135,16 @@
 <script>
   import _ from 'lodash';
   import { mapMutations } from 'vuex';
+
   import TaskHostNodeModel from '@model/task-host-node';
-  import SourceFileVO from '@domain/variable-object/source-file';
+
   import { findParent } from '@utils/vdom';
-  import ChooseIp from '@components/choose-ip';
+
   import AccountSelect from '@components/account-select';
+  import ChooseIp from '@components/choose-ip';
+
+  import SourceFileVO from '@domain/variable-object/source-file';
+
   import EditFilePath from '../../components/edit-file-path';
 
   const generatorDefault = () => new SourceFileVO({
@@ -151,7 +175,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShowChooseIp: false,
         // 服务器文件列表为空时，默认显示
@@ -161,7 +185,7 @@
         reset: 0,
       };
     },
-    created () {
+    created() {
       if (this.variable.length > 0) {
         this.handleVariableChange(this.variable[0].name);
         // 设置默认数据，需要取消 window.changeFlag 的状态
@@ -178,7 +202,7 @@
        * @desc 文件路径更新
        * @param {Array} fileLocation 文件路径
        */
-      handleFileChange (fileLocation) {
+      handleFileChange(fileLocation) {
         this.serverFile.fileLocation = fileLocation;
         window.changeFlag = true;
         this.editNewSourceFile(true);
@@ -187,7 +211,7 @@
        * @desc 服务器类型更新
        * @param {String} type 服务器类型
        */
-      handleSourceFileTypeChange (type) {
+      handleSourceFileTypeChange(type) {
         this.sourceFileType = type;
         this.serverFile.host = new TaskHostNodeModel({});
         const formItem = findParent(this, 'JbFormItem');
@@ -201,7 +225,7 @@
        * @desc 服务器类型为全局变量时更新选择的全局变量
        * @param {String} variable 全局变量名
        */
-      handleVariableChange (variable) {
+      handleVariableChange(variable) {
         if (!variable) {
           return;
         }
@@ -218,14 +242,14 @@
       /**
        * @desc 服务器类型为主机时更新显示ip选择器弹层
        */
-      handleShowChooseIp () {
+      handleShowChooseIp() {
         this.isShowChooseIp = true;
       },
       /**
        * @desc 服务器类型为主机时主机值更新
        * @param {Object} hostNodeInfo 主机值
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         window.changeFlag = true;
         this.serverFile.host.hostNodeInfo = hostNodeInfo;
         this.editNewSourceFile(true);
@@ -234,7 +258,7 @@
        * @desc 服务器账号更新
        * @param {Number} accountId 主机值
        */
-      handleAccountChange (accountId) {
+      handleAccountChange(accountId) {
         if (accountId === '') {
           return;
         }
@@ -250,20 +274,20 @@
       /**
        * @desc 添加一个服务器文件
        */
-      handleAddNew () {
+      handleAddNew() {
         this.hasSaved = false;
       },
       /**
        * @desc 保存添加的服务器文件
        */
-      handlerSave () {
+      handlerSave() {
         this.$emit('on-change', this.serverFile);
         this.handlerCancel();
       },
       /**
        * @desc 取消添加的服务器文件
        */
-      handlerCancel () {
+      handlerCancel() {
         this.$emit('on-cancel');
         this.serverFile = generatorDefault();
         this.sourceFileType = 'globalVar';

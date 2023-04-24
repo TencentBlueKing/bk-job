@@ -105,9 +105,10 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
-  import WhiteIpService from '@service/white-ip';
   import AppManageService from '@service/app-manage';
+  import WhiteIpService from '@service/white-ip';
+
+  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     id: 0,
@@ -132,7 +133,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         formData: getDefaultData(),
@@ -144,7 +145,7 @@
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (!data.id) {
             return;
           }
@@ -172,7 +173,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       Promise.all([
         this.fetchAppList(),
         this.fetchAllCloudArea(),
@@ -209,7 +210,7 @@
       /**
        * @desc 业务列表
        */
-      fetchAppList () {
+      fetchAppList() {
         return AppManageService.fetchAppList()
           .then((data) => {
             this.appList = data.map(item => ({
@@ -234,7 +235,7 @@
       /**
        * @desc 获取云区域列表
        */
-      fetchAllCloudArea () {
+      fetchAllCloudArea() {
         return WhiteIpService.getAllCloudArea()
           .then((data) => {
             this.cloudAreaList = data;
@@ -246,20 +247,20 @@
       /**
        * @desc 获取生效范围列表
        */
-      fetchActionScope () {
+      fetchActionScope() {
         return WhiteIpService.getScope()
           .then((data) => {
             this.actionScope = data;
           });
       },
 
-      handleRangeChange (value) {
+      handleRangeChange(value) {
         if (value.length > 0) {
           this.$refs.whiteIpForm.clearError('actionScopeIdList');
         }
       },
 
-      submit () {
+      submit() {
         return this.$refs.whiteIpForm.validate()
           .then(() => {
             const params = { ...this.formData };

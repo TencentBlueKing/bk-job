@@ -34,7 +34,9 @@
     }">
     <div class="jb-navigation">
       <div class="jb-navigation-header">
-        <div class="header-left" :style="headerLeftStyles">
+        <div
+          class="header-left"
+          :style="headerLeftStyles">
           <slot name="header" />
         </div>
         <div class="header-center">
@@ -56,13 +58,15 @@
           </scroll-faker>
         </div>
         <div class="side-footer">
-          <Icon
+          <icon
             class="fixed-flag"
             type="expand-line"
             @click="handleSideFixedToggle" />
         </div>
       </div>
-      <div class="jb-navigation-main" :style="mainStyles">
+      <div
+        class="jb-navigation-main"
+        :style="mainStyles">
         <div
           class="jb-navigation-body-header"
           :style="bodyHeaderStyles">
@@ -71,7 +75,9 @@
         <scroll-faker
           ref="contentScroll"
           :style="scrollStyles">
-          <div class="jb-navigation-content" :style="contentStyles">
+          <div
+            class="jb-navigation-content"
+            :style="contentStyles">
             <div class="navigation-content-wrapper">
               <slot />
             </div>
@@ -91,14 +97,14 @@
   const SIDE_LEFT_INEXPAND_WIDTH = 60;
 
   export default {
-    name: 'job-site-frame',
+    name: 'JobSiteFrame',
     props: {
       sideFixed: {
         type: Boolean,
         default: false,
       },
     },
-    data () {
+    data() {
       return {
         isViewportFull: false,
         isSideHover: false,
@@ -107,15 +113,15 @@
       };
     },
     computed: {
-      realSideWidth () {
+      realSideWidth() {
         return this.sideFixed ? this.sideLeftExpandWidth : SIDE_LEFT_INEXPAND_WIDTH;
       },
-      headerLeftStyles () {
+      headerLeftStyles() {
         return {
           width: `${this.sideLeftExpandWidth}px`,
         };
       },
-      sideStyles () {
+      sideStyles() {
         if (this.isSideHover) {
           return {
             width: `${this.sideLeftExpandWidth}px`,
@@ -126,18 +132,18 @@
           width: `${this.realSideWidth}px`,
         };
       },
-      mainStyles () {
+      mainStyles() {
         return {
           marginLeft: `${this.realSideWidth}px`,
           zIndex: 1999,
         };
       },
-      bodyHeaderStyles () {
+      bodyHeaderStyles() {
         return {
           left: `${this.realSideWidth}px`,
         };
       },
-      scrollStyles () {
+      scrollStyles() {
         const navigationHeaderHeight = 52;
         const contentHeaderHeight = 52;
         return {
@@ -145,7 +151,7 @@
           height: `calc(100vh - ${navigationHeaderHeight + contentHeaderHeight}px)`,
         };
       },
-      contentStyles () {
+      contentStyles() {
         return {
           width: `${this.pageWidth - this.realSideWidth}px`,
         };
@@ -156,7 +162,7 @@
        * @desc 页面标题
        */
       $route: {
-        handler (route) {
+        handler(route) {
           this.isViewportFull = Boolean(route.meta.full);
           setTimeout(() => {
             this.$refs.contentScroll.scrollTo(0, 0);
@@ -165,7 +171,7 @@
         immediate: true,
       },
     },
-    mounted () {
+    mounted() {
       this.init();
       const resizeHandler = _.throttle(this.init, 100);
       window.addEventListener('resize', resizeHandler);
@@ -177,7 +183,7 @@
       /**
        * @desc 初始化动态计算布局尺寸
        */
-      init () {
+      init() {
         const windowInnerWidth = window.innerWidth;
         this.pageWidth = windowInnerWidth < PAGE_MIN_WIDTH ? PAGE_MIN_WIDTH : windowInnerWidth;
         this.sideLeftExpandWidth = windowInnerWidth < PAGE_MIDDLE_WIDTH ? SIDE_LEFT_EXPAND_SMALL_WIDTH : SIDE_LEFT_EXPAND_BIG_WIDTH;
@@ -185,7 +191,7 @@
       /**
        * @desc 鼠标移入
        */
-      handleSideMouseenter () {
+      handleSideMouseenter() {
         clearTimeout(this.hoverTimer);
         this.hoverTimer = setTimeout(() => {
           this.isSideHover = true;
@@ -195,7 +201,7 @@
       /**
        * @desc 鼠标移出
        */
-      handleSideMouseleave () {
+      handleSideMouseleave() {
         clearTimeout(this.hoverTimer);
         this.hoverTimer = setTimeout(() => {
           this.isSideHover = false;
@@ -205,7 +211,7 @@
       /**
        * @desc 切换左侧面板是否固定的状态
        */
-      handleSideFixedToggle () {
+      handleSideFixedToggle() {
         this.$emit('on-side-fixed');
       },
     },

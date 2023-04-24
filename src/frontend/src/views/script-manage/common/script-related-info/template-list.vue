@@ -66,14 +66,17 @@
   </div>
 </template>
 <script>
-  import ScriptService from '@service/script-manage';
   import PublicScriptService from '@service/public-script-manage';
-  import I18n from '@/i18n';
+  import ScriptService from '@service/script-manage';
+
   import {
     checkPublicScript,
     encodeRegexp,
   } from '@utils/assist';
+
   import JbSearchSelect from '@components/jb-search-select';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -86,14 +89,14 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         wholeList: [],
         renderList: [],
       };
     },
-    created () {
+    created() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
 
@@ -115,7 +118,7 @@
       /**
        * @desc 获取关联脚本列表
        */
-      fetchData () {
+      fetchData() {
         this.$request(this.serviceHandler.citeInfo(this.params), () => {
           this.isLoading = true;
         }).then(({ citedTemplateList }) => {
@@ -130,7 +133,7 @@
        * @desc 本地搜索
        * @param {Object} payload 搜索条件
        */
-      handleSearch (payload) {
+      handleSearch(payload) {
         let list = this.wholeList;
         Object.keys(payload).forEach((key) => {
           const reg = new RegExp(encodeRegexp(payload[key]), 'i');
@@ -148,7 +151,7 @@
        *
        * 需要解析资源的 scopeType、scopeId
        */
-      handleGoTemplateDetail (payload) {
+      handleGoTemplateDetail(payload) {
         const { href } = this.$router.resolve({
           name: 'templateDetail',
           params: {

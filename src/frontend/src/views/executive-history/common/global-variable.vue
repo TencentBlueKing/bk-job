@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="execute-global-variable">
+  <div
+    v-bkloading="{ isLoading }"
+    class="execute-global-variable">
     <template v-if="!isLoading">
       <global-variable-layout v-if="taskVariables.length > 0">
         <global-variable
@@ -37,16 +39,20 @@
           :layout="variable.type === 3 ? 'vertical' : ''"
           :type="variable.type" />
       </global-variable-layout>
-      <empty v-else class="empty" />
+      <empty
+        v-else
+        class="empty" />
     </template>
   </div>
 </template>
 <script>
   import TaskExecuteService from '@service/task-execute';
+
   import TaskHostNodeModel from '@model/task-host-node';
+
+  import Empty from '@components/empty';
   import GlobalVariableLayout from '@components/global-variable/layout';
   import GlobalVariable from '@components/global-variable/view';
-  import Empty from '@components/empty';
 
   export default {
     name: '',
@@ -61,20 +67,20 @@
         default: 0,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: false,
         taskVariables: [],
       };
     },
     computed: {
-      isShowVar () {
+      isShowVar() {
         return this.taskVariables.length > 0;
       },
     },
     watch: {
       id: {
-        handler  (id) {
+        handler(id) {
           if (!id) {
             return;
           }
@@ -84,7 +90,7 @@
       },
     },
     methods: {
-      fetchTaskVariables (id) {
+      fetchTaskVariables(id) {
         this.$request(TaskExecuteService.fetchStepInstanceParam({
           id,
         }), () => {

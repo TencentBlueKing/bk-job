@@ -26,17 +26,24 @@
 -->
 
 <template>
-  <jb-form ref="varHostForm" :model="formData">
+  <jb-form
+    ref="varHostForm"
+    :model="formData">
     <jb-form-item :label="$t('template.变量名称')">
-      <bk-input v-model="formData.name" disabled />
+      <bk-input
+        v-model="formData.name"
+        disabled />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量值')">
       <section>
         <bk-button @click="handleShowChooseIp">
-          <Icon type="plus" />
+          <icon type="plus" />
           {{ $t('template.选择主机') }}
         </bk-button>
-        <bk-button v-if="isShowClear" style="margin-left: 10px;" @click="handleClear">
+        <bk-button
+          v-if="isShowClear"
+          style="margin-left: 10px;"
+          @click="handleClear">
           {{ $t('template.清空') }}
         </bk-button>
       </section>
@@ -48,10 +55,21 @@
         @on-change="handleHostChange" />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量描述')">
-      <bk-input v-model="formData.description" disabled maxlength="100" :row="5" type="textarea" />
+      <bk-input
+        v-model="formData.description"
+        disabled
+        maxlength="100"
+        :row="5"
+        type="textarea" />
     </jb-form-item>
     <jb-form-item>
-      <bk-checkbox v-model="formData.required" disabled :false-value="0" :true-value="1">{{ $t('template.执行时必填') }}</bk-checkbox>
+      <bk-checkbox
+        v-model="formData.required"
+        disabled
+        :false-value="0"
+        :true-value="1">
+        {{ $t('template.执行时必填') }}
+      </bk-checkbox>
     </jb-form-item>
     <choose-ip
       v-model="isShowChooseIp"
@@ -62,6 +80,7 @@
 <script>
   import TaskGlobalVariableModel from '@model/task/global-variable';
   import TaskHostNodeModel from '@model/task-host-node';
+
   import ChooseIp from '@components/choose-ip';
   import ServerPanel from '@components/choose-ip/server-panel';
 
@@ -93,45 +112,45 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         formData: {},
         isShowChooseIp: false,
       };
     },
     computed: {
-      isShowClear () {
+      isShowClear() {
         return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
       },
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           this.formData = new TaskGlobalVariableModel(data);
         },
         immediate: true,
       },
     },
     methods: {
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.formData.defaultTargetValue.hostNodeInfo = Object.freeze(hostNodeInfo);
       },
-      handleShowChooseIp () {
+      handleShowChooseIp() {
         this.isShowChooseIp = true;
       },
 
-      handleClear () {
+      handleClear() {
         const { hostNodeInfo } = new TaskHostNodeModel({});
         this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
       },
-      submit () {
+      submit() {
         return Promise.resolve({
           ...this.formData,
           type: TaskGlobalVariableModel.TYPE_HOST,
         });
       },
 
-      reset () {
+      reset() {
         this.formData = new TaskGlobalVariableModel(getDefaultData);
       },
     },

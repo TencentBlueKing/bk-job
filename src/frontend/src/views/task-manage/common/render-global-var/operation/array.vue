@@ -26,10 +26,18 @@
 -->
 
 <template>
-  <jb-form ref="varArrayForm" :model="formData" :rules="rules">
-    <jb-form-item :label="$t('template.数组类型')" property="name" required>
+  <jb-form
+    ref="varArrayForm"
+    :model="formData"
+    :rules="rules">
+    <jb-form-item
+      :label="$t('template.数组类型')"
+      property="name"
+      required>
       <div class="array-type-group">
-        <bk-radio-group :value="arrayType" @change="handleArrayTypeChange">
+        <bk-radio-group
+          :value="arrayType"
+          @change="handleArrayTypeChange">
           <bk-radio-button
             class="item"
             :disabled="isEdit && arrayType !== 5"
@@ -45,7 +53,10 @@
         </bk-radio-group>
       </div>
     </jb-form-item>
-    <jb-form-item :label="$t('template.变量名称')" property="name" required>
+    <jb-form-item
+      :label="$t('template.变量名称')"
+      property="name"
+      required>
       <jb-input
         v-model="formData.name"
         :maxlength="30"
@@ -88,11 +99,13 @@
   </jb-form>
 </template>
 <script>
-  import I18n from '@/i18n';
   import {
     globalVariableNameRule,
   } from '@utils/validator';
+
   import JbInput from '@components/jb-input';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'VarArray',
@@ -102,40 +115,40 @@
     props: {
       variable: {
         type: Array,
-        default () {
+        default() {
           return [];
         },
       },
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         arrayType: 5,
         formData: { ...this.data },
       };
     },
     computed: {
-      isEdit () {
+      isEdit() {
         return !!this.data.name;
       },
     },
     watch: {
       data: {
-        handler (data) {
+        handler(data) {
           if (data.name) {
             this.arrayType = data.type;
           }
         },
         immediate: true,
       },
-            
+
     },
-    created () {
+    created() {
       this.rules = {
         name: [
           {
@@ -157,10 +170,10 @@
       };
     },
     methods: {
-      handleArrayTypeChange (value) {
+      handleArrayTypeChange(value) {
         this.arrayType = value;
       },
-      submit () {
+      submit() {
         return this.$refs.varArrayForm.validate()
           .then(() => {
             this.$emit('on-change', {

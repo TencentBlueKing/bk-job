@@ -26,11 +26,18 @@
 -->
 
 <template>
-  <div ref="varBox" class="global-variable-edit-box" :class="boxClasses">
-    <div ref="varName" class="variable-name">
+  <div
+    ref="varBox"
+    class="global-variable-edit-box"
+    :class="boxClasses">
+    <div
+      ref="varName"
+      class="variable-name">
       <span class="name-text">{{ data.name }}</span>
     </div>
-    <div ref="varValue" class="variable-value">
+    <div
+      ref="varValue"
+      class="variable-value">
       <component
         :is="typeCom"
         ref="target"
@@ -43,11 +50,12 @@
 </template>
 <script>
   import VariableModel from '@model/task/global-variable';
-  import TypeString from './string';
-  import TypeNamespace from './namespace';
-  import TypeHost from './host';
-  import TypePassword from './password';
+
   import TypeArray from './array';
+  import TypeHost from './host';
+  import TypeNamespace from './namespace';
+  import TypePassword from './password';
+  import TypeString from './string';
 
   export default {
     props: {
@@ -64,14 +72,14 @@
         default: 'horizontal', // 水平：horizontal；垂直：vertical
       },
     },
-    data () {
+    data() {
       return {
         isError: false,
         placement: '',
       };
     },
     computed: {
-      typeCom () {
+      typeCom() {
         const comMap = {
           1: TypeString,
           2: TypeNamespace,
@@ -83,10 +91,10 @@
         if (!Object.prototype.hasOwnProperty.call(comMap, this.type)) {
           return 'div';
         }
-                
+
         return comMap[this.type];
       },
-      boxClasses () {
+      boxClasses() {
         const classes = {
           'variable-required': this.data.required === 1,
         };
@@ -96,7 +104,7 @@
         return classes;
       },
     },
-    mounted () {
+    mounted() {
       if (this.type === VariableModel.TYPE_HOST) {
         this.placement = 'right';
         return;
@@ -110,16 +118,16 @@
       /**
        * @desc 外部调用——移除主机变量中的无效主机
        */
-      removeAllInvalidHost () {
+      removeAllInvalidHost() {
         this.$refs.target.removeAllInvalidHost && this.$refs.target.removeAllInvalidHost();
       },
       /**
        * @desc 外部调用——移除主机变量中的无效主机
        */
-      reset () {
+      reset() {
         this.$refs.target.reset();
       },
-      validate () {
+      validate() {
         return this.$refs.target.validate()
           .then((data) => {
             this.isError = false;

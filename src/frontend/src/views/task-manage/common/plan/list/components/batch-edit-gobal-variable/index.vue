@@ -33,11 +33,19 @@
     :title="$t('template.批量编辑变量值')"
     :width="900"
     @update:isShow="handleCancel">
-    <div v-if="isLoading" v-bkloading="{ isLoading }" style="min-height: 100px;" />
+    <div
+      v-if="isLoading"
+      v-bkloading="{ isLoading }"
+      style="min-height: 100px;" />
     <div v-else>
-      <div v-if="isGlobalVariableNotEmpty" class="batch-edit-global-variable-box">
+      <div
+        v-if="isGlobalVariableNotEmpty"
+        class="batch-edit-global-variable-box">
         <div class="edit-header">
-          <bk-steps :cur-step.sync="curStep" :steps="steps" style="width: 300px;" />
+          <bk-steps
+            :cur-step.sync="curStep"
+            :steps="steps"
+            style="width: 300px;" />
         </div>
         <keep-alive exclude="editPreview">
           <component
@@ -49,14 +57,18 @@
             @on-edit-change="handleEditChange" />
         </keep-alive>
       </div>
-      <Empty v-else style="margin-top: 126px;">
+      <empty
+        v-else
+        style="margin-top: 126px;">
         <div style="font-size: 20px; line-height: 26px; color: #63656e;">
           {{ $t('template.暂无全局变量') }}
         </div>
-        <div slot="desc" style="margin-top: 12px; font-size: 14px; line-height: 19px; color: #979ba5;">
+        <div
+          slot="desc"
+          style="margin-top: 12px; font-size: 14px; line-height: 19px; color: #979ba5;">
           {{ $t('template.所选执行方案，无变量值可编辑') }}
         </div>
-      </Empty>
+      </empty>
     </div>
     <div slot="footer">
       <template v-if="curStep === 1">
@@ -93,18 +105,24 @@
           {{ $t('template.上一步') }}
         </bk-button>
       </template>
-      <bk-button @click="handleCancel">{{ $t('template.取消') }}</bk-button>
+      <bk-button @click="handleCancel">
+        {{ $t('template.取消') }}
+      </bk-button>
     </div>
   </jb-sideslider>
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskPlanService from '@service/task-plan';
+
   import { leaveConfirm } from '@utils/assist';
-  import { genGlobalVariableKey } from './utils';
-  import EditValue from './edit-value';
+
   import EditPreview from './edit-preview';
+  import EditValue from './edit-value';
+  import { genGlobalVariableKey } from './utils';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -126,7 +144,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         curStep: 1,
@@ -137,7 +155,7 @@
       };
     },
     computed: {
-      stepCom () {
+      stepCom() {
         const comMap = {
           1: EditValue,
           2: EditPreview,
@@ -148,7 +166,7 @@
        * @desc 编辑的变量中是否有值为空的变量
        * @return {Boolean}
        */
-      hasEmptyValueVariable () {
+      hasEmptyValueVariable() {
         for (const variableKey in this.globalVariableValueMap) {
           const variableValue = this.globalVariableValueMap[variableKey];
           if (!variableValue) {
@@ -163,7 +181,7 @@
     },
     watch: {
       isShow: {
-        handler (isShow) {
+        handler(isShow) {
           if (isShow) {
             this.fetchPlanDetailData();
           }
@@ -171,7 +189,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.steps = [
         {
           title: I18n.t('template.编辑变量'),
@@ -189,7 +207,7 @@
        *
        * 得到执行方案详情数据后需要判断所有的执行方案中是否有全局变量
        */
-      fetchPlanDetailData () {
+      fetchPlanDetailData() {
         this.isLoading = true;
         this.isGlobalVariableNotEmpty = false;
         TaskPlanService.fetchBatchPlan({
@@ -208,7 +226,7 @@
             this.isLoading = false;
           });
       },
-      handleEditChange (globalVariableValueMap) {
+      handleEditChange(globalVariableValueMap) {
         this.isPreviewDisabled = Object.values(globalVariableValueMap).length < 1;
       },
       /**
@@ -217,7 +235,7 @@
        *
        * 每次切换步骤时内容区需要滚动到顶部
        */
-      handlePreview () {
+      handlePreview() {
         this.globalVariableValueMap = Object.freeze(this.$refs.handler.getEditValue());
         this.handleChangeStep(2);
       },
@@ -227,14 +245,14 @@
        *
        * 每次切换步骤时内容区需要滚动到顶部
        */
-      handleChangeStep (step) {
+      handleChangeStep(step) {
         this.curStep = step;
         this.$refs.root.$el.querySelector('.bk-sideslider-content').scrollTop = 0;
       },
       /**
        * @desc 提交变量编辑
        */
-      handleSubmit () {
+      handleSubmit() {
         const planList = this.$refs.handler.getRelatePlanList();
 
         const stack = [];
@@ -279,7 +297,7 @@
       /**
        * @desc 取消编辑
        */
-      handleCancel () {
+      handleCancel() {
         leaveConfirm()
           .then(() => {
             this.curStep = 1;

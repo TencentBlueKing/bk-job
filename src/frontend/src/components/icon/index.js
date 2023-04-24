@@ -37,8 +37,8 @@ export default {
       default: false,
     },
   },
-    
-  render (h) {
+
+  render(h) {
     if (this.svg) {
       return h('svg', {
         class: {

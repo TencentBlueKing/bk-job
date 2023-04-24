@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="operation-account">
+  <div
+    v-bkloading="{ isLoading }"
+    class="operation-account">
     <jb-form
       :key="`${formData.category}_${formData.type}`"
       ref="operateAccountForm"
@@ -34,7 +36,10 @@
       form-type="vertical"
       :model="formData"
       :rules="rules">
-      <jb-form-item :label="$t('account.用途')" required style="margin-bottom: 20px;">
+      <jb-form-item
+        :label="$t('account.用途')"
+        required
+        style="margin-bottom: 20px;">
         <div class="radio-button-group-wraper">
           <bk-radio-group
             :value="formData.category"
@@ -61,15 +66,20 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
-  import QueryGlobalSettingService from '@service/query-global-setting';
   import AccountManageService from '@service/account-manage';
+  import QueryGlobalSettingService from '@service/query-global-setting';
+
   import AccountModel from '@model/account';
+
   import { accountAliasNameRule } from '@utils/validator';
-  import JbInput from '@components/jb-input';
+
   import AccountSelect from '@components/account-select';
+  import JbInput from '@components/jb-input';
+
   import AccountDatabase from './account-strategy/database-account';
   import AccountOS from './account-strategy/os-account';
+
+  import I18n from '@/i18n';
 
   const generatorDefault = () => ({
     id: '',
@@ -99,7 +109,7 @@
         default: () => ({}),
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         isEdit: false,
@@ -123,7 +133,7 @@
        * @desc 账号分类对应的表单
        * @returns { Object }
        */
-      accountCom () {
+      accountCom() {
         const comMap = {
           [AccountModel.OS]: AccountOS,
           [AccountModel.DB]: AccountDatabase,
@@ -134,7 +144,7 @@
        * @desc 账号名称 Input 输入框的placeholder, 读账号名称规则的配置
        * @returns { Boolean }
        */
-      namePlaceholder () {
+      namePlaceholder() {
         if (this.isLoading) {
           return '';
         }
@@ -149,7 +159,7 @@
         // windows 账号的命名规则
         return this.currentRules.windows.description;
       },
-      rules () {
+      rules() {
         if (this.isLoading) {
           return {};
         }
@@ -160,7 +170,7 @@
               message: I18n.t('account.名称必填'),
               trigger: 'blur',
             },
-                        
+
           ],
           alias: [
             {
@@ -265,9 +275,9 @@
         };
       },
     },
-    created () {
+    created() {
       this.fetchRules();
-            
+
       this.categoryList = [
         {
           value: AccountModel.OS,
@@ -321,7 +331,7 @@
       /**
        * @desc 获取管理员配置的账号命名规则
        */
-      fetchRules () {
+      fetchRules() {
         if (this.data.id) {
           this.isLoading = false;
           return Promise.resolve();
@@ -344,7 +354,7 @@
       /**
        * @desc 提交新建账号
        */
-      createAccount () {
+      createAccount() {
         const params = { ...this.formData };
         delete params.rePassword;
         return AccountManageService.createAccount(params)
@@ -356,7 +366,7 @@
       /**
        * @desc 提交编辑账号
        */
-      updateAccount () {
+      updateAccount() {
         const params = { ...this.formData };
         delete params.rePassword;
         return AccountManageService.updateAccount(params)
@@ -371,7 +381,7 @@
        *
        * 切换账号分类重置表单验证
        */
-      handleCategoryChange (category) {
+      handleCategoryChange(category) {
         this.formData = generatorDefault();
         this.formData.category = category;
         const defaultType = {
@@ -386,13 +396,13 @@
        * @param { String } key
        * @param { Any } value
        */
-      handleFieldChange (key, value) {
+      handleFieldChange(key, value) {
         this.formData[key] = value;
       },
       /**
        * @desc 表单提交
        */
-      submit () {
+      submit() {
         if (this.isRulesLoadingError) {
           this.messageWarn(I18n.t('account.命名规则请求失败无法执行当前操作，请刷新页面'));
           return Promise.reject(Error('rule error'));

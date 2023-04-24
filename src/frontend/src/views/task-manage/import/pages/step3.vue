@@ -26,7 +26,9 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="task-import-step3">
+  <div
+    v-bkloading="{ isLoading }"
+    class="task-import-step3">
     <div class="layout-wraper">
       <div class="layout-left">
         <scroll-faker>
@@ -39,7 +41,9 @@
                 disable: !templateInfoMap[templateItem.id].checked,
               }"
               @click="handleSelectTemplate(templateItem.id)">
-              <div class="task-name">{{ templateNameMap[templateItem.id] }}</div>
+              <div class="task-name">
+                {{ templateNameMap[templateItem.id] }}
+              </div>
               <bk-switcher
                 size="small"
                 theme="primary"
@@ -52,7 +56,9 @@
       </div>
       <div class="layout-right">
         <scroll-faker>
-          <div v-if="activeTemplateId" class="wraper">
+          <div
+            v-if="activeTemplateId"
+            class="wraper">
             <div class="task-header">
               <span>{{ templateNameMap[activeTemplateId] }}</span>
               <span
@@ -91,7 +97,9 @@
                       disable: !templateInfoMap[activeTemplateId].checked,
                     }"
                     @click="handleTogglePlan(planIdItem)">
-                    <div class="plan-name">{{ planNameMap[planIdItem] }}</div>
+                    <div class="plan-name">
+                      {{ planNameMap[planIdItem] }}
+                    </div>
                     <div
                       class="plan-check"
                       :class="{
@@ -102,24 +110,44 @@
                 </template>
               </div>
             </template>
-            <empty v-else style="margin-top: 100px;" :title="$t('template.暂无执行方案')" />
+            <empty
+              v-else
+              style="margin-top: 100px;"
+              :title="$t('template.暂无执行方案')" />
           </div>
         </scroll-faker>
       </div>
     </div>
     <action-bar>
-      <bk-button class="mr10" @click="handleCancel">{{ $t('template.取消') }}</bk-button>
-      <bk-button class="mr10" @click="handleLast">{{ $t('template.上一步') }}</bk-button>
-      <bk-button class="w120" theme="primary" @click="handleNext">{{ $t('template.下一步') }}</bk-button>
+      <bk-button
+        class="mr10"
+        @click="handleCancel">
+        {{ $t('template.取消') }}
+      </bk-button>
+      <bk-button
+        class="mr10"
+        @click="handleLast">
+        {{ $t('template.上一步') }}
+      </bk-button>
+      <bk-button
+        class="w120"
+        theme="primary"
+        @click="handleNext">
+        {{ $t('template.下一步') }}
+      </bk-button>
     </action-bar>
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import BackupService from '@service/backup';
+
   import { taskImport } from '@utils/cache-helper';
+
   import Empty from '@components/empty';
+
   import ActionBar from '../components/action-bar';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
@@ -127,7 +155,7 @@
       Empty,
       ActionBar,
     },
-    data () {
+    data() {
       return {
         id: '',
         isLoading: false,
@@ -139,16 +167,16 @@
       };
     },
     computed: {
-      currentPlanList () {
+      currentPlanList() {
         return this.templateInfoMap[this.activeTemplateId].planIdOrigin;
       },
     },
-    created () {
+    created() {
       this.id = taskImport.getItem('id');
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.$request(BackupService.fetchImportInfo({
           id: this.id,
         }), () => {
@@ -182,17 +210,17 @@
             this.isLogLoading = false;
           });
       },
-      handleSelectTemplate (templateId) {
+      handleSelectTemplate(templateId) {
         this.activeTemplateId = templateId;
       },
-      handleTemplateChange (checked, templateId) {
+      handleTemplateChange(checked, templateId) {
         this.templateInfoMap[templateId].checked = checked;
       },
-      handleCancelWholePlan () {
+      handleCancelWholePlan() {
         this.templateInfoMap[this.activeTemplateId].planIdMap = {};
         this.templateInfoMap[this.activeTemplateId].exportAll = 0;
       },
-      handleSelectWholePlan () {
+      handleSelectWholePlan() {
         const templateInfoMap = { ...this.templateInfoMap };
         const currentTemplate = templateInfoMap[this.activeTemplateId];
         currentTemplate.planIdOrigin.forEach((item) => {
@@ -200,7 +228,7 @@
         });
         currentTemplate.exportAll = 1;
       },
-      handleTogglePlan (planId) {
+      handleTogglePlan(planId) {
         if (!this.templateInfoMap[this.activeTemplateId].checked) {
           return;
         }
@@ -211,18 +239,17 @@
           currentTemplate.exportAll = 0;
         } else {
           currentTemplate.planIdMap[planId] = true;
-          currentTemplate.exportAll
-            = Number(Object.keys(currentTemplate.planIdMap).length === currentTemplate.planIdOrigin.length);
+          currentTemplate.exportAll            = Number(Object.keys(currentTemplate.planIdMap).length === currentTemplate.planIdOrigin.length);
         }
         this.templateInfoMap = templateInfoMap;
       },
-      handleCancel () {
+      handleCancel() {
         this.$emit('on-cancle');
       },
-      handleLast () {
+      handleLast() {
         this.$emit('on-change', 2);
       },
-      handleNext () {
+      handleNext() {
         const templateInfo = [];
         for (const templateId in this.templateInfoMap) {
           const currentTemplate = this.templateInfoMap[templateId];

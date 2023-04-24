@@ -29,13 +29,15 @@
   <card-layout
     class="template-count-dashboard"
     :title="$t('dashboard.作业模板量')">
-    <render-trend :date="date" metric="TASK_TEMPLATE_COUNT" />
+    <render-trend
+      :date="date"
+      metric="TASK_TEMPLATE_COUNT" />
     <div slot="extend">
-      <Icon
+      <icon
         v-bk-tooltips="$t('dashboard.查看趋势图')"
         type="line-chart-line"
         @click="handleShowTrend" />
-      <Icon
+      <icon
         v-bk-tooltips="$t('dashboard.查看列表')"
         type="table-line"
         @click="handleShowList" />
@@ -46,15 +48,21 @@
       metric="TASK_TEMPLATE_COUNT"
       :name="$t('dashboard.作业模板量')"
       :title="$t('dashboard.作业模板量趋势图')" />
-    <lower-component :custom="isShowList" level="custom">
+    <lower-component
+      :custom="isShowList"
+      level="custom">
       <jb-dialog
         v-model="isShowList"
         header-position="left"
         :show-footer="false"
         :title="$t('dashboard.作业模板量列表')"
         :width="520">
-        <div v-bkloading="{ isLoading: isListLoading, opacity: 0.8 }" style="margin-top: 12px;">
-          <bk-table :data="listData" :max-height="420">
+        <div
+          v-bkloading="{ isLoading: isListLoading, opacity: 0.8 }"
+          style="margin-top: 12px;">
+          <bk-table
+            :data="listData"
+            :max-height="420">
             <bk-table-column
               key="scopeName"
               align="left"
@@ -78,6 +86,7 @@
 </template>
 <script>
   import StatisticsService from '@service/statistics';
+
   import CardLayout from '../card-layout';
   import RenderTrend from '../common/render-trend';
   import TrendDialog from '../common/trend-dialog';
@@ -95,7 +104,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isListLoading: false,
         listData: [],
@@ -103,12 +112,12 @@
         isShowList: false,
       };
     },
-        
+
     methods: {
-      handleShowTrend () {
+      handleShowTrend() {
         this.isShowTrend = true;
       },
-      handleShowList () {
+      handleShowList() {
         this.isShowList = true;
         this.isListLoading = true;
         StatisticsService.fetchListByPerAppMetrics({

@@ -26,48 +26,68 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading, opacity: 0.8 }" class="account-dashboard">
+  <div
+    v-bkloading="{ isLoading, opacity: 0.8 }"
+    class="account-dashboard">
     <card-layout :title="$t('dashboard.Linux 账号数')">
       <div class="item-content">
-        <div class="nums">{{ data.LINUX }}</div>
+        <div class="nums">
+          {{ data.LINUX }}
+        </div>
         <div
           ref="LINUX"
           v-bk-tooltips.right="calcPercentage(data.LINUX)"
           class="dashboard"
           style="width: 24px; height: 24px;" />
       </div>
-      <Icon class="type-flag" style="font-size: 37px;" type="linux" />
+      <icon
+        class="type-flag"
+        style="font-size: 37px;"
+        type="linux" />
     </card-layout>
     <card-layout :title="$t('dashboard.Windows 账号数')">
       <div class="item-content">
-        <div class="nums">{{ data.WINDOWS | formatNumber }}</div>
+        <div class="nums">
+          {{ data.WINDOWS | formatNumber }}
+        </div>
         <div
           ref="WINDOWS"
           v-bk-tooltips.right="calcPercentage(data.WINDOWS)"
           class="dashboard"
           style="width: 24px; height: 24px;" />
       </div>
-      <Icon class="type-flag" style="font-size: 36px;" type="windows" />
+      <icon
+        class="type-flag"
+        style="font-size: 36px;"
+        type="windows" />
     </card-layout>
     <card-layout :title="$t('dashboard.DB 账号数')">
       <div class="item-content">
-        <div class="nums">{{ data.DB | formatNumber }}</div>
+        <div class="nums">
+          {{ data.DB | formatNumber }}
+        </div>
         <div
           ref="DB"
           v-bk-tooltips.right="calcPercentage(data.DB)"
           class="dashboard"
           style="width: 24px; height: 24px;" />
       </div>
-      <Icon class="type-flag" style="font-size: 27px;" type="db" />
+      <icon
+        class="type-flag"
+        style="font-size: 27px;"
+        type="db" />
     </card-layout>
   </div>
 </template>
 <script>
   import * as echarts from 'echarts';
+
   import StatisticsService from '@service/statistics';
+
   import {
     formatNumber,
   } from '@utils/assist';
+
   import CardLayout from '../card-layout';
 
   export default {
@@ -76,7 +96,7 @@
       CardLayout,
     },
     filters: {
-      formatNumber (value) {
+      formatNumber(value) {
         return formatNumber(value);
       },
     },
@@ -86,7 +106,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: {
@@ -97,15 +117,15 @@
       };
     },
     watch: {
-      date () {
+      date() {
         this.fetchData();
       },
     },
-    mounted () {
+    mounted() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         StatisticsService.fetchDistributionMetrics({
           date: this.date,
@@ -118,7 +138,7 @@
             this.isLoading = false;
           });
       },
-      init () {
+      init() {
         const typeList = [
           'LINUX',
           'WINDOWS',
@@ -173,7 +193,7 @@
           });
         });
       },
-      calcPercentage (value) {
+      calcPercentage(value) {
         const total = parseInt(this.data.DB, 10)
           + parseInt(this.data.LINUX, 10) + parseInt(this.data.WINDOWS, 10);
         if (!total) {

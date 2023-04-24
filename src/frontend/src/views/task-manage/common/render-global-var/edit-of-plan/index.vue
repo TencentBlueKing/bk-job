@@ -73,12 +73,13 @@
   </jb-form>
 </template>
 <script>
-  import I18n from '@/i18n';
-  import VarString from './string';
-  import VarNamespace from './namespace';
-  import VarHost from './host';
-  import VarPassword from './password';
   import VarArray from './array';
+  import VarHost from './host';
+  import VarNamespace from './namespace';
+  import VarPassword from './password';
+  import VarString from './string';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'GlobalVar',
@@ -92,24 +93,24 @@
     props: {
       variable: {
         type: Array,
-        default () {
+        default() {
           return [];
         },
       },
       data: {
         type: Object,
-        default () {
+        default() {
           return {};
         },
       },
     },
-    data () {
+    data() {
       return {
         globalType: 'string',
       };
     },
     computed: {
-      globalVarCom () {
+      globalVarCom() {
         const globalVarMap = {
           string: VarString,
           namespace: VarNamespace,
@@ -122,13 +123,13 @@
         }
         return globalVarMap[this.globalType];
       },
-      isTypeDisabled () {
+      isTypeDisabled() {
         return !!Object.keys(this.data).length;
       },
     },
     watch: {
       data: {
-        handler (value) {
+        handler(value) {
           if (Object.keys(value).length) {
             this.globalType = value.typeDescription;
           }
@@ -136,7 +137,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.nametips = {
         theme: 'dark',
         content: I18n.t('template.在步骤参数或脚本内使用 ${变量名} 即可获取到变量值'),
@@ -144,13 +145,13 @@
       };
     },
     methods: {
-      submit () {
+      submit() {
         return this.$refs.handler.submit()
           .then((data) => {
             this.$emit('on-change', data);
           });
       },
-      reset () {
+      reset() {
         this.globalType = 1;
         return this.$refs.handler.reset();
       },

@@ -26,35 +26,35 @@
 import Request from '@utils/request';
 
 class Permission {
-  jobManage (params = {}) {
+  jobManage(params = {}) {
     return Request.get('/job-manage/web/permission/check', {
       params,
       cache: 2000,
     });
   }
 
-  jobCrontab (params = {}) {
+  jobCrontab(params = {}) {
     return Request.get('/job-crontab/web/permission/check', {
       params,
       cache: 2000,
     });
   }
 
-  jobExecute (params = {}) {
+  jobExecute(params = {}) {
     return Request.get('/job-execute/web/permission/check', {
       params,
       cache: 2000,
     });
   }
 
-  jobFileSource (params = {}) {
+  jobFileSource(params = {}) {
     return Request.get('/job-file-gateway/web/permission/check', {
       params,
       cache: 2000,
     });
   }
 
-  jobTicket (params = {}) {
+  jobTicket(params = {}) {
     return Request.get('/job-ticket/web/permission/check', {
       params,
       cache: 2000,

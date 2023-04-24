@@ -29,8 +29,10 @@
   <tbody class="create-server-file">
     <tr v-if="hasSaved">
       <td colspan="4">
-        <bk-button text @click="handleAddNew">
-          <Icon type="plus" />
+        <bk-button
+          text
+          @click="handleAddNew">
+          <icon type="plus" />
           {{ $t('添加一行') }}
         </bk-button>
       </td>
@@ -45,8 +47,12 @@
       </td>
       <template v-if="serverFile.isHostEmpty">
         <td>
-          <div class="server-add-only-host-btn" @click="handleShowChooseIp">
-            <Icon class="add-flag" type="plus" />
+          <div
+            class="server-add-only-host-btn"
+            @click="handleShowChooseIp">
+            <icon
+              class="add-flag"
+              type="plus" />
             {{ $t('添加服务器') }}
           </div>
         </td>
@@ -54,7 +60,9 @@
       </template>
       <template v-else>
         <td>
-          <div class="server-edit-btn" @click="handleShowChooseIp">
+          <div
+            class="server-edit-btn"
+            @click="handleShowChooseIp">
             <div v-html="serverFile.serverDesc" />
           </div>
         </td>
@@ -74,7 +82,11 @@
           @click="handlerSave">
           {{ $t('保存') }}
         </bk-button>
-        <bk-button text @click="handlerCancel">{{ $t('取消') }}</bk-button>
+        <bk-button
+          text
+          @click="handlerCancel">
+          {{ $t('取消') }}
+        </bk-button>
       </td>
     </tr>
     <choose-ip
@@ -88,12 +100,16 @@
   import {
     mapMutations,
   } from 'vuex';
-  import SourceFileVO from '@domain/variable-object/source-file';
+
   import {
     findParent,
   } from '@utils/vdom';
-  import ChooseIp from '@components/choose-ip';
+
   import AccountSelect from '@components/account-select';
+  import ChooseIp from '@components/choose-ip';
+
+  import SourceFileVO from '@domain/variable-object/source-file';
+
   import EditFilePath from '../../components/edit-file-path';
 
   const generatorDefault = () => new SourceFileVO({
@@ -119,7 +135,7 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         isShowChooseIp: false,
         hasSaved: this.data.length > 0,
@@ -136,7 +152,7 @@
        *
        * store记录服务器文件的编辑状态
        */
-      handleFileChange (fileLocation) {
+      handleFileChange(fileLocation) {
         window.changeFlag = true;
         this.serverFile.fileLocation = fileLocation;
         this.editNewSourceFile(true);
@@ -147,7 +163,7 @@
        *
        * store记录服务器文件的编辑状态
        */
-      handleHostChange (hostNodeInfo) {
+      handleHostChange(hostNodeInfo) {
         this.serverFile.host.hostNodeInfo = Object.freeze(hostNodeInfo);
         window.changeFlag = true;
         this.editNewSourceFile(true);
@@ -155,14 +171,14 @@
       /**
        * @desc 显示ip选择器弹层
        */
-      handleShowChooseIp () {
+      handleShowChooseIp() {
         this.isShowChooseIp = true;
       },
       /**
        * @desc 服务器账号更新
        * @param {Number} accountId 主机值
        */
-      handleAccountChange (accountId) {
+      handleAccountChange(accountId) {
         if (accountId === '') {
           return;
         }
@@ -178,13 +194,13 @@
       /**
        * @desc 添加一个服务器文件
        */
-      handleAddNew () {
+      handleAddNew() {
         this.hasSaved = false;
       },
       /**
        * @desc 保存添加的服务器文件
        */
-      handlerSave () {
+      handlerSave() {
         this.$emit('on-change', this.serverFile);
         this.handlerCancel();
       },
@@ -193,7 +209,7 @@
        *
        * 重置store记录服务器文件的编辑状态
        */
-      handlerCancel () {
+      handlerCancel() {
         this.$emit('on-cancel');
         this.serverFile = generatorDefault();
         this.$refs.chooseIp.reset();

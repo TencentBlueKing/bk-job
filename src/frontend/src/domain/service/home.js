@@ -24,32 +24,33 @@
 */
 
 /* eslint-disable no-param-reassign */
-import HomeSource from '../source/home';
 import TaskModel from '@model/task/task';
 
+import HomeSource from '../source/home';
+
 export default {
-  fetchAnalysisGreeting () {
+  fetchAnalysisGreeting() {
     return HomeSource.getAnalysisGreeting()
       .then(({ data }) => data);
   },
-    
-  fetchMyFavorList () {
+
+  fetchMyFavorList() {
     return HomeSource.getMyFavorList()
       .then(({ data }) => data.map(_ => new TaskModel(_)));
   },
-  fetchStatisticsAgent () {
+  fetchStatisticsAgent() {
     return HomeSource.getStatisticsAgent()
       .then(({ data }) => data);
   },
-  fetchStatisticsJobAndScript () {
+  fetchStatisticsJobAndScript() {
     return HomeSource.getStatisticsJobAndScript()
       .then(({ data }) => data);
   },
-  fetchAgentStatus (params) {
+  fetchAgentStatus(params) {
     return HomeSource.getAgentStatusList(params)
       .then(({ data }) => data);
   },
-  fetchAllAgentStatus (params) {
+  fetchAllAgentStatus(params) {
     return HomeSource.getAllAgentStatusList(params)
       .then(({ data }) => data);
   },

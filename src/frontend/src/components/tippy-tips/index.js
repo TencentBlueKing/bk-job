@@ -23,15 +23,15 @@
  * IN THE SOFTWARE.
 */
 
-import _ from 'lodash';
 import tippy from 'bk-magic-vue/lib/utils/tippy';
+import _ from 'lodash';
 
 const defaultOptions = {
   duration: 0,
   arrow: true,
 };
 export default {
-  install (Vue) {
+  install(Vue) {
     Vue.mixin({
       updated: _.debounce(() => {
         const $els = document.body.querySelectorAll('[tippy-tips]');

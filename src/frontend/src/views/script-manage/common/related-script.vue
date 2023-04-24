@@ -26,31 +26,45 @@
 -->
 
 <template>
-  <div v-bkloading="{ isLoading }" class="render-related-script">
+  <div
+    v-bkloading="{ isLoading }"
+    class="render-related-script">
     <div class="tab-wraper">
       <div
         class="tab-item"
         :class="{ active: listTab === 'template' }"
         @click="handleTabChange('template')">
-        <div class="tab-name">{{ $t('script.作业模板引用') }}</div>
-        <Icon
+        <div class="tab-name">
+          {{ $t('script.作业模板引用') }}
+        </div>
+        <icon
           v-if="isLaunchLoading"
           class="loading-flag"
           svg
           type="sync-pending" />
-        <div v-else class="tab-nums">{{ launchNums }}</div>
+        <div
+          v-else
+          class="tab-nums">
+          {{ launchNums }}
+        </div>
       </div>
       <div
         class="tab-item"
         :class="{ active: listTab === 'plan' }"
         @click="handleTabChange('plan')">
-        <div class="tab-name">{{ $t('script.执行方案引用') }}</div>
-        <Icon
+        <div class="tab-name">
+          {{ $t('script.执行方案引用') }}
+        </div>
+        <icon
           v-if="isUnlaunchLoading"
           class="loading-flag"
           svg
           type="sync-pending" />
-        <div v-else class="tab-nums">{{ unLaunchNums }}</div>
+        <div
+          v-else
+          class="tab-nums">
+          {{ unLaunchNums }}
+        </div>
       </div>
     </div>
     <div class="search">
@@ -107,14 +121,17 @@
   </div>
 </template>
 <script>
-  import ScriptService from '@service/script-manage';
   import PublicScriptService from '@service/public-script-manage';
-  import I18n from '@/i18n';
+  import ScriptService from '@service/script-manage';
+
   import {
     checkPublicScript,
     encodeRegexp,
   } from '@utils/assist';
+
   import JbSearchSelect from '@components/jb-search-select';
+
+  import I18n from '@/i18n';
 
   export default {
     name: 'RenderRelatedScript',
@@ -124,7 +141,7 @@
     props: {
       from: {
         type: String,
-        validator (value) {
+        validator(value) {
           return [
             'scriptList',
             'scriptVersionList',
@@ -134,7 +151,7 @@
       },
       mode: {
         type: String,
-        validator (value) {
+        validator(value) {
           return [
             'template',
             'plan',
@@ -147,10 +164,10 @@
         required: true,
       },
     },
-    data () {
+    data() {
       this.publicScript = checkPublicScript(this.$route);
       this.serviceHandler = this.publicScript ? PublicScriptService : ScriptService;
-            
+
       return {
         isLoading: true,
         list: [],
@@ -159,13 +176,13 @@
       };
     },
     computed: {
-      isPlanRelated () {
+      isPlanRelated() {
         return this.mode === 'plan';
       },
     },
     watch: {
       info: {
-        handler (info) {
+        handler(info) {
           if (!info.id && !info.scriptVersionId) {
             return;
           }
@@ -174,7 +191,7 @@
         immediate: true,
       },
     },
-    created () {
+    created() {
       this.searchSelect = [
         {
           name: I18n.t('script.名称'),
@@ -191,7 +208,7 @@
       /**
        * @desc 获取关联脚本列表
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         const params = {
           scriptId: this.info.id,
@@ -216,7 +233,7 @@
        * @desc 本地搜索
        * @param {Object} payload 搜索条件
        */
-      handleSearch (payload) {
+      handleSearch(payload) {
         let { list } = this;
         Object.keys(payload).forEach((key) => {
           const reg = new RegExp(encodeRegexp(payload[key]), 'i');
@@ -234,7 +251,7 @@
        *
        * 需要解析资源的 scopeType、scopeId
        */
-      handleGoPlanDetail (payload) {
+      handleGoPlanDetail(payload) {
         const { href } = this.$router.resolve({
           name: 'viewPlan',
           params: {
@@ -252,7 +269,7 @@
        *
        * 需要解析资源的 scopeType、scopeId
        */
-      handleGoTemplateDetail (payload) {
+      handleGoTemplateDetail(payload) {
         const { href } = this.$router.resolve({
           name: 'templateDetail',
           params: { id: payload.taskTemplateId },

@@ -54,7 +54,7 @@
         default: () => ({}),
       },
     },
-    created () {
+    created() {
       this.tips = {
         content: I18n.t('步骤有执行失败的目标，将会自动忽略并进入下一步'),
         width: 310,
@@ -62,7 +62,7 @@
       };
     },
     methods: {
-      handleChange (value) {
+      handleChange(value) {
         this.$emit('on-change', this.field, value);
       },
     },

@@ -24,7 +24,7 @@
 */
 
 export default class Model {
-  getDefaultValue (value) {
+  getDefaultValue(value) {
     return value || '--';
   }
 }

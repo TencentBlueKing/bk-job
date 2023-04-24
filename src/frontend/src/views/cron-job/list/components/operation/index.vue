@@ -133,8 +133,10 @@
               :resource-id="option.id" />
           </bk-select>
         </div>
-        <div v-if="hasPlan" class="plan-icon">
-          <Icon
+        <div
+          v-if="hasPlan"
+          class="plan-icon">
+          <icon
             v-bk-tooltips="$t('cron.查看执行方案')"
             type="audit"
             @click="handleGoPlan" />
@@ -150,7 +152,9 @@
             class="plan-variable-empty">
             {{ $t('cron.该执行方案无全局变量') }}
           </span>
-          <global-variable-layout v-else type="vertical">
+          <global-variable-layout
+            v-else
+            type="vertical">
             <global-variable
               v-for="variable in usedList"
               :key="`${currentRenderPlanId}_${variable.id}_${variable.name}`"
@@ -179,22 +183,27 @@
   </div>
 </template>
 <script>
-  import I18n from '@/i18n';
   import TaskService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
   import TimeTaskService from '@service/time-task';
+
   import {
-    generatorDefaultCronTime,
     findUsedVariable,
+    generatorDefaultCronTime,
   } from '@utils/assist';
   import { timeTaskNameRule } from '@utils/validator';
-  import GlobalVariableLayout from '@components/global-variable/layout';
+
   import GlobalVariable from '@components/global-variable/edit';
+  import GlobalVariableLayout from '@components/global-variable/layout';
   import ToggleDisplay from '@components/global-variable/toggle-display';
   import JbInput from '@components/jb-input';
+
   import RenderStrategy from '../render-strategy';
-  import FormItemFactory from './form-item-strategy';
+
   import CronJob from './cron-job';
+  import FormItemFactory from './form-item-strategy';
+
+  import I18n from '@/i18n';
 
   const onceItemList = [
     'executeBeforeNotify',
@@ -223,7 +232,7 @@
     taskTemplateId: 0,
     variableValue: [], // 变量信息
   });
- 
+
   export default {
     name: '',
     components: {
@@ -248,7 +257,7 @@
         default: '',
       },
     },
-    data () {
+    data() {
       this.rules = {};
       return {
         isLoading: false,
@@ -266,38 +275,38 @@
         unusedList: [],
         isRepeat: false,
         dateOptions: {
-          disabledDate (date) {
+          disabledDate(date) {
             return date.valueOf() < Date.now() - 86400000;
           },
         },
       };
     },
     computed: {
-      strategyFormItemList () {
+      strategyFormItemList() {
         if (this.strategy === 'once') {
           return onceItemList;
         }
         return periodItemList;
       },
-      strategyField () {
+      strategyField() {
         return this.strategy === 'once' ? 'executeTime' : 'cronExpression';
       },
-      hasTemplate () {
+      hasTemplate() {
         return !!this.formData.taskTemplateId;
       },
-      hasPlan () {
+      hasPlan() {
         return !!this.formData.taskPlanId;
       },
-      hasVariabel () {
+      hasVariabel() {
         return this.currentPlanVariableList.length < 1;
       },
-      isVariabelEmpty () {
+      isVariabelEmpty() {
         return this.currentPlanVariableList.length < 1;
       },
     },
     watch: {
       strategy: {
-        handler (value) {
+        handler(value) {
           if (value === 'once') {
             delete this.rules.cronExpression;
             this.rules.executeTime = [
@@ -321,7 +330,7 @@
        * @desc 检测选中的执行方案的全局变量，判断出被使用和未被使用的变量
        * @param { Array } variableList
        */
-      currentPlanVariableList (variableList) {
+      currentPlanVariableList(variableList) {
         // 执行方案使用的步骤中引用变量的状态
         const planStepList = this.planStepList.filter(step => step.enable === 1);
         const usedVariableNameMap = findUsedVariable(planStepList).reduce((result, item) => {
@@ -343,7 +352,7 @@
         this.unusedList = Object.freeze(unusedList);
       },
     },
-    created () {
+    created() {
       // 作业模板列表
       this.fetchTemplateList();
 
@@ -406,12 +415,12 @@
         ],
       });
     },
-        
+
     methods: {
       /**
        * @desc 定时任务详情
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         Promise.all([
           TimeTaskService.getDetail({
@@ -500,7 +509,7 @@
       /**
        * @desc 所有的作业模板列表
        */
-      fetchTemplateList () {
+      fetchTemplateList() {
         this.isTemplateLoading = true;
         TaskService.taskList({
           pageSize: -1,
@@ -515,7 +524,7 @@
       /**
        * @desc 指定作业模板关联的执行方案列白哦
        */
-      fetchTemplatePlanList () {
+      fetchTemplatePlanList() {
         this.isPlanLoading = true;
         TaskPlanService.fetchTaskPlan({
           id: this.formData.taskTemplateId,
@@ -529,7 +538,7 @@
       /**
        * @desc 执行方案详情
        */
-      fetchPlanDetailInfo () {
+      fetchPlanDetailInfo() {
         this.isVariableLoading = true;
         TaskPlanService.fetchPlanDetailInfo({
           templateId: this.formData.taskTemplateId,
@@ -547,7 +556,7 @@
        * @desc 检测定时任务是否重名
        * @param {String} name 定时任务名
        */
-      checkName (name) {
+      checkName(name) {
         return TimeTaskService.timeTaskCheckName({
           id: this.formData.id,
           name,
@@ -557,7 +566,7 @@
        * @desc 切换执行策略
        * @param {String} strategy 执行策略
        */
-      handleStrategyChange (strategy) {
+      handleStrategyChange(strategy) {
         this.strategy = strategy;
         if (strategy === 'once') {
           this.$refs.timeTaskForm.clearError('cronExpression');
@@ -577,7 +586,7 @@
        * @desc 执行通知相关的字段值更新
        * @param {Object} payload 字段名和值
        */
-      handleFormItemChange (payload) {
+      handleFormItemChange(payload) {
         this.formData = {
           ...this.formData,
           ...payload,
@@ -589,7 +598,7 @@
        *
        * 作业模板改变时重新获取执行方案列表
        */
-      handleTemplateChange (templateId) {
+      handleTemplateChange(templateId) {
         this.formData.taskPlanId = '';
         if (templateId) {
           this.fetchTemplatePlanList();
@@ -601,7 +610,7 @@
        *
        * 执行方案该表重新获取执行方案详情
        */
-      handlePlanChange (planId) {
+      handlePlanChange(planId) {
         if (planId) {
           this.fetchPlanDetailInfo();
         }
@@ -609,7 +618,7 @@
       /**
        * @desc 打开执行方案详情页
        */
-      handleGoPlan () {
+      handleGoPlan() {
         const routerUrl = this.$router.resolve({
           name: 'viewPlan',
           params: {
@@ -625,7 +634,7 @@
       /**
        * @desc 保存定时任务
        */
-      submit () {
+      submit() {
         return this.$refs.timeTaskForm.validate().then(() => {
           if (this.currentPlanVariableList.length < 1) {
             return Promise.resolve([]);
@@ -665,7 +674,7 @@
                 // 新建
                 this.messageSuccess(I18n.t('cron.定时任务创建成功(默认关闭，请手动开启)'));
               }
-                            
+
               this.$emit('on-change');
             });
           });

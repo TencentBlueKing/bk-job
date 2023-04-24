@@ -45,7 +45,10 @@
       </div>
       <div class="item-status">
         <template v-if="isCronJobLoading">
-          <Icon class="plan-cron-job-loading" svg type="sync-pending" />
+          <icon
+            class="plan-cron-job-loading"
+            svg
+            type="sync-pending" />
         </template>
         <template v-else>
           <span class="confirmed">{{ planConfirmInfo.confirmed }}</span>{{ $t('template.个已就绪') }} ，
@@ -82,7 +85,9 @@
                 },
               }">
               {{ row.name }}
-              <Icon class="open-link-flag" type="edit" />
+              <icon
+                class="open-link-flag"
+                type="edit" />
             </auth-router-link>
           </template>
         </bk-table-column>
@@ -101,7 +106,9 @@
                 },
               }">
               {{ row.templateName }}
-              <Icon class="open-link-flag" type="edit" />
+              <icon
+                class="open-link-flag"
+                type="edit" />
             </router-link>
           </template>
         </bk-table-column>
@@ -113,7 +120,11 @@
           prop="statusText">
           <template slot-scope="{ row }">
             <div class="confirm-status-box">
-              <Icon class="status-flag" :class="row.statusIcon" svg :type="row.statusIcon" />
+              <icon
+                class="status-flag"
+                :class="row.statusIcon"
+                svg
+                :type="row.statusIcon" />
               <span v-html="row.statusHtml" />
               <bk-button
                 v-if="row.isRetryEnable"
@@ -132,7 +143,9 @@
           :resizable="false"
           width="280">
           <template slot-scope="{ row }">
-            <span class="mr10" :tippy-tips="row.disableDiffTips">
+            <span
+              class="mr10"
+              :tippy-tips="row.disableDiffTips">
               <bk-button
                 :disabled="!!row.disableDiffTips"
                 text
@@ -142,10 +155,15 @@
             </span>
             <!-- 定时任务加载中 -->
             <template v-if="row.isCronJobLoading">
-              <Icon class="plan-cron-job-loading" svg type="sync-pending" />
+              <icon
+                class="plan-cron-job-loading"
+                svg
+                type="sync-pending" />
             </template>
             <template v-else>
-              <span class="mr10" :tippy-tips="row.disableConfirmTips">
+              <span
+                class="mr10"
+                :tippy-tips="row.disableConfirmTips">
                 <bk-button
                   :disabled="!!row.disableConfirmTips"
                   :loading="row.isCronJobLoading"
@@ -165,11 +183,17 @@
       </bk-table>
     </div>
     <div class="sync-plan-action">
-      <bk-button v-if="isFinished" class="w120" theme="primary" @click="handleFinish">
+      <bk-button
+        v-if="isFinished"
+        class="w120"
+        theme="primary"
+        @click="handleFinish">
         {{ $t('template.完成') }}
       </bk-button>
       <template v-else>
-        <bk-button class="mr10" @click="handleCancle">
+        <bk-button
+          class="mr10"
+          @click="handleCancle">
           {{ $t('template.取消') }}
         </bk-button>
         <span :tippy-tips="syncSubmitInvalid ? $t('template.所有方案均已同步至最新版') : ''">
@@ -193,17 +217,23 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import TaskManageService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
   import TimeTaskService from '@service/time-task';
-  import SyncPlanVO from '@domain/variable-object/sync-plan';
-  import ListActionLayout from '@components/list-action-layout';
+
   import {
     getOffset,
     leaveConfirm,
   } from '@utils/assist';
+
+  import ListActionLayout from '@components/list-action-layout';
+
+  import SyncPlanVO from '@domain/variable-object/sync-plan';
+
   import ConfirmCron from './components/confirm-cron';
+
+  import I18n from '@/i18n';
 
   const runStepByStep = (data, callback, finishCallback = () => {}) => {
     let startIndex = 0;
@@ -224,7 +254,7 @@
       ListActionLayout,
       ConfirmCron,
     },
-    data () {
+    data() {
       return {
         isLoading: true,
         data: [],
@@ -244,10 +274,10 @@
       };
     },
     computed: {
-      isSkeletonLoading () {
+      isSkeletonLoading() {
         return this.isLoading;
       },
-      planConfirmInfo () {
+      planConfirmInfo() {
         let confirmed = 0;
         let unconfirmed = 0;
 
@@ -263,7 +293,7 @@
           unconfirmed,
         };
       },
-      syncSubmitInvalid () {
+      syncSubmitInvalid() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.data.length; i++) {
           const currentPlan = this.data[i];
@@ -275,7 +305,7 @@
         return true;
       },
     },
-    created () {
+    created() {
       const { planIds = '' } = this.$route.query;
       this.planIds = planIds;
       // 如果是从作业模板的执行方案列表过来同步的
@@ -283,7 +313,7 @@
       this.lastOnePlanTemplateId = '';
       this.fetchData();
     },
-    mounted () {
+    mounted() {
       this.calcTableHeight();
     },
     methods: {
@@ -292,7 +322,7 @@
        *
        * 初始化同步执行方案的状态
        */
-      fetchData () {
+      fetchData() {
         this.isLoading = true;
         TaskPlanService.fetchBatchPlan({
           planIds: this.planIds,
@@ -350,7 +380,7 @@
       /**
        * @desc 计算页面高度，实现表格内部滚动
        */
-      calcTableHeight () {
+      calcTableHeight() {
         const { top } = getOffset(this.$refs.list);
         const windowHeight = window.innerHeight;
         this.tableHeight = windowHeight - top - 77;
@@ -358,7 +388,7 @@
       /**
        * @desc 计算表格行的样式
        */
-      calcRowClass ({ row }) {
+      calcRowClass({ row }) {
         let className = 'template-plan-sync-record';
         if (!row.canEdit) {
           className = `${className} sync-permission`;
@@ -370,7 +400,7 @@
        *
        * 一条条数据串联同步
        */
-      handleConfirmAll () {
+      handleConfirmAll() {
         window.changeFlag = true;
         this.isConfirmLoading = true;
         const syncValueMemoMap = { ...this.syncValueMemoMap };
@@ -540,7 +570,7 @@
       /**
        * @desc 查看同步差异
        */
-      handleGoDiff (plan) {
+      handleGoDiff(plan) {
         const router = this.$router.resolve({
           name: 'syncPlan',
           params: {
@@ -557,7 +587,7 @@
        * @desc 打开手动确认弹框
        * @param {Object} plan 要确认的执行方案
        */
-      handleConfirmCron (plan) {
+      handleConfirmCron(plan) {
         let cronJobInfoList = [];
         if (this.syncValueMemoMap[plan.id]) {
           /* eslint-disable prefer-destructuring */
@@ -573,7 +603,7 @@
       /**
        * @desc 关闭手动确认弹框
        */
-      hanndleSelectPlanConfirmClose () {
+      hanndleSelectPlanConfirmClose() {
         this.isShowConfirmCron = false;
         this.selectPlanInfo = {
           templateId: -1,
@@ -585,7 +615,7 @@
        * @desc 提交手动确认的定任务信息
        * @param {Array} cronJobInfoList 执行方案关联的定时任务变量信息
        */
-      handleSelectPlanConfirmChange (cronJobInfoList) {
+      handleSelectPlanConfirmChange(cronJobInfoList) {
         window.changeFlag = true;
 
         const syncValueMemoMap = { ...this.syncValueMemoMap };
@@ -612,7 +642,7 @@
        *
        * 一条一条数据串联同步
        */
-      handleSubmitSync () {
+      handleSubmitSync() {
         this.isSyncLoading = true;
         this.data.forEach((item) => {
           // 进入同步队列
@@ -671,7 +701,7 @@
        * @desc 同步失败重试
        * @param {Object} plan 重试的执行方案
        */
-      handleSyncRetry (plan) {
+      handleSyncRetry(plan) {
         plan.status = SyncPlanVO.STATUS_SYNC_PENDING;
         TaskPlanService.planSyncInfo({
           planId: plan.id,
@@ -695,7 +725,7 @@
        *
        * 需要确认页面的编辑状态
        */
-      handleCancle () {
+      handleCancle() {
         leaveConfirm()
           .then(() => {
             this.routerBack();
@@ -704,14 +734,14 @@
       /**
        * @desc 完成批量同步
        */
-      handleFinish () {
+      handleFinish() {
         window.changeFlag = false;
         this.routerBack();
       },
       /**
        * @desc 路由回退
        */
-      routerBack () {
+      routerBack() {
         const { from } = this.$route.query;
         if (from === 'viewPlan') {
           this.$router.push({

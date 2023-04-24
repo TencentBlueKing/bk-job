@@ -27,8 +27,14 @@
 
 <template>
   <div class="sync-step-server-file">
-    <bk-collapse v-if="isShowLocalFile || isShowServerFile" class="host-detail" :value="activeResult">
-      <jb-collapse-item v-if="isShowLocalFile" :active="activeResult" name="local">
+    <bk-collapse
+      v-if="isShowLocalFile || isShowServerFile"
+      class="host-detail"
+      :value="activeResult">
+      <jb-collapse-item
+        v-if="isShowLocalFile"
+        :active="activeResult"
+        name="local">
         <span class="collapse-title">{{ $t('template.已选择') }}<span class="number">{{ localFileCount }}</span>{{ $t('template.个本地文件') }}</span>
         <template #content>
           <table class="file-table">
@@ -38,7 +44,11 @@
                 :key="index"
                 :class="localFileDiff[row.realId]">
                 <td>
-                  <div v-bk-overflow-tips class="file-path-text">{{ row.fileLocationText }}</div>
+                  <div
+                    v-bk-overflow-tips
+                    class="file-path-text">
+                    {{ row.fileLocationText }}
+                  </div>
                 </td>
                 <td>{{ row.fileSizeText }}</td>
               </tr>
@@ -46,7 +56,10 @@
           </table>
         </template>
       </jb-collapse-item>
-      <jb-collapse-item v-if="isShowServerFile" :active="activeResult" name="server">
+      <jb-collapse-item
+        v-if="isShowServerFile"
+        :active="activeResult"
+        name="server">
         <span class="collapse-title">{{ $t('template.已选择') }}<span class="number">{{ serverFileCount }}</span>{{ $t('template.个服务器文件') }}</span>
         <template #content>
           <table class="file-table">
@@ -61,7 +74,11 @@
                 :key="index"
                 :class="checkRowClass(row)">
                 <td>
-                  <div v-bk-tooltips="row.fileLocationText" class="file-path-text">{{ row.fileLocationText }}</div>
+                  <div
+                    v-bk-tooltips="row.fileLocationText"
+                    class="file-path-text">
+                    {{ row.fileLocationText }}
+                  </div>
                 </td>
                 <td :class="checkDiffClass(row, 'host')">
                   <file-source-server
@@ -81,14 +98,19 @@
 </template>
 <script>
   import _ from 'lodash';
-  import SourceFileVO from '@domain/variable-object/source-file';
-  import JbCollapseItem from '@components/jb-collapse-item';
+
   import {
     findParent,
   } from '@utils/vdom';
+
+  import JbCollapseItem from '@components/jb-collapse-item';
+
+  import SourceFileVO from '@domain/variable-object/source-file';
+
   import {
     findStep,
   } from '../../common/utils';
+
   import FileSourceServer from './file-source-server';
 
   export default {
@@ -111,7 +133,7 @@
         default: () => [],
       },
     },
-    data () {
+    data() {
       return {
         activeResult: [
           'local',
@@ -126,29 +148,29 @@
       };
     },
     computed: {
-      isShowLocalFile () {
+      isShowLocalFile() {
         return this.localFileList.length > 0;
       },
-      isShowServerFile () {
+      isShowServerFile() {
         return this.serverFileList.length > 0;
       },
     },
-    created () {
+    created() {
       this.preServerList = [];
       this.lastServerList = [];
       this.checkDiff();
     },
     methods: {
-      generatorAccountAlias (accountId) {
+      generatorAccountAlias(accountId) {
         const account = this.account.find(_ => _.id === accountId);
         if (!account) {
           return '';
         }
         return account.alias;
       },
-      checkDiff () {
+      checkDiff() {
         const dataSourceParent = findParent(this, 'SyncPlanStep2');
-                
+
         const currentPlanStep = findStep(dataSourceParent.planStepList, this.id);
         const currentTemplateStep = findStep(dataSourceParent.templateStepList, this.id);
 
@@ -188,7 +210,7 @@
           this.localFileCount = planLocalFileList.length;
           this.serverFileCount = planServerFileList.length;
         }
-                
+
         // 如果步骤是新建步骤，不需要执行diff过程
         if (!dataSourceParent.stepDiff[this.id]
           || (dataSourceParent.stepDiff[this.id]
@@ -200,7 +222,7 @@
           this.serverFileDiff = Object.freeze({});
           return;
         }
-                
+
         const patchServerFile = (pre, last) => {
           const keys = [
             'host',
@@ -324,7 +346,7 @@
           insertServereIndex += 1;
           serverFileList.splice(insertServereIndex, 0, deleteServerFile);
         }
-                
+
         // 同步后的服务器文件展示列表
         this.lastServerList = serverFileList;
         if (stepParent.type === 'sync-after') {
@@ -390,7 +412,7 @@
         }
         this.preServerList = preServerFileList;
       },
-      checkRowClass (row) {
+      checkRowClass(row) {
         if (!this.serverFileDiff[row.realId]) {
           return '';
         }
@@ -399,7 +421,7 @@
         }
         return this.serverFileDiff[row.realId].type;
       },
-      checkDiffClass (row, key) {
+      checkDiffClass(row, key) {
         if (!this.serverFileDiff[row.realId]) {
           return '';
         }
