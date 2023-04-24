@@ -127,7 +127,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
       ],
     },
     {
-      path: '/api_(execute|plan)/:id+',
+      path: '/api_(execute|execute_step|plan)/:id+',
       component: {
         render () {
           return this._e(); // eslint-disable-line no-underscore-dangle
