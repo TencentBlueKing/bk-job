@@ -237,7 +237,8 @@
                 if (model === 'debugScript') {
                     const debugScriptContent = debugScriptCache.getItem();
                     if (debugScriptContent) {
-                        this.formData.content = debugScriptContent;
+                        this.formData.scriptLanguage = debugScriptContent.type;
+                        this.formData.content = debugScriptContent.content;
                     }
                     return;
                 }
