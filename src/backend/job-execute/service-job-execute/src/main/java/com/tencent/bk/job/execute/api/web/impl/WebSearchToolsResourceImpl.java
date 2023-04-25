@@ -167,18 +167,17 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         taskLinkVO.setRetryCount(retryCount);
         taskLinkVO.setBatch(batch);
         taskLinkVO.setGseTaskId(gseTaskId);
-        taskLinkVO.setLink(buildLink(taskLinkVO));
+        taskLinkVO.setLink(buildLink(taskLinkVO, stepInstanceBase));
         return taskLinkVO;
     }
 
     /**
      * 拼接链接地址
      */
-    private List<String> buildLink(TaskLinkVO taskLinkVO) {
+    private List<String> buildLink(TaskLinkVO taskLinkVO, StepInstanceBaseDTO stepInstanceBase) {
         List<String> links = new ArrayList();
         String linkTemplate = FAST_LINK;
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getStepInstanceBase(taskLinkVO.getStepInstanceId());
-        if(stepInstance.getStepId() != -1L){
+        if(stepInstanceBase.getStepId() != -1L){
             linkTemplate = TASK_LINK;
         }
         if (jobWebUrl.indexOf(",") != -1) {
