@@ -42,9 +42,14 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     private String jobWebUrl;
 
     /**
-     * 链接地址
+     * 快速执行链接地址
      */
-    private final static String linkTemplate = "%s/api_execute/%s?stepInstanceId=%s&retryCount=%s&batch=%s";
+    private final static String FAST_LINK = "%s/api_execute/%s?stepInstanceId=%s&retryCount=%s&batch=%s";
+
+    /**
+     * 作业执行链接地址
+     */
+    private final static String TASK_LINK = "%s/api_execute_step/%s/%s?retryCount=%s&batch=%s";
 
     @Autowired
     public WebSearchToolsResourceImpl(StepInstanceService stepInstanceService,
@@ -171,6 +176,11 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
      */
     private List<String> buildLink(TaskLinkVO taskLinkVO) {
         List<String> links = new ArrayList();
+        String linkTemplate = FAST_LINK;
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getStepInstanceBase(taskLinkVO.getStepInstanceId());
+        if(stepInstance.getStepId() != -1L){
+            linkTemplate = TASK_LINK;
+        }
         if (jobWebUrl.indexOf(",") != -1) {
             String[] jobWebUrls = jobWebUrl.split(",");
             for (String webUrl : jobWebUrls) {
