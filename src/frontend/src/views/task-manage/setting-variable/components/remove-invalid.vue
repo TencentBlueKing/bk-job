@@ -110,7 +110,7 @@
         this.$emit('change');
         this.isButtonDisable = true;
         this.tooltops.disabled = !this.isButtonDisable;
-        messageSuccess('template.操作成功');
+        messageSuccess(I18n.t('template.操作成功'));
       },
     },
   };
