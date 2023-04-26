@@ -59,24 +59,24 @@
 
       if (seriesType === 'bar') {
         return `
-                    <tr>
-                        <td style="padding-right: 24px; vertical-align: middle;">
-                            <span style="display: inline-block; width: 8px; height: 8px; background: ${color}"></span>
-                            <span>${seriesName}</span>
-                        </td>
-                        <td style="text-align: right">${value}</td>
-                    </tr>
-                `;
+          <tr>
+            <td style="padding-right: 24px; color: #fff; vertical-align: middle;">
+              <span style="display: inline-block; width: 8px; height: 8px; background: ${color}"></span>
+              <span>${seriesName}</span>
+            </td>
+            <td style="text-align: right">${value}</td>
+          </tr>
+        `;
       } if (seriesType === 'line') {
         return `
-                    <tr>
-                        <td style="padding-right: 24px; vertical-align: middle;">
-                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${color}"></span>
-                            <span>${seriesName}</span>
-                        </td>
-                        <td style="text-align: right">${value}</td>
-                    </tr>
-                `;
+          <tr>
+            <td style="padding-right: 24px; color: #fff; vertical-align: middle;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${color}"></span>
+              <span>${seriesName}</span>
+            </td>
+            <td style="text-align: right">${value}</td>
+          </tr>
+        `;
       }
     };
     let paramsArr = [];
@@ -191,6 +191,10 @@
             trigger: 'item',
             backgroundColor: 'rgba(0,0,0,0.8)',
             formatter: tooltipFormatter,
+            borderColor: 'transparent',
+            textStyle: {
+              color: '#fff',
+            },
           },
           grid: {
             top: 45,
@@ -224,7 +228,7 @@
             nameTextStyle: {
               color: '#63656E',
             },
-            nameGap: 50,
+            nameGap: 40,
             axisLine: {
               show: false,
             },
