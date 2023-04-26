@@ -14,6 +14,7 @@
 
   import AppManageService from '@service/app-manage';
 
+  import { messageSuccess } from '@/common/bkmagic';
   import I18n from '@/i18n';
 
   export default {
@@ -106,7 +107,10 @@
           });
       },
       handleRemoveAllInvalidHost() {
-        this.$emits('change');
+        this.$emit('change');
+        this.isButtonDisable = true;
+        this.tooltops.disabled = !this.isButtonDisable;
+        messageSuccess('template.操作成功');
       },
     },
   };

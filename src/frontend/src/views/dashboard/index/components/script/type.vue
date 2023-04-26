@@ -152,34 +152,34 @@
                 '80',
               ],
               selectedMode: 'single',
-              hoverOffset: 8,
               selectedOffset: 0,
               avoidLabelOverlap: false,
+              label: {
+                show: false,
+                position: 'center',
+              },
               emphasis: {
                 label: {
-                  show: false,
-                  position: 'center',
-                  emphasis: {
-                    show: true,
-                    formatter: [
-                      '{value|{d}%}',
-                      '{b}',
-                    ].join('\n'),
-                    rich: {
-                      name: {
-                        fontSize: 12,
-                        lineHieght: 16,
-                        color: '#63656E',
-                      },
-                      value: {
-                        fontSize: 26,
-                        fontWeight: 600,
-                        lineHeight: 42,
-                        color: '#63656E',
-                      },
+                  show: true,
+                  formatter: [
+                    '{value|{d}%}',
+                    '{b}',
+                  ].join('\n'),
+                  rich: {
+                    name: {
+                      fontSize: 12,
+                      lineHieght: 16,
+                      color: '#63656E',
+                    },
+                    value: {
+                      fontSize: 26,
+                      fontWeight: 600,
+                      lineHeight: 42,
+                      color: '#63656E',
                     },
                   },
                 },
+                scale: 8,
               },
               data,
             },

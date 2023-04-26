@@ -147,7 +147,6 @@
                 '80',
               ],
               selectedMode: 'single',
-              hoverOffset: 8,
               selectedOffset: 0,
               avoidLabelOverlap: false,
               label: {
@@ -176,6 +175,7 @@
                     },
                   },
                 },
+                scale: 8,
               },
               data,
             },
