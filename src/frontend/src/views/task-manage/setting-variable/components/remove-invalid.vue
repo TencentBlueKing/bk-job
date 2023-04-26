@@ -14,6 +14,7 @@
 
   import HostManageService from '@service/host-manage';
 
+  import { messageSuccess } from '@/common/bkmagic';
   import I18n from '@/i18n';
 
   export default {
@@ -108,6 +109,9 @@
       },
       handleRemoveAllInvalidHost() {
         this.$emit('change');
+        this.isButtonDisable = true;
+        this.tooltops.disabled = !this.isButtonDisable;
+        messageSuccess('template.操作成功');
       },
     },
   };
