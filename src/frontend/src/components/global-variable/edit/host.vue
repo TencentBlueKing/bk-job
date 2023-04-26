@@ -47,6 +47,7 @@
         </bk-button>
       </div>
       <ip-selector
+        ref="ipSelector"
         :original-value="originalHostNodeInfo"
         :show-dialog="isShowChooseIp"
         show-view
@@ -131,7 +132,7 @@
        */
       removeAllInvalidHost() {
         window.changeFlag = true;
-        this.$refs.choostIP.removeAllInvalidHost();
+        this.$refs.ipSelector.removeInvalidData();
       },
       /**
        * @desc 编辑主机列表
