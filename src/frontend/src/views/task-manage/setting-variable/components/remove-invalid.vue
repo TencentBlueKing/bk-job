@@ -107,7 +107,7 @@
           });
       },
       handleRemoveAllInvalidHost() {
-        this.$emits('change');
+        this.$emit('change');
       },
     },
   };
