@@ -33,7 +33,7 @@
     <div class="layout-left">
       <scroll-faker>
         <div
-          v-for="cronJobItem in timeTaskList"
+          v-for="cronJobItem in localCronJobList"
           :key="cronJobItem.id"
           class="cron-job-tab"
           :class="{ active: cronJobItem.id === currentTaskId }">
@@ -93,7 +93,7 @@
   </div>
 </template>
 <script>
-  import TimeTaskService from '@service/time-task';
+  import CronJobService from '@service/cron-job';
 
   import ScrollFaker from '@components/scroll-faker';
 
@@ -131,13 +131,13 @@
       return {
         isLoading: true,
         isEmpty: false,
-        timeTaskList: [],
+        localCronJobList: [],
         currentTaskId: 0,
       };
     },
     computed: {
       detailInfo() {
-        return this.timeTaskList.find(item => item.id === this.currentTaskId) || {};
+        return this.localCronJobList.find(item => item.id === this.currentTaskId) || {};
       },
     },
     created() {
@@ -148,19 +148,19 @@
     methods: {
       fetchTimeTaskList() {
         if (this.cronJobList.length > 0) {
-          this.timeTaskList = this.cronJobList;
+          this.localCronJobList = this.cronJobList;
           this.currentTaskId = this.cronJobList[0].id;
           return;
         }
         this.isLoading = true;
-        TimeTaskService.fetchTaskOfPlan({
+        CronJobService.fetchTaskOfPlan({
           id: this.planId,
         }).then((data) => {
           if (data.length < 1) {
             this.isEmpty = true;
             return;
           }
-          this.timeTaskList = data.map(item => generatorData(item));
+          this.localCronJobList = data.map(item => generatorData(item));
           if (data.length > 0) {
             this.currentTaskId = data[0].id;
           }
@@ -170,7 +170,7 @@
           });
       },
       trigger() {
-        const cronJob = this.timeTaskList.reduce((result, item) => {
+        const cronJob = this.localCronJobList.reduce((result, item) => {
           // 关闭的定时任务传全局变量
           result.push({
             ...item,
@@ -184,19 +184,19 @@
         this.currentTaskId = id;
       },
       handleEnableChange(id, enable) {
-        const timeTask = this.timeTaskList.find(item => item.id === id);
+        const timeTask = this.localCronJobList.find(item => item.id === id);
         timeTask.enable = enable;
         timeTask.hasConfirm = false;
         this.trigger();
       },
       handleVariableChange(payload) {
-        const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
+        const timeTask = this.localCronJobList.find(item => item.id === this.currentTaskId);
         timeTask.variableValue = Object.freeze(payload);
         timeTask.hasConfirm = true;
         this.trigger();
       },
       handleUpdateConfirm(payload) {
-        const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
+        const timeTask = this.localCronJobList.find(item => item.id === this.currentTaskId);
         timeTask.hasConfirm = payload;
         this.trigger();
       },

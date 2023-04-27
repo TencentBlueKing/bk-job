@@ -124,7 +124,7 @@
 </template>
 <script>
   import TaskManageService from '@service/task-manage';
-  import ExecPlanService from '@service/task-plan';
+  import TaskPlanService from '@service/task-plan';
 
   import {
     checkIllegalHostFromVariableStep,
@@ -220,7 +220,7 @@
             trigger: 'blur',
           },
           {
-            validator: name => ExecPlanService.planCheckName({
+            validator: name => TaskPlanService.planCheckName({
               templateId: this.formData.templateId,
               planId: this.formData.id,
               name,
@@ -347,7 +347,7 @@
         Promise.all([
           this.$refs.titleForm.validate(),
           this.$refs.createPlanForm.validate(),
-        ]).then(() => ExecPlanService.planUpdate(this.formData)
+        ]).then(() => TaskPlanService.create(this.formData)
           .then((data) => {
             window.changeFlag = false;
             this.$bkMessage({
