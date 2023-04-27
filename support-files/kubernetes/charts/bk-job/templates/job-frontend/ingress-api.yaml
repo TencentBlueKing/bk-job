@@ -28,6 +28,9 @@ spec:
           - path: "/api/.*"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
+          - path: "/iam/.*"
+            pathType: ImplementationSpecific
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
           - path: "/job-.*"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
