@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.globalsetting;
 
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
+import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import org.jooq.DSLContext;
 
 import java.util.List;
@@ -47,4 +48,6 @@ public interface DangerousRuleDAO {
     int getMaxPriority(DSLContext dslContext);
 
     int getMinPriority(DSLContext dslContext);
+
+    List<DangerousRuleDTO> listDangerousRules(DSLContext dslContext, DangerousRuleQuery query);
 }
