@@ -369,6 +369,9 @@ public class AccountDAOImpl implements AccountDAO {
         if (StringUtils.isNotBlank(accountQuery.getLastModifyUser())) {
             conditions.add(TB_ACCOUNT.LAST_MODIFY_USER.like("%" + accountQuery.getLastModifyUser() + "%"));
         }
+        if (StringUtils.isNotBlank(accountQuery.getRemark())) {
+            conditions.add(TB_ACCOUNT.REMARK.like("%" + accountQuery.getRemark() + "%"));
+        }
         conditions.add(TB_ACCOUNT.APP_ID.eq(accountQuery.getAppId()));
         conditions.add(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)));
 
@@ -385,6 +388,7 @@ public class AccountDAOImpl implements AccountDAO {
             condition.or(TB_ACCOUNT.ALIAS.like(likeKeyword));
             condition.or(TB_ACCOUNT.CREATOR.like(likeKeyword));
             condition.or(TB_ACCOUNT.LAST_MODIFY_USER.like(likeKeyword));
+            condition.or(TB_ACCOUNT.REMARK.like(likeKeyword));
             conditions.add(condition);
         }
         conditions.add(TB_ACCOUNT.APP_ID.eq(appId));
