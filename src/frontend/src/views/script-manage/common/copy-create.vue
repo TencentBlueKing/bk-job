@@ -308,7 +308,7 @@
         this.$refs.form.validate()
           .then(() => scriptErrorConfirm())
           .then(() => {
-            this.scriptManageServiceHandler.scriptUpdate({
+            this.scriptManageServiceHandler.createVersion({
               ...this.formData,
             }).then((data) => {
               window.changeFlag = false;

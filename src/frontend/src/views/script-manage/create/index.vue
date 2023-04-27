@@ -233,7 +233,7 @@
         this.isSbumiting = true;
         this.$refs.form.validate()
           .then(scriptErrorConfirm)
-          .then(() => this.serviceHandler.scriptUpdate(this.formData)
+          .then(() => this.serviceHandler.scriptCreate(this.formData)
             .then((data) => {
               window.changeFlag = false;
               this.messageSuccess(I18n.t('script.操作成功'), () => {

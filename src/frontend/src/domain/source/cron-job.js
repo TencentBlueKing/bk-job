@@ -27,16 +27,24 @@ import Request from '@utils/request';
 
 import ModuleBase from './module-base';
 
-class TimeTask extends ModuleBase {
+class CronJob extends ModuleBase {
   constructor() {
     super();
     this.module = '/job-crontab/web';
   }
 
+  create(params = {}) {
+    return Request.post(`${this.path}/cron/job`, { params });
+  }
+
   // 新增/更新定时任务
   update(params) {
-    const { id } = params;
-    return Request.put(`${this.path}/cron/job/${id}`, { params });
+    const realParams = { ...params };
+    delete realParams.id;
+
+    return Request.put(`${this.path}/cron/job/${params.id}`, {
+      params: realParams,
+    });
   }
 
   // 获取定时任务信息
@@ -109,4 +117,4 @@ class TimeTask extends ModuleBase {
   }
 }
 
-export default new TimeTask();
+export default new CronJob();

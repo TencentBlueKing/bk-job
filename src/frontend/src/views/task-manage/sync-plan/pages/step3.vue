@@ -34,7 +34,7 @@
       <div class="layout-left">
         <scroll-faker>
           <div
-            v-for="timeTask in timeTaskList"
+            v-for="timeTask in cronJobList"
             :key="timeTask.id"
             class="job-tab"
             :class="{ active: timeTask.id === currentTaskId }"
@@ -87,8 +87,8 @@
   </layout>
 </template>
 <script>
+  import CronJobService from '@service/cron-job';
   import TaskPlanService from '@service/task-plan';
-  import TimeTaskService from '@service/time-task';
 
   import {
     leaveConfirm,
@@ -126,35 +126,35 @@
       return {
         isLoading: true,
         isEmpty: false,
-        timeTaskList: [],
+        cronJobList: [],
         currentTaskId: 0,
       };
     },
     computed: {
       detailInfo() {
-        return this.timeTaskList.find(item => item.id === this.currentTaskId) || {};
+        return this.cronJobList.find(item => item.id === this.currentTaskId) || {};
       },
     },
     created() {
       this.id = this.$route.params.id;
       this.templateId = this.$route.params.templateId;
       this.templateVariableList = this.templateInfo.variables;
-      this.fetchTimeTaskList();
+      this.fetchCronJobList();
     },
     methods: {
       /**
        * @desc 获取执行方案关联的定时任务列表
        */
-      fetchTimeTaskList() {
+      fetchCronJobList() {
         this.isLoading = true;
-        TimeTaskService.fetchTaskOfPlan({
+        CronJobService.fetchTaskOfPlan({
           id: this.id,
         }).then((data) => {
           if (data.length < 1) {
             this.isEmpty = true;
             return;
           }
-          this.timeTaskList = data.map(item => generatorData(item));
+          this.cronJobList = data.map(item => generatorData(item));
           if (data.length > 0) {
             this.currentTaskId = data[0].id;
           }
@@ -176,7 +176,7 @@
        * @param {Boolean} enable 开启状态
        */
       handleEnableChange(id, enable) {
-        const timeTask = this.timeTaskList.find(item => item.id === id);
+        const timeTask = this.cronJobList.find(item => item.id === id);
         timeTask.enable = enable;
         window.changeFlag = true;
       },
@@ -185,7 +185,7 @@
        * @param {Array} variableValue 定时任务中全局变量
        */
       handleVariableChange(variableValue) {
-        const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
+        const timeTask = this.cronJobList.find(item => item.id === this.currentTaskId);
         timeTask.variableValue = variableValue;
         timeTask.hasConfirm = true;
         window.changeFlag = true;
@@ -195,7 +195,7 @@
        * @param {Boolean} comfirm 定时任务的确认状态
        */
       handleUpdateConfirm(comfirm) {
-        const timeTask = this.timeTaskList.find(item => item.id === this.currentTaskId);
+        const timeTask = this.cronJobList.find(item => item.id === this.currentTaskId);
         timeTask.hasConfirm = comfirm;
         window.changeFlag = true;
       },
@@ -203,7 +203,7 @@
        * @desc 提交定时任务的确认操作
        */
       handleSubmit() {
-        const hasAllConfirm = this.timeTaskList.filter(item => item.enable).every(item => item.hasConfirm);
+        const hasAllConfirm = this.cronJobList.filter(item => item.enable).every(item => item.hasConfirm);
         if (!hasAllConfirm) {
           this.messageWarn(I18n.t('template.有定时任务还未确认'));
           return;
@@ -212,8 +212,8 @@
           planId: this.id,
           templateId: this.templateId,
           templateVersion: this.templateInfo.version,
-        }).then(() => TimeTaskService.updatePlanTask({
-          cronJobInfoList: this.timeTaskList,
+        }).then(() => CronJobService.updatePlanTask({
+          cronJobInfoList: this.cronJobList,
         }), () => {
           this.messageError(I18n.t('template.执行方案同步失败'));
         })

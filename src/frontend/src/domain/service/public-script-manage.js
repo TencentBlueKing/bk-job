@@ -32,7 +32,7 @@ import ScriptSyncModel from '@model/script/script-sync';
 import PublicScriptManageSource from '../source/public-script-manage';
 
 export default {
-  scriptcreate(params) {
+  scriptCreate(params) {
     return PublicScriptManageSource.create(params)
       .then(({ data }) => data);
   },
@@ -58,8 +58,8 @@ export default {
     return PublicScriptManageSource.getAllVersion(params)
       .then(({ data }) => data.map(script => Object.freeze(new ScriptModel(script))));
   },
-  scriptUpdate(params) {
-    return PublicScriptManageSource.update(params)
+  scriptVersionUpdate(params) {
+    return PublicScriptManageSource.versionUpdate(params)
       .then(({ data }) => data);
   },
   scriptUpdateMeta(params) {
@@ -68,6 +68,10 @@ export default {
   },
   scriptDelete(params) {
     return PublicScriptManageSource.deleteById(params)
+      .then(({ data }) => data);
+  },
+  createVersion(params) {
+    return PublicScriptManageSource.createVersion(params)
       .then(({ data }) => data);
   },
   versionDetail(params) {

@@ -26,22 +26,27 @@
 /* eslint-disable no-param-reassign */
 import CrontabModel from '@model/crontab/crontab';
 
+import CronJobSource from '../source/cron-job';
 import TaskPlanSource from '../source/task-plan';
-import TimeTaskSource from '../source/time-task';
 
 export default {
-  timeTaskUpdate(params = {}) {
-    return TimeTaskSource.update(params);
+  create(params) {
+    return CronJobSource.create(params)
+      .then(({ data }) => data);
+  },
+  update(params = {}) {
+    return CronJobSource.update(params)
+      .then(({ data }) => data);
   },
   getDetail(params = {}, payload) {
-    return TimeTaskSource.getDataById(params, payload)
+    return CronJobSource.getDataById(params, payload)
       .then(({ data }) => new CrontabModel(data));
   },
-  timeTaskDelete(params = {}) {
-    return TimeTaskSource.deleteDataById(params);
+  remove(params = {}) {
+    return CronJobSource.deleteDataById(params);
   },
-  timeTaskList(params, payload) {
-    return TimeTaskSource.getAll(params, payload)
+  fetchList(params, payload) {
+    return CronJobSource.getAll(params, payload)
       .then(({ data }) => {
         data.data = data.data.map(item => new CrontabModel(item));
 
@@ -63,7 +68,7 @@ export default {
               return data;
             });
           // 获取定时任务的执行成功率信息
-          TimeTaskSource.getStatictis({
+          CronJobSource.getStatictis({
             cronJobIds: cronJobList.map(item => item.id).join(','),
           }).then((data) => {
             const statictisMap = data.data.reduce((result, item) => {
@@ -89,27 +94,27 @@ export default {
         return data;
       });
   },
-  timeTaskStatusUpdate(params = {}) {
-    return TimeTaskSource.updateStatus(params);
+  updateStatus(params = {}) {
+    return CronJobSource.updateStatus(params);
   },
-  timeTaskCheckName(params = {}) {
-    return TimeTaskSource.getCheckResult(params)
+  checkName(params = {}) {
+    return CronJobSource.getCheckResult(params)
       .then(({ data }) => data);
   },
   updatePlanTask(params = {}) {
-    return TimeTaskSource.updateVariableAndEnable(params)
+    return CronJobSource.updateVariableAndEnable(params)
       .then(({ data }) => data);
   },
   fetchTaskOfPlan(params = {}) {
-    return TimeTaskSource.getDataByPlanId(params)
+    return CronJobSource.getDataByPlanId(params)
       .then(({ data }) => data.map(item => new CrontabModel(item)));
   },
   fetchTaskOfPlanBatch(params = {}) {
-    return TimeTaskSource.getDataByPlanIds(params)
+    return CronJobSource.getDataByPlanIds(params)
       .then(({ data }) => data);
   },
   fetchUnlaunchHistory(params) {
-    return TimeTaskSource.getUnlaunchHistory(params)
+    return CronJobSource.getUnlaunchHistory(params)
       .then(({ data }) => data);
   },
 };
