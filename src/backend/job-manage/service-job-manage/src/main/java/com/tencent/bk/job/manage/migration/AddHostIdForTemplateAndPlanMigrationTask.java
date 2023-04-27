@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import com.tencent.bk.job.manage.service.host.HostService;
@@ -125,13 +126,22 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     public void addIpAndHostIdMappings(Collection<TaskTargetDTO> targets) {
         Set<String> notCachedCloudIps = new HashSet<>();
-        targets.forEach(target ->
-            target.getHostNodeList().getHostList().forEach(host -> {
+        for (TaskTargetDTO target : targets) {
+            TaskHostNodeDTO hostNodeList = target.getHostNodeList();
+            if (hostNodeList == null) {
+                continue;
+            }
+            List<ApplicationHostDTO> hostList = hostNodeList.getHostList();
+            if (CollectionUtils.isEmpty(hostList)) {
+                continue;
+            }
+            hostList.forEach(host -> {
                 String cloudIp = host.getCloudIp();
                 if (ipAndHostIdMapping.get(cloudIp) == null) {
                     notCachedCloudIps.add(cloudIp);
                 }
-            }));
+            });
+        }
 
         if (CollectionUtils.isNotEmpty(notCachedCloudIps)) {
             try {
