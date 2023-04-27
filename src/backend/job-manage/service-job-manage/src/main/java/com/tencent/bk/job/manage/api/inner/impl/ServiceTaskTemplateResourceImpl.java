@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
@@ -251,6 +252,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
                 TaskTargetDTO target = varTargetMap.get(taskVariableDTO.getId());
                 if (target != null) {
                     if (addHostIdService.fillHostId(target)) {
+                        taskVariableDTO.setDefaultValue(JsonUtils.toJson(target));
                         count += 1;
                     }
                 }
