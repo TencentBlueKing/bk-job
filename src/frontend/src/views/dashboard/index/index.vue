@@ -104,9 +104,7 @@
             <div class="section-title">
               {{ $t('dashboard.执行类') }}
             </div>
-            <div class="section-content">
-              <execute-dashboard :date="date" />
-            </div>
+            <execute-dashboard :date="date" />
           </div>
         </lower-component>
       </div>
@@ -199,120 +197,119 @@
   };
 </script>
 <style lang='postcss' scoped>
-  .dashboard-page {
-    .operation-bar {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      height: 56px;
-      padding: 0 24px;
-      background: #fff;
-      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+    .dashboard-page {
+      min-width: max-content;
 
-      .app-select {
+      .operation-bar {
+        position: relative;
+        z-index: 1;
         display: flex;
         align-items: center;
+        height: 56px;
+        padding: 0 24px;
+        background: #fff;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
 
-        .app-list {
-          width: 360px;
-          background: #f0f1f5;
-          border: none;
-        }
-
-        .app-action-btn {
+        .app-select {
           display: flex;
-          width: 30px;
-          height: 30px;
-          margin-left: 10px;
-          font-size: 14px;
-          color: #979ba5;
-          cursor: pointer;
-          background: #f0f1f5;
-          border-radius: 2px;
           align-items: center;
-          justify-content: center;
-        }
-      }
 
-      .date-setting {
-        display: flex;
-        align-items: center;
-        margin-left: auto;
-
-        .date-info {
-          font-size: 12px;
-          color: #c4c6cc;
-          transform-origin: right center;
-          transform: scale(0.85);
-        }
-
-        .date-picker {
-          width: 180px;
-          margin-left: 16px;
-
-          .bk-date-picker-rel .bk-date-picker-editor {
+          .app-list {
+            width: 360px;
             background: #f0f1f5;
-            border-color: transparent;
+            border: none;
+          }
+
+          .app-action-btn {
+            display: flex;
+            width: 30px;
+            height: 30px;
+            margin-left: 10px;
+            font-size: 14px;
+            color: #979ba5;
+            cursor: pointer;
+            background: #f0f1f5;
+            border-radius: 2px;
+            align-items: center;
+            justify-content: center;
           }
         }
-      }
-    }
 
-    .dashboard-container {
-      .dashboard-wraper {
-        padding: 20px 24px;
-      }
-    }
-
-    .section-block {
-      display: flex;
-      flex-direction: column;
-
-      &:nth-child(n + 2) {
-        padding-top: 30px;
-      }
-
-      .section-title {
-        margin-bottom: 16px;
-        font-size: 16px;
-        line-height: 24px;
-        color: #313238;
-      }
-
-      .section-content {
-        display: flex;
-
-        .content-left,
-        .content-center,
-        .content-right {
+        .date-setting {
           display: flex;
-          background: #fff;
-          box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+          align-items: center;
+          margin-left: auto;
 
-          & > * {
-            flex: 1;
+          .date-info {
+            font-size: 12px;
+            color: #c4c6cc;
+            transform-origin: right center;
+            transform: scale(0.85);
+          }
+
+          .date-picker {
+            width: 180px;
+            margin-left: 16px;
+
+            .bk-date-picker-rel .bk-date-picker-editor {
+              background: #f0f1f5;
+              border-color: transparent;
+            }
           }
         }
+      }
 
-        .content-left {
-          flex: 0 0 auto;
+      .dashboard-container {
+        .dashboard-wraper {
+          padding: 20px 24px;
+        }
+      }
+
+      .section-block {
+        &:nth-child(n + 2) {
+          padding-top: 30px;
         }
 
-        .content-center {
-          flex: 1 0 auto;
-          margin-left: 20px;
+        .section-title {
+          margin-bottom: 16px;
+          font-size: 16px;
+          line-height: 24px;
+          color: #313238;
+        }
 
-          & ~ .content-right {
-            flex: 0;
+        .section-content {
+          display: flex;
+
+          .content-left,
+          .content-center,
+          .content-right {
+            display: flex;
+            background: #fff;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 10%);
+
+            & > * {
+              flex: 1;
+            }
           }
-        }
 
-        .content-right {
-          flex: 1 1 auto;
-          margin-left: 20px;
+          .content-left {
+            flex: 0 0 auto;
+          }
+
+          .content-center {
+            flex: 1 0 auto;
+            margin-left: 20px;
+
+            & ~ .content-right {
+              flex: 0;
+            }
+          }
+
+          .content-right {
+            flex: 1 1 auto;
+            margin-left: 20px;
+          }
         }
       }
     }
-  }
 </style>
