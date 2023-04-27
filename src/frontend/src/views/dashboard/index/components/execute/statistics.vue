@@ -266,6 +266,10 @@
                 type: 'solid',
               },
             },
+            borderColor: 'transparent',
+            textStyle: {
+              color: '#fff',
+            },
             formatter: tooltipFormatter,
             backgroundColor: 'rgba(0,0,0,0.8)',
           },
