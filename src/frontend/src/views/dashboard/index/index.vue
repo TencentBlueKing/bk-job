@@ -104,9 +104,7 @@
             <div class="section-title">
               {{ $t('dashboard.执行类') }}
             </div>
-            <div class="section-content">
-              <execute-dashboard :date="date" />
-            </div>
+            <execute-dashboard :date="date" />
           </div>
         </lower-component>
       </div>
@@ -200,6 +198,8 @@
 </script>
 <style lang='postcss' scoped>
     .dashboard-page {
+      min-width: max-content;
+
       .operation-bar {
         position: relative;
         z-index: 1;
@@ -266,9 +266,6 @@
       }
 
       .section-block {
-        display: flex;
-        flex-direction: column;
-
         &:nth-child(n + 2) {
           padding-top: 30px;
         }
