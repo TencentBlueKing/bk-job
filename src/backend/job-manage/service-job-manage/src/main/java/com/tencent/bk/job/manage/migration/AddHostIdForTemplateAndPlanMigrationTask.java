@@ -123,7 +123,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
     }
 
-    private void addIpAndHostIdMappings(Collection<TaskTargetDTO> targets) {
+    public void addIpAndHostIdMappings(Collection<TaskTargetDTO> targets) {
         Set<String> notCachedCloudIps = new HashSet<>();
         targets.forEach(target ->
             target.getHostNodeList().getHostList().forEach(host -> {
@@ -163,7 +163,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         return hostId != null && (hostId > 0 || hostId == NOT_EXIST_HOST_ID);
     }
 
-    private boolean fillHostId(TaskTargetDTO target) {
+    public boolean fillHostId(TaskTargetDTO target) {
         boolean success = true;
         for (ApplicationHostDTO host : target.getHostNodeList().getHostList()) {
             String cloudIp = host.getCloudIp();

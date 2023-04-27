@@ -149,7 +149,7 @@ public class HostInfoVO {
     }
 
     public boolean validate(boolean isCreate) {
-        if (hostId == null || hostId <= 0) {
+        if (!JobContextUtil.isAllowMigration() && (hostId == null || hostId <= 0)) {
             JobContextUtil.addDebugMessage("Missing host_id!");
             return false;
         }
