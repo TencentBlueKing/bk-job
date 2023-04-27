@@ -104,9 +104,7 @@
             <div class="section-title">
               {{ $t('dashboard.执行类') }}
             </div>
-            <div class="section-content">
-              <execute-dashboard :date="date" />
-            </div>
+            <execute-dashboard :date="date" />
           </div>
         </lower-component>
       </div>
