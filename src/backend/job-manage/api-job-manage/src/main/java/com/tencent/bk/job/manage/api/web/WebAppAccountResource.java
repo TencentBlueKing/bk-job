@@ -132,6 +132,9 @@ public interface WebAppAccountResource {
         @ApiParam("更新人：模糊搜索")
         @RequestParam(value = "lastModifyUser", required = false)
             String lastModifyUser,
+        @ApiParam("描述：模糊搜索")
+        @RequestParam(value = "remark", required = false)
+            String remark,
         @ApiParam("分页-开始")
         @RequestParam(value = "start", required = false)
             Integer start,
