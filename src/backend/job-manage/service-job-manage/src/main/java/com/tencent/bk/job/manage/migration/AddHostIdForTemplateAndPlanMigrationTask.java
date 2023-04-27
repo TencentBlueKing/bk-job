@@ -175,7 +175,11 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     public boolean fillHostId(TaskTargetDTO target) {
         boolean success = true;
-        for (ApplicationHostDTO host : target.getHostNodeList().getHostList()) {
+        TaskHostNodeDTO hostNodeList = target.getHostNodeList();
+        if (hostNodeList == null) {
+            return false;
+        }
+        for (ApplicationHostDTO host : hostNodeList.getHostList()) {
             String cloudIp = host.getCloudIp();
             Long hostId = ipAndHostIdMapping.get(cloudIp);
             if (hostId != null) {
