@@ -237,7 +237,9 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
                 }
             } else if (type == TaskStepTypeEnum.FILE) {
                 TaskTargetDTO destinationHostList = step.getFileStepInfo().getDestinationHostList();
-                targetList.add(destinationHostList);
+                if (addHostIdService.fillHostId(destinationHostList)) {
+                    count += 1;
+                }
                 List<TaskFileInfoDTO> originFileList = step.getFileStepInfo().getOriginFileList();
                 for (TaskFileInfoDTO originFile : originFileList) {
                     TaskTargetDTO host = originFile.getHost();
