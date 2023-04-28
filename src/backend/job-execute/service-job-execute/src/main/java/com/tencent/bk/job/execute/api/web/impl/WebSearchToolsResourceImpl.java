@@ -44,12 +44,12 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     /**
      * 快速执行链接地址
      */
-    private final static String FAST_LINK = "%s/api_execute/%s?stepInstanceId=%s&retryCount=%s&batch=%s";
+    private static final String FAST_LINK = "%s/api_execute/%s?stepInstanceId=%s&retryCount=%s&batch=%s";
 
     /**
      * 作业执行链接地址
      */
-    private final static String TASK_LINK = "%s/api_execute_step/%s/%s?retryCount=%s&batch=%s";
+    private static final String TASK_LINK = "%s/api_execute_step/%s/%s?retryCount=%s&batch=%s";
 
     @Autowired
     public WebSearchToolsResourceImpl(StepInstanceService stepInstanceService,
