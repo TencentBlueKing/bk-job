@@ -350,27 +350,27 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                     });
                 });
                 log.info("[CompatibleProtocolBeforeV2] Init destSrcMap: {}", destSrcMap);
-                String destPath = content.getStandardDestFilePath();
-                Map<String, JobFile> srcIpAndSrcFile = destSrcMap.get(destPath);
-                if (srcIpAndSrcFile == null) {
-                    log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {}. ", destPath);
-                    return;
-                }
-                String srcAgentId = content.getSourceAgentId();
-                String srcIp = IpUtils.extractIp(srcAgentId);
-                JobFile srcFile = srcIpAndSrcFile.get(srcIp);
-                if (srcFile == null) {
-                    log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {} and srcIp: {}. ",
-                        destPath, srcIp);
-                    return;
-                }
-                content.setSourceAgentId(srcFile.getHost().toCloudIp());
-                content.setSourceFileDir(srcFile.getDir());
-                content.setSourceFileName(srcFile.getFileName());
-                // 重置
-                content.setStandardSourceFilePath(null);
-                content.setTaskId(null);
             }
+            String destPath = content.getStandardDestFilePath();
+            Map<String, JobFile> srcIpAndSrcFile = destSrcMap.get(destPath);
+            if (srcIpAndSrcFile == null) {
+                log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {}. ", destPath);
+                return;
+            }
+            String srcAgentId = content.getSourceAgentId();
+            String srcIp = IpUtils.extractIp(srcAgentId);
+            JobFile srcFile = srcIpAndSrcFile.get(srcIp);
+            if (srcFile == null) {
+                log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {} and srcIp: {}. ",
+                    destPath, srcIp);
+                return;
+            }
+            content.setSourceAgentId(srcFile.getHost().toCloudIp());
+            content.setSourceFileDir(srcFile.getDir());
+            content.setSourceFileName(srcFile.getFileName());
+            // 重置
+            content.setStandardSourceFilePath(null);
+            content.setTaskId(null);
         }
     }
 
