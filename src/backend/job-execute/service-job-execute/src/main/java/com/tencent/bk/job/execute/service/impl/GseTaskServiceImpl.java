@@ -26,10 +26,13 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -60,5 +63,17 @@ public class GseTaskServiceImpl implements GseTaskService {
     @Override
     public GseTaskDTO getGseTask(long gseTaskId) {
         return gseTaskDAO.getGseTask(gseTaskId);
+    }
+
+    @Override
+    public GseTaskSimpleDTO getGseTaskSimpleInfo(String gseTaskId) {
+        return gseTaskDAO.getGseTaskSimpleInfo(gseTaskId);
+    }
+
+    @Override
+    public List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId,
+                                                        Integer executeCount,
+                                                        Integer batch) {
+        return gseTaskDAO.ListGseTaskSimpleInfo(stepInstanceId, executeCount, batch);
     }
 }
