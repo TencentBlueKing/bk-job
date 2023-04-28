@@ -53,4 +53,11 @@ public interface RollingConfigService {
     RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
 
     RollingConfigDTO getRollingConfig(long rollingConfigId);
+
+    /**
+     * 任务是否启用了滚动执行
+     * @param taskInstanceId 任务id
+     * @return boolean true启用，false未启用
+     */
+    boolean isTaskRollingEnabled(long taskInstanceId);
 }
