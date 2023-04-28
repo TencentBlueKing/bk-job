@@ -85,5 +85,11 @@ public interface StepInstanceService {
     <K> Map<K, HostDTO> computeStepHosts(long stepInstanceId,
                                          Function<? super HostDTO, K> keyMapper);
 
-
+    /**
+     * 获取步骤实例
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 步骤实例
+     */
+    StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId);
 }
