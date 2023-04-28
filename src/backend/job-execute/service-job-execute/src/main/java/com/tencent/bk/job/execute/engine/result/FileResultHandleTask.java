@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
@@ -127,6 +128,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private final Map<String, Integer> processMap = new HashMap<>();
 
     private final Map<JobFile, FileDest> srcDestFileMap;
+
+    // @tmp 兼容gse agent < 1.7.2 之前的版本， Map<目标路径, Map<源IP,源文件>>
+    private Map<String, Map<String, JobFile>> destSrcMap = null;
+
     /**
      * 源文件
      */
@@ -275,7 +280,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         StopWatch watch = new StopWatch("analyse-gse-file-task");
         watch.start("analyse");
         for (AtomicFileTaskResult result : taskDetail.getResult().getAtomicFileTaskResults()) {
-
+            compatibleProtocolBeforeV2(result.getContent());
             if (!shouldAnalyse(result)) {
                 continue;
             }
@@ -321,6 +326,47 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             log.info("Analyse file gse task is slow, statistics: {}", watch.prettyPrint());
         }
         return analyseExecuteResult();
+    }
+
+    private void compatibleProtocolBeforeV2(AtomicFileTaskResultContent content) {
+        if (content == null) {
+            return;
+        }
+        if (content.isBeforeV2() && content.isDownloadMode()) {
+            // 老版本协议(协议版本<2.0，gse agent 版本 < 1.7.2),下载任务结果存在问题（没有源主机云区域ID、没有源文件路径), 需要根据任务上下文补充
+            if (destSrcMap == null) {
+                destSrcMap = new HashMap<>();
+                srcDestFileMap.forEach((jobFile, fileDest) ->
+                    destSrcMap.compute(fileDest.getDestPath(), (destPath, map) -> {
+                        if (map == null) {
+                            map = new HashMap<>();
+                        }
+                        if (StringUtils.isNotBlank(jobFile.getHost().getIp())) {
+                            map.put(jobFile.getHost().getIp(), jobFile);
+                        }
+                        return map;
+                    }));
+                log.info("Init destSrcMap: {}", destSrcMap);
+            }
+            String destPath = content.getStandardDestFilePath();
+            Map<String, JobFile> srcIpAndSrcFile = destSrcMap.get(destPath);
+            if (srcIpAndSrcFile == null) {
+                log.error("Can not get srcFile by destPath: {}. ", destPath);
+                return;
+            }
+            String srcAgentId = content.getSourceAgentId();
+            String srcIp = IpUtils.extractIp(srcAgentId);
+            JobFile srcFile = srcIpAndSrcFile.get(srcIp);
+            if (srcFile == null) {
+                log.error("Can not get srcFile by destPath: {} and srcIp: {}. ", destPath, srcIp);
+                return;
+            }
+            content.setSourceAgentId(srcFile.getHost().toCloudIp());
+            content.setSourceFileDir(srcFile.getDir());
+            content.setSourceFileName(srcFile.getFileName());
+            // 重置
+            content.setStandardSourceFilePath(null);
+        }
     }
 
     private void analyseFileResult(String agentId,
