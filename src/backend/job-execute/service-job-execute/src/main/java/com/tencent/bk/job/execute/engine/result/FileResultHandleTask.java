@@ -35,6 +35,9 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContextBuilder;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
@@ -63,6 +66,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -130,7 +134,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private final Map<JobFile, FileDest> srcDestFileMap;
 
     // @tmp 兼容gse agent < 1.7.2 之前的版本， Map<目标路径, Map<源IP,源文件>>
-    private Map<String, Map<String, JobFile>> destSrcMap = null;
+    private Map<String, Map<String, JobFile>> compatibleDestSrcMap = null;
 
     /**
      * 源文件
@@ -332,14 +336,15 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         if (content == null) {
             return;
         }
-        if (content.isApiProtocolBeforeV2() && content.isDownloadMode()) {
-            // 老版本协议(协议版本<2.0，gse agent 版本 < 1.7.2),下载任务结果存在问题（没有源主机云区域ID、没有源文件路径), 需要根据任务上下文补充
-            if (destSrcMap == null) {
-                destSrcMap = new HashMap<>();
+        if (content.isApiProtocolBeforeV2() && content.isDownloadMode() && isSupportProtocolBeforeV2()) {
+            // 老版本协议(协议版本<2.0，gse agent 版本 < 1.7.2),下载任务结果存在问题（没有源主机云区域ID、没有源文件路径), 需要根据任务上下文推测并补充
+            if (compatibleDestSrcMap == null) {
+                compatibleDestSrcMap = new HashMap<>();
                 srcDestFileMap.forEach((jobFile, fileDest) -> {
-                    // GSE BUG, 如果是目录分发，那么只会返回目标目录的上一级
+                    // GSE BUG, 如果是目录分发，那么下载结果中只会返回目标目录的上一级
+                    // 例如：download:-1:-1:/tmp/test/:0:127.0.0.1， 表示从源分发一个目录到目标/tmp/test/目录下
                     String destPath = jobFile.isDir() ? fileDest.getDestDirPath() : fileDest.getDestPath();
-                    destSrcMap.compute(destPath, (dest, map) -> {
+                    compatibleDestSrcMap.compute(destPath, (dest, map) -> {
                         if (map == null) {
                             map = new HashMap<>();
                         }
@@ -349,15 +354,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                         return map;
                     });
                 });
-                log.info("[CompatibleProtocolBeforeV2] Init destSrcMap: {}", destSrcMap);
+                log.info("[CompatibleProtocolBeforeV2] Init destSrcMap: {}", compatibleDestSrcMap);
             }
             String destPath = content.getStandardDestFilePath();
-            Map<String, JobFile> srcIpAndSrcFile = destSrcMap.get(destPath);
+            Map<String, JobFile> srcIpAndSrcFile = compatibleDestSrcMap.get(destPath);
             if (srcIpAndSrcFile == null) {
                 log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {}. ", destPath);
                 return;
             }
             String srcAgentId = content.getSourceAgentId();
+            // 源主机没有包含云区域信息，需要处理
             String srcIp = IpUtils.extractIp(srcAgentId);
             JobFile srcFile = srcIpAndSrcFile.get(srcIp);
             if (srcFile == null) {
@@ -372,6 +378,15 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             content.setStandardSourceFilePath(null);
             content.setTaskId(null);
         }
+    }
+
+    private boolean isSupportProtocolBeforeV2() {
+        return FeatureToggle.checkFeature(
+            FeatureIdConstants.GSE_FILE_PROTOCOL_BEFORE_V2,
+            FeatureExecutionContextBuilder.builder()
+                .resourceScope(GlobalAppScopeMappingService.get().getScopeByAppId(appId))
+                .build()
+        );
     }
 
     private void analyseFileResult(String agentId,
