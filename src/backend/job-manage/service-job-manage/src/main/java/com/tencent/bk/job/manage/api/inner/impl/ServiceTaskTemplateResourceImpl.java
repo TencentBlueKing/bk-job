@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -180,7 +181,10 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
                 finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
             return InternalResponse.buildSuccessResp(finalTemplateId);
         } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{
+                "body",
+                StringUtil.concatCollection(JobContextUtil.getDebugMessage())
+            });
         }
     }
 
