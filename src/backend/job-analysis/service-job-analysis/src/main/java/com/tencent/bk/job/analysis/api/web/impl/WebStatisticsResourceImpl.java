@@ -41,6 +41,7 @@ import com.tencent.bk.job.analysis.service.CommonStatisticService;
 import com.tencent.bk.job.analysis.service.ExecutedTaskStatisticService;
 import com.tencent.bk.job.analysis.service.FastFileStatisticService;
 import com.tencent.bk.job.analysis.service.FastScriptStatisticService;
+import com.tencent.bk.job.analysis.service.RollingTaskStatisticService;
 import com.tencent.bk.job.analysis.service.TagStatisticService;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -70,6 +71,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
 
     private final AppStatisticService appStatisticService;
     private final ExecutedTaskStatisticService executedTaskStatisticService;
+    private final RollingTaskStatisticService rollingTaskStatisticService;
     private final FastScriptStatisticService fastScriptStatisticService;
     private final FastFileStatisticService fastFileStatisticService;
     private final TagStatisticService tagStatisticService;
@@ -81,6 +83,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     @Autowired
     public WebStatisticsResourceImpl(AppStatisticService appStatisticService,
                                      ExecutedTaskStatisticService executedTaskStatisticService,
+                                     RollingTaskStatisticService rollingTaskStatisticService,
                                      FastScriptStatisticService fastScriptStatisticService,
                                      FastFileStatisticService fastFileStatisticService,
                                      TagStatisticService tagStatisticService,
@@ -90,6 +93,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
                                      AppScopeMappingService appScopeMappingService) {
         this.appStatisticService = appStatisticService;
         this.executedTaskStatisticService = executedTaskStatisticService;
+        this.rollingTaskStatisticService = rollingTaskStatisticService;
         this.fastScriptStatisticService = fastScriptStatisticService;
         this.fastFileStatisticService = fastFileStatisticService;
         this.tagStatisticService = tagStatisticService;
@@ -242,6 +246,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         return executedTaskStatisticService.getByTimeConsumingDayDetail(appIdList, startDate, endDate);
     }
 
+    private List<DayDistributionElementVO> rollingTaskByTaskTypeDayDetail(String username, List<Long> appIdList,
+                                                                          String startDate, String endDate) {
+        return rollingTaskStatisticService.rollingTaskByTaskTypeDayDetail(appIdList, startDate, endDate);
+    }
+
     private List<DayDistributionElementVO> fastScriptByScriptTypeDayDetail(String username,
                                                                            List<Long> appIdList,
                                                                            String startDate,
@@ -278,6 +287,8 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
         } else if (ResourceEnum.EXECUTED_TASK == resource && DimensionEnum.TASK_TIME_CONSUMING == dimension) {
             dayDistributionElementVOList = executedTaskByTimeConsumingDayDetail(username, appIdList, startDate,
                 endDate);
+        } else if (ResourceEnum.EXECUTED_ROLLING_TASK == resource && DimensionEnum.TASK_TYPE == dimension) {
+            dayDistributionElementVOList = rollingTaskByTaskTypeDayDetail(username, appIdList, startDate, endDate);
         } else if (ResourceEnum.EXECUTED_FAST_SCRIPT == resource && DimensionEnum.SCRIPT_TYPE == dimension) {
             dayDistributionElementVOList = fastScriptByScriptTypeDayDetail(username, appIdList, startDate, endDate);
         } else if (ResourceEnum.EXECUTED_FAST_FILE == resource && DimensionEnum.FILE_TRANSFER_MODE == dimension) {
