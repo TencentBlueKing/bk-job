@@ -332,12 +332,14 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         if (content == null) {
             return;
         }
-        if (content.isBeforeV2() && content.isDownloadMode()) {
+        if (content.isApiProtocolBeforeV2() && content.isDownloadMode()) {
             // 老版本协议(协议版本<2.0，gse agent 版本 < 1.7.2),下载任务结果存在问题（没有源主机云区域ID、没有源文件路径), 需要根据任务上下文补充
             if (destSrcMap == null) {
                 destSrcMap = new HashMap<>();
-                srcDestFileMap.forEach((jobFile, fileDest) ->
-                    destSrcMap.compute(fileDest.getDestPath(), (destPath, map) -> {
+                srcDestFileMap.forEach((jobFile, fileDest) -> {
+                    // GSE BUG, 如果是目录分发，那么只会返回目标目录的上一级
+                    String destPath = jobFile.isDir() ? fileDest.getDestDirPath() : fileDest.getDestPath();
+                    destSrcMap.compute(destPath, (dest, map) -> {
                         if (map == null) {
                             map = new HashMap<>();
                         }
@@ -345,27 +347,30 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                             map.put(jobFile.getHost().getIp(), jobFile);
                         }
                         return map;
-                    }));
-                log.info("Init destSrcMap: {}", destSrcMap);
+                    });
+                });
+                log.info("[CompatibleProtocolBeforeV2] Init destSrcMap: {}", destSrcMap);
+                String destPath = content.getStandardDestFilePath();
+                Map<String, JobFile> srcIpAndSrcFile = destSrcMap.get(destPath);
+                if (srcIpAndSrcFile == null) {
+                    log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {}. ", destPath);
+                    return;
+                }
+                String srcAgentId = content.getSourceAgentId();
+                String srcIp = IpUtils.extractIp(srcAgentId);
+                JobFile srcFile = srcIpAndSrcFile.get(srcIp);
+                if (srcFile == null) {
+                    log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {} and srcIp: {}. ",
+                        destPath, srcIp);
+                    return;
+                }
+                content.setSourceAgentId(srcFile.getHost().toCloudIp());
+                content.setSourceFileDir(srcFile.getDir());
+                content.setSourceFileName(srcFile.getFileName());
+                // 重置
+                content.setStandardSourceFilePath(null);
+                content.setTaskId(null);
             }
-            String destPath = content.getStandardDestFilePath();
-            Map<String, JobFile> srcIpAndSrcFile = destSrcMap.get(destPath);
-            if (srcIpAndSrcFile == null) {
-                log.error("Can not get srcFile by destPath: {}. ", destPath);
-                return;
-            }
-            String srcAgentId = content.getSourceAgentId();
-            String srcIp = IpUtils.extractIp(srcAgentId);
-            JobFile srcFile = srcIpAndSrcFile.get(srcIp);
-            if (srcFile == null) {
-                log.error("Can not get srcFile by destPath: {} and srcIp: {}. ", destPath, srcIp);
-                return;
-            }
-            content.setSourceAgentId(srcFile.getHost().toCloudIp());
-            content.setSourceFileDir(srcFile.getDir());
-            content.setSourceFileName(srcFile.getFileName());
-            // 重置
-            content.setStandardSourceFilePath(null);
         }
     }
 
@@ -491,7 +496,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             // 源上传全部完成
             if (isAllSourceAgentTasksDone()) {
                 rst = analyseFinishedExecuteResult();
-                log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed tasks",
+                log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed " +
+                        "tasks",
                     this.stepInstanceId);
             } else {
                 // 场景：下载任务已全部结束，但是GSE未更新上传任务的状态。如果超过15s没有结束上传任务，那么任务结束
@@ -726,7 +732,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         if (isDownloadResult) {
             finishedNum = this.finishedDownloadFileMap.get(agentId) == null ? 0 :
                 this.finishedDownloadFileMap.get(agentId).size();
-            fileNum = this.fileDownloadTaskNumMap.get(agentId) == null ? 0 : this.fileDownloadTaskNumMap.get(agentId);
+            fileNum = this.fileDownloadTaskNumMap.get(agentId) == null ? 0 :
+                this.fileDownloadTaskNumMap.get(agentId);
             successNum = this.successDownloadFileMap.get(agentId) == null ? 0 :
                 this.successDownloadFileMap.get(agentId).size();
         } else {
@@ -763,7 +770,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      */
     private void dealUploadAgentFinished(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
         log.info("[{}]: Deal source agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
-            gseTask.getTaskUniqueName(), agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
+            gseTask.getTaskUniqueName(), agentId, startTime, endTime,
+            JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
         this.notFinishedSourceAgentIds.remove(agentId);
         this.analyseFinishedSourceAgentIds.add(agentId);
