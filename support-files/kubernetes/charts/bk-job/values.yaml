@@ -1208,8 +1208,10 @@ fileWorkerConfig:
   token: "testToken"
   # 所属业务Id
   appId: -1
+  # 启用的文件源类型，逗号分隔，当前支持的类型：BLUEKING_ARTIFACTORY（蓝鲸制品库）
+  enabledFileSourceTypes: BLUEKING_ARTIFACTORY
   # 能力标签
-  abilityTags: FILE_SOURCE_TYPE_CODE=TENCENT_CLOUD_COS
+  abilityTags: FILE_SOURCE_TYPE_CODE=BLUEKING_ARTIFACTORY
   # 外部如何访问file-worker相关配置
   access:
     # 端口号
