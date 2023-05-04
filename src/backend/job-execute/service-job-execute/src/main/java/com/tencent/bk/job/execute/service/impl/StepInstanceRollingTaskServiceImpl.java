@@ -113,4 +113,8 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
             endTime, totalTime);
     }
 
+    @Override
+    public List<StepInstanceRollingTaskDTO> listRollingTasksByStep(long stepInstanceId) {
+        return stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId, null, null);
+    }
 }

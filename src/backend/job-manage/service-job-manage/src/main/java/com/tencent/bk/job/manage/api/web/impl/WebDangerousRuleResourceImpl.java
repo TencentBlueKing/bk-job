@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.web.WebDangerousRuleResource;
+import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
@@ -47,8 +48,18 @@ public class WebDangerousRuleResourceImpl implements WebDangerousRuleResource {
     }
 
     @Override
-    public Response<List<DangerousRuleVO>> listDangerousRules(String username) {
-        return Response.buildSuccessResp(dangerousRuleService.listDangerousRules(username));
+    public Response<List<DangerousRuleVO>> listDangerousRules(String username,
+                                                              String expression,
+                                                              String description,
+                                                              List<Byte> scriptTypeList,
+                                                              List<Byte> action) {
+        DangerousRuleQuery query = DangerousRuleQuery.builder()
+            .expression(expression)
+            .description(description)
+            .scriptTypeList(scriptTypeList)
+            .action(action)
+            .build();
+        return Response.buildSuccessResp(dangerousRuleService.listDangerousRules(query));
     }
 
     @Override

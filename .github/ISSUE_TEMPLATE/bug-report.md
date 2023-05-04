@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Report a bug encountered while operating bk-job
-title: 'bugfix: '
+title: 'fix: '
 labels: kind/bug
 assignees: 'nekzhang'
 

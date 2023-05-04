@@ -22,17 +22,68 @@
  * IN THE SOFTWARE.
  */
 
-USE job_manage;
-TRUNCATE TABLE `dangerous_rule`;
-INSERT INTO `dangerous_rule` (expression, script_type, description, priority, creator, last_modify_user, create_time,
-                              last_modify_time, action, status)
-VALUES ('shell',1,'Shell-1',1,'test1','test1','1607439270294','1607439270294',0,1),
-       ('shell,bat,perl',7,'Shell-1,Bat-2,Perl-3',1,'test1','test1','1607439270294','1607439270294',1,1),
-       ('shell,bat',3,'Shell-1,Bat-2',1,'test1','test1','1607439270294','1607439270294',1,1),
-       ('shell,bat,perl,python',15,'Shell-1,Bat-2,Perl-3,Python-4',1,'test1','test1','1607439270294','1607439270294',1,1),
-       ('shell,bat,perl,python,powershell',31,'Shell-1,Bat-2,Perl-3,Python-4,Powershell-5',1,'test1','test1','1607439270294','1607439270294',0,1),
-       ('shell,bat,perl,python,powershell,sql',63,'Shell-1,Bat-2,Perl-3,Python-4,Powershell-5,SQL-6',1,'test1','test1','1607439270294','1607439270294',1,1),
-       ('sql',32,'SQL-6',1,'test1','test1','1607439270294','1607439270294',1,1),
-       ('shell,sql',33,'Shell-1,SQL-6',1,'test1','test1','1607439270294','1607439270294',1,1),
-       ('shell,python',9,'Shell-1,Python-4',1,'test1','test1','1607439270294','1607439270294',1,1),
-       ('python',8,'Python-4',1,'test1','test1','1607439270294','1607439270294',0,1);
+package com.tencent.bk.job.execute.model.web.vo;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+import java.util.List;
+
+@ApiModel("任务链接")
+@Data
+public class TaskLinkVO {
+    /**
+     * 资源范围类型
+     */
+    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    private String scopeType;
+
+    /**
+     * 资源范围ID
+     */
+    @ApiModelProperty("资源范围ID")
+    private String scopeId;
+
+    /**
+     * 业务ID
+     */
+    @ApiModelProperty("业务ID")
+    private Long appId;
+
+    /**
+     * 任务ID
+     */
+    @ApiModelProperty("任务ID")
+    private Long jobInstanceId;
+
+    /**
+     * 步骤ID
+     */
+    @ApiModelProperty("步骤ID")
+    private Long stepInstanceId;
+
+    /**
+     * 执行次数
+     */
+    @ApiModelProperty("重试次数")
+    private Integer retryCount;
+
+    /**
+     * 批次
+     */
+    @ApiModelProperty("批次")
+    private Integer batch;
+
+    /**
+     * gse任务ID
+     */
+    @ApiModelProperty("gse任务ID")
+    private String gseTaskId;
+
+    /**
+     * web访问链接
+     */
+    @ApiModelProperty("web访问链接")
+    private List<String> link;
+}
