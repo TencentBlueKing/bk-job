@@ -35,6 +35,10 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContextBuilder;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
@@ -62,6 +66,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -127,6 +132,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private final Map<String, Integer> processMap = new HashMap<>();
 
     private final Map<JobFile, FileDest> srcDestFileMap;
+
+    // @tmp 兼容gse agent < 1.7.2 之前的版本， Map<目标路径, Map<源IP,源文件>>
+    private Map<String, Map<String, JobFile>> compatibleDestSrcMap = null;
+
     /**
      * 源文件
      */
@@ -275,7 +284,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         StopWatch watch = new StopWatch("analyse-gse-file-task");
         watch.start("analyse");
         for (AtomicFileTaskResult result : taskDetail.getResult().getAtomicFileTaskResults()) {
-
+            compatibleProtocolBeforeV2(result.getContent());
             if (!shouldAnalyse(result)) {
                 continue;
             }
@@ -321,6 +330,63 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             log.info("Analyse file gse task is slow, statistics: {}", watch.prettyPrint());
         }
         return analyseExecuteResult();
+    }
+
+    private void compatibleProtocolBeforeV2(AtomicFileTaskResultContent content) {
+        if (content == null) {
+            return;
+        }
+        if (content.isApiProtocolBeforeV2() && content.isDownloadMode() && isSupportProtocolBeforeV2()) {
+            // 老版本协议(协议版本<2.0，gse agent 版本 < 1.7.2),下载任务结果存在问题（没有源主机云区域ID、没有源文件路径), 需要根据任务上下文推测并补充
+            if (compatibleDestSrcMap == null) {
+                compatibleDestSrcMap = new HashMap<>();
+                srcDestFileMap.forEach((jobFile, fileDest) -> {
+                    // GSE BUG, 如果是目录分发，那么下载结果中只会返回目标目录的上一级
+                    // 例如：download:-1:-1:/tmp/test/:0:127.0.0.1， 表示从源分发一个目录到目标/tmp/test/目录下
+                    String destPath = jobFile.isDir() ? fileDest.getDestDirPath() : fileDest.getDestPath();
+                    compatibleDestSrcMap.compute(destPath, (dest, map) -> {
+                        if (map == null) {
+                            map = new HashMap<>();
+                        }
+                        if (StringUtils.isNotBlank(jobFile.getHost().getIp())) {
+                            map.put(jobFile.getHost().getIp(), jobFile);
+                        }
+                        return map;
+                    });
+                });
+                log.info("[CompatibleProtocolBeforeV2] Init destSrcMap: {}", compatibleDestSrcMap);
+            }
+            String destPath = content.getStandardDestFilePath();
+            Map<String, JobFile> srcIpAndSrcFile = compatibleDestSrcMap.get(destPath);
+            if (srcIpAndSrcFile == null) {
+                log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {}. ", destPath);
+                return;
+            }
+            String srcAgentId = content.getSourceAgentId();
+            // 源主机没有包含云区域信息，需要处理
+            String srcIp = IpUtils.extractIp(srcAgentId);
+            JobFile srcFile = srcIpAndSrcFile.get(srcIp);
+            if (srcFile == null) {
+                log.error("[CompatibleProtocolBeforeV2] Can not get srcFile by destPath: {} and srcIp: {}. ",
+                    destPath, srcIp);
+                return;
+            }
+            content.setSourceAgentId(srcFile.getHost().toCloudIp());
+            content.setSourceFileDir(srcFile.getDir());
+            content.setSourceFileName(srcFile.getFileName());
+            // 重置
+            content.setStandardSourceFilePath(null);
+            content.setTaskId(null);
+        }
+    }
+
+    private boolean isSupportProtocolBeforeV2() {
+        return FeatureToggle.checkFeature(
+            FeatureIdConstants.GSE_FILE_PROTOCOL_BEFORE_V2,
+            FeatureExecutionContextBuilder.builder()
+                .resourceScope(GlobalAppScopeMappingService.get().getScopeByAppId(appId))
+                .build()
+        );
     }
 
     private void analyseFileResult(String agentId,
@@ -445,7 +511,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             // 源上传全部完成
             if (isAllSourceAgentTasksDone()) {
                 rst = analyseFinishedExecuteResult();
-                log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed tasks",
+                log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed " +
+                        "tasks",
                     this.stepInstanceId);
             } else {
                 // 场景：下载任务已全部结束，但是GSE未更新上传任务的状态。如果超过15s没有结束上传任务，那么任务结束
@@ -680,7 +747,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         if (isDownloadResult) {
             finishedNum = this.finishedDownloadFileMap.get(agentId) == null ? 0 :
                 this.finishedDownloadFileMap.get(agentId).size();
-            fileNum = this.fileDownloadTaskNumMap.get(agentId) == null ? 0 : this.fileDownloadTaskNumMap.get(agentId);
+            fileNum = this.fileDownloadTaskNumMap.get(agentId) == null ? 0 :
+                this.fileDownloadTaskNumMap.get(agentId);
             successNum = this.successDownloadFileMap.get(agentId) == null ? 0 :
                 this.successDownloadFileMap.get(agentId).size();
         } else {
@@ -717,7 +785,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      */
     private void dealUploadAgentFinished(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
         log.info("[{}]: Deal source agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
-            gseTask.getTaskUniqueName(), agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
+            gseTask.getTaskUniqueName(), agentId, startTime, endTime,
+            JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
         this.notFinishedSourceAgentIds.remove(agentId);
         this.analyseFinishedSourceAgentIds.add(agentId);

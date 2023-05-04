@@ -463,6 +463,7 @@ public class GseV1ApiClient implements IGseClient {
             content.setStatusInfo(fileTaskResult.getStatusDesc());
             content.setTaskId(fileTaskResult.getTaskId());
             content.setTaskType(fileTaskResult.getTaskType());
+            content.setProtocolVersion(fileTaskResult.getProtocolVersion());
             atomicFileTaskResult.setContent(content);
             atomicFileTaskResults.add(atomicFileTaskResult);
         }

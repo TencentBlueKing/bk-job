@@ -43,6 +43,7 @@ public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappin
 
     public AppScopeMappingServiceImpl(ServiceApplicationResource applicationResource) {
         this.applicationResource = applicationResource;
+        GlobalAppScopeMappingService.register(this);
     }
 
     @Override
