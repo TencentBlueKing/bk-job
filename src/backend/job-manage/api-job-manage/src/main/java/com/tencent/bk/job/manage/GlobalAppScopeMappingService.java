@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GlobalAppScopeMappingService {
-    private static AppScopeMappingService globalAppScopeMappingService;
+    private static volatile AppScopeMappingService globalAppScopeMappingService;
 
     private static final Object lock = new Object();
 
@@ -55,7 +55,7 @@ public class GlobalAppScopeMappingService {
     public static void register(AppScopeMappingService appScopeMappingService) {
         synchronized (lock) {
             if (globalAppScopeMappingService != null) {
-                log.info("AppScopeMappingService is alreay register");
+                log.info("AppScopeMappingService is already register");
                 return;
             }
             globalAppScopeMappingService = appScopeMappingService;
