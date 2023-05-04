@@ -84,7 +84,7 @@ class PublicScriptManage {
     delete realParams.id;
     delete realParams.scriptVersionId;
 
-    return Request.post(`${this.module}/script/${params.id}/scriptVersion/${params.scriptVersionId}`, {
+    return Request.put(`${this.module}/script/${params.id}/scriptVersion/${params.scriptVersionId}`, {
       params: realParams,
     });
   }
