@@ -354,7 +354,7 @@
               theme: 'success',
               message: I18n.t('template.操作成功'),
             });
-            this.$emit('on-create', data);
+            this.$emit('on-create', data.id);
           }))
           .finally(() => {
             this.submitLoading = false;

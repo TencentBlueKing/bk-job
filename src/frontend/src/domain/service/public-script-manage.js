@@ -32,7 +32,7 @@ import ScriptSyncModel from '@model/script/script-sync';
 import PublicScriptManageSource from '../source/public-script-manage';
 
 export default {
-  scriptcreate(params) {
+  scriptCreate(params) {
     return PublicScriptManageSource.create(params)
       .then(({ data }) => data);
   },
