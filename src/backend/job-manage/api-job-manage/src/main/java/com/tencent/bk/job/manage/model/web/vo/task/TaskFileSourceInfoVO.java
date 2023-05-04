@@ -81,7 +81,7 @@ public class TaskFileSourceInfoVO {
                 }
                 for (String file : fileLocation) {
                     if (StringUtils.isBlank(file)) {
-                        JobContextUtil.addDebugMessage("Invalid file location!");
+                        JobContextUtil.addDebugMessage("fileLocation is null or blank!");
                         return false;
                     }
                 }

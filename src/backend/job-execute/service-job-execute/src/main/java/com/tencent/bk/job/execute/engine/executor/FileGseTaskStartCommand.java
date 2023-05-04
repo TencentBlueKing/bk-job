@@ -106,7 +106,11 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     /**
      * 源文件与目标文件路径映射关系
      */
-    private Map<JobFile, FileDest> srcDestFileMap;
+    private final Map<JobFile, FileDest> srcDestFileMap = new HashMap<>();
+    /**
+     * 源文件与目标文件路径映射关系, 包含非法主机
+     */
+    private Map<JobFile, FileDest> allSrcDestFileMap;
 
 
     public FileGseTaskStartCommand(ResultHandleManager resultHandleManager,
@@ -179,8 +183,13 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         // 路径中变量解析与路径标准化预处理
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
         // 构造源路径与目标路径映射
-        srcDestFileMap = JobSrcFileUtils.buildSourceDestPathMapping(srcFiles, targetDir,
+        allSrcDestFileMap = JobSrcFileUtils.buildSourceDestPathMapping(allSrcFiles, targetDir,
             stepInstance.getFileTargetName());
+        allSrcDestFileMap.forEach((sreFile, destFile) -> {
+            if (isAgentInstalled(sreFile.getHost().getAgentId())) {
+                srcDestFileMap.put(sreFile, destFile);
+            }
+        });
     }
 
     /**
@@ -203,7 +212,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void parseSrcFiles() {
         allSrcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, fileStorageRootPath);
         srcFiles = allSrcFiles.stream()
-            .filter(file -> StringUtils.isNotEmpty(file.getHost().getAgentId()))
+            .filter(file -> isAgentInstalled(file.getHost().getAgentId()))
             .collect(Collectors.toSet());
         // 设置源文件所在主机账号信息
         setAccountInfoForSourceFiles(srcFiles);
@@ -418,7 +427,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
 
     private String getDestPath(JobFile sourceFile) {
-        return srcDestFileMap.get(sourceFile).getDestPath();
+        return allSrcDestFileMap.get(sourceFile).getDestPath();
     }
 
     @Override

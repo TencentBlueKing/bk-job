@@ -121,4 +121,9 @@ public class StepInstanceServiceImpl implements StepInstanceService {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         return computeStepHosts(stepInstance, keyMapper);
     }
+
+    @Override
+    public StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId) {
+        return stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+    }
 }

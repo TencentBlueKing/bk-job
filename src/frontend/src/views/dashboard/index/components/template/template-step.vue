@@ -92,7 +92,7 @@
   </card-layout>
 </template>
 <script>
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import _ from 'lodash';
 
   import StatisticsService from '@service/statistics';
@@ -175,12 +175,14 @@
               label: {
                 show: false,
               },
+              emphasis: {
+                scale: 6,
+              },
               selectedMode: 'single',
               radius: [
                 0,
                 '50px',
               ],
-              hoverOffset: 6,
               avoidLabelOverlap: false,
               data: [
                 {
@@ -212,11 +214,13 @@
               label: {
                 show: false,
               },
+              emphasis: {
+                scale: 6,
+              },
               radius: [
                 '60px',
                 '80px',
               ],
-              hoverOffset: 8,
               avoidLabelOverlap: false,
               data: [
                 {

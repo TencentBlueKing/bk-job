@@ -238,9 +238,10 @@
        * @param {String} lang 语言类型
        */
       handleToggleLang(lang) {
+        Cookie.remove('blueking_language', { path: '' });
         Cookie.set('blueking_language', lang, {
           expires: 3600,
-          domain: window.location.hostname.replace(/^[^.]+(.*)$/, '$1'),
+          domain: window.location.hostname.replace(/^.*(\.[^.]+\.[^.]+)$/, '$1'),
         });
         setLocale(lang);
       },

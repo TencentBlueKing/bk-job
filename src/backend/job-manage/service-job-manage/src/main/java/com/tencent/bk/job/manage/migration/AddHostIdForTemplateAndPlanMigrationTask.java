@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
 import com.tencent.bk.job.manage.service.host.HostService;
@@ -123,15 +124,24 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
     }
 
-    private void addIpAndHostIdMappings(Collection<TaskTargetDTO> targets) {
+    public void addIpAndHostIdMappings(Collection<TaskTargetDTO> targets) {
         Set<String> notCachedCloudIps = new HashSet<>();
-        targets.forEach(target ->
-            target.getHostNodeList().getHostList().forEach(host -> {
+        for (TaskTargetDTO target : targets) {
+            TaskHostNodeDTO hostNodeList = target.getHostNodeList();
+            if (hostNodeList == null) {
+                continue;
+            }
+            List<ApplicationHostDTO> hostList = hostNodeList.getHostList();
+            if (CollectionUtils.isEmpty(hostList)) {
+                continue;
+            }
+            hostList.forEach(host -> {
                 String cloudIp = host.getCloudIp();
                 if (ipAndHostIdMapping.get(cloudIp) == null) {
                     notCachedCloudIps.add(cloudIp);
                 }
-            }));
+            });
+        }
 
         if (CollectionUtils.isNotEmpty(notCachedCloudIps)) {
             try {
@@ -163,9 +173,17 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         return hostId != null && (hostId > 0 || hostId == NOT_EXIST_HOST_ID);
     }
 
-    private boolean fillHostId(TaskTargetDTO target) {
+    public boolean fillHostId(TaskTargetDTO target) {
         boolean success = true;
-        for (ApplicationHostDTO host : target.getHostNodeList().getHostList()) {
+        TaskHostNodeDTO hostNodeList = target.getHostNodeList();
+        if (hostNodeList == null) {
+            return false;
+        }
+        List<ApplicationHostDTO> hostList = hostNodeList.getHostList();
+        if (CollectionUtils.isEmpty(hostList)) {
+            return false;
+        }
+        for (ApplicationHostDTO host : hostList) {
             String cloudIp = host.getCloudIp();
             Long hostId = ipAndHostIdMapping.get(cloudIp);
             if (hostId != null) {

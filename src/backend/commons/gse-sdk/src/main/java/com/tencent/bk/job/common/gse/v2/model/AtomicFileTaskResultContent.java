@@ -102,6 +102,12 @@ public class AtomicFileTaskResultContent {
     @JsonProperty("end_time")
     private Long endTime;
 
+    /**
+     * GSE 协议版本(0 - 未知版本；1 - 初始版本 ; 2 - 解除valuekey依赖版本)
+     */
+    @JsonProperty("protover")
+    private Integer protocolVersion;
+
     // ------------------ 非协议字段 ----------------------
     /**
      * 用来表示文件任务ID
@@ -185,4 +191,11 @@ public class AtomicFileTaskResultContent {
         return sj.toString();
     }
 
+
+    /**
+     * 判断是否是协议2.0之前的版本。（该版本文件分发协议存在问题，需要兼容)
+     */
+    public boolean isApiProtocolBeforeV2() {
+        return this.protocolVersion == null || this.protocolVersion < 2;
+    }
 }

@@ -25,6 +25,9 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
+
+import java.util.List;
 
 /**
  * GSE 任务 Service
@@ -63,4 +66,24 @@ public interface GseTaskService {
      * @return GSE 任务
      */
     GseTaskDTO getGseTask(long gseTaskId);
+
+    /**
+     * 获取 GSE 任务
+     *
+     * @param gseTaskId GSE任务ID
+     * @return stepInstanceId
+     */
+    GseTaskSimpleDTO getGseTaskSimpleInfo(String gseTaskId);
+
+    /**
+     * 获取 GSE 任务列表
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount 执行次数
+     * @param batch 批次
+     * @return GSE 任务列表
+     */
+    List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId,
+                                                 Integer executeCount,
+                                                 Integer batch);
 }

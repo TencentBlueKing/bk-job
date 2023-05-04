@@ -25,11 +25,13 @@
 
 /* eslint-disable no-param-reassign */
 import DangerousRuleSource from '../source/dangerous-rule';
+import DangerousRuleModel from '@model/dangerous-rule';
+import I18n from '@/i18n';
 
 export default {
   fetchList(params = {}, payload = {}) {
     return DangerousRuleSource.getData(params, payload)
-      .then(({ data }) => data);
+      .then(({ data }) => data.map(item => new DangerousRuleModel(item)));
   },
   update(params) {
     return DangerousRuleSource.update(params)
@@ -42,5 +44,17 @@ export default {
   updateSort(params) {
     return DangerousRuleSource.move(params)
       .then(({ data }) => data);
+  },
+  fetchActionList () {
+    return Promise.resolve([
+      {
+        id: 1,
+        name: I18n.t('扫描'),
+      },
+      {
+        id: 2,
+        name: I18n.t('拦截'),
+      },
+    ]);
   },
 };

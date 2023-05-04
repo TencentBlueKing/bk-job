@@ -14,7 +14,7 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@blueking/ip-selector": "0.0.1-beta.83",
+    "@blueking/ip-selector": "0.0.1-beta.96",
     "@blueking/paas-login": "0.0.11",
     "@blueking/user-selector": "^1.0.7",
     "@vue/composition-api": "^1.5.0",
@@ -25,6 +25,7 @@
     "cron-parser-custom": "^2.13.0",
     "diff": "^5.0.0",
     "diff2html": "^3.4.4",
+    "echarts": "^5.4.2",
     "highlight.js": "^11.4.0",
     "html2canvas": "^1.4.0",
     "js-base64": "^3.6.1",

@@ -116,7 +116,7 @@ public class TaskFileStepVO {
             return false;
         }
         if (StringUtils.isBlank(fileDestination.getPath())) {
-            JobContextUtil.addDebugMessage("Empty destination location!");
+            JobContextUtil.addDebugMessage("fileDestinationPath is null or blank!");
             return false;
         }
         if (fileDestination.getAccount() == null || fileDestination.getAccount() <= 0) {

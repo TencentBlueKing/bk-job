@@ -48,7 +48,7 @@
   </card-layout>
 </template>
 <script>
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import _ from 'lodash';
 
   import StatisticsService from '@service/statistics';
@@ -165,15 +165,14 @@
                 '80',
               ],
               selectedMode: 'single',
-              hoverOffset: 8,
               selectedOffset: 0,
               avoidLabelOverlap: false,
               label: {
-                normal: {
-                  show: false,
-                  position: 'center',
-                },
-                emphasis: {
+                show: false,
+                position: 'center',
+              },
+              emphasis: {
+                label: {
                   show: true,
                   formatter: [
                     '{value|{d}%}',
@@ -194,8 +193,8 @@
                     },
                   },
                 },
+                scale: 8,
               },
-
               data,
             },
           ],

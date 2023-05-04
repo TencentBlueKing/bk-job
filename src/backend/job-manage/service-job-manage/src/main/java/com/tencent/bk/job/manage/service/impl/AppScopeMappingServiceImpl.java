@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.AbstractLocalCacheAppScopeMappingService;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappin
     @Autowired
     public AppScopeMappingServiceImpl(ApplicationService applicationService) {
         this.applicationService = applicationService;
+        GlobalAppScopeMappingService.register(this);
     }
 
     @Override

@@ -27,98 +27,122 @@
 
 <template>
   <div class="dangerous-rule-manage-page">
-    <table
-      v-test="{ type: 'list', value: 'dangerousRule' }"
-      class="rule-table">
-      <thead>
-        <tr>
-          <th style="width: 200px;">
-            {{ $t('dangerousRule.语法检测表达式') }}
-          </th>
-          <th>{{ $t('dangerousRule.规则说明') }}</th>
-          <th style="width: 300px;">
-            {{ $t('dangerousRule.脚本类型') }}
-          </th>
-          <th style="width: 300px;">
-            <span>{{ $t('dangerousRule.动作') }}</span>
-            <bk-popover placement="right">
-              <icon
-                class="action-tips"
-                type="info" />
-              <div slot="content">
-                <div>{{ $t('dangerousRule.【扫描】') }}</div>
-                <div>{{ $t('dangerousRule.命中规则的脚本执行任务仅会做记录，不会拦截') }}</div>
-                <div style="margin-top: 8px;">
-                  {{ $t('dangerousRule.【拦截】') }}
-                </div>
-                <div>{{ $t('dangerousRule.命中规则的脚本执行任务会被记录，并中止运行') }}</div>
-              </div>
-            </bk-popover>
-          </th>
-          <th style="width: 180px;">
-            {{ $t('dangerousRule.操作') }}
-            <icon
-              v-bk-tooltips="{
-                theme: 'dark',
-                content: $t('dangerousRule.规则的排序越靠前，表示检测优先级越高'),
-              }"
-              class="action-tips"
-              type="info" />
-          </th>
-        </tr>
-      </thead>
-      <table-action-row @on-change="handleAdd" />
-      <tbody
-        v-for="(rule, index) in list"
-        :key="rule.id">
-        <tr>
-          <td>
+    <list-action-layout>
+      <bk-button
+        class="w120"
+        theme="primary"
+        @click="handleCreate">
+        {{ $t('dangerousRule.新建') }}
+      </bk-button>
+      <template #right>
+        <jb-search-select
+          ref="search"
+          :data="searchSelect"
+          :placeholder="$t('dangerousRule.搜索语法检测表达式，规则说明，脚本类型...')"
+          style="width: 480px;"
+          @on-change="handleSearch" />
+      </template>
+    </list-action-layout>
+    <div v-bkloading="{ isLoading }">
+      <bk-table
+        ref="list"
+        :data="list">
+        <bk-table-column
+          :label="$t('dangerousRule.语法检测表达式.col')"
+          prop="expression">
+          <template slot-scope="{ row }">
             <jb-edit-input
               field="expression"
               mode="block"
-              :remote-hander="val => handleUpdate(rule, val)"
+              :remote-hander="val => handleUpdate(row, val)"
               :rules="formRules.expression"
-              :value="rule.expression" />
-          </td>
-          <td>
+              :value="row.expression" />
+          </template>
+        </bk-table-column>
+        <bk-table-column
+          :label="$t('dangerousRule.规则说明.col')"
+          prop="description">
+          <template slot-scope="{ row }">
             <jb-edit-input
               field="description"
               mode="block"
-              :remote-hander="val => handleUpdate(rule, val)"
+              :remote-hander="val => handleUpdate(row, val)"
               :rules="formRules.description"
-              :value="rule.description" />
-          </td>
-          <td>
+              :value="row.description" />
+          </template>
+        </bk-table-column>
+        <bk-table-column
+          :label="$t('dangerousRule.脚本类型.col')"
+          prop="scriptTypeList">
+          <template slot-scope="{ row }">
             <jb-edit-select
               field="scriptTypeList"
               :list="scriptTypeList"
               mode="block"
               multiple
-              :remote-hander="val => handleUpdate(rule, val)"
+              :remote-hander="val => handleUpdate(row, val)"
               :rules="formRules.scriptTypeList"
               show-select-all
-              :value="rule.scriptTypeList" />
-          </td>
-          <td>
+              :value="row.scriptTypeList" />
+          </template>
+        </bk-table-column>
+        <bk-table-column
+          :label="$t('dangerousRule.动作.col')"
+          prop="action"
+          :render-header="renderActionHead">
+          <template slot-scope="{ row }">
             <edit-action
-              :value="rule.action"
-              @on-change="action => handleUpdate(rule, { action })" />
-          </td>
-          <td>
+              :value="row.action"
+              @on-change="action => handleUpdate(row, { action })" />
+          </template>
+        </bk-table-column>
+        <bk-table-column
+          v-if="allRenderColumnMap.creator"
+          key="creator"
+          align="left"
+          :label="$t('dangerousRule.创建人')"
+          prop="creator"
+          width="120" />
+        <bk-table-column
+          v-if="allRenderColumnMap.createTime"
+          key="createTime"
+          align="left"
+          :label="$t('dangerousRule.创建时间')"
+          prop="createTime"
+          width="180" />
+        <bk-table-column
+          v-if="allRenderColumnMap.lastModifier"
+          key="lastModifier"
+          align="left"
+          :label="$t('dangerousRule.更新人')"
+          prop="lastModifier"
+          sortable="custom"
+          width="140" />
+        <bk-table-column
+          v-if="allRenderColumnMap.lastModifyTime"
+          key="lastModifyTime"
+          align="left"
+          :label="$t('dangerousRule.更新时间')"
+          prop="lastModifyTime"
+          width="180" />
+        <bk-table-column
+          :label="$t('dangerousRule.操作')"
+          :render-header="renderOperationHeader"
+          :width="150">
+          <template slot-scope="{ row, $index: index }">
             <div class="action-box">
               <bk-switcher
                 v-test="{ type: 'button', value: 'toggleRuleStatus' }"
-                class="mr10"
                 :false-value="0"
                 size="small"
                 theme="primary"
                 :true-value="1"
-                :value="rule.status"
-                @update="status => handleUpdate(rule, { status })" />
+                :value="row.status"
+                @update="status => handleUpdate(row, { status })" />
               <bk-button
                 v-bk-tooltips.top="$t('dangerousRule.上移')"
                 v-test="{ type: 'button', value: 'upMoveRule' }"
-                class="arrow-btn mr10"
+                class="arrow-btn ml10"
                 :disabled="index === 0"
                 text
                 @click="handleMove(index, -1)">
@@ -127,14 +151,15 @@
               <bk-button
                 v-bk-tooltips.top="$t('dangerousRule.下移')"
                 v-test="{ type: 'button', value: 'downMoveRule' }"
-                class="arrow-btn mr10"
+                class="arrow-btn"
                 :disabled="index + 1 === list.length"
                 text
                 @click="handleMove(index, 1)">
                 <icon type="decrease-line" />
               </bk-button>
               <jb-popover-confirm
-                :confirm-handler="() => handleDelete(rule.id)"
+                class="ml10"
+                :confirm-handler="() => handleDelete(row.id)"
                 :content="$t('dangerousRule.脚本编辑器中匹配该规则将不会再收到提醒')"
                 :title="$t('dangerousRule.确定删除该规则？')">
                 <bk-button
@@ -144,24 +169,43 @@
                 </bk-button>
               </jb-popover-confirm>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </template>
+        </bk-table-column>
+        <bk-table-column type="setting">
+          <bk-table-setting-content
+            :fields="tableColumn"
+            :selected="selectedTableColumn"
+            :size="tableSize"
+            @setting-change="handleSettingChange" />
+        </bk-table-column>
+      </bk-table>
+    </div>
+    <jb-sideslider
+      :is-show.sync="isShowOperation"
+      :title="$t('dangerousRule.新增检测规则')"
+      :width="650">
+      <add-rule @on-change="handleAddRuleChange" />
+    </jb-sideslider>
   </div>
 </template>
 <script>
   import DangerousRuleService from '@service/dangerous-rule';
   import PublicScriptManageService from '@service/public-script-manage';
 
+  import { listColumnsCache } from '@utils/cache-helper';
+
   import JbEditInput from '@components/jb-edit/input';
   import JbEditSelect from '@components/jb-edit/select';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
+  import JbSearchSelect from '@components/jb-search-select';
+  import ListActionLayout from '@components/list-action-layout';
 
+  import AddRule from './components/add-rule';
   import EditAction from './components/edit-action';
-  import TableActionRow from './components/table-action-row';
 
   import I18n from '@/i18n';
+
+  const TABLE_COLUMN_CACHE = 'accout_list_columns';
 
   export default {
     name: '',
@@ -169,25 +213,58 @@
       JbEditInput,
       JbEditSelect,
       JbPopoverConfirm,
-      TableActionRow,
       EditAction,
+      ListActionLayout,
+      AddRule,
+      JbSearchSelect,
     },
     data() {
       return {
         isLoading: true,
+        isShowOperation: false,
         list: [],
         scriptTypeList: [],
+        tableSize: 'small',
+        selectedTableColumn: [],
       };
     },
     computed: {
       isSkeletonLoading() {
-        return this.isLoading;
+        return this.$refs.list.isLoading;
+      },
+      allRenderColumnMap() {
+        return this.selectedTableColumn.reduce((result, item) => {
+          result[item.id] = true;
+          return result;
+        }, {});
       },
     },
     created() {
+      this.searchParams = {};
       this.editRule = {};
-      this.fetchData();
       this.fetchScriptType();
+
+      this.searchSelect = [
+        {
+          name: I18n.t('dangerousRule.语法检测表达式.col'),
+          id: 'expression',
+          default: true,
+        },
+        {
+          name: I18n.t('dangerousRule.规则说明.col'),
+          id: 'description',
+        },
+        {
+          name: I18n.t('dangerousRule.脚本类型.col'),
+          id: 'scriptTypeList',
+          remoteMethod: PublicScriptManageService.scriptTypeList,
+        },
+        {
+          name: I18n.t('dangerousRule.动作.col'),
+          id: 'action',
+          remoteMethod: DangerousRuleService.fetchActionList,
+        },
+      ];
 
       this.formRules = {
         expression: [
@@ -209,6 +286,58 @@
           },
         ],
       };
+
+      this.tableColumn = [
+        {
+          id: 'expression',
+          label: I18n.t('dangerousRule.语法检测表达式.col'),
+          disabled: true,
+        },
+        {
+          id: 'description',
+          label: I18n.t('dangerousRule.规则说明.col'),
+        },
+        {
+          id: 'scriptTypeList',
+          label: I18n.t('dangerousRule.脚本类型.col'),
+        },
+        {
+          id: 'action',
+          label: I18n.t('dangerousRule.动作.col'),
+          disabled: true,
+        },
+        {
+          id: 'creator',
+          label: I18n.t('dangerousRule.创建人'),
+        },
+        {
+          id: 'createTime',
+          label: I18n.t('dangerousRule.创建时间'),
+        },
+        {
+          id: 'lastModifier',
+          label: I18n.t('dangerousRule.更新人'),
+        },
+        {
+          id: 'lastModifyTime',
+          label: I18n.t('dangerousRule.更新时间'),
+        },
+      ];
+      const columnsCache = listColumnsCache.getItem(TABLE_COLUMN_CACHE);
+      if (columnsCache) {
+        this.selectedTableColumn = Object.freeze(columnsCache.columns);
+        this.tableSize = columnsCache.size;
+      } else {
+        this.selectedTableColumn = Object.freeze([
+          { id: 'expression' },
+          { id: 'description' },
+          { id: 'scriptTypeList' },
+          { id: 'action' },
+        ]);
+      }
+    },
+    mounted() {
+      this.fetchData();
     },
     methods: {
       /**
@@ -216,7 +345,9 @@
        */
       fetchData() {
         this.isLoading = true;
-        DangerousRuleService.fetchList({}, {
+        DangerousRuleService.fetchList({
+          ...this.searchParams,
+        }, {
           permission: 'page',
         })
           .then((data) => {
@@ -226,6 +357,53 @@
             this.isLoading = false;
           });
       },
+      renderActionHead(h, data) {
+        return (
+          <span>
+            <span>{ data.column.label }</span>
+            <bk-popover placement="top">
+              <icon
+                class="action-tips"
+                type="info" />
+              <div slot="content">
+                <div>{ I18n.t('dangerousRule.【扫描】') }</div>
+                <div>{ I18n.t('dangerousRule.命中规则的脚本执行任务仅会做记录，不会拦截') }</div>
+                <div style="margin-top: 8px;">
+                  { I18n.t('dangerousRule.【拦截】') }
+                </div>
+                <div>{ I18n.t('dangerousRule.命中规则的脚本执行任务会被记录，并中止运行') }</div>
+              </div>
+            </bk-popover>
+          </span>
+        );
+      },
+      renderOperationHeader(h, data) {
+        return (
+          <span>
+            <span>{ data.column.label }</span>
+            <bk-popover placement="top">
+              <icon
+                class="action-tips"
+                type="info" />
+                <div slot="content">
+                  <div>{ I18n.t('dangerousRule.规则的排序越靠前，表示检测优先级越高') }</div>
+                </div>
+            </bk-popover>
+          </span>
+        );
+      },
+      /**
+       * @desc 表格列自定义
+       * @param { Object } 列信息
+       */
+      handleSettingChange({ fields, size }) {
+        this.selectedTableColumn = Object.freeze(fields);
+        this.tableSize = size;
+        listColumnsCache.setItem(TABLE_COLUMN_CACHE, {
+          columns: fields,
+          size,
+        });
+      },
       /**
        * @desc 获取支持的脚本类型列表
        */
@@ -234,6 +412,13 @@
           .then((data) => {
             this.scriptTypeList = data;
           });
+      },
+      handleCreate() {
+        this.isShowOperation = true;
+      },
+      handleSearch(searchParams) {
+        this.searchParams = searchParams;
+        this.fetchData();
       },
       /**
        * @desc 更新脚本类型
@@ -278,7 +463,7 @@
       /**
        * @desc 添加一条高危语句
        */
-      handleAdd() {
+      handleAddRuleChange() {
         this.fetchData();
       },
       /**
@@ -321,51 +506,8 @@
   .dangerous-rule-manage-page {
     padding-bottom: 20px;
 
-    .rule-table {
-      width: 100%;
-      border: 1px solid #dcdee5;
-      border-radius: 2px;
-      table-layout: fixed;
-
-      th,
-      td {
-        height: 40px;
-        padding-right: 15px;
-        padding-left: 15px;
-        font-size: 12px;
-        color: #63656e;
-        text-align: left;
-        border-top: 1px solid #dcdee5;
-      }
-
-      th {
-        font-weight: normal;
-        color: #313238;
-        background: #fafbfd;
-      }
-
-      td {
-        background: #fff;
-      }
-
-      .bk-button-text {
-        font-size: 12px;
-
-        .icon-plus {
-          font-size: 18px;
-        }
-      }
-    }
-
-    .input {
-      width: 100%;
-
-      .bk-form-input {
-        height: 26px;
-      }
-    }
-
     .action-tips {
+      margin-left: 4px;
       color: #c4c6cc;
     }
 
@@ -378,26 +520,13 @@
       }
     }
 
-    .script-type-edit {
-      &.bk-select {
-        margin-left: -10px;
-        border-color: transparent;
+    .bk-table {
+      td {
+        background: #fff !important;
+      }
 
-        &.is-focus {
-          border-color: #3a84ff;
-        }
-
-        &:hover {
-          background: #f0f1f5;
-
-          .bk-select-angle {
-            display: block;
-          }
-        }
-
-        .bk-select-angle {
-          display: none;
-        }
+      .bk-select-angle {
+        display: none;
       }
     }
 

@@ -47,6 +47,7 @@
         </bk-button>
       </div>
       <ip-selector
+        ref="ipSelector"
         :original-value="originalHostNodeInfo"
         :show-dialog="isShowChooseIp"
         show-view
@@ -119,7 +120,7 @@
        * @desc 解析默认值
        */
       init() {
-        if (this.data.defaultTargetValue) {
+        if (!this.data.defaultTargetValue.isEmpty) {
           this.hostNodeInfo = this.data.defaultTargetValue.hostNodeInfo;
         } else {
           this.hostNodeInfo = this.data.targetValue.hostNodeInfo;
@@ -131,7 +132,7 @@
        */
       removeAllInvalidHost() {
         window.changeFlag = true;
-        this.$refs.choostIP.removeAllInvalidHost();
+        this.$refs.ipSelector.removeInvalidData();
       },
       /**
        * @desc 编辑主机列表

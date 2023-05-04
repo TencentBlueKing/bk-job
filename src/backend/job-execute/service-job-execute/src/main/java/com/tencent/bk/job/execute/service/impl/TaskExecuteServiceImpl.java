@@ -2138,29 +2138,52 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void checkConfirmUser(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance,
                                   String operator) throws ServiceException {
         // 人工确认步骤，需要判断操作者
+        // 判断指定确认人
         if (CollectionUtils.isNotEmpty(stepInstance.getConfirmUsers())
             && stepInstance.getConfirmUsers().contains(operator)) {
             return;
         }
 
-        Set<String> confirmUsers = new HashSet<>();
+        // 判断确认角色
         if (stepInstance.getConfirmRoles() != null && !stepInstance.getConfirmRoles().isEmpty()) {
-            if (stepInstance.getConfirmRoles().contains(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name())) {
-                confirmUsers.add(taskInstance.getOperator());
-            } else {
-                Set<String> roles = new HashSet<>(stepInstance.getConfirmRoles());
-                // JOB_RESOURCE_TRIGGER_USER should remove
-                roles.remove(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name());
-                InternalResponse<Set<String>> resp = userResource.getUsersByRoles(stepInstance.getAppId(), operator,
-                    ResourceTypeEnum.JOB.getType(), String.valueOf(taskInstance.getTaskId()), roles);
-                if (resp.isSuccess() && resp.getData() != null) {
-                    confirmUsers.addAll(resp.getData());
-                }
+            if (stepInstance.getConfirmRoles().contains(JobRoleEnum.JOB_RESOURCE_TRIGGER_USER.name())
+                && taskInstance.getOperator().equals(operator)) {
+                return;
+            }
+
+            Set<String> confirmCmdbRoleUsers = getCmdbRoleUsers(taskInstance.getAppId(), operator,
+                String.valueOf(taskInstance.getTaskId()), stepInstance.getConfirmRoles());
+            if (CollectionUtils.isEmpty(confirmCmdbRoleUsers) || !confirmCmdbRoleUsers.contains(operator)) {
+                log.warn("Confirm user is invalid, allowed confirmUsers: {}, confirmCmdbRoleUsers : {}, taskTrigger: " +
+                        "{}, operator: {}",
+                    stepInstance.getConfirmUsers(), confirmCmdbRoleUsers, taskInstance.getOperator(), operator);
+                throw new FailedPreconditionException(ErrorCode.NOT_IN_CONFIRM_USER_LIST);
             }
         }
-        if (confirmUsers.isEmpty() || !confirmUsers.contains(operator)) {
-            throw new FailedPreconditionException(ErrorCode.NOT_IN_CONFIRM_USER_LIST);
+
+    }
+
+    private Set<String> getCmdbRoleUsers(Long appId,
+                                         String operator,
+                                         String resourceId,
+                                         Collection<String> allRoles) {
+        Set<String> cmdbRoles = getCmdbRoles(allRoles);
+        Set<String> confirmRoleUsers = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(cmdbRoles)) {
+            InternalResponse<Set<String>> resp = userResource.getUsersByRoles(appId, operator,
+                ResourceTypeEnum.JOB.getType(), resourceId, cmdbRoles);
+            if (resp.isSuccess() && resp.getData() != null) {
+                confirmRoleUsers.addAll(resp.getData());
+            }
         }
+        return confirmRoleUsers;
+    }
+
+    private Set<String> getCmdbRoles(Collection<String> allRoles) {
+        // 不属于cmdb的角色，需要移除
+        return allRoles.stream()
+            .filter(role -> !JobRoleEnum.isJobRole(role))
+            .collect(Collectors.toSet());
     }
 
     private void confirmContinue(StepInstanceDTO stepInstance, String operator, String reason) {

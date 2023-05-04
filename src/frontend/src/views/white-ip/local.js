@@ -49,7 +49,7 @@ export default {
     新建成功: 'New Whitelist has been created.',
     全业务: 'All',
     更新人: 'LAST MODIFIED BY',
-    更新时间: 'LAST MODIFIED ON',
+    更新时间: 'LAST MODIFIED AT',
     目标业务: {
       label: 'Business',
       colHead: 'BUSINESS',
