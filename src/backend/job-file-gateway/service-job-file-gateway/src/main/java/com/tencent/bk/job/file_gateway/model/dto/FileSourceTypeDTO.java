@@ -61,6 +61,10 @@ public class FileSourceTypeDTO {
      */
     private String name;
     /**
+     * 文件源类型是否启用
+     */
+    private Boolean enabled;
+    /**
      * 文件源类型图标Base64编码
      */
     private String icon;

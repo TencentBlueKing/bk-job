@@ -51,3 +51,7 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+
+job:
+  file-worker:
+    enabled-file-source-types: BLUEKING_ARTIFACTORY
