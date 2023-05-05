@@ -34,6 +34,7 @@ public class FileSourceMetaData {
     private String storageTypeCode;
     private String fileSourceTypeCode;
     private String name;
+    private Boolean enabled;
     private String iconPath;
     private String iconBase64;
     private List<FileSourceStaticParam> staticParamList;

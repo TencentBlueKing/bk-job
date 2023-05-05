@@ -28,20 +28,22 @@ import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Query;
 import org.jooq.Record;
-import org.jooq.conf.ParamType;
+import org.jooq.TableField;
 import org.jooq.generated.tables.FileSourceType;
 import org.jooq.generated.tables.FileWorker;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Repository
@@ -50,120 +52,111 @@ public class FileSourceTypeDAOImpl implements FileSourceTypeDAO {
     private static final FileSourceType defaultTable = FileSourceType.FILE_SOURCE_TYPE;
     private static final FileWorker tableFileWorker = FileWorker.FILE_WORKER;
     private final DSLContext dslContext;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        defaultTable.ID,
+        defaultTable.WORKER_ID,
+        defaultTable.STORAGE_TYPE,
+        defaultTable.CODE,
+        defaultTable.NAME,
+        defaultTable.ENABLED,
+        defaultTable.ICON,
+        defaultTable.LAST_MODIFY_USER,
+        defaultTable.LAST_MODIFY_TIME
+    };
 
     @Autowired
     public FileSourceTypeDAOImpl(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
-    private void setDefaultValue(FileSourceTypeDTO fileSourceTypeDTO) {
-        //
-    }
-
     @Override
-    public Integer upsertByWorker(DSLContext dslContext, FileSourceTypeDTO fileSourceTypeDTO) {
-        AtomicInteger result = new AtomicInteger(-1);
-        dslContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            FileSourceTypeDTO oldFileSourceTypeDTO = get(context, fileSourceTypeDTO.getWorkerId(),
-                fileSourceTypeDTO.getStorageType(), fileSourceTypeDTO.getCode());
-            if (oldFileSourceTypeDTO == null) {
-                // 插入
-                result.set(insert(context, fileSourceTypeDTO));
-            } else {
-                // 更新
-                fileSourceTypeDTO.setId(oldFileSourceTypeDTO.getId());
-                result.set(update(context, fileSourceTypeDTO));
-            }
-        });
-        return result.get();
-    }
-
-    @Override
-    public Integer insert(DSLContext dslContext, FileSourceTypeDTO fileSourceTypeDTO) {
-        setDefaultValue(fileSourceTypeDTO);
-        val query = dslContext.insertInto(defaultTable,
+    public Integer batchInsert(List<FileSourceTypeDTO> fileSourceTypeList) {
+        if (CollectionUtils.isEmpty(fileSourceTypeList)) {
+            return 0;
+        }
+        val insertQuery = dslContext.insertInto(defaultTable,
             defaultTable.ID,
             defaultTable.WORKER_ID,
             defaultTable.STORAGE_TYPE,
             defaultTable.CODE,
             defaultTable.NAME,
+            defaultTable.ENABLED,
             defaultTable.ICON,
             defaultTable.LAST_MODIFY_USER,
             defaultTable.LAST_MODIFY_TIME
         ).values(
             (Integer) null,
-            fileSourceTypeDTO.getWorkerId(),
-            fileSourceTypeDTO.getStorageType(),
-            fileSourceTypeDTO.getCode(),
-            fileSourceTypeDTO.getName(),
-            fileSourceTypeDTO.getIcon(),
-            fileSourceTypeDTO.getLastModifier(),
-            fileSourceTypeDTO.getLastModifyTime()
-        ).returning(defaultTable.ID);
-        val sql = query.getSQL(ParamType.INLINED);
-        try {
-            return query.fetchOne().getId();
-        } catch (Exception e) {
-            log.error(sql);
-            throw e;
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+        BatchBindStep batchQuery = dslContext.batch(insertQuery);
+        for (FileSourceTypeDTO fileSourceTypeDTO : fileSourceTypeList) {
+            batchQuery = batchQuery.bind(
+                null,
+                fileSourceTypeDTO.getWorkerId(),
+                fileSourceTypeDTO.getStorageType(),
+                fileSourceTypeDTO.getCode(),
+                fileSourceTypeDTO.getName(),
+                fileSourceTypeDTO.getEnabled(),
+                fileSourceTypeDTO.getIcon(),
+                fileSourceTypeDTO.getLastModifier(),
+                fileSourceTypeDTO.getLastModifyTime()
+            );
         }
+        int[] results = batchQuery.execute();
+        int affectedRowNum = 0;
+        for (int result : results) {
+            affectedRowNum += result;
+        }
+        return affectedRowNum;
     }
 
-    @Override
-    public int update(DSLContext dslContext, FileSourceTypeDTO fileSourceTypeDTO) {
-        val query = dslContext.update(defaultTable)
+    private Query buildUpdateByIdQuery(FileSourceTypeDTO fileSourceTypeDTO) {
+        return dslContext.update(defaultTable)
             .set(defaultTable.WORKER_ID, fileSourceTypeDTO.getWorkerId())
             .set(defaultTable.STORAGE_TYPE, fileSourceTypeDTO.getStorageType())
             .set(defaultTable.CODE, fileSourceTypeDTO.getCode())
             .set(defaultTable.NAME, fileSourceTypeDTO.getName())
+            .set(defaultTable.ENABLED, fileSourceTypeDTO.getEnabled())
             .set(defaultTable.ICON, fileSourceTypeDTO.getIcon())
             .set(defaultTable.LAST_MODIFY_USER, fileSourceTypeDTO.getLastModifier())
             .set(defaultTable.LAST_MODIFY_TIME, System.currentTimeMillis())
             .where(defaultTable.ID.eq(fileSourceTypeDTO.getId()));
-        val sql = query.getSQL(ParamType.INLINED);
-        try {
-            return query.execute();
-        } catch (Exception e) {
-            log.error(sql);
-            throw e;
-        }
     }
 
+    @Override
+    public int batchUpdate(List<FileSourceTypeDTO> fileSourceTypeList) {
+        if (CollectionUtils.isEmpty(fileSourceTypeList)) {
+            return 0;
+        }
+        List<Query> queryList = new ArrayList<>();
+        for (FileSourceTypeDTO fileSourceTypeDTO : fileSourceTypeList) {
+            queryList.add(buildUpdateByIdQuery(fileSourceTypeDTO));
+        }
+        int[] results = dslContext.batch(queryList).execute();
+        int affectedNum = 0;
+        for (int result : results) {
+            affectedNum += result;
+        }
+        return affectedNum;
+    }
 
     @Override
-    public int deleteById(DSLContext dslContext, Integer id) {
+    public int batchDeleteByIds(Collection<Integer> ids) {
         return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
+            defaultTable.ID.in(ids)
         ).execute();
     }
 
     @Override
-    public FileSourceTypeDTO get(DSLContext dslContext, Long workerId, String storageType, String code) {
-        val record = dslContext.selectFrom(defaultTable)
-            .where(defaultTable.WORKER_ID.eq(workerId))
-            .and(defaultTable.STORAGE_TYPE.eq(storageType))
-            .and(defaultTable.CODE.eq(code))
-            .fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return convertRecordToDto(record);
-        }
-    }
-
-    @Override
     public FileSourceTypeDTO getById(Integer id) {
-        val record = dslContext.select(
-            defaultTable.ID,
-            defaultTable.WORKER_ID,
-            defaultTable.STORAGE_TYPE,
-            defaultTable.CODE,
-            defaultTable.NAME,
-            defaultTable.ICON,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        )
+        val record = dslContext.select(ALL_FIELDS)
             .from(defaultTable)
             .where(defaultTable.ID.eq(id)
             ).fetchOne();
@@ -183,20 +176,24 @@ public class FileSourceTypeDAOImpl implements FileSourceTypeDAO {
 
     @Override
     public List<FileSourceTypeDTO> listByCode(String code) {
-        val records = dslContext.select(
-            defaultTable.ID,
-            defaultTable.WORKER_ID,
-            defaultTable.STORAGE_TYPE,
-            defaultTable.CODE,
-            defaultTable.NAME,
-            defaultTable.ICON,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        )
+        val records = dslContext.select(ALL_FIELDS)
             .from(defaultTable).where(
                 defaultTable.CODE.eq(code)
             ).fetch();
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            return records.map(this::convertRecordToDto);
+        }
+    }
+
+    @Override
+    public List<FileSourceTypeDTO> listByWorkerId(Long workerId) {
+        val records = dslContext.select(ALL_FIELDS)
+            .from(defaultTable).where(
+                defaultTable.WORKER_ID.eq(workerId)
+            ).fetch();
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::convertRecordToDto);
@@ -205,23 +202,14 @@ public class FileSourceTypeDAOImpl implements FileSourceTypeDAO {
 
     @Override
     public List<FileSourceTypeDTO> listByCodeOrderByVersion(String code) {
-        val records = dslContext.select(
-            defaultTable.ID,
-            defaultTable.WORKER_ID,
-            defaultTable.STORAGE_TYPE,
-            defaultTable.CODE,
-            defaultTable.NAME,
-            defaultTable.ICON,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        )
+        val records = dslContext.select(ALL_FIELDS)
             .from(defaultTable)
             .join(tableFileWorker)
             .on(defaultTable.WORKER_ID.eq(tableFileWorker.ID))
             .where(defaultTable.CODE.eq(code))
             .orderBy(tableFileWorker.VERSION.desc(), tableFileWorker.LAST_MODIFY_TIME.desc())
             .fetch();
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::convertRecordToDto);
@@ -229,52 +217,20 @@ public class FileSourceTypeDAOImpl implements FileSourceTypeDAO {
     }
 
     @Override
-    public List<FileSourceTypeDTO> listOrderByVersion(DSLContext dslContext, String storageType) {
+    public List<FileSourceTypeDTO> listEnabledTypeOrderByVersion(String storageType) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.ENABLED.equal(true));
         if (storageType != null) {
             conditions.add(defaultTable.STORAGE_TYPE.equal(storageType));
         }
-        val records = dslContext.select(
-            defaultTable.ID,
-            defaultTable.WORKER_ID,
-            defaultTable.STORAGE_TYPE,
-            defaultTable.CODE,
-            defaultTable.NAME,
-            defaultTable.ICON,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        )
+        val records = dslContext.select(ALL_FIELDS)
             .from(defaultTable)
             .join(tableFileWorker)
             .on(defaultTable.WORKER_ID.eq(tableFileWorker.ID))
             .where(conditions)
             .orderBy(tableFileWorker.VERSION.desc(), tableFileWorker.LAST_MODIFY_TIME.desc())
             .fetch();
-        if (records == null || records.isEmpty()) {
-            return Collections.emptyList();
-        } else {
-            return records.map(this::convertRecordToDto);
-        }
-    }
-
-    @Override
-    public List<FileSourceTypeDTO> list(DSLContext dslContext, String storageType) {
-        List<Condition> conditions = new ArrayList<>();
-        if (storageType != null) {
-            conditions.add(defaultTable.STORAGE_TYPE.equal(storageType));
-        }
-        val records = dslContext.select(
-            defaultTable.ID,
-            defaultTable.WORKER_ID,
-            defaultTable.STORAGE_TYPE,
-            defaultTable.CODE,
-            defaultTable.NAME,
-            defaultTable.ICON,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        )
-            .from(defaultTable).where(conditions).orderBy(defaultTable.LAST_MODIFY_TIME.desc()).fetch();
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::convertRecordToDto);
@@ -288,6 +244,7 @@ public class FileSourceTypeDAOImpl implements FileSourceTypeDAO {
             record.get(defaultTable.STORAGE_TYPE),
             record.get(defaultTable.CODE),
             record.get(defaultTable.NAME),
+            record.get(defaultTable.ENABLED),
             record.get(defaultTable.ICON),
             record.get(defaultTable.LAST_MODIFY_USER),
             record.get(defaultTable.LAST_MODIFY_TIME)
