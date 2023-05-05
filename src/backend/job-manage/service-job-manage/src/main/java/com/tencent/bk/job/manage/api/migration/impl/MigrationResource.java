@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.api.migration.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.migration.AddHostIdForTemplateAndPlanMigrationTask;
 import com.tencent.bk.job.manage.migration.AddHostIdForWhiteIpMigrationTask;
@@ -47,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 微服务升级
@@ -61,6 +64,7 @@ public class MigrationResource {
     private final AddHostIdForTemplateAndPlanMigrationTask addHostIdForTemplateAndPlanMigrationTask;
     private final UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask;
     private final AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public MigrationResource(
@@ -69,13 +73,15 @@ public class MigrationResource {
         BizSetService bizSetService,
         AddHostIdForTemplateAndPlanMigrationTask addHostIdForTemplateAndPlanMigrationTask,
         UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask,
-        AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask) {
+        AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask,
+        AppScopeMappingService appScopeMappingService) {
         this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
         this.resourceTagsMigrationTask = resourceTagsMigrationTask;
         this.bizSetService = bizSetService;
         this.addHostIdForTemplateAndPlanMigrationTask = addHostIdForTemplateAndPlanMigrationTask;
         this.updateAppIdForWhiteIpMigrationTask = updateAppIdForWhiteIpMigrationTask;
         this.addHostIdForWhiteIpMigrationTask = addHostIdForWhiteIpMigrationTask;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     /**
@@ -121,8 +127,25 @@ public class MigrationResource {
     @PostMapping("/action/addHostIdMigrationTask")
     public Response<String> addHostIdMigrationTask(@RequestBody AddHostIdMigrationReq req) {
         List<MigrationRecordsResult> results = new ArrayList<>();
-        results.add(addHostIdForWhiteIpMigrationTask.execute(req.isDryRun()));
-        results.addAll(addHostIdForTemplateAndPlanMigrationTask.execute(req.isDryRun()));
+        List<ResourceScope> scopeList = req.getScopeList();
+        List<Long> appIdList = null;
+        if (scopeList != null) {
+            Map<ResourceScope, Long> scopeAppIdMap = appScopeMappingService.getAppIdByScopeList(scopeList);
+            if (scopeAppIdMap.size() == scopeList.size()) {
+                appIdList = new ArrayList<>(scopeAppIdMap.values());
+            } else {
+                scopeList.removeIf(scopeAppIdMap::containsKey);
+                return Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{
+                        "AddHostIdMigrationTask",
+                        "Cannot find appId by scope:" + scopeList
+                    }
+                );
+            }
+        }
+        if (appIdList == null) {
+            results.add(addHostIdForWhiteIpMigrationTask.execute(req.isDryRun()));
+        }
+        results.addAll(addHostIdForTemplateAndPlanMigrationTask.execute(appIdList, req.isDryRun()));
         boolean success = results.stream().allMatch(MigrationRecordsResult::isSuccess);
         return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
             Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"AddHostIdMigrationTask",

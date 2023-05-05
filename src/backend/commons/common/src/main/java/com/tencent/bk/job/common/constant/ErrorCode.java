@@ -362,6 +362,8 @@ public class ErrorCode {
     public static final int SERVICE_AUTH_FAIL = 1240005;
     // 配置异常：{0}
     public static final int INVALID_CONFIG = 1240006;
+    // 命令行参数异常：{0}
+    public static final int INVALID_CMD_ARGS = 1240007;
 
     // ========= 系统错误-API通用 ==================//
     // IP:{}无访问权限

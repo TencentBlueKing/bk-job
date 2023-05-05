@@ -38,12 +38,17 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
+import org.jooq.generated.tables.TaskPlan;
+import org.jooq.generated.tables.TaskPlanStep;
 import org.jooq.generated.tables.TaskPlanStepFile;
 import org.jooq.generated.tables.TaskPlanStepFileList;
 import org.jooq.generated.tables.TaskPlanStepScript;
 import org.jooq.generated.tables.TaskPlanVariable;
+import org.jooq.generated.tables.TaskTemplate;
+import org.jooq.generated.tables.TaskTemplateStep;
 import org.jooq.generated.tables.TaskTemplateStepFile;
 import org.jooq.generated.tables.TaskTemplateStepFileList;
 import org.jooq.generated.tables.TaskTemplateStepScript;
@@ -73,6 +78,11 @@ import java.util.stream.Collectors;
 public class AddHostIdForTemplateAndPlanMigrationTask {
     private final DSLContext CTX;
     private final HostService hostService;
+
+    private static final TaskTemplate TASK_TEMPLATE = TaskTemplate.TASK_TEMPLATE;
+    private static final TaskPlan TASK_PLAN = TaskPlan.TASK_PLAN;
+    private static final TaskTemplateStep TASK_TEMPLATE_STEP = TaskTemplateStep.TASK_TEMPLATE_STEP;
+    private static final TaskPlanStep TASK_PLAN_STEP = TaskPlanStep.TASK_PLAN_STEP;
 
     private static final TaskTemplateStepScript TASK_TEMPLATE_STEP_SCRIPT =
         TaskTemplateStepScript.TASK_TEMPLATE_STEP_SCRIPT;
@@ -105,17 +115,17 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         this.hostService = hostService;
     }
 
-    public List<AddHostIdResult> execute(boolean isDryRun) {
+    public List<AddHostIdResult> execute(List<Long> appIdList, boolean isDryRun) {
         List<AddHostIdResult> results = new ArrayList<>();
         try {
-            results.add(new TaskTemplateStepScriptTargetMigration(isDryRun).migrate());
-            results.add(new TaskTemplateStepFileTargetMigration(isDryRun).migrate());
-            results.add(new TaskTemplateStepFileListTargetMigration(isDryRun).migrate());
-            results.add(new TaskTemplateVariableTargetMigration(isDryRun).migrate());
-            results.add(new TaskPlanStepScriptTargetMigration(isDryRun).migrate());
-            results.add(new TaskPlanStepFileTargetMigration(isDryRun).migrate());
-            results.add(new TaskPlanStepFileListTargetMigration(isDryRun).migrate());
-            results.add(new TaskPlanVariableTargetMigration(isDryRun).migrate());
+            results.add(new TaskTemplateStepScriptTargetMigration(appIdList, isDryRun).migrate());
+            results.add(new TaskTemplateStepFileTargetMigration(appIdList, isDryRun).migrate());
+            results.add(new TaskTemplateStepFileListTargetMigration(appIdList, isDryRun).migrate());
+            results.add(new TaskTemplateVariableTargetMigration(appIdList, isDryRun).migrate());
+            results.add(new TaskPlanStepScriptTargetMigration(appIdList, isDryRun).migrate());
+            results.add(new TaskPlanStepFileTargetMigration(appIdList, isDryRun).migrate());
+            results.add(new TaskPlanStepFileListTargetMigration(appIdList, isDryRun).migrate());
+            results.add(new TaskPlanVariableTargetMigration(appIdList, isDryRun).migrate());
             return results;
         } finally {
             log.info("AddHostIdMigrationTask done, result: {}", JsonUtils.toJson(results));
@@ -204,10 +214,13 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         return json;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private abstract class AbstractTaskTargetMigration {
+        private final List<Long> appIdList;
         private final boolean dryRun;
 
-        public AbstractTaskTargetMigration(boolean dryRun) {
+        AbstractTaskTargetMigration(List<Long> appIdList, boolean dryRun) {
+            this.appIdList = appIdList;
             this.dryRun = dryRun;
         }
 
@@ -224,7 +237,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
                 do {
                     seq++;
                     watch.start("list_targets_" + seq);
-                    pageResult = listPageTaskTargets(pageResult == null ? null : pageResult.getNextRecordId(), 500);
+                    pageResult = listPageTaskTargets(appIdList, pageResult == null ? null :
+                        pageResult.getNextRecordId(), 500);
                     if (CollectionUtils.isEmpty(pageResult.getRecords())) {
                         watch.stop();
                         continue;
@@ -249,35 +263,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
                         JsonUtils.toJson(ipAndHostIdMapping));
                     watch.stop();
 
-                    watch.start("fill_host_id_" + seq);
-                    List<Long> invalidIds = new ArrayList<>();
-                    List<TaskTargetRecord> updateRecords = new ArrayList<>();
-                    for (TaskTargetRecord record : records) {
-                        boolean success = fillHostId(record.getTarget());
-                        if (!success) {
-                            invalidIds.add(record.getId());
-                        } else {
-                            updateRecords.add(record);
-                        }
-                    }
-                    if (CollectionUtils.isNotEmpty(invalidIds)) {
-                        log.error("[{}-{}] {} targets fill host id fail, invalidIdList: {}", getTableName(), seq,
-                            invalidIds.size(), invalidIds);
-                    }
-                    watch.stop();
-
-                    if (CollectionUtils.isNotEmpty(updateRecords)) {
-                        watch.start("update_targets_" + seq);
-                        if (dryRun) {
-                            // 只输出要更新的数据用于验证，不进行DB数据的变更
-                            log.info("Update targets with dryRun mode, tableName: {},  records: {}", getTableName(),
-                                JsonUtils.toJson(updateRecords));
-                        } else {
-                            updateTaskTargets(updateRecords);
-                        }
-                        successCount += updateRecords.size();
-                        watch.stop();
-                    }
+                    successCount += fillHostIdAndUpdateTaskTargets(records, watch, seq);
                 } while (pageResult.hasNext());
 
                 result.setSuccess(true);
@@ -297,18 +283,54 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
             return result;
         }
 
+        private int fillHostIdAndUpdateTaskTargets(List<TaskTargetRecord> records, StopWatch watch, int seq) {
+            watch.start("fill_host_id_" + seq);
+            List<Long> invalidIds = new ArrayList<>();
+            List<TaskTargetRecord> updateRecords = new ArrayList<>();
+            for (TaskTargetRecord record : records) {
+                boolean success = fillHostId(record.getTarget());
+                if (!success) {
+                    invalidIds.add(record.getId());
+                } else {
+                    updateRecords.add(record);
+                }
+            }
+            if (CollectionUtils.isNotEmpty(invalidIds)) {
+                log.error("[{}-{}] {} targets fill host id fail, invalidIdList: {}", getTableName(), seq,
+                    invalidIds.size(), invalidIds);
+            }
+            watch.stop();
+
+            if (CollectionUtils.isNotEmpty(updateRecords)) {
+                watch.start("update_targets_" + seq);
+                if (dryRun) {
+                    // 只输出要更新的数据用于验证，不进行DB数据的变更
+                    log.info("Update targets with dryRun mode, tableName: {},  records: {}", getTableName(),
+                        JsonUtils.toJson(updateRecords));
+                } else {
+                    updateTaskTargets(updateRecords);
+                }
+                watch.stop();
+                return updateRecords.size();
+            }
+            return 0;
+        }
+
         /**
          * 查询所有需要处理的TaskTarget
          *
+         * @param appIdList     限定的Job业务ID列表;传入null表示所有业务
          * @param nextRecordId  下一个记录ID;传入null表示第一页
          * @param maxRecordSize 分页-最大返回记录数量
          * @return 分页结果
          */
-        private TaskTargetRecordPageResult listPageTaskTargets(Long nextRecordId, int maxRecordSize) {
+        private TaskTargetRecordPageResult listPageTaskTargets(List<Long> appIdList,
+                                                               Long nextRecordId,
+                                                               int maxRecordSize) {
             long fromId = nextRecordId == null ? 0L : nextRecordId;
             // 比单页最大数量多获取一条数据，用于判断是否还有下一页
             int limit = maxRecordSize + 1;
-            List<TaskTargetRecord> records = listTaskTargets(fromId, limit);
+            List<TaskTargetRecord> records = listTaskTargets(appIdList, fromId, limit);
 
             if (records.size() == limit) {
                 // 下一页仍然有内容
@@ -330,11 +352,12 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         /**
          * 从DB查询 TaskTarget
          *
+         * @param appIdList     Job业务ID列表
          * @param fromRecordId  起始记录ID
          * @param maxRecordSize 最大返回记录数量
          * @return TaskTarget 列表
          */
-        abstract List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize);
+        abstract List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize);
 
         /**
          * 批量更新Target
@@ -382,8 +405,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     private class TaskTemplateStepScriptTargetMigration extends AbstractTaskTargetMigration {
 
-        public TaskTemplateStepScriptTargetMigration(boolean dryRun) {
-            super(dryRun);
+        TaskTemplateStepScriptTargetMigration(List<Long> appIdList, boolean dryRun) {
+            super(appIdList, dryRun);
         }
 
         @Override
@@ -392,12 +415,21 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
+        public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TASK_TEMPLATE_STEP_SCRIPT.ID.ge(ULong.valueOf(fromRecordId)));
+            if (appIdList != null) {
+                conditions.add(TASK_TEMPLATE.APP_ID.in(appIdList));
+            }
             Result<?> result = CTX.select(
                 TASK_TEMPLATE_STEP_SCRIPT.ID,
                 TASK_TEMPLATE_STEP_SCRIPT.DESTINATION_HOST_LIST)
                 .from(TASK_TEMPLATE_STEP_SCRIPT)
-                .where(TASK_TEMPLATE_STEP_SCRIPT.ID.ge(ULong.valueOf(fromRecordId)))
+                .join(TASK_TEMPLATE_STEP)
+                .on(TASK_TEMPLATE_STEP_SCRIPT.STEP_ID.eq(TASK_TEMPLATE_STEP.ID))
+                .join(TASK_TEMPLATE)
+                .on(TASK_TEMPLATE_STEP.TEMPLATE_ID.eq(TASK_TEMPLATE.ID))
+                .where(conditions)
                 .orderBy(TASK_TEMPLATE_STEP_SCRIPT.ID.asc())
                 .limit(maxRecordSize)
                 .fetch();
@@ -425,8 +457,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     private class TaskTemplateStepFileTargetMigration extends AbstractTaskTargetMigration {
 
-        public TaskTemplateStepFileTargetMigration(boolean dryRun) {
-            super(dryRun);
+        TaskTemplateStepFileTargetMigration(List<Long> appIdList, boolean dryRun) {
+            super(appIdList, dryRun);
         }
 
         @Override
@@ -435,12 +467,21 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
+        public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TASK_TEMPLATE_STEP_FILE.ID.ge(ULong.valueOf(fromRecordId)));
+            if (appIdList != null) {
+                conditions.add(TASK_TEMPLATE.APP_ID.in(appIdList));
+            }
             Result<?> result = CTX.select(
                 TASK_TEMPLATE_STEP_FILE.ID,
                 TASK_TEMPLATE_STEP_FILE.DESTINATION_HOST_LIST)
                 .from(TASK_TEMPLATE_STEP_FILE)
-                .where(TASK_TEMPLATE_STEP_FILE.ID.ge(ULong.valueOf(fromRecordId)))
+                .join(TASK_TEMPLATE_STEP)
+                .on(TASK_TEMPLATE_STEP_FILE.STEP_ID.eq(TASK_TEMPLATE_STEP.ID))
+                .join(TASK_TEMPLATE)
+                .on(TASK_TEMPLATE_STEP.TEMPLATE_ID.eq(TASK_TEMPLATE.ID))
+                .where(conditions)
                 .orderBy(TASK_TEMPLATE_STEP_FILE.ID.asc())
                 .limit(maxRecordSize)
                 .fetch();
@@ -467,8 +508,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     private class TaskTemplateStepFileListTargetMigration extends AbstractTaskTargetMigration {
 
-        public TaskTemplateStepFileListTargetMigration(boolean dryRun) {
-            super(dryRun);
+        TaskTemplateStepFileListTargetMigration(List<Long> appIdList, boolean dryRun) {
+            super(appIdList, dryRun);
         }
 
         @Override
@@ -477,12 +518,21 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
+        public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TASK_TEMPLATE_STEP_FILE_LIST.ID.ge(ULong.valueOf(fromRecordId)));
+            if (appIdList != null) {
+                conditions.add(TASK_TEMPLATE.APP_ID.in(appIdList));
+            }
             Result<?> result = CTX.select(
                 TASK_TEMPLATE_STEP_FILE_LIST.ID,
                 TASK_TEMPLATE_STEP_FILE_LIST.HOST)
                 .from(TASK_TEMPLATE_STEP_FILE_LIST)
-                .where(TASK_TEMPLATE_STEP_FILE_LIST.ID.ge(ULong.valueOf(fromRecordId)))
+                .join(TASK_TEMPLATE_STEP)
+                .on(TASK_TEMPLATE_STEP_FILE_LIST.STEP_ID.eq(TASK_TEMPLATE_STEP.ID))
+                .join(TASK_TEMPLATE)
+                .on(TASK_TEMPLATE_STEP.TEMPLATE_ID.eq(TASK_TEMPLATE.ID))
+                .where(conditions)
                 .orderBy(TASK_TEMPLATE_STEP_FILE_LIST.ID.asc())
                 .limit(maxRecordSize)
                 .fetch();
@@ -509,8 +559,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     private class TaskTemplateVariableTargetMigration extends AbstractTaskTargetMigration {
 
-        public TaskTemplateVariableTargetMigration(boolean dryRun) {
-            super(dryRun);
+        TaskTemplateVariableTargetMigration(List<Long> appIdList, boolean dryRun) {
+            super(appIdList, dryRun);
         }
 
         @Override
@@ -519,12 +569,19 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
+        public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TASK_TEMPLATE_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())));
+            if (appIdList != null) {
+                conditions.add(TASK_TEMPLATE.APP_ID.in(appIdList));
+            }
             Result<?> result = CTX.select(
                 TASK_TEMPLATE_VARIABLE.ID,
                 TASK_TEMPLATE_VARIABLE.DEFAULT_VALUE)
                 .from(TASK_TEMPLATE_VARIABLE)
-                .where(TASK_TEMPLATE_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
+                .join(TASK_TEMPLATE)
+                .on(TASK_TEMPLATE_VARIABLE.TEMPLATE_ID.eq(TASK_TEMPLATE.ID))
+                .where(conditions)
                 .and(TASK_TEMPLATE_VARIABLE.ID.ge(ULong.valueOf(fromRecordId)))
                 .orderBy(TASK_TEMPLATE_VARIABLE.ID.asc())
                 .limit(maxRecordSize)
@@ -554,8 +611,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     private class TaskPlanStepScriptTargetMigration extends AbstractTaskTargetMigration {
 
-        public TaskPlanStepScriptTargetMigration(boolean dryRun) {
-            super(dryRun);
+        public TaskPlanStepScriptTargetMigration(List<Long> appIdList, boolean dryRun) {
+            super(appIdList, dryRun);
         }
 
         @Override
@@ -564,12 +621,21 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
+        public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TASK_PLAN_STEP_SCRIPT.ID.ge(ULong.valueOf(fromRecordId)));
+            if (appIdList != null) {
+                conditions.add(TASK_PLAN.APP_ID.in(appIdList));
+            }
             Result<?> result = CTX.select(
                 TASK_PLAN_STEP_SCRIPT.ID,
                 TASK_PLAN_STEP_SCRIPT.DESTINATION_HOST_LIST)
                 .from(TASK_PLAN_STEP_SCRIPT)
-                .where(TASK_PLAN_STEP_SCRIPT.ID.ge(ULong.valueOf(fromRecordId)))
+                .join(TASK_PLAN_STEP)
+                .on(TASK_PLAN_STEP_SCRIPT.STEP_ID.eq(TASK_PLAN_STEP.ID))
+                .join(TASK_PLAN)
+                .on(TASK_PLAN_STEP.PLAN_ID.eq(TASK_PLAN.ID))
+                .where(conditions)
                 .orderBy(TASK_PLAN_STEP_SCRIPT.ID.asc())
                 .limit(maxRecordSize)
                 .fetch();
@@ -597,8 +663,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     private class TaskPlanStepFileTargetMigration extends AbstractTaskTargetMigration {
 
-        public TaskPlanStepFileTargetMigration(boolean dryRun) {
-            super(dryRun);
+        TaskPlanStepFileTargetMigration(List<Long> appIdList, boolean dryRun) {
+            super(appIdList, dryRun);
         }
 
         @Override
@@ -607,12 +673,21 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
+        public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TASK_PLAN_STEP_FILE.ID.ge(ULong.valueOf(fromRecordId)));
+            if (appIdList != null) {
+                conditions.add(TASK_PLAN.APP_ID.in(appIdList));
+            }
             Result<?> result = CTX.select(
                 TASK_PLAN_STEP_FILE.ID,
                 TASK_PLAN_STEP_FILE.DESTINATION_HOST_LIST)
                 .from(TASK_PLAN_STEP_FILE)
-                .where(TASK_PLAN_STEP_FILE.ID.ge(ULong.valueOf(fromRecordId)))
+                .join(TASK_PLAN_STEP)
+                .on(TASK_PLAN_STEP_FILE.STEP_ID.eq(TASK_PLAN_STEP.ID))
+                .join(TASK_PLAN)
+                .on(TASK_PLAN_STEP.PLAN_ID.eq(TASK_PLAN.ID))
+                .where(conditions)
                 .orderBy(TASK_PLAN_STEP_FILE.ID.asc())
                 .limit(maxRecordSize)
                 .fetch();
@@ -639,8 +714,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     private class TaskPlanStepFileListTargetMigration extends AbstractTaskTargetMigration {
 
-        public TaskPlanStepFileListTargetMigration(boolean dryRun) {
-            super(dryRun);
+        TaskPlanStepFileListTargetMigration(List<Long> appIdList, boolean dryRun) {
+            super(appIdList, dryRun);
         }
 
         @Override
@@ -649,12 +724,21 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
+        public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TASK_PLAN_STEP_FILE_LIST.ID.ge(ULong.valueOf(fromRecordId)));
+            if (appIdList != null) {
+                conditions.add(TASK_PLAN.APP_ID.in(appIdList));
+            }
             Result<?> result = CTX.select(
                 TASK_PLAN_STEP_FILE_LIST.ID,
                 TASK_PLAN_STEP_FILE_LIST.HOST)
                 .from(TASK_PLAN_STEP_FILE_LIST)
-                .where(TASK_PLAN_STEP_FILE_LIST.ID.ge(ULong.valueOf(fromRecordId)))
+                .join(TASK_PLAN_STEP)
+                .on(TASK_PLAN_STEP_FILE_LIST.STEP_ID.eq(TASK_PLAN_STEP.ID))
+                .join(TASK_PLAN)
+                .on(TASK_PLAN_STEP.PLAN_ID.eq(TASK_PLAN.ID))
+                .where(conditions)
                 .orderBy(TASK_PLAN_STEP_FILE_LIST.ID.asc())
                 .limit(maxRecordSize)
                 .fetch();
@@ -681,8 +765,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     private class TaskPlanVariableTargetMigration extends AbstractTaskTargetMigration {
 
-        public TaskPlanVariableTargetMigration(boolean dryRun) {
-            super(dryRun);
+        TaskPlanVariableTargetMigration(List<Long> appIdList, boolean dryRun) {
+            super(appIdList, dryRun);
         }
 
         @Override
@@ -691,12 +775,19 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        public List<TaskTargetRecord> listTaskTargets(Long fromRecordId, int maxRecordSize) {
+        public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())));
+            if (appIdList != null) {
+                conditions.add(TASK_PLAN.APP_ID.in(appIdList));
+            }
             Result<?> result = CTX.select(
                 TASK_PLAN_VARIABLE.ID,
                 TASK_PLAN_VARIABLE.DEFAULT_VALUE)
                 .from(TASK_PLAN_VARIABLE)
-                .where(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
+                .join(TASK_PLAN)
+                .on(TASK_PLAN_VARIABLE.PLAN_ID.eq(TASK_PLAN.ID))
+                .where(conditions)
                 .and(TASK_PLAN_VARIABLE.ID.ge(ULong.valueOf(fromRecordId)))
                 .orderBy(TASK_PLAN_VARIABLE.ID.asc())
                 .limit(maxRecordSize)

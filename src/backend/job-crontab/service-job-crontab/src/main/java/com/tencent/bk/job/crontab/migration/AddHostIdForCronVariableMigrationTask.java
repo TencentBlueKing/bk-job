@@ -71,10 +71,10 @@ public class AddHostIdForCronVariableMigrationTask {
         return result;
     }
 
-    public AddHostIdResult execute(boolean isDryRun) {
+    public AddHostIdResult execute(List<Long> appIdList, boolean isDryRun) {
         StopWatch watch = new StopWatch(getTaskName());
         try {
-            return updateHostIdForCronVariables(isDryRun, watch);
+            return updateHostIdForCronVariables(appIdList, isDryRun, watch);
         } catch (Throwable t) {
             log.warn("Fail to updateHostIdForCronVariables", t);
             AddHostIdResult result = getInitAddHostIdResult();
@@ -120,7 +120,7 @@ public class AddHostIdForCronVariableMigrationTask {
         return false;
     }
 
-    private AddHostIdResult updateHostIdForCronVariables(boolean isDryRun, StopWatch watch) {
+    private AddHostIdResult updateHostIdForCronVariables(List<Long> appIdList, boolean isDryRun, StopWatch watch) {
         AddHostIdResult result = getInitAddHostIdResult();
         int start = 0;
         int batchSize = 100;
@@ -130,7 +130,7 @@ public class AddHostIdForCronVariableMigrationTask {
         do {
             // 1.查询含有主机变量的定时任务
             watch.start("listBasicCronJobWithHostVars_" + start + "_" + (start + batchSize));
-            cronJobList = cronJobDAO.listBasicCronJobWithHostVars(start, batchSize);
+            cronJobList = cronJobDAO.listBasicCronJobWithHostVars(appIdList, start, batchSize);
             watch.stop();
             if (CollectionUtils.isEmpty(cronJobList)) {
                 continue;
