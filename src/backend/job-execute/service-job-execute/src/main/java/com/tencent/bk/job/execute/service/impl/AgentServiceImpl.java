@@ -67,7 +67,7 @@ public class AgentServiceImpl implements AgentService {
                       @Override
                       public HostDTO load(String key) {
                           HostDTO agentHost = getAgentBindHost();
-                          log.debug("load agentHost and save to cache:{}", agentHost);
+                          log.info("Load agent host and save to cache:{}", agentHost);
                           return agentHost;
                       }
                   }

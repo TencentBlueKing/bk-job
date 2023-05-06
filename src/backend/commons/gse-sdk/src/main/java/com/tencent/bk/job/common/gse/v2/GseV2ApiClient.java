@@ -81,7 +81,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                                 context.getUri(),
                                 context.isSuccess(),
                                 context.getCostTime(),
-                                context.getResp() != null ? JsonUtils.toJsonWithoutSkippedFields(context.getResp()) :
+                                context.getResp() != null ? JsonUtils.toJson(context.getResp()) :
                                     StringUtil.substring(context.getOriginResp(), 10000));
                         }
                     }
