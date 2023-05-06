@@ -89,11 +89,16 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     @Override
-    public List<CronJobWithVarsDTO> listBasicCronJobWithHostVars(int start, int limit) {
+    public List<CronJobWithVarsDTO> listBasicCronJobWithHostVars(List<Long> appIdList, int start, int limit) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.VARIABLE_VALUE.like("%ips\":[{%"));
+        if (appIdList != null) {
+            conditions.add(TABLE.APP_ID.in(appIdList));
+        }
         Result<Record4<ULong, ULong, String, String>> records = context
             .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.VARIABLE_VALUE)
             .from(TABLE)
-            .where(TABLE.VARIABLE_VALUE.like("%ips\":[{%"))
+            .where(conditions)
             .orderBy(TABLE.ID)
             .limit(start, limit)
             .fetch();

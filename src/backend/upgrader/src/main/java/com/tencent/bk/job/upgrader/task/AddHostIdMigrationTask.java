@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.upgrader.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.RequireTaskParam;
@@ -34,7 +37,10 @@ import com.tencent.bk.job.upgrader.model.job.AddHostIdMigrationReq;
 import com.tencent.bk.job.upgrader.task.param.JobCrontabServerAddress;
 import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -55,26 +61,49 @@ public class AddHostIdMigrationTask extends BaseUpgradeTask {
         super(properties);
     }
 
+    private List<ResourceScope> buildScopeListFromArgs(String[] args) {
+        if (args.length < 4 || StringUtils.isBlank(args[3])) {
+            return null;
+        }
+        String scopeListStr = args[3];
+        String[] scopeStrs = scopeListStr.replace(" ", "").split(",");
+        List<ResourceScope> scopeList = new ArrayList<>(scopeStrs.length);
+        for (String scopeStr : scopeStrs) {
+            String[] arr = scopeStr.split(":");
+            if (arr.length < 2) {
+                throw new InvalidParamException(ErrorCode.INVALID_CMD_ARGS,
+                    new String[]{
+                        scopeListStr + ", must be comma separated scope, example: biz:2,biz:3,biz_set:9991001"
+                    }
+                );
+            }
+            ResourceScope scope = new ResourceScope(arr[0].toLowerCase(), arr[1].toLowerCase());
+            scopeList.add(scope);
+        }
+        return scopeList;
+    }
+
     @Override
     public boolean execute(String[] args) {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         try {
             boolean dryRun = getProperties().get("dryRun") != null
-                && ((String)getProperties().get("dryRun")).equalsIgnoreCase("true");
+                && ((String) getProperties().get("dryRun")).equalsIgnoreCase("true");
             if (dryRun) {
                 log.info("AddHostIdMigrationTask using dryRun mode!");
             }
+            List<ResourceScope> scopeList = buildScopeListFromArgs(args);
             // 1.迁移作业模板、执行方案、IP白名单数据
             log.info("job.manage.addHostIdMigrationTask start ...");
             Response<String> manageResp = post(buildMigrationTaskUrl(getJobManageUrl(),
                 "/migration/action/addHostIdMigrationTask"),
-                JsonUtils.toJson(new AddHostIdMigrationReq(dryRun)));
+                JsonUtils.toJson(new AddHostIdMigrationReq(scopeList, dryRun)));
             log.info("job.manage.addHostIdMigrationTask done, result: {}", manageResp);
             // 2.迁移定时任务数据
             log.info("job.crontab.addHostIdMigrationTask start ...");
             Response<String> crontabResp = post(buildMigrationTaskUrl(getJobCrontabUrl(),
                 "/migration/action/addHostIdMigrationTask"),
-                JsonUtils.toJson(new AddHostIdMigrationReq(dryRun)));
+                JsonUtils.toJson(new AddHostIdMigrationReq(scopeList, dryRun)));
             log.info("job.crontab.addHostIdMigrationTask done, result: {}", crontabResp);
             return manageResp.isSuccess() && crontabResp.isSuccess();
         } catch (Throwable e) {
