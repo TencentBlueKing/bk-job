@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.TableRecord;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -102,7 +103,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 delete(maxNeedArchiveId, archiveConfig);
             }
         } catch (Throwable e) {
-            log.error("Error while archiving {}", tableName, e);
+            String msg = MessageFormatter.format(
+                "Error while archiving {}",
+                tableName
+            ).getMessage();
+            log.error(msg, e);
         } finally {
             archiveSummary.setArchiveEnabled(archiveConfig.isArchiveEnabled());
             archiveSummary.setDeleteEnabled(archiveConfig.isDeleteEnabled());
@@ -191,7 +196,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             }
             return true;
         } catch (Throwable e) {
-            log.error("Error while archiving {}", tableName, e);
+            String msg = MessageFormatter.format(
+                "Error while archiving {}",
+                tableName
+            ).getMessage();
+            log.error(msg, e);
             return false;
         } finally {
             archiveSummary.setArchiveIdStart(minNeedArchiveId);
@@ -287,7 +296,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 tableName, minNeedDeleteId, maxNeedDeleteId, lastDeletedId, deletedRows,
                 System.currentTimeMillis() - startTime);
         } catch (Throwable e) {
-            log.error("Error while deleting {}", tableName, e);
+            String msg = MessageFormatter.format(
+                "Error while deleting {}",
+                tableName
+            ).getMessage();
+            log.error(msg, e);
         } finally {
             archiveSummary.setDeleteCost(System.currentTimeMillis() - startTime);
             archiveSummary.setDeleteIdStart(minNeedDeleteId);

@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -132,7 +133,11 @@ public class CloudAreaService {
                     }
                     log.debug("{}|Cloud area info syncing finished in {}!", uuid, System.currentTimeMillis() - start);
                 } catch (Exception e) {
-                    log.error("{}|Error while process cloud area name!", uuid, e);
+                    String msg = MessageFormatter.format(
+                        "{}|Error while process cloud area name!",
+                        uuid
+                    ).getMessage();
+                    log.error(msg, e);
                 }
                 try {
                     Thread.sleep(60_000L);

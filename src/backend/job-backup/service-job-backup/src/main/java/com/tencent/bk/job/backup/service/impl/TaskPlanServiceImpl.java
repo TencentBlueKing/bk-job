@@ -34,6 +34,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +85,16 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error while getting plan info!|{}|{}|{}|{}", username, appId, templateId, planIdList, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while getting plan info!|{}|{}|{}|{}",
+                new String[]{
+                    username,
+                    String.valueOf(appId),
+                    String.valueOf(templateId),
+                    String.valueOf(planIdList)
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
 
         return taskPlanList;
@@ -105,7 +115,15 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error while list plan info by template id!|{}|{}|{}", username, appId, templateId, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while list plan info by template id!|{}|{}|{}",
+                new String[]{
+                    username,
+                    String.valueOf(appId),
+                    String.valueOf(templateId)
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
         return null;
     }
@@ -154,7 +172,16 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error while save plan!|{}|{}|{}|{}", username, appId, templateId, planInfo, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while save plan!|{}|{}|{}|{}",
+                new String[]{
+                    username,
+                    String.valueOf(appId),
+                    String.valueOf(templateId),
+                    String.valueOf(planInfo)
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
         return null;
 

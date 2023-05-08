@@ -59,6 +59,7 @@ import com.tencent.bk.job.file_gateway.service.listener.FileTaskStatusChangeList
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -169,7 +170,11 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 fileSourceTaskDTO);
             postHttpReq(req);
         } catch (Exception e) {
-            log.error("Fail to dispatch FileSourceTask={}", JsonUtils.toJson(fileSourceTaskDTO), e);
+            String msg = MessageFormatter.format(
+                "Fail to dispatch FileSourceTask={}",
+                JsonUtils.toJson(fileSourceTaskDTO)
+            ).getMessage();
+            log.error(msg, e);
             // 更新任务状态为启动失败
             fileSourceTaskDTO.setStatus(TaskStatusEnum.DISPATCH_FAILED.getStatus());
             int affectedCount = fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);

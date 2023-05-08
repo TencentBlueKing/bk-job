@@ -73,6 +73,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -713,7 +714,11 @@ public class ImportJobExecutor {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
-                    log.error("{}|Error while processing import job!", uuid, e);
+                    String msg = MessageFormatter.format(
+                        "{}|Error while processing import job!",
+                        uuid
+                    ).getMessage();
+                    log.error(msg, e);
                 }
             }
         }

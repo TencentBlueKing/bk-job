@@ -54,6 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -728,7 +729,11 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 }
                 throw new InternalException(ErrorCode.BATCH_UPDATE_PLAN_VARIABLE_FAILED);
             } catch (Exception e) {
-                log.error("Error while batch update plan variable value!|{}", planInfo, e);
+                String msg = MessageFormatter.format(
+                    "Error while batch update plan variable value!|{}",
+                    planInfo
+                ).getMessage();
+                log.error(msg, e);
                 throw e;
             }
         }

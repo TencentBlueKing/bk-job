@@ -37,6 +37,7 @@ import com.tencent.bk.job.file_gateway.model.resp.common.FileTreeNodeDef;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -93,7 +94,11 @@ public class MetaDataService {
             base64Str = base64Str.replace("\n", "");
             return "data:image/" + suffix + ";base64," + base64Str;
         } catch (IOException e) {
-            log.warn("Fail to read and encode image from path:{}", path, e);
+            String msg = MessageFormatter.format(
+                "Fail to read and encode image from path:{}",
+                path
+            ).getMessage();
+            log.warn(msg, e);
         }
         return null;
     }

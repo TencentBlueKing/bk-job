@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +73,15 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error while getting template info!|{}|{}|{}", username, appId, id, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while getting template info!|{}|{}|{}",
+                new String[]{
+                    username,
+                    String.valueOf(appId),
+                    String.valueOf(id)
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
         return null;
     }
@@ -90,7 +99,15 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error while check id and name!|{}|{}|{}", appId, id, name, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while check id and name!|{}|{}|{}",
+                new String[]{
+                    String.valueOf(appId),
+                    String.valueOf(id),
+                    name
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
         return null;
     }
@@ -138,7 +155,15 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error while trying to save template!|{}|{}|{}", username, appId, taskTemplate, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while trying to save template!|{}|{}|{}",
+                new String[]{
+                    username,
+                    String.valueOf(appId),
+                    String.valueOf(taskTemplate)
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
         return null;
     }

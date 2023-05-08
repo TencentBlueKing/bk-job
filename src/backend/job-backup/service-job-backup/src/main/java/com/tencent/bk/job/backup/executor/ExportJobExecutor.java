@@ -71,6 +71,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -612,7 +613,11 @@ public class ExportJobExecutor {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
-                    log.error("{}|Error while processing export job!", uuid, e);
+                    String msg = MessageFormatter.format(
+                        "{}|Error while processing export job!",
+                        uuid
+                    ).getMessage();
+                    log.error(msg, e);
                 }
             }
         }
