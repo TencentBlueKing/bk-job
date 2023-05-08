@@ -44,6 +44,7 @@ import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -139,7 +140,11 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
                 Long tagId = Long.parseLong(instanceId);
                 tagIdList.add(tagId);
             } catch (NumberFormatException e) {
-                log.error("Parse tag id failed!|{}", instanceId, e);
+                String msg = MessageFormatter.format(
+                    "Parse tag id failed!|{}",
+                    instanceId
+                ).getMessage();
+                log.error(msg, e);
             }
         }
         List<TagDTO> tagDTOList = tagService.listTagInfoByIds(tagIdList);
