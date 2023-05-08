@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -81,7 +82,11 @@ public class CronJobHistoryServiceImpl implements CronJobHistoryService {
         try {
             new CronExpression(cleanJobCronExp);
         } catch (ParseException e) {
-            log.warn("Error while adding cron history clean job! Invalid expression|{}", cleanJobCronExp, e);
+            String msg = MessageFormatter.format(
+                "Error while adding cron history clean job! Invalid expression|{}",
+                cleanJobCronExp
+            ).getMessage();
+            log.warn(msg, e);
             return;
         }
 

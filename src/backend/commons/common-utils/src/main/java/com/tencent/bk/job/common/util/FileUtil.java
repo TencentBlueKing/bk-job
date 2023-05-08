@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -165,10 +166,18 @@ public class FileUtil {
             fis = new FileInputStream(targetPath);
             return DigestUtils.md5Hex(fis);
         } catch (FileNotFoundException e) {
-            log.error("File not found:{}", targetPath, e);
+            String msg = MessageFormatter.format(
+                "File not found:{}",
+                targetPath
+            ).getMessage();
+            log.error(msg, e);
             throw new RuntimeException(e);
         } catch (IOException e) {
-            log.error("IOException occurred:{}", targetPath, e);
+            String msg = MessageFormatter.format(
+                "IOException occurred:{}",
+                targetPath
+            ).getMessage();
+            log.error(msg, e);
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
             log.info("Download interrupted, targetPath:{}", targetPath);
@@ -236,10 +245,18 @@ public class FileUtil {
             fis = new FileInputStream(targetPath);
             return DigestUtils.md5Hex(fis);
         } catch (FileNotFoundException e) {
-            log.error("File not found:{}", targetPath, e);
+            String msg = MessageFormatter.format(
+                "File not found:{}",
+                targetPath
+            ).getMessage();
+            log.error(msg, e);
             throw new RuntimeException(e);
         } catch (IOException e) {
-            log.error("IOException occurred:{}", targetPath, e);
+            String msg = MessageFormatter.format(
+                "IOException occurred:{}",
+                targetPath
+            ).getMessage();
+            log.error(msg, e);
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
             log.info("Download interrupted, targetPath:{}", targetPath);

@@ -26,12 +26,18 @@ package com.tencent.bk.job.common.util.date;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -301,7 +307,15 @@ public class DateUtils {
             Date previousDay = getPreviousDate(date, previousDays);
             return sdf.format(previousDay);
         } catch (ParseException e) {
-            log.error("Fail to calc date:{} - {}days, pattern={}", dateStr, previousDays, pattern, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to calc date:{} - {}days, pattern={}",
+                new String[]{
+                    dateStr,
+                    String.valueOf(previousDays),
+                    pattern
+                }
+            ).getMessage();
+            log.error(msg, e);
             return null;
         }
     }
@@ -327,7 +341,15 @@ public class DateUtils {
             Date endDate = sdf.parse(endDateStr);
             return (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
         } catch (ParseException e) {
-            log.error("Fail to calcDaysBetween:{},{},pattern={}", startDateStr, endDateStr, pattern, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to calcDaysBetween:{},{},pattern={}",
+                new String[]{
+                    startDateStr,
+                    endDateStr,
+                    pattern
+                }
+            ).getMessage();
+            log.error(msg, e);
             return null;
         }
     }

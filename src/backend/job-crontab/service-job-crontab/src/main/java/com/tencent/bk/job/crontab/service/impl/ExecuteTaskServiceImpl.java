@@ -35,6 +35,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,12 +77,27 @@ public class ExecuteTaskServiceImpl implements ExecuteTaskService {
 
             InternalResponse<ServiceTaskExecuteResult> taskExecuteResult =
                 serviceExecuteTaskResourceClient.executeTask(request);
-            log.info("Get execute task by cron|appId|{}|taskId|{}|cronTaskId|{}|{}|operator|{}|result|{}", appId,
-                taskId, cronTaskId, cronName, operator, JsonUtils.toJson(taskExecuteResult));
+            log.info(
+                "Get execute task by cron|appId={}|taskId={}|cronTaskId={}|cronName={}|operator={}|result={}",
+                appId,
+                taskId,
+                cronTaskId,
+                cronName,
+                operator,
+                JsonUtils.toJson(taskExecuteResult)
+            );
             return taskExecuteResult;
         } catch (Throwable e) {
-            log.error("Get execute task by cron caught exception|appId|{}|taskId|{}|cronTaskId|{}|{}|operator|{}",
-                appId, taskId, cronTaskId, cronName, operator, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Get execute task by cron caught exception|appId={}|taskId={}|cronTaskId={}|cronName={}|operator={}",
+                new String[]{
+                    String.valueOf(appId),
+                    String.valueOf(taskId),
+                    String.valueOf(cronTaskId),
+                    cronName,
+                    operator
+                }).getMessage();
+            log.error(msg, e);
             return null;
         }
     }

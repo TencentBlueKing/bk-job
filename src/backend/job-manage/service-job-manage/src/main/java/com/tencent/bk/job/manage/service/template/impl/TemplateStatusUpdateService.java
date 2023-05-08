@@ -43,6 +43,7 @@ import org.jooq.generated.tables.ScriptVersion;
 import org.jooq.generated.tables.TaskTemplateStepScript;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -128,7 +129,11 @@ public class TemplateStatusUpdateService {
                         try {
                             processTemplateStatus(templateId);
                         } catch (Exception e) {
-                            log.error("Error while processing template status!|{}", templateId, e);
+                            String msg = MessageFormatter.format(
+                                "Error while processing template status!|{}",
+                                templateId
+                            ).getMessage();
+                            log.error(msg, e);
                         }
                     });
                 } else {

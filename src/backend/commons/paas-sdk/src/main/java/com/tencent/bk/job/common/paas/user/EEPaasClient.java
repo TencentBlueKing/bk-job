@@ -49,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -213,7 +214,11 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         } catch (PaasException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Fail to request {}", uri, e);
+            String msg = MessageFormatter.format(
+                "Fail to request {}",
+                uri
+            ).getMessage();
+            log.error(msg, e);
             status = EsbMetricTags.VALUE_STATUS_ERROR;
             throw new PaasException(e, ErrorType.INTERNAL, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
         } finally {
