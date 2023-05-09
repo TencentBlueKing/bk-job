@@ -2,7 +2,7 @@
 name: Bug Report
 about: Report a bug encountered while operating bk-job
 title: 'fix: '
-labels: kind/bug
+labels: kind/bug,backlog
 assignees: 'nekzhang'
 
 ---
