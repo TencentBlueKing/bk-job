@@ -132,7 +132,7 @@
               v-if="allColumnMap.lastModifyTime"
               key="lastModifyTime"
               align="left"
-              :label="$t('script.更新时间')"
+              :label="$t('script.更新时间.colHead')"
               prop="lastModifyTime"
               :sortable="true"
               width="200" />
@@ -595,7 +595,7 @@
         },
         {
           id: 'lastModifyTime',
-          label: I18n.t('script.更新时间'),
+          label: I18n.t('script.更新时间.colHead'),
         },
         {
           id: 'statusDesc',
