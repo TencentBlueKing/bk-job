@@ -207,7 +207,7 @@
 
   import I18n from '@/i18n';
 
-  const TABLE_COLUMN_CACHE = 'accout_list_columns';
+  const TABLE_COLUMN_CACHE = 'accout_list_columns1';
 
   export default {
     name: '',
@@ -301,10 +301,12 @@
         {
           id: 'description',
           label: I18n.t('dangerousRule.规则说明.col'),
+          disabled: true,
         },
         {
           id: 'scriptTypeList',
           label: I18n.t('dangerousRule.脚本类型.col'),
+          disabled: true,
         },
         {
           id: 'action',
