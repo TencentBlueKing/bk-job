@@ -287,7 +287,7 @@ public class Upgrader {
         // 参数输入
         checkAndInputTaskParams(upgradeTaskList, properties);
         // 运行
-        runTasks(upgradeTaskList, args, properties);
+        System.exit(runTasks(upgradeTaskList, args, properties));
     }
 
     private static int runTasks(
