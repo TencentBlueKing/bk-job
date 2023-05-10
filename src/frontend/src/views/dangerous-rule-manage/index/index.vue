@@ -180,6 +180,25 @@
             :size="tableSize"
             @setting-change="handleSettingChange" />
         </bk-table-column>
+        <empty
+          v-if="isSearching"
+          slot="empty"
+          type="search">
+          <div>
+            <div style="font-size: 14px; color: #63656e;">
+              {{ $t('搜索结果为空') }}
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
+              <span>{{ $t('可以尝试调整关键词') }}</span>
+              <span>{{ $t('或') }}</span>
+              <bk-button
+                text
+                @click="handleClearSearch">
+                {{ $t('清空搜索条件') }}
+              </bk-button>
+            </div>
+          </div>
+        </empty>
       </bk-table>
     </div>
     <jb-sideslider
@@ -196,6 +215,7 @@
 
   import { listColumnsCache } from '@utils/cache-helper';
 
+  import Empty from '@components/empty';
   import JbEditInput from '@components/jb-edit/input';
   import JbEditSelect from '@components/jb-edit/select';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
@@ -419,6 +439,9 @@
           .then((data) => {
             this.scriptTypeList = data;
           });
+      },
+      handleClearSearch() {
+        this.$refs.search.reset();
       },
       handleCreate() {
         this.isShowOperation = true;
