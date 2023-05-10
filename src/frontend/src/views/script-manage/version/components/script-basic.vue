@@ -39,7 +39,7 @@
         style="width: 270px;">
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.脚本名：') }}
+            {{ $t('script.脚本名称.label') }}:
           </div>
           <div class="item-value">
             <auth-component
@@ -58,7 +58,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.更新人：') }}
+            {{ $t('script.更新人.label') }}:
           </div>
           <div class="item-value">
             <div
@@ -70,7 +70,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.创建人：') }}
+            {{ $t('script.创建人.label') }}:
           </div>
           <div class="item-value">
             <div
@@ -86,7 +86,7 @@
         style="width: 282px;">
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.脚本语言：') }}
+            {{ $t('script.脚本语言.label') }}:
           </div>
           <div class="item-value">
             <div class="text-box">
@@ -96,7 +96,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.更新时间：') }}
+            {{ $t('script.更新时间.label') }}:
           </div>
           <div class="item-value">
             <div
@@ -108,7 +108,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.创建时间：') }}
+            {{ $t('script.创建时间.label') }}:
           </div>
           <div
             v-bk-overflow-tips
@@ -122,7 +122,7 @@
       <div class="detail-column last">
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.场景标签：') }}
+            {{ $t('script.场景标签.label') }}:
           </div>
           <div class="item-value">
             <auth-component
@@ -142,7 +142,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.脚本描述：') }}
+            {{ $t('script.脚本描述.label') }}:
           </div>
           <div class="item-value">
             <jb-edit-textarea
@@ -264,8 +264,9 @@
         }
 
         .item-label {
-          flex: 0 0 auto;
+          padding-right: 4px;
           color: #b2b5bd;
+          flex: 0 0 auto;
         }
 
         .item-value {

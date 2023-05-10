@@ -29,7 +29,7 @@ export default {
     新建: 'New',
     '搜索IP，生效范围，目标业务': 'Search By IP / Acting On / Business ...',
     创建人: 'CREATED BY',
-    创建时间: 'CREATED ON',
+    创建时间: 'CREATED AT',
     编辑: 'Edit',
     '确定删除该IP白名单？': 'Are you sure to delete it?',
     '删除后不可恢复，请谨慎操作！': 'Caution! It cannot be restored after deletion.',
