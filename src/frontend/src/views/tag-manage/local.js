@@ -41,7 +41,7 @@ export default {
       colHead: 'RELATED SCRIPT(S)',
     },
     创建人: 'CREATED BY',
-    创建时间: 'CREATED ON',
+    创建时间: 'CREATED AT',
     更新人: {
       colHead: 'LAST MODIFIED BY',
     },
