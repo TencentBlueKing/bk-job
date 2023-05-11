@@ -191,9 +191,9 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
-  import RenderScriptContent from './components/render-script-content';
-
   import I18n from '@/i18n';
+
+  import RenderScriptContent from './components/render-script-content';
 
   const TABLE_COLUMN_CACHE = 'detect_records_list_columns';
 

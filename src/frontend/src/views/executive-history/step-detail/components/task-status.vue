@@ -99,12 +99,12 @@
     pushFileHistory,
   } from '@utils/cache-helper';
 
+  import I18n from '@/i18n';
+
   import mixins from './mixins';
   import TaskStepEnd from './task-step/end';
   import TaskStep from './task-step/index';
   import TaskStepStart from './task-step/start';
-
-  import I18n from '@/i18n';
 
   export default {
     name: '',

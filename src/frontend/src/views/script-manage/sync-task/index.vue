@@ -137,9 +137,9 @@
     leaveConfirm,
   } from '@utils/assist';
 
-  import ScriptDetail from './components/script-detail';
-
   import I18n from '@/i18n';
+
+  import ScriptDetail from './components/script-detail';
 
   export default {
     components: {

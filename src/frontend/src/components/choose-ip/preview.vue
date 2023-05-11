@@ -63,9 +63,9 @@
 /**
      * 预览已选主机数据
     */
-  import ServerPanel from './server-panel';
-
   import I18n from '@/i18n';
+
+  import ServerPanel from './server-panel';
 
   export default {
     name: '',

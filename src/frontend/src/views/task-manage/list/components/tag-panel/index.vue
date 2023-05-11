@@ -74,9 +74,9 @@
   import TagManageService from '@service/tag-manage';
   import TaskManageService from '@service/task-manage';
 
-  import TabItem from './tab-item';
-
   import I18n from '@/i18n';
+
+  import TabItem from './tab-item';
 
   export default {
     name: 'RenderTagTabItem',

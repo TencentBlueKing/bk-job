@@ -68,10 +68,10 @@
 <script>
   import NotifyService from '@service/notify';
 
+  import I18n from '@/i18n';
+
   import NotifyCollapseItem from './components/notify-collapse-item';
   import TriggerSetting from './components/trigger-setting';
-
-  import I18n from '@/i18n';
 
   export default {
     components: {

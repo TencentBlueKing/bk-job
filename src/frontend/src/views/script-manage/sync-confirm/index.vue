@@ -137,11 +137,11 @@
 
   import { checkPublicScript } from '@utils/assist';
 
+  import I18n from '@/i18n';
+
   import Diff from '../common/diff.vue';
 
   import ScriptDetail from './components/script-detail';
-
-  import I18n from '@/i18n';
 
   export default {
     components: {

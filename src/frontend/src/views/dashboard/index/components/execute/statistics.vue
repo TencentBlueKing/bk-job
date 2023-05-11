@@ -107,11 +107,11 @@
     prettyDateFormat,
   } from '@utils/assist';
 
+  import I18n from '@/i18n';
+
   import {
     chartsOptionsBase,
   } from '../common/assist';
-
-  import I18n from '@/i18n';
 
   const tooltipFormatter = (params) => {
     const generatorHtml = (data) => {

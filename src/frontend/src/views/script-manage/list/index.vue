@@ -290,13 +290,13 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
+  import I18n from '@/i18n';
+
   import ScriptRelatedInfo from '../common/script-related-info';
 
   import BatchEditTag from './components/batch-edit-tag';
   import Layout from './components/layout';
   import TagPanel from './components/tag-panel';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'script_list_columns';
 

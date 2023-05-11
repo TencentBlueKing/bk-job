@@ -40,6 +40,8 @@
   </jb-popover-confirm>
 </template>
 <script>
+  import I18n from '@/i18n';
+
   import ActionAllRetry from './all-retry';
   import ActionConfirm from './confirm';
   import ActionConfirmForced from './confirm-forced';
@@ -50,8 +52,6 @@
   import ActionForcedSkip from './forced-skip';
   import ActionNext from './next';
   import ActionSkip from './skip';
-
-  import I18n from '@/i18n';
 
   const ACTION_FAIL_IP_RETRY = 2;
   const ACTION_SKIP = 3;

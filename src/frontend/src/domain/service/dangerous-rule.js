@@ -26,9 +26,9 @@
 /* eslint-disable no-param-reassign */
 import DangerousRuleModel from '@model/dangerous-rule';
 
-import DangerousRuleSource from '../source/dangerous-rule';
-
 import I18n from '@/i18n';
+
+import DangerousRuleSource from '../source/dangerous-rule';
 
 export default {
   fetchList(params = {}, payload = {}) {

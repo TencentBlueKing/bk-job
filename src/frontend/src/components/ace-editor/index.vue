@@ -152,6 +152,8 @@
   import Empty from '@components/empty';
   import ScrollFaker from '@components/scroll-faker';
 
+  import I18n from '@/i18n';
+
   import DefaultScript from './default-script';
 
   import 'ace/mode-sh';
@@ -171,7 +173,6 @@
   import 'ace/ext-language_tools';
   import 'ace/ext-keybinding_menu';
   import 'ace/ext-elastic_tabstops_lite';
-  import I18n from '@/i18n';
 
   export const builtInScript = Object.keys(DefaultScript).reduce((result, item) => {
     result[item] = Base64.encode(DefaultScript[item]);

@@ -125,10 +125,10 @@
 
   import Empty from '@components/empty';
 
+  import I18n from '@/i18n';
+
   import ListBody from './list-body';
   import ListHead from './list-head';
-
-  import I18n from '@/i18n';
 
   const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN';
   const LIST_ROW_HEIGHT = 40; // 每列高度

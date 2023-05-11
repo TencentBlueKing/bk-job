@@ -36,12 +36,12 @@
 <script>
   import TaskExecuteService from '@service/task-execute';
 
+  import I18n from '@/i18n';
+
   import StepAction from '../../../common/step-action';
 
   import ThemeApproval from './theme/approval';
   import ThemeNormal from './theme/normal';
-
-  import I18n from '@/i18n';
 
   export default {
     name: 'TaskStep',
