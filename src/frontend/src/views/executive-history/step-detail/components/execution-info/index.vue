@@ -170,11 +170,11 @@
 <script>
   import TaskExecuteService from '@service/task-execute';
 
+  import I18n from '@/i18n';
+
   import FileLog from './file-log';
   import ScriptLog from './script-log';
   import VariableView from './variable-view';
-
-  import I18n from '@/i18n';
 
   const STEP_FONT_SIZE_KEY = 'step_execution_font_size';
   const SCRIPT_LOG_AUTO_LINE_FEED = 'script_log_line_feed';

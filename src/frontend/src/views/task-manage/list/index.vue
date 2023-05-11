@@ -352,11 +352,11 @@
   import ListOperationExtend from '@components/list-operation-extend';
   import RenderList from '@components/render-list';
 
+  import I18n from '@/i18n';
+
   import BatchEditTag from './components/batch-edit-tag.vue';
   import Layout from './components/layout';
   import TagPanel from './components/tag-panel';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'task_list_columns';
 

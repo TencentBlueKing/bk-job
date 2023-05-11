@@ -199,9 +199,9 @@
     fileSourceAliasNameRule,
   } from '@utils/validator';
 
-  import RenderFileSourceParam from './components/render-file-source-param';
-
   import I18n from '@/i18n';
+
+  import RenderFileSourceParam from './components/render-file-source-param';
 
   const getDefaultData = () => ({
     // ID,更新文件源的时候需要传入，新建文件源不需要

@@ -357,11 +357,11 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
+  import I18n from '@/i18n';
+
   import TaskDetail from './components/detail';
   import HistoryRecord from './components/history-record';
   import TaskOperation from './components/operation';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'cron_list_columns';
 

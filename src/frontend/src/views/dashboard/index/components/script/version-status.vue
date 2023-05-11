@@ -53,12 +53,12 @@
 
   import StatisticsService from '@service/statistics';
 
+  import I18n from '@/i18n';
+
   import CardLayout from '../card-layout';
   import {
     chartsOptionsBase,
   } from '../common/assist';
-
-  import I18n from '@/i18n';
 
   const colorMap = {
     ONLINE: '#85CCA8',

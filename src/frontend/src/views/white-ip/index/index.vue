@@ -175,10 +175,10 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
+  import I18n from '@/i18n';
+
   import Operation from './components/operation';
   import RenderHostList from './components/render-host-list.vue';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'white_ip_list_columns';
 

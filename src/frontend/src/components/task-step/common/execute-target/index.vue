@@ -163,11 +163,11 @@
 
   import ComposeFormItem from '@components/compose-form-item';
 
+  import I18n from '@/i18n';
+
   import DropdownMenu from './components/dropdown-menu';
   import DropdownMenuGroup from './components/dropdown-menu/group';
   import DropdownMenuItem from './components/dropdown-menu/item';
-
-  import I18n from '@/i18n';
 
   export default {
     components: {

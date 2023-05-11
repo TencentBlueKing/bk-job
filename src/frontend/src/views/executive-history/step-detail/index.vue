@@ -191,6 +191,8 @@
 
   import ComposeFormItem from '@components/compose-form-item';
 
+  import I18n from '@/i18n';
+
   import ExecutionStatusBar from '../common/execution-status-bar';
   import StepAction from '../common/step-action';
 
@@ -205,8 +207,6 @@
   import ViewGlobalVariable from './components/view-global-variable';
   import ViewOperationRecord from './components/view-operation-record';
   import ViewStepInfo from './components/view-step-info';
-
-  import I18n from '@/i18n';
 
   const appendURLParams = (params = {}) => {
     const curSearchParams = new URLSearchParams(window.location.search);
