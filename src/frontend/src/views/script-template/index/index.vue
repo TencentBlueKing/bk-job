@@ -111,10 +111,10 @@
 
   import AceEditor, { builtInScript } from '@components/ace-editor';
 
+  import I18n from '@/i18n';
+
   import PreviewTemplate from './components/preview-template';
   import RenderVariable from './components/render-variable';
-
-  import I18n from '@/i18n';
 
   export default {
     name: '',

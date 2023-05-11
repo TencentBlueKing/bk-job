@@ -31,19 +31,20 @@ import TaskExecuteService from '@service/task-execute';
 import TaskPlanService from '@service/task-plan';
 
 import { getURLSearchParams } from '@utils/assist';
+import { scopeCache } from '@utils/cache-helper';
+import EntryTask from '@utils/entry-task';
+
+import App from '@/App';
+import i18n from '@/i18n';
+import IframeApp from '@/iframe-app';
+import createRouter from '@/router';
+import store from '@/store';
 
 import '@/common/bkmagic';
 import '@/css/reset.css';
 import '@/css/app.css';
 import '@bk-icon/style.css';
 import '@bk-icon/iconcool.js';
-import App from '@/App';
-import i18n from '@/i18n';
-import IframeApp from '@/iframe-app';
-import createRouter from '@/router';
-import store from '@/store';
-import { scopeCache } from '@/utils/cache-helper';
-import EntryTask from '@/utils/entry-task';
 
 /**
  * @desc 启动打印当前系统信息

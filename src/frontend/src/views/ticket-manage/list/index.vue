@@ -230,10 +230,10 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
+  import I18n from '@/i18n';
+
   import TicketOpertion from './components/opertion';
   import RelatedTicket from './components/related-ticket';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'ticket_list_columns';
 

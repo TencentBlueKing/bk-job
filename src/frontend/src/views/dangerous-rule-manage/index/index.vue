@@ -222,10 +222,10 @@
   import JbSearchSelect from '@components/jb-search-select';
   import ListActionLayout from '@components/list-action-layout';
 
+  import I18n from '@/i18n';
+
   import AddRule from './components/add-rule';
   import EditAction from './components/edit-action';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'accout_list_columns1';
 

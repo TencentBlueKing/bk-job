@@ -380,6 +380,8 @@
   import ListOperationExtend from '@components/list-operation-extend';
   import RenderList from '@components/render-list';
 
+  import I18n from '@/i18n';
+
   import PlanCreate from '../create';
   import PlanDetail from '../detail';
   import PlanEdit from '../edit';
@@ -387,8 +389,6 @@
   import BatchEditGlobalVariable from './components/batch-edit-gobal-variable';
   import Layout from './components/layout';
   import TemplateSelect from './components/template-select';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'task_plan_list_columns';
 

@@ -95,9 +95,9 @@
   import StatisticsIndexService from '@service/statistics-index';
   import UserService from '@service/user';
 
-  import Greeting from './greeting';
-
   import I18n from '@/i18n';
+
+  import Greeting from './greeting';
 
   const dialogTitleMap = {
     ForbiddenScriptFinder: I18n.t('home.使用禁用脚本的作业模板/执行方案'),

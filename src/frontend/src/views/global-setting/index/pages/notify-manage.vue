@@ -102,10 +102,10 @@
   import JbSideslider from '@components/jb-sideslider';
   import JbUserSelector from '@components/jb-user-selector';
 
+  import I18n from '@/i18n';
+
   import editOfTemplate from '../components/edit-of-template';
   import NotifyChannel from '../components/notify-channel-table';
-
-  import I18n from '@/i18n';
 
   export default {
     name: 'NotifyManage',

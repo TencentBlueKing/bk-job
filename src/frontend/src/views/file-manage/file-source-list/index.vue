@@ -203,9 +203,9 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
-  import FileOpertion from './components/opertion';
-
   import I18n from '@/i18n';
+
+  import FileOpertion from './components/opertion';
 
   const TABLE_COLUMN_CACHE = 'file_source_list_columns';
 

@@ -171,10 +171,10 @@
   import JbEditTextarea from '@components/jb-edit/textarea';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
 
+  import I18n from '@/i18n';
+
   import RenderGlobalVar from '../common/render-global-var';
   import RenderTaskStep from '../common/render-task-step';
-
-  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     createTime: '',

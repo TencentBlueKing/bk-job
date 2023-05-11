@@ -239,9 +239,9 @@
   import OperationTag from '@components/operation-tag';
   import RenderList from '@components/render-list';
 
-  import BatchEditRelate from './components/batch-edit-relate';
-
   import I18n from '@/i18n';
+
+  import BatchEditRelate from './components/batch-edit-relate';
 
   const TABLE_COLUMN_CACHE = 'tag_manage_columns';
 

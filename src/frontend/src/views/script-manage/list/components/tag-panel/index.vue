@@ -70,9 +70,9 @@
 
   import { checkPublicScript } from '@utils/assist';
 
-  import TabItem from './tab-item';
-
   import I18n from '@/i18n';
+
+  import TabItem from './tab-item';
 
   export default {
     name: 'RenderTagTabItem',

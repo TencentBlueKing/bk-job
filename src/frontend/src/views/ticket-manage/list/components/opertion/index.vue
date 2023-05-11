@@ -87,12 +87,12 @@
 <script>
   import TicketService from '@service/ticket-manage';
 
+  import I18n from '@/i18n';
+
   import SecretkeyAppid from './components/app-id-secret-key';
   import Password from './components/password';
   import Secretkey from './components/secret-key';
   import UsernamePassword from './components/username-password';
-
-  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     name: '',

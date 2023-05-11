@@ -76,10 +76,10 @@
   import AccountSelect from '@components/account-select';
   import JbInput from '@components/jb-input';
 
+  import I18n from '@/i18n';
+
   import AccountDatabase from './account-strategy/database-account';
   import AccountOS from './account-strategy/os-account';
-
-  import I18n from '@/i18n';
 
   const generatorDefault = () => ({
     id: '',

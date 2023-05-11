@@ -128,6 +128,7 @@ const translateCN = (value) => {
   };
   const result = [];
   value.forEach((atoms, index) => {
+    // eslint-disable-next-line prefer-spread
     result.push.apply(result, parse(atoms, index + 1));
   });
   return result.join('，');
@@ -230,6 +231,7 @@ const translateEN = (value) => {
   };
   const result = [];
   value.forEach((atoms, index) => {
+    // eslint-disable-next-line prefer-spread
     result.push.apply(result, parse(atoms, index + 1));
   });
   return result.join(', ');
