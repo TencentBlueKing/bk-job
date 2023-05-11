@@ -25,6 +25,8 @@
 
 import bkMagicVue from 'bk-magic-vue';
 import marked from 'marked';
+import { gfmHeadingId } from 'marked-gfm-heading-id';
+import { mangle } from 'marked-mangle';
 import Vue from 'vue';
 import VueProgressBar from 'vue-progressbar';
 
@@ -176,6 +178,8 @@ Vue.use(Request);
 Vue.use(TippyTips);
 Vue.use(Test);
 
+marked.use(mangle());
+marked.use(gfmHeadingId());
 marked.use({
   renderer: {
     link(link, title, text) {
