@@ -24,8 +24,10 @@
 */
 
 /* eslint-disable no-param-reassign */
-import DangerousRuleSource from '../source/dangerous-rule';
 import DangerousRuleModel from '@model/dangerous-rule';
+
+import DangerousRuleSource from '../source/dangerous-rule';
+
 import I18n from '@/i18n';
 
 export default {
@@ -45,7 +47,7 @@ export default {
     return DangerousRuleSource.move(params)
       .then(({ data }) => data);
   },
-  fetchActionList () {
+  fetchActionList() {
     return Promise.resolve([
       {
         id: 1,

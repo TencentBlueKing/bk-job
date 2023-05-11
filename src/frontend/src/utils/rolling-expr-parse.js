@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import { ordinalSuffixOf } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 const fixed = /^([1-9]\d*)$/;
 const fixedIn = /^\+([1-9]\d*)$/;

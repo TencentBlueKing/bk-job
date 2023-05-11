@@ -54,6 +54,7 @@
 </template>
 <script>
   import _ from 'lodash';
+
   import DangerousRuleService from '@service/dangerous-rule';
 
   export default {
@@ -71,7 +72,7 @@
       };
     },
     computed: {
-      text () {
+      text() {
         const action = _.find(this.actionList, _ => _.id === this.value);
         if (!action) {
           return '--';
@@ -86,11 +87,11 @@
         return classMap[this.value];
       },
     },
-    created () {
+    created() {
       this.fetchData();
     },
     methods: {
-      fetchData () {
+      fetchData() {
         DangerousRuleService.fetchActionList()
           .then((data) => {
             this.actionList = Object.freeze(data);
@@ -116,7 +117,7 @@
       /**
        * @desc 触发change 事件
        */
-      handleChange (value) {
+      handleChange(value) {
         if (this.value === value) {
           return;
         }

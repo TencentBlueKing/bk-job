@@ -96,10 +96,12 @@
 </template>
 <script>
   import _ from 'lodash';
-  import I18n from '@/i18n';
+
   import rollingExprParse from '@utils/rolling-expr-parse';
 
   import Guide from './guide';
+
+  import I18n from '@/i18n';
 
   export default {
     name: '',
