@@ -25,6 +25,8 @@
 
 import Vue from 'vue';
 
+import createRouter from '@router';
+
 import AppManageService from '@service/app-manage';
 import QueryGlobalSettingService from '@service/query-global-setting';
 import TaskExecuteService from '@service/task-execute';
@@ -37,7 +39,6 @@ import EntryTask from '@utils/entry-task';
 import App from '@/App';
 import i18n from '@/i18n';
 import IframeApp from '@/iframe-app';
-import createRouter from '@/router';
 import store from '@/store';
 
 import '@/common/bkmagic';
