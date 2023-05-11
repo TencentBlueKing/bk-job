@@ -49,13 +49,13 @@
 
   import { taskImport } from '@utils/cache-helper';
 
+  import I18n from '@/i18n';
+
   import Step1 from './pages/step1';
   import Step2 from './pages/step2';
   import Step3 from './pages/step3';
   import Step4 from './pages/step4';
   import Step5 from './pages/step5';
-
-  import I18n from '@/i18n';
 
   export default {
     name: '',

@@ -173,14 +173,14 @@
 
   import PermissionSection from '@components/apply-permission/apply-section';
 
+  import I18n from '@/i18n';
+
   import RenderGlobalVar from '../render-global-var';
   import RenderTaskStep from '../render-task-step';
 
   import EditTitle from './components/edit-title.vue';
   import Layout from './components/layout';
   import ToggleDisplay from './components/toggle-display';
-
-  import I18n from '@/i18n';
 
   export default {
     name: '',

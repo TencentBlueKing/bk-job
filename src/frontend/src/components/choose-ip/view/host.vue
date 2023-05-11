@@ -113,6 +113,8 @@
 
   import JbCollapseItem from '@components/jb-collapse-item';
 
+  import I18n from '@/i18n';
+
   import ActionExtend from '../components/action-extend';
   import HostTable from '../components/host-table';
   import {
@@ -120,8 +122,6 @@
     sortHost,
     statisticsHost,
   } from '../components/utils';
-
-  import I18n from '@/i18n';
 
   export default {
     name: 'ViewHost',

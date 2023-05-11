@@ -96,10 +96,10 @@
 
   import ScrollFaker from '@components/scroll-faker';
 
+  import I18n from '@/i18n';
+
   import CrontabDetail from '../components/crontab-detail';
   import Layout from '../components/layout';
-
-  import I18n from '@/i18n';
 
   const generatorData = ({ id, name, enable }) => ({
     id,

@@ -48,9 +48,9 @@
   </div>
 </template>
 <script>
-  import AskPermission from './index';
-
   import I18n from '@/i18n';
+
+  import AskPermission from './index';
 
   export default {
     components: {

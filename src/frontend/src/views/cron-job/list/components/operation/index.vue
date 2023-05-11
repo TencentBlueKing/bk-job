@@ -198,12 +198,12 @@
   import ToggleDisplay from '@components/global-variable/toggle-display';
   import JbInput from '@components/jb-input';
 
+  import I18n from '@/i18n';
+
   import RenderStrategy from '../render-strategy';
 
   import CronJob from './cron-job';
   import FormItemFactory from './form-item-strategy';
-
-  import I18n from '@/i18n';
 
   const onceItemList = [
     'executeBeforeNotify',

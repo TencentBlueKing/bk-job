@@ -120,9 +120,9 @@
   import JbEditInput from '@components/jb-edit/input';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
 
-  import TableActionRow from '../components/table-action-row';
-
   import I18n from '@/i18n';
+
+  import TableActionRow from '../components/table-action-row';
 
   export default {
     name: '',

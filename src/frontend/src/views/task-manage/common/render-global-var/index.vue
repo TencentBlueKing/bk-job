@@ -191,15 +191,15 @@
 
   import VariableModel from '@model/task/global-variable';
 
+  import I18n from '@/i18n';
+  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
+
   import BatchEditOfPlan from './batch-edit-of-plan';
   import BatchOperation from './batch-operation';
   import Detail from './detail';
   import EditOfPlan from './edit-of-plan';
   import Operation from './operation';
   import PopoverDetail from './popover-detail';
-
-  import I18n from '@/i18n';
-  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
 
   export default {
     name: 'RenderGlobalVar',

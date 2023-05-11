@@ -231,9 +231,9 @@
 
   import SyncPlanVO from '@domain/variable-object/sync-plan';
 
-  import ConfirmCron from './components/confirm-cron';
-
   import I18n from '@/i18n';
+
+  import ConfirmCron from './components/confirm-cron';
 
   const runStepByStep = (data, callback, finishCallback = () => {}) => {
     let startIndex = 0;

@@ -134,12 +134,12 @@
 
   import JbForm from '@components/jb-form';
 
+  import I18n from '@/i18n';
+
   import RenderGlobalVar from '../../common/render-global-var';
   import RenderTaskStep from '../../common/render-task-step';
 
   import Layout from './components/layout';
-
-  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     id: 0,

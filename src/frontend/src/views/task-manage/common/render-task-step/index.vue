@@ -235,10 +235,10 @@
 
   import JbSideslider from '@components/jb-sideslider';
 
+  import I18n from '@/i18n';
+
   import TaskStepOperation from './task-step';
   import TaskStepView from './task-step-view';
-
-  import I18n from '@/i18n';
 
   export default {
     name: 'RenderTaskStep',

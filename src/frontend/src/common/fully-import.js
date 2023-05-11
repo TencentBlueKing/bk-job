@@ -56,8 +56,9 @@ import TippyTips from '@components/tippy-tips';
 
 import VueCompositionAPI from '@vue/composition-api';
 
-import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 import Exception from '@/components/exception';
+
+import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 
 Vue.use(bkMagicVue);
 Vue.use(VueProgressBar, {

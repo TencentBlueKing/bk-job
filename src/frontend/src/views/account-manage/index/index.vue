@@ -201,9 +201,9 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
-  import Operation from './components/operation';
-
   import I18n from '@/i18n';
+
+  import Operation from './components/operation';
 
   const TABLE_COLUMN_CACHE = 'account_manage_columns';
 

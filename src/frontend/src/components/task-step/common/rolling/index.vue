@@ -99,9 +99,9 @@
 
   import rollingExprParse from '@utils/rolling-expr-parse';
 
-  import Guide from './guide';
-
   import I18n from '@/i18n';
+
+  import Guide from './guide';
 
   export default {
     name: '',

@@ -122,6 +122,8 @@
 
   import BackTop from '@components/back-top';
 
+  import I18n from '@/i18n';
+
   import ExecutionStatusBar from '../common/execution-status-bar';
   import GlobalVariable from '../common/global-variable';
   import OperationRecord from '../common/operation-record';
@@ -131,8 +133,6 @@
   import TaskStep from './components/task-step';
   import TaskStepEnd from './components/task-step/theme/end';
   import TaskStepStart from './components/task-step/theme/start';
-
-  import I18n from '@/i18n';
 
   export default {
     name: '',

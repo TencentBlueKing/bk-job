@@ -145,14 +145,14 @@
 
   import JbCollapseItem from '@components/jb-collapse-item';
 
+  import I18n from '@/i18n';
+
   import ActionExtend from '../components/action-extend';
   import HostTable from '../components/host-table';
   import StatisticsText from '../components/statistics-text';
   import {
     statisticsHost,
   } from '../components/utils';
-
-  import I18n from '@/i18n';
 
   const genNodeKey = ({ objectId, instanceId }) => `#${objectId}#${instanceId}`;
 

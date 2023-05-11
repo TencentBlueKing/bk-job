@@ -129,12 +129,12 @@
   import JbTagSelect from '@components/jb-tag-select';
   import ResizeLayout from '@components/resize-layout';
 
+  import I18n from '@/i18n';
+
   import RenderGlobalVar from '../common/render-global-var';
   import RenderTaskStep from '../common/render-task-step';
 
   import ToggleDisplay from './components/toggle-display';
-
-  import I18n from '@/i18n';
 
   export default {
     name: '',
