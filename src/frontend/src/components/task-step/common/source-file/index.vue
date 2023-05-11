@@ -95,9 +95,9 @@
 
   import QuertGlobalSettingService from '@service/query-global-setting';
 
-  import ViewFile from './view';
-
   import I18n from '@/i18n';
+
+  import ViewFile from './view';
 
   export default {
     name: 'SourceFileBase',

@@ -98,9 +98,9 @@
   import GlobalVariableLayout from '@components/global-variable/layout';
   import ToggleDisplay from '@components/global-variable/toggle-display';
 
-  import RemoveInvalid from './components/remove-invalid.vue';
-
   import I18n from '@/i18n';
+
+  import RemoveInvalid from './components/remove-invalid.vue';
 
   export default {
     name: '',

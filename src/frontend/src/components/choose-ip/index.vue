@@ -152,6 +152,8 @@
 
   import TaskHostNodeModel from '@model/task-host-node';
 
+  import I18n from '@/i18n';
+
   import PreviewGroup from './components/preview-group';
   import RenderBusinessTopology from './components/render-business-topology';
   import RenderDynamicBusinessTopology from './components/render-dynamic-business-topology';
@@ -165,8 +167,6 @@
     // generateHostRealId,
   } from './components/utils';
   import Preview from './preview';
-
-  import I18n from '@/i18n';
 
   const DIALOG_FOOTER_HEIGHT = 58;
   const CONTENT_TAB_HEIGHT = 42;

@@ -24,7 +24,7 @@
 */
 
 export default class DangerousRule {
-  constructor (payload) {
+  constructor(payload) {
     this.action = payload.action;
     this.createTime = payload.createTime;
     this.creator = payload.creator;

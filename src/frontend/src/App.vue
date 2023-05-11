@@ -126,9 +126,9 @@
   import RouterBack from '@components/router-back';
   import SystemLog from '@components/system-log';
 
-  import Layout from './layout-new';
-
   import I18n, { setLocale } from '@/i18n';
+
+  import Layout from './layout-new';
 
   export default {
     name: 'App',

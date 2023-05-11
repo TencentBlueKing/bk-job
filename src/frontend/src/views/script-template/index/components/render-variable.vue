@@ -67,9 +67,9 @@
 
   import { execCopy } from '@utils/assist';
 
-  import ResizeableBox from './resizeable-box';
-
   import I18n from '@/i18n';
+
+  import ResizeableBox from './resizeable-box';
 
   export default {
     components: {

@@ -87,9 +87,9 @@
     taskImport,
   } from '@utils/cache-helper';
 
-  import ActionBar from '../components/action-bar';
-
   import I18n from '@/i18n';
+
+  import ActionBar from '../components/action-bar';
 
   export default {
     name: '',

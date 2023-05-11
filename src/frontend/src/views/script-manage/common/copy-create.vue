@@ -135,9 +135,9 @@
   import AceEditor from '@components/ace-editor';
   import JbInput from '@components/jb-input';
 
-  import Layout from './components/layout';
-
   import I18n from '@/i18n';
+
+  import Layout from './components/layout';
 
   const genDefaultFormData = () => ({
     id: '',

@@ -210,11 +210,11 @@
   import DetailItem from '@components/detail-layout/item';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
 
+  import I18n from '@/i18n';
+
   import Layout from '../components/layout';
 
   import RenderLog from './components/render-log';
-
-  import I18n from '@/i18n';
 
   export default {
     name: '',

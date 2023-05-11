@@ -66,12 +66,13 @@
 
   import TaskExecuteService from '@service/task-execute';
 
+  import I18n from '@/i18n';
+
   import mixins from '../../mixins';
 
   import 'ace/mode-text';
   import 'ace/theme-monokai';
   import 'ace/ext-searchbox';
-  import I18n from '@/i18n';
 
   export default {
     mixins: [

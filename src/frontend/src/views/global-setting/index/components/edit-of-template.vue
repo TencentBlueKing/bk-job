@@ -123,9 +123,9 @@
   import JbUserSelector from '@components/jb-user-selector';
   import RenderStrategy from '@components/render-strategy';
 
-  import InternalVariable from './internal-variable';
-
   import I18n from '@/i18n';
+
+  import InternalVariable from './internal-variable';
 
   const getDefaultData = () => ({
     // 渠道code

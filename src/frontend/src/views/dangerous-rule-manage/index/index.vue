@@ -140,6 +140,7 @@
                 :value="row.status"
                 @update="status => handleUpdate(row, { status })" />
               <bk-button
+                v-if="!isSearching"
                 v-bk-tooltips.top="$t('dangerousRule.上移')"
                 v-test="{ type: 'button', value: 'upMoveRule' }"
                 class="arrow-btn ml10"
@@ -149,6 +150,7 @@
                 <icon type="increase-line" />
               </bk-button>
               <bk-button
+                v-if="!isSearching"
                 v-bk-tooltips.top="$t('dangerousRule.下移')"
                 v-test="{ type: 'button', value: 'downMoveRule' }"
                 class="arrow-btn"
@@ -220,10 +222,10 @@
   import JbSearchSelect from '@components/jb-search-select';
   import ListActionLayout from '@components/list-action-layout';
 
+  import I18n from '@/i18n';
+
   import AddRule from './components/add-rule';
   import EditAction from './components/edit-action';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'accout_list_columns1';
 
@@ -246,6 +248,7 @@
         scriptTypeList: [],
         tableSize: 'small',
         selectedTableColumn: [],
+        searchParams: {},
       };
     },
     computed: {
@@ -258,9 +261,11 @@
           return result;
         }, {});
       },
+      isSearching() {
+        return Object.keys(this.searchParams).length > 0;
+      },
     },
     created() {
-      this.searchParams = {};
       this.editRule = {};
       this.fetchScriptType();
 
