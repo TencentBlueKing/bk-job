@@ -79,8 +79,8 @@
         show-overflow-tooltip
         sortable="custom" />
       <bk-table-column
-        v-if="allRenderColumnMap.account"
-        key="account"
+        v-if="allRenderColumnMap.remark"
+        key="remark"
         align="left"
         :label="$t('account.描述.colHead')"
         min-width="180"
