@@ -33,14 +33,12 @@ import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
-@Component
 public class EsbReqRewriteInterceptor extends HandlerInterceptorAdapter {
 
     @Override

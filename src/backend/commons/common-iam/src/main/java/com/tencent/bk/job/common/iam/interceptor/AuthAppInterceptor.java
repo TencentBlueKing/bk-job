@@ -34,8 +34,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -43,12 +41,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
-@Component
 public class AuthAppInterceptor extends HandlerInterceptorAdapter {
 
     private final BusinessAuthService businessAuthService;
 
-    @Autowired
     public AuthAppInterceptor(BusinessAuthService businessAuthService) {
         this.businessAuthService = businessAuthService;
     }

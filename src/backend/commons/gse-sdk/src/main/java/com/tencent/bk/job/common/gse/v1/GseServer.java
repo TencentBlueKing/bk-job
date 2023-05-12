@@ -26,7 +26,7 @@ package com.tencent.bk.job.common.gse.v1;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.tencent.bk.job.common.gse.config.GseProperties;
+import com.tencent.bk.job.common.gse.config.GseV1Properties;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
@@ -45,19 +45,19 @@ public class GseServer {
 
     private List<Map.Entry<String, Integer>> servers;
 
-    private final GseProperties gseProperties;
+    private final GseV1Properties gseV1Properties;
 
     @Autowired
-    public GseServer(GseProperties gseProperties) {
-        this.gseProperties = gseProperties;
+    public GseServer(GseV1Properties gseV1Properties) {
+        this.gseV1Properties = gseV1Properties;
     }
 
     @PostConstruct
     public void init() {
         if (!isInit.get()) {
             Map<String, Integer> maps = Maps.newHashMap();
-            String[] gseServerIps = gseProperties.getTaskServer().getHost().split(",");
-            int gseServerPort = gseProperties.getTaskServer().getPort();
+            String[] gseServerIps = gseV1Properties.getTaskServer().getHost().split(",");
+            int gseServerPort = gseV1Properties.getTaskServer().getPort();
             for (String gseServerIp : gseServerIps) {
                 maps.put(gseServerIp, gseServerPort);
             }

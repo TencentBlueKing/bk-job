@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.web.util.ProfileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
  * 服务认证拦截器
  */
 @Slf4j
-@Component
 public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
     private final JwtManager jwtManager;
     private final ProfileUtil profileUtil;

@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.common.security.autoconfigure;
 
+import com.tencent.bk.job.common.security.feign.FeignBasicAuthRequestInterceptor;
 import com.tencent.bk.job.common.security.jwt.AutoUpdateJwtManager;
 import com.tencent.bk.job.common.util.jwt.JwtManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -43,12 +43,22 @@ public class ServiceSecurityAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "jwtManager")
-    JwtManager jwtManager(@Autowired ServiceSecurityProperties securityProperties) throws IOException,
+    JwtManager jwtManager(ServiceSecurityProperties securityProperties) throws IOException,
         GeneralSecurityException {
         return new AutoUpdateJwtManager(
             securityProperties.getPrivateKeyBase64(),
             securityProperties.getPublicKeyBase64()
         );
+    }
+
+    /**
+     * Feign 服务认证拦截
+     *
+     * @param jwtManager jwt管理
+     */
+    @Bean
+    public FeignBasicAuthRequestInterceptor basicAuthRequestInterceptor(JwtManager jwtManager) {
+        return new FeignBasicAuthRequestInterceptor(jwtManager);
     }
 
 }

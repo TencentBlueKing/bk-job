@@ -40,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -60,7 +59,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@DependsOn("redisLockConfig")
 public class SyncServiceImpl implements SyncService {
 
     private static final String REDIS_KEY_SYNC_APP_JOB_LOCK = "sync-app-job-lock";

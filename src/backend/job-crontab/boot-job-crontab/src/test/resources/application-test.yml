@@ -59,3 +59,9 @@ notification-policy:
       frequency: 5
       #通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
       totalTimes: -1
+bk-api-gateway:
+  gse:
+    url: gse.apigw.com
+esb:
+  service:
+    url: esb.service

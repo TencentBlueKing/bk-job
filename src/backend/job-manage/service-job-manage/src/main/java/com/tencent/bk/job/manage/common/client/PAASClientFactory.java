@@ -25,7 +25,8 @@
 package com.tencent.bk.job.manage.common.client;
 
 import com.google.common.collect.Maps;
-import com.tencent.bk.job.common.esb.config.BkApiConfig;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.paas.user.EEPaasClient;
 import com.tencent.bk.job.common.paas.user.IPaasClient;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
@@ -46,26 +47,28 @@ public class PAASClientFactory {
     private static final Map<String, IPaasClient> paasClients = Maps.newHashMap();
 
     static {
-        BkApiConfig bkApiConfig;
+        AppProperties appProperties;
+        EsbProperties esbProperties;
         MeterRegistry meterRegistry;
         try {
-            bkApiConfig = ApplicationContextRegister.getBean(BkApiConfig.class);
+            appProperties = ApplicationContextRegister.getBean(AppProperties.class);
+            esbProperties = ApplicationContextRegister.getBean(EsbProperties.class);
             meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
         } catch (Exception e) {
             log.error("Error while initialize bk config!", e);
             throw e;
         }
 
-        paasClients.put(CHINESE, new EEPaasClient(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(),
-            bkApiConfig.getAppSecret(), BK_LANG_CN, bkApiConfig.isUseEsbTestEnv(), meterRegistry));
-        paasClients.put(ENGLISH, new EEPaasClient(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(),
-            bkApiConfig.getAppSecret(), BK_LANG_EN, bkApiConfig.isUseEsbTestEnv(), meterRegistry));
-        paasClients.put(BK_LANG_CN, new EEPaasClient(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(),
-            bkApiConfig.getAppSecret(), BK_LANG_CN, bkApiConfig.isUseEsbTestEnv(), meterRegistry));
-        paasClients.put(BK_LANG_EN, new EEPaasClient(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(),
-            bkApiConfig.getAppSecret(), BK_LANG_EN, bkApiConfig.isUseEsbTestEnv(), meterRegistry));
-        paasClients.put(BK_LANG_ALL, new EEPaasClient(bkApiConfig.getEsbUrl(), bkApiConfig.getAppCode(),
-            bkApiConfig.getAppSecret(), BK_LANG_ALL, bkApiConfig.isUseEsbTestEnv(), meterRegistry));
+        paasClients.put(CHINESE, new EEPaasClient(esbProperties.getService().getUrl(),
+            appProperties.getCode(), appProperties.getSecret(), BK_LANG_CN, meterRegistry));
+        paasClients.put(ENGLISH, new EEPaasClient(esbProperties.getService().getUrl(),
+            appProperties.getCode(), appProperties.getSecret(), BK_LANG_EN, meterRegistry));
+        paasClients.put(BK_LANG_CN, new EEPaasClient(esbProperties.getService().getUrl(),
+            appProperties.getCode(), appProperties.getSecret(), BK_LANG_CN, meterRegistry));
+        paasClients.put(BK_LANG_EN, new EEPaasClient(esbProperties.getService().getUrl(),
+            appProperties.getCode(), appProperties.getSecret(), BK_LANG_EN, meterRegistry));
+        paasClients.put(BK_LANG_ALL, new EEPaasClient(esbProperties.getService().getUrl(),
+            appProperties.getCode(), appProperties.getSecret(), BK_LANG_ALL, meterRegistry));
     }
 
     public static IPaasClient getClient(String language) {

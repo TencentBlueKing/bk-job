@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.common;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
-import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -76,15 +76,15 @@ public class TopologyHelper {
 
     private final AgentStateClient agentStateClient;
     private final ApplicationDAO applicationDAO;
-    private final CloudAreaService cloudAreaService;
+    private final BkNetClient bkNetClient;
 
     @Autowired
     public TopologyHelper(ApplicationDAO applicationDAO,
                           AgentStateClient agentStateClient,
-                          CloudAreaService cloudAreaService) {
+                          BkNetClient bkNetClient) {
         this.applicationDAO = applicationDAO;
         this.agentStateClient = agentStateClient;
-        this.cloudAreaService = cloudAreaService;
+        this.bkNetClient = bkNetClient;
     }
 
     /**

@@ -133,21 +133,21 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
 
-    @Autowired
+
     public GlobalSettingsServiceImpl(
-        DSLContext dslContext
-        , NotifyEsbChannelDAO notifyEsbChannelDAO
-        , AvailableEsbChannelDAO availableEsbChannelDAO
-        , NotifyService notifyService
-        , NotifySendService notifySendService,
-        NotifyUserService notifyUserService,
-        GlobalSettingDAO globalSettingDAO
-        , NotifyTemplateDAO notifyTemplateDAO,
-        MessageI18nService i18nService,
-        JobManageConfig jobManageConfig,
-        LocalFileConfigForManage localFileConfigForManage,
-        NotifyTemplateConverter notifyTemplateConverter,
-        BuildProperties buildProperties) {
+        @Autowired DSLContext dslContext,
+        @Autowired NotifyEsbChannelDAO notifyEsbChannelDAO,
+        @Autowired AvailableEsbChannelDAO availableEsbChannelDAO,
+        @Autowired NotifyService notifyService,
+        @Autowired NotifySendService notifySendService,
+        @Autowired NotifyUserService notifyUserService,
+        @Autowired GlobalSettingDAO globalSettingDAO,
+        @Autowired NotifyTemplateDAO notifyTemplateDAO,
+        @Autowired MessageI18nService i18nService,
+        @Autowired JobManageConfig jobManageConfig,
+        @Autowired LocalFileConfigForManage localFileConfigForManage,
+        @Autowired NotifyTemplateConverter notifyTemplateConverter,
+        @Autowired(required = false) BuildProperties buildProperties) {
         this.dslContext = dslContext;
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
@@ -534,7 +534,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         // 渲染版本号
         Map<String, String> valuesMap = new HashMap<>();
         String pattern = "(\\{\\{(.*?)\\}\\})";
-        valuesMap.put(STRING_TPL_KEY_CURRENT_VERSION, "V" + buildProperties.getVersion());
+        if (buildProperties != null) {
+            valuesMap.put(STRING_TPL_KEY_CURRENT_VERSION, "V" + buildProperties.getVersion());
+        }
         valuesMap.put(STRING_TPL_KEY_CURRENT_YEAR, DateUtils.getCurrentDateStr("yyyy"));
         titleFooterVO.setFooterCopyRight(
             StringUtil.replaceByRegex(titleFooterVO.getFooterCopyRight(), pattern, valuesMap)

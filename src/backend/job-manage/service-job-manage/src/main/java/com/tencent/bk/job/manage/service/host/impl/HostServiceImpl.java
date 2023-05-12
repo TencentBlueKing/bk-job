@@ -30,9 +30,9 @@ import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.cc.service.CloudAreaService;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -103,7 +103,7 @@ public class HostServiceImpl implements HostService {
     private final ApplicationService applicationService;
     private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
-    private final CloudAreaService cloudAreaService;
+    private final BkNetClient bkNetClient;
     private final AgentStatusService agentStatusService;
     private final WhiteIPService whiteIPService;
     private final HostCache hostCache;
@@ -115,7 +115,7 @@ public class HostServiceImpl implements HostService {
                            ApplicationService applicationService,
                            HostTopoDAO hostTopoDAO,
                            TopologyHelper topologyHelper,
-                           CloudAreaService cloudAreaService,
+                           BkNetClient bkNetClient,
                            AgentStatusService agentStatusService,
                            WhiteIPService whiteIPService,
                            HostCache hostCache,
@@ -125,7 +125,7 @@ public class HostServiceImpl implements HostService {
         this.applicationService = applicationService;
         this.hostTopoDAO = hostTopoDAO;
         this.topologyHelper = topologyHelper;
-        this.cloudAreaService = cloudAreaService;
+        this.bkNetClient = bkNetClient;
         this.agentStatusService = agentStatusService;
         this.whiteIPService = whiteIPService;
         this.hostCache = hostCache;
@@ -805,7 +805,7 @@ public class HostServiceImpl implements HostService {
         List<Long> cloudAreaIds = null;
         if (StringUtils.isNotBlank(searchContent)) {
             cloudAreaIds = new ArrayList<>();
-            List<CcCloudAreaInfoDTO> allCloudAreaInfos = cloudAreaService.getCloudAreaList();
+            List<CcCloudAreaInfoDTO> allCloudAreaInfos = bkNetClient.getCloudAreaList();
             for (CcCloudAreaInfoDTO it : allCloudAreaInfos) {
                 if (matchSearchContent(searchContent, it.getName())) {
                     cloudAreaIds.add(it.getId());
@@ -1109,7 +1109,7 @@ public class HostServiceImpl implements HostService {
 
     private void fillCloudAreaName(List<ApplicationHostDTO> hostDTOList) {
         hostDTOList.forEach(hostDTO ->
-            hostDTO.setCloudAreaName(CloudAreaService.getCloudAreaNameFromCache(hostDTO.getCloudAreaId()))
+            hostDTO.setCloudAreaName(BkNetClient.getCloudAreaNameFromCache(hostDTO.getCloudAreaId()))
         );
     }
 

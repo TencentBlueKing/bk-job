@@ -47,7 +47,6 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.AsyncHandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -65,7 +64,6 @@ import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_S
  * Job通用拦截器
  */
 @Slf4j
-@Component
 public class JobCommonInterceptor implements AsyncHandlerInterceptor {
     private static final Pattern SCOPE_PATTERN = Pattern.compile("/scope/(\\w+)/(\\d+)");
 

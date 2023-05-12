@@ -13,3 +13,9 @@ de:
     mongodb:
       embedded:
         version: 4.0.0
+bk-api-gateway:
+  gse:
+    url: gse.apigw.com
+esb:
+  service:
+    url: esb.service
