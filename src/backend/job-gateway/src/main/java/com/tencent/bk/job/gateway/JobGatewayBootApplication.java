@@ -29,8 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
-import org.springframework.boot.web.reactive.server.ReactiveWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.http.server.reactive.HttpHandler;
@@ -45,9 +45,11 @@ import javax.annotation.PreDestroy;
 @EnableDiscoveryClient
 @Slf4j
 public class JobGatewayBootApplication {
-    private HttpHandler httpHandler;
+    private final HttpHandler httpHandler;
 
     private WebServer httpWebServer;
+
+    private final NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer;
 
     @Value("${server.http.enabled}")
     private Boolean httpEnabled;
@@ -55,8 +57,12 @@ public class JobGatewayBootApplication {
     @Value("${server.http.port:}")
     private Integer httpPort;
 
-    public JobGatewayBootApplication(@Autowired HttpHandler httpHandler) {
+    public JobGatewayBootApplication(@Autowired
+                                         HttpHandler httpHandler,
+                                     @Autowired(required = false)
+                                         NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer) {
         this.httpHandler = httpHandler;
+        this.nettyWebServerFactoryCustomizer = nettyWebServerFactoryCustomizer;
     }
 
     public static void main(String[] args) {
@@ -66,7 +72,10 @@ public class JobGatewayBootApplication {
     @PostConstruct
     public void startHttpWebServer() {
         if (httpEnabled && httpPort != null) {
-            ReactiveWebServerFactory factory = new NettyReactiveWebServerFactory(httpPort);
+            NettyReactiveWebServerFactory factory = new NettyReactiveWebServerFactory(httpPort);
+            if (nettyWebServerFactoryCustomizer != null) {
+                nettyWebServerFactoryCustomizer.customize(factory);
+            }
             this.httpWebServer = factory.getWebServer(this.httpHandler);
             this.httpWebServer.start();
         }
