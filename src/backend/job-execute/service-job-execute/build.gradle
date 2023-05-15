@@ -31,6 +31,7 @@ dependencies {
     api project(":job-manage:api-job-manage")
     api project(":job-logsvr:api-job-logsvr")
     api project(':commons:gse-sdk')
+    api project(':commons:cmdb-sdk')
     api project(':commons:common-security')
     api project(':commons:common-redis')
     api project(":commons:artifactory-sdk")

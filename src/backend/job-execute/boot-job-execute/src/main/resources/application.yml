@@ -63,3 +63,5 @@ server:
       enabled: true
       force: true
   shutdown: graceful
+  tomcat:
+    max-connections:
