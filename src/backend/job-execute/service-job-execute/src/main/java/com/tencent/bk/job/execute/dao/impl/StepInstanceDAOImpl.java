@@ -58,6 +58,7 @@ import org.jooq.generated.tables.StepInstanceFile;
 import org.jooq.generated.tables.StepInstanceScript;
 import org.jooq.generated.tables.records.StepInstanceRecord;
 import org.jooq.types.UByte;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -771,7 +772,11 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             });
             return resultList;
         } catch (Exception e) {
-            log.error("Fail to query:{}", sql, e);
+            String msg = MessageFormatter.format(
+                "Fail to query:{}",
+                sql
+            ).getMessage();
+            log.error(msg, e);
             throw new RuntimeException("Fail to listFastPushFileSource", e);
         }
     }

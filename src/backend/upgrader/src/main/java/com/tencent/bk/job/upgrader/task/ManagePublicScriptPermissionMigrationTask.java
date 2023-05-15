@@ -40,6 +40,7 @@ import com.tencent.bk.job.upgrader.model.Policy;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +113,14 @@ public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
             log.info("batchAuthedPolicy={}", JsonUtils.toJson(batchAuthedPolicy));
             return true;
         } catch (Exception e) {
-            log.error("Fail to auth subject {} to {}", JsonUtils.toJson(policy.getSubject()), policy.getExpiredAt(), e);
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to auth subject {} to {}",
+                new String[]{
+                    JsonUtils.toJson(policy.getSubject()),
+                    String.valueOf(policy.getExpiredAt())
+                }
+            ).getMessage();
+            log.error(msg, e);
             return false;
         }
     }

@@ -64,6 +64,7 @@ import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -248,7 +249,11 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             } catch (InterruptedException e) {
                 throw e;
             } catch (Throwable e) {
-                log.error("Error while do archive!|{}", endTime, e);
+                String msg = MessageFormatter.format(
+                    "Error while do archive!|{}",
+                    endTime
+                ).getMessage();
+                log.error(msg, e);
             }
         }
 

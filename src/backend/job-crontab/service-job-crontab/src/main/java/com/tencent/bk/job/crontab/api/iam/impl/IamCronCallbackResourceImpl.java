@@ -44,6 +44,7 @@ import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -145,7 +146,11 @@ public class IamCronCallbackResourceImpl extends BaseIamCallbackService implemen
                 long id = Long.parseLong(instanceId);
                 cronJobIdList.add(id);
             } catch (NumberFormatException e) {
-                log.error("Parse object id failed!|{}", instanceId, e);
+                String msg = MessageFormatter.format(
+                    "Parse object id failed!|{}",
+                    instanceId
+                ).getMessage();
+                log.error(msg, e);
             }
         }
         Map<Long, CronJobInfoDTO> cronJobInfoMap = cronJobService.getCronJobInfoMapByIds(cronJobIdList);

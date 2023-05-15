@@ -46,6 +46,7 @@ import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -152,7 +153,11 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
                 long id = Long.parseLong(instanceId);
                 planIdList.add(id);
             } catch (NumberFormatException e) {
-                log.error("Parse plan id failed!|{}", instanceId, e);
+                String msg = MessageFormatter.format(
+                    "Parse plan id failed!|{}",
+                    instanceId
+                ).getMessage();
+                log.error(msg, e);
             }
         }
         List<TaskPlanBasicInfoDTO> planBasicInfoDTOList = planService.listTaskPlanByIds(planIdList);

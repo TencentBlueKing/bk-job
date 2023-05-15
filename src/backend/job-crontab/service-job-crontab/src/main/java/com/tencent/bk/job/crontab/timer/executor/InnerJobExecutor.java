@@ -35,8 +35,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -119,7 +124,15 @@ public class InnerJobExecutor extends AbstractQuartzJobBean {
                     ExecuteStatusEnum.FAIL);
             }
         } catch (RestClientException e) {
-            log.error("Execute task failed!|{}|{}|{}", systemId, jobKey, scheduledFireTime, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Execute task failed!|{}|{}|{}",
+                new String[]{
+                    systemId,
+                    jobKey,
+                    String.valueOf(scheduledFireTime)
+                }
+            ).getMessage();
+            log.error(msg, e);
             cronJobHistoryService.updateStatusByIdAndTime(systemId, jobKey, scheduledFireTime, ExecuteStatusEnum.FAIL);
         }
     }

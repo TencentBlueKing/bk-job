@@ -29,6 +29,7 @@ import com.tencent.bk.job.backup.service.ScriptService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +57,15 @@ public class ScriptServiceImpl implements ScriptService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error while getting script info by id!|{}|{}|{}", username, appId, scriptVersionId, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while getting script info by id!|{}|{}|{}",
+                new String[]{
+                    username,
+                    String.valueOf(appId),
+                    String.valueOf(scriptVersionId)
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
         return null;
     }

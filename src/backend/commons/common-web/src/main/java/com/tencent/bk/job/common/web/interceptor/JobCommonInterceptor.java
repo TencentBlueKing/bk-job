@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
@@ -300,7 +301,11 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
             }
             return params;
         } catch (Exception e) {
-            log.warn("Fail to parse keys: {} from request", keys, e);
+            String msg = MessageFormatter.format(
+                "Fail to parse keys: {} from request",
+                keys
+            ).getMessage();
+            log.warn(msg, e);
         }
         return params;
     }
@@ -330,7 +335,11 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                 return value;
             }
         } catch (Exception e) {
-            log.warn("Fail to parse {} from request", key, e);
+            String msg = MessageFormatter.format(
+                "Fail to parse {} from request",
+                key
+            ).getMessage();
+            log.warn(msg, e);
         }
         return null;
     }
