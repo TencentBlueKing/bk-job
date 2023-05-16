@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.client.ApplicationResourceClient;
@@ -39,17 +38,6 @@ public class JobExecuteAutoConfiguration {
     @Bean
     public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
         return new EsbApiTimedAspect(meterRegistry);
-    }
-
-    @Bean
-    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
-                                               @Autowired MeterRegistry meterRegistry) {
-        return new ArtifactoryClient(
-            artifactoryConfig.getArtifactoryBaseUrl(),
-            artifactoryConfig.getArtifactoryJobUsername(),
-            artifactoryConfig.getArtifactoryJobPassword(),
-            meterRegistry
-        );
     }
 
     @Bean

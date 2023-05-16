@@ -44,7 +44,7 @@ import static com.tencent.bk.job.execute.monitor.ExecuteMetricTags.BOOLEAN_TRUE_
 import static com.tencent.bk.job.execute.monitor.ExecuteMetricTags.IGNORE_TAG;
 
 @Slf4j
-@RestController
+@RestController("executeMetricsResource")
 public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     private final TaskInstanceService taskInstanceService;
     private final StatisticsService statisticsService;

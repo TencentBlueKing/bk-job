@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.tencent.bk.job.common.esb.BkApiAutoConfiguration
+com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration

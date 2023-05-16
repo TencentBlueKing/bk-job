@@ -22,11 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb;
+package com.tencent.bk.job.common.esb.config;
 
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @EnableConfigurationProperties({BkApiGatewayProperties.class, AppProperties.class, EsbProperties.class})

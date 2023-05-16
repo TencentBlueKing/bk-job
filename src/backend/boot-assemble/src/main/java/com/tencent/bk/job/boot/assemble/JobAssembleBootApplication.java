@@ -32,7 +32,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job")
+@SpringBootApplication(scanBasePackages = {"com.tencent.bk.job.manage", "com.tencent.bk.job.execute"})
 @EnableCaching
 @EnableScheduling
 @EnableConfigurationProperties({FeatureToggleConfig.class})

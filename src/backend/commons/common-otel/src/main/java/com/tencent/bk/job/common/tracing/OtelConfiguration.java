@@ -44,6 +44,7 @@ import org.springframework.cloud.sleuth.autoconfig.otel.SpanProcessorProvider;
 import org.springframework.cloud.sleuth.otel.bridge.SpanExporterCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
 import java.util.ArrayList;
@@ -84,7 +85,8 @@ class OtelConfiguration {
         return Resource.create(attributes.build(), ResourceAttributes.SCHEMA_URL);
     }
 
-    @Bean
+    @Bean("jobOtelTracerProvider")
+    @Primary
     SdkTracerProvider otelTracerProvider(SpanLimits spanLimits,
                                          ObjectProvider<List<SpanProcessor>> spanProcessors,
                                          SpanExporterCustomizer spanExporterCustomizer,
@@ -105,7 +107,8 @@ class OtelConfiguration {
         return sdkTracerProviderBuilder.build();
     }
 
-    @Bean
+    @Bean("jobOpenTelemetry")
+    @Primary
     OpenTelemetry otel(SdkTracerProvider tracerProvider, ContextPropagators contextPropagators) {
         OpenTelemetry openTelemetry =
             OpenTelemetrySdk

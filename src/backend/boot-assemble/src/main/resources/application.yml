@@ -56,7 +56,7 @@ management:
       enabled: true
 
 server:
-  port: 19804
+  port: 19800
   servlet:
     encoding:
       charset: UTF-8

@@ -48,7 +48,7 @@ import java.util.List;
  * Uri权限控制拦截
  */
 @Slf4j
-@Component
+@Component("executeUriPermissionInterceptor")
 public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     private static final RequestIdLogger logger =
         new SimpleRequestIdLogger(LoggerFactory.getLogger(UriPermissionInterceptor.class));

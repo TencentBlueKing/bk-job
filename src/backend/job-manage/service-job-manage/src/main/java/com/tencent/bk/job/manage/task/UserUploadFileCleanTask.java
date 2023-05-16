@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.task;
 
 import com.google.common.collect.Sets;
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
@@ -33,7 +34,6 @@ import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.manage.config.ArtifactoryConfig;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.config.StorageSystemConfig;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -45,6 +45,7 @@ import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -77,7 +78,7 @@ public class UserUploadFileCleanTask {
         TaskPlanService taskPlanService,
         ArtifactoryConfig artifactoryConfig,
         LocalFileConfigForManage localFileConfigForManage,
-        ArtifactoryClient artifactoryClient
+        @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient
     ) {
         this.uploadPath = storageSystemConfig.getJobStorageRootPath() + "/localupload/";
         this.taskTemplateService = taskTemplateService;

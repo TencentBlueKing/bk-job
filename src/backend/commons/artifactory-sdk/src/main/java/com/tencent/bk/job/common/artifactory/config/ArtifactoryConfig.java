@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.artifactory.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

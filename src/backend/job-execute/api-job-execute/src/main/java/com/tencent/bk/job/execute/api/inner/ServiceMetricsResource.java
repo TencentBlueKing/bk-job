@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @Api(tags = {"job-execute:service:Metrics"})
-@RestController
+@RestController("executeMetricsResource")
 @InternalAPI
 public interface ServiceMetricsResource {
 
