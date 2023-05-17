@@ -748,12 +748,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
 
     private boolean isUsingGseV2(long appId) {
-        return FeatureToggle.checkFeature(
+        boolean isUsingGseV2 = FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_GSE_V2,
             FeatureExecutionContextBuilder.builder()
                 .resourceScope(appScopeMappingService.getScopeByAppId(appId))
                 .build()
         );
+        log.info("Determine gse version, appId: {}, isUsingGseV2: {}", appId, isUsingGseV2);
+        return isUsingGseV2;
     }
 
     private void extractDynamicGroupsAndTopoNodes(StepInstanceDTO stepInstance,
@@ -924,18 +926,34 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
          * 后续下发任务给GSE会根据agentId路由请求到GSE1.0/2.0。如果要使用GSE2.0，那么直接使用原始bk_agent_id;如果要使用GSE1.0,
          * 按照{云区域ID:ip}的方式构造agent_id
          */
-        if (!isUsingGseV2) {
-            // 如果对接GSE1.0,使用云区域+ipv4构造agentId
-            if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
-                hosts.getValidHosts().forEach(host -> host.setAgentId(host.toCloudIp()));
-            }
-            if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
-                hosts.getNotInAppHosts().forEach(host -> host.setAgentId(host.toCloudIp()));
-            }
+        Set<HostDTO> invalidAgentIdHosts = new HashSet<>();
+
+        if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
+            hosts.getValidHosts().forEach(host -> setHostAgentId(isUsingGseV2, host, invalidAgentIdHosts));
+        }
+
+        if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
+            hosts.getNotInAppHosts().forEach(host -> setHostAgentId(isUsingGseV2, host, invalidAgentIdHosts));
+        }
+
+        if (CollectionUtils.isNotEmpty(invalidAgentIdHosts)) {
+            log.warn("Contains invalid agent id host, appId: {}, isUsingGseV2: {}, invalidHosts: {}",
+                appId, isUsingGseV2, invalidAgentIdHosts);
+            throwHostInvalidException(invalidAgentIdHosts);
         }
 
         setAgentStatus(hosts.getValidHosts());
         setAgentStatus(hosts.getNotInAppHosts());
+    }
+
+    private void setHostAgentId(boolean isUsingGseV2, HostDTO host, Set<HostDTO> invalidAgentIdHosts) {
+        // 如果对接GSE1.0,使用云区域+ipv4构造agentId
+        if (!isUsingGseV2) {
+            host.setAgentId(host.toCloudIp());
+        }
+        if (StringUtils.isBlank(host.getAgentId())) {
+            invalidAgentIdHosts.add(host);
+        }
     }
 
     private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
@@ -1317,8 +1335,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
         for (ServiceTaskStepDTO step : taskPlan.getStepList()) {
             StepExecuteTypeEnum executeType = getExecuteTypeFromTaskStepType(step);
-            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator, step.getId(), step.getName(),
-                executeType);
+            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator, step.getId(),
+                step.getName(), executeType);
             TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
             switch (stepType) {
                 case SCRIPT:
@@ -1514,8 +1532,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     public TaskInstanceDTO createTaskInstanceForRedo(Long appId, Long taskInstanceId, String operator,
-                                                     List<TaskVariableDTO> executeVariableValues)
-        throws ServiceException {
+                                                     List<TaskVariableDTO> executeVariableValues) throws ServiceException {
         log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, variables={}", appId,
             taskInstanceId, operator, executeVariableValues);
         TaskInstanceDTO originTaskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
@@ -1879,7 +1896,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setTargetServers(targetServers);
     }
 
-    private void parseFileStepInstanceFromStepInstance(StepInstanceDTO stepInstance, StepInstanceDTO originStepInstance,
+    private void parseFileStepInstanceFromStepInstance(StepInstanceDTO stepInstance,
+                                                       StepInstanceDTO originStepInstance,
                                                        Map<String, TaskVariableDTO> variableValueMap) {
         stepInstance.setAccountId(originStepInstance.getAccountId());
         stepInstance.setAccount(originStepInstance.getAccount());
@@ -2101,8 +2119,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
-            log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(), "confirm" +
-                "-terminate");
+            log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(),
+                "confirm-terminate");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         checkConfirmUser(taskInstance, stepInstance, operator);
@@ -2126,8 +2144,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
-            log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(), "confirm" +
-                "-restart");
+            log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(),
+                "confirm-restart");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
@@ -2154,8 +2172,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             Set<String> confirmCmdbRoleUsers = getCmdbRoleUsers(taskInstance.getAppId(), operator,
                 String.valueOf(taskInstance.getTaskId()), stepInstance.getConfirmRoles());
             if (CollectionUtils.isEmpty(confirmCmdbRoleUsers) || !confirmCmdbRoleUsers.contains(operator)) {
-                log.warn("Confirm user is invalid, allowed confirmUsers: {}, confirmCmdbRoleUsers : {}, taskTrigger: " +
-                        "{}, operator: {}",
+                log.warn("Confirm user is invalid, allowed confirmUsers: {}, confirmCmdbRoleUsers : {}, " +
+                        "taskTrigger: {}, operator: {}",
                     stepInstance.getConfirmUsers(), confirmCmdbRoleUsers, taskInstance.getOperator(), operator);
                 throw new FailedPreconditionException(ErrorCode.NOT_IN_CONFIRM_USER_LIST);
             }
@@ -2189,8 +2207,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void confirmContinue(StepInstanceDTO stepInstance, String operator, String reason) {
         // 只有"人工确认等待"，可以进行"确认继续"操作
         if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
-            log.warn("StepInstance:{} is not confirm-step, Unsupported Operation:{}", stepInstance.getId(), "confirm" +
-                "-continue");
+            log.warn("StepInstance:{} is not confirm-step, Unsupported Operation:{}", stepInstance.getId(),
+                "confirm-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
         if (RunStatusEnum.WAITING_USER != stepInstance.getStatus()) {
