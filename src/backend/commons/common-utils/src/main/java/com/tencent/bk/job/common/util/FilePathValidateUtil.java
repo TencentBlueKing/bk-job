@@ -52,6 +52,8 @@ public class FilePathValidateUtil {
         if (!result) {
             // 路径不合法
             log.warn("The path {} is invalid and the verification fails", path);
+            // 路径校验失败输出日志，验证阶段不拦截返回true
+            result = true;
         }
         return result;
     }
