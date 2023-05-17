@@ -21,18 +21,21 @@ public class FilePathValidateUtil {
 
     /**
      * 验证文件系统绝对路径的合法性
+     *
      * @param path 绝对路径
      * @return boolean true合法，false非法
      */
     public static boolean validateFileSystemAbsolutePath(String path) {
-        if (StringUtils.isBlank(path)) {
-            return false;
-        }
-        if (isLinuxAbsolutePath(path)) {
-            return validateLinuxFileSystemAbsolutePath(path);
-        } else {
-            return validateWindowsFileSystemAbsolutePath(path);
-        }
+        // 临时规避，后续补齐校验逻辑；目前只判断路径非空
+//        if (StringUtils.isBlank(path)) {
+//            return false;
+//        }
+//        if (isLinuxAbsolutePath(path)) {
+//            return validateLinuxFileSystemAbsolutePath(path);
+//        } else {
+//            return validateWindowsFileSystemAbsolutePath(path);
+//        }
+        return StringUtils.isNotBlank(path);
     }
 
     /**
@@ -50,10 +53,11 @@ public class FilePathValidateUtil {
 
     /**
      * 1 传统DOS路径
-     *    标准的DOS路径可由以下三部分组成：
-     *    1)卷号或驱动器号，后跟卷分隔符(:)。
-     *    2)目录名称。目录分隔符用来分隔嵌套目录层次结构中的子目录。
-     *    3)文件名。目录分隔符用来分隔文件路径和文件名。
+     * 标准的DOS路径可由以下三部分组成：
+     * 1)卷号或驱动器号，后跟卷分隔符(:)。
+     * 2)目录名称。目录分隔符用来分隔嵌套目录层次结构中的子目录。
+     * 3)文件名。目录分隔符用来分隔文件路径和文件名。
+     *
      * @param path
      * @return boolean
      */
