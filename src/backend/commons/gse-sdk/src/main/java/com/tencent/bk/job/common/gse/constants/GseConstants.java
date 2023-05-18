@@ -34,4 +34,9 @@ public interface GseConstants {
      * GSE API 度量指标名称前缀
      */
     String GSE_API_METRICS_NAME_PREFIX = "job.client.gse.api";
+
+    /**
+     * GSE 获取文件任务执行结果协议版本V2 - 解除valuekey依赖版本
+     */
+    int GSE_FILE_PROTOCOL_VERSION_V2 = 2;
 }

@@ -7,6 +7,7 @@ import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.esb.sdk.BkApiContext;
 import com.tencent.bk.job.common.esb.sdk.BkApiLogStrategy;
 import com.tencent.bk.job.common.gse.IGseClient;
+import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.v2.model.AsyncGseTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
@@ -21,6 +22,7 @@ import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -114,7 +116,16 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
             doHttpPost(URI_GET_TRANSFER_FILE_RESULT,
                 request, new TypeReference<EsbResp<FileTaskResult>>() {
                 }, null);
-        return resp.getData();
+        FileTaskResult fileTaskResult = resp.getData();
+        if (fileTaskResult != null && CollectionUtils.isNotEmpty(fileTaskResult.getAtomicFileTaskResults())) {
+            fileTaskResult.getAtomicFileTaskResults().forEach(atomicFileTaskResult -> {
+                if (atomicFileTaskResult.getContent() != null) {
+                    // 由于GSE2.0 删除了protocolVersion，会导致Job解析协议版本出问题；按照Job的设计，对接GSE2.0的才会走BK-GSE-API-GATEWAY, 协议版本必定是V2
+                    atomicFileTaskResult.getContent().setProtocolVersion(GseConstants.GSE_FILE_PROTOCOL_VERSION_V2);
+                }
+            });
+        }
+        return fileTaskResult;
     }
 
     @Override
