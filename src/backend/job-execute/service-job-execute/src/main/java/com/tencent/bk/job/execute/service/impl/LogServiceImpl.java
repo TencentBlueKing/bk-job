@@ -64,6 +64,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -236,7 +238,10 @@ public class LogServiceImpl implements LogService {
             // 需要把ip查询参数转换为基于hostId的查询参数
             Map<String, HostDTO> ip2Hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::toCloudIp);
             hostIds = hosts.stream()
-                .map(host -> ip2Hosts.get(host.toCloudIp()).getHostId())
+                .map(host -> Optional.ofNullable(ip2Hosts.get(host.toCloudIp()))
+                    .map(HostDTO::getHostId)
+                    .orElse(null))
+                .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
         } else {
