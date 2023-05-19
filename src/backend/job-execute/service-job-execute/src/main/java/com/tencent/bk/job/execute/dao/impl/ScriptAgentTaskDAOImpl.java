@@ -102,7 +102,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
             param[2] = agentTask.getActualExecuteCount();
             param[3] = agentTask.getBatch();
             param[4] = agentTask.getHostId();
-            param[5] = agentTask.getAgentId();
+            param[5] = agentTask.getAgentId() == null ? "" : agentTask.getAgentId();
             param[6] = agentTask.getGseTaskId();
             param[7] = agentTask.getStatus().getValue();
             param[8] = agentTask.getStartTime();
