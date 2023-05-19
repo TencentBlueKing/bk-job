@@ -195,7 +195,9 @@ public class LogServiceImpl implements LogService {
                                                                    int executeCount,
                                                                    Integer batch,
                                                                    List<HostDTO> hosts) {
-
+        if (CollectionUtils.isEmpty(hosts)) {
+            return Collections.emptyList();
+        }
         ServiceScriptLogQueryRequest query = new ServiceScriptLogQueryRequest();
         query.setBatch(batch);
 
@@ -353,6 +355,9 @@ public class LogServiceImpl implements LogService {
     @Override
     public ServiceHostLogsDTO batchGetFileIpLogContent(long stepInstanceId, int executeCount, Integer batch,
                                                        List<HostDTO> hosts) {
+        if (CollectionUtils.isEmpty(hosts)) {
+            return null;
+        }
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
