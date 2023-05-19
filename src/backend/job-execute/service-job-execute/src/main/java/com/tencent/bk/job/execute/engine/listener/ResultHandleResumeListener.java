@@ -173,7 +173,7 @@ public class ResultHandleResumeListener {
         Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
         List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.stream()
-            .filter(agentTask -> StringUtils.isNotEmpty(agentTask.getAgentId()))
+            .filter(agentTask -> !agentTask.isAgentIdEmpty())
             .forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
 
         ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
@@ -213,7 +213,7 @@ public class ResultHandleResumeListener {
         Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
         List<AgentTaskDTO> agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.stream()
-            .filter(agentTask -> StringUtils.isNotEmpty(agentTask.getAgentId()))
+            .filter(agentTask -> !agentTask.isAgentIdEmpty())
             .forEach(agentTask -> {
                 if (agentTask.isTarget()) {
                     targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);

@@ -937,9 +937,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         if (CollectionUtils.isNotEmpty(invalidAgentIdHosts)) {
+            // 如果存在主机没有agentID，不影响影响整个任务的执行。所以这里仅输出日志，不拦截整个任务的执行。后续执行代码会处理`主机没有agentId`的情况
             log.warn("Contains invalid agent id host, appId: {}, isUsingGseV2: {}, invalidHosts: {}",
                 appId, isUsingGseV2, invalidAgentIdHosts);
-            throwHostInvalidException(invalidAgentIdHosts);
         }
 
         setAgentStatus(hosts.getValidHosts());
