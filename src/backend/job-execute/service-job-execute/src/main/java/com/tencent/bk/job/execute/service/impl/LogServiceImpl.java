@@ -202,6 +202,9 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         if (isQueryByHostIdCondition(stepInstance)) {
             query.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
+            if (CollectionUtils.isEmpty(query.getHostIds())) {
+                return Collections.emptyList();
+            }
         } else {
             // 兼容历史数据的查询（使用ip，没有hostId)
             query.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
@@ -361,6 +364,9 @@ public class LogServiceImpl implements LogService {
 
         if (isQueryByHostIdCondition(stepInstance)) {
             request.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
+            if (CollectionUtils.isEmpty(request.getHostIds())) {
+                return null;
+            }
         } else {
             request.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
         }
