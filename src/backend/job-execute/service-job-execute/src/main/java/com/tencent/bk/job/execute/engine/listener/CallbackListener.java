@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.esb.model.EsbCallbackDTO;
 import com.tencent.bk.job.common.util.http.HttpConPoolUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.message.CallbackProcessor;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Component;
@@ -53,6 +55,15 @@ public class CallbackListener {
         try {
             log.info("Handle callback, taskInstanceId: {}, msg: {}", taskInstanceId, callbackDTO);
             String callbackUrl = callbackDTO.getCallbackUrl();
+            EsbCallbackDTO callback = callbackDTO.getCallback();
+            String contentType;
+            // callback优先
+            if(callback != null && StringUtils.isNoneBlank(callback.getUrl())){
+                callbackUrl = callback.getUrl();
+                contentType = StringUtils.isBlank(callback.getContentType()) ? "application/json" : callback.getContentType();
+            }else {
+                contentType = "application/x-www-form-urlencoded";
+            }
             try {
                 new URL(callbackUrl);
             } catch (MalformedURLException var5) {
@@ -60,15 +71,15 @@ public class CallbackListener {
                 return;
             }
             callbackDTO.setCallbackUrl(null);
+            callbackDTO.setCallback(null);
             try {
-                // TODO 需要优化，返回application/json
                 try {
-                    String rst = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
+                    String rst = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO), contentType);
                     log.info("Callback success, taskInstanceId: {}, result: {}", taskInstanceId, rst);
                 } catch (Throwable e) { //出错重试一次
                     String errorMsg = "Callback fail, taskInstanceId: " + taskInstanceId;
                     log.warn(errorMsg, e);
-                    String rst = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
+                    String rst = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO), contentType);
                     log.info("Retry callback success, taskInstanceId: {}, result: {}", taskInstanceId, rst);
                 }
             } catch (Throwable e) {

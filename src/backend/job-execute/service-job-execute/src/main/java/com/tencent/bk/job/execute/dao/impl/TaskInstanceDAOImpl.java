@@ -24,8 +24,11 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.esb.model.EsbCallbackDTO;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -36,14 +39,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.Result;
-import org.jooq.SelectSeekStep1;
-import org.jooq.SortField;
-import org.jooq.UpdateSetMoreStep;
+import org.jooq.*;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.GseTaskIpLog;
 import org.jooq.generated.tables.StepInstance;
@@ -77,7 +73,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         Record record = ctx.insertInto(TABLE, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS, TABLE.START_TIME,
-            TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.TYPE, TABLE.APP_CODE)
+            TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.CALLBACK, TABLE.TYPE, TABLE.APP_CODE)
             .values(taskInstance.getTaskId(),
                 taskInstance.getCronTaskId(),
                 taskInstance.getTaskTemplateId(),
@@ -93,6 +89,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 taskInstance.getTotalTime(),
                 taskInstance.getCreateTime(),
                 taskInstance.getCallbackUrl(),
+                taskInstance.getCallback() == null ? null : JsonUtils.toJson(taskInstance.getCallback()),
                 JooqDataTypeUtil.getByteFromInteger(taskInstance.getType()),
                 taskInstance.getAppCode())
             .returning(TABLE.ID).fetchOne();
@@ -104,7 +101,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         Record result = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS,
-            TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.TYPE,
+            TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.CALLBACK, TABLE.TYPE,
             TABLE.APP_CODE).from(TABLE)
             .where(TABLE.ID.eq(taskInstanceId)).fetchOne();
         return extractInfo(result);
@@ -132,6 +129,8 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         taskInstance.setTotalTime(result.get(TaskInstance.TASK_INSTANCE.TOTAL_TIME));
         taskInstance.setCreateTime(result.get(TaskInstance.TASK_INSTANCE.CREATE_TIME));
         taskInstance.setCallbackUrl(result.get(TaskInstance.TASK_INSTANCE.CALLBACK_URL));
+        taskInstance.setCallback(result.get(TaskInstance.TASK_INSTANCE.CALLBACK) == null ? null : JsonUtils.fromJson(result.get(TaskInstance.TASK_INSTANCE.CALLBACK), new TypeReference<EsbCallbackDTO>() {
+        }));
         taskInstance.setAppCode(result.get(TaskInstance.TASK_INSTANCE.APP_CODE));
         return taskInstance;
     }
@@ -141,7 +140,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         Result result = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS,
-            TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.TYPE,
+            TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.CALLBACK, TABLE.TYPE,
             TABLE.APP_CODE).from(TABLE)
             .where(TABLE.TASK_ID.eq(taskId)).fetch();
         List<TaskInstanceDTO> taskInstances = new ArrayList<>();
@@ -242,7 +241,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         Result result = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS,
-            TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.TYPE,
+            TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.CALLBACK, TABLE.TYPE,
             TABLE.APP_CODE)
             .from(TaskInstanceDAOImpl.TABLE)
             .where(buildSearchCondition(taskQuery))
@@ -268,7 +267,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         Result result = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS,
-            TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.TYPE,
+            TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME, TABLE.CALLBACK_URL, TABLE.CALLBACK, TABLE.TYPE,
             TABLE.APP_CODE, GseTaskIpLog.GSE_TASK_IP_LOG.DISPLAY_IP)
             .from(TaskInstanceDAOImpl.TABLE)
             .leftJoin(StepInstance.STEP_INSTANCE).on(TaskInstance.TASK_INSTANCE.ID.eq(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID))
@@ -369,7 +368,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         SelectSeekStep1 select = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
             TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
             TABLE.STATUS, TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME,
-            TABLE.CALLBACK_URL, TABLE.TYPE, TABLE.APP_CODE)
+            TABLE.CALLBACK_URL, TABLE.CALLBACK, TABLE.TYPE, TABLE.APP_CODE)
             .from(TABLE)
             .where(conditions)
             .orderBy(TABLE.CREATE_TIME.desc());

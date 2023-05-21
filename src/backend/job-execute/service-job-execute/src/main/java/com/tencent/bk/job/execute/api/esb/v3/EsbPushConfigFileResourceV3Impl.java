@@ -173,6 +173,7 @@ public class EsbPushConfigFileResourceV3Impl
         taskInstance.setDebugTask(false);
         taskInstance.setAppCode(request.getAppCode());
         taskInstance.setCallbackUrl(request.getCallbackUrl());
+        taskInstance.setCallback(request.getCallback());
         return taskInstance;
     }
 

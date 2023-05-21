@@ -113,6 +113,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
                     .executeVariableValues(executeVariableValues)
                     .startupMode(TaskStartupModeEnum.API)
                     .callbackUrl(request.getCallbackUrl())
+                    .callback(request.getCallback())
                     .appCode(request.getAppCode())
                     .build());
             taskExecuteService.startTask(taskInstanceDTO.getId());

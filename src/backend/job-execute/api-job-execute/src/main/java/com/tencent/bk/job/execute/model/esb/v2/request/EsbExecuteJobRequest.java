@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.esb.v2.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbCallbackDTO;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.job.EsbGlobalVarDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
@@ -59,6 +60,12 @@ public class EsbExecuteJobRequest extends EsbReq {
      */
     @JsonProperty("bk_callback_url")
     private String callbackUrl;
+
+    /**
+     * 任务执行完成之后回调参数，比callbackUrl优先级高
+     */
+    @JsonProperty("callback")
+    private EsbCallbackDTO callback;
 
     public void trimIps() {
         if (globalVars != null && globalVars.size() > 0) {

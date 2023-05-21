@@ -217,6 +217,7 @@ public class EsbFastTransferFileV3ResourceImpl
         taskInstance.setCurrentStepId(0L);
         taskInstance.setDebugTask(false);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
+        taskInstance.setCallback(request.getCallback());
         taskInstance.setAppCode(request.getAppCode());
         return taskInstance;
     }
