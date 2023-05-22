@@ -61,7 +61,7 @@ public class GseTaskListener {
      * @param gseTaskEvent GSE任务事件
      */
     public void handleEvent(GseTaskEvent gseTaskEvent) {
-        log.info("Handel gse task event: {}", gseTaskEvent);
+        log.info("Handle gse task event: {}, duration: {}ms", gseTaskEvent, gseTaskEvent.duration());
         GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
         String requestId = gseTaskEvent.getRequestId();
         try {

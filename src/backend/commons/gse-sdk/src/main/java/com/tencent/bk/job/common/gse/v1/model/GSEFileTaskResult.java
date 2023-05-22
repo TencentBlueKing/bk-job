@@ -228,7 +228,7 @@ public class GSEFileTaskResult {
     }
 
     public String buildTaskId(Integer mode, String sourceAgentId, String sourceFilePath, String destAgentId,
-                                     String destFilePath) {
+                              String destFilePath) {
         String taskId;
         if (FileDistModeEnum.getFileDistMode(mode) == FileDistModeEnum.DOWNLOAD) {
             taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath),
@@ -270,4 +270,5 @@ public class GSEFileTaskResult {
         }
         return null;
     }
+
 }

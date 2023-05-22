@@ -124,7 +124,7 @@ public abstract class AbstractBkApiClient {
                 logStrategy.logResp(log, apiContext);
             } else {
                 if (log.isInfoEnabled()) {
-                    log.info("[AbstractBkApiClient] Response|method={}|uri={}|success={}|costTime={}|resp={}|",
+                    log.info("[AbstractBkApiClient] Response|method={}|uri={}|success={}|costTime={}|resp={}",
                         HttpMethod.POST.name(), uri, apiContext.isSuccess(), apiContext.getCostTime(),
                         apiContext.getOriginResp());
                 }

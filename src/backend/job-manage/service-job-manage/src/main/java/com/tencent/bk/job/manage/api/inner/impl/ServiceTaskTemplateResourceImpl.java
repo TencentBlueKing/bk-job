@@ -26,20 +26,27 @@ package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.migration.AddHostIdForTemplateAndPlanMigrationTask;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
@@ -57,8 +64,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -69,22 +79,22 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
 
     private final TaskTemplateService templateService;
     private final AbstractTaskVariableService taskVariableService;
-    private final WebAuthService authService;
     private final TemplateAuthService templateAuthService;
     private final TagService tagService;
+    private final AddHostIdForTemplateAndPlanMigrationTask addHostIdService;
 
     @Autowired
     public ServiceTaskTemplateResourceImpl(
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
-        WebAuthService authService,
         TemplateAuthService templateAuthService,
-        TagService tagService) {
+        TagService tagService,
+        AddHostIdForTemplateAndPlanMigrationTask addHostIdService) {
         this.templateService = templateService;
         this.taskVariableService = taskVariableService;
-        this.authService = authService;
         this.templateAuthService = templateAuthService;
         this.tagService = tagService;
+        this.addHostIdService = addHostIdService;
     }
 
     @Override
@@ -161,6 +171,8 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         if (taskTemplateCreateUpdateReq.validate()) {
             TaskTemplateInfoDTO templateInfo = TaskTemplateInfoDTO.fromReq(username, appId,
                 taskTemplateCreateUpdateReq);
+            int count = addHostIdForHostsInStepAndVariables(templateInfo);
+            log.info("{} hostIds added for template {}:{}", count, templateInfo.getAppId(), templateInfo.getName());
             bindExistTagsToImportedTemplate(appId, templateInfo);
             templateInfo.setCreator(username);
             Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
@@ -169,8 +181,90 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
                 finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
             return InternalResponse.buildSuccessResp(finalTemplateId);
         } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{
+                "body",
+                StringUtil.concatCollection(JobContextUtil.getDebugMessage())
+            });
         }
+    }
+
+    private int addHostIdForHostsInStepAndVariables(TaskTemplateInfoDTO templateInfo) {
+        List<TaskTargetDTO> targetList = new ArrayList<>();
+        // 步骤：收集主机信息
+        List<TaskStepDTO> stepList = templateInfo.getStepList();
+        for (TaskStepDTO step : stepList) {
+            TaskStepTypeEnum type = step.getType();
+            if (type == TaskStepTypeEnum.SCRIPT) {
+                TaskTargetDTO executeTarget = step.getScriptStepInfo().getExecuteTarget();
+                targetList.add(executeTarget);
+            } else if (type == TaskStepTypeEnum.FILE) {
+                TaskTargetDTO destinationHostList = step.getFileStepInfo().getDestinationHostList();
+                targetList.add(destinationHostList);
+                List<TaskFileInfoDTO> originFileList = step.getFileStepInfo().getOriginFileList();
+                for (TaskFileInfoDTO originFile : originFileList) {
+                    TaskTargetDTO host = originFile.getHost();
+                    targetList.add(host);
+                }
+            }
+        }
+        // 变量：收集主机信息
+        List<TaskVariableDTO> variableList = templateInfo.getVariableList();
+        if (variableList == null) {
+            variableList = new ArrayList<>();
+        }
+        Map<Long, TaskTargetDTO> varTargetMap = new HashMap<>();
+        for (TaskVariableDTO taskVariableDTO : variableList) {
+            if (taskVariableDTO.getType() == TaskVariableTypeEnum.HOST_LIST) {
+                TaskTargetDTO target = TaskTargetDTO.fromJsonString(taskVariableDTO.getDefaultValue());
+                if (target != null) {
+                    targetList.add(target);
+                    varTargetMap.put(taskVariableDTO.getId(), target);
+                }
+            }
+        }
+        return addHostIdForTargets(stepList, variableList, targetList, varTargetMap);
+    }
+
+    private int addHostIdForTargets(List<TaskStepDTO> stepList,
+                                    List<TaskVariableDTO> variableList,
+                                    List<TaskTargetDTO> targetList,
+                                    Map<Long, TaskTargetDTO> varTargetMap) {
+        int count = 0;
+        // 批量查询更新
+        addHostIdService.addIpAndHostIdMappings(targetList);
+        for (TaskStepDTO step : stepList) {
+            TaskStepTypeEnum type = step.getType();
+            if (type == TaskStepTypeEnum.SCRIPT) {
+                TaskTargetDTO executeTarget = step.getScriptStepInfo().getExecuteTarget();
+                if (addHostIdService.fillHostId(executeTarget)) {
+                    count += 1;
+                }
+            } else if (type == TaskStepTypeEnum.FILE) {
+                TaskTargetDTO destinationHostList = step.getFileStepInfo().getDestinationHostList();
+                if (addHostIdService.fillHostId(destinationHostList)) {
+                    count += 1;
+                }
+                List<TaskFileInfoDTO> originFileList = step.getFileStepInfo().getOriginFileList();
+                for (TaskFileInfoDTO originFile : originFileList) {
+                    TaskTargetDTO host = originFile.getHost();
+                    if (addHostIdService.fillHostId(host)) {
+                        count += 1;
+                    }
+                }
+            }
+        }
+        for (TaskVariableDTO taskVariableDTO : variableList) {
+            if (taskVariableDTO.getType() == TaskVariableTypeEnum.HOST_LIST) {
+                TaskTargetDTO target = varTargetMap.get(taskVariableDTO.getId());
+                if (target != null) {
+                    if (addHostIdService.fillHostId(target)) {
+                        taskVariableDTO.setDefaultValue(JsonUtils.toJson(target));
+                        count += 1;
+                    }
+                }
+            }
+        }
+        return count;
     }
 
     /*

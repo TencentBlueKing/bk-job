@@ -81,6 +81,10 @@ public enum AgentTaskStatusEnum {
      */
     GSE_FILE_TIMEOUT(17),
     /**
+     * Agent未安装
+     */
+    AGENT_NOT_INSTALLED(18),
+    /**
      * 脚本执行失败
      */
     SCRIPT_FAILED(101),

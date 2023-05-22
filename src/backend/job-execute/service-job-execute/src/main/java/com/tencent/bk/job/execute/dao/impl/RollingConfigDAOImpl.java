@@ -28,8 +28,11 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Result;
 import org.jooq.generated.tables.RollingConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -74,6 +77,16 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
             .where(TABLE.ID.eq(rollingConfigId))
             .fetchOne();
         return extract(record);
+    }
+
+    @Override
+    public boolean existsRollingConfig(long taskInstanceId) {
+        Result<Record1<Integer>> records = CTX.selectOne()
+            .from(TABLE)
+            .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .limit(1)
+            .fetch();
+        return CollectionUtils.isNotEmpty(records);
     }
 
     private RollingConfigDTO extract(Record record) {

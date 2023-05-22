@@ -39,6 +39,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -223,7 +224,13 @@ public class Upgrader {
                         } while (!paramCheckResult.isPass());
                         paramMap.put(paramInstance.getKey(), paramValue.trim());
                     } catch (InstantiationException | IllegalAccessException e) {
-                        log.error("Fail to set params for {}", clazz.getSimpleName(), e);
+                        String msg = MessageFormatter.arrayFormat(
+                            "Fail to set params for {}",
+                            new String[]{
+                                clazz.getSimpleName()
+                            }
+                        ).getMessage();
+                        log.error(msg, e);
                         break;
                     }
                 }
@@ -255,7 +262,11 @@ public class Upgrader {
                 );
                 properties.load(br);
             } catch (IOException e) {
-                log.warn("Cannot read configFile from path:{}, exit", configFilePath, e);
+                String msg = MessageFormatter.format(
+                    "Cannot read configFile from path:{}, exit",
+                    configFilePath
+                ).getMessage();
+                log.warn(msg, e);
                 return;
             } finally {
                 if (br != null) {
@@ -287,7 +298,7 @@ public class Upgrader {
         // 参数输入
         checkAndInputTaskParams(upgradeTaskList, properties);
         // 运行
-        runTasks(upgradeTaskList, args, properties);
+        System.exit(runTasks(upgradeTaskList, args, properties));
     }
 
     private static int runTasks(
@@ -330,7 +341,11 @@ public class Upgrader {
                                 upgradeTask.getTargetVersion());
                         }
                     } catch (Exception e) {
-                        log.error("Fail to run {}", clazz.getSimpleName(), e);
+                        String msg = MessageFormatter.format(
+                            "Fail to run {}",
+                            clazz.getSimpleName()
+                        ).getMessage();
+                        log.error(msg, e);
                     }
                 }
             };
@@ -388,10 +403,18 @@ public class Upgrader {
             }
             return upgradeTask;
         } catch (InstantiationException e) {
-            log.error("Fail to Instantiate {}", clazz.getSimpleName(), e);
+            String msg = MessageFormatter.format(
+                "Fail to Instantiate {}",
+                clazz.getSimpleName()
+            ).getMessage();
+            log.error(msg, e);
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
-            log.error("Fail to Instantiate {} because of illegalAccess", clazz.getSimpleName(), e);
+            String msg = MessageFormatter.format(
+                "Fail to Instantiate {} because of illegalAccess",
+                clazz.getSimpleName()
+            ).getMessage();
+            log.error(msg, e);
             throw new RuntimeException(e);
         }
     }

@@ -254,8 +254,8 @@ public class GseStepEventHandler implements StepEventHandler {
         } else {
             // 普通步骤，启动的时候需要初始化所有AgentTask
             List<AgentTaskDTO> agentTasks = new ArrayList<>(
-                buildGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
-                    gseTaskId, stepInstance.getTargetServers().getIpList(), AgentTaskStatusEnum.WAITING));
+                buildInitialGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
+                    gseTaskId, stepInstance.getTargetServers().getIpList()));
             saveAgentTasks(stepInstance, agentTasks);
         }
     }
@@ -281,14 +281,14 @@ public class GseStepEventHandler implements StepEventHandler {
                     rollingConfig.getConfigDetail().getHostsBatchList();
                 serverBatchList.forEach(serverBatch -> {
                     agentTasks.addAll(
-                        buildGseAgentTasks(
+                        buildInitialGseAgentTasks(
                             stepInstanceId,
                             executeCount,
                             serverBatch.getBatch() == 1 ? executeCount : null,
                             serverBatch.getBatch(),
                             serverBatch.getBatch() == 1 ? gseTaskId : 0,
-                            serverBatch.getHosts(),
-                            AgentTaskStatusEnum.WAITING)
+                            serverBatch.getHosts()
+                        )
                     );
                 });
                 saveAgentTasks(stepInstance, agentTasks);
@@ -310,37 +310,27 @@ public class GseStepEventHandler implements StepEventHandler {
         }
     }
 
-    private List<AgentTaskDTO> buildGseAgentTasks(long stepInstanceId,
-                                                  int executeCount,
-                                                  Integer actualExecuteCount,
-                                                  int batch,
-                                                  Long gseTaskId,
-                                                  List<HostDTO> hosts,
-                                                  AgentTaskStatusEnum status) {
+    private List<AgentTaskDTO> buildInitialGseAgentTasks(long stepInstanceId,
+                                                         int executeCount,
+                                                         Integer actualExecuteCount,
+                                                         int batch,
+                                                         Long gseTaskId,
+                                                         List<HostDTO> hosts) {
         return hosts.stream()
-            .map(host -> buildGseAgentTask(stepInstanceId, executeCount, actualExecuteCount,
-                batch, gseTaskId, host, status))
+            .map(host -> {
+                AgentTaskDTO agentTask = new AgentTaskDTO();
+                agentTask.setStepInstanceId(stepInstanceId);
+                agentTask.setExecuteCount(executeCount);
+                agentTask.setActualExecuteCount(actualExecuteCount);
+                agentTask.setBatch(batch);
+                agentTask.setGseTaskId(gseTaskId);
+                agentTask.setStatus(AgentTaskStatusEnum.WAITING);
+                agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
+                agentTask.setHostId(host.getHostId());
+                agentTask.setAgentId(host.getAgentId());
+                return agentTask;
+            })
             .collect(Collectors.toList());
-    }
-
-    protected AgentTaskDTO buildGseAgentTask(long stepInstanceId,
-                                             int executeCount,
-                                             Integer actualExecuteCount,
-                                             int batch,
-                                             Long gseTaskId,
-                                             HostDTO host,
-                                             AgentTaskStatusEnum status) {
-        AgentTaskDTO agentTask = new AgentTaskDTO();
-        agentTask.setStepInstanceId(stepInstanceId);
-        agentTask.setExecuteCount(executeCount);
-        agentTask.setActualExecuteCount(actualExecuteCount);
-        agentTask.setBatch(batch);
-        agentTask.setGseTaskId(gseTaskId);
-        agentTask.setStatus(status);
-        agentTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
-        agentTask.setHostId(host.getHostId());
-        agentTask.setAgentId(host.getAgentId());
-        return agentTask;
     }
 
     /**

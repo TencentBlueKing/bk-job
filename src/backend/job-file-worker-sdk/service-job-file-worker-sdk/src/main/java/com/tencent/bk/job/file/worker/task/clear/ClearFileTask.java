@@ -80,7 +80,11 @@ public class ClearFileTask {
                 try {
                     FileUtils.deleteDirectory(taskDirFile);
                 } catch (IOException e) {
-                    log.warn("Fail to delete {}", taskDirFile.getAbsolutePath(), e);
+                    String msg = MessageFormatter.format(
+                        "Fail to delete {}",
+                        taskDirFile.getAbsolutePath()
+                    ).getMessage();
+                    log.warn(msg, e);
                 }
             }
         }

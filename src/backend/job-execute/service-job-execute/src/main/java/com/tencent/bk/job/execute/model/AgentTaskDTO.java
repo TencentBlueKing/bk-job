@@ -259,4 +259,8 @@ public class AgentTaskDTO {
     public boolean isSuccess() {
         return AgentTaskStatusEnum.isSuccess(status);
     }
+
+    public boolean isAgentIdEmpty() {
+        return StringUtils.isEmpty(agentId);
+    }
 }

@@ -5,6 +5,8 @@ job:
   file-worker:
     # file-worker版本
     version: 0.0.1
+    # 启用的文件源类型，逗号分隔，当前支持的类型：BLUEKING_ARTIFACTORY（蓝鲸制品库）
+    enabled-file-source-types: BLUEKING_ARTIFACTORY
     # 外部如何访问file-worker
     access:
       # 访问端口，二进制部署环境中，与文件网关部署于同一云区域下，则与服务端口一致

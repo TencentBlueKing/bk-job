@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.web.interceptor;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -142,8 +143,15 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
             int respStatus = response.getStatus();
             long cost = System.currentTimeMillis() - startTimeInMills;
-            log.info("request-id:{}|API:{}|uri:{}|appCode:{}|username:{}|status:{}|resp:{}|cost:{}", requestId, apiName,
-                request.getRequestURI(), appCode, username, respStatus, wrapperResponse.getBodyAsText(), cost);
+            log.info("request-id:{}|API:{}|uri:{}|appCode:{}|username:{}|status:{}|resp:{}|cost:{}",
+                requestId,
+                apiName,
+                request.getRequestURI(),
+                appCode,
+                username,
+                respStatus,
+                StringUtil.substring(wrapperResponse.getBodyAsText(), 10000),
+                cost);
         } catch (Throwable e) {
             log.warn("Handle after completion fail", e);
         } finally {

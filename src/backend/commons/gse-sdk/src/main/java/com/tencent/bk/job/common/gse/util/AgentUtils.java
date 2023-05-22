@@ -1,5 +1,7 @@
 package com.tencent.bk.job.common.gse.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.regex.Pattern;
 
 /**
@@ -16,6 +18,9 @@ public class AgentUtils {
      * @param agentId agentId
      */
     public static boolean isGseV1AgentId(String agentId) {
+        if (StringUtils.isEmpty(agentId)) {
+            return false;
+        }
         return GSE_V1_AGENT_ID_PATTERN.matcher(agentId).matches();
     }
 

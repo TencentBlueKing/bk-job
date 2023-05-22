@@ -42,8 +42,8 @@ import java.nio.charset.StandardCharsets;
  * 由于HttpServletRequest的InputStream只允许读取一次，为了能够重复读取body，需要用装饰模式来包装
  */
 public class RepeatableReadHttpServletResponse extends HttpServletResponseWrapper {
-    private ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    private HttpServletResponse response;
+    private final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    private final HttpServletResponse response;
 
     public RepeatableReadHttpServletResponse(HttpServletResponse response) {
         super(response);
@@ -71,9 +71,7 @@ public class RepeatableReadHttpServletResponse extends HttpServletResponseWrappe
 
     @Override
     public void flushBuffer() throws IOException {
-        if (byteArrayOutputStream != null) {
-            byteArrayOutputStream.flush();
-        }
+        byteArrayOutputStream.flush();
     }
 
     @Data

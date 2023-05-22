@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.logsvr.service.impl;
 
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.FileLogQuery;
@@ -59,6 +60,162 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LogServiceImplIntegrationTest {
     @Autowired
     private LogService logService;
+
+    @Nested
+    @DisplayName("测试查询脚本日志")
+    class GetScriptLogTest {
+        @Test
+        @DisplayName("测试通过关键字查询IP - 关键字包含特殊字符")
+        void testGetIpsBykeyword() {
+            String jobCreateDate = "2023_03_21";
+            long stepInstanceId = 1L;
+            int executeCount = 1;
+            int batch = 1;
+
+            String content = "str1 ~`!@#$%^&*()_+-=;,./?\\|':><{}";
+            String ip = "0:127.0.0.1";
+            String ipv6 = "0:::1";
+            long hostId = 1L;
+            TaskHostLog taskHostLog1 = new TaskHostLog();
+            taskHostLog1.setStepInstanceId(stepInstanceId);
+            taskHostLog1.setExecuteCount(executeCount);
+            taskHostLog1.setBatch(batch);
+            taskHostLog1.setJobCreateDate(jobCreateDate);
+            ScriptTaskLogDoc scriptTaskLog1 = new ScriptTaskLogDoc(stepInstanceId, executeCount, batch, hostId, ip,
+                ipv6, content, 10);
+            taskHostLog1.setScriptTaskLog(scriptTaskLog1);
+            taskHostLog1.setLogType(LogTypeEnum.SCRIPT.getValue());
+            logService.saveLog(taskHostLog1);
+            content = "str2 ?|':><{}";
+            ip = "0:127.0.0.2";
+            ipv6 = "0:::2";
+            hostId = 2L;
+            TaskHostLog taskHostLog2 = new TaskHostLog();
+            taskHostLog2.setStepInstanceId(stepInstanceId);
+            taskHostLog2.setExecuteCount(executeCount);
+            taskHostLog2.setBatch(batch);
+            taskHostLog2.setJobCreateDate(jobCreateDate);
+            ScriptTaskLogDoc scriptTaskLog2 = new ScriptTaskLogDoc(stepInstanceId, executeCount, batch, hostId, ip,
+                ipv6, content, 10);
+            taskHostLog2.setScriptTaskLog(scriptTaskLog2);
+            taskHostLog2.setLogType(LogTypeEnum.SCRIPT.getValue());
+            logService.saveLog(taskHostLog2);
+
+            String keyword = "str";
+            List<HostDTO> hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount,
+                batch, keyword);
+            assertThat(hostDTOS).hasSize(2);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L, 2L);
+            keyword = "job";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount,batch, keyword);
+            assertThat(hostDTOS).hasSize(0);
+            keyword = "~";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount,batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "`";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "!";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "@";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "#";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "$";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "%";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "^";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "&";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "*";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "(";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = ")";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "_";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "+";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "=";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = ";";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = ",";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = ".";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "/";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = "?";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(2);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L, 2L);
+            keyword = "\\";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(1);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L);
+            keyword = ":";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(2);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L, 2L);
+            keyword = "<";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(2);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L, 2L);
+            keyword = ">";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(2);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L, 2L);
+            keyword = "{";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(2);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L, 2L);
+            keyword = "}";
+            hostDTOS = logService.getIpsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+            assertThat(hostDTOS).hasSize(2);
+            assertThat(hostDTOS).extracting("hostId").containsOnly(1L, 2L);
+        }
+    }
+
 
     @Nested
     @DisplayName("测试保存脚本日志")

@@ -24,8 +24,11 @@
 
 package com.tencent.bk.job.upgrader.model.job;
 
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * 作业模板、执行方案、IP白名单、定时任务等包含的主机数据，在原来的云区域+ip的基础上，填充hostID属性 - 请求
@@ -33,9 +36,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class AddHostIdMigrationReq {
+    // 迁移数据限定的资源范围，不传该参数则表示迁移所有资源范围下的数据
+    private List<ResourceScope> scopeList;
+
     private boolean dryRun;
 
-    public AddHostIdMigrationReq(boolean dryRun) {
+    public AddHostIdMigrationReq(List<ResourceScope> scopeList, boolean dryRun) {
+        this.scopeList = scopeList;
         this.dryRun = dryRun;
     }
 }

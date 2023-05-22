@@ -53,10 +53,10 @@ import java.util.Set;
 @Service
 public class FileSourceServiceImpl implements FileSourceService {
 
-    private DSLContext dslContext;
-    private FileSourceTypeDAO fileSourceTypeDAO;
-    private FileSourceDAO fileSourceDAO;
-    private FileWorkerDAO fileWorkerDAO;
+    private final DSLContext dslContext;
+    private final FileSourceTypeDAO fileSourceTypeDAO;
+    private final FileSourceDAO fileSourceDAO;
+    private final FileWorkerDAO fileWorkerDAO;
 
     @Autowired
     public FileSourceServiceImpl(DSLContext dslContext, FileSourceTypeDAO fileSourceTypeDAO,
@@ -69,8 +69,7 @@ public class FileSourceServiceImpl implements FileSourceService {
 
     @Override
     public List<FileSourceTypeDTO> listUniqueFileSourceType(String storageType) {
-        List<FileSourceTypeDTO> fileSourceTypeDTOList = fileSourceTypeDAO.listOrderByVersion(dslContext
-            , storageType);
+        List<FileSourceTypeDTO> fileSourceTypeDTOList = fileSourceTypeDAO.listEnabledTypeOrderByVersion(storageType);
         Set<String> codeSet = new HashSet<>();
         List<FileSourceTypeDTO> resultList = new ArrayList<>();
         // 多个Worker提供的同一种文件源能力只取版本最高的任意一个作为标准

@@ -92,4 +92,11 @@ public interface StepInstanceRollingTaskService {
                            Long totalTime);
 
 
+    /**
+     * 根据步骤实例ID查询滚动任务
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 步骤滚动任务
+     */
+    List<StepInstanceRollingTaskDTO> listRollingTasksByStep(long stepInstanceId);
 }

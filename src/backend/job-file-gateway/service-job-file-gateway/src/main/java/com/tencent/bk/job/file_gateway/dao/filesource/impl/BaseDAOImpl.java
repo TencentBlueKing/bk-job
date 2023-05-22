@@ -30,6 +30,7 @@ import org.jooq.Result;
 import org.jooq.ResultQuery;
 import org.jooq.SelectLimitStep;
 import org.jooq.conf.ParamType;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Collections;
 import java.util.List;
@@ -60,7 +61,11 @@ public class BaseDAOImpl {
             log.debug("SQL={}", sql);
             records = finalQuery.fetch();
         } catch (Exception e) {
-            log.error("error SQL={}", sql, e);
+            String msg = MessageFormatter.format(
+                "error SQL={}",
+                sql
+            ).getMessage();
+            log.error(msg, e);
         }
         if (records == null || records.isEmpty()) {
             return Collections.emptyList();

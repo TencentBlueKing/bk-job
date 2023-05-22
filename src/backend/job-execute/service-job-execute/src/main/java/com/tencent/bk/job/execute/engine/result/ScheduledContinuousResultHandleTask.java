@@ -142,8 +142,9 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
             } else {
                 isDone = true;
             }
-        } catch (Exception | Error e) {
+        } catch (Throwable e) {
             status = "error";
+            isDone = true;
             throw e;
         } finally {
             if (isDone) {

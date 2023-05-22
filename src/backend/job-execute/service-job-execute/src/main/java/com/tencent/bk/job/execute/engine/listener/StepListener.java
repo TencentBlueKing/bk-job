@@ -57,7 +57,7 @@ public class StepListener {
      * @param stepEvent 步骤执行相关的事件
      */
     public void handleEvent(StepEvent stepEvent) {
-        log.info("Handle step event: {}", stepEvent);
+        log.info("Handle step event: {}, duration: {}ms", stepEvent, stepEvent.duration());
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
             StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);

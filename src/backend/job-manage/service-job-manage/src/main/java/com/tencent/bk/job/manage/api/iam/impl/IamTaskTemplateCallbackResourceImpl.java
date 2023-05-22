@@ -44,6 +44,7 @@ import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -139,7 +140,11 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
                 long id = Long.parseLong(instanceId);
                 templateIdList.add(id);
             } catch (NumberFormatException e) {
-                log.error("Parse template id failed!|{}", instanceId, e);
+                String msg = MessageFormatter.format(
+                    "Parse template id failed!|{}",
+                    instanceId
+                ).getMessage();
+                log.error(msg, e);
             }
         }
         List<TaskTemplateInfoDTO> taskTemplateInfoDTOList =

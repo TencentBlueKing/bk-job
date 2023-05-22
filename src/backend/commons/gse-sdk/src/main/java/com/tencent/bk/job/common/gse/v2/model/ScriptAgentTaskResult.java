@@ -1,7 +1,6 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.util.json.SkipLogFields;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -71,8 +70,7 @@ public class ScriptAgentTaskResult {
     /**
      * 脚本输出日志
      */
-    @JsonProperty("screen")
-    @SkipLogFields
+    @JsonProperty(value = "screen", access = JsonProperty.Access.WRITE_ONLY)
     private String screen;
 
     /**

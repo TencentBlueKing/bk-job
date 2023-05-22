@@ -14,11 +14,6 @@ public interface ToggleStrategy {
     String getId();
 
     /**
-     * 获取特性ID
-     */
-    String getFeatureId();
-
-    /**
      * 获取初始化参数
      */
     Map<String, String> getInitParams();

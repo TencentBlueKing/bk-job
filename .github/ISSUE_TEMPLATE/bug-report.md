@@ -1,8 +1,8 @@
 ---
 name: Bug Report
 about: Report a bug encountered while operating bk-job
-title: 'bugfix: '
-labels: kind/bug
+title: 'fix: '
+labels: kind/bug,backlog
 assignees: 'nekzhang'
 
 ---

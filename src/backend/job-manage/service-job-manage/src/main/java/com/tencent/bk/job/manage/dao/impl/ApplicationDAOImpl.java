@@ -46,6 +46,7 @@ import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.Application;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -243,7 +244,11 @@ public class ApplicationDAOImpl implements ApplicationDAO {
                 );
             }
         } catch (Exception e) {
-            log.error("Fail to insertAppInfo:SQL={}", query.getSQL(ParamType.INLINED), e);
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to insertAppInfo:SQL={}",
+                new String[]{query.getSQL(ParamType.INLINED)}
+            ).getMessage();
+            log.error(msg, e);
             throw e;
         }
     }

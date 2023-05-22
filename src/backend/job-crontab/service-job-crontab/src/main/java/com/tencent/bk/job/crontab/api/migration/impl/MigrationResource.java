@@ -26,6 +26,8 @@ package com.tencent.bk.job.crontab.api.migration.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.migration.AddHostIdForCronVariableMigrationTask;
 import com.tencent.bk.job.manage.model.migration.AddHostIdMigrationReq;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 微服务升级
@@ -48,10 +51,13 @@ import java.util.List;
 @RestController
 public class MigrationResource {
     private final AddHostIdForCronVariableMigrationTask addHostIdForCronVariableMigrationTask;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public MigrationResource(AddHostIdForCronVariableMigrationTask addHostIdForCronVariableMigrationTask) {
+    public MigrationResource(AddHostIdForCronVariableMigrationTask addHostIdForCronVariableMigrationTask,
+                             AppScopeMappingService appScopeMappingService) {
         this.addHostIdForCronVariableMigrationTask = addHostIdForCronVariableMigrationTask;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     /**
@@ -60,7 +66,22 @@ public class MigrationResource {
     @PostMapping("/action/addHostIdMigrationTask")
     public Response<String> addHostIdMigrationTask(@RequestBody AddHostIdMigrationReq req) {
         List<AddHostIdResult> results = new ArrayList<>();
-        results.add(addHostIdForCronVariableMigrationTask.execute(req.isDryRun()));
+        List<ResourceScope> scopeList = req.getScopeList();
+        List<Long> appIdList = null;
+        if (scopeList != null) {
+            Map<ResourceScope, Long> scopeAppIdMap = appScopeMappingService.getAppIdByScopeList(scopeList);
+            if (scopeAppIdMap.size() == scopeList.size()) {
+                appIdList = new ArrayList<>(scopeAppIdMap.values());
+            } else {
+                scopeList.removeIf(scopeAppIdMap::containsKey);
+                return Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{
+                        "AddHostIdMigrationTask",
+                        "Cannot find appId by scope:" + scopeList
+                    }
+                );
+            }
+        }
+        results.add(addHostIdForCronVariableMigrationTask.execute(appIdList, req.isDryRun()));
         boolean success = results.stream().allMatch(AddHostIdResult::isSuccess);
         return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
             Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"AddHostIdMigrationTask",

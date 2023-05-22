@@ -40,8 +40,12 @@ public interface CronJobDAO {
 
     /**
      * 查询含有主机变量信息一批定时任务基础信息
+     *
+     * @param appIdList 限定的appId范围
+     * @param start     起始值
+     * @param limit     最大记录数
      */
-    List<CronJobWithVarsDTO> listBasicCronJobWithHostVars(int start, int limit);
+    List<CronJobWithVarsDTO> listBasicCronJobWithHostVars(List<Long> appIdList, int start, int limit);
 
     /**
      * 根据业务 ID 列表批量查询定时任务信息

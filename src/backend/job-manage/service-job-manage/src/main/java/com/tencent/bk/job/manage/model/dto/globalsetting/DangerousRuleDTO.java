@@ -125,6 +125,10 @@ public class DangerousRuleDTO {
         dangerousRuleVO.setOrder(dangerousRule.getPriority());
         dangerousRuleVO.setAction(dangerousRule.getAction());
         dangerousRuleVO.setStatus(dangerousRule.getStatus());
+        dangerousRuleVO.setCreator(dangerousRule.getCreator());
+        dangerousRuleVO.setCreateTime(dangerousRule.getCreateTime());
+        dangerousRuleVO.setLastModifier(dangerousRule.getLastModifier());
+        dangerousRuleVO.setLastModifyTime(dangerousRule.getLastModifyTime());
         return dangerousRuleVO;
     }
 

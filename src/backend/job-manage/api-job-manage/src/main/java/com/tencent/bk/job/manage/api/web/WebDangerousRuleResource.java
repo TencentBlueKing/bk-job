@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -56,7 +57,19 @@ public interface WebDangerousRuleResource {
     Response<List<DangerousRuleVO>> listDangerousRules(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username
+            String username,
+        @ApiParam(value = "表达式：模糊搜索")
+        @RequestParam(value = "expression", required = false)
+            String expression,
+        @ApiParam("规则说明：模糊搜索")
+        @RequestParam(value = "description", required = false)
+            String description,
+        @ApiParam("脚本类型：可多选")
+        @RequestParam(value = "scriptTypeList", required = false)
+            List<Byte> scriptTypeList,
+        @ApiParam("动作：可多选")
+        @RequestParam(value = "action", required = false)
+            List<Byte> action
     );
 
 

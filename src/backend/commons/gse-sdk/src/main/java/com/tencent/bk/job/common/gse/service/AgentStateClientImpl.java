@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
@@ -47,6 +48,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -86,7 +88,8 @@ public class AgentStateClientImpl implements AgentStateClient {
     @Override
     public Map<String, AgentState> batchGetAgentState(List<String> agentIdList) {
         // 对agentId按照对应的GSE Agent 版本进行分类
-        Pair<List<String>, List<String>> classifiedAgentIdList = classifyGseAgentIds(agentIdList);
+        List<String> queryAgentIds = agentIdList.stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+        Pair<List<String>, List<String>> classifiedAgentIdList = classifyGseAgentIds(queryAgentIds);
 
         Map<String, AgentState> results = batchGetAgentStateConcurrent(classifiedAgentIdList.getLeft());
         results.putAll(batchGetAgentStateConcurrent(classifiedAgentIdList.getRight()));
@@ -147,7 +150,8 @@ public class AgentStateClientImpl implements AgentStateClient {
 
     @Override
     public Map<String, Boolean> batchGetAgentAliveStatus(List<String> agentIdList) {
-        Map<String, AgentState> agentStateMap = batchGetAgentState(agentIdList);
+        List<String> queryAgentIds = agentIdList.stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList());
+        Map<String, AgentState> agentStateMap = batchGetAgentState(queryAgentIds);
         Map<String, Boolean> agentAliveStatusMap = new HashMap<>();
         for (Map.Entry<String, AgentState> entry : agentStateMap.entrySet()) {
             String agentId = entry.getKey();
@@ -157,7 +161,7 @@ public class AgentStateClientImpl implements AgentStateClient {
         return agentAliveStatusMap;
     }
 
-    public Map<String, AgentState> batchGetAgentStatusWithoutLimit(List<String> agentIdList) {
+    private Map<String, AgentState> batchGetAgentStatusWithoutLimit(List<String> agentIdList) {
         Map<String, AgentState> resultMap = new HashMap<>();
         ListAgentStateReq req = new ListAgentStateReq();
         req.setAgentIdList(agentIdList);

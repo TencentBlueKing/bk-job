@@ -47,17 +47,15 @@ git commit -m 'fix: xxx问题 #123'
 
 | 标记     | 说明                                   |
 | -------- | -------------------------------------- |
-| feature/feat  | 新功能开发                             |
-| bug/fix/bugfix   | bug修复                                |
-| refactor/perf | 重构代码/优化配置&参数/优化逻辑及功能 |
-| test     | 添加单元测试用例相关                   |
+| feat     | 新功能开发                             |
+| fix      | bug修复                                |
 | docs     | 添加文档                               |
-| info     | 添加注释类信息                         |
-| format   | 不修改业务逻辑下，仅做代码规范的格式化 |
-| merge    | 仅做分支合并同步                       |
-| depend   | 对工程的依赖进行增删改                 |
+| style    | 不修改业务逻辑下，仅做代码规范的格式化        |
+| refactor | 重构代码                               |
+| perf     | 优化配置&参数/优化逻辑及功能              |
+| test     | 添加单元测试用例相关                   |
 | chore    | 构建脚本、任务等相关代码                 |
-| del    | 删除可能仍然有人用到的功能、API等破坏性动作               |
+| merge    | 仅做分支合并同步                       |
 
 
 ## Pull Request/Merge Request
