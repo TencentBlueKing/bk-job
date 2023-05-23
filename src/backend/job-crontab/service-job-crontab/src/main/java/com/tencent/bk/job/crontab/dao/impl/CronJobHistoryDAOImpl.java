@@ -26,12 +26,17 @@ package com.tencent.bk.job.crontab.dao.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.dao.CronJobHistoryDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
 import com.tencent.bk.job.crontab.util.DbRecordMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record10;
+import org.jooq.Result;
+import org.jooq.SelectSeekStep1;
 import org.jooq.generated.tables.CronJobHistory;
 import org.jooq.generated.tables.records.CronJobHistoryRecord;
 import org.jooq.types.UByte;
@@ -95,8 +100,12 @@ public class CronJobHistoryDAOImpl implements CronJobHistoryDAO {
     public boolean fillErrorInfo(long historyId, long errorCode, String errorMsg) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.ID.eq(ULong.valueOf(historyId)));
-        return 1 == context.update(TABLE).set(TABLE.ERROR_CODE, ULong.valueOf(errorCode)).set(TABLE.ERROR_MESSAGE,
-            errorMsg).where(conditions).limit(1).execute();
+        return 1 == context.update(TABLE)
+            .set(TABLE.ERROR_CODE, ULong.valueOf(errorCode))
+            .set(TABLE.ERROR_MESSAGE, StringUtil.substring(errorMsg, 255))
+            .where(conditions)
+            .limit(1)
+            .execute();
     }
 
     @Override
@@ -115,8 +124,8 @@ public class CronJobHistoryDAOImpl implements CronJobHistoryDAO {
         int length = baseSearchCondition.getLengthOrDefault(10);
         Result<Record10<ULong, ULong, ULong, UByte, ULong, ULong, ULong, String, ULong, String>> result =
             context.select(TABLE.ID, TABLE.APP_ID, TABLE.CRON_JOB_ID, TABLE.STATUS, TABLE.SCHEDULED_TIME,
-            TABLE.START_TIME, TABLE.FINISH_TIME, TABLE.EXECUTOR, TABLE.ERROR_CODE, TABLE.ERROR_MESSAGE)
-            .from(TABLE).where(conditions).orderBy(TABLE.START_TIME.desc()).limit(start, length).fetch();
+                TABLE.START_TIME, TABLE.FINISH_TIME, TABLE.EXECUTOR, TABLE.ERROR_CODE, TABLE.ERROR_MESSAGE)
+                .from(TABLE).where(conditions).orderBy(TABLE.START_TIME.desc()).limit(start, length).fetch();
 
         List<CronJobHistoryDTO> cronJobHistoryList = new ArrayList<>();
 

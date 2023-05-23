@@ -145,7 +145,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
             cronJobHistoryService.updateStatusByIdAndTime(appId, cronJobId, scheduledFireTime,
                 ExecuteStatusEnum.RUNNING);
         } else {
-            log.error("Execute task failed!|{}|{}|{}|{}", appId, cronJobId, scheduledFireTime, executeResult);
+            log.warn("Execute task failed!|{}|{}|{}|{}", appId, cronJobId, scheduledFireTime, executeResult);
             cronJobHistoryService.updateStatusByIdAndTime(appId, cronJobId, scheduledFireTime, ExecuteStatusEnum.FAIL);
             executeFailed = true;
             if (executeResult != null) {
@@ -167,7 +167,8 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         if (executeFailed && isNotify(cronJobErrorInfo)) {
             notifyService.sendCronJobFailedNotification(errorCode, errorMessage, cronJobInfo);
             if (log.isDebugEnabled()) {
-                log.debug("Send cronjob failed notification, execute error count is {}", cronJobErrorInfo.getLastExecuteErrorCount());
+                log.debug("Send cronjob failed notification, execute error count is {}",
+                    cronJobErrorInfo.getLastExecuteErrorCount());
             }
         }
     }
