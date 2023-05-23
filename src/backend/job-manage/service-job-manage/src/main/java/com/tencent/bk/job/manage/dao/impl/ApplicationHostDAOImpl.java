@@ -53,6 +53,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -381,11 +382,20 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public Long countHostInfoBySearchContents(Collection<Long> bizIds, Collection<Long> moduleIds,
-                                              Collection<Long> cloudAreaIds, List<String> searchContents,
+    public Long countHostInfoBySearchContents(Collection<Long> bizIds,
+                                              Collection<Long> moduleIds,
+                                              Collection<Long> cloudAreaIds,
+                                              List<String> searchContents,
                                               Integer agentStatus) {
-        List<Long> hostIdList = getHostIdListBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents,
-            agentStatus, null, null);
+        List<Long> hostIdList = getHostIdListBySearchContents(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentStatus,
+            null,
+            null
+        );
         return (long) (hostIdList.size());
     }
 
@@ -550,6 +560,18 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return conditions;
     }
 
+    private <T> void addFieldMultiLikeCondition(List<Condition> conditions, Field<T> field, Collection<String> keys) {
+        if (CollectionUtils.isNotEmpty(keys)) {
+            List<String> keyList = new ArrayList<>(keys);
+            String firstContent = keyList.get(0);
+            Condition condition = field.like("%" + firstContent + "%");
+            for (int i = 1; i < keyList.size(); i++) {
+                condition = condition.or(field.like("%" + keyList.get(i) + "%"));
+            }
+            conditions.add(condition);
+        }
+    }
+
     private List<Condition> buildMultiKeysConditions(Collection<Long> bizIds,
                                                      Collection<Long> moduleIds,
                                                      Collection<Long> cloudAreaIds,
@@ -563,18 +585,10 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (cloudAreaIds != null) {
             conditions.add(tHost.CLOUD_AREA_ID.in(cloudAreaIds));
         }
-        if (ipKeys != null) {
-            conditions.add(tHost.IP.in(ipKeys));
-        }
-        if (ipv6Keys != null) {
-            conditions.add(tHost.IP_V6.in(ipv6Keys));
-        }
-        if (hostNameKeys != null) {
-            conditions.add(tHost.IP_DESC.in(hostNameKeys));
-        }
-        if (osNameKeys != null) {
-            conditions.add(tHost.OS.in(osNameKeys));
-        }
+        addFieldMultiLikeCondition(conditions, tHost.IP, ipKeys);
+        addFieldMultiLikeCondition(conditions, tHost.IP_V6, ipv6Keys);
+        addFieldMultiLikeCondition(conditions, tHost.IP_DESC, hostNameKeys);
+        addFieldMultiLikeCondition(conditions, tHost.OS, osNameKeys);
         return conditions;
     }
 

@@ -263,6 +263,10 @@ public class WebHostResourceImpl implements WebHostResource {
             req.getNodeList(),
             req.getSearchContent(),
             req.getAlive(),
+            req.getIpKeyList(),
+            req.getIpv6KeyList(),
+            req.getHostNameKeyList(),
+            req.getOsNameKeyList(),
             pagePair.getLeft(),
             pagePair.getRight()
         );
