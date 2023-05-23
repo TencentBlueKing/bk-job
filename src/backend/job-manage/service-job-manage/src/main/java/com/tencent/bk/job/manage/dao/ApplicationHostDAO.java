@@ -171,7 +171,8 @@ public interface ApplicationHostDAO {
 
     /**
      * 批量更新主机状态
-     * @param status 主机状态
+     *
+     * @param status     主机状态
      * @param hostIdList 主机id列表
      * @return 成功更新的条数
      */
@@ -233,8 +234,10 @@ public interface ApplicationHostDAO {
      * @return 删除的主机数量
      */
     int deleteBizHostInfoByBizId(long bizId);
+
     /**
      * 根据业务id统计主机状态数量
+     *
      * @param bizIds 业务id
      * @return 状态数量
      */
