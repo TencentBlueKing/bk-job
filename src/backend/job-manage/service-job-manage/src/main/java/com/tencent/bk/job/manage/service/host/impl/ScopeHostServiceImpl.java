@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.manage.model.query.HostQuery;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizHostService;
@@ -164,6 +165,10 @@ public class ScopeHostServiceImpl implements ScopeHostService {
                                                        List<BizTopoNode> appTopoNodeList,
                                                        String searchContent,
                                                        Integer agentAlive,
+                                                       List<String> ipKeyList,
+                                                       List<String> ipv6KeyList,
+                                                       List<String> hostNameKeyList,
+                                                       List<String> osNameKeyList,
                                                        Long start,
                                                        Long pageSize) {
         StopWatch watch = new StopWatch("listHostByBizTopologyNodes");
@@ -174,16 +179,26 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             searchContent
         );
         watch.stop();
-
-        return bizHostService.pageListHostId(
-            basicConditions.getBizIds(),
-            basicConditions.getModuleIds(),
-            basicConditions.getCloudAreaIds(),
-            basicConditions.getSearchContents(),
-            agentAlive,
-            start,
-            pageSize
-        );
+        watch.start("pageListHostId");
+        HostQuery hostQuery = HostQuery.builder()
+            .bizIds(basicConditions.getBizIds())
+            .moduleIds(basicConditions.getModuleIds())
+            .cloudAreaIds(basicConditions.getCloudAreaIds())
+            .searchContents(basicConditions.getSearchContents())
+            .agentAlive(agentAlive)
+            .ipKeyList(ipKeyList)
+            .ipv6KeyList(ipv6KeyList)
+            .hostNameKeyList(hostNameKeyList)
+            .osNameKeyList(osNameKeyList)
+            .start(start)
+            .limit(pageSize)
+            .build();
+        PageData<Long> result = bizHostService.pageListHostId(hostQuery);
+        watch.stop();
+        if (watch.getTotalTimeMillis() > 5000) {
+            log.warn("listHostIdByBizTopologyNodes slow:" + watch.prettyPrint());
+        }
+        return result;
     }
 
     @Override
@@ -202,19 +217,20 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             appTopoNodeList,
             searchContent
         );
-        return bizHostService.pageListHost(
-            basicConditions.getBizIds(),
-            basicConditions.getModuleIds(),
-            basicConditions.getCloudAreaIds(),
-            basicConditions.getSearchContents(),
-            agentAlive,
-            ipKeyList,
-            ipv6KeyList,
-            hostNameKeyList,
-            osNameKeyList,
-            start,
-            pageSize
-        );
+        HostQuery hostQuery = HostQuery.builder()
+            .bizIds(basicConditions.getBizIds())
+            .moduleIds(basicConditions.getModuleIds())
+            .cloudAreaIds(basicConditions.getCloudAreaIds())
+            .searchContents(basicConditions.getSearchContents())
+            .agentAlive(agentAlive)
+            .ipKeyList(ipKeyList)
+            .ipv6KeyList(ipv6KeyList)
+            .hostNameKeyList(hostNameKeyList)
+            .osNameKeyList(osNameKeyList)
+            .start(start)
+            .limit(pageSize)
+            .build();
+        return bizHostService.pageListHost(hostQuery);
     }
 
     private BasicParsedSearchConditions buildSearchConditions(AppResourceScope appResourceScope,
