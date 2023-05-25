@@ -791,6 +791,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isEmpty(notInAppHosts)) {
             return;
         }
+        log.info("Hosts: {} not in app, check white host config. whileHostAllowActions: {} ",
+            notInAppHosts, whileHostAllowActions);
         Map<Long, HostDTO> notInAppHostMap = notInAppHosts.stream()
             .collect(Collectors.toMap(HostDTO::getHostId, host -> host));
 
@@ -861,7 +863,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         String actionScope = (stepType == TaskStepTypeEnum.SCRIPT ?
             ActionScopeEnum.SCRIPT_EXECUTE.name() :
             (stepType == TaskStepTypeEnum.FILE ? ActionScopeEnum.FILE_DISTRIBUTION.name() : ""));
-        return CollectionUtils.isEmpty(allowActions) || !allowActions.contains(actionScope);
+        boolean isHostUnAccessible = CollectionUtils.isEmpty(allowActions) || !allowActions.contains(actionScope);
+        if (isHostUnAccessible) {
+            log.info("Host is unAccessible, host: {}, stepType: {}", host, stepType);
+        }
+        return isHostUnAccessible;
     }
 
 
