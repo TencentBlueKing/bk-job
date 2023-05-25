@@ -55,7 +55,7 @@ public interface TaskInstanceService {
      * 获取作业实例详情-包含步骤信息和全局变量信息
      *
      * @param taskInstanceId 作业实例 ID
-     * @return
+     * @return 作业实例
      */
     TaskInstanceDTO getTaskInstanceDetail(long taskInstanceId);
 
@@ -162,15 +162,16 @@ public interface TaskInstanceService {
      * 更新解析之后的脚本参数
      *
      * @param stepInstanceId      步骤实例ID
+     * @param isSecureParam       是否为敏感参数
      * @param resolvedScriptParam 解析之后的脚本参数
      */
-    void updateResolvedScriptParam(long stepInstanceId, String resolvedScriptParam);
+    void updateResolvedScriptParam(long stepInstanceId, boolean isSecureParam, String resolvedScriptParam);
 
     /**
      * 更新变量解析之后的源文件
      *
      * @param stepInstanceId      步骤实例ID
-     * @param resolvedFileSources
+     * @param resolvedFileSources 解析后的源文件信息
      */
     void updateResolvedSourceFile(long stepInstanceId, List<FileSourceDTO> resolvedFileSources);
 

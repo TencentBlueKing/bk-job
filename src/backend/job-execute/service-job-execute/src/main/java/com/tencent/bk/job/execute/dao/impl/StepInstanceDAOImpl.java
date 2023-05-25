@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.encrypt.scenario.SensitiveParamService;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -98,37 +99,56 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     };
 
     private final DSLContext CTX;
+    private final SensitiveParamService sensitiveParamService;
 
     @Autowired
-    public StepInstanceDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
+    public StepInstanceDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX,
+                               SensitiveParamService sensitiveParamService) {
         this.CTX = CTX;
+        this.sensitiveParamService = sensitiveParamService;
     }
 
     @Override
     public Long addStepInstanceBase(StepInstanceBaseDTO stepInstance) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record record = CTX.insertInto(t, t.STEP_ID, t.TASK_INSTANCE_ID, t.APP_ID, t.NAME, t.TYPE,
-            t.OPERATOR, t.STATUS, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
-            t.TARGET_SERVERS, t.CREATE_TIME, t.IGNORE_ERROR, t.STEP_NUM,
-            t.STEP_ORDER, t.BATCH)
-            .values(stepInstance.getStepId(),
-                stepInstance.getTaskInstanceId(),
-                stepInstance.getAppId(),
-                stepInstance.getName(),
-                JooqDataTypeUtil.toByte(stepInstance.getExecuteType()),
-                stepInstance.getOperator(),
-                stepInstance.getStatus().getValue().byteValue(),
-                stepInstance.getExecuteCount(),
-                stepInstance.getStartTime(),
-                stepInstance.getEndTime(),
-                stepInstance.getTotalTime(),
-                stepInstance.getTargetServers() == null ? null : JsonUtils.toJson(stepInstance.getTargetServers()),
-                stepInstance.getCreateTime(),
-                stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
-                stepInstance.getStepNum(),
-                stepInstance.getStepOrder(),
-                (short) stepInstance.getBatch())
-            .returning(t.ID).fetchOne();
+        Record record = CTX.insertInto(t,
+            t.STEP_ID,
+            t.TASK_INSTANCE_ID,
+            t.APP_ID,
+            t.NAME,
+            t.TYPE,
+            t.OPERATOR,
+            t.STATUS,
+            t.EXECUTE_COUNT,
+            t.START_TIME,
+            t.END_TIME,
+            t.TOTAL_TIME,
+            t.TARGET_SERVERS,
+            t.CREATE_TIME,
+            t.IGNORE_ERROR,
+            t.STEP_NUM,
+            t.STEP_ORDER,
+            t.BATCH
+        ).values(
+            stepInstance.getStepId(),
+            stepInstance.getTaskInstanceId(),
+            stepInstance.getAppId(),
+            stepInstance.getName(),
+            JooqDataTypeUtil.toByte(stepInstance.getExecuteType()),
+            stepInstance.getOperator(),
+            stepInstance.getStatus().getValue().byteValue(),
+            stepInstance.getExecuteCount(),
+            stepInstance.getStartTime(),
+            stepInstance.getEndTime(),
+            stepInstance.getTotalTime(),
+            stepInstance.getTargetServers() == null ? null : JsonUtils.toJson(stepInstance.getTargetServers()),
+            stepInstance.getCreateTime(),
+            stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
+            stepInstance.getStepNum(),
+            stepInstance.getStepOrder(),
+            (short) stepInstance.getBatch()
+        ).returning(t.ID).fetchOne();
+        assert record != null;
         return record.getValue(t.ID);
     }
 
@@ -143,12 +163,14 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         CTX.insertInto(t, t.STEP_INSTANCE_ID, t.SCRIPT_CONTENT, t.SCRIPT_TYPE, t.SCRIPT_PARAM, t.RESOLVED_SCRIPT_PARAM,
             t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT, t.DB_ACCOUNT_ID,
             t.DB_TYPE, t.DB_ACCOUNT, t.DB_PASSWORD, t.DB_PORT, t.SCRIPT_SOURCE, t.SCRIPT_ID, t.SCRIPT_VERSION_ID,
-            t.IS_SECURE_PARAM)
+            t.IS_SECURE_PARAM, t.SECURE_PARAM_ENCRYPT_ALGORITHM)
             .values(stepInstance.getId(),
                 stepInstance.getScriptContent(),
                 JooqDataTypeUtil.toByte(stepInstance.getScriptType()),
-                stepInstance.getScriptParam(),
-                stepInstance.getResolvedScriptParam(),
+                sensitiveParamService.encryptParamIfNeeded(
+                    stepInstance.isSecureParam(), stepInstance.getScriptParam()),
+                sensitiveParamService.encryptParamIfNeeded(
+                    stepInstance.isSecureParam(), stepInstance.getResolvedScriptParam()),
                 stepInstance.getTimeout(),
                 stepInstance.getAccountId(),
                 stepInstance.getAccount(),
@@ -161,7 +183,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 stepInstance.getScriptId(),
                 stepInstance.getScriptVersionId(),
                 stepInstance.isSecureParam() ? JooqDataTypeUtil.toByte(1) :
-                    JooqDataTypeUtil.toByte(0)
+                    JooqDataTypeUtil.toByte(0),
+                sensitiveParamService.getSecureParamEncryptAlgorithm(stepInstance.isSecureParam())
             ).execute();
     }
 
@@ -206,7 +229,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         Record record = CTX.select(t.STEP_INSTANCE_ID, t.SCRIPT_CONTENT, t.SCRIPT_TYPE, t.SCRIPT_PARAM,
             t.RESOLVED_SCRIPT_PARAM, t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT,
             t.DB_ACCOUNT_ID, t.DB_ACCOUNT, t.DB_TYPE, t.DB_PASSWORD, t.DB_PORT, t.SCRIPT_SOURCE, t.SCRIPT_ID,
-            t.SCRIPT_VERSION_ID, t.IS_SECURE_PARAM
+            t.SCRIPT_VERSION_ID, t.IS_SECURE_PARAM, t.SECURE_PARAM_ENCRYPT_ALGORITHM
         ).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
         return extractScriptInfo(record);
@@ -221,8 +244,22 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstance.setScriptContent(record.get(t.SCRIPT_CONTENT));
         stepInstance.setScriptType(JooqDataTypeUtil.toInteger(record.get(t.SCRIPT_TYPE)));
-        stepInstance.setScriptParam(record.get(t.SCRIPT_PARAM));
-        stepInstance.setResolvedScriptParam(record.get(t.RESOLVED_SCRIPT_PARAM));
+        stepInstance.setSecureParam(record.get(t.IS_SECURE_PARAM).intValue() == 1);
+        String secureParamEncryptAlgorithm = record.get(t.SECURE_PARAM_ENCRYPT_ALGORITHM);
+        String encryptedScriptParam = record.get(t.SCRIPT_PARAM);
+        String scriptParam = sensitiveParamService.decryptParamIfNeeded(
+            stepInstance.isSecureParam(),
+            encryptedScriptParam,
+            secureParamEncryptAlgorithm
+        );
+        stepInstance.setScriptParam(scriptParam);
+        String encryptedResolvedScriptParam = record.get(t.RESOLVED_SCRIPT_PARAM);
+        String resolvedScriptParam = sensitiveParamService.decryptParamIfNeeded(
+            stepInstance.isSecureParam(),
+            encryptedResolvedScriptParam,
+            secureParamEncryptAlgorithm
+        );
+        stepInstance.setResolvedScriptParam(resolvedScriptParam);
         stepInstance.setTimeout(record.get(t.EXECUTION_TIMEOUT));
         stepInstance.setAccountId(record.get(t.SYSTEM_ACCOUNT_ID));
         stepInstance.setAccount(record.get(t.SYSTEM_ACCOUNT));
@@ -231,7 +268,6 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setDbAccount(record.get(t.DB_ACCOUNT));
         stepInstance.setDbPass(record.get(t.DB_PASSWORD));
         stepInstance.setDbPort(record.get(t.DB_PORT));
-        stepInstance.setSecureParam(record.get(t.IS_SECURE_PARAM).intValue() == 1);
         Byte scriptSource = record.get(t.SCRIPT_SOURCE);
         if (scriptSource == null) {
             stepInstance.setScriptSource(1);
@@ -505,10 +541,20 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateResolvedScriptParam(long stepInstanceId, String resolvedScriptParam) {
+    public void updateResolvedScriptParam(long stepInstanceId, boolean isSecureParam, String resolvedScriptParam) {
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-        CTX.update(t).set(t.RESOLVED_SCRIPT_PARAM, resolvedScriptParam)
+        Result<Record1<String>> records = CTX.select(t.SECURE_PARAM_ENCRYPT_ALGORITHM).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .fetch();
+        if (records.isEmpty()) {
+            log.warn("Cannot find encryptAlgorithm by stepInstanceId={}", stepInstanceId);
+            return;
+        }
+        String encryptAlgorithm = records.get(0).get(t.SECURE_PARAM_ENCRYPT_ALGORITHM);
+        CTX.update(t)
+            .set(t.RESOLVED_SCRIPT_PARAM, sensitiveParamService.encryptParamIfNeeded(
+                isSecureParam, resolvedScriptParam, encryptAlgorithm
+            )).where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
@@ -587,18 +633,24 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     public Integer countStepInstanceByConditions(Collection<Condition> conditions) {
-        return CTX.selectCount().from(T_STEP_INSTANCE)
-            .where(conditions).fetchOne().value1();
+        Record1<Integer> record = CTX.selectCount().from(T_STEP_INSTANCE)
+            .where(conditions).fetchOne();
+        assert record != null;
+        return record.value1();
     }
 
     public Integer countStepInstanceScriptByConditions(Collection<Condition> conditions) {
-        return CTX.selectCount().from(TABLE_STEP_INSTANCE_SCRIPT)
-            .where(conditions).fetchOne().value1();
+        Record1<Integer> record = CTX.selectCount().from(TABLE_STEP_INSTANCE_SCRIPT)
+            .where(conditions).fetchOne();
+        assert record != null;
+        return record.value1();
     }
 
     public Integer countStepInstanceFileByConditions(Collection<Condition> conditions) {
-        return CTX.selectCount().from(TABLE_STEP_INSTANCE_FILE)
-            .where(conditions).fetchOne().value1();
+        Record1<Integer> record = CTX.selectCount().from(TABLE_STEP_INSTANCE_FILE)
+            .where(conditions).fetchOne();
+        assert record != null;
+        return record.value1();
     }
 
     @Override
@@ -686,9 +738,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 } else {
                     conditions.add(TABLE_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE.isNotNull());
                 }
-            } else {
-                // fileDupliateHandle与fileDupliateHandleNull同时为null表示FILE_DUPLICATE_HANDLE字段不作任何筛选
             }
+            // fileDupliateHandle与fileDupliateHandleNull同时为null表示FILE_DUPLICATE_HANDLE字段不作任何筛选
         }
         if (notExistPathHandler != null) {
             conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.eq(UByte.valueOf(notExistPathHandler.getValue())));
@@ -699,9 +750,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 } else {
                     conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.isNotNull());
                 }
-            } else {
-                // notExistPathHandler与notExistPathHandlerNull同时为null表示NOT_EXIST_PATH_HANDLER字段不作任何筛选
             }
+            // notExistPathHandler与notExistPathHandlerNull同时为null表示NOT_EXIST_PATH_HANDLER字段不作任何筛选
         }
         return conditions;
     }
@@ -722,9 +772,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 } else {
                     conditions.add(TABLE_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE.isNotNull());
                 }
-            } else {
-                // fileDupliateHandle与fileDupliateHandleNull同时为null表示FILE_DUPLICATE_HANDLE字段不作任何筛选
             }
+            // fileDupliateHandle与fileDupliateHandleNull同时为null表示FILE_DUPLICATE_HANDLE字段不作任何筛选
         }
         if (notExistPathHandler != null) {
             conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.eq(UByte.valueOf(notExistPathHandler.getValue())));
@@ -735,9 +784,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
                 } else {
                     conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.isNotNull());
                 }
-            } else {
-                // notExistPathHandler与notExistPathHandlerNull同时为null表示NOT_EXIST_PATH_HANDLER字段不作任何筛选
             }
+            // notExistPathHandler与notExistPathHandlerNull同时为null表示NOT_EXIST_PATH_HANDLER字段不作任何筛选
         }
         if (runStatus != null) {
             conditions.add(T_STEP_INSTANCE.STATUS.eq(runStatus.getValue().byteValue()));
@@ -767,9 +815,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         try {
             Result<Record1<String>> records = query.fetch();
             List<List<FileSourceDTO>> resultList = new ArrayList<>();
-            records.forEach(record -> {
-                resultList.add(convertStringToFileSourceDTO((String) record.get(0)));
-            });
+            records.forEach(record -> resultList.add(convertStringToFileSourceDTO((String) record.get(0))));
             return resultList;
         } catch (Exception e) {
             String msg = MessageFormatter.format(

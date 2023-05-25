@@ -22,13 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-USE `job_manage`;
-TRUNCATE TABLE `task_template_step_script`;
-INSERT INTO `task_template_step_script` (id, template_id, step_id, script_type, script_id, script_version_id,
-                                         content, language, script_param, script_timeout, execute_account,
-                                         destination_host_list, is_secure_param, status, ignore_error,
-                                         secure_param_encrypt_algorithm)
-VALUES (1, 100000, 1000, 1, '1000', 1000, null, 1, 'a=a', 600, 1, null, 0, 1, 0, 'None'),
-       (2, 100000, 2000, 2, '2000', 2000, 'this is a sample content', 1, null, 600, 2, null, 1, 0, 1, 'None'),
-       (3, 100000, 3000, 1, '3000', 3000, null, 1, 'c=c', 600, 3, null, 1, 1, 0, 'None'),
-       (4, 200000, 4000, 1, '1000', 1000, null, 1, 'a=a', 600, 1, null, 0, 0, 0, 'None');
+package com.tencent.bk.job.common.encrypt;
+
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 加密配置
+ */
+@ConfigurationProperties(prefix = "job.encrypt")
+@ToString
+@Getter
+@Setter
+@Slf4j
+public class EncryptConfig {
+
+    private String password;
+
+    private String defaultSymmetricAlgorithm = CryptorNames.NONE;
+
+    private String defaultAsymmetricAlgorithm = CryptorNames.RSA;
+
+    /**
+     * 各个场景下使用的加密算法，不配置则使用默认算法
+     */
+    private Map<String, String> scenarioAlgorithms = new HashMap<>();
+
+    @PostConstruct
+    public void print() {
+        log.info("EncryptConfig init: {}", JsonUtils.toJson(this));
+    }
+}

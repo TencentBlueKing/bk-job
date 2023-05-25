@@ -114,15 +114,16 @@ public interface StepInstanceDAO {
      * 更新解析之后的脚本参数
      *
      * @param stepInstanceId      步骤实例ID
+     * @param isSecureParam       是否为敏感参数
      * @param resolvedScriptParam 解析之后的脚本参数
      */
-    void updateResolvedScriptParam(long stepInstanceId, String resolvedScriptParam);
+    void updateResolvedScriptParam(long stepInstanceId, boolean isSecureParam, String resolvedScriptParam);
 
     /**
      * 更新变量解析之后的源文件
      *
      * @param stepInstanceId      步骤实例ID
-     * @param resolvedFileSources
+     * @param resolvedFileSources 解析后的源文件信息
      */
     void updateResolvedSourceFile(long stepInstanceId, List<FileSourceDTO> resolvedFileSources);
 
@@ -175,16 +176,16 @@ public interface StepInstanceDAO {
     /**
      * 根据taskInstanceId获取一个stepInstanceId，用于快速脚本/文件任务
      *
-     * @param taskInstanceId
-     * @return
+     * @param taskInstanceId 作业实例ID
+     * @return 步骤实例ID
      */
     Long getStepInstanceId(long taskInstanceId);
 
     /**
      * 根据stepInstanceId获取脚本类型
      *
-     * @param stepInstanceId
-     * @return
+     * @param stepInstanceId 步骤实例ID
+     * @return 脚本类型
      */
     Byte getScriptTypeByStepInstanceId(long stepInstanceId);
 

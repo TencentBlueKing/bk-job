@@ -24,12 +24,11 @@
 
 package com.tencent.bk.job.common.encrypt;
 
-import com.google.common.base.Charsets;
-import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.sdk.gm.cryptor.Cryptor;
-import com.tencent.bk.sdk.gm.cryptor.CryptorFactory;
+import com.tencent.bk.sdk.gm.cryptor.SymmetricCryptor;
+import com.tencent.bk.sdk.gm.cryptor.SymmetricCryptorFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -43,64 +42,78 @@ import java.util.Map;
 @Service
 public class SymmetricCryptoService {
 
-    private final Map<String, Cryptor> cryptorMap = new HashMap<>();
+    private final CryptoConfigService cryptoConfigService;
+    private final Map<String, SymmetricCryptor> cryptorMap = new HashMap<>();
 
-    @Value("${job.encrypt.password:}")
-    private String encryptPassword;
-
-    @Value("${job.encrypt.default-symmetric-algorithm:None}")
-    private String defaultSymmetricAlgorithm;
+    @Autowired
+    public SymmetricCryptoService(CryptoConfigService cryptoConfigService) {
+        this.cryptoConfigService = cryptoConfigService;
+    }
 
     /**
-     * 对明文信息加密，返回Base64编码的加密后的密文信息，使用默认加密算法
+     * 根据场景获取加密算法
      *
-     * @param message 要加密的明文信息
-     * @return Base64编码的加密后的密文信息
+     * @param cryptoScenarioEnum 加密场景
+     * @return 使用的加密算法标识
      */
-    public String encryptToBase64Str(String message) {
-        return encryptToBase64Str(message, defaultSymmetricAlgorithm);
+    public String getAlgorithmByScenario(CryptoScenarioEnum cryptoScenarioEnum) {
+        return cryptoConfigService.getSymmetricAlgorithmByScenario(cryptoScenarioEnum);
     }
 
     /**
      * 对明文信息加密，返回Base64编码的加密后的密文信息
      *
-     * @param message   要加密的明文信息
-     * @param algorithm 加密算法
+     * @param message            要加密的明文信息，不可为空
+     * @param cryptoScenarioEnum 加密场景
      * @return Base64编码的加密后的密文信息
      */
-    public String encryptToBase64Str(String message, String algorithm) {
-        Cryptor cryptor = cryptorMap.computeIfAbsent(algorithm, CryptorFactory::getCryptor);
-        byte[] encryptedMessage = cryptor.encrypt(
-            encryptPassword.getBytes(Charsets.UTF_8),
-            message.getBytes(Charsets.UTF_8)
-        );
-        return Base64Util.encodeContentToStr(encryptedMessage);
+    public String encryptToBase64Str(String message, CryptoScenarioEnum cryptoScenarioEnum) {
+        return encryptToBase64Str(message, cryptoConfigService.getSymmetricAlgorithmByScenario(cryptoScenarioEnum));
     }
 
     /**
-     * 对Base64编码的加密后的密文信息解密，返回解密后的明文，使用默认加密算法
+     * 对明文信息加密，返回Base64编码的加密后的密文信息，明文为空则原样返回
      *
-     * @param base64EncryptedMessage Base64编码的加密后的密文信息
-     * @return 解密后的明文信息
+     * @param message   要加密的明文信息
+     * @param algorithm 加密算法，不可为空
+     * @return Base64编码的加密后的密文信息
      */
-    public String decrypt(String base64EncryptedMessage) {
-        return decrypt(base64EncryptedMessage, defaultSymmetricAlgorithm);
+    public String encryptToBase64Str(String message, String algorithm) {
+        assert StringUtils.isNotEmpty(algorithm);
+        if (StringUtils.isEmpty(message)) {
+            return message;
+        }
+        SymmetricCryptor cryptor = cryptorMap.computeIfAbsent(algorithm, SymmetricCryptorFactory::getCryptor);
+        return cryptor.encrypt(cryptoConfigService.getSymmetricPassword(), message);
     }
 
     /**
      * 对Base64编码的加密后的密文信息解密，返回解密后的明文
      *
+     * @param base64EncryptedMessage Base64编码的加密后的密文信息，不可为空
+     * @param cryptoScenarioEnum     加密场景
+     * @return 解密后的明文信息
+     */
+    public String decrypt(String base64EncryptedMessage, CryptoScenarioEnum cryptoScenarioEnum) {
+        return decrypt(base64EncryptedMessage, cryptoConfigService.getSymmetricAlgorithmByScenario(cryptoScenarioEnum));
+    }
+
+    /**
+     * 对Base64编码的加密后的密文信息解密，返回解密后的明文，密文为空则原样返回
+     *
      * @param base64EncryptedMessage Base64编码的加密后的密文信息
-     * @param algorithm              加密算法
+     * @param algorithm              加密算法，不可为空
      * @return 解密后的明文信息
      */
     public String decrypt(String base64EncryptedMessage, String algorithm) {
-        Cryptor cryptor = cryptorMap.computeIfAbsent(algorithm, CryptorFactory::getCryptor);
-        byte[] rawEncryptedMessage = Base64Util.decodeContentToByte(base64EncryptedMessage);
-        byte[] decryptedMessage = cryptor.decrypt(
-            encryptPassword.getBytes(Charsets.UTF_8),
-            rawEncryptedMessage
+        assert StringUtils.isNotEmpty(algorithm);
+        if (StringUtils.isEmpty(base64EncryptedMessage)) {
+            return base64EncryptedMessage;
+        }
+        SymmetricCryptor cryptor = cryptorMap.computeIfAbsent(algorithm, SymmetricCryptorFactory::getCryptor);
+        return cryptor.decrypt(
+            cryptoConfigService.getSymmetricPassword(),
+            base64EncryptedMessage
         );
-        return new String(decryptedMessage, Charsets.UTF_8);
     }
 }

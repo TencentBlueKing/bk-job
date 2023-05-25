@@ -246,7 +246,11 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void updateResolvedScriptParamIfNecessary(String originParam, String resolvedScriptParam) {
         // 只有存在变量解析之后才需要update
         if (!resolvedScriptParam.equals(originParam)) {
-            taskInstanceService.updateResolvedScriptParam(stepInstance.getId(), resolvedScriptParam);
+            taskInstanceService.updateResolvedScriptParam(
+                stepInstance.getId(),
+                stepInstance.isSecureParam(),
+                resolvedScriptParam
+            );
         }
     }
 
@@ -391,6 +395,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         return value.replaceAll("'", "'\\\\''");
     }
 
+    @SuppressWarnings({"StringBufferReplaceableByString", "StringBufferMayBeStringBuilder"})
     private String buildWrapperScriptWithConstParamOnly(String declareFileName, String userScriptFileName) {
         StringBuffer sb = new StringBuffer(1024);
         sb.append("#!/bin/bash\n");
@@ -605,6 +610,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         return sb.toString();
     }
 
+    @SuppressWarnings("StringBufferReplaceableByString")
     private String buildGetJobParamsScript(String varOutputFileName) {
         StringBuilder sb = new StringBuilder(1024);
         sb.append("#!/bin/bash\n");

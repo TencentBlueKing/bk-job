@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.encrypt.EncryptConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
@@ -34,7 +35,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
-@EnableConfigurationProperties({FeatureToggleConfig.class})
+@EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling

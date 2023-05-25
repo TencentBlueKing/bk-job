@@ -24,14 +24,15 @@
 
 package com.tencent.bk.job.common.encrypt;
 
-import com.tencent.bk.sdk.gm.annotation.CryptoPriority;
-import com.tencent.bk.sdk.gm.cryptor.Cryptor;
+
+import com.tencent.bk.sdk.gm.annotation.Cryptor;
+import com.tencent.bk.sdk.gm.cryptor.SymmetricCryptor;
 
 /**
  * 不做任何加密操作，直接返回明文的加密实现
  */
-@CryptoPriority(name = "None")
-public class NoneCryptor implements Cryptor {
+@Cryptor(name = CryptorNames.NONE)
+public class NoneCryptor implements SymmetricCryptor {
     @Override
     public byte[] encrypt(byte[] key, byte[] message) {
         return message;
@@ -40,5 +41,15 @@ public class NoneCryptor implements Cryptor {
     @Override
     public byte[] decrypt(byte[] key, byte[] encryptedMessage) {
         return encryptedMessage;
+    }
+
+    @Override
+    public String encrypt(String key, String message) {
+        return message;
+    }
+
+    @Override
+    public String decrypt(String key, String base64EncodedEncryptedMessage) {
+        return base64EncodedEncryptedMessage;
     }
 }

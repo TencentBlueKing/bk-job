@@ -25,14 +25,15 @@
 package com.tencent.bk.job.common.encrypt;
 
 import com.tencent.bk.job.common.util.crypto.AESUtils;
-import com.tencent.bk.sdk.gm.annotation.CryptoPriority;
-import com.tencent.bk.sdk.gm.cryptor.Cryptor;
+import com.tencent.bk.sdk.gm.annotation.Cryptor;
+import com.tencent.bk.sdk.gm.annotation.CryptorTypeEnum;
+import com.tencent.bk.sdk.gm.cryptor.AbstractSymmetricCryptor;
 
 /**
  * 使用AES/CBC/PKCS5Padding的加密实现
  */
-@CryptoPriority(name = "AES")
-public class AESCryptor implements Cryptor {
+@Cryptor(name = CryptorNames.AES, type = CryptorTypeEnum.SYMMETRIC)
+public class AESCryptor extends AbstractSymmetricCryptor {
     @Override
     public byte[] encrypt(byte[] key, byte[] message) {
         try {

@@ -238,8 +238,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public void updateResolvedScriptParam(long stepInstanceId, String resolvedScriptParam) {
-        stepInstanceDAO.updateResolvedScriptParam(stepInstanceId, resolvedScriptParam);
+    public void updateResolvedScriptParam(long stepInstanceId, boolean isSecureParam, String resolvedScriptParam) {
+        stepInstanceDAO.updateResolvedScriptParam(stepInstanceId, isSecureParam, resolvedScriptParam);
     }
 
     @Override
