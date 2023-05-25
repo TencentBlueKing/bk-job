@@ -93,6 +93,7 @@ public class WhiteHostCache {
                     whiteHostConfig.put(whiteIpInfo.getHostId(), whiteIpInfo);
                 }
             });
+            log.info("Refresh white host cache success. whiteHostConfig: {}", JsonUtils.toJson(whiteHostConfig));
         } finally {
             wLock.unlock();
         }

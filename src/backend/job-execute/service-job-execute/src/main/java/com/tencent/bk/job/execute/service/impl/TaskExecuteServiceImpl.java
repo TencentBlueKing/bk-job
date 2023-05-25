@@ -803,12 +803,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             TaskStepTypeEnum stepType = stepInstance.getStepType();
             // 检查目标主机
             stepInstance.getTargetServers().getIpList().forEach(host -> {
-                if (isHostAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
+                if (isHostUnAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
                     invalidHosts.add(host);
                 }
             });
             // 如果是文件分发任务，检查文件源
-            checkFileSourceUnAccessibleHosts(invalidHosts, stepInstance, stepType, notInAppHostMap,
+            checkFileSourceHostAccessible(invalidHosts, stepInstance, stepType, notInAppHostMap,
                 whileHostAllowActions);
         }
 
@@ -819,11 +819,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void checkFileSourceUnAccessibleHosts(Set<HostDTO> invalidHosts,
-                                                  StepInstanceDTO stepInstance,
-                                                  TaskStepTypeEnum stepType,
-                                                  Map<Long, HostDTO> notInAppHostMap,
-                                                  Map<Long, List<String>> whileHostAllowActions) {
+    private void checkFileSourceHostAccessible(Set<HostDTO> invalidHosts,
+                                               StepInstanceDTO stepInstance,
+                                               TaskStepTypeEnum stepType,
+                                               Map<Long, HostDTO> notInAppHostMap,
+                                               Map<Long, List<String>> whileHostAllowActions) {
         if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
             if (fileSourceList != null) {
@@ -833,7 +833,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                         ServersDTO servers = fileSource.getServers();
                         if (servers != null && servers.getIpList() != null) {
                             servers.getIpList().forEach(host -> {
-                                if (isHostAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
+                                if (isHostUnAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
                                     invalidHosts.add(host);
                                 }
                             });
@@ -844,23 +844,24 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private boolean isHostAccessible(TaskStepTypeEnum stepType,
-                                     HostDTO host,
-                                     Map<Long, HostDTO> notInAppHostMap,
-                                     Map<Long, List<String>> whileHostAllowActions) {
+    private boolean isHostUnAccessible(TaskStepTypeEnum stepType,
+                                       HostDTO host,
+                                       Map<Long, HostDTO> notInAppHostMap,
+                                       Map<Long, List<String>> whileHostAllowActions) {
         long hostId = host.getHostId();
         if (!notInAppHostMap.containsKey(host.getHostId())) {
-            return true;
-        }
-        // 如果主机不在当前业务下，那么判断主机白名单
-        if (whileHostAllowActions == null || whileHostAllowActions.isEmpty()) {
+            // 主机在当前业务下，可以使用
             return false;
+        }
+        // 如果主机不在当前业务下，需要判断主机白名单
+        if (whileHostAllowActions == null || whileHostAllowActions.isEmpty()) {
+            return true;
         }
         List<String> allowActions = whileHostAllowActions.get(hostId);
         String actionScope = (stepType == TaskStepTypeEnum.SCRIPT ?
             ActionScopeEnum.SCRIPT_EXECUTE.name() :
             (stepType == TaskStepTypeEnum.FILE ? ActionScopeEnum.FILE_DISTRIBUTION.name() : ""));
-        return !CollectionUtils.isEmpty(allowActions) && allowActions.contains(actionScope);
+        return CollectionUtils.isEmpty(allowActions) || !allowActions.contains(actionScope);
     }
 
 
