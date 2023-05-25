@@ -5,6 +5,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -54,11 +55,18 @@ public class ListUtil {
      * @return 合并后的List
      */
     public static <E> List<E> union(Collection<? extends E> collection1, Collection<? extends E> collection2) {
-        List<E> result = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(collection1)) {
+        boolean isCollection1Empty = CollectionUtils.isEmpty(collection1);
+        boolean isCollection2Empty = CollectionUtils.isEmpty(collection2);
+        if (isCollection1Empty && isCollection2Empty) {
+            return Collections.emptyList();
+        }
+
+        List<E> result = new ArrayList<>((isCollection1Empty ? 0 : collection1.size())
+            + (isCollection2Empty ? 0 : collection2.size()));
+        if (!isCollection1Empty) {
             result.addAll(collection1);
         }
-        if (CollectionUtils.isNotEmpty(collection2)) {
+        if (!isCollection2Empty) {
             result.addAll(collection2);
         }
         return result;
