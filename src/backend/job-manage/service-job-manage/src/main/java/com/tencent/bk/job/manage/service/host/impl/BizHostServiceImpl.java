@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import com.tencent.bk.job.manage.model.query.HostQuery;
 import com.tencent.bk.job.manage.service.host.BizHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -127,93 +128,113 @@ public class BizHostServiceImpl implements BizHostService {
     }
 
     @Override
-    public PageData<Long> pageListHostId(Collection<Long> bizIds,
-                                         Collection<Long> moduleIds,
-                                         Collection<Long> cloudAreaIds,
-                                         List<String> searchContents,
-                                         Integer agentAlive,
-                                         Long start,
-                                         Long limit) {
+    public PageData<Long> pageListHostId(HostQuery hostQuery) {
+        List<Long> hostIdList;
+        Long count;
         StopWatch watch = new StopWatch("pageListHostId");
-        watch.start("listHostInfoBySearchContents");
-        List<Long> hostIdList = applicationHostDAO.getHostIdListBySearchContents(
-            bizIds,
-            moduleIds,
-            cloudAreaIds,
-            searchContents,
-            agentAlive,
-            start,
-            limit
-        );
-        watch.stop();
-        watch.start("countHostInfoBySearchContents");
-        Long count = applicationHostDAO.countHostInfoBySearchContents(
-            bizIds,
-            moduleIds,
-            cloudAreaIds,
-            searchContents,
-            agentAlive
-        );
-        watch.stop();
-        return new PageData<>(start.intValue(), limit.intValue(), count, hostIdList);
+        List<String> searchContents = hostQuery.getSearchContents();
+        if (searchContents != null) {
+            watch.start("getHostIdListBySearchContents");
+            hostIdList = applicationHostDAO.getHostIdListBySearchContents(
+                hostQuery.getBizIds(),
+                hostQuery.getModuleIds(),
+                hostQuery.getCloudAreaIds(),
+                searchContents,
+                hostQuery.getAgentAlive(),
+                hostQuery.getStart(),
+                hostQuery.getLimit()
+            );
+            watch.stop();
+            watch.start("countHostInfoBySearchContents");
+            count = applicationHostDAO.countHostInfoBySearchContents(
+                hostQuery.getBizIds(),
+                hostQuery.getModuleIds(),
+                hostQuery.getCloudAreaIds(),
+                searchContents,
+                hostQuery.getAgentAlive()
+            );
+            watch.stop();
+        } else {
+            watch.start("getHostIdListByMultiKeys");
+            hostIdList = applicationHostDAO.getHostIdListByMultiKeys(
+                hostQuery.getBizIds(),
+                hostQuery.getModuleIds(),
+                hostQuery.getCloudAreaIds(),
+                hostQuery.getIpKeyList(),
+                hostQuery.getIpv6KeyList(),
+                hostQuery.getHostNameKeyList(),
+                hostQuery.getOsNameKeyList(),
+                hostQuery.getAgentAlive(),
+                hostQuery.getStart(),
+                hostQuery.getLimit()
+            );
+            watch.stop();
+            watch.start("countHostInfoByMultiKeys");
+            count = applicationHostDAO.countHostInfoByMultiKeys(
+                hostQuery.getBizIds(),
+                hostQuery.getModuleIds(),
+                hostQuery.getCloudAreaIds(),
+                hostQuery.getIpKeyList(),
+                hostQuery.getIpv6KeyList(),
+                hostQuery.getHostNameKeyList(),
+                hostQuery.getOsNameKeyList(),
+                hostQuery.getAgentAlive()
+            );
+            watch.stop();
+        }
+        if (watch.getTotalTimeMillis() > 3000) {
+            log.warn("pageListHostId slow:" + watch.prettyPrint());
+        }
+        return new PageData<>(hostQuery.getStart().intValue(), hostQuery.getLimit().intValue(), count, hostIdList);
     }
 
     @Override
-    public PageData<ApplicationHostDTO> pageListHost(Collection<Long> bizIds,
-                                                     Collection<Long> moduleIds,
-                                                     Collection<Long> cloudAreaIds,
-                                                     List<String> searchContents,
-                                                     Integer agentAlive,
-                                                     List<String> ipKeyList,
-                                                     List<String> ipv6KeyList,
-                                                     List<String> hostNameKeyList,
-                                                     List<String> osNameKeyList,
-                                                     Long start,
-                                                     Long limit) {
+    public PageData<ApplicationHostDTO> pageListHost(HostQuery hostQuery) {
         List<ApplicationHostDTO> hostList;
         Long count;
+        List<String> searchContents = hostQuery.getSearchContents();
         if (searchContents != null) {
             hostList = applicationHostDAO.listHostInfoBySearchContents(
-                bizIds,
-                moduleIds,
-                cloudAreaIds,
+                hostQuery.getBizIds(),
+                hostQuery.getModuleIds(),
+                hostQuery.getCloudAreaIds(),
                 searchContents,
-                agentAlive,
-                start,
-                limit
+                hostQuery.getAgentAlive(),
+                hostQuery.getStart(),
+                hostQuery.getLimit()
             );
             count = applicationHostDAO.countHostInfoBySearchContents(
-                bizIds,
-                moduleIds,
-                cloudAreaIds,
+                hostQuery.getBizIds(),
+                hostQuery.getModuleIds(),
+                hostQuery.getCloudAreaIds(),
                 searchContents,
-                agentAlive
+                hostQuery.getAgentAlive()
             );
         } else {
             hostList = applicationHostDAO.listHostInfoByMultiKeys(
-                bizIds,
-                moduleIds,
-                cloudAreaIds,
-                ipKeyList,
-                ipv6KeyList,
-                hostNameKeyList,
-                osNameKeyList,
-                agentAlive,
-                start,
-                limit
+                hostQuery.getBizIds(),
+                hostQuery.getModuleIds(),
+                hostQuery.getCloudAreaIds(),
+                hostQuery.getIpKeyList(),
+                hostQuery.getIpv6KeyList(),
+                hostQuery.getHostNameKeyList(),
+                hostQuery.getOsNameKeyList(),
+                hostQuery.getAgentAlive(),
+                hostQuery.getStart(),
+                hostQuery.getLimit()
             );
             count = applicationHostDAO.countHostInfoByMultiKeys(
-                bizIds,
-                moduleIds,
-                cloudAreaIds,
-                ipKeyList,
-                ipv6KeyList,
-                hostNameKeyList,
-                osNameKeyList,
-                agentAlive
+                hostQuery.getBizIds(),
+                hostQuery.getModuleIds(),
+                hostQuery.getCloudAreaIds(),
+                hostQuery.getIpKeyList(),
+                hostQuery.getIpv6KeyList(),
+                hostQuery.getHostNameKeyList(),
+                hostQuery.getOsNameKeyList(),
+                hostQuery.getAgentAlive()
             );
         }
-        return new PageData<>(start.intValue(), limit.intValue(), count, hostList);
+        return new PageData<>(hostQuery.getStart().intValue(), hostQuery.getLimit().intValue(), count, hostList);
     }
 
     @Override

@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.host;
 
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.model.query.HostQuery;
 
 import java.util.Collection;
 import java.util.List;
@@ -128,50 +129,18 @@ public interface BizHostService {
     /**
      * 根据条件查询主机ID
      *
-     * @param bizIds         业务ID集合
-     * @param moduleIds      模块ID集合
-     * @param cloudAreaIds   云区域ID集合
-     * @param searchContents 搜索关键字列表
-     * @param agentAlive     agent是否正常
-     * @param start          数据起始位置
-     * @param limit          查询数据条数
+     * @param hostQuery 主机查询条件
      * @return 主机列表
      */
-    PageData<Long> pageListHostId(Collection<Long> bizIds,
-                                  Collection<Long> moduleIds,
-                                  Collection<Long> cloudAreaIds,
-                                  List<String> searchContents,
-                                  Integer agentAlive,
-                                  Long start,
-                                  Long limit);
+    PageData<Long> pageListHostId(HostQuery hostQuery);
 
     /**
      * 根据条件查询主机
      *
-     * @param bizIds          业务ID集合
-     * @param moduleIds       模块ID集合
-     * @param cloudAreaIds    云区域ID集合
-     * @param searchContents  搜索关键字列表
-     * @param agentAlive      agent是否正常
-     * @param ipKeyList       IP关键字列表
-     * @param ipv6KeyList     IPv6关键字列表
-     * @param hostNameKeyList 主机名关键字列表
-     * @param osNameKeyList   系统名关键字列表
-     * @param start           数据起始位置
-     * @param limit           查询数据条数
+     * @param hostQuery 主机查询条件
      * @return 主机列表
      */
-    PageData<ApplicationHostDTO> pageListHost(Collection<Long> bizIds,
-                                              Collection<Long> moduleIds,
-                                              Collection<Long> cloudAreaIds,
-                                              List<String> searchContents,
-                                              Integer agentAlive,
-                                              List<String> ipKeyList,
-                                              List<String> ipv6KeyList,
-                                              List<String> hostNameKeyList,
-                                              List<String> osNameKeyList,
-                                              Long start,
-                                              Long limit);
+    PageData<ApplicationHostDTO> pageListHost(HostQuery hostQuery);
 
     /**
      * 根据 moduleId 集合查询主机信息
