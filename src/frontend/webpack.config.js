@@ -35,16 +35,13 @@ const LodashWebpackPlugin = require('lodash-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const StylelintPlugin = require('stylelint-webpack-plugin');
-// const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
-// const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
 const figlet = require('figlet');
 const marked = require('marked');
+
 const renderer = new marked.Renderer();
 
 const resolve = dir => path.join(__dirname, dir);
 const genAssetPath = dir => path.posix.join('static', `${dir}/[name].[hash:7].[ext]`);
-
-// const smp = new SpeedMeasurePlugin();
 
 module.exports = function (env) {
   const isDevelopment = env.development;
@@ -205,7 +202,7 @@ module.exports = function (env) {
               loader: 'markdown-loader',
               options: {
                 renderer,
-                highlight (code, lang) {
+                highlight(code, lang) {
                   const hljs = require('highlight.js');
                   const language = hljs.getLanguage(lang) ? lang : 'plaintext';
                   return hljs.highlight(code, { language }).value;
@@ -289,7 +286,7 @@ module.exports = function (env) {
       new webpack.DefinePlugin(isDevelopment
         ? {
           'process.env': {
-            JOB_WELCOME: JSON.stringify(`%c${figlet.textSync('Welcome To Job', {
+            JOB_WELCOME: JSON.stringify(`%c${figlet.textSync('Welcome To BK-Job', {
               horizontalLayout: 'full',
             })}\n%c${figlet.textSync('latest', {
               horizontalLayout: 'full',
@@ -299,7 +296,7 @@ module.exports = function (env) {
         }
         : {
           'process.env': {
-            JOB_WELCOME: JSON.stringify(`%c${figlet.textSync('Welcome To Job', {
+            JOB_WELCOME: JSON.stringify(`%c${figlet.textSync('Welcome To BK-Job', {
               horizontalLayout: 'full',
             })}\n%c${figlet.textSync(process.env.JOB_VERSION, {
               horizontalLayout: 'full',
