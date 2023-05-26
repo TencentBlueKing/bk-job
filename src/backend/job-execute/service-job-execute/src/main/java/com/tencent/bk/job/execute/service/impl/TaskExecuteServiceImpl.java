@@ -826,22 +826,25 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                                TaskStepTypeEnum stepType,
                                                Map<Long, HostDTO> notInAppHostMap,
                                                Map<Long, List<String>> whileHostAllowActions) {
-        if (stepInstance.isFileStep()) {
-            List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-            if (fileSourceList != null) {
-                for (FileSourceDTO fileSource : fileSourceList) {
-                    // 远程文件分发需要校验文件源主机;其他类型不需要
-                    if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
-                        ServersDTO servers = fileSource.getServers();
-                        if (servers != null && servers.getIpList() != null) {
-                            servers.getIpList().forEach(host -> {
-                                if (isHostUnAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
-                                    invalidHosts.add(host);
-                                }
-                            });
-                        }
-                    }
+        if (!stepInstance.isFileStep()) {
+            return;
+        }
+        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+        if (CollectionUtils.isEmpty(fileSourceList)) {
+            return;
+        }
+        for (FileSourceDTO fileSource : fileSourceList) {
+            // 远程文件分发需要校验文件源主机;其他类型不需要
+            if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
+                ServersDTO servers = fileSource.getServers();
+                if (servers == null || CollectionUtils.isEmpty(servers.getIpList())) {
+                    continue;
                 }
+                servers.getIpList().forEach(host -> {
+                    if (isHostUnAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
+                        invalidHosts.add(host);
+                    }
+                });
             }
         }
     }

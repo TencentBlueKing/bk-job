@@ -70,7 +70,7 @@ public class WhiteHostCache {
         long start = System.currentTimeMillis();
         InternalResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResourceClient.listWhiteIPInfos();
         if (resp == null || !resp.isSuccess()) {
-            log.warn("Get all white host config return fail resp!");
+            log.warn("Get all white host config return fail resp! resp: {}", JsonUtils.toJson(resp));
             return;
         }
         log.info("Sync white host config, resp: {}", JsonUtils.toJson(resp));
