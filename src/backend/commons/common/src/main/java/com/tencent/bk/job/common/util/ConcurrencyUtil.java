@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.exception.SubThreadException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.instrument.async.TraceableExecutorService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,8 +63,13 @@ public class ConcurrencyUtil {
         int threadNum,
         Handler<Input, Output> handler
     ) throws SubThreadException {
-        ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadNum);
-        return getResultWithThreads(inputCollection, threadPoolExecutor, handler);
+        ExecutorService threadPoolExecutor = new TraceableExecutorService(
+            ApplicationContextRegister.getContext(),
+            Executors.newFixedThreadPool(threadNum)
+        );
+        List<Output> result = getResultWithThreads(inputCollection, threadPoolExecutor, handler);
+        threadPoolExecutor.shutdown();
+        return result;
     }
 
     /**
@@ -108,7 +114,6 @@ public class ConcurrencyUtil {
                 throw new SubThreadException(msg, e.getCause());
             }
         }
-        threadPoolExecutor.shutdown();
         return new ArrayList<>(resultQueue);
     }
 

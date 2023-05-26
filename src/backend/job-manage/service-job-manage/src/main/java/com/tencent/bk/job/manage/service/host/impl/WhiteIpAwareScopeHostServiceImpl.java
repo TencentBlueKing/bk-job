@@ -110,7 +110,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
         List<HostDTO> whiteIpHostDTOList = whiteIPService.listAvailableWhiteIPHost(
             appResourceScope.getAppId(),
             actionScope,
-            hostIds
+            hostIdSet
         );
         List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
         log.info("{} white ips added", whiteIpHostList.size());
