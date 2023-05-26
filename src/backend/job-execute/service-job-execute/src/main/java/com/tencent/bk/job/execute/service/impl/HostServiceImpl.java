@@ -152,24 +152,6 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<String> getHostAllowedAction(long appId, HostDTO host) {
-        try {
-            InternalResponse<List<String>> resp = whiteIpResourceClient.getWhiteIPActionScopes(appId, host.getIp(),
-                host.getBkCloudId(), host.getHostId());
-            if (!resp.isSuccess()) {
-                log.warn("Get white ip action scopes return fail resp, appId:{}, host:{}", appId,
-                    host.toCloudIp());
-                return Collections.emptyList();
-            }
-            log.info("Get white ip action scopes, appId:{}, host:{}, resp:{}", appId, host.toCloudIp(), resp);
-            return resp.getData();
-        } catch (Exception e) {
-            log.warn("GetHostAllowedAction fail!", e);
-            return Collections.emptyList();
-        }
-    }
-
-    @Override
     public ServiceListAppHostResultDTO batchGetAppHosts(Long appId,
                                                         Collection<HostDTO> hosts,
                                                         boolean refreshAgentId) {
