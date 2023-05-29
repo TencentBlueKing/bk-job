@@ -92,6 +92,7 @@
           <dropdown-menu>
             <bk-button
               class="mr10"
+              :loading="isCopyLoading"
               type="primary">
               <span>{{ $t('复制 IP') }}</span>
               <icon
