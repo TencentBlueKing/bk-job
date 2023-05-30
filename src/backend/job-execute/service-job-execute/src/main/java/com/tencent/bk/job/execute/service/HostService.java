@@ -66,16 +66,6 @@ public interface HostService {
     ServiceHostDTO getHostByCloudIpv6(long cloudAreaId, String ipv6);
 
     /**
-     * 查询主机在白名单中允许的操作
-     * tmp: 发布完成后可以仅仅支持使用hostId查询白名单
-     *
-     * @param appId 业务ID
-     * @param host  主机
-     * @return 允许的操作
-     */
-    List<String> getHostAllowedAction(long appId, HostDTO host);
-
-    /**
      * 获取业务下的主机列表
      *
      * @param appId Job业务ID

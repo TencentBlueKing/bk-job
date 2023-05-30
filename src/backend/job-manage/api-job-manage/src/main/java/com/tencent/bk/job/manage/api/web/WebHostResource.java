@@ -500,7 +500,7 @@ public interface WebHostResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "分页查询某个动态分组下的主机列表请求体", required = true)
+        @ApiParam(value = "分页查询某些动态分组下的主机列表请求体", required = true)
         @RequestBody
         @Validated
             PageListHostsByDynamicGroupReq req

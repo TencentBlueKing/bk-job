@@ -460,7 +460,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                       String scopeType,
                                                                       String scopeId,
                                                                       PageListHostsByDynamicGroupReq req) {
-        PageData<ApplicationHostDTO> pageData = bizDynamicGroupHostService.pageHostByDynamicGroup(
+        PageData<ApplicationHostDTO> pageData = bizDynamicGroupHostService.pageHostByDynamicGroups(
             appResourceScope,
             req.getId(),
             req.getStart().intValue(),
