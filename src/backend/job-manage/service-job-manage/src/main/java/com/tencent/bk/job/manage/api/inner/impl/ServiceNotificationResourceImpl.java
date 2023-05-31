@@ -60,7 +60,8 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
         if (log.isDebugEnabled()) {
             log.debug("Input: {}", JsonUtils.toJson(serviceUserNotificationDTO));
         }
-        return InternalResponse.buildSuccessResp(notifyService.asyncSendNotificationsToUsers(serviceUserNotificationDTO));
+        return InternalResponse.buildSuccessResp(
+            notifyService.asyncSendNotificationsToUsers(serviceUserNotificationDTO));
     }
 
     @Override
