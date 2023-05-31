@@ -50,8 +50,8 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class ScriptGrammarChecker implements ScriptChecker {
-    private ScriptTypeEnum type;
-    private String content;
+    private final ScriptTypeEnum type;
+    private final String content;
 
     public ScriptGrammarChecker(ScriptTypeEnum type, String content) {
         this.type = type;
@@ -60,7 +60,7 @@ public class ScriptGrammarChecker implements ScriptChecker {
 
     @Override
     public List<ScriptCheckResultItemDTO> call() throws Exception {
-        StopWatch watch = new StopWatch();
+        StopWatch watch = new StopWatch("ScriptGrammarChecker");
         watch.start("checkGrammar");
 
         File tmpFile = File.createTempFile(JobUUID.getUUID(), type.getName());
@@ -103,8 +103,12 @@ public class ScriptGrammarChecker implements ScriptChecker {
             log.error("Check script grammar fail", e);
         } finally {
             tmpFile.deleteOnExit();
-            watch.stop();
-            log.debug("watch={}", watch);
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 10) {
+                log.info("Check script grammar is slow, watch={}", watch.prettyPrint());
+            }
         }
         ArrayList<ScriptCheckResultItemDTO> checkResults = Lists.newArrayList();
         checkResults.addAll(result.values());
