@@ -94,6 +94,10 @@ public interface ScopeHostService {
      * @param appTopoNodeList  拓扑节点列表
      * @param searchContent    模糊搜索关键字（同时对主机IP/主机名/操作系统/云区域名称进行模糊搜索）
      * @param agentAlive       筛选条件：agentAlive：0为异常，1为正常
+     * @param ipKeyList        IP关键字列表
+     * @param ipv6KeyList      IPv6关键字列表
+     * @param hostNameKeyList  主机名称关键字列表
+     * @param osNameKeyList    操作系统名称关键字列表
      * @param start            数据起始位置
      * @param pageSize         拉取数量
      * @return hostId列表
@@ -102,6 +106,10 @@ public interface ScopeHostService {
                                                 List<BizTopoNode> appTopoNodeList,
                                                 String searchContent,
                                                 Integer agentAlive,
+                                                List<String> ipKeyList,
+                                                List<String> ipv6KeyList,
+                                                List<String> hostNameKeyList,
+                                                List<String> osNameKeyList,
                                                 Long start,
                                                 Long pageSize);
 

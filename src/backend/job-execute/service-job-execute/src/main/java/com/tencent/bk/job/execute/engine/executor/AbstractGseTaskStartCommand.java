@@ -249,16 +249,13 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
         agentTasks.stream()
             .filter(AgentTaskDTO::isTarget)
-            .forEach(agentTask -> {
-                if (StringUtils.isNotEmpty(agentTask.getAgentId())) {
-                    this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);
-                }
-            });
+            .filter(agentTask -> !agentTask.isAgentIdEmpty())
+            .forEach(agentTask -> this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask));
     }
 
     private void updateUninstalledAgentTasks(Collection<AgentTaskDTO> agentTasks) {
         List<AgentTaskDTO> invalidAgentTasks = agentTasks.stream()
-            .filter(agentTask -> StringUtils.isEmpty(agentTask.getAgentId()))
+            .filter(AgentTaskDTO::isAgentIdEmpty)
             .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(invalidAgentTasks)) {
             log.warn("{} contains invalid agent tasks: {}", gseTaskUniqueName, invalidAgentTasks);

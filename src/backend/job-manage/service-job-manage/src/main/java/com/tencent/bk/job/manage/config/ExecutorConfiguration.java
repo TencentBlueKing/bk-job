@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.config;
 
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,8 +43,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ExecutorConfiguration {
 
     @Bean("syncHostExecutor")
-    public ThreadPoolExecutor syncHostExecutor() {
-        ThreadPoolExecutor syncHostExecutor = new ThreadPoolExecutor(
+    public ThreadPoolExecutor syncHostExecutor(MeterRegistry meterRegistry) {
+        ThreadPoolExecutor syncHostExecutor = new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "syncHostExecutor",
             5,
             5,
             1L,
@@ -60,8 +64,10 @@ public class ExecutorConfiguration {
     }
 
     @Bean("syncAppExecutor")
-    public ThreadPoolExecutor syncAppExecutor() {
-        ThreadPoolExecutor syncAppExecutor = new ThreadPoolExecutor(
+    public ThreadPoolExecutor syncAppExecutor(MeterRegistry meterRegistry) {
+        ThreadPoolExecutor syncAppExecutor = new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "syncAppExecutor",
             5,
             5,
             1L,
@@ -80,8 +86,10 @@ public class ExecutorConfiguration {
     }
 
     @Bean("notifySendExecutor")
-    public ThreadPoolExecutor notifySendExecutor() {
-        return new ThreadPoolExecutor(
+    public ThreadPoolExecutor notifySendExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "notifySendExecutor",
             5,
             30,
             60L,
@@ -91,19 +99,28 @@ public class ExecutorConfiguration {
     }
 
     @Bean("scriptCheckExecutor")
-    public ExecutorService scriptCheckExecutor() {
-        return new ThreadPoolExecutor(
+    public ExecutorService scriptCheckExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "scriptCheckExecutor",
             10,
             50,
             60L,
             TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>()
+            new LinkedBlockingQueue<>(1000),
+            (r, executor) ->
+                log.error(
+                    "scriptCheckExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
+                    executor.getPoolSize(), executor.getQueue().size()
+                )
         );
     }
 
     @Bean("adminAuthExecutor")
-    public ThreadPoolExecutor adminAuthExecutor() {
-        return new ThreadPoolExecutor(
+    public ThreadPoolExecutor adminAuthExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "adminAuthExecutor",
             5,
             5,
             30,

@@ -25,6 +25,8 @@
 package com.tencent.bk.job.analysis.config;
 
 import com.tencent.bk.job.analysis.task.statistics.StatisticsTaskScheduler;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +40,10 @@ import java.util.concurrent.TimeUnit;
 public class ExecutorConfiguration {
 
     @Bean("analysisScheduleExecutor")
-    public ThreadPoolExecutor analysisScheduleExecutor() {
-        return new ThreadPoolExecutor(
+    public ThreadPoolExecutor analysisScheduleExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "analysisScheduleExecutor",
             5,
             10,
             60L,
@@ -49,8 +53,10 @@ public class ExecutorConfiguration {
     }
 
     @Bean("currentStatisticsTaskExecutor")
-    public ThreadPoolExecutor currentStatisticsTaskExecutor() {
-        return new ThreadPoolExecutor(
+    public ThreadPoolExecutor currentStatisticsTaskExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "currentStatisticsTaskExecutor",
             StatisticsTaskScheduler.defaultCorePoolSize,
             StatisticsTaskScheduler.defaultMaximumPoolSize,
             StatisticsTaskScheduler.defaultKeepAliveTime,
@@ -60,8 +66,10 @@ public class ExecutorConfiguration {
     }
 
     @Bean("pastStatisticsTaskExecutor")
-    public ThreadPoolExecutor pastStatisticsTaskExecutor() {
-        return new ThreadPoolExecutor(
+    public ThreadPoolExecutor pastStatisticsTaskExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "pastStatisticsTaskExecutor",
             StatisticsTaskScheduler.defaultCorePoolSize,
             StatisticsTaskScheduler.defaultMaximumPoolSize,
             StatisticsTaskScheduler.defaultKeepAliveTime,

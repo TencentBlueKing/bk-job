@@ -105,10 +105,10 @@
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
 
+  import I18n from '@/i18n';
+
   import RenderGlobalVar from '../common/render-global-var';
   import RenderTaskStep from '../common/render-task-step';
-
-  import I18n from '@/i18n';
 
   const getDefaultData = () => ({
     id: 0,

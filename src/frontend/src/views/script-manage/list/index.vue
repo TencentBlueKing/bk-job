@@ -101,7 +101,7 @@
         v-if="allRenderColumnMap.type"
         key="type"
         align="left"
-        :label="$t('script.脚本语言')"
+        :label="$t('script.脚本语言.colHead')"
         prop="type"
         sortable="custom"
         width="120">
@@ -195,7 +195,7 @@
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
         align="left"
-        :label="$t('script.更新时间')"
+        :label="$t('script.更新时间.colHead')"
         prop="lastModifyTime"
         width="180" />
       <bk-table-column
@@ -290,13 +290,13 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
+  import I18n from '@/i18n';
+
   import ScriptRelatedInfo from '../common/script-related-info';
 
   import BatchEditTag from './components/batch-edit-tag';
   import Layout from './components/layout';
   import TagPanel from './components/tag-panel';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'script_list_columns';
 
@@ -368,7 +368,7 @@
           default: true,
         },
         {
-          name: I18n.t('script.脚本语言'),
+          name: I18n.t('script.脚本语言.colHead'),
           id: 'type',
           remoteMethod: PublicScriptService.scriptTypeList,
           remoteExecuteImmediate: true,
@@ -414,7 +414,7 @@
         },
         {
           id: 'type',
-          label: I18n.t('script.脚本语言'),
+          label: I18n.t('script.脚本语言.colHead'),
         },
         {
           id: 'related',
@@ -438,7 +438,7 @@
         },
         {
           id: 'lastModifyTime',
-          label: I18n.t('script.更新时间'),
+          label: I18n.t('script.更新时间.colHead'),
         },
       ];
       const columnsCache = listColumnsCache.getItem(TABLE_COLUMN_CACHE);

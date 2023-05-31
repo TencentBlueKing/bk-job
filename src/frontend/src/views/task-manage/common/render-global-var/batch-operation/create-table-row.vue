@@ -134,9 +134,9 @@
   // import ChooseIp from '@components/choose-ip';
   import JbEditHost from '@components/jb-edit/host';
 
-  import { createVariable } from '../util';
-
   import I18n from '@/i18n';
+
+  import { createVariable } from '../util';
 
   export default {
     name: '',

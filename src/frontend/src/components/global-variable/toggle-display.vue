@@ -46,7 +46,7 @@
         <span>{{ $t('展开未引用的变量') }} ({{ count }})</span>
       </div>
     </div>
-    <div v-if="isOpen">
+    <div v-show="isOpen">
       <slot />
     </div>
   </div>

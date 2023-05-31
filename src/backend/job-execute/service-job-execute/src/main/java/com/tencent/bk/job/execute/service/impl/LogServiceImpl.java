@@ -64,6 +64,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -197,13 +199,18 @@ public class LogServiceImpl implements LogService {
                                                                    int executeCount,
                                                                    Integer batch,
                                                                    List<HostDTO> hosts) {
-
+        if (CollectionUtils.isEmpty(hosts)) {
+            return Collections.emptyList();
+        }
         ServiceScriptLogQueryRequest query = new ServiceScriptLogQueryRequest();
         query.setBatch(batch);
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         if (isQueryByHostIdCondition(stepInstance)) {
             query.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
+            if (CollectionUtils.isEmpty(query.getHostIds())) {
+                return Collections.emptyList();
+            }
         } else {
             // 兼容历史数据的查询（使用ip，没有hostId)
             query.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
@@ -240,7 +247,10 @@ public class LogServiceImpl implements LogService {
             // 需要把ip查询参数转换为基于hostId的查询参数
             Map<String, HostDTO> ip2Hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::toCloudIp);
             hostIds = hosts.stream()
-                .map(host -> ip2Hosts.get(host.toCloudIp()).getHostId())
+                .map(host -> Optional.ofNullable(ip2Hosts.get(host.toCloudIp()))
+                    .map(HostDTO::getHostId)
+                    .orElse(null))
+                .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
         } else {
@@ -349,6 +359,9 @@ public class LogServiceImpl implements LogService {
     @Override
     public ServiceHostLogsDTO batchGetFileIpLogContent(long stepInstanceId, int executeCount, Integer batch,
                                                        List<HostDTO> hosts) {
+        if (CollectionUtils.isEmpty(hosts)) {
+            return null;
+        }
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
@@ -360,6 +373,9 @@ public class LogServiceImpl implements LogService {
 
         if (isQueryByHostIdCondition(stepInstance)) {
             request.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
+            if (CollectionUtils.isEmpty(request.getHostIds())) {
+                return null;
+            }
         } else {
             request.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
         }

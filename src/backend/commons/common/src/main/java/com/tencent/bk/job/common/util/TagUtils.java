@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,7 +86,11 @@ public class TagUtils {
                 } catch (NumberFormatException e) {
                     log.warn("Tag must be number {}!", tagString);
                 } catch (Exception e) {
-                    log.error("Exception while processing tag {}!", tagString, e);
+                    String msg = MessageFormatter.format(
+                        "Exception while processing tag {}!",
+                        tagString
+                    ).getMessage();
+                    log.error(msg, e);
                 }
             }
         }

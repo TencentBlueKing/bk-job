@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.config;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,9 +41,11 @@ import java.util.concurrent.TimeUnit;
 public class ExecutorConfiguration {
 
     @Bean("logExportExecutor")
-    public ThreadPoolExecutor logExportExecutor() {
+    public ThreadPoolExecutor logExportExecutor(MeterRegistry meterRegistry) {
         ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("log-export-thread-%d").build();
-        return new ThreadPoolExecutor(
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "logExportExecutor",
             10,
             100,
             60,
@@ -52,8 +56,10 @@ public class ExecutorConfiguration {
     }
 
     @Bean("getHostsByTopoExecutor")
-    public ThreadPoolExecutor getHostsByTopoExecutor() {
-        return new ThreadPoolExecutor(
+    public ThreadPoolExecutor getHostsByTopoExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "getHostsByTopoExecutor",
             50,
             100,
             60,
@@ -63,9 +69,12 @@ public class ExecutorConfiguration {
     }
 
     @Bean("localFilePrepareExecutor")
-    public ThreadPoolExecutor localFilePrepareExecutor(LocalFileConfigForExecute localFileConfigForExecute) {
+    public ThreadPoolExecutor localFilePrepareExecutor(LocalFileConfigForExecute localFileConfigForExecute,
+                                                       MeterRegistry meterRegistry) {
         int concurrency = localFileConfigForExecute.getDownloadConcurrency();
-        return new ThreadPoolExecutor(
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "localFilePrepareExecutor",
             concurrency,
             concurrency,
             180L,
@@ -83,8 +92,10 @@ public class ExecutorConfiguration {
     }
 
     @Bean("shutdownExecutor")
-    public ThreadPoolExecutor shutdownExecutor() {
-        return new ThreadPoolExecutor(
+    public ThreadPoolExecutor shutdownExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "shutdownExecutor",
             10,
             20,
             120,

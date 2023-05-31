@@ -25,6 +25,8 @@
 package com.tencent.bk.job.backup.config;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +40,10 @@ import java.util.concurrent.TimeUnit;
 public class ExecutorConfiguration {
 
     @Bean("archiveExecutor")
-    public ThreadPoolExecutor archiveExecutor() {
-        return new ThreadPoolExecutor(
+    public ThreadPoolExecutor archiveExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "archiveExecutor",
             20,
             20,
             0L,

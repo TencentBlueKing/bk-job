@@ -32,12 +32,12 @@
   </div>
 </template>
 <script>
-  import Local from './local';
-
   import {
     loadLanguage,
   } from '@/i18n';
   import TemplateLocal from '@/views/task-manage/local';
+
+  import Local from './local';
 
   [
     Local,

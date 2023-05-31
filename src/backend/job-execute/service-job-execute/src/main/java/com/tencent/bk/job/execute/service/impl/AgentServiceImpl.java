@@ -67,7 +67,7 @@ public class AgentServiceImpl implements AgentService {
                       @Override
                       public HostDTO load(String key) {
                           HostDTO agentHost = getAgentBindHost();
-                          log.debug("load agentHost and save to cache:{}", agentHost);
+                          log.info("Load agent host and save to cache:{}", agentHost);
                           return agentHost;
                       }
                   }
@@ -84,7 +84,8 @@ public class AgentServiceImpl implements AgentService {
     public HostDTO getLocalAgentHost() {
         try {
             String CACHE_KEY_AGENT_HOST = "agentHost";
-            return agentHostCache.get(CACHE_KEY_AGENT_HOST);
+            HostDTO host = agentHostCache.get(CACHE_KEY_AGENT_HOST);
+            return host == null ? null : host.clone();
         } catch (ExecutionException e) {
             log.warn("Fail to load agentHost from cache, try to load directly", e);
             return getAgentBindHost();

@@ -77,6 +77,6 @@ export default {
     创建人: 'CREATED BY',
     更新人: 'LAST MODIFIED BY',
     更新时间: 'LAST MODIFIED AT',
-    创建时间: 'CREATED ON',
+    创建时间: 'CREATED AT',
   },
 };

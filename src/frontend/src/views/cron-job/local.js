@@ -98,9 +98,9 @@ export default {
       colHead: 'REPEAT FREQUENCY',
     },
     创建人: 'CREATED BY',
-    创建时间: 'CREATED ON',
+    创建时间: 'CREATED AT',
     更新人: {
-      label: 'Last Modify By',
+      label: 'Last Modified By',
       colHead: 'LAST MODIFIED BY',
     },
     任务状态: {

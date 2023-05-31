@@ -81,9 +81,9 @@
   import ActionExtend from '@components/choose-ip/components/action-extend';
   import SidesliderBox from '@components/choose-ip/components/sideslider-box';
 
-  import HostList from './host-list';
-
   import I18n from '@/i18n';
+
+  import HostList from './host-list';
 
   export default {
     name: '',

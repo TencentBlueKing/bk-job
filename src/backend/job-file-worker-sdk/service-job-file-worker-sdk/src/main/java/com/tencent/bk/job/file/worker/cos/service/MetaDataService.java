@@ -25,16 +25,20 @@
 package com.tencent.bk.job.file.worker.cos.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceMetaData;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileTreeNodeDef;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -46,10 +50,26 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
 public class MetaDataService {
+
+    private final Set<String> enabledFileSourceTypeCodes;
+
+    @Autowired
+    public MetaDataService(WorkerConfig workerConfig) {
+        this.enabledFileSourceTypeCodes = parseEnabledFileSourceType(workerConfig.getEnabledFileSourceTypeStr());
+    }
+
+    private Set<String> parseEnabledFileSourceType(String fileSourceStr) {
+        if (StringUtils.isBlank(fileSourceStr)) {
+            return null;
+        }
+        fileSourceStr = fileSourceStr.trim().replace(" ", "");
+        return Sets.newHashSet(fileSourceStr.split(","));
+    }
 
     private String loadResizedBase64ImageFromResource(String path) {
         InputStream ins = this.getClass().getClassLoader().getResourceAsStream(path);
@@ -74,7 +94,11 @@ public class MetaDataService {
             base64Str = base64Str.replace("\n", "");
             return "data:image/" + suffix + ";base64," + base64Str;
         } catch (IOException e) {
-            log.warn("Fail to read and encode image from path:{}", path, e);
+            String msg = MessageFormatter.format(
+                "Fail to read and encode image from path:{}",
+                path
+            ).getMessage();
+            log.warn(msg, e);
         }
         return null;
     }
@@ -106,6 +130,13 @@ public class MetaDataService {
             String jsonStr = jsonStrBuilder.toString();
             FileWorkerConfig fileWorkerConfig = JsonUtils.fromJson(jsonStr, new TypeReference<FileWorkerConfig>() {
             });
+            if (enabledFileSourceTypeCodes != null) {
+                fileWorkerConfig.getFileSourceMetaDataList().forEach(metaData ->
+                    metaData.setEnabled(metaData.getEnabled()
+                        && enabledFileSourceTypeCodes.contains(metaData.getFileSourceTypeCode())
+                    )
+                );
+            }
             parseFileSourceIcon(fileWorkerConfig);
             return fileWorkerConfig;
         } catch (IOException e) {

@@ -98,12 +98,12 @@
 
   import ResizeLayout from '@components/resize-layout';
 
+  import I18n from '@/i18n';
+  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
+
   import StepApproval from './components/approval';
   import StepDistroFile from './components/distro-file';
   import StepExecScript from './components/exec-script';
-
-  import I18n from '@/i18n';
-  import VariableUseGuide from '@/views/task-manage/common/variable-use-guide';
 
   const dataFieldMap = {
     1: 'scriptStepInfo',

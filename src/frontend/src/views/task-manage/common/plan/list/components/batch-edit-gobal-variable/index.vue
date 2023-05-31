@@ -119,11 +119,11 @@
 
   import { leaveConfirm } from '@utils/assist';
 
+  import I18n from '@/i18n';
+
   import EditPreview from './edit-preview';
   import EditValue from './edit-value';
   import { genGlobalVariableKey } from './utils';
-
-  import I18n from '@/i18n';
 
   export default {
     name: '',

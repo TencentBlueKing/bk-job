@@ -92,6 +92,7 @@
           <dropdown-menu>
             <bk-button
               class="mr10"
+              :loading="isCopyLoading"
               type="primary">
               <span>{{ $t('复制 IP') }}</span>
               <icon
@@ -163,11 +164,11 @@
 
   import ComposeFormItem from '@components/compose-form-item';
 
+  import I18n from '@/i18n';
+
   import DropdownMenu from './components/dropdown-menu';
   import DropdownMenuGroup from './components/dropdown-menu/group';
   import DropdownMenuItem from './components/dropdown-menu/item';
-
-  import I18n from '@/i18n';
 
   export default {
     components: {
@@ -197,6 +198,7 @@
     data() {
       return {
         isShowChooseIp: false,
+        isCopyLoading: false,
         searchText: '',
         isSearchMode: false,
         searchData: [],
@@ -370,40 +372,60 @@
         this.isShowChooseIp = false;
       },
       handleCopyIPv4() {
-        const allIP = this.$refs.ipSelector.getHostIpv4List();
-        if (allIP.length < 1) {
-          this.messageWarn(I18n.t('没有可复制的 IPv4'));
-          return;
-        }
+        this.isCopyLoading = true;
+        this.$refs.ipSelector.getHostIpv4List().then((hostList) => {
+          if (hostList.length < 1) {
+            this.messageWarn(I18n.t('没有可复制的 IPv4'));
+            return;
+          }
 
-        execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
+          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+        })
+          .finally(() => {
+            this.isCopyLoading = false;
+          });
       },
       handleCopyIPv6() {
-        const allIP = this.$refs.ipSelector.getHostIpv6List();
-        if (allIP.length < 1) {
-          this.messageWarn(I18n.t('没有可复制的 IPv6'));
-          return;
-        }
+        this.isCopyLoading = true;
+        this.$refs.ipSelector.getHostIpv6List().then((hostList) => {
+          if (hostList.length < 1) {
+            this.messageWarn(I18n.t('没有可复制的 IPv6'));
+            return;
+          }
 
-        execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
+          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+        })
+          .finally(() => {
+            this.isCopyLoading = false;
+          });
       },
       handleCopyAbnormalIPv4() {
-        const allIP = this.$refs.ipSelector.getAbnormalHostIpv4List();
-        if (allIP.length < 1) {
-          this.messageWarn(I18n.t('没有可复制的异常 IPv4'));
-          return;
-        }
+        this.isCopyLoading = true;
+        this.$refs.ipSelector.getAbnormalHostIpv4List().then((hostList) => {
+          if (hostList.length < 1) {
+            this.messageWarn(I18n.t('没有可复制的异常 IPv4'));
+            return;
+          }
 
-        execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
+          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+        })
+          .finally(() => {
+            this.isCopyLoading = false;
+          });
       },
       handleCopyAbnormalIPv6() {
-        const allIP = this.$refs.ipSelector.getAbnormalHostIpv6List();
-        if (allIP.length < 1) {
-          this.messageWarn(I18n.t('没有可复制的异常 IPv6'));
-          return;
-        }
+        this.isCopyLoading = true;
+        this.$refs.ipSelector.getAbnormalHostIpv6List().then((hostList) => {
+          if (hostList.length < 1) {
+            this.messageWarn(I18n.t('没有可复制的异常 IPv6'));
+            return;
+          }
 
-        execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
+          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+        })
+          .finally(() => {
+            this.isCopyLoading = false;
+          });
       },
       /**
        * @desc 复制所有主机数据

@@ -36,7 +36,7 @@ import java.util.Map;
 @ApiModel("根据动态分组分页查询主机请求体")
 public class PageListHostsByDynamicGroupReq {
 
-    @ApiModelProperty(value = "动态分组ID", required = true)
+    @ApiModelProperty(value = "动态分组ID，若传多个请使用英文逗号分隔", required = true)
     @NotNull(message = "{validation.constraints.emptyDynamicGroupId.message}")
     String id;
 

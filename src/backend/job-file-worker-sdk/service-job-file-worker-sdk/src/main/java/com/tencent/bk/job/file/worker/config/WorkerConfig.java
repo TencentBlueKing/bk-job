@@ -54,6 +54,9 @@ public class WorkerConfig {
     @Value("${job.file-worker.app-id:-1}")
     private Long appId;
 
+    @Value("${job.file-worker.enabled-file-source-types:}")
+    private String enabledFileSourceTypeStr;
+
     @Value("${job.file-worker.ability-tags:}")
     private String abilityTagStr;
 

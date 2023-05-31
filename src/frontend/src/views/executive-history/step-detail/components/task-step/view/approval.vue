@@ -107,9 +107,9 @@
 <script>
   import TaskExecuteService from '@service/task-execute';
 
-  import StepAction from '../../../../common/step-action';
-
   import I18n from '@/i18n';
+
+  import StepAction from '../../../../common/step-action';
 
   export default {
     name: '',

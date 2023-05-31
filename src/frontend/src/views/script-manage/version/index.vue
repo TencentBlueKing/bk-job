@@ -132,7 +132,7 @@
               v-if="allColumnMap.lastModifyTime"
               key="lastModifyTime"
               align="left"
-              :label="$t('script.更新时间')"
+              :label="$t('script.更新时间.colHead')"
               prop="lastModifyTime"
               sortable
               width="200" />
@@ -384,6 +384,8 @@
   import JbSearchSelect from '@components/jb-search-select';
   import ListActionLayout from '@components/list-action-layout';
 
+  import I18n from '@/i18n';
+
   import CopyCreate from '../common/copy-create';
   import DetailScript from '../common/detail/index';
   import Diff from '../common/diff';
@@ -393,8 +395,6 @@
   import Layout from './components/layout';
   import NewVersion from './components/new-version';
   import ScriptBasic from './components/script-basic';
-
-  import I18n from '@/i18n';
 
   const TABLE_COLUMN_CACHE = 'script_version_list_columns';
 
@@ -595,7 +595,7 @@
         },
         {
           id: 'lastModifyTime',
-          label: I18n.t('script.更新时间'),
+          label: I18n.t('script.更新时间.colHead'),
         },
         {
           id: 'statusDesc',

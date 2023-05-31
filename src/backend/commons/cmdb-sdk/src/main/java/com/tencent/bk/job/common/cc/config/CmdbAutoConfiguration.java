@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.cc.config;
 
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.BkNetClient;
@@ -50,9 +51,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CmdbAutoConfiguration {
     @Bean("cmdbThreadPoolExecutor")
-    public ThreadPoolExecutor cmdbThreadPoolExecutor(CmdbConfig cmdbConfig) {
+    public ThreadPoolExecutor cmdbThreadPoolExecutor(MeterRegistry meterRegistry, CmdbConfig cmdbConfig) {
         int cmdbQueryThreadsNum = cmdbConfig.getCmdbQueryThreadsNum();
-        return new ThreadPoolExecutor(
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "cmdbThreadPoolExecutor",
             cmdbQueryThreadsNum,
             cmdbQueryThreadsNum,
             180L,
@@ -66,9 +69,11 @@ public class CmdbAutoConfiguration {
     }
 
     @Bean("cmdbLongTermThreadPoolExecutor")
-    public ThreadPoolExecutor cmdbLongTermThreadPoolExecutor(CmdbConfig cmdbConfig) {
+    public ThreadPoolExecutor cmdbLongTermThreadPoolExecutor(CmdbConfig cmdbConfig, MeterRegistry meterRegistry) {
         int longTermCmdbQueryThreadsNum = cmdbConfig.getFindHostRelationLongTermConcurrency();
-        return new ThreadPoolExecutor(
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "cmdbLongTermThreadPoolExecutor",
             longTermCmdbQueryThreadsNum,
             longTermCmdbQueryThreadsNum,
             180L,

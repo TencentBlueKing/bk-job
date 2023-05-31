@@ -338,7 +338,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     break;
                 default:
                     throw new NotImplementedException(
-                        "Unsupport appScopeType:" + appResourceScope.getType().getValue(),
+                        "Unsupported appScopeType:" + appResourceScope.getType().getValue(),
                         ErrorCode.NOT_SUPPORT_FEATURE);
             }
         }

@@ -263,6 +263,10 @@ public class WebHostResourceImpl implements WebHostResource {
             req.getNodeList(),
             req.getSearchContent(),
             req.getAlive(),
+            req.getIpKeyList(),
+            req.getIpv6KeyList(),
+            req.getHostNameKeyList(),
+            req.getOsNameKeyList(),
             pagePair.getLeft(),
             pagePair.getRight()
         );
@@ -456,7 +460,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                       String scopeType,
                                                                       String scopeId,
                                                                       PageListHostsByDynamicGroupReq req) {
-        PageData<ApplicationHostDTO> pageData = bizDynamicGroupHostService.pageHostByDynamicGroup(
+        PageData<ApplicationHostDTO> pageData = bizDynamicGroupHostService.pageHostByDynamicGroups(
             appResourceScope,
             req.getId(),
             req.getStart().intValue(),

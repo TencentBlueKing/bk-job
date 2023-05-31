@@ -205,6 +205,7 @@ public class StepInstanceBaseDTO {
      * 执行目标是否是 GSE V2 Agent
      */
     public boolean isTargetGseV2Agent() {
+        // 只需要判断任意一个即可，因为前置校验已经保证所有的主机的agentId全部都是V1或者V2
         boolean isTargetGseV1Agent = this.targetServers.getIpList().stream()
             .anyMatch(host -> AgentUtils.isGseV1AgentId(host.getAgentId()));
         return !isTargetGseV1Agent;

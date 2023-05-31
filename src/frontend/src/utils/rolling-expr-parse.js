@@ -23,8 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import I18n from '@/i18n';
 import { ordinalSuffixOf } from '@utils/assist';
+
+import I18n from '@/i18n';
 
 const fixed = /^([1-9]\d*)$/;
 const fixedIn = /^\+([1-9]\d*)$/;
@@ -127,6 +128,7 @@ const translateCN = (value) => {
   };
   const result = [];
   value.forEach((atoms, index) => {
+    // eslint-disable-next-line prefer-spread
     result.push.apply(result, parse(atoms, index + 1));
   });
   return result.join('，');
@@ -229,6 +231,7 @@ const translateEN = (value) => {
   };
   const result = [];
   value.forEach((atoms, index) => {
+    // eslint-disable-next-line prefer-spread
     result.push.apply(result, parse(atoms, index + 1));
   });
   return result.join(', ');

@@ -162,9 +162,9 @@
   import { prettyDateTimeFormat } from '@utils/assist';
   import { taskImport } from '@utils/cache-helper';
 
-  import ActionBar from '../components/action-bar';
-
   import I18n from '@/i18n';
+
+  import ActionBar from '../components/action-bar';
 
   const escapeHTML = str => str.replace(/&/g, '&#38;').replace(/"/g, '&#34;')
     .replace(/'/g, '&#39;')

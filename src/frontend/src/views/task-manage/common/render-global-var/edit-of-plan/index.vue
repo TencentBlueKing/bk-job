@@ -73,13 +73,13 @@
   </jb-form>
 </template>
 <script>
+  import I18n from '@/i18n';
+
   import VarArray from './array';
   import VarHost from './host';
   import VarNamespace from './namespace';
   import VarPassword from './password';
   import VarString from './string';
-
-  import I18n from '@/i18n';
 
   export default {
     name: 'GlobalVar',

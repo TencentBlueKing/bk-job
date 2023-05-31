@@ -25,20 +25,16 @@
 package com.tencent.bk.job.file_gateway.dao.filesource;
 
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
-import org.jooq.DSLContext;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface FileSourceTypeDAO {
-    Integer upsertByWorker(DSLContext dslContext, FileSourceTypeDTO fileSourceTypeDTO);
+    Integer batchInsert(List<FileSourceTypeDTO> fileSourceTypeList);
 
-    Integer insert(DSLContext dslContext, FileSourceTypeDTO fileSourceTypeDTO);
+    int batchUpdate(List<FileSourceTypeDTO> fileSourceTypeList);
 
-    int update(DSLContext dslContext, FileSourceTypeDTO fileSourceTypeDTO);
-
-    int deleteById(DSLContext dslContext, Integer id);
-
-    FileSourceTypeDTO get(DSLContext dslContext, Long workerId, String storageType, String code);
+    int batchDeleteByIds(Collection<Integer> ids);
 
     FileSourceTypeDTO getById(Integer id);
 
@@ -46,9 +42,9 @@ public interface FileSourceTypeDAO {
 
     List<FileSourceTypeDTO> listByCode(String code);
 
+    List<FileSourceTypeDTO> listByWorkerId(Long workerId);
+
     List<FileSourceTypeDTO> listByCodeOrderByVersion(String code);
 
-    List<FileSourceTypeDTO> listOrderByVersion(DSLContext dslContext, String storageType);
-
-    List<FileSourceTypeDTO> list(DSLContext dslContext, String storageType);
+    List<FileSourceTypeDTO> listEnabledTypeOrderByVersion(String storageType);
 }

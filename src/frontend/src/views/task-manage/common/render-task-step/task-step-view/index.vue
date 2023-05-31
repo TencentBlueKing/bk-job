@@ -48,11 +48,11 @@
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
 
+  import I18n from '@/i18n';
+
   import StepApproval from './approval';
   import StepDistroFile from './distro-file';
   import StepExecScript from './exec-script';
-
-  import I18n from '@/i18n';
 
   const STEP_TYPE_LIST = {
     1: I18n.t('template.执行脚本'),

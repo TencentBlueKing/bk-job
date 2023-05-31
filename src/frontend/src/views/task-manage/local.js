@@ -292,7 +292,7 @@ export default {
       colHead: 'TAGS',
     },
     更新人: {
-      label: 'Last Modify By',
+      label: 'Last Modified By',
       colHead: 'LAST MODIFIED BY',
     },
     版本对比: 'Diff',
@@ -301,7 +301,7 @@ export default {
     我知道了: 'Got it',
     '仅作用于创建执行方案时的初始变量值，后续更改不会同步到执行方案': '',
     创建人: 'CREATED BY',
-    创建时间: 'CREATED ON',
+    创建时间: 'CREATED AT',
     共有: '',
     共: '',
     '个步骤，': 'steps total, ',

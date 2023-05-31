@@ -32,19 +32,22 @@ import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -64,25 +67,43 @@ public class BizDynamicGroupHostService {
         this.hostDetailService = hostDetailService;
     }
 
-    public PageData<ApplicationHostDTO> pageHostByDynamicGroup(AppResourceScope appResourceScope,
-                                                               String id,
-                                                               int start,
-                                                               int pageSize) {
-        List<Long> hostIds = listHostIdsByDynamicGroup(appResourceScope, id);
-        // CMDB动态分组接口不支持分页，因此对hostId在内存中进行分页
-        PageData<Long> hostIdPageData = PageUtil.pageInMem(hostIds, start, pageSize);
+    public PageData<ApplicationHostDTO> pageHostByDynamicGroups(AppResourceScope appResourceScope,
+                                                                String idStr,
+                                                                int start,
+                                                                int pageSize) {
+        if (StringUtils.isBlank(idStr)) {
+            return new PageData<>(start, pageSize, 0L, Collections.emptyList());
+        }
+        idStr = idStr.trim();
+        List<Long> hostIds = listHostIdsByDynamicGroups(appResourceScope, Arrays.asList(idStr.split(",")));
+        // 排序
+        hostIds.sort(Long::compareTo);
         List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(
             appResourceScope,
-            hostIdPageData.getData()
+            hostIds
         );
-        return PageUtil.copyPageWithNewData(hostIdPageData, hostList);
+        // CMDB动态分组接口不支持分页，因此对host在内存中进行分页
+        return PageUtil.pageInMem(hostList, start, pageSize);
     }
 
     public List<ApplicationHostDTO> listHostByDynamicGroups(AppResourceScope appResourceScope, Collection<String> ids) {
-        Set<Long> hostIds = new HashSet<>();
-        ids.forEach(id -> hostIds.addAll(listHostIdsByDynamicGroup(appResourceScope, id)));
+        List<Long> hostIds = listHostIdsByDynamicGroups(appResourceScope, ids);
         // 展示信息需要包含主机详情完整字段
         return hostDetailService.listHostDetails(appResourceScope, hostIds);
+    }
+
+    public List<Long> listHostIdsByDynamicGroups(AppResourceScope appResourceScope, Collection<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptyList();
+        }
+        // 并发拉取
+        int threadNum = Math.min(ids.size(), 5);
+        List<Long> hostIdList = ConcurrencyUtil.getResultWithThreads(ids, threadNum, dynamicGroupId ->
+            listHostIdsByDynamicGroup(appResourceScope, dynamicGroupId)
+        );
+        // 去重
+        hostIdList = new ArrayList<>(new HashSet<>(hostIdList));
+        return hostIdList;
     }
 
     public List<ApplicationHostDTO> listHostByDynamicGroup(AppResourceScope appResourceScope, String id) {

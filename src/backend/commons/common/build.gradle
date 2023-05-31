@@ -44,6 +44,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'com.cronutils:cron-utils'
     implementation 'commons-validator:commons-validator'
+    implementation 'org.springframework.cloud:spring-cloud-sleuth-instrumentation'
     compileOnly 'org.springframework:spring-web'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

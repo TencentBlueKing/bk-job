@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -105,7 +106,11 @@ public class FileTaskService {
                 FileUtils.deleteDirectory(new File(deleteDirPath));
                 count += 1;
             } catch (IOException e) {
-                log.warn("Fail to delete dir:{}", deleteDirPath, e);
+                String msg = MessageFormatter.format(
+                    "Fail to delete dir:{}",
+                    deleteDirPath
+                ).getMessage();
+                log.warn(msg, e);
             }
         }
         return count;

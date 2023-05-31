@@ -96,7 +96,7 @@ public class BuildInDangerousScriptChecker extends DefaultChecker {
 
     @Override
     public List<ScriptCheckResultItemDTO> call() {
-        StopWatch watch = new StopWatch();
+        StopWatch watch = new StopWatch("BuildInDangerousScriptChecker");
         ArrayList<ScriptCheckResultItemDTO> checkResults = Lists.newArrayList();
         try {
             String[] lines = param.getLines();
@@ -104,7 +104,12 @@ public class BuildInDangerousScriptChecker extends DefaultChecker {
             checkRM(checkResults, lines);
             watch.stop();
         } finally {
-            log.debug("watch={}", watch);
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 10) {
+                log.info("Check build-in dangerous script is slow, watch={}", watch.prettyPrint());
+            }
         }
         return checkResults;
     }

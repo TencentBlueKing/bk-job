@@ -81,6 +81,8 @@
   </jb-form>
 </template>
 <script>
+  import I18n from '@/i18n';
+
   import { createVariable } from '../util';
 
   import VarArray from './array';
@@ -88,8 +90,6 @@
   import VarNamespace from './namespace';
   import VarPassword from './password';
   import VarString from './string';
-
-  import I18n from '@/i18n';
 
   export default {
     name: 'GlobalVar',

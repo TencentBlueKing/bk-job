@@ -63,6 +63,7 @@ import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -329,7 +330,11 @@ public class EsbFastTransferFileV3ResourceImpl
                         throw new NotFoundException(ErrorCode.FILE_SOURCE_SERVICE_INVALID);
                     }
                 } catch (Exception e) {
-                    log.error("Fail to parse fileSourceCode to id:{}", fileSourceCode, e);
+                    String msg = MessageFormatter.format(
+                        "Fail to parse fileSourceCode to id:{}",
+                        fileSourceCode
+                    ).getMessage();
+                    log.error(msg, e);
                     throw new InternalException(ErrorCode.INTERNAL_ERROR);
                 }
             }

@@ -67,6 +67,7 @@
         :label="$t('account.账号别名.colHead')"
         min-width="180"
         prop="alias"
+        show-overflow-tooltip
         sortable="custom" />
       <bk-table-column
         v-if="allRenderColumnMap.account"
@@ -75,21 +76,27 @@
         :label="$t('account.账号名称.colHead')"
         min-width="180"
         prop="account"
+        show-overflow-tooltip
         sortable="custom" />
       <bk-table-column
-        v-if="allRenderColumnMap.account"
-        key="account"
+        v-if="allRenderColumnMap.remark"
+        key="remark"
         align="left"
         :label="$t('account.描述.colHead')"
         min-width="180"
-        prop="account"
-        sortable="custom" />
+        prop="remark"
+        show-overflow-tooltip>
+        <template slot-scope="{ row }">
+          <span>{{ row.remark || '--' }}</span>
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.categoryName"
         key="categoryName"
         align="left"
         :label="$t('account.账号用途.colHead')"
         prop="categoryName"
+        show-overflow-tooltip
         sortable="custom"
         width="120" />
       <bk-table-column
@@ -98,6 +105,7 @@
         align="left"
         :label="$t('account.账号类型.colHead')"
         prop="typeName"
+        show-overflow-tooltip
         sortable="custom"
         width="120" />
       <bk-table-column
@@ -106,6 +114,7 @@
         align="left"
         :label="$t('account.创建人')"
         prop="creator"
+        show-overflow-tooltip
         width="120" />
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
@@ -113,6 +122,7 @@
         align="left"
         :label="$t('account.创建时间')"
         prop="createTime"
+        show-overflow-tooltip
         width="180" />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyUser"
@@ -120,6 +130,7 @@
         align="left"
         :label="$t('account.更新人.colHead')"
         prop="lastModifyUser"
+        show-overflow-tooltip
         width="120" />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
@@ -127,6 +138,7 @@
         align="left"
         :label="$t('account.更新时间')"
         prop="lastModifyTime"
+        show-overflow-tooltip
         width="180" />
       <bk-table-column
         key="action"
@@ -189,9 +201,9 @@
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
 
-  import Operation from './components/operation';
-
   import I18n from '@/i18n';
+
+  import Operation from './components/operation';
 
   const TABLE_COLUMN_CACHE = 'account_manage_columns';
 

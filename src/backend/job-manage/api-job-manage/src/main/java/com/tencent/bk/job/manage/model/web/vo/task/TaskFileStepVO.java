@@ -29,11 +29,11 @@ import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -115,8 +115,8 @@ public class TaskFileStepVO {
             JobContextUtil.addDebugMessage("Empty destination info!");
             return false;
         }
-        if (StringUtils.isBlank(fileDestination.getPath())) {
-            JobContextUtil.addDebugMessage("fileDestinationPath is null or blank!");
+        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(fileDestination.getPath())) {
+            JobContextUtil.addDebugMessage("fileDestinationPath is illegal!");
             return false;
         }
         if (fileDestination.getAccount() == null || fileDestination.getAccount() <= 0) {
