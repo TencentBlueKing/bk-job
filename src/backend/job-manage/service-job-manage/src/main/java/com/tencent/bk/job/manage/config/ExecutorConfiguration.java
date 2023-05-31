@@ -107,7 +107,12 @@ public class ExecutorConfiguration {
             50,
             60L,
             TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>()
+            new LinkedBlockingQueue<>(1000),
+            (r, executor) ->
+                log.error(
+                    "scriptCheckExecutor Runnable rejected! executor.poolSize={}, executor.queueSize={}",
+                    executor.getPoolSize(), executor.getQueue().size()
+                )
         );
     }
 
