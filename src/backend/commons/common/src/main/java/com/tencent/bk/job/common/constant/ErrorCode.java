@@ -196,7 +196,7 @@ public class ErrorCode {
     // 作业执行 start
     // 主机为空
     public static final int SERVER_EMPTY = 1244001;
-    // 主机[{0}]无效，请检查源或目标主机的IPv4或AgentID字段值是否存在于配置平台；另外，主机需跨业务执行请联系作业平台管理员将其添加到主机白名单。
+    // 主机无效，请检查源或目标主机的IPv4或AgentID字段值是否存在于配置平台；另外，主机需跨业务执行请联系作业平台管理员将其添加到主机白名单。无效的{0}台主机：[{1}]
     public static final int HOST_INVALID = 1244002;
     // 账号不存在
     public static final int ACCOUNT_NOT_EXIST = 1244003;

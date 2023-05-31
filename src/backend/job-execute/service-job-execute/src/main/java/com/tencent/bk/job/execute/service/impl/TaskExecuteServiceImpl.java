@@ -1111,7 +1111,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
         log.warn("The following hosts are invalid, hosts={}", invalidHosts);
-        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{hostListStr});
+        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{invalidHosts.size(), hostListStr});
     }
 
     private String printHostIdOrIp(HostDTO host) {
