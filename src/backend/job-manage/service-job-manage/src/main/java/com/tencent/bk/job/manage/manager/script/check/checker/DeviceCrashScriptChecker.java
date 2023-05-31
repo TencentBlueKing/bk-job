@@ -35,7 +35,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.tencent.bk.job.manage.manager.script.check.consts.ScriptCheckItemCode.*;
+import static com.tencent.bk.job.manage.manager.script.check.consts.ScriptCheckItemCode.DANGER_DD;
+import static com.tencent.bk.job.manage.manager.script.check.consts.ScriptCheckItemCode.DANGER_FDISK;
+import static com.tencent.bk.job.manage.manager.script.check.consts.ScriptCheckItemCode.DANGER_MKFS_EXT3;
+import static com.tencent.bk.job.manage.manager.script.check.consts.ScriptCheckItemCode.DANGER_TEE_DEV_SD_STDIN;
 
 
 /**
@@ -56,22 +59,30 @@ public class DeviceCrashScriptChecker extends DefaultChecker {
 
     @Override
     public List<ScriptCheckResultItemDTO> call() {
-        StopWatch watch = new StopWatch();
+        StopWatch watch = new StopWatch("DeviceCrashScriptChecker");
         ArrayList<ScriptCheckResultItemDTO> checkResults = Lists.newArrayList();
-        String[] lines = param.getLines();
-        watch.start("tee_dev_sda");
-        checkScriptLines(checkResults, lines, tee_dev_sda, DANGER_TEE_DEV_SD_STDIN);
-        watch.stop();
-        watch.start("mkfs");
-        checkScriptLines(checkResults, lines, mkfs, DANGER_MKFS_EXT3);
-        watch.stop();
-        watch.start("fdisk");
-        checkScriptLines(checkResults, lines, fdisk, DANGER_FDISK);
-        watch.stop();
-        watch.start("dd");
-        checkScriptLines(checkResults, lines, dd, DANGER_DD);
-        watch.stop();
-        log.debug("watch={}", watch);
+        try {
+            String[] lines = param.getLines();
+            watch.start("tee_dev_sda");
+            checkScriptLines(checkResults, lines, tee_dev_sda, DANGER_TEE_DEV_SD_STDIN);
+            watch.stop();
+            watch.start("mkfs");
+            checkScriptLines(checkResults, lines, mkfs, DANGER_MKFS_EXT3);
+            watch.stop();
+            watch.start("fdisk");
+            checkScriptLines(checkResults, lines, fdisk, DANGER_FDISK);
+            watch.stop();
+            watch.start("dd");
+            checkScriptLines(checkResults, lines, dd, DANGER_DD);
+            watch.stop();
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 10) {
+                log.info("Check build-in dangerous script is slow, watch={}", watch.prettyPrint());
+            }
+        }
         return checkResults;
     }
 

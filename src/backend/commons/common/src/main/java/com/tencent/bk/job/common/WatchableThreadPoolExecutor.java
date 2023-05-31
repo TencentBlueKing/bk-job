@@ -40,23 +40,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
     /**
-     * 线程池名称
+     * 任务开始时间
      */
-    private final String poolName;
-
-    /**
-     * 最短执行时间
-     */
-    private Long minCostTime = 0L;
-
-    /**
-     * 最长执行时间
-     */
-    private Long maxCostTime = 0L;
-
     private final ThreadLocal<Long> startTimeThreadLocal = new ThreadLocal<>();
 
-    private final MeterRegistry meterRegistry;
+    private MeterRegistry meterRegistry;
+
+    private List<Tag> tags;
 
     public WatchableThreadPoolExecutor(MeterRegistry meterRegistry,
                                        String poolName,
@@ -66,9 +56,7 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
                                        TimeUnit unit,
                                        BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-        this.poolName = poolName;
-        this.meterRegistry = meterRegistry;
-        startWatch();
+        init(poolName, meterRegistry);
     }
 
     public WatchableThreadPoolExecutor(MeterRegistry meterRegistry,
@@ -80,9 +68,7 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
                                        BlockingQueue<Runnable> workQueue,
                                        ThreadFactory threadFactory) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
-        this.poolName = poolName;
-        this.meterRegistry = meterRegistry;
-        startWatch();
+        init(poolName, meterRegistry);
     }
 
     public WatchableThreadPoolExecutor(MeterRegistry meterRegistry,
@@ -94,9 +80,7 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
                                        BlockingQueue<Runnable> workQueue,
                                        RejectedExecutionHandler handler) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, handler);
-        this.poolName = poolName;
-        this.meterRegistry = meterRegistry;
-        startWatch();
+        init(poolName, meterRegistry);
     }
 
     public WatchableThreadPoolExecutor(MeterRegistry meterRegistry,
@@ -109,13 +93,17 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
                                        ThreadFactory threadFactory,
                                        RejectedExecutionHandler handler) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
-        this.poolName = poolName;
+        init(poolName, meterRegistry);
+    }
+
+    private void init(String poolName, MeterRegistry meterRegistry) {
+        this.tags = Collections.singletonList(Tag.of("pool_name", poolName));
         this.meterRegistry = meterRegistry;
         startWatch();
     }
 
     private void startWatch() {
-        meterRegistry.gauge("job_thread_pool_active_count",
+        meterRegistry.gauge("job_thread_pool_active_thread_size",
             getTags(),
             this,
             threadPoolExecutor -> (double) threadPoolExecutor.getActiveCount());
@@ -123,6 +111,14 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
             getTags(),
             this,
             threadPoolExecutor -> (double) threadPoolExecutor.getPoolSize());
+        meterRegistry.gauge("job_thread_pool_core_pool_size",
+            getTags(),
+            this,
+            threadPoolExecutor -> (double) threadPoolExecutor.getCorePoolSize());
+        meterRegistry.gauge("job_thread_pool_max_pool_size",
+            getTags(),
+            this,
+            threadPoolExecutor -> (double) threadPoolExecutor.getMaximumPoolSize());
         meterRegistry.gauge("job_thread_pool_task_total",
             getTags(),
             this,
@@ -140,18 +136,10 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
             this,
             threadPoolExecutor -> (double) (threadPoolExecutor.getQueue() == null ? 0 :
                 threadPoolExecutor.getQueue().size()));
-        meterRegistry.gauge("job_thread_pool_task_cost_min",
-            getTags(),
-            this,
-            WatchableThreadPoolExecutor::getTaskMinCost);
-        meterRegistry.gauge("job_thread_pool_task_cost_max",
-            getTags(),
-            this,
-            WatchableThreadPoolExecutor::getTaskMaxCost);
     }
 
     private List<Tag> getTags() {
-        return Collections.singletonList(Tag.of("pool_name", poolName));
+        return tags;
     }
 
 
@@ -168,22 +156,12 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
      */
     @Override
     protected void afterExecute(Runnable r, Throwable t) {
-        long costTime = System.currentTimeMillis() - startTimeThreadLocal.get();
-        startTimeThreadLocal.remove();
-        maxCostTime = maxCostTime > costTime ? maxCostTime : costTime;
-        if (getCompletedTaskCount() == 0) {
-            minCostTime = costTime;
+        try {
+            long costTime = System.currentTimeMillis() - startTimeThreadLocal.get();
+            recordTaskCostTime(costTime);
+        } finally {
+            startTimeThreadLocal.remove();
         }
-        minCostTime = minCostTime < costTime ? minCostTime : costTime;
-        recordTaskCostTime(costTime);
-    }
-
-    public double getTaskMaxCost() {
-        return (double) this.maxCostTime;
-    }
-
-    public double getTaskMinCost() {
-        return (double) this.minCostTime;
     }
 
 
