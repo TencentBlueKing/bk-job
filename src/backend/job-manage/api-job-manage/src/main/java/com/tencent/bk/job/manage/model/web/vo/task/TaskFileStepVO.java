@@ -107,10 +107,7 @@ public class TaskFileStepVO {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         for (TaskFileSourceInfoVO taskFileSourceInfoVO : fileSourceList) {
-            if (!taskFileSourceInfoVO.validate(isCreate)) {
-                log.warn("Invalid file info!");
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-            }
+            taskFileSourceInfoVO.validate(isCreate);
         }
         if (fileDestination == null) {
             log.warn("Empty destination info!");
