@@ -79,10 +79,12 @@ public class TargetNodeVO {
     }
 
     public void validate(boolean isCreate) throws InvalidParamException {
-        if (instanceId != null && instanceId > 0 && StringUtils.isNotBlank(objectId)) {
-            return;
+        if (instanceId == null || instanceId <= 0) {
+            log.warn("Invalid target node instanceId");
         }
-        log.warn("Target node info does not have id or type");
-        throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        if (StringUtils.isBlank(objectId)) {
+            log.warn("Invalid target node type");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
     }
 }
