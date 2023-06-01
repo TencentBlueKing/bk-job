@@ -52,6 +52,7 @@ buildscript {
         classpath "nu.studer:gradle-jooq-plugin:$gradleJooqVersion"
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
         classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.5"
+        classpath "com.vanniktech:gradle-dependency-graph-generator-plugin:0.8.0"
     }
 }
 
@@ -139,6 +140,7 @@ allprojects {
     apply plugin: "eclipse"
     apply plugin: "java-library"
     apply plugin: "io.spring.dependency-management"
+    apply plugin: "com.vanniktech.dependency.graph.generator"
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
