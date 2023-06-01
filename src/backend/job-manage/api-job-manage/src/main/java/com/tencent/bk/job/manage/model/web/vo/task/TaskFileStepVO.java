@@ -30,10 +30,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -43,6 +43,7 @@ import java.util.List;
  */
 @Data
 @ApiModel("步骤文件信息")
+@Slf4j
 public class TaskFileStepVO {
 
     @ApiModelProperty("源文件列表")
@@ -100,36 +101,33 @@ public class TaskFileStepVO {
         }
     }
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         if (CollectionUtils.isEmpty(fileSourceList)) {
-            JobContextUtil.addDebugMessage("Empty origin file list!");
-            return false;
+            log.warn("Empty origin file list!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         for (TaskFileSourceInfoVO taskFileSourceInfoVO : fileSourceList) {
             if (!taskFileSourceInfoVO.validate(isCreate)) {
-                JobContextUtil.addDebugMessage("Invalid file info!");
-                return false;
+                log.warn("Invalid file info!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
         }
         if (fileDestination == null) {
-            JobContextUtil.addDebugMessage("Empty destination info!");
-            return false;
+            log.warn("Empty destination info!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (!FilePathValidateUtil.validateFileSystemAbsolutePath(fileDestination.getPath())) {
-            JobContextUtil.addDebugMessage("fileDestinationPath is illegal!");
-            return false;
+            log.warn("fileDestinationPath is illegal!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (fileDestination.getAccount() == null || fileDestination.getAccount() <= 0) {
-            JobContextUtil.addDebugMessage("Empty account!");
-            return false;
+            log.warn("Empty account!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        if (!fileDestination.getServer().validate(isCreate)) {
-            JobContextUtil.addDebugMessage("Invalid destination!");
-            return false;
-        }
+        fileDestination.getServer().validate(isCreate);
         if (transferMode == null || transferMode < 1 || transferMode > 4) {
-            JobContextUtil.addDebugMessage("Invalid transferMode setting!");
-            return false;
+            log.warn("Invalid transferMode setting!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (timeout == null || timeout < 0) {
             timeout = 0L;
@@ -143,7 +141,6 @@ public class TaskFileStepVO {
         if (ignoreError == null || ignoreError < 0) {
             ignoreError = 0;
         }
-        return true;
     }
 
     public Integer getNotExistPathHandler() {

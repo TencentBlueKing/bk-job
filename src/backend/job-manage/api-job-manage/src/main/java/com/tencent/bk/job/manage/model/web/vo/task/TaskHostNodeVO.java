@@ -75,10 +75,7 @@ public class TaskHostNodeVO {
         if (!CollectionUtils.isEmpty(ipList)) {
             allEmpty = false;
             for (HostInfoVO hostInfoVO : ipList) {
-                if (!hostInfoVO.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Host info validate failed!");
-                    return false;
-                }
+                hostInfoVO.validate(isCreate);
             }
         }
         return !allEmpty;

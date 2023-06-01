@@ -85,10 +85,7 @@ public class TaskFileSourceInfoVO {
                         return false;
                     }
                 }
-                if (!host.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Invalid host!");
-                    return false;
-                }
+                host.validate(isCreate);
                 if (account == null || account <= 0) {
                     JobContextUtil.addDebugMessage("Invalid host account!");
                     return false;

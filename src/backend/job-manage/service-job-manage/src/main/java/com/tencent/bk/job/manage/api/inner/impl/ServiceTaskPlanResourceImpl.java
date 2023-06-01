@@ -236,16 +236,13 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     @Override
     public InternalResponse<Long> savePlanForImport(String username, Long appId, Long templateId,
                                                     Long createTime, TaskPlanVO planInfo) {
-        if (planInfo.validateForImport()) {
-            TaskPlanInfoDTO taskPlanInfo = TaskPlanInfoDTO.fromVO(username, appId, planInfo);
-            if (createTime != null && createTime > 0) {
-                taskPlanInfo.setCreateTime(createTime);
-            }
-            Long finalTemplateId = taskPlanService.saveTaskPlanForBackup(taskPlanInfo);
-            return InternalResponse.buildSuccessResp(finalTemplateId);
-        } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        planInfo.validateForImport();
+        TaskPlanInfoDTO taskPlanInfo = TaskPlanInfoDTO.fromVO(username, appId, planInfo);
+        if (createTime != null && createTime > 0) {
+            taskPlanInfo.setCreateTime(createTime);
         }
+        Long finalTemplateId = taskPlanService.saveTaskPlanForBackup(taskPlanInfo);
+        return InternalResponse.buildSuccessResp(finalTemplateId);
     }
 
     @Override
