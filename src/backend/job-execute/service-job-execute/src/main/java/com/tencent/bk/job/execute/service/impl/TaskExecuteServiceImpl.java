@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -629,9 +629,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         accounts.add(stepInstance.getAccountId());
         stepInstance.getFileSourceList().stream()
             .filter(fileSource -> !fileSource.isLocalUpload() && fileSource.getAccountId() != null)
-            .forEach(fileSource -> {
-                accounts.add(fileSource.getAccountId());
-            });
+            .forEach(fileSource -> accounts.add(fileSource.getAccountId()));
 
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accounts);
@@ -641,9 +639,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .filter(fileSource -> !fileSource.isLocalUpload()
                 && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
                 && fileSource.getServers() != null)
-            .forEach(fileSource -> {
-                servers.merge(fileSource.getServers());
-            });
+            .forEach(fileSource -> servers.merge(fileSource.getServers()));
         filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, servers, whiteHostAllowActions);
         if (servers.isEmpty()) {
             // 如果主机为空，无需对主机进行权限
@@ -1856,18 +1852,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 ServersDTO targetServers = buildFinalTargetServers(target, variableValueMap);
                 fileSource.setServers(targetServers);
                 List<FileDetailDTO> fileList = new ArrayList<>();
-                originFile.getFileLocation().forEach(fileLocation -> {
-                    fileList.add(new FileDetailDTO(fileLocation));
-                });
+                originFile.getFileLocation().forEach(fileLocation -> fileList.add(new FileDetailDTO(fileLocation)));
                 fileSource.setFiles(fileList);
             } else if (originFile.getFileType() == TaskFileTypeEnum.FILE_SOURCE.getType()) {
                 fileSource.setLocalUpload(false);
                 fileSource.setServers(ServersDTO.emptyInstance());
                 // 文件源文件只需要fileSourceId与文件路径
                 List<FileDetailDTO> fileList = new ArrayList<>();
-                originFile.getFileLocation().forEach(fileLocation -> {
-                    fileList.add(new FileDetailDTO(fileLocation));
-                });
+                originFile.getFileLocation().forEach(fileLocation -> fileList.add(new FileDetailDTO(fileLocation)));
                 fileSource.setFiles(fileList);
                 fileSource.setFileSourceId(originFile.getFileSourceId());
             }
@@ -2049,21 +2041,21 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             return;
         }
         List<String> agentIdList = hosts.stream()
-            .filter(host -> StringUtils.isNotEmpty(host.getAgentId()))
             .map(HostDTO::getAgentId)
+            .filter(StringUtils::isNotEmpty)
             .distinct()
             .collect(Collectors.toList());
         Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
 
         for (HostDTO host : hosts) {
             if (StringUtils.isEmpty(host.getAgentId())) {
-                host.setAlive(AgentStatusEnum.NOT_ALIVE.getValue());
+                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
             } else {
                 AgentState agentState = agentStateMap.get(host.getAgentId());
                 if (agentState != null) {
-                    host.setAlive(AgentStatusEnum.fromAgentState(agentState).getValue());
+                    host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
                 } else {
-                    host.setAlive(AgentStatusEnum.NOT_ALIVE.getValue());
+                    host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
                 }
             }
         }
@@ -2392,10 +2384,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (RunStatusEnum.STOPPING == taskInstance.getStatus()) {
-            log.warn("TaskInstance:{} status is stopping now, should not terminate it!", taskInstance.getId());
-            throw new FailedPreconditionException(ErrorCode.TASK_STOPPING_DO_NOT_REPEAT);
-        }
         taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstanceId));
         OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2406,13 +2394,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                 TaskOperationEnum operation) throws ServiceException {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
-        switch (operation) {
-            case TERMINATE_JOB:
-                terminateJob(operator, appId, taskInstanceId);
-                break;
-            default:
-                log.warn("Undefined task operation!");
-                break;
+        if (operation == TaskOperationEnum.TERMINATE_JOB) {
+            terminateJob(operator, appId, taskInstanceId);
+        } else {
+            log.warn("Undefined task operation!");
         }
     }
 

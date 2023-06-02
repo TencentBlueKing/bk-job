@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
-import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
@@ -156,7 +156,8 @@ public class AgentStateClientImpl implements AgentStateClient {
         for (Map.Entry<String, AgentState> entry : agentStateMap.entrySet()) {
             String agentId = entry.getKey();
             AgentState agentState = entry.getValue();
-            agentAliveStatusMap.put(agentId, AgentStatusEnum.fromAgentState(agentState) == AgentStatusEnum.ALIVE);
+            agentAliveStatusMap.put(agentId,
+                AgentAliveStatusEnum.fromAgentState(agentState) == AgentAliveStatusEnum.ALIVE);
         }
         return agentAliveStatusMap;
     }

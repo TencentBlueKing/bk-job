@@ -115,9 +115,9 @@ public class ScheduledTasks {
     }
 
     /**
-     * Agent状态同步：3min/次
+     * Agent状态同步：1min/次
      */
-    @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void agentStatusSyncTask() {
         log.info(Thread.currentThread().getId() + ":agentStatusSyncTask start");
         try {
