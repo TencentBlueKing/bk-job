@@ -95,6 +95,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("SameParameterValue")
 @Slf4j
 @Service
 public class HostServiceImpl implements HostService {
@@ -216,7 +217,6 @@ public class HostServiceImpl implements HostService {
         List<Long> updateHostIds = new ArrayList<>();
         long errorCount = 0L;
         List<Long> errorHostIds = new ArrayList<>();
-        long notChangeCount = 0L;
         boolean batchUpdated = false;
         try {
             // 尝试批量更新
@@ -245,8 +245,6 @@ public class HostServiceImpl implements HostService {
                         hostCache.addOrUpdateHost(hostInfoDTO);
                         updateCount += 1;
                         updateHostIds.add(hostInfoDTO.getHostId());
-                    } else {
-                        notChangeCount += 1;
                     }
                 } catch (Throwable t) {
                     log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", bizId, hostInfoDTO), t);
@@ -283,20 +281,18 @@ public class HostServiceImpl implements HostService {
                     end = start + batchSize;
                     end = Math.min(end, size);
                     List<HostSimpleDTO> subList = simpleHostList.subList(start, end);
-                    Map<Integer, List<Long>> statusGroupMap = subList.stream()
-                        .collect(Collectors.groupingBy(HostSimpleDTO::getGseAgentAlive,
+                    Map<Integer, List<Long>> agentAliveStatusGroupMap = subList.stream()
+                        .collect(Collectors.groupingBy(HostSimpleDTO::getAgentAliveStatus,
                             Collectors.mapping(HostSimpleDTO::getHostId, Collectors.toList())));
-                    for (Integer status : statusGroupMap.keySet()) {
-                        updateCount += applicationHostDAO.batchUpdateHostStatusByHostIds(status,
-                            statusGroupMap.get(status));
+                    for (Integer agentAliveStatus : agentAliveStatusGroupMap.keySet()) {
+                        updateCount += applicationHostDAO.batchUpdateHostStatusByHostIds(agentAliveStatus,
+                            agentAliveStatusGroupMap.get(agentAliveStatus));
                     }
                     start += batchSize;
                 } while (end < size);
                 watch.stop();
                 watch.start("updateHostsCache");
-                simpleHostList.forEach(simpleHost -> {
-                    hostCache.addOrUpdateHost(simpleHost.convertToHostDTO());
-                });
+                simpleHostList.forEach(simpleHost -> hostCache.addOrUpdateHost(simpleHost.convertToHostDTO()));
                 watch.stop();
             }
         } catch (Throwable throwable) {
@@ -320,7 +316,7 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         watch.start("syncHostTopo");
         // 同步主机关系到host表
-        hostIdList.forEach(hostId -> applicationHostDAO.syncHostTopo(hostId));
+        hostIdList.forEach(applicationHostDAO::syncHostTopo);
         watch.stop();
         log.debug("Performance:removeHostsFromBiz:bizId={},{}", bizId, watch.prettyPrint());
         return deleteFailHostIds;
@@ -1232,8 +1228,6 @@ public class HostServiceImpl implements HostService {
             hosts = applicationHostDAO.listHostInfoByBizIds(allBizIds, start, limit);
         }
 
-        // 查出节点下主机与Agent状态
-        List<String> ipWithCloudIdList = buildIpList(hosts);
         // 批量设置agent状态
         agentStatusService.fillRealTimeAgentStatus(hosts);
         List<HostInfoVO> hostInfoVOList = fillCloudAreaNameAndConvertToVOList(hosts);
@@ -1466,9 +1460,7 @@ public class HostServiceImpl implements HostService {
                 new ListHostByHostIdsStrategy().listHostsFromCmdb(hostIds);
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
-                result.getLeft().forEach(notExistHostId -> {
-                    notExistHosts.add(HostDTO.fromHostId(notExistHostId));
-                });
+                result.getLeft().forEach(notExistHostId -> notExistHosts.add(HostDTO.fromHostId(notExistHostId)));
             }
         }
         if (CollectionUtils.isNotEmpty(cloudIps)) {
@@ -1476,9 +1468,7 @@ public class HostServiceImpl implements HostService {
                 new ListHostByIpsStrategy().listHostsFromCmdb(cloudIps);
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
-                result.getLeft().forEach(notExistCloudIp -> {
-                    notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp));
-                });
+                result.getLeft().forEach(notExistCloudIp -> notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp)));
             }
         }
         return Pair.of(notExistHosts, appHosts);
@@ -1487,13 +1477,13 @@ public class HostServiceImpl implements HostService {
     private Pair<List<Long>, List<String>> separateByHostIdOrCloudIp(Collection<HostDTO> hosts) {
         List<Long> hostIds = new ArrayList<>();
         List<String> cloudIps = new ArrayList<>();
-        hosts.forEach(host -> {
+        for (HostDTO host : hosts) {
             if (host.getHostId() != null) {
                 hostIds.add(host.getHostId());
             } else {
                 cloudIps.add(host.toCloudIp());
             }
-        });
+        }
         return Pair.of(hostIds, cloudIps);
     }
 

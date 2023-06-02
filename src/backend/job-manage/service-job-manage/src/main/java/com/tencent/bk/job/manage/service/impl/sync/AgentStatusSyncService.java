@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
@@ -44,17 +43,14 @@ import java.util.List;
 @Service
 public class AgentStatusSyncService {
 
-    private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final HostService hostService;
     private final AgentStatusService agentStatusService;
 
     @Autowired
-    public AgentStatusSyncService(ApplicationDAO applicationDAO,
-                                  ApplicationHostDAO applicationHostDAO,
+    public AgentStatusSyncService(ApplicationHostDAO applicationHostDAO,
                                   HostService hostService,
                                   AgentStatusService agentStatusService) {
-        this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.hostService = hostService;
         this.agentStatusService = agentStatusService;
@@ -74,16 +70,38 @@ public class AgentStatusSyncService {
         hostAgentStatusWatch.stop();
         hostAgentStatusWatch.start("updateHosts to local DB");
         startTime = System.currentTimeMillis();
-        int succUpdateHostNum = hostService.updateHostsStatus(statusChangedHosts);
+        int updatedHostNum = hostService.updateHostsStatus(statusChangedHosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         hostAgentStatusWatch.stop();
         if (hostAgentStatusWatch.getTotalTimeMillis() > 180000) {
-            log.warn("syncHostAgentStatus too slow,run statistics,totalHosts:{};statusChangedHosts:{};succUpdateHosts:{};" +
-                    "timeConsume:{}", localHosts.size(), statusChangedHosts.size(), succUpdateHostNum,
-                hostAgentStatusWatch.prettyPrint());
+            log.warn(
+                "syncHostAgentStatus too slow, totalHosts={}, statusChangedHosts={}, "
+                    + "updatedHostNum={}, timeConsume={}",
+                localHosts.size(),
+                statusChangedHosts.size(),
+                updatedHostNum,
+                hostAgentStatusWatch.prettyPrint()
+            );
         }
-        log.info("syncHostAgentStatus Performance,totalHosts:{};statusChangedHosts:{};succUpdateHosts:{};timeConsume:{}",
-            localHosts.size(), statusChangedHosts.size(), succUpdateHostNum, hostAgentStatusWatch);
+        if (statusChangedHosts.size() == updatedHostNum) {
+            log.info(
+                "syncHostAgentStatus Performance,totalHosts={}, " +
+                    "statusChangedHosts={}, updatedHostNum={}, timeConsume={}",
+                localHosts.size(),
+                statusChangedHosts.size(),
+                updatedHostNum,
+                hostAgentStatusWatch
+            );
+        } else {
+            log.warn(
+                "syncHostAgentStatus Performance,totalHosts={}, " +
+                    "statusChangedHosts={}, updatedHostNum={}, timeConsume={}",
+                localHosts.size(),
+                statusChangedHosts.size(),
+                updatedHostNum,
+                hostAgentStatusWatch
+            );
+        }
         return Pair.of(gseInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 

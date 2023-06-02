@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.agent;
 
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -103,7 +104,7 @@ public class AgentStatusService {
         if (hosts.isEmpty()) return statusChangedHosts;
 
         List<String> agentIdList = HostSimpleDTO.buildAgentIdList(hosts);
-        Map<String, AgentState> agentStateMap = null;
+        Map<String, AgentState> agentStateMap;
         try {
             agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
         } catch (Exception e) {
@@ -118,8 +119,19 @@ public class AgentStatusService {
         for (HostSimpleDTO host : hosts) {
             String agentId = host.getFinalAgentId();
             AgentState agentState = agentStateMap.get(agentId);
-            if (agentState != null && host.getGseAgentAlive() != agentState.getStatusCode()) {
-                host.setGseAgentAlive(agentState.getStatusCode());
+            AgentAliveStatusEnum agentAliveStatus = AgentAliveStatusEnum.fromAgentState(agentState);
+            int agentAliveStatusValue = agentAliveStatus.getStatusValue();
+            if (host.getAgentAliveStatus() != agentAliveStatusValue) {
+                if (log.isDebugEnabled()) {
+                    log.debug("host {} status changed: {}->{}, agentId={}, agentState={}",
+                        host.getHostId(),
+                        host.getAgentAliveStatus(),
+                        agentAliveStatusValue,
+                        agentId,
+                        agentState
+                    );
+                }
+                host.setAgentAliveStatus(agentAliveStatusValue);
                 statusChangedHosts.add(host);
             }
         }

@@ -29,9 +29,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 /**
- * Agent 状态
+ * Agent 正常状态
  */
-public enum AgentStatusEnum {
+public enum AgentAliveStatusEnum {
     /**
      * 异常
      */
@@ -47,21 +47,21 @@ public enum AgentStatusEnum {
     @JsonValue
     private final int status;
 
-    AgentStatusEnum(int status) {
+    AgentAliveStatusEnum(int status) {
         this.status = status;
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static AgentStatusEnum valOf(int status) {
-        for (AgentStatusEnum agentStatus : values()) {
-            if (agentStatus.status == status) {
-                return agentStatus;
+    public static AgentAliveStatusEnum valOf(int status) {
+        for (AgentAliveStatusEnum agentAliveStatus : values()) {
+            if (agentAliveStatus.status == status) {
+                return agentAliveStatus;
             }
         }
         return null;
     }
 
-    public static AgentStatusEnum fromAgentState(AgentState agentState) {
+    public static AgentAliveStatusEnum fromAgentState(AgentState agentState) {
         if (agentState == null || agentState.getStatusCode() == null) {
             return UNKNOWN;
         } else if (agentState.getStatusCode().equals(AgentStateStatusEnum.RUNNING.getValue())) {
@@ -71,11 +71,7 @@ public enum AgentStatusEnum {
         }
     }
 
-    public static boolean isAgentAlive(AgentState agentState) {
-        return fromAgentState(agentState) == ALIVE;
-    }
-
-    public int getValue() {
+    public int getStatusValue() {
         return status;
     }
 }
