@@ -104,20 +104,25 @@ public class TaskTargetDTO {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
             if (CollectionUtils.isEmpty(hostIds)) {
-                // TMP: 兼容前端只传入ip的场景；发布完成后删除,并加入前端校验
                 return;
             }
             Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
+            if (hosts == null || hosts.isEmpty()) {
+                return;
+            }
+
             target.getHostNodeList().getHostList().forEach(hostNode -> {
                 ApplicationHostDTO host = hosts.get(hostNode.getHostId());
-                hostNode.setAgentId(host.getAgentId());
-                hostNode.setCloudAreaId(host.getCloudAreaId());
-                hostNode.setIp(host.getIp());
-                hostNode.setIpv6(host.getIpv6());
-                hostNode.setDisplayIp(host.getDisplayIp());
-                hostNode.setOsName(host.getOsName());
-                hostNode.setOsType(host.getOsType());
-                hostNode.setGseAgentStatus(host.getGseAgentStatus());
+                if (host != null) {
+                    hostNode.setAgentId(host.getAgentId());
+                    hostNode.setCloudAreaId(host.getCloudAreaId());
+                    hostNode.setIp(host.getIp());
+                    hostNode.setIpv6(host.getIpv6());
+                    hostNode.setDisplayIp(host.getDisplayIp());
+                    hostNode.setOsName(host.getOsName());
+                    hostNode.setOsType(host.getOsType());
+                    hostNode.setGseAgentStatus(host.getGseAgentStatus());
+                }
             });
         }
     }

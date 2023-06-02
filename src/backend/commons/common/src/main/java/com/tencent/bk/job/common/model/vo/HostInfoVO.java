@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -148,12 +150,11 @@ public class HostInfoVO {
         this.os = osName;
     }
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         if (!JobContextUtil.isAllowMigration() && (hostId == null || hostId <= 0)) {
-            JobContextUtil.addDebugMessage("Missing host_id!");
-            return false;
+            log.warn("Missing host_id!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return true;
     }
 
     @Override

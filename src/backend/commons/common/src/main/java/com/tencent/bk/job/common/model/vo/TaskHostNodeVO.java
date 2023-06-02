@@ -28,11 +28,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
@@ -45,6 +47,7 @@ import java.util.List;
 @Data
 @ApiModel("主机节点信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
 public class TaskHostNodeVO {
 
     @ApiModelProperty("机器列表")
@@ -62,36 +65,33 @@ public class TaskHostNodeVO {
     @ApiModelProperty("动态分组")
     private List<Object> dynamicGroupList;
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         boolean allEmpty = true;
         if (CollectionUtils.isNotEmpty(nodeList)) {
             allEmpty = false;
             for (TargetNodeVO targetNodeVO : nodeList) {
-                if (!targetNodeVO.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Host node info validate failed!");
-                    return false;
-                }
+                targetNodeVO.validate(isCreate);
             }
         }
         if (CollectionUtils.isNotEmpty(dynamicGroupList)) {
             allEmpty = false;
             for (Object dynamicGroup : dynamicGroupList) {
                 if (dynamicGroup == null) {
-                    JobContextUtil.addDebugMessage("Host dynamic group id is empty!");
-                    return false;
+                    log.warn("Host dynamic group id is empty!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
             }
         }
         if (CollectionUtils.isNotEmpty(hostList)) {
             allEmpty = false;
             for (HostInfoVO hostInfoVO : hostList) {
-                if (!hostInfoVO.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Host info validate failed!");
-                    return false;
-                }
+                hostInfoVO.validate(isCreate);
             }
         }
-        return !allEmpty;
+        if (allEmpty) {
+            log.warn("TaskHostNode is empty!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
     }
 
     @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")

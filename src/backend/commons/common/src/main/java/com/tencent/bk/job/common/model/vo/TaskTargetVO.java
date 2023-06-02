@@ -25,10 +25,12 @@
 package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -37,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 @Data
 @ApiModel("执行目标信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
 public class TaskTargetVO {
 
     @ApiModelProperty(value = "全局变量名")
@@ -45,16 +48,16 @@ public class TaskTargetVO {
     @ApiModelProperty(value = "主机节点列表")
     private TaskHostNodeVO hostNodeInfo;
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         if (StringUtils.isNoneBlank(variable)) {
             hostNodeInfo = null;
-            return true;
+            return;
         }
         if (hostNodeInfo != null) {
-            return hostNodeInfo.validate(isCreate);
+            hostNodeInfo.validate(isCreate);
         } else {
-            JobContextUtil.addDebugMessage("Empty target info!");
-            return false;
+            log.warn("Empty target info!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 

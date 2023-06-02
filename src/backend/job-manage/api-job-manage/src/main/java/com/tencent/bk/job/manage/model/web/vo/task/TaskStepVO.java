@@ -24,10 +24,19 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
+import com.tencent.bk.job.common.util.check.exception.StringCheckException;
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Valid;
@@ -38,6 +47,7 @@ import java.util.List;
  */
 @Data
 @ApiModel("任务步骤信息")
+@Slf4j
 public class TaskStepVO {
 
     @ApiModelProperty("步骤 ID 仅在更新、删除时填写")
@@ -73,42 +83,54 @@ public class TaskStepVO {
     @ApiModelProperty(value = "引用的全局变量")
     private List<String> refVariables;
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         if (isCreate) {
             if (id != null && id > 0) {
-                JobContextUtil.addDebugMessage("Create request has step id!");
-                return false;
+                log.warn("Create request has step id!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
             if (StringUtils.isBlank(name)) {
-                JobContextUtil.addDebugMessage("Create request missing step name!");
-                return false;
+                log.warn("Create request missing step name!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
         }
         if (delete != null && delete == 1) {
-            return true;
+            return;
         }
-        switch (type) {
-            case 1:
-                if (scriptStepInfo == null || !scriptStepInfo.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Script step info validate failed!");
-                    return false;
+        try {
+            StringCheckHelper stepCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
+                new IlegalCharChecker(), new MaxLengthChecker(60));
+            this.name = stepCheckHelper.checkAndGetResult(name);
+        } catch (StringCheckException e) {
+            log.warn("Step name is invalid, stepName: {}", name);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
+        TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(type);
+        switch (stepType) {
+            case SCRIPT:
+                if (scriptStepInfo == null) {
+                    log.warn("Empty script step");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
+                scriptStepInfo.validate(isCreate);
                 break;
-            case 2:
-                if (fileStepInfo == null || !fileStepInfo.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("File step info validate failed!");
-                    return false;
+            case FILE:
+                if (fileStepInfo == null) {
+                    log.warn("Empty file step");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
+                fileStepInfo.validate(isCreate);
                 break;
-            case 3:
-                if (approvalStepInfo == null || !approvalStepInfo.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Approval step info validate failed!");
-                    return false;
+            case APPROVAL:
+                if (approvalStepInfo == null) {
+                    log.warn("Empty approval step");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
+                approvalStepInfo.validate(isCreate);
                 break;
             default:
-                return false;
+                log.warn("Invalid step type: {}", type);
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return true;
     }
 }

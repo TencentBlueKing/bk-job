@@ -25,12 +25,14 @@
 package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @since 13/12/2019 17:31
@@ -40,9 +42,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @ApiModel("云区域信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
 public class CloudAreaInfoVO {
     /**
-     * 云区域 ID：1是腾讯云 2是投后公司 3是私有云
+     * 云区域 ID
      */
     @ApiModelProperty(value = "云区域 ID", required = true)
     private Long id;
@@ -50,11 +53,10 @@ public class CloudAreaInfoVO {
     @ApiModelProperty("云区域名称")
     private String name;
 
-    public boolean validate(boolean isCreate) {
-        if (id != null && id >= 0) {
-            return true;
+    public void validate(boolean isCreate) throws InvalidParamException {
+        if (id == null || id < 0) {
+            log.warn("Invalid cloud area info! id: {}", id);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        JobContextUtil.addDebugMessage("Invalid cloud area info!");
-        return false;
     }
 }

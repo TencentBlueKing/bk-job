@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -39,6 +41,7 @@ import java.util.List;
  */
 @Data
 @ApiModel("步骤源文件信息")
+@Slf4j
 public class TaskFileSourceInfoVO {
 
     @ApiModelProperty(value = "文件 ID 新建填 0")
@@ -68,50 +71,46 @@ public class TaskFileSourceInfoVO {
     @ApiModelProperty(value = "文件源ID，来自文件源的文件需要传入")
     private Integer fileSourceId;
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         if (fileType == null || fileType <= 0 || fileType > 3) {
-            JobContextUtil.addDebugMessage("Invalid file type!");
-            return false;
+            log.warn("Invalid file type!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         switch (fileType) {
             case 1:
                 if (CollectionUtils.isEmpty(fileLocation)) {
-                    JobContextUtil.addDebugMessage("Empty file location!");
-                    return false;
+                    log.warn("Empty file location!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
                 for (String file : fileLocation) {
                     if (!FilePathValidateUtil.validateFileSystemAbsolutePath(file)) {
-                        JobContextUtil.addDebugMessage("fileLocation is illegal!");
-                        return false;
+                        log.warn("fileLocation is illegal!");
+                        throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                     }
                 }
-                if (!host.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Invalid host!");
-                    return false;
-                }
+                host.validate(isCreate);
                 if (account == null || account <= 0) {
-                    JobContextUtil.addDebugMessage("Invalid host account!");
-                    return false;
+                    log.warn("Invalid host account!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
                 break;
             case 2:
                 try {
                     Long.valueOf(fileSize);
                 } catch (NumberFormatException e) {
-                    JobContextUtil.addDebugMessage("Invalid file size!");
-                    return false;
+                    log.warn("Invalid file size!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
                 break;
             case 3:
                 if (fileSourceId == null || fileSourceId <= 0) {
-                    JobContextUtil.addDebugMessage("Invalid fileSourceId!");
-                    return false;
+                    log.warn("Invalid fileSourceId!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
                 break;
             default:
-                JobContextUtil.addDebugMessage("Invalid file type!");
-                return false;
+                log.warn("Invalid file type!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return true;
     }
 }

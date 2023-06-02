@@ -25,10 +25,12 @@
 package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -37,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 @Data
 @ApiModel("目标节点信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
 public class TargetNodeVO {
     @ApiModelProperty(value = "节点 ID，对应拓扑树节点中的instanceId", required = true)
     private Long id;
@@ -44,11 +47,14 @@ public class TargetNodeVO {
     @ApiModelProperty(value = "节点类型 biz-业务 set-集群 module-模块 xxx-用户自定义节点类型，对应拓扑树节点中的objectId", required = true)
     private String type;
 
-    public boolean validate(boolean isCreate) {
-        if (id != null && id > 0 && StringUtils.isNotBlank(type)) {
-            return true;
+    public void validate(boolean isCreate) throws InvalidParamException {
+        if (id == null || id <= 0) {
+            log.warn("Invalid target node id, id: {}", id);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        JobContextUtil.addDebugMessage("Target node info does not have id or type");
-        return false;
+        if (StringUtils.isBlank(type)) {
+            log.warn("Blank target node type");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
     }
 }
