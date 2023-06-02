@@ -28,6 +28,8 @@ import com.tencent.bk.job.backup.config.NfsStorageSystemConfig;
 import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +71,15 @@ public class NfsStorageServiceImpl implements StorageService {
             } else {
                 prefix = File.separator;
             }
-            String fileName = prefix + id + File.separatorChar + file.getOriginalFilename();
+            String originalFileName = file.getOriginalFilename();
+            if (StringUtils.isBlank(originalFileName)) {
+                throw new InvalidParamException(
+                    ErrorCode.ILLEGAL_PARAM_WITH_REASON,
+                    new String[]{"file", "filename cannot be blank"}
+                );
+            }
+            String fileName = prefix + id + File.separatorChar
+                + FilePathUtils.parseDirAndFileName(originalFileName).getRight();
 
             String fullFileName = storagePath.concat(fileName);
             File theFile = new File(fullFileName);
