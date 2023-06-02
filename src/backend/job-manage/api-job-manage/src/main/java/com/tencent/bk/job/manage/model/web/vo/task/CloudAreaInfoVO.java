@@ -55,7 +55,7 @@ public class CloudAreaInfoVO {
 
     public void validate(boolean isCreate) throws InvalidParamException {
         if (id == null || id < 0) {
-            log.warn("Invalid cloud area info!");
+            log.warn("Invalid cloud area info! id: {}", id);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }

@@ -90,11 +90,11 @@ public class TaskVariableVO {
             description = "";
         }
         if (type <= 0 || type > 6) {
-            log.warn("Invalid variable type!");
+            log.warn("Invalid variable type: {}", type);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (required == null || required > 1) {
-            log.warn("Invalid require option!");
+            log.warn("Invalid require option : {}", required);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }

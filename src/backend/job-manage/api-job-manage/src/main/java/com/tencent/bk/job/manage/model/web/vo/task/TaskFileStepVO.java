@@ -114,7 +114,7 @@ public class TaskFileStepVO {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (!FilePathValidateUtil.validateFileSystemAbsolutePath(fileDestination.getPath())) {
-            log.warn("fileDestinationPath is illegal!");
+            log.warn("fileDestinationPath is illegal! fileDestinationPath: {}", fileDestination.getPath());
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (fileDestination.getAccount() == null || fileDestination.getAccount() <= 0) {
@@ -123,7 +123,7 @@ public class TaskFileStepVO {
         }
         fileDestination.getServer().validate(isCreate);
         if (transferMode == null || transferMode < 1 || transferMode > 4) {
-            log.warn("Invalid transferMode setting!");
+            log.warn("Invalid transferMode : {}", transferMode);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (timeout == null || timeout < 0) {

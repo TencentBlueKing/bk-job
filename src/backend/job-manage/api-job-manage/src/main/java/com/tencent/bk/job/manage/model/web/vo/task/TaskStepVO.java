@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -94,7 +95,7 @@ public class TaskStepVO {
             }
         }
         if (delete != null && delete == 1) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            return;
         }
         try {
             StringCheckHelper stepCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
@@ -104,18 +105,31 @@ public class TaskStepVO {
             log.warn("Step name is invalid, stepName: {}", name);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        switch (type) {
-            case 1:
+        TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(type);
+        switch (stepType) {
+            case SCRIPT:
+                if (scriptStepInfo == null) {
+                    log.warn("Empty script step");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+                }
                 scriptStepInfo.validate(isCreate);
                 break;
-            case 2:
+            case FILE:
+                if (fileStepInfo == null) {
+                    log.warn("Empty file step");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+                }
                 fileStepInfo.validate(isCreate);
                 break;
-            case 3:
+            case APPROVAL:
+                if (approvalStepInfo == null) {
+                    log.warn("Empty approval step");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+                }
                 approvalStepInfo.validate(isCreate);
                 break;
             default:
-                log.warn("Invalid step type");
+                log.warn("Invalid step type: {}", type);
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }

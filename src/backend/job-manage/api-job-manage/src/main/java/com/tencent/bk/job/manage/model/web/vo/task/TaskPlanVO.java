@@ -208,7 +208,7 @@ public class TaskPlanVO {
             for (TaskVariableVO variable : variableList) {
                 variable.validate(isCreate);
                 if (variableNameList.contains(variable.getName())) {
-                    log.warn("Variable name duplicated!");
+                    log.warn("Variable name duplicated! name: {}", variable.getName());
                     throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
                 if (variable.getDelete() != null && variable.getDelete() != 1) {

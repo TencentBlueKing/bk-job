@@ -86,7 +86,7 @@ public class TaskScriptStepVO {
 
     public void validate(boolean isCreate) throws InvalidParamException {
         if (scriptSource == null || scriptSource <= 0) {
-            log.warn("Missing script step type!");
+            log.warn("Invalid script source : {}", scriptSource);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (status == null || status > 0b11 || status < 0) {

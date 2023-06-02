@@ -53,7 +53,7 @@ public class TargetNodeVO {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (StringUtils.isBlank(type)) {
-            log.warn("Invalid target node type");
+            log.warn("Blank target node type");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
