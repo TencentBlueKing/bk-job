@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.gse.GseClient;
-import com.tencent.bk.job.common.gse.util.FilePathUtils;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
