@@ -28,38 +28,38 @@
 export default {
   namespace: 'detectRecords',
   message: {
-    '搜索拦截ID，表达式，业务，执行人，执行方式，调用方，动作…': '',
+    '搜索拦截ID，表达式，业务，执行人，执行方式，调用方，动作…': 'Search by ID / Grammar Regex. / Ran by / ...',
     拦截ID: 'ID',
     表达式: {
-      label: 'GRAMMAR REGEX',
-      colHead: 'GRAMMAR REGEX',
+      label: 'Grammar regex',
+      colHead: 'Grammar regex',
     },
     业务: {
       label: 'APP',
       colHead: 'APP',
     },
     执行人: {
-      label: 'Launched By',
-      colHead: 'LAUNCHED BY',
+      label: 'Ran by',
+      colHead: 'Ran by',
     },
-    执行时间: 'EXECUTE TIME',
+    执行时间: 'Ran at',
     执行方式: {
       label: 'Source',
-      colHead: 'SOURCE',
+      colHead: 'Source',
     },
     调用方: {
       label: 'Client',
-      colHead: 'CLIENT',
+      colHead: 'Client',
     },
     动作: {
       label: 'Action',
-      colHead: 'ACTION',
+      colHead: 'Action',
     },
     脚本语言: {
-      label: 'Script Language',
-      colHead: 'SCRIPT LANGUAGE',
+      label: 'Script language',
+      colHead: 'Script language',
     },
-    操作: 'ACTIONS',
+    操作: 'Actions',
     选择日期: 'Select datetime',
     近1小时: 'Last 1 hour',
     近12小时: 'Last 12 hours',
