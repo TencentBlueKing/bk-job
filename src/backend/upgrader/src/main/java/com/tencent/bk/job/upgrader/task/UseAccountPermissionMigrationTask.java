@@ -53,6 +53,7 @@ import com.tencent.bk.job.upgrader.task.param.JobManageServerAddress;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -282,7 +283,14 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
             log.info("batchAuthedPolicy={}", JsonUtils.toJson(batchAuthedPolicy));
             return true;
         } catch (Exception e) {
-            log.error("Fail to auth subject {} to {}", JsonUtils.toJson(policy.getSubject()), policy.getExpiredAt(), e);
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to auth subject {} to {}",
+                new String[]{
+                    JsonUtils.toJson(policy.getSubject()),
+                    String.valueOf(policy.getExpiredAt())
+                }
+            ).getMessage();
+            log.error(msg, e);
             return false;
         }
     }

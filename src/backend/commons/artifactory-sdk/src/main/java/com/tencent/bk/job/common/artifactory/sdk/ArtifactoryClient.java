@@ -76,6 +76,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHeader;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.web.util.UriUtils;
 
 import java.io.File;
@@ -286,7 +287,15 @@ public class ArtifactoryClient {
             status = "ok";
             return result;
         } catch (Exception e) {
-            log.error("Fail to request ARTIFACTORY data|method={}|url={}|reqStr={}", method, url, reqStr, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to request ARTIFACTORY data|method={}|url={}|reqStr={}",
+                new String[]{
+                    method,
+                    url,
+                    reqStr
+                }
+            ).getMessage();
+            log.error(msg, e);
             status = "error";
             throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
         } finally {

@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatis
 import com.tencent.bk.job.execute.model.inner.request.ServiceGetCronTaskExecuteStatisticsRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -90,7 +91,14 @@ public class TaskExecuteResultServiceImpl implements TaskExecuteResultService {
                 return null;
             }
         } catch (Exception e) {
-            log.error("Get cron execute result failed!|{}|{}", appId, cronIdList, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Get cron execute result failed!|{}|{}",
+                new String[]{
+                    String.valueOf(appId),
+                    cronIdList.toString()
+                }
+            ).getMessage();
+            log.error(msg, e);
             return null;
         }
     }

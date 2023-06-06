@@ -60,6 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -197,7 +198,11 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
             cronJobExecuteHistory = cronJobService.getCronJobExecuteHistory(appId, cronJobIdList);
             cronJobLaunchHistory = cronJobHistoryService.getCronTaskLaunchResultStatistics(appId, cronJobIdList);
         } catch (Exception e) {
-            log.error("Error while processing cron history!|{}", appId, e);
+            String msg = MessageFormatter.format(
+                "Error while processing cron history!|{}",
+                appId
+            ).getMessage();
+            log.error(msg, e);
             return;
         }
         if (MapUtils.isEmpty(cronJobExecuteHistory) && MapUtils.isEmpty(cronJobLaunchHistory)) {

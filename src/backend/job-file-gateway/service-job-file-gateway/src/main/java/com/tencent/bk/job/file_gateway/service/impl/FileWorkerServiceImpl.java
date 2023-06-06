@@ -39,30 +39,31 @@ import com.tencent.bk.job.file_gateway.service.FileWorkerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Service
 public class FileWorkerServiceImpl implements FileWorkerService {
 
-    private final DSLContext dslContext;
     private final FileWorkerDAO fileWorkerDAO;
     private final FileSourceTypeDAO fileSourceTypeDAO;
     private final FileWorkerTagDAO fileWorkerTagDAO;
     private final FileGatewayConfig fileGatewayConfig;
 
     @Autowired
-    public FileWorkerServiceImpl(DSLContext dslContext,
-                                 FileWorkerDAO fileWorkerDAO,
+    public FileWorkerServiceImpl(FileWorkerDAO fileWorkerDAO,
                                  FileSourceTypeDAO fileSourceTypeDAO,
                                  FileWorkerTagDAO fileWorkerTagDAO,
                                  FileGatewayConfig fileGatewayConfig) {
-        this.dslContext = dslContext;
         this.fileWorkerDAO = fileWorkerDAO;
         this.fileSourceTypeDAO = fileSourceTypeDAO;
         this.fileWorkerTagDAO = fileWorkerTagDAO;
@@ -70,6 +71,7 @@ public class FileWorkerServiceImpl implements FileWorkerService {
     }
 
     @Override
+    @Transactional(rollbackFor = Throwable.class)
     public Long heartBeat(FileWorkerDTO fileWorkerDTO) {
         Long id;
         String configStr = fileWorkerDTO.getConfigStr();
@@ -98,16 +100,65 @@ public class FileWorkerServiceImpl implements FileWorkerService {
                 fileSourceTypeDTO.setWorkerId(id);
                 fileSourceTypeDTO.setCode(fileSourceMetaData.getFileSourceTypeCode());
                 fileSourceTypeDTO.setName(fileSourceMetaData.getName());
+                fileSourceTypeDTO.setEnabled(fileSourceMetaData.getEnabled());
                 fileSourceTypeDTO.setIcon(fileSourceMetaData.getIconBase64());
                 fileSourceTypeDTO.setStorageType(fileSourceMetaData.getStorageTypeCode());
                 fileSourceTypeDTO.setLastModifier("Worker_" + id);
                 fileSourceTypeDTOList.add(fileSourceTypeDTO);
             }
-            for (FileSourceTypeDTO fileSourceTypeDTO : fileSourceTypeDTOList) {
-                fileSourceTypeDAO.upsertByWorker(dslContext, fileSourceTypeDTO);
-            }
+            updateWorkerFileSourceType(id, fileSourceTypeDTOList);
         }
         return id;
+    }
+
+    private void updateWorkerFileSourceType(Long workerId, List<FileSourceTypeDTO> newFileSourceTypeList) {
+        List<FileSourceTypeDTO> currentFileSourceTypeList = fileSourceTypeDAO.listByWorkerId(workerId);
+        Map<String, FileSourceTypeDTO> codeTypeMap = new HashMap<>();
+        for (FileSourceTypeDTO fileSourceTypeDTO : currentFileSourceTypeList) {
+            if (!codeTypeMap.containsKey(fileSourceTypeDTO.getCode())) {
+                codeTypeMap.put(fileSourceTypeDTO.getCode(), fileSourceTypeDTO);
+            }
+        }
+        Set<String> newFileSourceCodes = new HashSet<>();
+        List<FileSourceTypeDTO> updateList = new ArrayList<>();
+        List<FileSourceTypeDTO> insertList = new ArrayList<>();
+        for (FileSourceTypeDTO fileSourceTypeDTO : newFileSourceTypeList) {
+            String code = fileSourceTypeDTO.getCode();
+            newFileSourceCodes.add(code);
+            if (codeTypeMap.containsKey(code)) {
+                fileSourceTypeDTO.setId(codeTypeMap.get(code).getId());
+                updateList.add(fileSourceTypeDTO);
+            } else {
+                insertList.add(fileSourceTypeDTO);
+            }
+        }
+        Set<String> currentFileSourceCodes = new HashSet<>();
+        List<Integer> deleteIdList = new ArrayList<>();
+        for (FileSourceTypeDTO fileSourceTypeDTO : currentFileSourceTypeList) {
+            String code = fileSourceTypeDTO.getCode();
+            if (!newFileSourceCodes.contains(code) || currentFileSourceCodes.contains(code)) {
+                deleteIdList.add(fileSourceTypeDTO.getId());
+            }
+            currentFileSourceCodes.add(code);
+        }
+        applyDataChanges(insertList, updateList, deleteIdList);
+    }
+
+    private void applyDataChanges(List<FileSourceTypeDTO> insertList,
+                                  List<FileSourceTypeDTO> updateList,
+                                  List<Integer> deleteIdList) {
+        if (!deleteIdList.isEmpty()) {
+            int deletedRowNum = fileSourceTypeDAO.batchDeleteByIds(deleteIdList);
+            log.info("{} fileSourceType deleted, deleteIdList={}", deletedRowNum, deleteIdList);
+        }
+        if (!insertList.isEmpty()) {
+            int insertedRowNum = fileSourceTypeDAO.batchInsert(insertList);
+            log.info("{} fileSourceType inserted", insertedRowNum);
+        }
+        if (!updateList.isEmpty()) {
+            int updatedRowNum = fileSourceTypeDAO.batchUpdate(updateList);
+            log.debug("{} fileSourceType updated", updatedRowNum);
+        }
     }
 
     private Long saveFileWorker(FileWorkerDTO fileWorkerDTO) {

@@ -70,6 +70,7 @@ import org.quartz.CronTrigger;
 import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -427,7 +428,14 @@ public class CronJobServiceImpl implements CronJobService {
             QuartzJobInfoDTO jobInfo = quartzTaskHandler.getJobInfo(systemId, jobKey);
             return fromQuartzJob(jobInfo);
         } catch (SchedulerException e) {
-            log.error("Error while get job info from scheduler|{}|{}", systemId, jobKey, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while get job info from scheduler|{}|{}",
+                new String[]{
+                    systemId,
+                    jobKey
+                }
+            ).getMessage();
+            log.error(msg, e);
             return null;
         }
     }
@@ -438,7 +446,14 @@ public class CronJobServiceImpl implements CronJobService {
             quartzTaskHandler.deleteJob(JobKey.jobKey(jobKey, systemId));
             return true;
         } catch (SchedulerException e) {
-            log.error("Error while delete inner cron job|{}|{}", systemId, jobKey, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Error while delete inner cron job|{}|{}",
+                new String[]{
+                    systemId,
+                    jobKey
+                }
+            ).getMessage();
+            log.error(msg, e);
             return false;
         }
     }

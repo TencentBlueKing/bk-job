@@ -28,6 +28,7 @@ import ch.qos.logback.classic.Level;
 import com.tencent.bk.job.common.util.FlowController;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
@@ -195,7 +196,14 @@ public class RedisSlideWindowFlowController implements FlowController {
                 redisTemplate.opsForValue().set(redisKey, redisValue);
                 count += 1;
             } catch (Exception e) {
-                log.error("Fail to write redis:key={},value={}", redisKey, redisValue, e);
+                String msg = MessageFormatter.arrayFormat(
+                    "Fail to write redis:key={},value={}",
+                    new String[]{
+                        redisKey,
+                        redisValue
+                    }
+                ).getMessage();
+                log.error(msg, e);
             }
         }
         return count;
@@ -209,7 +217,14 @@ public class RedisSlideWindowFlowController implements FlowController {
         try {
             return Long.parseLong(stringValue);
         } catch (Exception e) {
-            log.warn("Fail to parse maxRate, resourceId={},stringValue={}", resourceId, stringValue, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to parse maxRate, resourceId={},stringValue={}",
+                new String[]{
+                    resourceId,
+                    stringValue
+                }
+            ).getMessage();
+            log.error(msg, e);
             return null;
         }
     }
@@ -227,7 +242,11 @@ public class RedisSlideWindowFlowController implements FlowController {
                     map.put(maxRateKey.replace(REDIS_PREFIX_MAX_RATE, ""), Long.parseLong(value));
                 }
             } catch (Exception e) {
-                log.error("Fail to get redis value:key={}", maxRateKey, e);
+                String msg = MessageFormatter.format(
+                    "Fail to get redis value:key={}",
+                    maxRateKey
+                ).getMessage();
+                log.error(msg, e);
             }
         }
         return map;
@@ -252,7 +271,11 @@ public class RedisSlideWindowFlowController implements FlowController {
             try {
                 map.put(resourceId, getCurrentRate(resourceId));
             } catch (Exception e) {
-                log.error("Fail to get current rate:resourceId={}", resourceId, e);
+                String msg = MessageFormatter.format(
+                    "Fail to get current rate:resourceId={}",
+                    resourceId
+                ).getMessage();
+                log.error(msg, e);
             }
         }
         return map;

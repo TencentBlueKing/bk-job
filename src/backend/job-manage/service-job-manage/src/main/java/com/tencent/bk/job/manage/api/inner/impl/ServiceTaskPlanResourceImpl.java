@@ -67,6 +67,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -206,6 +207,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     }
 
     @Override
+    @Transactional(rollbackFor = {Throwable.class})
     public InternalResponse<Long> createPlanWithIdForMigration(
         String username,
         Long appId,
@@ -221,7 +223,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
 
     @Override
     public InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(Long appId, Long templateId, Long planId,
-                                                             String name) {
+                                                                  String name) {
         boolean idResult = taskPlanService.checkPlanId(planId);
         boolean nameResult = taskPlanService.checkPlanName(appId, templateId, 0L, name);
 
@@ -233,7 +235,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
 
     @Override
     public InternalResponse<Long> savePlanForImport(String username, Long appId, Long templateId,
-                                               Long createTime, TaskPlanVO planInfo) {
+                                                    Long createTime, TaskPlanVO planInfo) {
         if (planInfo.validateForImport()) {
             TaskPlanInfoDTO taskPlanInfo = TaskPlanInfoDTO.fromVO(username, appId, planInfo);
             if (createTime != null && createTime > 0) {
@@ -248,7 +250,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
 
     @Override
     public InternalResponse<List<ServiceTaskVariableDTO>> getPlanVariable(String username, Long appId, Long templateId,
-                                                                     Long planId) {
+                                                                          Long planId) {
         List<TaskVariableDTO> taskVariableList = taskVariableService.listVariablesByParentId(planId);
         if (CollectionUtils.isNotEmpty(taskVariableList)) {
             List<ServiceTaskVariableDTO> variableList =

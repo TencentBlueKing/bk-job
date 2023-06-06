@@ -179,6 +179,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                                          Integer type,
                                                          String creator,
                                                          String lastModifyUser,
+                                                         String remark,
                                                          Integer start,
                                                          Integer pageSize,
                                                          String orderField,
@@ -203,6 +204,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                 accountQuery.setType(AccountTypeEnum.valueOf(type));
                 accountQuery.setCreator(creator);
                 accountQuery.setLastModifyUser(lastModifyUser);
+                accountQuery.setRemark(remark);
             }
             pageData = accountService.listPageAccount(accountQuery, baseSearchCondition);
         } else {

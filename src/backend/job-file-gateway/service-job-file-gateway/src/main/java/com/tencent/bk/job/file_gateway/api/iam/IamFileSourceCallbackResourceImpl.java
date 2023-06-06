@@ -43,6 +43,7 @@ import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -199,7 +200,11 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
                 Integer id = Integer.parseInt(instanceId);
                 fileSourceIdList.add(id);
             } catch (NumberFormatException e) {
-                log.error("Parse fileSource id failed!|{}", instanceId, e);
+                String msg = MessageFormatter.format(
+                    "Parse fileSource id failed!|{}",
+                    instanceId
+                ).getMessage();
+                log.error(msg, e);
             }
         }
         List<FileSourceBasicInfoDTO> fileSourceBasicInfoDTOList =

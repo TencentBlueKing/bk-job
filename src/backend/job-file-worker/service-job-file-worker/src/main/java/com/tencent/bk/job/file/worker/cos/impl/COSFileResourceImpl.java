@@ -51,6 +51,7 @@ import com.tencent.cos.model.COSObjectSummary;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -139,7 +140,11 @@ public class COSFileResourceImpl implements IFileResource {
             jobTencentInnerCOSClient.deleteBucket(bucketName);
             return true;
         } catch (Exception e) {
-            log.error("Fail to delete bucket {}", bucketName, e);
+            String msg = MessageFormatter.format(
+                "Fail to delete bucket {}",
+                bucketName
+            ).getMessage();
+            log.error(msg, e);
             throw new InvalidParamException(e.getMessage(), ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DELETE_BUCKET);
         }
     }
@@ -152,7 +157,14 @@ public class COSFileResourceImpl implements IFileResource {
             jobTencentInnerCOSClient.deleteObject(bucketName, key);
             return true;
         } catch (Exception e) {
-            log.error("Fail to delete bucket {} file:{}", bucketName, key, e);
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to delete bucket {} file:{}",
+                new String[]{
+                    bucketName,
+                    key
+                }
+            ).getMessage();
+            log.error(msg, e);
             throw new InvalidParamException(e.getMessage(), ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DELETE_OBJECT);
         }
     }
