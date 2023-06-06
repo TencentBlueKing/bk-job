@@ -118,7 +118,7 @@
       this.init();
     },
     beforeDestroy() {
-      if (this.$refs.detail && document.body.hasChildNodes(this.$refs.detail)) {
+      if (this.$refs.detail && this.$refs.detail.parentNode) {
         this.$refs.detail.parentNode.removeChild(this.$refs.detail);
       }
     },
