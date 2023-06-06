@@ -98,7 +98,10 @@
   import ExecPlanService from '@service/task-plan';
 
   import {
+    checkIllegalHostFromVariableStep,
     findUsedVariable,
+    removeIllegalHostFromStep,
+    removeIllegalHostFromVariable,
   } from '@utils/assist';
 
   import BackTop from '@components/back-top';
@@ -243,6 +246,20 @@
        * 2，任务没有选举变量时需要先设置变量
        */
       handleSubmitExec() {
+        // 包含无效主机
+        const hasIllegalHost = checkIllegalHostFromVariableStep(
+          this.formData.variables,
+          this.formData.enableSteps,
+          () => {
+            this.variableList = removeIllegalHostFromVariable(this.variableList);
+            this.formData.variables = removeIllegalHostFromVariable(this.formData.variables);
+            this.taskStepList = removeIllegalHostFromStep(this.taskStepList);
+            this.formData.enableSteps = removeIllegalHostFromStep(this.formData.enableSteps);
+          },
+        );
+        if (hasIllegalHost) {
+          return;
+        }
         this.isExecuting = true;
         ExecPlanService.planUpdate(this.formData)
           .then(() => {

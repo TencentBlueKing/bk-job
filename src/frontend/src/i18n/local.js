@@ -333,7 +333,7 @@ export default {
   '以上内容存在错误：': '',
   'IP 在本业务下不存在': '',
   标识错误: '',
-  一键清除: '',
+  一键清除: 'One-click Cleanup',
   '内容格式错误，无法识别': '',
   添加到已选择: 'Append to Selected List',
   关闭: 'Close',
@@ -580,4 +580,12 @@ export default {
   滚动策略格式不正确: 'Strategy is incorrect format',
   扫描: 'Scan',
   拦截: 'Block',
+  '中存在失效主机，请处理后重试': 'contains invalid hosts, please fix it and retry! ',
+  变量: {
+    illegal: 'Variable',
+  },
+  步骤: {
+    illegal: 'Step',
+  },
+  清除成功: 'Successful',
 };

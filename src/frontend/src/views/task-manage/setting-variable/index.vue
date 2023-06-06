@@ -91,7 +91,12 @@
   import TaskExecuteService from '@service/task-execute';
   import TaskPlanService from '@service/task-plan';
 
-  import { findUsedVariable } from '@utils/assist';
+  import {
+    checkIllegalHostFromVariableTargetValue,
+    findUsedVariable,
+    removeIllegalHostFromStep,
+    removeIllegalHostFromVariable,
+  } from '@utils/assist';
 
   import BackTop from '@components/back-top';
   import GlobalVariable from '@components/global-variable/edit';
@@ -206,37 +211,52 @@
         }
         this.isSubmiting = true;
         Promise.all(validateQueue)
-          .then(taskVariables => TaskExecuteService.taskExecution({
-            taskId: this.taskId,
-            taskVariables: taskVariables.map(({
-              id,
-              name,
-              type,
-              value,
-              targetValue,
-            }) => ({
-              id,
-              name,
-              type,
-              value,
-              targetValue,
-            })),
-          }).then(({ taskInstanceId }) => {
-            this.$bkMessage({
-              theme: 'success',
-              message: I18n.t('template.执行成功'),
+          .then((variableList) => {
+            // 包含无效主机
+            const hasIllegalHost = checkIllegalHostFromVariableTargetValue(variableList, () => {
+              if (this.$refs.used) {
+                this.$refs.used.forEach(item => item.removeIllegalHost());
+              }
+              if (this.$refs.unused) {
+                this.$refs.unused.forEach(item => item.removeIllegalHost());
+              }
             });
-            window.changeFlag = false;
-            this.$router.push({
-              name: 'historyTask',
-              params: {
-                id: taskInstanceId,
-              },
-              query: {
-                from: 'planList',
-              },
+            if (hasIllegalHost) {
+              return Promise.reject();
+            }
+
+            return TaskExecuteService.taskExecution({
+              taskId: this.taskId,
+              taskVariables: variableList.map(({
+                id,
+                name,
+                type,
+                value,
+                targetValue,
+              }) => ({
+                id,
+                name,
+                type,
+                value,
+                targetValue,
+              })),
+            }).then(({ taskInstanceId }) => {
+              this.$bkMessage({
+                theme: 'success',
+                message: I18n.t('template.执行成功'),
+              });
+              window.changeFlag = false;
+              this.$router.push({
+                name: 'historyTask',
+                params: {
+                  id: taskInstanceId,
+                },
+                query: {
+                  from: 'planList',
+                },
+              });
             });
-          }))
+          })
           .catch(() => {
             this.isSubmiting = false;
           });

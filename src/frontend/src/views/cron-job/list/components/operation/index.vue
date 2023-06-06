@@ -190,8 +190,12 @@
   import TimeTaskService from '@service/time-task';
 
   import {
+    checkIllegalHostFromVariableStep,
+    checkIllegalHostFromVariableTargetValue,
     findUsedVariable,
     generatorDefaultCronTime,
+    removeIllegalHostFromStep,
+    removeIllegalHostFromVariable,
   } from '@utils/assist';
   import { timeTaskNameRule } from '@utils/validator';
 
@@ -632,24 +636,38 @@
        * @desc 保存定时任务
        */
       submit() {
-        return this.$refs.timeTaskForm.validate().then(() => {
-          if (this.currentPlanVariableList.length < 1) {
-            return Promise.resolve([]);
-          }
-          const validateQueue = [];
-          if (this.$refs.usedVariable) {
-            this.$refs.usedVariable.forEach((item) => {
-              validateQueue.push(item.validate());
+        return this.$refs.timeTaskForm.validate()
+          .then(() => {
+            if (this.currentPlanVariableList.length < 1) {
+              return Promise.resolve([]);
+            }
+            const validateQueue = [];
+            if (this.$refs.usedVariable) {
+              this.$refs.usedVariable.forEach((item) => {
+                validateQueue.push(item.validate());
+              });
+            }
+            if (this.$refs.unusedVariable) {
+              this.$refs.unusedVariable.forEach((item) => {
+                validateQueue.push(item.validate());
+              });
+            }
+            return Promise.all(validateQueue);
+          })
+          .then((variableList) => {
+            // 包含无效主机
+            const hasIllegalHost = checkIllegalHostFromVariableTargetValue(variableList, () => {
+              if (this.$refs.usedVariable) {
+                this.$refs.usedVariable.forEach(item => item.removeIllegalHost());
+              }
+              if (this.$refs.unusedVariable) {
+                this.$refs.unusedVariable.forEach(item => item.removeIllegalHost());
+              }
             });
-          }
-          if (this.$refs.unusedVariable) {
-            this.$refs.unusedVariable.forEach((item) => {
-              validateQueue.push(item.validate());
-            });
-          }
-          return Promise.all(validateQueue);
-        })
-          .then((variableValue) => {
+            if (hasIllegalHost) {
+              return Promise.reject();
+            }
+
             const params = { ...this.formData };
             if (this.strategy === 'period') {
               params.executeTime = '';
@@ -662,7 +680,7 @@
             }
             return TimeTaskService.timeTaskUpdate({
               ...params,
-              variableValue,
+              variableValue: variableList,
             }).then(() => {
               if (params.id) {
                 // 编辑
