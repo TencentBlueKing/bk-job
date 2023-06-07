@@ -213,7 +213,7 @@ public class TopologyHelper {
         dynamicGroupInfoVO.setName(dynamicGroupWithHost.getName());
         dynamicGroupInfoVO.setType(dynamicGroupWithHost.getType());
         if (dynamicGroupWithHost.getIpListStatus() != null) {
-            dynamicGroupInfoVO.setIpListStatus(dynamicGroupWithHost.getIpListStatus().parallelStream()
+            dynamicGroupInfoVO.setIpListStatus(dynamicGroupWithHost.getIpListStatus().stream()
                 .map(ApplicationHostDTO::toVO).collect(Collectors.toList()));
         } else {
             dynamicGroupInfoVO.setIpListStatus(null);

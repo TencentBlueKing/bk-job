@@ -103,8 +103,8 @@ public class AccountAuthServiceImpl implements AccountAuthService {
                                              List<Long> accountIdList) {
         List<String> allowIdList = appAuthService.batchAuth(username, ActionId.MANAGE_ACCOUNT, appResourceScope,
             ResourceTypeEnum.ACCOUNT,
-            accountIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
-        return allowIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            accountIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        return allowIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
@@ -113,8 +113,8 @@ public class AccountAuthServiceImpl implements AccountAuthService {
                                           List<Long> accountIdList) {
         List<String> allowIdList = appAuthService.batchAuth(username, ActionId.USE_ACCOUNT, appResourceScope,
             ResourceTypeEnum.ACCOUNT,
-            accountIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
-        return allowIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            accountIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        return allowIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override

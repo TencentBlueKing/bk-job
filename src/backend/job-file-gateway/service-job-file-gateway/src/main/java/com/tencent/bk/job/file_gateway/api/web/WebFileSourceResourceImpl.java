@@ -230,7 +230,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         PageData<FileSourceVO> pageData = new PageData<>();
         Integer count = fileSourceService.countAvailableFileSource(appId, credentialId, alias);
         List<FileSourceVO> resultList = fileSourceService.listAvailableFileSource(appId, credentialId, alias, start,
-            pageSize).parallelStream().map(FileSourceDTO::toVO).collect(Collectors.toList());
+            pageSize).stream().map(FileSourceDTO::toVO).collect(Collectors.toList());
         pageData.setTotal((long) count);
         pageData.setData(resultList);
         pageData.setStart(start);
@@ -256,7 +256,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         PageData<FileSourceVO> pageData = new PageData<>();
         Integer count = fileSourceService.countWorkTableFileSource(appId, credentialId, alias);
         List<FileSourceVO> resultList = fileSourceService.listWorkTableFileSource(appId, credentialId, alias, start,
-            pageSize).parallelStream().map(FileSourceDTO::toVO).collect(Collectors.toList());
+            pageSize).stream().map(FileSourceDTO::toVO).collect(Collectors.toList());
         pageData.setTotal((long) count);
         pageData.setData(resultList);
         pageData.setStart(start);
@@ -356,7 +356,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     private void addPermissionData(String username, AppResourceScope appResourceScope,
                                    PageData<FileSourceVO> fileSourceVOPageData) {
         List<FileSourceVO> fileSourceVOList = fileSourceVOPageData.getData();
-        List<Integer> currentAppFileSourceIdList = fileSourceVOList.parallelStream()
+        List<Integer> currentAppFileSourceIdList = fileSourceVOList.stream()
             .map(FileSourceVO::getId)
             .collect(Collectors.toList());
         // 添加权限数据

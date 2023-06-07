@@ -193,7 +193,7 @@ public class DispatchServiceImpl implements DispatchService {
             return null;
         }
         // 在线状态过滤
-        fileWorkerDTOList = fileWorkerDTOList.parallelStream().filter(tmpFileWorkerDTO -> {
+        fileWorkerDTOList = fileWorkerDTOList.stream().filter(tmpFileWorkerDTO -> {
             Byte onlineStatus = tmpFileWorkerDTO.getOnlineStatus();
             return onlineStatus != null && onlineStatus.intValue() == 1;
         }).collect(Collectors.toList());

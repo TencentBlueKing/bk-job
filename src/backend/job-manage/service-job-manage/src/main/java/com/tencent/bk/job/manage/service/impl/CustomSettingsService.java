@@ -120,7 +120,7 @@ public class CustomSettingsService {
         if (CollectionUtils.isEmpty(modules)) {
             return Collections.emptyList();
         }
-        return modules.parallelStream()
+        return modules.stream()
             .map(module -> UserCustomSettingDTO.getKey(username, appId, module))
             .collect(Collectors.toList());
     }

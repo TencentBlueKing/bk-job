@@ -208,7 +208,7 @@ public class CronJobDAOImpl implements CronJobDAO {
     @Override
     public List<CronJobInfoDTO> getCronJobByIds(List<Long> cronJobIdList) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.ID.in(cronJobIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(TABLE.ID.in(cronJobIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
         return fetchData(conditions);
     }
@@ -464,7 +464,7 @@ public class CronJobDAOImpl implements CronJobDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.eq(DbRecordMapper.getJooqLongValue(appId)));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
-        conditions.add(TABLE.ID.in(cronJobIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(TABLE.ID.in(cronJobIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
 
         return fetchData(conditions);
     }

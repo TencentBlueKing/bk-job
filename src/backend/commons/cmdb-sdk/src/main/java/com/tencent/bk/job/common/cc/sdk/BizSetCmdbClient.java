@@ -237,7 +237,7 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     @Override
     public List<BizSetInfo> listAllBizSets() {
         List<BizSetInfo> bizSetInfoList = searchAllBizSet();
-        bizSetInfoList.parallelStream().forEach(bizSetInfo -> {
+        bizSetInfoList.forEach(bizSetInfo -> {
             // 查询业务集下包含的子业务(全业务除外)
             BizSetScope scope = bizSetInfo.getScope();
             if (scope != null && !scope.isMatchAll()) {

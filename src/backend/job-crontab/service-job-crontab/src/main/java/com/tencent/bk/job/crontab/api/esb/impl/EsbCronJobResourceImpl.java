@@ -120,7 +120,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
                 }
                 PageData<CronJobInfoDTO> cronJobInfoPageData =
                     cronJobService.listPageCronJobInfos(cronJobCondition, baseSearchCondition);
-                return EsbResp.buildSuccessResp(cronJobInfoPageData.getData().parallelStream()
+                return EsbResp.buildSuccessResp(cronJobInfoPageData.getData().stream()
                     .map(CronJobInfoDTO::toEsbCronInfo).collect(Collectors.toList()));
             }
         }

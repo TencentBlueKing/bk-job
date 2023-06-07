@@ -76,7 +76,7 @@ public class CommonStatisticService {
         List<SimpleAppInfoDTO> applicationDTOList = JsonUtils.fromJson(statisticsDTO.getValue(),
             new TypeReference<List<SimpleAppInfoDTO>>() {
             });
-        return applicationDTOList.parallelStream().map(SimpleAppInfoDTO::getId).collect(Collectors.toList());
+        return applicationDTOList.stream().map(SimpleAppInfoDTO::getId).collect(Collectors.toList());
     }
 
     /**

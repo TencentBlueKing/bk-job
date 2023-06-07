@@ -293,7 +293,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         List<TaskVariableDTO> taskVariableList = taskVariableService.listVariablesByParentId(templateId);
         if (CollectionUtils.isNotEmpty(taskVariableList)) {
             List<ServiceTaskVariableDTO> variableList =
-                taskVariableList.parallelStream().map(TaskVariableDTO::toServiceDTO).collect(Collectors.toList());
+                taskVariableList.stream().map(TaskVariableDTO::toServiceDTO).collect(Collectors.toList());
             return InternalResponse.buildSuccessResp(variableList);
         }
         return InternalResponse.buildSuccessResp(Collections.emptyList());
@@ -317,7 +317,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         resultData.setTotal(templateListPage.getTotal());
         resultData.setStart(templateListPage.getStart());
         resultData.setPageSize(templateListPage.getPageSize());
-        resultData.setData(templateListPage.getData().parallelStream().map(TaskTemplateInfoDTO::toServiceDTO)
+        resultData.setData(templateListPage.getData().stream().map(TaskTemplateInfoDTO::toServiceDTO)
             .collect(Collectors.toList()));
         return InternalResponse.buildSuccessResp(resultData);
     }

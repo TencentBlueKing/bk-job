@@ -302,7 +302,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         return Response.buildSuccessResp(
             new UploadTargetVO(
                 urlInfoList
-                    .parallelStream()
+                    .stream()
                     .map(TempUrlInfo::getUrl)
                     .collect(Collectors.toList())
             )

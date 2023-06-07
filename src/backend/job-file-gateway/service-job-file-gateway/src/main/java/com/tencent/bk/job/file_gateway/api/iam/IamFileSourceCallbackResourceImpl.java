@@ -104,7 +104,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
         List<String> idStrList = searchCondition.getIdList();
         List<Integer> fileSourceIdList = null;
         if (idStrList != null) {
-            fileSourceIdList = idStrList.parallelStream().map(Integer::parseInt).collect(Collectors.toList());
+            fileSourceIdList = idStrList.stream().map(Integer::parseInt).collect(Collectors.toList());
         }
 
         int start = searchCondition.getStart().intValue();

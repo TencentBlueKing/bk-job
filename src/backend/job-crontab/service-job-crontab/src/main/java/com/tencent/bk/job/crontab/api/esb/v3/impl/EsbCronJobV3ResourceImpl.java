@@ -189,7 +189,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                 }
                 PageData<CronJobInfoDTO> cronJobInfoPageData = cronJobService.listPageCronJobInfos(cronJobCondition,
                     baseSearchCondition);
-                List<EsbCronInfoV3DTO> cronInfoV3ResponseData = cronJobInfoPageData.getData().parallelStream()
+                List<EsbCronInfoV3DTO> cronInfoV3ResponseData = cronJobInfoPageData.getData().stream()
                     .peek(cronJobInfoDTO -> cronJobInfoDTO.setVariableValue(null))
                     .map(CronJobInfoDTO::toEsbCronInfoV3).collect(Collectors.toList());
                 EsbPageDataV3<EsbCronInfoV3DTO> esbPageDataV3 = new EsbPageDataV3<>();
@@ -271,7 +271,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
             esbGlobalVarV3DTO.setName(taskVariableDTO.getName());
             esbGlobalVarV3DTO.setType(taskVariableDTO.getType());
         }
-        cronJobInfo.setVariableValue(globalVarV3DTOList.parallelStream().map(globalVarV3DTO -> {
+        cronJobInfo.setVariableValue(globalVarV3DTOList.stream().map(globalVarV3DTO -> {
             CronJobVariableDTO cronJobVariableDTO = new CronJobVariableDTO();
             cronJobVariableDTO.setId(globalVarV3DTO.getId());
             cronJobVariableDTO.setName(globalVarV3DTO.getName());

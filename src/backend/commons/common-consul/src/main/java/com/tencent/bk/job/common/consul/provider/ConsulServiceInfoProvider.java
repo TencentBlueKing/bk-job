@@ -146,7 +146,7 @@ public class ConsulServiceInfoProvider implements ServiceInfoProvider {
         for (ServiceInstance serviceInstance : serviceInstanceList) {
             log.debug("serviceInstance={}", JsonUtils.toJson(serviceInstance));
         }
-        return serviceInstanceList.parallelStream().filter(serviceInstance -> {
+        return serviceInstanceList.stream().filter(serviceInstance -> {
             ConsulServiceInstance consulServiceInstance = (ConsulServiceInstance) serviceInstance;
             return consulServiceInstance.getTags().contains(
                 JobDiscoveryConsts.TAG_KEY_TYPE + "=" + JobDiscoveryConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE

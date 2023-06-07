@@ -57,12 +57,12 @@ public class ServiceTagResourceImpl implements ServiceTagResource {
     @Override
     public InternalResponse<List<ServiceTagDTO>> listTags(Long appId) {
         List<TagDTO> tags = tagService.listTags(appId, null);
-        return InternalResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
+        return InternalResponse.buildSuccessResp(tags.stream().map(this::convert).collect(Collectors.toList()));
     }
 
     @Override
     public InternalResponse<List<ServiceTagDTO>> listPublicTags() {
         List<TagDTO> tags = tagService.listTags(JobConstants.PUBLIC_APP_ID, null);
-        return InternalResponse.buildSuccessResp(tags.parallelStream().map(this::convert).collect(Collectors.toList()));
+        return InternalResponse.buildSuccessResp(tags.stream().map(this::convert).collect(Collectors.toList()));
     }
 }

@@ -156,7 +156,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Override
     public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
         List<Condition> conditions = getBasicNotDeletedConditions();
-        conditions.add(T_APP.APP_ID.in(appIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(T_APP.APP_ID.in(appIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         return listAppsByConditions(conditions);
     }
 
@@ -165,7 +165,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.BK_SCOPE_TYPE.eq(ResourceScopeTypeEnum.BIZ.getValue()));
         conditions.add(
-            T_APP.BK_SCOPE_ID.in(bizIdList.parallelStream().map(Object::toString)
+            T_APP.BK_SCOPE_ID.in(bizIdList.stream().map(Object::toString)
                 .collect(Collectors.toList()))
         );
         return listAppsByConditions(conditions);

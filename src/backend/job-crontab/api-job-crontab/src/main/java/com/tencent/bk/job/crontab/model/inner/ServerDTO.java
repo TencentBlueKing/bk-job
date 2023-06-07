@@ -85,7 +85,7 @@ public class ServerDTO {
         // 聚合通过hostId与IP指定的主机信息
         List<HostInfoVO> hostInfoVOList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(server.getIps())) {
-            hostInfoVOList.addAll(server.getIps().parallelStream().map(HostDTO::toVO).collect(Collectors.toList()));
+            hostInfoVOList.addAll(server.getIps().stream().map(HostDTO::toVO).collect(Collectors.toList()));
         }
         if (!hostInfoVOList.isEmpty()) {
             taskHostNode.setHostList(hostInfoVOList);
@@ -94,7 +94,7 @@ public class ServerDTO {
             taskHostNode.setDynamicGroupIdList(server.getDynamicGroupIds());
         }
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
-            taskHostNode.setNodeList(server.getTopoNodes().parallelStream()
+            taskHostNode.setNodeList(server.getTopoNodes().stream()
                 .map(CmdbTopoNodeDTO::toVO).collect(Collectors.toList()));
         }
         taskTarget.setHostNodeInfo(taskHostNode);
@@ -110,14 +110,14 @@ public class ServerDTO {
         if (taskTarget.getHostNodeInfo() != null) {
             TaskHostNodeVO hostNodeInfo = taskTarget.getHostNodeInfo();
             if (CollectionUtils.isNotEmpty(hostNodeInfo.getHostList())) {
-                server.setIps(hostNodeInfo.getHostList().parallelStream()
+                server.setIps(hostNodeInfo.getHostList().stream()
                     .map(HostDTO::fromVO).collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(hostNodeInfo.getDynamicGroupIdList())) {
                 server.setDynamicGroupIds(hostNodeInfo.getDynamicGroupIdList());
             }
             if (CollectionUtils.isNotEmpty(hostNodeInfo.getNodeList())) {
-                server.setTopoNodes(hostNodeInfo.getNodeList().parallelStream()
+                server.setTopoNodes(hostNodeInfo.getNodeList().stream()
                     .map(CmdbTopoNodeDTO::fromVO).collect(Collectors.toList()));
             }
         }
@@ -162,17 +162,17 @@ public class ServerDTO {
         EsbServerV3DTO esbServer = new EsbServerV3DTO();
         esbServer.setVariable(server.getVariable());
         if (CollectionUtils.isNotEmpty(server.getIps())) {
-            esbServer.setIps(server.getIps().parallelStream().map(EsbIpDTO::fromHost).collect(Collectors.toList()));
+            esbServer.setIps(server.getIps().stream().map(EsbIpDTO::fromHost).collect(Collectors.toList()));
         }
         if (CollectionUtils.isNotEmpty(server.getDynamicGroupIds())) {
-            esbServer.setDynamicGroups(server.getDynamicGroupIds().parallelStream().map(id -> {
+            esbServer.setDynamicGroups(server.getDynamicGroupIds().stream().map(id -> {
                 EsbDynamicGroupDTO esbDynamicGroup = new EsbDynamicGroupDTO();
                 esbDynamicGroup.setId(id);
                 return esbDynamicGroup;
             }).collect(Collectors.toList()));
         }
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
-            esbServer.setTopoNodes(server.getTopoNodes().parallelStream()
+            esbServer.setTopoNodes(server.getTopoNodes().stream()
                 .map(EsbCmdbTopoNodeDTO::fromCmdbTopoNode).collect(Collectors.toList()));
         }
         return esbServer;

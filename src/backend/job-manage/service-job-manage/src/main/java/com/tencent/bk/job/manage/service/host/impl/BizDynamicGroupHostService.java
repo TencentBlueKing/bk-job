@@ -122,7 +122,7 @@ public class BizDynamicGroupHostService {
         if (CollectionUtils.isEmpty(dynamicGroupHostList)) {
             return Collections.emptyList();
         }
-        return dynamicGroupHostList.parallelStream()
+        return dynamicGroupHostList.stream()
             .filter(Objects::nonNull)
             .map(DynamicGroupHostPropDTO::getId)
             .collect(Collectors.toList());

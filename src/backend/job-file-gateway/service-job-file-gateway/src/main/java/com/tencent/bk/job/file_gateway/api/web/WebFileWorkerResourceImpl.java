@@ -62,7 +62,7 @@ public class WebFileWorkerResourceImpl implements WebFileWorkerResource {
             return Response.buildSuccessResp(Collections.emptyList());
         }
         List<FileWorkerVO> fileWorkerVOList =
-            fileWorkerDTOList.parallelStream().map(FileWorkerDTO::toVO).collect(Collectors.toList());
+            fileWorkerDTOList.stream().map(FileWorkerDTO::toVO).collect(Collectors.toList());
         return Response.buildSuccessResp(fileWorkerVOList);
     }
 }

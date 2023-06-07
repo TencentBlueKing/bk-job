@@ -255,7 +255,7 @@ public class TaskPlanInfoDTO {
 
         Map<Long, String> variableDefaultValueMap = new ConcurrentHashMap<>();
         if (CollectionUtils.isNotEmpty(planInfo.getVariableList())) {
-            planInfo.getVariableList().parallelStream().forEach(taskVariableDTO -> {
+            planInfo.getVariableList().forEach(taskVariableDTO -> {
                 if (taskVariableDTO.getDefaultValue() == null) {
                     // No default value in request, skip
                     return;
@@ -302,7 +302,7 @@ public class TaskPlanInfoDTO {
 
         if (CollectionUtils.isNotEmpty(planInfo.getVariableList())) {
             taskPlanInfoDTO.setVariableList(
-                planInfo.getVariableList().parallelStream().map(TaskVariableDTO::fromVO).collect(Collectors.toList()));
+                planInfo.getVariableList().stream().map(TaskVariableDTO::fromVO).collect(Collectors.toList()));
         }
         taskPlanInfoDTO.setDebug(false);
         taskPlanInfoDTO.setVersion(planInfo.getVersion());
@@ -324,7 +324,7 @@ public class TaskPlanInfoDTO {
         esbPlanInfo.setLastModifyUser(taskPlanInfo.getLastModifyUser());
         esbPlanInfo.setLastModifyTime(taskPlanInfo.getLastModifyTime());
         if (CollectionUtils.isNotEmpty(taskPlanInfo.getStepList())) {
-            esbPlanInfo.setStepList(taskPlanInfo.getStepList().parallelStream()
+            esbPlanInfo.setStepList(taskPlanInfo.getStepList().stream()
                 .map(TaskStepDTO::toEsbStepV3).collect(Collectors.toList()));
         }
         if (CollectionUtils.isNotEmpty(taskPlanInfo.getVariableList())) {

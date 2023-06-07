@@ -1044,14 +1044,14 @@ public class WebScriptResourceImpl implements WebScriptResource {
             citedTemplateList = Collections.emptyList();
         }
         List<ScriptCitedTemplateVO> citedTemplateVOList =
-            citedTemplateList.parallelStream().map(ScriptCitedTaskTemplateDTO::toVO).collect(Collectors.toList());
+            citedTemplateList.stream().map(ScriptCitedTaskTemplateDTO::toVO).collect(Collectors.toList());
         List<ScriptCitedTaskPlanDTO> citedTaskPlanList = scriptService.getScriptCitedTaskPlans(username, appId,
             scriptId, scriptVersionId);
         if (citedTaskPlanList == null) {
             citedTaskPlanList = Collections.emptyList();
         }
         List<ScriptCitedTaskPlanVO> citedTaskPlanVOList =
-            citedTaskPlanList.parallelStream().map(ScriptCitedTaskPlanDTO::toVO).collect(Collectors.toList());
+            citedTaskPlanList.stream().map(ScriptCitedTaskPlanDTO::toVO).collect(Collectors.toList());
         return new ScriptCiteInfoVO(citedTemplateVOList, citedTaskPlanVOList);
     }
 

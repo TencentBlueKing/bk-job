@@ -193,7 +193,7 @@ public class IndexServiceImpl implements IndexService {
             bizIds, null, null, null, status, start, pageSize);
         Long count = applicationHostDAO.countHostInfoBySearchContents(
             bizIds, null, null, null, status);
-        hostInfoVOList = hosts.parallelStream()
+        hostInfoVOList = hosts.stream()
             .filter(Objects::nonNull)
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());
@@ -208,7 +208,7 @@ public class IndexServiceImpl implements IndexService {
         resultPageData.setStart(hostInfoVOPageData.getStart());
         resultPageData.setPageSize(hostInfoVOPageData.getPageSize());
         resultPageData.setTotal(hostInfoVOPageData.getTotal());
-        resultPageData.setData(hostInfoVOPageData.getData().parallelStream()
+        resultPageData.setData(hostInfoVOPageData.getData().stream()
             .map(it -> it.getCloudArea().getId() + ":" + it.getIp()).collect(Collectors.toList()));
         return resultPageData;
     }

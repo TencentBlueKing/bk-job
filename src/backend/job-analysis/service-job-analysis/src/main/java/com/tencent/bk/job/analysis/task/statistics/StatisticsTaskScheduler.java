@@ -315,7 +315,7 @@ public class StatisticsTaskScheduler {
         if (statisticsTaskList == null || statisticsTaskList.isEmpty()) {
             findStatisticsTask();
         }
-        return statisticsTaskList.parallelStream()
+        return statisticsTaskList.stream()
             .map(it -> it.getClass().getSimpleName()).collect(Collectors.toList());
     }
 

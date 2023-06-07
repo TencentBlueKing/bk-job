@@ -222,7 +222,7 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
             return new ArrayList<>();
         }
 
-        List<ULong> uLongStepIdList = stepIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList());
+        List<ULong> uLongStepIdList = stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList());
 
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(uLongStepIdList));
