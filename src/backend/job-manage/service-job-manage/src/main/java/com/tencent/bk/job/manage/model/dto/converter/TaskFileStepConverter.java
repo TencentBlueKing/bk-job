@@ -55,7 +55,7 @@ public class TaskFileStepConverter {
         List<ServiceTaskFileInfoDTO> serviceTaskFileInfoDTOList = new ArrayList<>();
         if (originFileList != null && !originFileList.isEmpty()) {
             serviceTaskFileInfoDTOList =
-                originFileList.parallelStream()
+                originFileList.stream()
                     .map(TaskFileInfoConverter::convertToServiceTaskFileInfoDTO).collect(Collectors.toList());
         }
         serviceTaskFileStepDTO.setOriginFileList(serviceTaskFileInfoDTOList);

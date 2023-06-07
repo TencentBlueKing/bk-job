@@ -310,7 +310,7 @@ public class WebTagResourceImpl implements WebTagResource {
                     authResult = authResult.mergeAuthResult(
                         templateAuthService.batchAuthResultEditJobTemplate(
                             username, appResourceScope,
-                            resources.parallelStream().map(Long::valueOf).collect(Collectors.toList())
+                            resources.stream().map(Long::valueOf).collect(Collectors.toList())
                         )
                     );
                     break;

@@ -65,7 +65,7 @@ public class FileSourceTaskReqGenServiceImpl
             filePrefix = JobUUID.getUUID();
         }
         req.setFilePrefix(filePrefix);
-        req.setFilePathList(fileSourceTaskDTO.getFileTaskList().parallelStream()
+        req.setFilePathList(fileSourceTaskDTO.getFileTaskList().stream()
             .map(FileTaskDTO::getFilePath).collect(Collectors.toList()));
 
         return genRemoteFileReq(url, req);

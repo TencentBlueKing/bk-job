@@ -108,7 +108,7 @@ public class UserCustomSettingDAO {
         if (CollectionUtils.isEmpty(customSettingList)) {
             return Collections.emptyList();
         }
-        return customSettingList.parallelStream().map(UserCustomSettingDTO::getKey).collect(Collectors.toList());
+        return customSettingList.stream().map(UserCustomSettingDTO::getKey).collect(Collectors.toList());
     }
 
     private List<String> listExistKeys(List<String> keyList) {

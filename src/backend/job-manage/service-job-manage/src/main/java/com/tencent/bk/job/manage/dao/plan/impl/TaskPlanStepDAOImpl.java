@@ -176,7 +176,7 @@ public class TaskPlanStepDAOImpl extends AbstractTaskStepDAO implements TaskStep
             return new ArrayList<>();
         }
 
-        List<ULong> uLongPlanIdList = parentIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList());
+        List<ULong> uLongPlanIdList = parentIdList.stream().map(ULong::valueOf).collect(Collectors.toList());
 
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.PLAN_ID.in(uLongPlanIdList));

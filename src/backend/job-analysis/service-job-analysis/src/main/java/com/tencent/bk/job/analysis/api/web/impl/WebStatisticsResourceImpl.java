@@ -201,7 +201,7 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
                 appIdList, date);
         }
         return Response.buildSuccessResp(
-            perAppStatisticDTOList.parallelStream()
+            perAppStatisticDTOList.stream()
                 .map(PerAppStatisticDTO::toPerAppStatisticVO)
                 .collect(Collectors.toList())
         );

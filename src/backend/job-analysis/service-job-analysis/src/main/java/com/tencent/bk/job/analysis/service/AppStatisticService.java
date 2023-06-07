@@ -109,7 +109,7 @@ public class AppStatisticService extends CommonStatisticService {
         if (appIdList != null) {
             Set<Long> appIdSet = new HashSet<>(appIdList);
             applicationDTOList =
-                applicationDTOList.parallelStream().filter(
+                applicationDTOList.stream().filter(
                     applicationDTO -> appIdSet.contains(applicationDTO.getId())
                 ).collect(Collectors.toList());
         }

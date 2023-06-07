@@ -241,7 +241,7 @@ public class BizHostServiceImpl implements BizHostService {
     public List<ApplicationHostDTO> getHostsByModuleIds(Collection<Long> moduleIds) {
         List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(moduleIds);
         List<Long> hostIdList =
-            hostTopoDTOList.parallelStream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
+            hostTopoDTOList.stream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
         return applicationHostDAO.listHostInfoByHostIds(hostIdList);
     }
 }

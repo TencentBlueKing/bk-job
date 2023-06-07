@@ -98,7 +98,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         ArtifactoryRemoteClient client = baseService.getArtifactoryClientFromBaseReq(req);
         List<ProjectDTO> projectDTOList = client.listProject();
         // 按名称搜索
-        projectDTOList = projectDTOList.parallelStream().filter(projectDTO -> {
+        projectDTOList = projectDTOList.stream().filter(projectDTO -> {
             String displayName = projectDTO.getDisplayName();
             String name = req.getName();
             if (null == displayName) {
@@ -126,7 +126,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         mappedPageData.setStart(pageData.getStart());
         mappedPageData.setPageSize(pageData.getPageSize());
         mappedPageData.setTotal(pageData.getTotal());
-        mappedPageData.setData(pageData.getData().parallelStream().map(projectDTO -> {
+        mappedPageData.setData(pageData.getData().stream().map(projectDTO -> {
             Map<String, Object> map = new HashMap<>();
             map.put("name", projectDTO.getName());
             map.put("displayName", projectDTO.getDisplayName());
@@ -179,7 +179,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
             }
         });
         // 字段映射
-        List<Map<String, Object>> repoMapList = repoList.parallelStream().map(repoDTO -> {
+        List<Map<String, Object>> repoMapList = repoList.stream().map(repoDTO -> {
             Map<String, Object> map = new HashMap<>();
             map.put("projectId", repoDTO.getProjectId());
             map.put("name", repoDTO.getName());
@@ -258,7 +258,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
         mappedPageData.setStart((pageData.getPageNumber() - 1) * pageData.getPageSize());
         mappedPageData.setPageSize(pageData.getPageSize());
         mappedPageData.setTotal(pageData.getTotalRecords());
-        mappedPageData.setData(pageData.getRecords().parallelStream().map(nodeDTO -> {
+        mappedPageData.setData(pageData.getRecords().stream().map(nodeDTO -> {
             Map<String, Object> map = new HashMap<>();
             map.put("projectId", nodeDTO.getProjectId());
             map.put("repoName", nodeDTO.getRepoName());

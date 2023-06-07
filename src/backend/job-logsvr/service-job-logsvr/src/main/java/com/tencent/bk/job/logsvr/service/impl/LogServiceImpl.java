@@ -103,7 +103,7 @@ public class LogServiceImpl implements LogService {
             .map(taskHostLog -> buildScriptLogDoc(taskHostLog.getScriptTaskLog())).collect(Collectors.toList());
         List<List<Document>> batchDocList = BatchUtil.buildBatchList(scriptLogDocList, BATCH_SIZE);
         long start = System.currentTimeMillis();
-        batchDocList.parallelStream().forEach(docs ->
+        batchDocList.forEach(docs ->
             logCollectionFactory.getCollection(collectionName)
                 .insertMany(docs, new InsertManyOptions().ordered(false)));
         long end = System.currentTimeMillis();
@@ -119,7 +119,7 @@ public class LogServiceImpl implements LogService {
         List<List<WriteModel<Document>>> batchList = BatchUtil.buildBatchList(updateOps, BATCH_SIZE);
 
         long start = System.currentTimeMillis();
-        batchList.parallelStream().forEach(batchOps -> logCollectionFactory.getCollection(collectionName)
+        batchList.forEach(batchOps -> logCollectionFactory.getCollection(collectionName)
             .bulkWrite(batchOps, new BulkWriteOptions().ordered(false)));
         long end = System.currentTimeMillis();
         log.warn("Batch write file logs, stepInstanceId: {}, opSize: {}, cost: {} ms",

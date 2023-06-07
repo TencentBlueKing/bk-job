@@ -92,7 +92,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         List<BizTopoNode> treeNodeList = req.getTreeNodeList();
         List<ApplicationHostDTO> hostList = bizTopoHostService.listHostByNodes(appDTO.getBizIdIfBizApp(), treeNodeList);
         Set<ServiceHostStatusDTO> hostStatusDTOSet = new HashSet<>();
-        hostList.parallelStream().forEach(host -> {
+        hostList.forEach(host -> {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
             serviceHostStatusDTO.setHostId(host.getHostId());
             serviceHostStatusDTO.setAlive(host.getAgentStatusValue());

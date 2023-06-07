@@ -80,7 +80,7 @@ public class COSFileResourceImpl implements IFileResource {
             JobTencentInnerCOSClient jobTencentInnerCOSClient = cosBaseService.getCOSClientFromBaseReq(req);
             List<Bucket> bucketList = jobTencentInnerCOSClient.listBuckets();
             // 根据name搜索
-            bucketList = bucketList.parallelStream().filter(
+            bucketList = bucketList.stream().filter(
                 bucketDTO -> {
                     String name = req.getName();
                     String bucketName = bucketDTO.getName();
@@ -281,7 +281,7 @@ public class COSFileResourceImpl implements IFileResource {
         List<BucketDTO> bucketDTOList = listBucket(req);
         // 排序：创建时间降序
         bucketDTOList.sort((o1, o2) -> o2.getCreateDate().compareTo(o1.getCreateDate()));
-        List<Map<String, Object>> mapData = bucketDTOList.parallelStream().map(bucketDTO -> {
+        List<Map<String, Object>> mapData = bucketDTOList.stream().map(bucketDTO -> {
             Map<String, Object> map = new HashMap<>();
             map.put("name", bucketDTO.getName());
             map.put("type", bucketDTO.getXCosAcl());
@@ -329,7 +329,7 @@ public class COSFileResourceImpl implements IFileResource {
         fileDTOList.addAll(dirList);
         fileDTOList.addAll(fileList);
         // 分页
-        List<Map<String, Object>> mapData = fileDTOList.parallelStream().map(fileDTO -> {
+        List<Map<String, Object>> mapData = fileDTOList.stream().map(fileDTO -> {
             Map<String, Object> map = new HashMap<>();
             String fileName = fileDTO.getKey();
             map.put("name", fileName);

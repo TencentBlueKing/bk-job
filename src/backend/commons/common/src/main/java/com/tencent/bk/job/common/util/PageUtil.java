@@ -209,7 +209,7 @@ public class PageUtil {
         List<T> data = srcPageData.getData();
         List<R> newDataList = null;
         if (data != null) {
-            newDataList = data.parallelStream().map(mapper).collect(Collectors.toList());
+            newDataList = data.stream().map(mapper).collect(Collectors.toList());
         }
         return copyPageWithNewData(srcPageData, newDataList);
     }

@@ -636,7 +636,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         List<Long> recordIdList;
         if (CollectionUtils.isNotEmpty(whiteIPRecords)) {
             recordIdList =
-                whiteIPRecords.map(it -> it.get(tWhiteIPRecord.ID)).parallelStream().collect(Collectors.toList());
+                new ArrayList<>(whiteIPRecords.map(it -> it.get(tWhiteIPRecord.ID)));
 
             int maxInCount = 1000;
             List<List<Long>> recordIdsList = Lists.partition(new ArrayList<>(recordIdList), maxInCount);

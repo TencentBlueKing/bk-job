@@ -360,7 +360,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
             int serverCount = 0;
             for (List<FileSourceDTO> fileSourceDTOList : recordList) {
                 Set<Boolean> localFlagSet =
-                    fileSourceDTOList.parallelStream().map(FileSourceDTO::isLocalUpload).collect(Collectors.toSet());
+                    fileSourceDTOList.stream().map(FileSourceDTO::isLocalUpload).collect(Collectors.toSet());
                 if (localFlagSet.size() == 2) {
                     localCount += 1;
                     serverCount += 1;

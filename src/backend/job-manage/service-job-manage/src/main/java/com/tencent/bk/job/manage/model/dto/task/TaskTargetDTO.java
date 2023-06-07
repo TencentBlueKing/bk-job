@@ -164,18 +164,18 @@ public class TaskTargetDTO {
         esbServer.setVariable(taskTarget.getVariable());
         if (taskTarget.getHostNodeList() != null) {
             if (CollectionUtils.isNotEmpty(taskTarget.getHostNodeList().getHostList())) {
-                esbServer.setIps(taskTarget.getHostNodeList().getHostList().parallelStream()
+                esbServer.setIps(taskTarget.getHostNodeList().getHostList().stream()
                     .map(EsbIpDTO::fromApplicationHostInfo).collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(taskTarget.getHostNodeList().getDynamicGroupId())) {
-                esbServer.setDynamicGroups(taskTarget.getHostNodeList().getDynamicGroupId().parallelStream().map(id -> {
+                esbServer.setDynamicGroups(taskTarget.getHostNodeList().getDynamicGroupId().stream().map(id -> {
                     EsbDynamicGroupDTO esbDynamicGroup = new EsbDynamicGroupDTO();
                     esbDynamicGroup.setId(id);
                     return esbDynamicGroup;
                 }).collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(taskTarget.getHostNodeList().getNodeInfoList())) {
-                esbServer.setTopoNodes(taskTarget.getHostNodeList().getNodeInfoList().parallelStream()
+                esbServer.setTopoNodes(taskTarget.getHostNodeList().getNodeInfoList().stream()
                     .map(TaskNodeInfoDTO::toEsbCmdbTopoNode).collect(Collectors.toList()));
             }
         }
@@ -188,7 +188,7 @@ public class TaskTargetDTO {
         if (hostNodeList != null) {
             ServiceTaskHostNodeDTO targetServer = new ServiceTaskHostNodeDTO();
             if (CollectionUtils.isNotEmpty(hostNodeList.getNodeInfoList())) {
-                targetServer.setNodeInfoList(hostNodeList.getNodeInfoList().parallelStream()
+                targetServer.setNodeInfoList(hostNodeList.getNodeInfoList().stream()
                     .map(TaskNodeInfoDTO::toServiceTaskHostNodeDTO).collect(Collectors.toList()));
             } else {
                 targetServer.setNodeInfoList(Collections.emptyList());

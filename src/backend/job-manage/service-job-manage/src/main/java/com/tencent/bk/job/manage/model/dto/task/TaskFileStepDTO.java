@@ -128,7 +128,7 @@ public class TaskFileStepDTO {
         }
         EsbFileStepV3DTO esbFileStep = new EsbFileStepV3DTO();
         if (CollectionUtils.isNotEmpty(fileStepInfo.getOriginFileList())) {
-            esbFileStep.setFileSourceList(fileStepInfo.getOriginFileList().parallelStream()
+            esbFileStep.setFileSourceList(fileStepInfo.getOriginFileList().stream()
                 .map(TaskFileInfoDTO::toEsbFileSourceV3).collect(Collectors.toList()));
         }
         EsbFileDestinationV3DTO esbFileDestination = new EsbFileDestinationV3DTO();
@@ -152,7 +152,7 @@ public class TaskFileStepDTO {
         }
         ServiceTaskFileStepDTO serviceFileStep = new ServiceTaskFileStepDTO();
         if (CollectionUtils.isNotEmpty(fileStepInfo.getOriginFileList())) {
-            serviceFileStep.setOriginFileList(fileStepInfo.getOriginFileList().parallelStream()
+            serviceFileStep.setOriginFileList(fileStepInfo.getOriginFileList().stream()
                 .map(TaskFileInfoDTO::toServiceFileInfo).collect(Collectors.toList()));
         }
         serviceFileStep.setDestinationFileLocation(fileStepInfo.getDestinationFileLocation());

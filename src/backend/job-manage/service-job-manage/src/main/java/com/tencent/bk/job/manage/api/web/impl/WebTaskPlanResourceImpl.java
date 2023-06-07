@@ -258,9 +258,9 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     private void processPlanPermission(String username, AppResourceScope appResourceScope,
                                        List<TaskPlanVO> taskPlanList) {
         List<Long> jobTemplateIdList =
-            taskPlanList.parallelStream().map(TaskPlanVO::getTemplateId).collect(Collectors.toList());
+            taskPlanList.stream().map(TaskPlanVO::getTemplateId).collect(Collectors.toList());
         List<Long> jobPlanIdList =
-            taskPlanList.parallelStream().map(TaskPlanVO::getId).collect(Collectors.toList());
+            taskPlanList.stream().map(TaskPlanVO::getId).collect(Collectors.toList());
         List<Long> allowedViewPlan =
             planAuthService.batchAuthViewJobPlan(username, appResourceScope, jobTemplateIdList,
                 jobPlanIdList);
@@ -668,7 +668,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
         Long modifyTime = DateUtils.currentTimeSeconds();
 
-        List<TaskPlanInfoDTO> planInfoList = planVariableInfoList.parallelStream().map(planVariableInfo -> {
+        List<TaskPlanInfoDTO> planInfoList = planVariableInfoList.stream().map(planVariableInfo -> {
             TaskPlanInfoDTO planInfo = new TaskPlanInfoDTO();
             planInfo.setAppId(appResourceScope.getAppId());
             planInfo.setLastModifyUser(username);
@@ -676,7 +676,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             planInfo.setId(planVariableInfo.getPlanId());
             planInfo.setTemplateId(planVariableInfo.getTemplateId());
             if (CollectionUtils.isNotEmpty(planVariableInfo.getVariableInfoList())) {
-                planInfo.setVariableList(planVariableInfo.getVariableInfoList().parallelStream()
+                planInfo.setVariableList(planVariableInfo.getVariableInfoList().stream()
                     .map(variableVO -> {
                         variableVO.setRequired(0);
                         variableVO.setChangeable(0);
@@ -695,7 +695,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     private void fillCronInfo(Long appId, List<TaskPlanInfoDTO> planInfoList) {
         try {
-            List<Long> planIds = planInfoList.parallelStream()
+            List<Long> planIds = planInfoList.stream()
                 .map(TaskPlanInfoDTO::getId).collect(Collectors.toList());
             Map<Long, List<CronJobVO>> cronJobByPlanIds = cronJobService.batchListCronJobByPlanIds(appId, planIds);
             if (MapUtils.isNotEmpty(cronJobByPlanIds)) {

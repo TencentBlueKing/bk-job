@@ -167,9 +167,10 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                            List<Long> jobPlanIdList) {
         List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
             appResourceScope, jobTemplateIdList, jobPlanIdList);
-        List<String> allowedPlanIdList = appAuthService.batchAuth(username, ActionId.VIEW_JOB_PLAN, appResourceScope,
-            planPermissionResourceList).parallelStream().collect(Collectors.toList());
-        return allowedPlanIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(username, ActionId.VIEW_JOB_PLAN,
+            appResourceScope,
+            planPermissionResourceList));
+        return allowedPlanIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
@@ -179,9 +180,10 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                            List<Long> jobPlanIdList) {
         List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
             appResourceScope, jobTemplateIdList, jobPlanIdList);
-        List<String> allowedPlanIdList = appAuthService.batchAuth(username, ActionId.EDIT_JOB_PLAN, appResourceScope,
-            planPermissionResourceList).parallelStream().collect(Collectors.toList());
-        return allowedPlanIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(username, ActionId.EDIT_JOB_PLAN,
+            appResourceScope,
+            planPermissionResourceList));
+        return allowedPlanIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
@@ -191,9 +193,10 @@ public class PlanAuthServiceImpl implements PlanAuthService {
                                              List<Long> jobPlanIdList) {
         List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
             appResourceScope, jobTemplateIdList, jobPlanIdList);
-        List<String> allowedPlanIdList = appAuthService.batchAuth(username, ActionId.DELETE_JOB_PLAN, appResourceScope,
-            planPermissionResourceList).parallelStream().collect(Collectors.toList());
-        return allowedPlanIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(username, ActionId.DELETE_JOB_PLAN,
+            appResourceScope,
+            planPermissionResourceList));
+        return allowedPlanIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override

@@ -264,7 +264,7 @@ public abstract class AbstractTaskStepService {
                             if (taskFileStepDAO.updateFileStepById(taskStep.getFileStepInfo())) {
                                 List<TaskFileInfoDTO> originTaskFileInfo =
                                     taskFileInfoDAO.listFileInfoByStepId(taskStep.getFileStepInfo().getStepId());
-                                List<Long> originTaskFileInfoIds = originTaskFileInfo.parallelStream()
+                                List<Long> originTaskFileInfoIds = originTaskFileInfo.stream()
                                     .map(TaskFileInfoDTO::getId).collect(Collectors.toList());
                                 List<TaskFileInfoDTO> newFileInfo = new ArrayList<>();
                                 for (TaskFileInfoDTO fileInfo : taskStep.getFileStepInfo().getOriginFileList()) {
@@ -389,7 +389,7 @@ public abstract class AbstractTaskStepService {
                 uniqScriptVersionSet.add(taskScriptStepDTO.getScriptVersionId());
             });
         }
-        templateScriptVersionMap.put(0L, uniqScriptVersionSet.parallelStream().collect(Collectors.toList()));
+        templateScriptVersionMap.put(0L, new ArrayList<>(uniqScriptVersionSet));
         return templateScriptVersionMap;
     }
 
