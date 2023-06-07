@@ -56,7 +56,7 @@ export default {
     '网页 Title 设置:': 'Web title setting:',
     平台名称: 'Platform ame',
     分隔符: 'Delimiter',
-    作业平台: 'BlueKing JOB',
+    作业平台: 'BlueKing Job',
     平台名称必填: 'Platform name is required',
     分隔符必填: 'Delimiter is required',
     页脚信息设置: 'Footer settings',

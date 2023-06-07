@@ -365,7 +365,7 @@ export default {
   引用脚本被禁用: 'Related script has been banned',
   '方案已是最新版，无差异': 'No Difference',
   '该方案已同步，无需处理': 'Not Necessary',
-  '无关联定时任务，系统自动确认': 'No CRON related',
+  '无关联定时任务，系统自动确认': 'No cron related',
   未就绪: 'Not Ready',
   无需处理: 'Ready',
   等待确认中: 'Waiting',

@@ -56,7 +56,7 @@ export default {
     我执行: 'Mine',
     更多: 'More',
     '现在是凌晨 {HH:MM}！切忌劳累过度，影响身体还容易误操作，赶紧休息吧...': 'It\'s {HH:MM} before dawn ! Less overwork, More health! Overnight is easy to make mistake and hurt our body.',
-    '感谢你来见证凌晨4点的作业平台，Mamba Forever！曼巴精神！共勉！': 'Welcome to JOB in the 4 O\'clock in the earlier morning, Salute to the Legend! Mamba Forever ! R.I.P. Kobe Bryant.',
+    '感谢你来见证凌晨4点的作业平台，Mamba Forever！曼巴精神！共勉！': 'Welcome to job in the 4 O\'clock in the earlier morning, Salute to the Legend! Mamba Forever ! R.I.P. Kobe Bryant.',
     '一年之计在于春、一日之计在于晨！早起的鸟儿有虫吃~ 伙计，加油！': '{HH:MM} Good Morning ! Great minds have purpose, others have wishes.',
     '上午好！专注工作之时别忘了多饮水，促进身体新陈代谢，有益身体健康噢~': 'It\'s {HH:MM} in the morning. If they throw stones at you, don\'t throw back, use them to build your own foundation instead.',
     '午饭时间到了，肠胃很重要！记得按时就餐喔~': 'It\'s Lunch time! People are iron, Rice is steel, You\'ll feeling weak without a meal.',
