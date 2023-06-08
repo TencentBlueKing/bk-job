@@ -101,7 +101,7 @@ public class ExportJobDAOImpl implements ExportJobDAO {
         conditions.add(TABLE.APP_ID.equal(ULong.valueOf(appId)));
         conditions.add(TABLE.STATUS.in(UByte.valueOf(BackupJobStatusEnum.SUBMIT.getStatus()),
             UByte.valueOf(BackupJobStatusEnum.PROCESSING.getStatus()),
-            UByte.valueOf(BackupJobStatusEnum.SUCCESS.getStatus())));
+            UByte.valueOf(BackupJobStatusEnum.ALL_SUCCESS.getStatus())));
 
         Result<
             Record13<String, ULong, String, ULong, ULong, UByte, String, String, UByte, ULong, String, String,
@@ -110,9 +110,7 @@ public class ExportJobDAOImpl implements ExportJobDAO {
             TABLE.EXPIRE_TIME, TABLE.TEMPLATE_PLAN_INFO, TABLE.FILE_NAME, TABLE.LOCALE)
             .from(TABLE).where(conditions).fetch();
         List<ExportJobInfoDTO> exportJobInfoList = new ArrayList<>();
-        if (result != null) {
-            result.forEach(record -> exportJobInfoList.add(DbRecordMapper.convertRecordToExportJobInfo(record)));
-        }
+        result.forEach(record -> exportJobInfoList.add(DbRecordMapper.convertRecordToExportJobInfo(record)));
         return exportJobInfoList;
     }
 
@@ -151,9 +149,7 @@ public class ExportJobDAOImpl implements ExportJobDAO {
                 TABLE.STATUS, TABLE.PASSWORD, TABLE.PACKAGE_NAME, TABLE.SECRET_HANDLER, TABLE.EXPIRE_TIME,
                 TABLE.TEMPLATE_PLAN_INFO, TABLE.FILE_NAME, TABLE.LOCALE).from(TABLE).where(conditions).fetch();
         List<ExportJobInfoDTO> exportJobInfoList = new ArrayList<>();
-        if (result != null) {
-            result.forEach(record -> exportJobInfoList.add(DbRecordMapper.convertRecordToExportJobInfo(record)));
-        }
+        result.forEach(record -> exportJobInfoList.add(DbRecordMapper.convertRecordToExportJobInfo(record)));
         return exportJobInfoList;
     }
 

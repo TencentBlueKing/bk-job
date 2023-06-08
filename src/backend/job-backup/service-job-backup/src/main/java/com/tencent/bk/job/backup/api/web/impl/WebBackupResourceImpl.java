@@ -221,7 +221,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                                                String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appResourceScope.getAppId(), jobId);
         if (exportInfo != null) {
-            if (BackupJobStatusEnum.SUCCESS.equals(exportInfo.getStatus())) {
+            if (BackupJobStatusEnum.ALL_SUCCESS.equals(exportInfo.getStatus())) {
                 Pair<Long, StreamingResponseBody> fileInfoPair;
                 switch (backupStorageConfig.getStorageBackend()) {
                     case JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY:
@@ -260,7 +260,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                             String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appResourceScope.getAppId(), jobId);
         if (exportInfo != null) {
-            if (BackupJobStatusEnum.SUCCESS.equals(exportInfo.getStatus())) {
+            if (BackupJobStatusEnum.ALL_SUCCESS.equals(exportInfo.getStatus())) {
                 exportInfo.setStatus(BackupJobStatusEnum.FINISHED);
                 exportInfo.setFileName(null);
                 return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));

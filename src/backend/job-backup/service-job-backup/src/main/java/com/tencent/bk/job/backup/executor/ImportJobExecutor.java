@@ -73,6 +73,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -97,7 +98,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Service
 public class ImportJobExecutor {
     private static final LinkedBlockingQueue<String> IMPORT_JOB_QUEUE = new LinkedBlockingQueue<>(100);
-    private static final String JOB_IMPORT_FILE_PREFIX = "import" + File.separatorChar;
     private static final String LOG_HR = "************************************************************";
     private final ImportJobService importJobService;
     private final TaskTemplateService taskTemplateService;
@@ -219,7 +219,7 @@ public class ImportJobExecutor {
                 } catch (InterruptedException e) {
                     String msg = "Fail to write artifactory file to local";
                     log.warn(msg, e);
-                    importJobService.markJobFailed(importJob, msg);
+                    importJobService.markJobAllFailed(importJob, msg);
                     return;
                 }
                 // 解压
@@ -237,68 +237,113 @@ public class ImportJobExecutor {
                     }
                 } else {
                     log.warn("Import file not found");
-                    importJobService.markJobFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
+                    importJobService.markJobAllFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
                 }
             } else {
-                importJobService.markJobFailed(importJob, "未找到待导入文件");
+                importJobService.markJobAllFailed(importJob, "未找到待导入文件");
             }
         }
     }
 
     private boolean processImportFile(File file, ImportJobInfoDTO importJob) {
-        if (file.getName().endsWith(".json")) {
-            JobBackupInfoDTO jobBackupInfo = readJobBackupInfoFromFile(file);
-            if (jobBackupInfo != null) {
-                try {
-                    processAccount(importJob, jobBackupInfo);
-                    List<BackupTemplateInfoDTO> templateInfo = importJob.getTemplateInfo();
-                    if (CollectionUtils.isNotEmpty(templateInfo)) {
-                        for (BackupTemplateInfoDTO backupTemplateInfo : templateInfo) {
-                            long templateId = backupTemplateInfo.getId();
-                            TaskTemplateVO oldTemplate = JsonUtils.fromJson(
-                                JsonMapper.getAllOutPutMapper()
-                                    .toJson(jobBackupInfo.getTemplateDetailInfoMap().get(templateId)),
-                                new TypeReference<TaskTemplateVO>() {
-                                });
-                            TaskTemplateVO newTemplate =
-                                processTemplate(importJob, jobBackupInfo, templateId);
-                            if (newTemplate != null) {
-                                TemplateIdMapDTO templateIdMap =
-                                    processTemplateIdMap(oldTemplate, newTemplate);
-                                if (CollectionUtils.isNotEmpty(backupTemplateInfo.getPlanId())) {
-                                    for (Long planId : backupTemplateInfo.getPlanId()) {
-                                        processPlan(importJob, jobBackupInfo, templateIdMap,
-                                            newTemplate.getId(), planId);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    importJob.setStatus(BackupJobStatusEnum.SUCCESS);
-                    importJobService.updateImportJob(importJob);
-                    logService.addImportLog(importJob.getAppId(), importJob.getId(), LOG_HR);
+        if (!file.getName().endsWith(".json")) {
+            return false;
+        }
+        JobBackupInfoDTO jobBackupInfo = readJobBackupInfoFromFile(file);
+        if (jobBackupInfo == null) {
+            importJobService.markJobAllFailed(importJob,
+                i18nService.getI18n(LogMessage.EXTRACT_FAILED));
+            return false;
+        }
+        try {
+            return importJobBackupInfo(importJob, jobBackupInfo);
+        } catch (Exception e) {
+            log.error("Error while process import job!|{}|{}", importJob.getAppId(),
+                importJob.getId(), e);
+            if (e instanceof ServiceException) {
+                if (ErrorCode.PERMISSION_DENIED == ((ServiceException) e).getErrorCode()) {
                     logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                        i18nService.getI18n(LogMessage.IMPORT_FINISHED), LogEntityTypeEnum.FINISHED);
-                    return true;
-                } catch (Exception e) {
-                    log.error("Error while process import job!|{}|{}", importJob.getAppId(),
-                        importJob.getId(), e);
-                    if (e instanceof ServiceException) {
-                        if (ErrorCode.PERMISSION_DENIED == ((ServiceException) e).getErrorCode()) {
-                            logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                                i18nService.getI18n(String.valueOf(((ServiceException) e).getErrorCode())),
-                                LogEntityTypeEnum.ERROR);
-                        }
-                    }
-                    importJobService.markJobFailed(importJob,
-                        i18nService.getI18n(LogMessage.IMPORT_FAILED));
+                        i18nService.getI18n(String.valueOf(((ServiceException) e).getErrorCode())),
+                        LogEntityTypeEnum.ERROR);
                 }
-            } else {
-                importJobService.markJobFailed(importJob,
-                    i18nService.getI18n(LogMessage.EXTRACT_FAILED));
             }
+            importJobService.markJobAllFailed(importJob,
+                i18nService.getI18n(LogMessage.IMPORT_FAILED));
         }
         return false;
+    }
+
+    private boolean importJobBackupInfo(ImportJobInfoDTO importJob, JobBackupInfoDTO jobBackupInfo) {
+        processAccount(importJob, jobBackupInfo);
+        List<BackupTemplateInfoDTO> templateInfo = importJob.getTemplateInfo();
+        if (CollectionUtils.isEmpty(templateInfo)) {
+            setImportJobResult(importJob, BackupJobStatusEnum.ALL_SUCCESS);
+            return true;
+        }
+        int totalTemplateNum = templateInfo.size();
+        int failedTemplateNum = 0;
+        for (BackupTemplateInfoDTO backupTemplateInfo : templateInfo) {
+            long templateId = backupTemplateInfo.getId();
+            TaskTemplateVO oldTemplate = JsonUtils.fromJson(
+                JsonMapper.getAllOutPutMapper().toJson(jobBackupInfo.getTemplateDetailInfoMap().get(templateId)),
+                new TypeReference<TaskTemplateVO>() {
+                }
+            );
+            TaskTemplateVO newTemplate = processTemplate(importJob, jobBackupInfo, templateId);
+            if (newTemplate == null) {
+                failedTemplateNum += 1;
+                continue;
+            }
+            TemplateIdMapDTO templateIdMap = processTemplateIdMap(oldTemplate, newTemplate);
+            if (CollectionUtils.isEmpty(backupTemplateInfo.getPlanId())) {
+                continue;
+            }
+            int failedPlanNum = 0;
+            for (Long planId : backupTemplateInfo.getPlanId()) {
+                try {
+                    processPlan(importJob, jobBackupInfo, templateIdMap, newTemplate.getId(), planId);
+                } catch (Exception e) {
+                    failedPlanNum += 1;
+                    FormattingTuple msg = MessageFormatter.arrayFormat(
+                        "Fail to import plan {} of template (id={},name={})",
+                        new Object[]{
+                            planId,
+                            newTemplate.getId(),
+                            newTemplate.getName()
+                        }
+                    );
+                    log.warn(msg.getMessage(), e);
+                }
+            }
+            if (failedPlanNum > 0) {
+                log.warn(
+                    "Fail to import {}/{} plan of template (id={},name={})",
+                    failedPlanNum,
+                    backupTemplateInfo.getPlanId().size(),
+                    newTemplate.getId(),
+                    newTemplate.getName()
+                );
+                failedTemplateNum += 1;
+            }
+        }
+        if (failedTemplateNum == 0) {
+            setImportJobResult(importJob, BackupJobStatusEnum.ALL_SUCCESS);
+            return true;
+        } else if (failedTemplateNum < totalTemplateNum) {
+            setImportJobResult(importJob, BackupJobStatusEnum.PARTIAL_FAILED);
+            return true;
+        } else {
+            setImportJobResult(importJob, BackupJobStatusEnum.ALL_FAILED);
+            return false;
+        }
+    }
+
+    private void setImportJobResult(ImportJobInfoDTO importJob, BackupJobStatusEnum status) {
+        importJob.setStatus(status);
+        importJobService.updateImportJob(importJob);
+        logService.addImportLog(importJob.getAppId(), importJob.getId(), LOG_HR);
+        logService.addImportLog(importJob.getAppId(), importJob.getId(),
+            i18nService.getI18n(LogMessage.IMPORT_FINISHED), LogEntityTypeEnum.FINISHED);
     }
 
     private void processAccount(ImportJobInfoDTO importJob, JobBackupInfoDTO jobBackupInfo) {
@@ -453,7 +498,7 @@ public class ImportJobExecutor {
                 i18nService.getI18n(LogMessage.IMPORT_PLAN_SUCCESS),
                 LogEntityTypeEnum.PLAN, templateId, resultPlanId);
             if (MapUtils.isNotEmpty(jobBackupInfo.getPlanFileList())) {
-                processFile(importJob, jobBackupInfo, jobBackupInfo.getPlanFileList().get(planId));
+                processFile(importJob, jobBackupInfo.getPlanFileList().get(planId));
             }
         } else {
             logService.addImportLog(importJob.getAppId(), importJob.getId(),
@@ -530,7 +575,7 @@ public class ImportJobExecutor {
                 LogEntityTypeEnum.TEMPLATE,
                 resultTemplateId, 0);
             if (MapUtils.isNotEmpty(jobBackupInfo.getTemplateFileList())) {
-                processFile(importJob, jobBackupInfo, jobBackupInfo.getTemplateFileList().get(templateId));
+                processFile(importJob, jobBackupInfo.getTemplateFileList().get(templateId));
             }
         } else {
             logService.addImportLog(importJob.getAppId(), importJob.getId(),
@@ -627,7 +672,7 @@ public class ImportJobExecutor {
         }
     }
 
-    private void processFile(ImportJobInfoDTO importJob, JobBackupInfoDTO jobBackupInfo, List<String> fileList) {
+    private void processFile(ImportJobInfoDTO importJob, List<String> fileList) {
         if (CollectionUtils.isEmpty(fileList)) {
             return;
         }
@@ -700,7 +745,9 @@ public class ImportJobExecutor {
         templateInfo.setName(templateName);
     }
 
+    @SuppressWarnings("InfiniteLoopStatement")
     class ImportJobExecutorThread extends Thread {
+
         @Override
         public void run() {
             this.setName("Import-Job-Executor-Thread");
