@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.model;
 
-import com.tencent.bk.job.common.gse.util.FilePathUtils;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.Data;

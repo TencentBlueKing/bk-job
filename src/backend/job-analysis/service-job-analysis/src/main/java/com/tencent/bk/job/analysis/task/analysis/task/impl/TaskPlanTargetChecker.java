@@ -508,7 +508,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
             return false;
         }
         //noinspection deprecation
-        List<HostDTO> hostList = serviceHostList.parallelStream().map(serviceHost ->
+        List<HostDTO> hostList = serviceHostList.stream().map(serviceHost ->
             // TODO:执行方案数据迁移添加hostId后此处可去除cloudAreaId与ip
             HostDTO.fromHostIdOrCloudIp(
                 serviceHost.getHostId(),

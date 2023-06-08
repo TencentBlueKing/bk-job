@@ -387,7 +387,7 @@ public class ExportJobExecutor {
                         exportInfo.getAppId(), backupTemplateInfo.getId());
                     if (CollectionUtils.isNotEmpty(taskPlanList)) {
                         backupTemplateInfo.setPlanId(
-                            taskPlanList.parallelStream().map(TaskPlanVO::getId).collect(Collectors.toList()));
+                            taskPlanList.stream().map(TaskPlanVO::getId).collect(Collectors.toList()));
                     }
                 }
                 for (TaskPlanVO taskPlan : taskPlanService.getTaskPlanByIdList(exportInfo.getCreator(),
@@ -489,7 +489,7 @@ public class ExportJobExecutor {
         }
 
         Map<Long,
-            TaskVariableVO> needProcessVariableList = variableList.parallelStream()
+            TaskVariableVO> needProcessVariableList = variableList.stream()
             .filter(taskVariableVO -> taskVariableVO.getType().equals(TaskVariableTypeEnum.CIPHER.getType()))
             .collect(Collectors.toMap(TaskVariableVO::getId, taskVariableVO -> taskVariableVO));
 

@@ -413,7 +413,7 @@ public class WebHostResourceImpl implements WebHostResource {
             appResourceScope,
             ids
         );
-        List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+        List<DynamicGroupBasicVO> dynamicGroupInfoList = dynamicGroupList.stream()
             .map(DynamicGroupDTO::toBasicVO)
             .collect(Collectors.toList());
         return Response.buildSuccessResp(dynamicGroupInfoList);
@@ -484,7 +484,7 @@ public class WebHostResourceImpl implements WebHostResource {
                 hostService.getBizDynamicGroupHostList(
                     username, Long.parseLong(appResourceScope.getId()), dynamicGroupIds
                 );
-            List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+            List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.stream()
                 .map(TopologyHelper::convertToDynamicGroupInfoVO)
                 .collect(Collectors.toList());
             return Response.buildSuccessResp(dynamicGroupInfoList);
@@ -501,7 +501,7 @@ public class WebHostResourceImpl implements WebHostResource {
         List<DynamicGroupWithHost> dynamicGroupList = hostService.getAppDynamicGroupList(
             username, appResourceScope
         );
-        List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.parallelStream()
+        List<DynamicGroupInfoVO> dynamicGroupInfoList = dynamicGroupList.stream()
             .filter(dynamicGroupInfoDTO -> dynamicGroupIds.contains(dynamicGroupInfoDTO.getId()))
             .map(TopologyHelper::convertToDynamicGroupInfoVO)
             .collect(Collectors.toList());
@@ -519,7 +519,7 @@ public class WebHostResourceImpl implements WebHostResource {
         List<ApplicationHostDTO> hostDTOList = findHosts(appResourceScope, req);
         // 填充实时agent状态
         agentStatusService.fillRealTimeAgentStatus(hostDTOList);
-        List<HostInfoVO> hostList = hostDTOList.parallelStream()
+        List<HostInfoVO> hostList = hostDTOList.stream()
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());
         // 填充云区域名称
@@ -605,17 +605,17 @@ public class WebHostResourceImpl implements WebHostResource {
                                                      String scopeType,
                                                      String scopeId,
                                                      HostDetailReq req) {
-        Collection<Long> hostIds = req.getHostList().parallelStream()
+        Collection<Long> hostIds = req.getHostList().stream()
             .filter(hostIdWithMeta -> hostIdWithMeta.getHostId() != null)
             .map(HostIdWithMeta::getHostId)
             .collect(Collectors.toList());
         List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(appResourceScope, hostIds);
         // 排序：Agent异常机器在前，Agent正常机器在后
-        List<HostInfoVO> hostInfoVOList = hostList.parallelStream()
+        List<HostInfoVO> hostInfoVOList = hostList.stream()
             .filter(hostDTO -> !hostDTO.getGseAgentAlive())
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());
-        hostInfoVOList.addAll(hostList.parallelStream()
+        hostInfoVOList.addAll(hostList.stream()
             .filter(ApplicationHostDTO::getGseAgentAlive)
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList()));

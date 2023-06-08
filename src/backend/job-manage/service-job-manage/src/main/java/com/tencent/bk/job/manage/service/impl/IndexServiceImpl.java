@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -41,7 +41,6 @@ import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
@@ -73,7 +72,6 @@ public class IndexServiceImpl implements IndexService {
     private final IndexGreetingDAO indexGreetingDAO;
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
-    private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
     private final TaskTemplateService taskTemplateService;
     private final TaskTemplateDAO taskTemplateDAO;
@@ -84,7 +82,6 @@ public class IndexServiceImpl implements IndexService {
                             IndexGreetingDAO indexGreetingDAO,
                             ApplicationDAO applicationDAO,
                             ApplicationHostDAO applicationHostDAO,
-                            HostTopoDAO hostTopoDAO,
                             TopologyHelper topologyHelper,
                             TaskTemplateService taskTemplateService,
                             TaskTemplateDAO taskTemplateDAO,
@@ -93,7 +90,6 @@ public class IndexServiceImpl implements IndexService {
         this.indexGreetingDAO = indexGreetingDAO;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
-        this.hostTopoDAO = hostTopoDAO;
         this.topologyHelper = topologyHelper;
         this.taskTemplateService = taskTemplateService;
         this.taskTemplateDAO = taskTemplateDAO;
@@ -116,7 +112,7 @@ public class IndexServiceImpl implements IndexService {
                 content = it.getContent();
             }
             return new GreetingVO(it.getId(), content.replace("${time}",
-                TimeUtil.getCurrentTimeStrWithDescription("HH:mm"))
+                    TimeUtil.getCurrentTimeStrWithDescription("HH:mm"))
                 .replace("${username}", username), it.getPriority());
         }).collect(Collectors.toList());
     }
@@ -125,8 +121,8 @@ public class IndexServiceImpl implements IndexService {
     public AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope) {
         // 查出业务
         ApplicationDTO appInfo = applicationDAO.getAppById(appResourceScope.getAppId());
-        Long normalNum = 0L;
-        Long abnormalNum = 0L;
+        long normalNum = 0L;
+        long abnormalNum = 0L;
         List<Long> bizIds;
         if (appInfo.isBiz()) {
             // 普通业务
@@ -144,13 +140,13 @@ public class IndexServiceImpl implements IndexService {
         }
         List<HostStatusNumStatisticsDTO> statisticsDTOS = applicationHostDAO.countHostStatusNumByBizIds(bizIds);
         for (HostStatusNumStatisticsDTO statisticsDTO : statisticsDTOS) {
-            if (statisticsDTO.getGseAgentAlive() == AgentStatusEnum.ALIVE.getValue()) {
+            if (statisticsDTO.getGseAgentAlive() == AgentAliveStatusEnum.ALIVE.getStatusValue()) {
                 normalNum += statisticsDTO.getHostNum();
             } else {
                 abnormalNum += statisticsDTO.getHostNum();
             }
         }
-        return new AgentStatistics(normalNum.intValue(), abnormalNum.intValue());
+        return new AgentStatistics((int) normalNum, (int) abnormalNum);
     }
 
     /**
@@ -197,7 +193,7 @@ public class IndexServiceImpl implements IndexService {
             bizIds, null, null, null, status, start, pageSize);
         Long count = applicationHostDAO.countHostInfoBySearchContents(
             bizIds, null, null, null, status);
-        hostInfoVOList = hosts.parallelStream()
+        hostInfoVOList = hosts.stream()
             .filter(Objects::nonNull)
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());
@@ -212,7 +208,7 @@ public class IndexServiceImpl implements IndexService {
         resultPageData.setStart(hostInfoVOPageData.getStart());
         resultPageData.setPageSize(hostInfoVOPageData.getPageSize());
         resultPageData.setTotal(hostInfoVOPageData.getTotal());
-        resultPageData.setData(hostInfoVOPageData.getData().parallelStream()
+        resultPageData.setData(hostInfoVOPageData.getData().stream()
             .map(it -> it.getCloudArea().getId() + ":" + it.getIp()).collect(Collectors.toList()));
         return resultPageData;
     }

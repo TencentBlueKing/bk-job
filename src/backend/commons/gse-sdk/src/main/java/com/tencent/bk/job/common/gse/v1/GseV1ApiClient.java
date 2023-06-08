@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.gse.constants.AgentStateStatusEnum;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.constants.GseTaskTypeEnum;
-import com.tencent.bk.job.common.gse.util.FilePathUtils;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.util.WindowsHelper;
 import com.tencent.bk.job.common.gse.v1.model.AgentStatusDTO;
 import com.tencent.bk.job.common.gse.v1.model.CopyFileRsp;

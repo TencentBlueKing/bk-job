@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -286,9 +285,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostInfo(Collection<Long> bizIds, Collection<String> ips) {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
-            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+            conditions.add(TABLE.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
-        conditions.add(TABLE.IP.in(ips.parallelStream().map(String::trim).collect(Collectors.toList())));
+        conditions.add(TABLE.IP.in(ips.stream().map(String::trim).collect(Collectors.toList())));
         return listHostInfoByConditions(conditions);
     }
 
@@ -296,9 +295,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostInfoByBizAndCloudIPs(Collection<Long> bizIds, Collection<String> cloudIPs) {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
-            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+            conditions.add(TABLE.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
-        conditions.add(TABLE.CLOUD_IP.in(cloudIPs.parallelStream().map(String::trim).collect(Collectors.toList())));
+        conditions.add(TABLE.CLOUD_IP.in(cloudIPs.stream().map(String::trim).collect(Collectors.toList())));
         return listHostInfoByConditions(conditions);
     }
 
@@ -306,7 +305,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostInfoByBizAndIps(Collection<Long> bizIds, Collection<String> ips) {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
-            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+            conditions.add(TABLE.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
         conditions.add(TABLE.IP.in(ips));
         return listHostInfoByConditions(conditions);
@@ -316,7 +315,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostInfoByBizAndCloudIps(Collection<Long> bizIds, Collection<String> cloudIps) {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
-            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+            conditions.add(TABLE.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
         conditions.add(TABLE.CLOUD_IP.in(cloudIps));
         return listHostInfoByConditions(conditions);
@@ -326,7 +325,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostInfoByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s) {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
-            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+            conditions.add(TABLE.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
         conditions.add(TABLE.IP_V6.in(ipv6s));
         return listHostInfoByConditions(conditions);
@@ -337,7 +336,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                                                                   Collection<String> hostNames) {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
-            conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+            conditions.add(TABLE.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
         conditions.add(TABLE.IP_DESC.in(hostNames));
         return listHostInfoByConditions(conditions);
@@ -346,14 +345,14 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     @Override
     public List<ApplicationHostDTO> listHostInfoByBizIds(Collection<Long> bizIds, Long start, Long limit) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.in(bizIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(TABLE.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         return listHostInfoByConditions(conditions, start, limit);
     }
 
     @Override
     public List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.HOST_ID.in(hostIds.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(TABLE.HOST_ID.in(hostIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
         return listHostInfoByConditions(conditions);
     }
 
@@ -397,18 +396,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             null
         );
         return (long) (hostIdList.size());
-    }
-
-    @Override
-    public Long countHostByIdAndStatus(Collection<Long> hostIds, AgentStatusEnum agentStatus) {
-        List<Condition> conditions = new ArrayList<>();
-        if (hostIds != null) {
-            conditions.add(TABLE.HOST_ID.in(hostIds));
-        }
-        if (agentStatus != null) {
-            conditions.add(TABLE.IS_AGENT_ALIVE.eq(JooqDataTypeUtil.buildUByte(agentStatus.getValue())));
-        }
-        return countHostByConditions(conditions);
     }
 
     @Override
@@ -640,7 +627,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         Result<Record> records = fetchRecordsWithLimit(query, start, limit);
         List<Long> hostIdList = new ArrayList<>();
         if (records.size() >= 1) {
-            hostIdList = records.parallelStream()
+            hostIdList = records.stream()
                 .map(record -> record.get(0, Long.class))
                 .collect(Collectors.toList());
         }
@@ -1055,7 +1042,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
         List<Condition> conditions = new ArrayList<>();
         conditions.add(
-            TABLE.HOST_ID.in(hostIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList()))
+            TABLE.HOST_ID.in(hostIdList.stream().map(ULong::valueOf).collect(Collectors.toList()))
         );
         int deletedRelationNum = hostTopoDAO.batchDeleteHostTopo(hostIdList);
         log.info("{} host relation deleted", deletedRelationNum);
@@ -1150,21 +1137,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
-    public ApplicationHostDTO getLatestHost(long bizId, long cloudAreaId, String ip) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
-        conditions.add(TABLE.CLOUD_AREA_ID.eq(JooqDataTypeUtil.buildULong(cloudAreaId)));
-        conditions.add(TABLE.IP.eq(ip));
-        Record record = context
-            .select(ALL_FIELDS)
-            .from(TABLE)
-            .where(conditions)
-            .orderBy(TABLE.ROW_UPDATE_TIME.desc(), TABLE.HOST_ID.asc())
-            .fetchOne();
-        return extractData(record);
-    }
-
-    @Override
     public long countHostsByBizIds(Collection<Long> bizIds) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.APP_ID.in(bizIds));
@@ -1192,10 +1164,10 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (hostInfoDTO != null) {
             List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByHostId(hostId);
             List<Long> setIds =
-                hostTopoDTOList.parallelStream().map(HostTopoDTO::getSetId).collect(Collectors.toList());
+                hostTopoDTOList.stream().map(HostTopoDTO::getSetId).collect(Collectors.toList());
             List<Long> moduleIds =
-                hostTopoDTOList.parallelStream().map(HostTopoDTO::getModuleId).collect(Collectors.toList());
-            List<Long> moduleTypes = moduleIds.parallelStream().map(it -> 1L).collect(Collectors.toList());
+                hostTopoDTOList.stream().map(HostTopoDTO::getModuleId).collect(Collectors.toList());
+            List<Long> moduleTypes = moduleIds.stream().map(it -> 1L).collect(Collectors.toList());
             if (!hostTopoDTOList.isEmpty()) {
                 hostInfoDTO.setBizId(hostTopoDTOList.get(0).getBizId());
             } else {
@@ -1274,9 +1246,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             conditions.add(HostTopo.HOST_TOPO.APP_ID.in(bizIds));
         }
         var query = context.select(
-            TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
-            DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
-        ).from(TABLE)
+                TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
+                DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
+            ).from(TABLE)
             .leftJoin(HostTopo.HOST_TOPO).on(TABLE.HOST_ID.eq(HostTopo.HOST_TOPO.HOST_ID))
             .where(conditions)
             .groupBy(TABLE.IS_AGENT_ALIVE);
@@ -1285,8 +1257,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (records.size() > 0) {
             records.forEach(record -> {
                 HostStatusNumStatisticsDTO statisticsDTO = new HostStatusNumStatisticsDTO();
-                statisticsDTO.setHostNum(Integer.valueOf(record.get(HostStatusNumStatisticsDTO.KEY_HOST_NUM).toString()));
-                statisticsDTO.setGseAgentAlive(Integer.valueOf(record.get(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE).toString()));
+                statisticsDTO.setHostNum(record.get(HostStatusNumStatisticsDTO.KEY_HOST_NUM, Integer.class));
+                statisticsDTO.setGseAgentAlive(record.get(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE, Integer.class));
                 countList.add(statisticsDTO);
             });
         }
@@ -1351,7 +1323,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
         HostSimpleDTO hostSimpleDTO = new HostSimpleDTO();
         hostSimpleDTO.setBizId(record.get(TABLE.APP_ID).longValue());
-        hostSimpleDTO.setGseAgentAlive(record.get(TABLE.IS_AGENT_ALIVE).intValue());
+        hostSimpleDTO.setAgentAliveStatus(record.get(TABLE.IS_AGENT_ALIVE).intValue());
         hostSimpleDTO.setHostId(record.get(TABLE.HOST_ID).longValue());
         hostSimpleDTO.setAgentId(record.get(TABLE.AGENT_ID));
         hostSimpleDTO.setIpv6(record.get(TABLE.IP_V6));

@@ -201,7 +201,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskScriptStepDAO {
     public List<TaskScriptStepDTO> batchListScriptStepIdByParentIds(List<Long> templateIdList) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(
-            TABLE.TEMPLATE_ID.in(templateIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+            TABLE.TEMPLATE_ID.in(templateIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         conditions.add(TABLE.SCRIPT_TYPE.in(Arrays.asList(UByte.valueOf(TaskScriptSourceEnum.CITING.getType()),
             UByte.valueOf(TaskScriptSourceEnum.PUBLIC.getType()))));
         conditions.add(TABLE.SCRIPT_ID.isNotNull());

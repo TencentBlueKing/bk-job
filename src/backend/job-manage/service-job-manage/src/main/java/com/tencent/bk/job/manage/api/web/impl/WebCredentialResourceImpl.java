@@ -84,7 +84,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         baseSearchCondition.setLength(pageSize);
         PageData<CredentialDTO> pageData = credentialService.listCredentials(credentialQuery, baseSearchCondition);
         List<CredentialVO> credentialVOList =
-            pageData.getData().parallelStream().map(CredentialDTO::toVO).collect(Collectors.toList());
+            pageData.getData().stream().map(CredentialDTO::toVO).collect(Collectors.toList());
         PageData<CredentialVO> finalPageData = new PageData<>();
         finalPageData.setStart(pageData.getStart());
         finalPageData.setPageSize(pageData.getPageSize());
@@ -131,7 +131,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
                                    PageData<CredentialVO> credentialVOPageData) {
         List<CredentialVO> credentialVOList = credentialVOPageData.getData();
         // 添加权限数据
-        List<String> credentialIdList = credentialVOList.parallelStream()
+        List<String> credentialIdList = credentialVOList.stream()
             .map(CredentialVO::getId)
             .map(Objects::toString)
             .collect(Collectors.toList());

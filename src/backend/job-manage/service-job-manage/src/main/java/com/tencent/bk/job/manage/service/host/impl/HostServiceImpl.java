@@ -95,6 +95,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("SameParameterValue")
 @Slf4j
 @Service
 public class HostServiceImpl implements HostService {
@@ -216,7 +217,6 @@ public class HostServiceImpl implements HostService {
         List<Long> updateHostIds = new ArrayList<>();
         long errorCount = 0L;
         List<Long> errorHostIds = new ArrayList<>();
-        long notChangeCount = 0L;
         boolean batchUpdated = false;
         try {
             // 尝试批量更新
@@ -245,8 +245,6 @@ public class HostServiceImpl implements HostService {
                         hostCache.addOrUpdateHost(hostInfoDTO);
                         updateCount += 1;
                         updateHostIds.add(hostInfoDTO.getHostId());
-                    } else {
-                        notChangeCount += 1;
                     }
                 } catch (Throwable t) {
                     log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", bizId, hostInfoDTO), t);
@@ -283,20 +281,18 @@ public class HostServiceImpl implements HostService {
                     end = start + batchSize;
                     end = Math.min(end, size);
                     List<HostSimpleDTO> subList = simpleHostList.subList(start, end);
-                    Map<Integer, List<Long>> statusGroupMap = subList.stream()
-                        .collect(Collectors.groupingBy(HostSimpleDTO::getGseAgentAlive,
+                    Map<Integer, List<Long>> agentAliveStatusGroupMap = subList.stream()
+                        .collect(Collectors.groupingBy(HostSimpleDTO::getAgentAliveStatus,
                             Collectors.mapping(HostSimpleDTO::getHostId, Collectors.toList())));
-                    for (Integer status : statusGroupMap.keySet()) {
-                        updateCount += applicationHostDAO.batchUpdateHostStatusByHostIds(status,
-                            statusGroupMap.get(status));
+                    for (Integer agentAliveStatus : agentAliveStatusGroupMap.keySet()) {
+                        updateCount += applicationHostDAO.batchUpdateHostStatusByHostIds(agentAliveStatus,
+                            agentAliveStatusGroupMap.get(agentAliveStatus));
                     }
                     start += batchSize;
                 } while (end < size);
                 watch.stop();
                 watch.start("updateHostsCache");
-                simpleHostList.forEach(simpleHost -> {
-                    hostCache.addOrUpdateHost(simpleHost.convertToHostDTO());
-                });
+                simpleHostList.forEach(simpleHost -> hostCache.addOrUpdateHost(simpleHost.convertToHostDTO()));
                 watch.stop();
             }
         } catch (Throwable throwable) {
@@ -320,7 +316,7 @@ public class HostServiceImpl implements HostService {
         watch.stop();
         watch.start("syncHostTopo");
         // 同步主机关系到host表
-        hostIdList.forEach(hostId -> applicationHostDAO.syncHostTopo(hostId));
+        hostIdList.forEach(applicationHostDAO::syncHostTopo);
         watch.stop();
         log.debug("Performance:removeHostsFromBiz:bizId={},{}", bizId, watch.prettyPrint());
         return deleteFailHostIds;
@@ -651,7 +647,7 @@ public class HostServiceImpl implements HostService {
             List<HostInfoVO> hosts = topologyTree.getIpListStatus();
             if (hosts != null) {
                 topologyTree.getHostIdSet().addAll(
-                    hosts.parallelStream().map(HostInfoVO::getHostId).collect(Collectors.toSet()));
+                    hosts.stream().map(HostInfoVO::getHostId).collect(Collectors.toSet()));
                 topologyTree.setCount(topologyTree.getHostIdSet().size());
             } else {
                 topologyTree.setCount(0);
@@ -761,7 +757,7 @@ public class HostServiceImpl implements HostService {
                                                      ListHostByBizTopologyNodesReq req) {
         PageData<HostInfoVO> hostInfoVOResult = listHostByAppTopologyNodes(username, appResourceScope, req);
         List<String> data =
-            hostInfoVOResult.getData().parallelStream()
+            hostInfoVOResult.getData().stream()
                 .map(it -> it.getCloudArea().getId().toString() + ":" + it.getIp())
                 .collect(Collectors.toList());
         return new PageData<>(
@@ -906,7 +902,7 @@ public class HostServiceImpl implements HostService {
         if (CollectionUtils.isEmpty(cloudIPDTOList)) {
             return Collections.emptyList();
         }
-        return cloudIPDTOList.parallelStream().map(CloudIPDTO::getCloudIP).collect(Collectors.toList());
+        return cloudIPDTOList.stream().map(CloudIPDTO::getCloudIP).collect(Collectors.toList());
     }
 
     /**
@@ -959,7 +955,7 @@ public class HostServiceImpl implements HostService {
             subBizIds,
             cloudIPList
         );
-        Set<String> inAppCloudIPSet = hostDTOList.parallelStream()
+        Set<String> inAppCloudIPSet = hostDTOList.stream()
             .map(ApplicationHostDTO::getCloudIp)
             .collect(Collectors.toSet());
         List<CloudIPDTO> notInAppIPListByLocal = new ArrayList<>();
@@ -971,7 +967,7 @@ public class HostServiceImpl implements HostService {
             }
         });
         // 对于本地不在目标业务下的主机再到CMDB查询
-        List<HostDTO> ipDTOList = notInAppIPListByLocal.parallelStream()
+        List<HostDTO> ipDTOList = notInAppIPListByLocal.stream()
             .map(CloudIPDTO::toHostDTO)
             .collect(Collectors.toList());
         List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(
@@ -1033,11 +1029,11 @@ public class HostServiceImpl implements HostService {
         // 2.根据纯IP从DB查出所有可能的含云区域ID的完整IP
         List<ApplicationHostDTO> hostByPureIpList = applicationHostDAO.listHostInfo(null,
             inputIPWithoutCloudIdSet);
-        Set<CloudIPDTO> hostByPureIpInDB = hostByPureIpList.parallelStream()
+        Set<CloudIPDTO> hostByPureIpInDB = hostByPureIpList.stream()
             .map(host -> new CloudIPDTO(host.getCloudAreaId(), host.getIp())).collect(Collectors.toSet());
         makeupCloudIPSet.addAll(hostByPureIpInDB);
         inputIPWithoutCloudIdSet.removeAll(
-            hostByPureIpInDB.parallelStream().map(CloudIPDTO::getIp).collect(Collectors.toSet())
+            hostByPureIpInDB.stream().map(CloudIPDTO::getIp).collect(Collectors.toSet())
         );
         // 3.DB中找不到的纯IP视为使用默认云区域ID
         inputIPWithoutCloudIdSet.forEach(pureIp ->
@@ -1076,19 +1072,19 @@ public class HostServiceImpl implements HostService {
         // 根据IP从本地查主机
         List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostInfoByBizAndCloudIPs(null,
             validIPList.stream().map(CloudIPDTO::getCloudIP).collect(Collectors.toList()));
-        Set<String> localHostCloudIPSet = hostDTOList.parallelStream()
+        Set<String> localHostCloudIPSet = hostDTOList.stream()
             .map(ApplicationHostDTO::getCloudIp)
             .collect(Collectors.toSet());
         validIPList.removeIf(cloudIPDTO -> localHostCloudIPSet.contains(cloudIPDTO.getCloudIP()));
         // 查不到的再去CMDB查
         if (!validIPList.isEmpty()) {
             List<ApplicationHostDTO> cmdbHosts = bizCmdbClient.listHostsByCloudIps(
-                validIPList.parallelStream()
+                validIPList.stream()
                     .map(CloudIPDTO::getCloudIP)
                     .collect(Collectors.toList())
             );
             hostDTOList.addAll(cmdbHosts);
-            Set<String> cmdbHostIpSet = cmdbHosts.parallelStream()
+            Set<String> cmdbHostIpSet = cmdbHosts.stream()
                 .map(ApplicationHostDTO::getCloudIp).collect(Collectors.toSet());
             validIPList.removeIf(cloudIPDTO -> cmdbHostIpSet.contains(cloudIPDTO.getCloudIP()));
             if (!validIPList.isEmpty()) {
@@ -1220,7 +1216,7 @@ public class HostServiceImpl implements HostService {
             // 查所有hostIds
             List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(moduleIds, start, limit);
             List<Long> hostIdList =
-                hostTopoDTOList.parallelStream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
+                hostTopoDTOList.stream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
             hosts = applicationHostDAO.listHostInfoByHostIds(hostIdList);
         } else if (appInfo.isAllBizSet()) {
             // 全业务
@@ -1232,8 +1228,6 @@ public class HostServiceImpl implements HostService {
             hosts = applicationHostDAO.listHostInfoByBizIds(allBizIds, start, limit);
         }
 
-        // 查出节点下主机与Agent状态
-        List<String> ipWithCloudIdList = buildIpList(hosts);
         // 批量设置agent状态
         agentStatusService.fillRealTimeAgentStatus(hosts);
         List<HostInfoVO> hostInfoVOList = fillCloudAreaNameAndConvertToVOList(hosts);
@@ -1466,9 +1460,7 @@ public class HostServiceImpl implements HostService {
                 new ListHostByHostIdsStrategy().listHostsFromCmdb(hostIds);
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
-                result.getLeft().forEach(notExistHostId -> {
-                    notExistHosts.add(HostDTO.fromHostId(notExistHostId));
-                });
+                result.getLeft().forEach(notExistHostId -> notExistHosts.add(HostDTO.fromHostId(notExistHostId)));
             }
         }
         if (CollectionUtils.isNotEmpty(cloudIps)) {
@@ -1476,9 +1468,7 @@ public class HostServiceImpl implements HostService {
                 new ListHostByIpsStrategy().listHostsFromCmdb(cloudIps);
             appHosts.addAll(result.getRight());
             if (CollectionUtils.isNotEmpty(result.getLeft())) {
-                result.getLeft().forEach(notExistCloudIp -> {
-                    notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp));
-                });
+                result.getLeft().forEach(notExistCloudIp -> notExistHosts.add(HostDTO.fromCloudIp(notExistCloudIp)));
             }
         }
         return Pair.of(notExistHosts, appHosts);
@@ -1487,13 +1477,13 @@ public class HostServiceImpl implements HostService {
     private Pair<List<Long>, List<String>> separateByHostIdOrCloudIp(Collection<HostDTO> hosts) {
         List<Long> hostIds = new ArrayList<>();
         List<String> cloudIps = new ArrayList<>();
-        hosts.forEach(host -> {
+        for (HostDTO host : hosts) {
             if (host.getHostId() != null) {
                 hostIds.add(host.getHostId());
             } else {
                 cloudIps.add(host.toCloudIp());
             }
-        });
+        }
         return Pair.of(hostIds, cloudIps);
     }
 

@@ -78,7 +78,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
         int whiteIpNum = whiteIpHostDTOList.size();
         log.info("{} white ips retrieved:{}", whiteIpNum, whiteIpHostDTOList);
         List<Long> whiteIpHostIds =
-            whiteIpHostDTOList.parallelStream().map(HostDTO::getHostId).collect(Collectors.toList());
+            whiteIpHostDTOList.stream().map(HostDTO::getHostId).collect(Collectors.toList());
         if (whiteIpNum < hostIdSet.size()) {
             hostIdSet.removeAll(whiteIpHostIds);
             log.info("no white ip hosts found by hostIds:{}", hostIdSet);
@@ -86,7 +86,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
         int whiteIpDetailNum = whiteIpHostWithDetailList.size();
         if (whiteIpDetailNum < whiteIpNum) {
             Set<Long> whiteIpHostDetailIds =
-                whiteIpHostWithDetailList.parallelStream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
+                whiteIpHostWithDetailList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
             List<HostDTO> hostListCopy = new ArrayList<>(whiteIpHostDTOList);
             hostListCopy.removeIf(hostDTO -> whiteIpHostDetailIds.contains(hostDTO.getHostId()));
             log.warn("cannot find host detail of {} white ips:{}", hostListCopy.size(), hostListCopy);
@@ -100,7 +100,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
         Set<Long> hostIdSet = new HashSet<>(hostIds);
         List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIds(appResourceScope, hostIdSet);
         List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
-        Set<Long> scopeHostIdSet = scopeHostList.parallelStream()
+        Set<Long> scopeHostIdSet = scopeHostList.stream()
             .map(ApplicationHostDTO::getHostId)
             .collect(Collectors.toSet());
         hostIdSet.removeAll(scopeHostIdSet);

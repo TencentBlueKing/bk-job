@@ -67,7 +67,7 @@ public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
             return;
         }
         log.debug("targetApps:{}",
-            apps.parallelStream().map(ServiceApplicationDTO::getId).collect(Collectors.toList()));
+            apps.stream().map(ServiceApplicationDTO::getId).collect(Collectors.toList()));
         apps.forEach(app -> {
             try {
                 StopWatch stopWatch = new StopWatch();

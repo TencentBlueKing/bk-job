@@ -22,41 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.task;
+package com.tencent.bk.job.common.gse.util;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InvalidParamException;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.common.util.FilePathUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
- * @since 13/12/2019 17:31
+ * GSE文件路径解析器
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("云区域信息")
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Slf4j
-public class CloudAreaInfoVO {
+public class GseFilePathUtils {
+
     /**
-     * 云区域 ID
+     * 标准化GSE返回的文件路径
+     *
+     * @param filePath GSE返回的文件路径
+     * @return 标准化文件路径
      */
-    @ApiModelProperty(value = "云区域 ID", required = true)
-    private Long id;
-
-    @ApiModelProperty("云区域名称")
-    private String name;
-
-    public void validate(boolean isCreate) throws InvalidParamException {
-        if (id == null || id < 0) {
-            log.warn("Invalid cloud area info! id: {}", id);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+    public static String standardizedGSEFilePath(String filePath) {
+        if (StringUtils.isEmpty(filePath)) {
+            return "";
+        }
+        // GSE对于Windows的路径，不管下发参数dir中是否包含路径分隔符，都会默认加上/,比如C:\Users\/；这里需要对路径进行标准化
+        Pair<String, String> dirAndFileName = FilePathUtils.parseDirAndFileName(filePath);
+        String dir = dirAndFileName.getLeft();
+        String fileName = dirAndFileName.getRight();
+        int lastBackSlashIndex = dir.lastIndexOf("\\");
+        if (lastBackSlashIndex == -1) {
+            return dir + fileName;
+        }
+        // "C:\/"这种路径，需要删除掉最后一个GSE添加的"/"
+        if (lastBackSlashIndex == dir.length() - 2) {
+            return dir.substring(0, lastBackSlashIndex + 1) + fileName;
+        } else {
+            return dir + fileName;
         }
     }
 }

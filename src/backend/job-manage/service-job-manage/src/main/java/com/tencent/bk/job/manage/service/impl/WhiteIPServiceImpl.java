@@ -439,7 +439,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         } else {
             List<ResourceScope> scopeList = createUpdateReq.getScopeList();
             Map<ResourceScope, Long> scopeAppIdMap = appScopeMappingService.getAppIdByScopeList(scopeList);
-            appIdList = scopeList.parallelStream()
+            appIdList = scopeList.stream()
                 .map(scope -> {
                     Long appId = scopeAppIdMap.get(scope);
                     if (appId == null) {
@@ -611,14 +611,14 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         recordList.forEach(record -> {
             appIdSet.addAll(record.getAppIdList());
             //添加所有包含生效范围id列表，方便后续一次性查出关联的生效范围code
-            scopeIdSet.addAll(record.getActionScopeList().parallelStream()
+            scopeIdSet.addAll(record.getActionScopeList().stream()
                 .map(WhiteIPActionScopeDTO::getActionScopeId).collect(Collectors.toSet()));
         });
         if (CollectionUtils.isNotEmpty(appIdSet)) {
             applicationDTOList = applicationService.listAppsByAppIds(appIdSet);
         }
 
-        Map<Long, List<ApplicationDTO>> applicationDTOMap = applicationDTOList.parallelStream().collect(
+        Map<Long, List<ApplicationDTO>> applicationDTOMap = applicationDTOList.stream().collect(
             Collectors.groupingBy(ApplicationDTO::getId));
 
         int maxInCount = 1000;
@@ -628,7 +628,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             actionScopeDTOList.addAll(actionScopeDAO.getActionScopeByIds(scopeIdList));
         }
 
-        Map<Long, List<ActionScopeDTO>> actionScopeDTOMap = actionScopeDTOList.parallelStream().collect(
+        Map<Long, List<ActionScopeDTO>> actionScopeDTOMap = actionScopeDTOList.stream().collect(
             Collectors.groupingBy(ActionScopeDTO::getId));
 
         for (WhiteIPRecordDTO whiteIPRecordDTO : recordList) {

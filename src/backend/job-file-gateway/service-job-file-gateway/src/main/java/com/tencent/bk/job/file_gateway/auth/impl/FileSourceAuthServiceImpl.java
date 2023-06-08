@@ -102,8 +102,8 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
                                                  List<Integer> fileSourceIdList) {
         List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appResourceScope,
             ResourceTypeEnum.FILE_SOURCE,
-            fileSourceIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
-        return allowedIdList.parallelStream().map(Integer::valueOf).collect(Collectors.toList());
+            fileSourceIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.stream().map(Integer::valueOf).collect(Collectors.toList());
     }
 
     @Override
@@ -112,8 +112,8 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
                                                    List<Integer> fileSourceIdList) {
         List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appResourceScope,
             ResourceTypeEnum.FILE_SOURCE,
-            fileSourceIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
-        return allowedIdList.parallelStream().map(Integer::valueOf).collect(Collectors.toList());
+            fileSourceIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.stream().map(Integer::valueOf).collect(Collectors.toList());
     }
 
     @Override

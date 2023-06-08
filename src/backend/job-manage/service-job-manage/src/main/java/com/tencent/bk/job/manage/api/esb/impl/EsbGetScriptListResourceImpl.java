@@ -117,7 +117,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
             // 鉴权
             Map<String, String> idNameMap = new HashMap<>();
             // 过滤掉公共脚本
-            List<String> resourceIds = scriptDTOList.parallelStream().filter(it -> !it.isPublicScript()).map(it -> {
+            List<String> resourceIds = scriptDTOList.stream().filter(it -> !it.isPublicScript()).map(it -> {
                 idNameMap.put(it.getId(), it.getName());
                 return it.getId();
             }).collect(Collectors.toList());

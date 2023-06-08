@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Range;
 
@@ -38,6 +40,7 @@ import org.hibernate.validator.constraints.Range;
  */
 @Data
 @ApiModel("任务脚本步骤信息")
+@Slf4j
 public class TaskScriptStepVO {
 
     @ApiModelProperty(value = "脚本类型 1-本地脚本 2-引用业务脚本 3-引用公共脚本")
@@ -59,7 +62,7 @@ public class TaskScriptStepVO {
     private String scriptParam;
 
     @ApiModelProperty("脚本超时时间")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
+    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
         message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Long timeout;
 
@@ -81,10 +84,10 @@ public class TaskScriptStepVO {
     @ApiModelProperty("忽略错误 0 - 不忽略 1 - 忽略")
     private Integer ignoreError;
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         if (scriptSource == null || scriptSource <= 0) {
-            JobContextUtil.addDebugMessage("Missing script step type!");
-            return false;
+            log.warn("Invalid script source : {}", scriptSource);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (status == null || status > 0b11 || status < 0) {
             status = 0;
@@ -92,8 +95,8 @@ public class TaskScriptStepVO {
         switch (scriptSource) {
             case 1:
                 if (StringUtils.isBlank(content)) {
-                    JobContextUtil.addDebugMessage("Local step missing content!");
-                    return false;
+                    log.warn("Local step missing content!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
                 scriptId = null;
                 scriptVersionId = null;
@@ -101,18 +104,18 @@ public class TaskScriptStepVO {
             case 2:
             case 3:
                 if (StringUtils.isBlank(scriptId) || scriptVersionId == null || scriptVersionId <= 0) {
-                    JobContextUtil.addDebugMessage("Link script missing script id or script version id!");
-                    return false;
+                    log.warn("Link script missing script id or script version id!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
                 content = null;
                 break;
             default:
-                JobContextUtil.addDebugMessage("Unknown script type!");
-                return false;
+                log.warn("Unknown script type!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (account == null || account <= 0) {
-            JobContextUtil.addDebugMessage("Missing execute account!");
-            return false;
+            log.warn("Missing execute account!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (StringUtils.isNotBlank(scriptParam) && scriptParam.length() > 5000) {
             scriptParam = scriptParam.substring(0, 5000);
@@ -123,6 +126,6 @@ public class TaskScriptStepVO {
         if (ignoreError == null || ignoreError < 0) {
             ignoreError = 0;
         }
-        return executeTarget.validate(isCreate);
+        executeTarget.validate(isCreate);
     }
 }

@@ -50,7 +50,7 @@ public class BizDynamicGroupService {
 
     public List<DynamicGroupDTO> listDynamicGroup(Long bizId) {
         List<CcDynamicGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(bizId);
-        return ccGroupList.parallelStream().map(DynamicGroupDTO::fromCcGroupDTO).collect(Collectors.toList());
+        return ccGroupList.stream().map(DynamicGroupDTO::fromCcGroupDTO).collect(Collectors.toList());
     }
 
     public List<DynamicGroupDTO> listDynamicGroup(Long bizId, Collection<String> ids) {
@@ -59,6 +59,6 @@ public class BizDynamicGroupService {
             return dynamicGroupList;
         }
         Set<String> idSet = new HashSet<>(ids);
-        return dynamicGroupList.parallelStream().filter(it -> idSet.contains(it.getId())).collect(Collectors.toList());
+        return dynamicGroupList.stream().filter(it -> idSet.contains(it.getId())).collect(Collectors.toList());
     }
 }

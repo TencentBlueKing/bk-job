@@ -307,7 +307,7 @@ public class ImportJobExecutor {
             List<ServiceAccountDTO> appAccountList = accountService.listAccountByAppId(importJob.getCreator(),
                 importJob.getAppId());
             Map<String, Long> appAccountIdMap = new ConcurrentHashMap<>();
-            appAccountList.parallelStream().forEach(account -> appAccountIdMap.put(account.getAlias(),
+            appAccountList.forEach(account -> appAccountIdMap.put(account.getAlias(),
                 account.getId()));
 
             for (ServiceAccountDTO account : jobBackupInfo.getAccountList()) {

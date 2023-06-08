@@ -226,7 +226,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         // 添加权限数据
         List<Long> canManageIdList =
             accountAuthService.batchAuthManageAccount(username, appResourceScope,
-                accountVOS.parallelStream().map(AccountVO::getId).collect(Collectors.toList()));
+                accountVOS.stream().map(AccountVO::getId).collect(Collectors.toList()));
         accountVOS.forEach(it -> it.setCanManage(canManageIdList.contains(it.getId())));
         result.setData(accountVOS);
         result.setCanCreate(checkCreateAccountPermission(username, appResourceScope).isPass());

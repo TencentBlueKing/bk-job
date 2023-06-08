@@ -175,7 +175,7 @@ public class TaskTemplateStepDAOImpl extends AbstractTaskStepDAO implements Task
         }
 
         List<ULong> uLongTemplateIdList =
-            parentIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList());
+            parentIdList.stream().map(ULong::valueOf).collect(Collectors.toList());
 
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.TEMPLATE_ID.in(uLongTemplateIdList));

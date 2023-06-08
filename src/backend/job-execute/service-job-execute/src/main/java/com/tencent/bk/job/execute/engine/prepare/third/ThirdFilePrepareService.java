@@ -176,7 +176,7 @@ public class ThirdFilePrepareService {
                 }
             }
             // 收集第三方文件源文件路径
-            List<String> filePaths = files.parallelStream()
+            List<String> filePaths = files.stream()
                 .map(FileDetailDTO::getThirdFilePath)
                 .collect(Collectors.toList());
             // 收集文件源文件任务

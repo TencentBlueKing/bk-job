@@ -126,8 +126,8 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
                                                List<Long> jobTemplateIdList) {
         List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.VIEW_JOB_TEMPLATE,
             appResourceScope, ResourceTypeEnum.TEMPLATE,
-            jobTemplateIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
-        return allowedIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            jobTemplateIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
@@ -136,8 +136,8 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
                                                List<Long> jobTemplateIdList) {
         List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.EDIT_JOB_TEMPLATE,
             appResourceScope, ResourceTypeEnum.TEMPLATE,
-            jobTemplateIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
-        return allowedIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            jobTemplateIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
@@ -159,8 +159,8 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
                                                  List<Long> jobTemplateIdList) {
         List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.DELETE_JOB_TEMPLATE,
             appResourceScope, ResourceTypeEnum.TEMPLATE,
-            jobTemplateIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
-        return allowedIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            jobTemplateIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override

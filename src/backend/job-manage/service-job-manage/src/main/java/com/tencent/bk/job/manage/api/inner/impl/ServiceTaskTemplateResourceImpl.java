@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.api.inner.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -36,7 +35,6 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -168,24 +166,19 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
                 log.warn("Skip create perm check for migration!");
             }
         }
-        if (taskTemplateCreateUpdateReq.validate()) {
-            TaskTemplateInfoDTO templateInfo = TaskTemplateInfoDTO.fromReq(username, appId,
-                taskTemplateCreateUpdateReq);
-            int count = addHostIdForHostsInStepAndVariables(templateInfo);
-            log.info("{} hostIds added for template {}:{}", count, templateInfo.getAppId(), templateInfo.getName());
-            bindExistTagsToImportedTemplate(appId, templateInfo);
-            templateInfo.setCreator(username);
-            Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
-                lastModifyTime, lastModifyUser);
-            templateAuthService.registerTemplate(
-                finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
-            return InternalResponse.buildSuccessResp(finalTemplateId);
-        } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON, new String[]{
-                "body",
-                StringUtil.concatCollection(JobContextUtil.getDebugMessage())
-            });
-        }
+        taskTemplateCreateUpdateReq.validate();
+
+        TaskTemplateInfoDTO templateInfo = TaskTemplateInfoDTO.fromReq(username, appId,
+            taskTemplateCreateUpdateReq);
+        int count = addHostIdForHostsInStepAndVariables(templateInfo);
+        log.info("{} hostIds added for template {}:{}", count, templateInfo.getAppId(), templateInfo.getName());
+        bindExistTagsToImportedTemplate(appId, templateInfo);
+        templateInfo.setCreator(username);
+        Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
+            lastModifyTime, lastModifyUser);
+        templateAuthService.registerTemplate(
+            finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
+        return InternalResponse.buildSuccessResp(finalTemplateId);
     }
 
     private int addHostIdForHostsInStepAndVariables(TaskTemplateInfoDTO templateInfo) {
@@ -300,7 +293,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         List<TaskVariableDTO> taskVariableList = taskVariableService.listVariablesByParentId(templateId);
         if (CollectionUtils.isNotEmpty(taskVariableList)) {
             List<ServiceTaskVariableDTO> variableList =
-                taskVariableList.parallelStream().map(TaskVariableDTO::toServiceDTO).collect(Collectors.toList());
+                taskVariableList.stream().map(TaskVariableDTO::toServiceDTO).collect(Collectors.toList());
             return InternalResponse.buildSuccessResp(variableList);
         }
         return InternalResponse.buildSuccessResp(Collections.emptyList());
@@ -324,7 +317,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         resultData.setTotal(templateListPage.getTotal());
         resultData.setStart(templateListPage.getStart());
         resultData.setPageSize(templateListPage.getPageSize());
-        resultData.setData(templateListPage.getData().parallelStream().map(TaskTemplateInfoDTO::toServiceDTO)
+        resultData.setData(templateListPage.getData().stream().map(TaskTemplateInfoDTO::toServiceDTO)
             .collect(Collectors.toList()));
         return InternalResponse.buildSuccessResp(resultData);
     }

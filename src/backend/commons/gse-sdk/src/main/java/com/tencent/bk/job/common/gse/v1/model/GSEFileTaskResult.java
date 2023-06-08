@@ -26,7 +26,8 @@ package com.tencent.bk.job.common.gse.v1.model;/*
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.FileTaskTypeEnum;
-import com.tencent.bk.job.common.gse.util.FilePathUtils;
+import com.tencent.bk.job.common.util.FilePathUtils;
+import com.tencent.bk.job.common.gse.util.GseFilePathUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -231,10 +232,10 @@ public class GSEFileTaskResult {
                               String destFilePath) {
         String taskId;
         if (FileDistModeEnum.getFileDistMode(mode) == FileDistModeEnum.DOWNLOAD) {
-            taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath),
+            taskId = concat(mode.toString(), sourceAgentId, GseFilePathUtils.standardizedGSEFilePath(sourceFilePath),
                 destAgentId, destFilePath);
         } else {
-            taskId = concat(mode.toString(), sourceAgentId, FilePathUtils.standardizedGSEFilePath(sourceFilePath));
+            taskId = concat(mode.toString(), sourceAgentId, GseFilePathUtils.standardizedGSEFilePath(sourceFilePath));
         }
         return taskId;
     }
