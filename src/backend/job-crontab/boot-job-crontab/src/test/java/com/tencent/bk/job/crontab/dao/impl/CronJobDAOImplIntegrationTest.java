@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.dao.impl;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.encrypt.CryptorNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
@@ -93,10 +94,12 @@ public class CronJobDAOImplIntegrationTest {
         VARIABLE_1.setName("a");
         VARIABLE_1.setValue("b");
         VARIABLE_1.setType(TaskVariableTypeEnum.HOST_LIST);
+        VARIABLE_1.setCipherEncryptAlgorithm(CryptorNames.NONE);
 
         VARIABLE_2.setName("b");
         VARIABLE_2.setValue("c");
         VARIABLE_2.setType(TaskVariableTypeEnum.CIPHER);
+        VARIABLE_2.setCipherEncryptAlgorithm(CryptorNames.NONE);
 
         NOTIFY_USER_1.setUserList(Arrays.asList("userC", "userJ"));
         NOTIFY_USER_1.setRoleList(Arrays.asList("JOB_ROLE_1", "JOB_ROLE_2"));
@@ -357,7 +360,8 @@ public class CronJobDAOImplIntegrationTest {
 
     @Test
     void giveCronJobIdReturnDeleteSuccess() {
-        assertThat(cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isEqualTo(CRON_JOB_1);
+        CronJobInfoDTO cronJobInfoDTO = cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId());
+        assertThat(cronJobInfoDTO).isEqualTo(CRON_JOB_1);
         assertThat(cronJobDAO.deleteCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isTrue();
         assertThat(cronJobDAO.deleteCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isFalse();
         assertThat(cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isNull();
@@ -399,7 +403,8 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_1.setNotifyUser(userRoleInfo);
         CRON_JOB_1.setNotifyChannel(Arrays.asList(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
         CRON_JOB_1.setId(cronJobDAO.insertCronJob(CRON_JOB_1));
-        assertThat(cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isEqualTo(CRON_JOB_1);
+        CronJobInfoDTO cronJobInfoDTO = cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId());
+        assertThat(cronJobInfoDTO).isEqualTo(CRON_JOB_1);
     }
 
     @Test

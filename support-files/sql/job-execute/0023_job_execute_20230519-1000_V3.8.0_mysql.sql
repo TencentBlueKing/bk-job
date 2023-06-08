@@ -21,6 +21,14 @@ BEGIN
       ALTER TABLE step_instance_script ADD COLUMN `secure_param_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None";
   END IF;
 
+  IF NOT EXISTS(SELECT 1
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = db
+                  AND TABLE_NAME = 'task_instance_variable'
+                  AND COLUMN_NAME = 'cipher_encrypt_algorithm') THEN
+      ALTER TABLE task_instance_variable ADD COLUMN `cipher_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None";
+  END IF;
+
   COMMIT;
 END <JOB_UBF>
 DELIMITER ;

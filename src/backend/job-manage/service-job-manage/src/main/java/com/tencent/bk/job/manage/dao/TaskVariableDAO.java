@@ -109,18 +109,4 @@ public interface TaskVariableDAO {
     boolean batchInsertVariableWithId(List<TaskVariableDTO> variableList);
 
     boolean updateVariableByName(TaskVariableDTO variable);
-
-    /**
-     * 查询所有的主机变量
-     */
-    List<TaskVariableDTO> listHostVariables();
-
-    /**
-     * 更新变量的值
-     *
-     * @param id    主机变量ID
-     * @param value 变量值
-     * @return 更新结果
-     */
-    boolean updateVariableValue(Long id, String value);
 }

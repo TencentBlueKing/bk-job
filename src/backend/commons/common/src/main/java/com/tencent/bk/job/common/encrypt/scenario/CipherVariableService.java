@@ -24,53 +24,54 @@
 
 package com.tencent.bk.job.common.encrypt.scenario;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.encrypt.CryptoScenarioEnum;
 import com.tencent.bk.job.common.encrypt.CryptorNames;
 import com.tencent.bk.job.common.encrypt.SymmetricCryptoService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * 脚本敏感参数相关加解密服务
+ * 密文变量相关加解密服务
  */
 @Slf4j
 @Service
-public class SensitiveParamService {
+public class CipherVariableService {
 
     private final SymmetricCryptoService symmetricCryptoService;
 
     @Autowired
-    public SensitiveParamService(SymmetricCryptoService symmetricCryptoService) {
+    public CipherVariableService(SymmetricCryptoService symmetricCryptoService) {
         this.symmetricCryptoService = symmetricCryptoService;
     }
 
-    public String getSecureParamEncryptAlgorithm(Boolean secureParam) {
-        if (secureParam == null || !secureParam) {
+    public String getCipherVariableEncryptAlgorithm(TaskVariableTypeEnum taskVariableTypeEnum) {
+        if (!isCipherVariable(taskVariableTypeEnum)) {
             return CryptorNames.NONE;
         }
-        return symmetricCryptoService.getAlgorithmByScenario(CryptoScenarioEnum.SCRIPT_SENSITIVE_PARAM);
+        return symmetricCryptoService.getAlgorithmByScenario(CryptoScenarioEnum.CIPHER_VARIABLE);
     }
 
-    public String encryptParamIfNeeded(boolean secureParam, String param) {
-        if (!secureParam) {
-            return param;
-        }
-        return symmetricCryptoService.encryptToBase64Str(param, CryptoScenarioEnum.SCRIPT_SENSITIVE_PARAM);
+    private boolean isCipherVariable(TaskVariableTypeEnum taskVariableTypeEnum) {
+        return TaskVariableTypeEnum.CIPHER == taskVariableTypeEnum;
     }
 
-    public String encryptParamIfNeeded(boolean secureParam, String param, String encryptAlgorithm) {
-        if (!secureParam) {
-            return param;
+    public String encryptTaskVariableIfNeeded(TaskVariableTypeEnum taskVariableTypeEnum, String taskVariable) {
+        if (!isCipherVariable(taskVariableTypeEnum)) {
+            return taskVariable;
         }
-        return symmetricCryptoService.encryptToBase64Str(param, encryptAlgorithm);
+        return symmetricCryptoService.encryptToBase64Str(taskVariable, CryptoScenarioEnum.CIPHER_VARIABLE);
     }
 
-    public String decryptParamIfNeeded(boolean secureParam, String encryptedParam, String algorithm) {
-        if (!secureParam) {
-            return encryptedParam;
+    public String decryptTaskVariableIfNeeded(TaskVariableTypeEnum taskVariableTypeEnum,
+                                              String encryptedTaskVariable,
+                                              String algorithm) {
+        if (!isCipherVariable(taskVariableTypeEnum) || StringUtils.isBlank(algorithm)) {
+            return encryptedTaskVariable;
         }
-        return symmetricCryptoService.decrypt(encryptedParam, algorithm);
+        return symmetricCryptoService.decrypt(encryptedTaskVariable, algorithm);
     }
 
 }

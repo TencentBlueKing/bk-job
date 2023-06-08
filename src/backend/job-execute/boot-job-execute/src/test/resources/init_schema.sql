@@ -272,14 +272,15 @@ CREATE TABLE IF NOT EXISTS `operation_log`
 
 CREATE TABLE IF NOT EXISTS `task_instance_variable`
 (
-    `id`               bigint(20)   NOT NULL AUTO_INCREMENT,
-    `task_instance_id` bigint(20)   NOT NULL,
-    `name`             varchar(512) NOT NULL,
-    `type`             tinyint(4)   NOT NULL,
-    `value`            longtext,
-    `is_changeable`    tinyint(1)   NOT NULL,
-    `row_create_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`                       bigint(20)   NOT NULL AUTO_INCREMENT,
+    `task_instance_id`         bigint(20)   NOT NULL,
+    `name`                     varchar(512) NOT NULL,
+    `type`                     tinyint(4)   NOT NULL,
+    `value`                    longtext,
+    `is_changeable`            tinyint(1)   NOT NULL,
+    `cipher_encrypt_algorithm` VARCHAR(32)  NOT NULL DEFAULT 'None',
+    `row_create_time`          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY (`task_instance_id`)
 ) ENGINE = InnoDB
@@ -362,15 +363,15 @@ CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
 
 CREATE TABLE IF NOT EXISTS `task_instance_host`
 (
-    `task_instance_id` bigint(20)  NOT NULL DEFAULT '0',
-    `host_id`          bigint(20)  NOT NULL DEFAULT '0',
-    `ip`               varchar(15) DEFAULT NULL,
-    `ipv6`             varchar(46) DEFAULT NULL,
-    `row_create_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`task_instance_id`,`host_id`),
+    `task_instance_id` bigint(20) NOT NULL DEFAULT '0',
+    `host_id`          bigint(20) NOT NULL DEFAULT '0',
+    `ip`               varchar(15)         DEFAULT NULL,
+    `ipv6`             varchar(46)         DEFAULT NULL,
+    `row_create_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`task_instance_id`, `host_id`),
     KEY (`ip`),
     KEY (`ipv6`)
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
 

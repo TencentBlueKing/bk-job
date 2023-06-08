@@ -80,12 +80,12 @@ CREATE TABLE `script_version`
 -- ----------------------------
 CREATE TABLE `resource_tag`
 (
-    `id`                 BIGINT(20)          NOT NULL AUTO_INCREMENT,
-    `row_create_time`    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `tag_id`             BIGINT(20)          NOT NULL,
-    `resource_id`        VARCHAR(32)         NOT NULL,
-    `resource_type`      TINYINT(4)          NOT NULL,
+    `id`              BIGINT(20)  NOT NULL AUTO_INCREMENT,
+    `row_create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `tag_id`          BIGINT(20)  NOT NULL,
+    `resource_id`     VARCHAR(32) NOT NULL,
+    `resource_type`   TINYINT(4)  NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY (`resource_id`, `resource_type`, `tag_id`),
     KEY (`tag_id`, `resource_type`)
@@ -294,17 +294,18 @@ CREATE TABLE `task_plan_step_script`
 -- ----------------------------
 CREATE TABLE `task_plan_variable`
 (
-    `id`                   BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `row_create_time`      DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`      DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `plan_id`              BIGINT(20) UNSIGNED NOT NULL,
-    `name`                 VARCHAR(255)        NOT NULL,
-    `template_variable_id` BIGINT(20) UNSIGNED NOT NULL,
-    `type`                 TINYINT(2) UNSIGNED NOT NULL,
-    `default_value`        LONGTEXT                     DEFAULT NULL,
-    `description`          VARCHAR(512)        NOT NULL,
-    `is_changeable`        TINYINT(1) UNSIGNED NOT NULL,
-    `is_required`          TINYINT(1) UNSIGNED NOT NULL,
+    `id`                       BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `row_create_time`          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `plan_id`                  BIGINT(20) UNSIGNED NOT NULL,
+    `name`                     VARCHAR(255)        NOT NULL,
+    `template_variable_id`     BIGINT(20) UNSIGNED NOT NULL,
+    `type`                     TINYINT(2) UNSIGNED NOT NULL,
+    `default_value`            LONGTEXT                     DEFAULT NULL,
+    `description`              VARCHAR(512)        NOT NULL,
+    `is_changeable`            TINYINT(1) UNSIGNED NOT NULL,
+    `is_required`              TINYINT(1) UNSIGNED NOT NULL,
+    `cipher_encrypt_algorithm` VARCHAR(32)         NOT NULL DEFAULT 'None',
     PRIMARY KEY (`id`),
     KEY (`plan_id`) USING BTREE
 ) ENGINE = INNODB
@@ -458,16 +459,17 @@ CREATE TABLE `task_template_step_script`
 -- ----------------------------
 CREATE TABLE `task_template_variable`
 (
-    `id`              BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `row_create_time` DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time` DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `template_id`     BIGINT(20) UNSIGNED NOT NULL,
-    `name`            VARCHAR(255)        NOT NULL,
-    `type`            TINYINT(2) UNSIGNED NOT NULL,
-    `default_value`   LONGTEXT                     DEFAULT NULL,
-    `description`     VARCHAR(512)        NOT NULL,
-    `is_changeable`   TINYINT(1) UNSIGNED NOT NULL,
-    `is_required`     TINYINT(1) UNSIGNED NOT NULL,
+    `id`                       BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `row_create_time`          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `template_id`              BIGINT(20) UNSIGNED NOT NULL,
+    `name`                     VARCHAR(255)        NOT NULL,
+    `type`                     TINYINT(2) UNSIGNED NOT NULL,
+    `default_value`            LONGTEXT                     DEFAULT NULL,
+    `description`              VARCHAR(512)        NOT NULL,
+    `is_changeable`            TINYINT(1) UNSIGNED NOT NULL,
+    `is_required`              TINYINT(1) UNSIGNED NOT NULL,
+    `cipher_encrypt_algorithm` VARCHAR(32)         NOT NULL DEFAULT 'None',
     PRIMARY KEY (`id`),
     KEY (`template_id`) USING BTREE
 ) ENGINE = INNODB
@@ -510,7 +512,7 @@ CREATE TABLE `application`
     `language`            VARCHAR(20)                  DEFAULT NULL,
     `bk_scope_type`       VARCHAR(32)                  DEFAULT '',
     `bk_scope_id`         VARCHAR(32)                  DEFAULT '',
-    `is_deleted`           TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+    `is_deleted`          TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
     `attrs`               TEXT                         DEFAULT NULL,
     PRIMARY KEY (`app_id`),
     KEY (`app_type`)

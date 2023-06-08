@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.encrypt.scenario.CipherVariableService;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import org.jooq.DSLContext;
-import org.jooq.InsertValuesStep5;
+import org.jooq.InsertValuesStep6;
 import org.jooq.Record;
+import org.jooq.Record7;
 import org.jooq.Result;
 import org.jooq.generated.tables.TaskInstanceVariable;
 import org.jooq.generated.tables.records.TaskInstanceVariableRecord;
@@ -46,18 +49,28 @@ import java.util.List;
 @Repository
 public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
     private static final TaskInstanceVariable TABLE = TaskInstanceVariable.TASK_INSTANCE_VARIABLE;
-    private DSLContext ctx;
+
+    private final DSLContext ctx;
+    private final CipherVariableService cipherVariableService;
 
     @Autowired
-    public TaskInstanceVariableDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+    public TaskInstanceVariableDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+                                       CipherVariableService cipherVariableService) {
         this.ctx = ctx;
+        this.cipherVariableService = cipherVariableService;
     }
 
     @Override
     public List<TaskVariableDTO> getByTaskInstanceId(long taskInstanceId) {
-        Result result = ctx.select(TABLE.ID, TABLE.TASK_INSTANCE_ID, TABLE.NAME, TABLE.TYPE, TABLE.IS_CHANGEABLE,
-            TABLE.VALUE)
-            .from(TABLE)
+        Result<Record7<Long, Long, String, Byte, Byte, String, String>> result = ctx.select(
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.NAME,
+                TABLE.TYPE,
+                TABLE.IS_CHANGEABLE,
+                TABLE.VALUE,
+                TABLE.CIPHER_ENCRYPT_ALGORITHM
+            ).from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .fetch();
         List<TaskVariableDTO> taskVariables = new ArrayList<>();
@@ -73,7 +86,11 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
         taskVariable.setTaskInstanceId(record.get(TABLE.TASK_INSTANCE_ID));
         taskVariable.setName(record.get(TABLE.NAME));
         taskVariable.setType(JooqDataTypeUtil.toInteger(record.get(TABLE.TYPE)));
-        taskVariable.setValue(record.get(TABLE.VALUE));
+        TaskVariableTypeEnum taskVarType = TaskVariableTypeEnum.valOf(taskVariable.getType());
+        String encryptedValue = record.get(TABLE.VALUE);
+        String algorithm = record.get(TABLE.CIPHER_ENCRYPT_ALGORITHM);
+        String value = cipherVariableService.decryptTaskVariableIfNeeded(taskVarType, encryptedValue, algorithm);
+        taskVariable.setValue(value);
         taskVariable.setChangeable(JooqDataTypeUtil.toInteger(record.get(TABLE.IS_CHANGEABLE)).equals(1));
         return taskVariable;
     }
@@ -90,13 +107,28 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
 
     @Override
     public void saveTaskInstanceVariables(List<TaskVariableDTO> taskVarList) {
-        InsertValuesStep5<TaskInstanceVariableRecord, Long, String, Byte, String, Byte> insertStep =
-            ctx.insertInto(TABLE).columns(TABLE.TASK_INSTANCE_ID, TABLE.NAME, TABLE.TYPE, TABLE.VALUE,
-                TABLE.IS_CHANGEABLE);
+        InsertValuesStep6<TaskInstanceVariableRecord, Long, String, Byte, String, Byte, String> insertStep =
+            ctx.insertInto(TABLE)
+                .columns(
+                    TABLE.TASK_INSTANCE_ID,
+                    TABLE.NAME,
+                    TABLE.TYPE,
+                    TABLE.VALUE,
+                    TABLE.IS_CHANGEABLE,
+                    TABLE.CIPHER_ENCRYPT_ALGORITHM
+                );
 
-        taskVarList.forEach(taskVar -> insertStep.values(taskVar.getTaskInstanceId(),
-            taskVar.getName(), JooqDataTypeUtil.toByte(taskVar.getType()),
-            taskVar.getValue(), JooqDataTypeUtil.toByte(taskVar.isChangeable() ? 1 : 0)));
+        taskVarList.forEach(taskVar -> {
+            TaskVariableTypeEnum taskVarType = TaskVariableTypeEnum.valOf(taskVar.getType());
+            insertStep.values(
+                taskVar.getTaskInstanceId(),
+                taskVar.getName(),
+                JooqDataTypeUtil.toByte(taskVar.getType()),
+                cipherVariableService.encryptTaskVariableIfNeeded(taskVarType, taskVar.getValue()),
+                JooqDataTypeUtil.toByte(taskVar.isChangeable() ? 1 : 0),
+                cipherVariableService.getCipherVariableEncryptAlgorithm(taskVarType)
+            );
+        });
 
         insertStep.execute();
     }
