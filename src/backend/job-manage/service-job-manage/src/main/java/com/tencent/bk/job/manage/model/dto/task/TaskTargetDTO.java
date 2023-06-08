@@ -122,6 +122,8 @@ public class TaskTargetDTO {
                     hostNode.setOsName(host.getOsName());
                     hostNode.setOsType(host.getOsType());
                     hostNode.setGseAgentStatus(host.getGseAgentStatus());
+                } else {
+                    log.warn("Cannot find host by hostId={}", hostNode.getHostId());
                 }
             });
         }
