@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
-@Configuration
+@Configuration(value = "jobFileGatewayDbConfig")
 @EnableTransactionManagement
 public class DbConfig {
     @Qualifier("job-file-gateway-data-source")
@@ -55,8 +55,8 @@ public class DbConfig {
         return DataSourceBuilder.create().build();
     }
 
-    @Qualifier("transactionManager")
-    @Bean(name = "transactionManager")
+    @Qualifier("jobFileGatewayTransactionManager")
+    @Bean(name = "jobFileGatewayTransactionManager")
     @DependsOn("job-file-gateway-data-source")
     @Primary
     public DataSourceTransactionManager transactionManager(
@@ -87,12 +87,13 @@ public class DbConfig {
 
     @Qualifier("job-file-gateway-conn-provider")
     @Bean(name = "job-file-gateway-conn-provider")
-    public ConnectionProvider connectionProvider(@Qualifier("transactionAwareDataSource") DataSource dataSource) {
+    public ConnectionProvider connectionProvider(
+        @Qualifier("jobFileGatewayTransactionAwareDataSource") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);
     }
 
-    @Qualifier("transactionAwareDataSource")
-    @Bean(name = "transactionAwareDataSource")
+    @Qualifier("jobFileGatewayTransactionAwareDataSource")
+    @Bean(name = "jobFileGatewayTransactionAwareDataSource")
     public TransactionAwareDataSourceProxy
     transactionAwareDataSourceProxy(@Qualifier("job-file-gateway-data-source") DataSource dataSource) {
         return new TransactionAwareDataSourceProxy(dataSource);

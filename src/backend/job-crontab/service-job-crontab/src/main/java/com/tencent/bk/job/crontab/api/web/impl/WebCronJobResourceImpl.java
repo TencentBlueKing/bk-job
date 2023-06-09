@@ -51,6 +51,7 @@ import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobLaunchResultStatistics;
+import com.tencent.bk.job.crontab.service.CronJobExecuteResultService;
 import com.tencent.bk.job.crontab.service.CronJobHistoryService;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -78,14 +79,17 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     private final CronJobService cronJobService;
     private final CronJobHistoryService cronJobHistoryService;
     private final CronAuthService cronAuthService;
+    private final CronJobExecuteResultService cronJobExecuteResultService;
 
     @Autowired
     public WebCronJobResourceImpl(CronJobService cronJobService,
                                   CronJobHistoryService cronJobHistoryService,
-                                  CronAuthService cronAuthService) {
+                                  CronAuthService cronAuthService,
+                                  CronJobExecuteResultService cronJobExecuteResultService) {
         this.cronJobService = cronJobService;
         this.cronJobHistoryService = cronJobHistoryService;
         this.cronAuthService = cronAuthService;
+        this.cronJobExecuteResultService = cronJobExecuteResultService;
     }
 
     @Override
@@ -195,7 +199,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         try {
             List<Long> cronJobIdList =
                 resultCronJobs.stream().map(CronJobVO::getId).collect(Collectors.toList());
-            cronJobExecuteHistory = cronJobService.getCronJobExecuteHistory(appId, cronJobIdList);
+            cronJobExecuteHistory = cronJobExecuteResultService.getCronJobExecuteHistory(appId, cronJobIdList);
             cronJobLaunchHistory = cronJobHistoryService.getCronTaskLaunchResultStatistics(appId, cronJobIdList);
         } catch (Exception e) {
             String msg = MessageFormatter.format(

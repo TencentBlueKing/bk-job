@@ -71,12 +71,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-/**
- * @since 19/11/2019 16:43
- */
 @Slf4j
-@Service("TaskPlanServiceImpl")
+@Service("TaskPlanService")
 public class TaskPlanServiceImpl implements TaskPlanService {
 
     private final TaskPlanDAO taskPlanDAO;

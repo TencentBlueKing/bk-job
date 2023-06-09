@@ -54,7 +54,6 @@ import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequ
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.HostService;
-import com.tencent.bk.job.crontab.service.TaskExecuteResultService;
 import com.tencent.bk.job.crontab.service.TaskPlanService;
 import com.tencent.bk.job.crontab.timer.AbstractQuartzTaskHandler;
 import com.tencent.bk.job.crontab.timer.QuartzJob;
@@ -64,7 +63,6 @@ import com.tencent.bk.job.crontab.timer.QuartzTriggerBuilder;
 import com.tencent.bk.job.crontab.timer.executor.InnerJobExecutor;
 import com.tencent.bk.job.crontab.timer.executor.NotifyJobExecutor;
 import com.tencent.bk.job.crontab.timer.executor.SimpleJobExecutor;
-import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +95,6 @@ import java.util.stream.Collectors;
 public class CronJobServiceImpl implements CronJobService {
 
     private final CronJobDAO cronJobDAO;
-    private final TaskExecuteResultService taskExecuteResultService;
 
     private final AbstractQuartzTaskHandler quartzTaskHandler;
     private final TaskPlanService taskPlanService;
@@ -107,14 +104,12 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Autowired
     public CronJobServiceImpl(CronJobDAO cronJobDAO,
-                              TaskExecuteResultService taskExecuteResultService,
                               AbstractQuartzTaskHandler quartzTaskHandler,
                               TaskPlanService taskPlanService,
                               CronAuthService cronAuthService,
                               ExecuteTaskService executeTaskService,
                               HostService hostService) {
         this.cronJobDAO = cronJobDAO;
-        this.taskExecuteResultService = taskExecuteResultService;
         this.quartzTaskHandler = quartzTaskHandler;
         this.taskPlanService = taskPlanService;
         this.cronAuthService = cronAuthService;
@@ -498,12 +493,6 @@ public class CronJobServiceImpl implements CronJobService {
             log.error(msg, e);
             return false;
         }
-    }
-
-    @Override
-    public Map<Long, ServiceCronTaskExecuteResultStatistics> getCronJobExecuteHistory(Long appId,
-                                                                                      List<Long> cronIdList) {
-        return taskExecuteResultService.getCronTaskExecuteResultStatistics(appId, cronIdList);
     }
 
     @Override

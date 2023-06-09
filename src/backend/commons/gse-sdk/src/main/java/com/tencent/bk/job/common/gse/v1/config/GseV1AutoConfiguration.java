@@ -28,10 +28,8 @@ import com.tencent.bk.job.common.gse.config.GseV1Properties;
 import com.tencent.bk.job.common.gse.v1.CuratorFrameworkFactoryBean;
 import com.tencent.bk.job.common.gse.v1.GseCacheClientFactory;
 import com.tencent.bk.job.common.gse.v1.GseServer;
-import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
 import com.tencent.bk.job.common.gse.v1.GseZkServer;
 import com.tencent.bk.job.common.gse.v1.IntervalIncrementForeverRetry;
-import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -82,8 +80,4 @@ public class GseV1AutoConfiguration {
         return new GseCacheClientFactory(gseV1Properties);
     }
 
-    @Bean("gseV1ApiClient")
-    public GseV1ApiClient gseV1ApiClient(MeterRegistry meterRegistry, GseCacheClientFactory gseCacheClientFactory) {
-        return new GseV1ApiClient(meterRegistry, gseCacheClientFactory);
-    }
 }

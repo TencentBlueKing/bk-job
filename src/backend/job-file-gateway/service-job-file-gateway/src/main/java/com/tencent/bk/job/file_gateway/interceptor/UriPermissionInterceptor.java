@@ -40,7 +40,7 @@ import java.util.List;
  * Uri权限控制拦截
  */
 @Slf4j
-@Component
+@Component("jobFileGatewayUriPermissionInterceptor")
 public class UriPermissionInterceptor implements AsyncHandlerInterceptor {
 
     @Autowired

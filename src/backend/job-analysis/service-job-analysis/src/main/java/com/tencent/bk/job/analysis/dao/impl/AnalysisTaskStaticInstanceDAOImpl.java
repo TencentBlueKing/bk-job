@@ -33,10 +33,11 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.AnalysisTask;
 import org.jooq.generated.tables.AnalysisTaskStaticInstance;
 import org.jooq.generated.tables.records.AnalysisTaskStaticInstanceRecord;
 import org.jooq.types.ULong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -44,22 +45,22 @@ import java.util.Collections;
 import java.util.List;
 
 
-/**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
- */
 @Repository
 @Slf4j
 public class AnalysisTaskStaticInstanceDAOImpl implements AnalysisTaskStaticInstanceDAO {
 
     private static final AnalysisTaskStaticInstance defaultTable =
         AnalysisTaskStaticInstance.ANALYSIS_TASK_STATIC_INSTANCE;
-    private static final AnalysisTask tableAnalysisTask = AnalysisTask.ANALYSIS_TASK;
+
+    private final DSLContext dslContext;
+
+    @Autowired
+    public AnalysisTaskStaticInstanceDAOImpl(@Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
 
     @Override
-    public Long insert(DSLContext dslContext,
-                       AnalysisTaskStaticInstanceDTO analysisTaskStaticInstanceDTO) {
+    public Long insert(AnalysisTaskStaticInstanceDTO analysisTaskStaticInstanceDTO) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.ID,
             defaultTable.APP_ID,
@@ -97,8 +98,7 @@ public class AnalysisTaskStaticInstanceDAOImpl implements AnalysisTaskStaticInst
     }
 
     @Override
-    public int updateById(DSLContext dslContext,
-                          AnalysisTaskStaticInstanceDTO analysisTaskInstanceDTO) {
+    public int updateById(AnalysisTaskStaticInstanceDTO analysisTaskInstanceDTO) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.APP_ID, analysisTaskInstanceDTO.getAppId())
             .set(defaultTable.TASK_ID, analysisTaskInstanceDTO.getTaskId())
@@ -121,8 +121,7 @@ public class AnalysisTaskStaticInstanceDAOImpl implements AnalysisTaskStaticInst
 
 
     @Override
-    public List<AnalysisTaskStaticInstanceDTO> listActiveInstance(DSLContext dslContext,
-                                                                  Long offset, Long limit) {
+    public List<AnalysisTaskStaticInstanceDTO> listActiveInstance(Long offset, Long limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ACTIVE.eq(true));
         var query = dslContext.selectFrom(defaultTable)
@@ -150,14 +149,14 @@ public class AnalysisTaskStaticInstanceDAOImpl implements AnalysisTaskStaticInst
     }
 
     @Override
-    public int deleteById(DSLContext dslContext, Long id) {
+    public int deleteById(Long id) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).execute();
     }
 
     @Override
-    public AnalysisTaskStaticInstanceDTO getById(DSLContext dslContext, Long id) {
+    public AnalysisTaskStaticInstanceDTO getById(Long id) {
         val record = dslContext.selectFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).fetchOne();

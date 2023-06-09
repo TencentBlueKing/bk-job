@@ -25,18 +25,29 @@
 package com.tencent.bk.job.boot.assemble;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.crontab.config.JobQuartzProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(scanBasePackages = {"com.tencent.bk.job.manage", "com.tencent.bk.job.execute"})
+@SpringBootApplication(
+    scanBasePackages =
+        {
+            "com.tencent.bk.job.boot.assemble",
+            "com.tencent.bk.job.manage",
+            "com.tencent.bk.job.execute",
+            "com.tencent.bk.job.crontab",
+            "com.tencent.bk.job.logsvr",
+            "com.tencent.bk.job.analysis",
+            "com.tencent.bk.job.file_gateway",
+            "com.tencent.bk.job.backup"
+        }
+)
 @EnableCaching
 @EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class})
-@DependsOn("applicationContextRegister")
+@EnableConfigurationProperties({FeatureToggleConfig.class, JobQuartzProperties.class})
 public class JobAssembleBootApplication {
 
     public static void main(String[] args) {

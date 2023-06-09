@@ -44,6 +44,7 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -78,7 +79,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         TaskInstanceService taskInstanceService,
         ApplicationService applicationService,
         StepInstanceDAO stepInstanceDAO,
-        DSLContext dslContext,
+        @Qualifier("job-execute-dsl-context") DSLContext dslContext,
         StatisticsDAO statisticsDAO,
         StatisticConfig statisticConfig,
         RollingConfigService rollingConfigService

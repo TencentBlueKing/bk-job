@@ -33,11 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-/**
- * @since 17/7/2020 13:47
- */
+
 @Slf4j
-@RestController
+@RestController("jobCrontabWebVersionResourceImpl")
 @ConditionalOnAvailableEndpoint(endpoint = InfoEndpoint.class)
 public class WebVersionResourceImpl implements WebVersionResource {
 

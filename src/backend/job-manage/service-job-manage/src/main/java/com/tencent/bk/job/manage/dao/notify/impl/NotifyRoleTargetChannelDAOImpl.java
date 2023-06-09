@@ -36,15 +36,11 @@ import org.jooq.generated.tables.NotifyRoleTargetChannel;
 import org.jooq.types.ULong;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Repository
 public class NotifyRoleTargetChannelDAOImpl implements NotifyRoleTargetChannelDAO {
     private static final RequestIdLogger logger =
@@ -55,7 +51,7 @@ public class NotifyRoleTargetChannelDAOImpl implements NotifyRoleTargetChannelDA
     private final DSLContext dslContext;
 
     @Autowired
-    public NotifyRoleTargetChannelDAOImpl(DSLContext dslContext) {
+    public NotifyRoleTargetChannelDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
@@ -88,7 +84,7 @@ public class NotifyRoleTargetChannelDAOImpl implements NotifyRoleTargetChannelDA
     }
 
     @Override
-    public int deleteByRoleTargetId(DSLContext dslContext, Long roleTargetId) {
+    public int deleteByRoleTargetId(Long roleTargetId) {
         //1.无从表
         //2.直接删主表
         return dslContext.deleteFrom(T_NOTIFY_ROLE_TARGET_CHANNEL).where(
@@ -97,8 +93,7 @@ public class NotifyRoleTargetChannelDAOImpl implements NotifyRoleTargetChannelDA
     }
 
     @Override
-    public List<NotifyRoleTargetChannelDTO> listByRoleTargetId(DSLContext dslContext,
-                                                               Long roleTargetId) {
+    public List<NotifyRoleTargetChannelDTO> listByRoleTargetId(Long roleTargetId) {
         val records = dslContext.selectFrom(T_NOTIFY_ROLE_TARGET_CHANNEL).where(
             T_NOTIFY_ROLE_TARGET_CHANNEL.ROLE_TARGET_ID.eq(roleTargetId)
         ).fetch();

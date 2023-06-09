@@ -41,6 +41,7 @@ import org.jooq.generated.tables.HostTopo;
 import org.jooq.generated.tables.records.HostTopoRecord;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     private final DSLContext defaultContext;
 
     @Autowired
-    public HostTopoDAOImpl(DSLContext dslContext) {
+    public HostTopoDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.defaultContext = dslContext;
     }
 

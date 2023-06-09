@@ -60,16 +60,16 @@ public class CredentialDAOImpl implements CredentialDAO {
 
     private static final Credential defaultTable = Credential.CREDENTIAL;
     private final JobTicketConfig jobTicketConfig;
-    private final DSLContext defaultDSLContext;
+    private final DSLContext dslContext;
 
     @Autowired
     public CredentialDAOImpl(JobTicketConfig jobTicketConfig, DSLContext dslContext) {
         this.jobTicketConfig = jobTicketConfig;
-        this.defaultDSLContext = dslContext;
+        this.dslContext = dslContext;
     }
 
     @Override
-    public String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO) {
+    public String insertCredential(CredentialDTO credentialDTO) {
         String id = JobUUID.getUUID();
         String sql = null;
         String credentialStr = JsonUtils.toJson(credentialDTO.getCredential());
@@ -113,7 +113,7 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     @Override
-    public String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO) {
+    public String updateCredentialById(CredentialDTO credentialDTO) {
         String sql = null;
         String credentialStr = JsonUtils.toJson(credentialDTO.getCredential());
         log.debug("Update credentialStr={}", credentialStr);
@@ -141,14 +141,14 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     @Override
-    public int deleteCredentialById(DSLContext dslContext, String id) {
+    public int deleteCredentialById(String id) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).execute();
     }
 
     @Override
-    public CredentialDTO getCredentialById(DSLContext dslContext, String id) {
+    public CredentialDTO getCredentialById(String id) {
         val record = dslContext.select(
             defaultTable.ID,
             defaultTable.APP_ID,
@@ -171,8 +171,7 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     @Override
-    public List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext,
-                                                                            Collection<String> ids) {
+    public List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids) {
         val records = dslContext.select(
             defaultTable.ID,
             defaultTable.APP_ID,
@@ -214,7 +213,7 @@ public class CredentialDAOImpl implements CredentialDAO {
      */
     private long getPageCredentialCount(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildConditionList(credentialQuery, baseSearchCondition);
-        Long count = defaultDSLContext
+        Long count = dslContext
             .selectCount()
             .from(defaultTable)
             .where(conditions)
@@ -271,7 +270,7 @@ public class CredentialDAOImpl implements CredentialDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         val records =
-            defaultDSLContext.select(
+            dslContext.select(
                 defaultTable.ID,
                 defaultTable.APP_ID,
                 defaultTable.NAME,

@@ -24,26 +24,16 @@
 
 package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.web.filter.RepeatableReadWriteServletRequestResponseFilter;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-public class FilterConfig {
-    @Bean
-    public FilterRegistrationBean repeatableRSRRFilterRegister() {
-        FilterRegistrationBean<RepeatableReadWriteServletRequestResponseFilter> registration =
-            new FilterRegistrationBean<>();
-        registration.setFilter(repeatableRRRFilter());
-        registration.addUrlPatterns("/esb/api/*");
-        registration.setName("repeatableReadRequestResponseFilter");
-        registration.setOrder(0);
-        return registration;
-    }
-
-    @Bean(name = "repeatableReadRequestResponseFilter")
-    public RepeatableReadWriteServletRequestResponseFilter repeatableRRRFilter() {
-        return new RepeatableReadWriteServletRequestResponseFilter();
+@Configuration("jobExecuteConfiguration")
+public class JobExecuteConfiguration {
+    @Bean("AppScopeMappingService")
+    AppScopeMappingService appScopeMappingService(ServiceApplicationResource applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
     }
 }

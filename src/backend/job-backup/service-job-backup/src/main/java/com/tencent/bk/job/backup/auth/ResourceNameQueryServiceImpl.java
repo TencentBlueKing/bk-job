@@ -24,38 +24,38 @@
 
 package com.tencent.bk.job.backup.auth;
 
-import com.tencent.bk.job.backup.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service("ResourceNameQueryService")
+@Service("jobBackupResourceNameQueryService")
 public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
-    private final ServiceApplicationResourceClient applicationResourceClient;
+    private final ServiceApplicationResource applicationResource;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public ResourceNameQueryServiceImpl(AuthService authService,
                                         AppAuthService appAuthService,
-                                        ServiceApplicationResourceClient applicationResourceClient,
+                                        ServiceApplicationResource applicationResource,
                                         AppScopeMappingService appScopeMappingService) {
-        this.applicationResourceClient = applicationResourceClient;
+        this.applicationResource = applicationResource;
         this.appScopeMappingService = appScopeMappingService;
         authService.setResourceNameQueryService(this);
         appAuthService.setResourceNameQueryService(this);
     }
 
     private String getAppName(long appId) {
-        ServiceApplicationDTO serviceApplicationDTO = applicationResourceClient.queryAppById(appId);
+        ServiceApplicationDTO serviceApplicationDTO = applicationResource.queryAppById(appId);
         if (serviceApplicationDTO == null) return null;
         return serviceApplicationDTO.getName();
     }

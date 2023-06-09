@@ -78,14 +78,14 @@ public class CmdbFlowControlAutoConfiguration {
         try {
             log.info("CMDB Flow control initializing,map={},flowControlDefaultLimit={},getFlowControlPrecision={}",
                 map, cmdbConfig.getFlowControlDefaultLimit(), cmdbConfig.getFlowControlPrecision());
+            flowController.init(redisTemplate,
+                map,
+                cmdbConfig.getFlowControlDefaultLimit(),
+                cmdbConfig.getFlowControlPrecision());
         } catch (Exception e) {
             log.error("Fail to init globalFlowController", e);
         }
 
-        flowController.init(redisTemplate,
-            map,
-            cmdbConfig.getFlowControlDefaultLimit(),
-            cmdbConfig.getFlowControlPrecision());
 
         return flowController;
     }

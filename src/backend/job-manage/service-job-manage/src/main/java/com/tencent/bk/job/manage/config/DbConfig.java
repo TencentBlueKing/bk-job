@@ -44,10 +44,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
-/**
- * @date 2019/09/19
- */
-@Configuration
+@Configuration(value = "jobManageDbConfig")
 @EnableTransactionManagement
 public class DbConfig {
     @Qualifier("job-manage-data-source")
@@ -58,8 +55,8 @@ public class DbConfig {
         return DataSourceBuilder.create().build();
     }
 
-    @Qualifier("transactionManager")
-    @Bean(name = "transactionManager")
+    @Qualifier("jobManageTransactionManager")
+    @Bean(name = "jobManageTransactionManager")
     @DependsOn("job-manage-data-source")
     @Primary
     public DataSourceTransactionManager transactionManager(@Qualifier("job-manage-data-source") DataSource dataSource) {
@@ -87,12 +84,13 @@ public class DbConfig {
 
     @Qualifier("job-manage-conn-provider")
     @Bean(name = "job-manage-conn-provider")
-    public ConnectionProvider connectionProvider(@Qualifier("transactionAwareDataSource") DataSource dataSource) {
+    public ConnectionProvider connectionProvider(
+        @Qualifier("jobManageTransactionAwareDataSource") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);
     }
 
-    @Qualifier("transactionAwareDataSource")
-    @Bean(name = "transactionAwareDataSource")
+    @Qualifier("jobManageTransactionAwareDataSource")
+    @Bean(name = "jobManageTransactionAwareDataSource")
     public TransactionAwareDataSourceProxy
     transactionAwareDataSourceProxy(@Qualifier("job-manage-data-source") DataSource dataSource) {
         return new TransactionAwareDataSourceProxy(dataSource);

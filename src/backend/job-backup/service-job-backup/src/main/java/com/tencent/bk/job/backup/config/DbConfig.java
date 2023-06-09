@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.backup.config;
 
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
@@ -44,59 +44,55 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
-/**
- * @date 2019/09/19
- */
-@Configuration
+@Configuration(value = "jobBackupDbConfig")
 @EnableTransactionManagement
 public class DbConfig {
-    @Qualifier("job-crontab-data-source")
+    @Qualifier("job-backup-data-source")
     @Primary
-    @Bean(name = "job-crontab-data-source")
-    @ConfigurationProperties(prefix = "spring.datasource.job-crontab")
+    @Bean(name = "job-backup-data-source")
+    @ConfigurationProperties(prefix = "spring.datasource.job-backup")
     public DataSource dataSource() {
         return DataSourceBuilder.create().build();
     }
 
-    @Qualifier("transactionManager")
-    @Bean(name = "transactionManager")
-    @DependsOn("job-crontab-data-source")
+    @Qualifier("jobBackupTransactionManager")
+    @Bean(name = "jobBackupTransactionManager")
+    @DependsOn("job-backup-data-source")
     @Primary
-    public DataSourceTransactionManager
-    transactionManager(@Qualifier("job-crontab-data-source") DataSource dataSource) {
+    public DataSourceTransactionManager transactionManager(@Qualifier("job-backup-data-source") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 
-    @Qualifier("job-crontab-jdbc-template")
-    @Bean(name = "job-crontab-jdbc-template")
-    public JdbcTemplate jdbcTemplate(@Qualifier("job-crontab-data-source") DataSource dataSource) {
+    @Qualifier("job-backup-jdbc-template")
+    @Bean(name = "job-backup-jdbc-template")
+    public JdbcTemplate jdbcTemplate(@Qualifier("job-backup-data-source") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 
-    @Qualifier("job-crontab-dsl-context")
-    @Bean(name = "job-crontab-dsl-context")
-    public DSLContext dslContext(@Qualifier("job-crontab-jooq-conf") org.jooq.Configuration configuration) {
+    @Qualifier("job-backup-dsl-context")
+    @Bean(name = "job-backup-dsl-context")
+    public DSLContext dslContext(@Qualifier("job-backup-jooq-conf") org.jooq.Configuration configuration) {
         return new DefaultDSLContext(configuration);
     }
 
-    @Qualifier("job-crontab-jooq-conf")
-    @Bean(name = "job-crontab-jooq-conf")
+    @Qualifier("job-backup-jooq-conf")
+    @Bean(name = "job-backup-jooq-conf")
     public org.jooq.Configuration
-    jooqConf(@Qualifier("job-crontab-conn-provider") ConnectionProvider connectionProvider) {
+    jooqConf(@Qualifier("job-backup-conn-provider") ConnectionProvider connectionProvider) {
         return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
     }
 
-    @Qualifier("job-crontab-conn-provider")
-    @Bean(name = "job-crontab-conn-provider")
+    @Qualifier("job-backup-conn-provider")
+    @Bean(name = "job-backup-conn-provider")
     public ConnectionProvider connectionProvider(
-        @Qualifier("transactionAwareDataSource") TransactionAwareDataSourceProxy transactionAwareDataSource) {
-        return new DataSourceConnectionProvider(transactionAwareDataSource);
+        @Qualifier("jobBackupTransactionAwareDataSource") DataSource dataSource) {
+        return new DataSourceConnectionProvider(dataSource);
     }
 
-    @Qualifier("transactionAwareDataSource")
-    @Bean(name = "transactionAwareDataSource")
+    @Qualifier("jobBackupTransactionAwareDataSource")
+    @Bean(name = "jobBackupTransactionAwareDataSource")
     public TransactionAwareDataSourceProxy
-    transactionAwareDataSourceProxy(@Qualifier("job-crontab-data-source") DataSource dataSource) {
+    transactionAwareDataSourceProxy(@Qualifier("job-backup-data-source") DataSource dataSource) {
         return new TransactionAwareDataSourceProxy(dataSource);
     }
 

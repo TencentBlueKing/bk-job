@@ -71,8 +71,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -91,9 +89,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * @date 2019/09/19
- */
 @Slf4j
 @Service
 public class ScriptServiceImpl implements ScriptService {
@@ -108,7 +103,6 @@ public class ScriptServiceImpl implements ScriptService {
     private final TemplateStatusUpdateService templateStatusUpdateService;
     private final TemplateAuthService templateAuthService;
     private final MessageI18nService i18nService;
-    private final DSLContext dslContext;
     private TaskTemplateService taskTemplateService;
 
     @Autowired
@@ -119,7 +113,6 @@ public class ScriptServiceImpl implements ScriptService {
 
     @Autowired
     public ScriptServiceImpl(
-        DSLContext dslContext,
         ScriptDAO scriptDAO,
         TagService tagService,
         ScriptRelateTaskPlanDAO scriptRelateTaskPlanDAO,
@@ -130,7 +123,6 @@ public class ScriptServiceImpl implements ScriptService {
         TemplateStatusUpdateService templateStatusUpdateService,
         TemplateAuthService templateAuthService,
         MessageI18nService i18nService) {
-        this.dslContext = dslContext;
         this.scriptDAO = scriptDAO;
         this.tagService = tagService;
         this.scriptRelateTaskPlanDAO = scriptRelateTaskPlanDAO;
@@ -322,7 +314,7 @@ public class ScriptServiceImpl implements ScriptService {
                 }
                 scriptVersionId = scriptDAO.saveScriptVersion(script);
                 script.setScriptVersionId(scriptVersionId);
-                scriptDAO.updateScript(script);
+                scriptDAO.updateScriptLastModify(script.getId(), operator, System.currentTimeMillis());
             }
         } else {
             //脚本不存在，新增脚本
@@ -367,6 +359,7 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     @Override
+    @Transactional(rollbackFor = Throwable.class)
     public Pair<String, Long> createScriptWithVersionId(
         String operator,
         Long appId,
@@ -376,8 +369,8 @@ public class ScriptServiceImpl implements ScriptService {
     ) throws ServiceException {
         log.info("Begin to createScriptWithVersionId, operator={}, appId={}, script={}, createTime={}, " +
             "lastModifyTime={}", operator, appId, JsonUtils.toJson(script), createTime, lastModifyTime);
-        createTime = getTimeOrDefault(createTime);
-        lastModifyTime = getTimeOrDefault(lastModifyTime);
+        script.setCreateTime(getTimeOrDefault(createTime));
+        script.setLastModifyTime(getTimeOrDefault(lastModifyTime));
         final long targetAppId = script.isPublicScript() ? JobConstants.PUBLIC_APP_ID : appId;
         script.setAppId(targetAppId);
 
@@ -393,36 +386,25 @@ public class ScriptServiceImpl implements ScriptService {
                 throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_ID_EXIST);
             }
         }
-        long finalCreateTime = createTime;
-        long finalLastModifyTime = lastModifyTime;
 
         if (StringUtils.isNotBlank(script.getId())) {
             if (scriptDAO.isExistDuplicateVersion(script.getId(), script.getVersion())) {
                 log.warn("Script version:{} is exist, scriptId:{}", script.getVersion(), script.getId());
                 throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
             }
-            // 指定版本号新增
-            // 不指定版本号新增
-            dslContext.transaction(configuration -> {
-                DSLContext context = DSL.using(configuration);
-                if (!scriptDAO.isExistDuplicateScriptId(appId, script.getId())) {
-                    //脚本不存在，新增脚本
-                    boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
-                    if (isNameDuplicate) {
-                        log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
-                        throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
-                    }
-                    // 插入script
-                    String scriptId = scriptDAO.saveScript(context, script, finalCreateTime, finalLastModifyTime);
-                    log.info("script created with specified id:{}", scriptId);
+            if (!scriptDAO.isExistDuplicateScriptId(appId, script.getId())) {
+                //脚本不存在，新增脚本和脚本版本
+                boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
+                if (isNameDuplicate) {
+                    log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
+                    throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
                 }
-                // 插入script_version
-                Long scriptVersionId = scriptDAO.saveScriptVersion(context, script, finalCreateTime,
-                    finalLastModifyTime);
-                // 更新script
-                scriptDAO.updateScript(context, script, finalLastModifyTime);
-                script.setScriptVersionId(scriptVersionId);
-            });
+                saveScriptAndScriptVersionToDB(script);
+                log.info("script created with specified id:{}", script.getId());
+            } else {
+                // 脚本存在，新增脚本版本
+                saveScriptVersionToDB(script);
+            }
         } else {
             //脚本不存在，新增脚本
             boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
@@ -432,18 +414,27 @@ public class ScriptServiceImpl implements ScriptService {
             }
 
             script.setId(JobUUID.getUUID());
-            dslContext.transaction(configuration -> {
-                DSLContext context = DSL.using(configuration);
-                // 插入script
-                scriptDAO.saveScript(context, script, finalCreateTime, finalLastModifyTime);
-                // 插入script_version
-                Long scriptVersionId = scriptDAO.saveScriptVersion(context, script, finalCreateTime,
-                    finalLastModifyTime);
-                script.setScriptVersionId(scriptVersionId);
-            });
+            saveScriptAndScriptVersionToDB(script);
         }
         saveScriptTags(appId, script);
         return Pair.of(script.getId(), script.getScriptVersionId());
+    }
+
+
+    public void saveScriptAndScriptVersionToDB(ScriptDTO script) {
+        // 插入script
+        String scriptId = scriptDAO.saveScript(script);
+        script.setId(scriptId);
+        // 插入script_version
+        Long scriptVersionId = scriptDAO.saveScriptVersion(script);
+        script.setScriptVersionId(scriptVersionId);
+    }
+
+    public void saveScriptVersionToDB(ScriptDTO script) {
+        // 插入script_version
+        Long scriptVersionId = scriptDAO.saveScriptVersion(script);
+        scriptDAO.updateScriptLastModify(script.getId(), script.getLastModifyUser(), script.getLastModifyTime());
+        script.setScriptVersionId(scriptVersionId);
     }
 
     @Override

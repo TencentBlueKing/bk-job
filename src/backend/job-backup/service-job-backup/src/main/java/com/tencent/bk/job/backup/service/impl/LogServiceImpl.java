@@ -35,11 +35,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * @since 29/7/2020 11:10
- */
 @Slf4j
-@Service
+@Service("importAndExportLogService")
 public class LogServiceImpl implements LogService {
 
     private final LogDAO logDAO;

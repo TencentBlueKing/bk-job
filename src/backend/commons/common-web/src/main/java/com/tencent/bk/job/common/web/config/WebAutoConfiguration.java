@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.web.config;
 
+import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
 import com.tencent.bk.job.common.util.jwt.JwtManager;
 import com.tencent.bk.job.common.web.feign.FeignConfiguration;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
@@ -31,6 +32,8 @@ import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import com.tencent.bk.job.common.web.util.ProfileUtil;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -61,6 +64,11 @@ public class WebAutoConfiguration {
     @Bean
     public ProfileUtil profileUtil() {
         return new ProfileUtil();
+    }
+
+    @Bean
+    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
+        return new EsbApiTimedAspect(meterRegistry);
     }
 
 

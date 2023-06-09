@@ -28,7 +28,6 @@ import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
 import com.tencent.bk.job.file_gateway.service.FileTaskService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +38,10 @@ import java.util.List;
 public class FileTaskServiceImpl implements FileTaskService {
 
     private final FileTaskDAO fileTaskDAO;
-    private final DSLContext dslContext;
 
     @Autowired
-    public FileTaskServiceImpl(FileTaskDAO fileTaskDAO, DSLContext dslContext) {
+    public FileTaskServiceImpl(FileTaskDAO fileTaskDAO) {
         this.fileTaskDAO = fileTaskDAO;
-        this.dslContext = dslContext;
     }
 
     @Override
@@ -54,11 +51,11 @@ public class FileTaskServiceImpl implements FileTaskService {
 
     @Override
     public void resetTasks(String fileSourceTaskId) {
-        fileTaskDAO.resetFileTasks(dslContext, fileSourceTaskId);
+        fileTaskDAO.resetFileTasks(fileSourceTaskId);
     }
 
     @Override
     public int deleteTasks(String fileSourceTaskId) {
-        return fileTaskDAO.deleteFileTaskByFileSourceTaskId(dslContext, fileSourceTaskId);
+        return fileTaskDAO.deleteFileTaskByFileSourceTaskId(fileSourceTaskId);
     }
 }

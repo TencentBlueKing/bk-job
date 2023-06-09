@@ -10,7 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+@Component("jobManageInitArtifactoryDataRunner")
 public class InitArtifactoryDataRunner implements CommandLineRunner {
 
     private final ArtifactoryConfig artifactoryConfig;

@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
-import com.tencent.bk.job.backup.client.ServiceBackupTmpResourceClient;
-import com.tencent.bk.job.backup.client.ServiceTemplateResourceClient;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.api.inner.ServiceBackupTmpResource;
+import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
@@ -44,27 +44,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @since 29/7/2020 17:46
- */
+
 @Slf4j
-@Service
+@Service("jobBackupTaskTemplateServiceImpl")
 public class TaskTemplateServiceImpl implements TaskTemplateService {
-    private final ServiceTemplateResourceClient serviceTemplateResourceClient;
-    private final ServiceBackupTmpResourceClient serviceBackupTmpResourceClient;
+    private final ServiceTaskTemplateResource templateResource;
+    private final ServiceBackupTmpResource backupTmpResource;
 
     @Autowired
-    public TaskTemplateServiceImpl(ServiceTemplateResourceClient serviceTemplateResourceClient,
-                                   ServiceBackupTmpResourceClient serviceBackupTmpResourceClient) {
-        this.serviceTemplateResourceClient = serviceTemplateResourceClient;
-        this.serviceBackupTmpResourceClient = serviceBackupTmpResourceClient;
+    public TaskTemplateServiceImpl(ServiceTaskTemplateResource templateResource,
+                                   ServiceBackupTmpResource backupTmpResource) {
+        this.templateResource = templateResource;
+        this.backupTmpResource = backupTmpResource;
     }
 
     @Override
     public TaskTemplateVO getTemplateById(String username, Long appId, Long id) {
         try {
             Response<TaskTemplateVO> templateByIdResponse =
-                serviceBackupTmpResourceClient.getTemplateById(username, appId, id);
+                backupTmpResource.getTemplateById(username, appId, id);
             if (templateByIdResponse != null) {
                 if (0 == templateByIdResponse.getCode()) {
                     return templateByIdResponse.getData();
@@ -90,7 +88,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     public ServiceIdNameCheckDTO checkIdAndName(Long appId, long id, String name) {
         try {
             InternalResponse<ServiceIdNameCheckDTO> idNameCheckResponse =
-                serviceTemplateResourceClient.checkIdAndName(appId, id, name);
+                templateResource.checkIdAndName(appId, id, name);
             if (idNameCheckResponse != null) {
                 if (0 == idNameCheckResponse.getCode()) {
                     return idNameCheckResponse.getData();
@@ -135,7 +133,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
             templateCreateUpdateReq.setTags(taskTemplate.getTags());
 
-            InternalResponse<Long> saveTemplateResult = serviceTemplateResourceClient.saveTemplateForMigration(
+            InternalResponse<Long> saveTemplateResult = templateResource.saveTemplateForMigration(
                 username,
                 appId,
                 taskTemplate.getId(),
@@ -172,7 +170,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     public List<ServiceTaskVariableDTO> getTemplateVariable(String username, Long appId, Long templateId) {
         try {
             InternalResponse<List<ServiceTaskVariableDTO>> templateVariableResponse =
-                serviceTemplateResourceClient.getTemplateVariable(username, appId, templateId);
+                templateResource.getTemplateVariable(username, appId, templateId);
             if (templateVariableResponse != null) {
                 if (0 == templateVariableResponse.getCode()) {
                     return templateVariableResponse.getData();

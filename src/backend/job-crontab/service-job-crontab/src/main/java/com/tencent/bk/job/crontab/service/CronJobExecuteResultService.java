@@ -22,28 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.config;
+package com.tencent.bk.job.crontab.service;
 
-import com.tencent.bk.job.common.web.filter.RepeatableReadWriteServletRequestResponseFilter;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 
-@Configuration
-public class FilterConfig {
-    @Bean
-    public FilterRegistrationBean repeatableRSRRFilterRegister() {
-        FilterRegistrationBean<RepeatableReadWriteServletRequestResponseFilter> registration =
-            new FilterRegistrationBean<>();
-        registration.setFilter(repeatableRRRFilter());
-        registration.addUrlPatterns("/esb/api/*");
-        registration.setName("repeatableReadRequestResponseFilter");
-        registration.setOrder(0);
-        return registration;
-    }
+import java.util.List;
+import java.util.Map;
 
-    @Bean(name = "repeatableReadRequestResponseFilter")
-    public RepeatableReadWriteServletRequestResponseFilter repeatableRRRFilter() {
-        return new RepeatableReadWriteServletRequestResponseFilter();
-    }
+/**
+ * 定时任务执行结果 Service
+ */
+public interface CronJobExecuteResultService {
+    /**
+     * 根据定时任务 ID 批量执行历史
+     *
+     * @param appId      业务 ID
+     * @param cronIdList 定时任务 ID 列表
+     * @return 定时任务 ID 与执行历史对应表
+     */
+    Map<Long, ServiceCronTaskExecuteResultStatistics> getCronJobExecuteHistory(Long appId, List<Long> cronIdList);
 }

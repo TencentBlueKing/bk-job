@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@Configuration
+@Configuration(value = "jobExecuteExecutorConfig")
 public class ExecutorConfiguration {
 
     @Bean("logExportExecutor")

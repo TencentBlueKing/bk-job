@@ -58,7 +58,6 @@ import com.tencent.bk.job.file_gateway.service.context.impl.DefaultTaskContext;
 import com.tencent.bk.job.file_gateway.service.listener.FileTaskStatusChangeListener;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -77,8 +76,7 @@ import java.util.stream.Collectors;
 public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     public static final String PREFIX_REDIS_TASK_LOG = "job:file-gateway:taskLog:";
-
-    private final DSLContext dslContext;
+    
     private final FileSourceTaskDAO fileSourceTaskDAO;
     private final FileTaskDAO fileTaskDAO;
     private final FileWorkerDAO fileworkerDAO;
@@ -90,14 +88,15 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
     @Autowired
-    public FileSourceTaskServiceImpl(DSLContext dslContext, FileSourceTaskDAO fileSourceTaskDAO,
-                                     FileTaskDAO fileTaskDAO, FileWorkerDAO fileworkerDAO,
-                                     FileSourceDAO fileSourceDAO, DispatchService dispatchService,
+    public FileSourceTaskServiceImpl(FileSourceTaskDAO fileSourceTaskDAO,
+                                     FileTaskDAO fileTaskDAO, 
+                                     FileWorkerDAO fileworkerDAO,
+                                     FileSourceDAO fileSourceDAO, 
+                                     DispatchService dispatchService,
                                      FileSourceTaskReqGenService fileSourceTaskReqGenService,
                                      RedisTemplate<Object, Object> redisTemplate,
                                      FileTaskStatusChangeListener fileTaskStatusChangeListener,
                                      JobHttpClient jobHttpClient) {
-        this.dslContext = dslContext;
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
         this.fileworkerDAO = fileworkerDAO;
@@ -127,7 +126,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                                                          String fileSourceTaskId) {
         log.info("Input=({},{},{},{},{},{},{})", username, appId, stepInstanceId, executeCount, batchTaskId,
             fileSourceId, filePathList);
-        FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(dslContext, fileSourceId);
+        FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(fileSourceId);
         if (fileSourceDTO == null) {
             throw new RuntimeException("FileSource not exist, fileSourceId=" + fileSourceId.toString());
         }
@@ -163,7 +162,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         }
         fileSourceTaskDTO.setFileTaskList(fileTaskDTOList);
         try {
-            fileSourceTaskId = fileSourceTaskDAO.insertFileSourceTask(dslContext, fileSourceTaskDTO);
+            fileSourceTaskId = fileSourceTaskDAO.insertFileSourceTask(fileSourceTaskDTO);
             fileSourceTaskDTO.setId(fileSourceTaskId);
             // 分发文件任务
             HttpReq req = fileSourceTaskReqGenService.genDownloadFilesReq(appId, fileWorkerDTO, fileSourceDTO,
@@ -177,7 +176,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             log.error(msg, e);
             // 更新任务状态为启动失败
             fileSourceTaskDTO.setStatus(TaskStatusEnum.DISPATCH_FAILED.getStatus());
-            int affectedCount = fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+            int affectedCount = fileSourceTaskDAO.updateFileSourceTask(fileSourceTaskDTO);
             if (affectedCount != 1) {
                 log.error("Fail to update status of FileSourceTask={}", JsonUtils.toJson(fileSourceTaskDTO));
             }
@@ -202,7 +201,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         thirdFileSourceTaskLog.setIp(sourceIp);
         // 追加文件源名称
         // 日志定位坐标：（文件源，文件路径），需要区分不同文件源下相同文件路径的日志
-        FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(dslContext, fileSourceTaskDTO.getFileSourceId());
+        FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(fileSourceTaskDTO.getFileSourceId());
         if (fileSourceDTO == null) {
             throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST,
                 ArrayUtil.toArray("fileSourceId:" + fileSourceTaskDTO.getFileSourceId()));
@@ -242,14 +241,14 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     @Override
     public String updateFileSourceTask(String taskId, String filePath, String downloadPath, Long fileSize,
                                        String speed, Integer progress, String content, TaskStatusEnum status) {
-        FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTask(dslContext, taskId, filePath);
+        FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTask(taskId, filePath);
         if (fileTaskDTO == null) {
             log.error("Cannot find fileTaskDTO by taskId {} filePath {}", taskId, filePath);
             return null;
         }
         TaskStatusEnum previousStatus = TaskStatusEnum.valueOf(fileTaskDTO.getStatus());
         fileTaskDTO.setDownloadPath(downloadPath);
-        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(dslContext, taskId);
+        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(taskId);
         if (fileSourceTaskDTO == null) {
             log.error("Cannot find fileSourceTaskDTO by taskId {} filePath {}", taskId, filePath);
             return null;
@@ -261,7 +260,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 fileTaskDTO.setProgress(progress);
                 fileTaskDTO.setFileSize(fileSize);
                 fileTaskDTO.setStatus(TaskStatusEnum.RUNNING.getStatus());
-                fileTaskDAO.updateFileTask(dslContext, fileTaskDTO);
+                fileTaskDAO.updateFileTask(fileTaskDTO);
                 logUpdatedTaskStatus(taskId, filePath, progress, status);
             } else {
                 log.info("fileTask {} already done, do not update to running", taskId);
@@ -269,17 +268,17 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         } else if (status == TaskStatusEnum.SUCCESS) {
             fileTaskDTO.setProgress(100);
             fileTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
-            fileTaskDAO.updateFileTask(dslContext, fileTaskDTO);
+            fileTaskDAO.updateFileTask(fileTaskDTO);
             logUpdatedTaskStatus(taskId, filePath, progress, status);
         } else if (status == TaskStatusEnum.FAILED) {
             fileTaskDTO.setProgress(progress);
             fileTaskDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
-            fileTaskDAO.updateFileTask(dslContext, fileTaskDTO);
+            fileTaskDAO.updateFileTask(fileTaskDTO);
             logUpdatedTaskStatus(taskId, filePath, progress, status);
         } else if (status == TaskStatusEnum.STOPPED) {
             fileTaskDTO.setProgress(progress);
             fileTaskDTO.setStatus(TaskStatusEnum.STOPPED.getStatus());
-            fileTaskDAO.updateFileTask(dslContext, fileTaskDTO);
+            fileTaskDAO.updateFileTask(fileTaskDTO);
             logUpdatedTaskStatus(taskId, filePath, progress, status);
         } else {
             log.warn("fileTask {} unknown status:{}", taskId, status);
@@ -300,7 +299,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     @Override
     public FileSourceTaskStatusDTO getFileSourceTaskStatusAndLogs(String taskId, Long logStart, Long logLength) {
-        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(dslContext, taskId);
+        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(taskId);
         if (fileSourceTaskDTO == null) {
             throw new RuntimeException("FileSourceTask not exist, fileTaskId=" + taskId);
         }
@@ -389,7 +388,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         // 将taskId按照FileWorker分组
         Map<FileWorkerDTO, List<String>> workerTaskMap = new HashMap<>();
         for (String taskId : taskIdList) {
-            FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(dslContext, taskId);
+            FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(taskId);
             if (fileSourceTaskDTO == null || fileSourceTaskDTO.isDone() || fileSourceTaskDTO.getFileCleared()) {
                 // 任务已达终止态/已被清理
                 continue;
@@ -429,7 +428,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         // 将taskId按照FileWorker分组
         Map<FileWorkerDTO, List<String>> workerTaskMap = new HashMap<>();
         for (String taskId : taskIdList) {
-            FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(dslContext, taskId);
+            FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(taskId);
             if (fileSourceTaskDTO == null || fileSourceTaskDTO.getFileCleared()) {
                 // 任务已被清理
                 continue;
@@ -442,7 +441,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             addTaskIdToWorkerTaskMap(workerTaskMap, fileWorkerDTO, taskId);
             targetTaskIdList.add(taskId);
         }
-        fileSourceTaskDAO.updateFileClearStatus(dslContext, targetTaskIdList, true);
+        fileSourceTaskDAO.updateFileClearStatus(targetTaskIdList, true);
         int allCount = 0;
         // 逐个Worker清理文件
         for (Map.Entry<FileWorkerDTO, List<String>> entry : workerTaskMap.entrySet()) {
@@ -467,12 +466,12 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     @Override
     public FileSourceTaskDTO getFileSourceTaskById(String id) {
-        return fileSourceTaskDAO.getFileSourceTaskById(dslContext, id);
+        return fileSourceTaskDAO.getFileSourceTaskById(id);
     }
 
     @Override
     public Integer deleteFileSourceTaskById(String id) {
-        return fileSourceTaskDAO.deleteById(dslContext, id);
+        return fileSourceTaskDAO.deleteById(id);
     }
 
     private Integer parseInteger(String respStr) {

@@ -56,7 +56,7 @@ import java.util.Map;
  */
 @RequestMapping("/migration")
 @Slf4j
-@RestController
+@RestController("jobManageMigrationResource")
 public class MigrationResource {
     private final EncryptDbAccountPasswordMigrationTask encryptDbAccountPasswordMigrationTask;
     private final ResourceTagsMigrationTask resourceTagsMigrationTask;

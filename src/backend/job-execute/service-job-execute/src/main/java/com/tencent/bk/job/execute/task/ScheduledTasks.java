@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  * 增加调度需要注意到ScheduleConfig中更新线程池配置
  */
 @Slf4j
-@Component
+@Component("jobExecuteScheduledTasks")
 @EnableScheduling
 public class ScheduledTasks {
 

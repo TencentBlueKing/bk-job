@@ -55,11 +55,11 @@ import java.util.Set;
 @Repository
 public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
 
-    private DSLContext ctx;
+    private final DSLContext ctx;
 
-    private TaskPlanStepScript T_TASK_PLAN_STEP_SCRIPT = TaskPlanStepScript.TASK_PLAN_STEP_SCRIPT;
-    private ScriptVersion T_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
-    private TaskPlan T_TASK_PLAN = TaskPlan.TASK_PLAN;
+    private final TaskPlanStepScript T_TASK_PLAN_STEP_SCRIPT = TaskPlanStepScript.TASK_PLAN_STEP_SCRIPT;
+    private final ScriptVersion T_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
+    private final TaskPlan T_TASK_PLAN = TaskPlan.TASK_PLAN;
 
     @Autowired
     public ScriptRelateTaskPlanDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext ctx) {

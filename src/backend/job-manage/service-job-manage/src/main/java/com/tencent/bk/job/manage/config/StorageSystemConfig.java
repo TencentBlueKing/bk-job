@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
  * 存储配置
  */
 @Getter
-@Configuration
+@Configuration("jobManageStorageSystemConfig")
 public class StorageSystemConfig {
     @Value("${job.storage.root-path:/data/bkee/job/data}")
     private String jobStorageRootPath;

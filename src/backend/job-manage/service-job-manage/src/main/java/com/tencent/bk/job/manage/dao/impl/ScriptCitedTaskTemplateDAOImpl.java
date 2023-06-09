@@ -53,18 +53,19 @@ import java.util.Set;
 @Repository
 public class ScriptCitedTaskTemplateDAOImpl implements ScriptCitedTaskTemplateDAO {
 
-    private DSLContext ctx;
+    private final DSLContext ctx;
 
-    private TaskTemplateStepScript T_TASK_TEMPLATE_STEP_SCRIPT = TaskTemplateStepScript.TASK_TEMPLATE_STEP_SCRIPT;
-    private ScriptVersion T_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
-    private TaskTemplate T_TASK_TEMPLATE = TaskTemplate.TASK_TEMPLATE;
+    private final TaskTemplateStepScript T_TASK_TEMPLATE_STEP_SCRIPT = TaskTemplateStepScript.TASK_TEMPLATE_STEP_SCRIPT;
+    private final ScriptVersion T_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
+    private final TaskTemplate T_TASK_TEMPLATE = TaskTemplate.TASK_TEMPLATE;
 
     @Autowired
     public ScriptCitedTaskTemplateDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext ctx) {
         this.ctx = ctx;
     }
 
-    private List<ScriptCitedTaskTemplateDTO> getDistinctRelatedTemplates(List<ScriptCitedTaskTemplateDTO> srcScriptCitedTaskTemplates) {
+    private List<ScriptCitedTaskTemplateDTO> getDistinctRelatedTemplates(
+        List<ScriptCitedTaskTemplateDTO> srcScriptCitedTaskTemplates) {
         List<ScriptCitedTaskTemplateDTO> resultRelatedTemplates = new ArrayList<>();
         Set<String> keySet = new HashSet<>();
         for (ScriptCitedTaskTemplateDTO citedTaskTemplateDTO : srcScriptCitedTaskTemplates) {

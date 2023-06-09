@@ -26,7 +26,7 @@ package com.tencent.bk.job.gateway.runner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.gateway.config.BkConfig;
+import com.tencent.bk.job.gateway.config.LicenseConfig;
 import com.tencent.bk.job.gateway.model.LicenseCheckResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -65,11 +65,11 @@ public class LicenseCheckRunner implements CommandLineRunner, ApplicationContext
 
     private ApplicationContext context;
 
-    private final BkConfig bkConfig;
+    private final LicenseConfig bkConfig;
 
     private CloseableHttpClient httpClient;
 
-    public LicenseCheckRunner(BkConfig bkConfig) {
+    public LicenseCheckRunner(LicenseConfig bkConfig) {
         this.bkConfig = bkConfig;
     }
 

@@ -39,7 +39,6 @@ import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 import com.tencent.bk.job.file_gateway.service.BatchTaskService;
 import com.tencent.bk.job.file_gateway.service.FileSourceTaskService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,16 +52,14 @@ public class BatchTaskServiceImpl implements BatchTaskService {
 
     private final FileSourceTaskService fileSourceTaskService;
     private final FileSourceBatchTaskDAO fileSourceBatchTaskDAO;
-    private final DSLContext dslContext;
     private final FileSourceTaskDAO fileSourceTaskDAO;
 
     @Autowired
     public BatchTaskServiceImpl(FileSourceTaskService fileSourceTaskService,
-                                FileSourceBatchTaskDAO fileSourceBatchTaskDAO, DSLContext dslContext,
+                                FileSourceBatchTaskDAO fileSourceBatchTaskDAO,
                                 FileSourceTaskDAO fileSourceTaskDAO) {
         this.fileSourceTaskService = fileSourceTaskService;
         this.fileSourceBatchTaskDAO = fileSourceBatchTaskDAO;
-        this.dslContext = dslContext;
         this.fileSourceTaskDAO = fileSourceTaskDAO;
     }
 
@@ -78,7 +75,7 @@ public class BatchTaskServiceImpl implements BatchTaskService {
         fileSourceBatchTaskDTO.setStepInstanceId(stepInstanceId);
         fileSourceBatchTaskDTO.setExecuteCount(executeCount);
         fileSourceBatchTaskDTO.setStatus(TaskStatusEnum.INIT.getStatus());
-        String batchTaskId = fileSourceBatchTaskDAO.insertFileSourceBatchTask(dslContext, fileSourceBatchTaskDTO);
+        String batchTaskId = fileSourceBatchTaskDAO.insertFileSourceBatchTask(fileSourceBatchTaskDTO);
         batchTaskInfoDTO.setBatchTaskId(batchTaskId);
         List<TaskInfoDTO> taskInfoDTOList = new ArrayList<>();
         for (FileSourceTaskContent fileSourceTaskContent : fileSourceTaskList) {
@@ -111,7 +108,7 @@ public class BatchTaskServiceImpl implements BatchTaskService {
     public BatchTaskStatusDTO getBatchTaskStatusAndLogs(String batchTaskId, Long logStart, Long logLength) {
         BatchTaskStatusDTO batchTaskStatusDTO = new BatchTaskStatusDTO();
         batchTaskStatusDTO.setBatchTaskId(batchTaskId);
-        FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getFileSourceBatchTaskById(dslContext,
+        FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getFileSourceBatchTaskById(
             batchTaskId);
         if (fileSourceBatchTaskDTO == null) {
             throw new InternalException(ErrorCode.INTERNAL_ERROR);

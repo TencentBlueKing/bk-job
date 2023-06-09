@@ -47,7 +47,7 @@ import java.util.List;
  * Uri权限控制拦截
  */
 @Slf4j
-@Component
+@Component("jobAnalysisUriPermissionInterceptor")
 public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     private final String URI_PATTERN_WEB_STATISTICS = "/web/statistics/**";
     private AuthService authService;

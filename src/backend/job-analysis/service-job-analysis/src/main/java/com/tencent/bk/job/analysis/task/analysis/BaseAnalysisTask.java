@@ -36,21 +36,14 @@ import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.task.IAnalysisTask;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
- */
 @Slf4j
 public abstract class BaseAnalysisTask implements IAnalysisTask {
 
-    protected final DSLContext dslContext;
     protected final AnalysisTaskInstanceDAO analysisTaskInstanceDAO;
     private final String taskCode;
     private final ApplicationService applicationService;
@@ -62,7 +55,7 @@ public abstract class BaseAnalysisTask implements IAnalysisTask {
                       @Override
                       public AnalysisTaskDTO load(String searchKey) throws Exception {
                           if (searchKey.equals(KEY_ANALYSIS_TASK_DTO)) {
-                              return analysisTaskDAO.getAnalysisTaskByCode(dslContext, taskCode);
+                              return analysisTaskDAO.getAnalysisTaskByCode(taskCode);
                           } else {
                               return null;
                           }
@@ -70,9 +63,9 @@ public abstract class BaseAnalysisTask implements IAnalysisTask {
                   }
             );
 
-    public BaseAnalysisTask(DSLContext dslContext, AnalysisTaskDAO analysisTaskDAO,
-                            AnalysisTaskInstanceDAO analysisTaskInstanceDAO, ApplicationService applicationService) {
-        this.dslContext = dslContext;
+    public BaseAnalysisTask(AnalysisTaskDAO analysisTaskDAO,
+                            AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
+                            ApplicationService applicationService) {
         this.analysisTaskDAO = analysisTaskDAO;
         this.analysisTaskInstanceDAO = analysisTaskInstanceDAO;
         this.applicationService = applicationService;
@@ -91,14 +84,14 @@ public abstract class BaseAnalysisTask implements IAnalysisTask {
     }
 
     public Long insertAnalysisTaskInstance(AnalysisTaskInstanceDTO analysisTaskInstanceDTO) {
-        return analysisTaskInstanceDAO.insertAnalysisTaskInstance(dslContext, analysisTaskInstanceDTO);
+        return analysisTaskInstanceDAO.insertAnalysisTaskInstance(analysisTaskInstanceDTO);
     }
 
     public int updateAnalysisTaskInstanceById(AnalysisTaskInstanceDTO analysisTaskInstanceDTO) {
         // 先将历史任务结果全部清除
-        analysisTaskInstanceDAO.deleteHistoryAnalysisTaskInstance(dslContext, analysisTaskInstanceDTO.getAppId(),
+        analysisTaskInstanceDAO.deleteHistoryAnalysisTaskInstance(analysisTaskInstanceDTO.getAppId(),
             analysisTaskInstanceDTO.getTaskId());
-        return analysisTaskInstanceDAO.updateAnalysisTaskInstanceById(dslContext, analysisTaskInstanceDTO);
+        return analysisTaskInstanceDAO.updateAnalysisTaskInstanceById(analysisTaskInstanceDTO);
     }
 
     public List<ServiceApplicationDTO> getAppInfoList() {

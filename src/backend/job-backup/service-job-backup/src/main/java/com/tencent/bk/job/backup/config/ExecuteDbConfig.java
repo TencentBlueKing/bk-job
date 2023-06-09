@@ -39,10 +39,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
-/**
- * @date 2019/09/19
- */
-@Configuration
+@Configuration(value = "archiveJobExecuteDbConfig")
 public class ExecuteDbConfig {
 
     @Qualifier("job-execute-source")

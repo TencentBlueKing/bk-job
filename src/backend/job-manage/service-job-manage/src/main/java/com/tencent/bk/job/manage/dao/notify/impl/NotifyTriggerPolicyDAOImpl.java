@@ -51,6 +51,7 @@ import org.jooq.generated.tables.records.NotifyTriggerPolicyRecord;
 import org.jooq.types.ULong;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -60,11 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Repository
 public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
 
@@ -79,7 +75,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     private final NotifyConfigStatusDAO notifyConfigStatusDAO;
 
     @Autowired
-    public NotifyTriggerPolicyDAOImpl(DSLContext dslContext,
+    public NotifyTriggerPolicyDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
                                       NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO,
                                       NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO,
                                       NotifyConfigStatusDAO notifyConfigStatusDAO
@@ -131,7 +127,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             return 0;
         }
         //1.删从表
-        records.forEach(record -> notifyPolicyRoleTargetDAO.deleteByPolicyId(dslContext, record.getId()));
+        records.forEach(record -> notifyPolicyRoleTargetDAO.deleteByPolicyId(record.getId()));
         //2.删主表
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.in(records.map(NotifyTriggerPolicyRecord::getId))
@@ -283,7 +279,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         //随机取一条记录即可，所有记录对应的通知对象是一样的
         val triggerPolicyRecord = currentTriggerTypeRecords.get(0);
         List<NotifyPolicyRoleTargetDTO> roleTargetDTOList =
-            notifyPolicyRoleTargetDAO.listByPolicyId(dslContext, triggerPolicyRecord.getId());
+            notifyPolicyRoleTargetDAO.listByPolicyId(triggerPolicyRecord.getId());
         roleTargetDTOList.forEach(it -> {
             if (it.isEnable()) {
                 val appRole = it.getRole();
@@ -302,11 +298,10 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         }).collect(Collectors.toList());
         executeStatusDefaultRecords.forEach(it -> {
             List<NotifyPolicyRoleTargetDTO> roleTargets =
-                notifyPolicyRoleTargetDAO.listByPolicyId(dslContext, it.getId());
+                notifyPolicyRoleTargetDAO.listByPolicyId(it.getId());
             if (roleTargets.size() > 0) {
                 List<NotifyRoleTargetChannelDTO> roleTargetChannelDTOList =
-                    notifyRoleTargetChannelDAO.listByRoleTargetId(dslContext,
-                        roleTargets.get(0).getId());
+                    notifyRoleTargetChannelDAO.listByRoleTargetId(roleTargets.get(0).getId());
                 resourceStatusChannelMap.put(
                     ExecuteStatusEnum.getName(it.getExecuteStatus()),
                     roleTargetChannelDTOList.stream().map(NotifyRoleTargetChannelDTO::getChannel)

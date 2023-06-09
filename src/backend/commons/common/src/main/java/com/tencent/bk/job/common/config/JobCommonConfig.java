@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.config;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -32,42 +32,15 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-public class GseConfigForManage {
-    @Value("${gse.cache.apiserver.host}")
-    private String[] gseCacheApiServerHosts;
-    @Value("${gse.cache.apiserver.port:59313}")
-    private int gseCacheApiServerPort;
-
-    @Value("${gse.ssl.enabled:true}")
-    private boolean enableSsl;
-
-    @Value("${gse.ssl.keystore.path:/data/bkee/cert/gse_job_api_client.keystore}")
-    private String keyStore;
-    @Value("${gse.ssl.keystore.password:}")
-    private String keyStorePass;
-
-    @Value("${gse.ssl.truststore.path:/data/bkee/cert/gse_job_api_client.truststore}")
-    private String trustStore;
-    @Value("${gse.ssl.truststore.password:}")
-    private String trustStorePass;
-
-    @Value("${gse.ssl.truststore.manager-type:SunX509}")
-    private String trustManagerType;
-    @Value("${gse.ssl.truststore.store-type:JKS}")
-    private String trustStoreType;
+public class JobCommonConfig {
 
     /**
-     * GSE 公钥证书BASE64
+     * 作业平台web访问地址，可配置多个，用","分隔
      */
-    private String gsePublicKeyPermBase64 =
-        "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FETEVXZk9" +
-            "YU2VvMXpNQ1JpRVNFTWs3OXo0cwpHYkw4VmIvZXg5K1RaR2VyN255bEh5Y0Vtb2o5aWE4K2daTmVQOFRRVmRyTExhSz" +
-            "IzektiT3lja2FiVE5QS0VZCmhQY0NlellEQVdleTZBS2ZHSCtYZGV0MnJDOWtzRWhrM1BqcDVuZDk4QW1KZ0VJeSt6S" +
-            "0FhaVZEazFvdG5Jc0EKRWxucUdXL24zaWVuN0hmSXN3SURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo=";
+    @Value("${job.web.url:}")
+    private String jobWebUrl;
 
-    @Value("${gse.query.threads.num:5}")
-    private int gseQueryThreadsNum;
+    @Value("${swagger.url:swagger.job.com}")
+    private String swaggerUrl;
 
-    @Value("${gse.query.batchSize:5000}")
-    private int gseQueryBatchSize;
 }

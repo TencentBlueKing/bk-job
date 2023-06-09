@@ -50,8 +50,8 @@ public class StatisticsFlushThread extends Thread {
     private final DSLContext dslContext;
     private volatile LinkedBlockingQueue<Map<String, Map<StatisticsKey, AtomicInteger>>> flushQueue;
 
-    public StatisticsFlushThread(DSLContext dslContext, LinkedBlockingQueue<Map<String,
-        Map<StatisticsKey, AtomicInteger>>> flushQueue) {
+    public StatisticsFlushThread(DSLContext dslContext,
+                                 LinkedBlockingQueue<Map<String, Map<StatisticsKey, AtomicInteger>>> flushQueue) {
         this.dslContext = dslContext;
         this.flushQueue = flushQueue;
     }

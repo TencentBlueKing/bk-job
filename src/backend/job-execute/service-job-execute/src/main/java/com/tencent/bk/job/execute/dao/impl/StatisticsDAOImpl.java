@@ -51,12 +51,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
- */
-@Repository
+@Repository("jobExecuteStatisticsDAOImpl")
 @Slf4j
 public class StatisticsDAOImpl implements StatisticsDAO {
 

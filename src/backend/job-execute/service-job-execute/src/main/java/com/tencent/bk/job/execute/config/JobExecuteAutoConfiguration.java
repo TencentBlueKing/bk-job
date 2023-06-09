@@ -24,24 +24,13 @@
 
 package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.execute.client.ApplicationResourceClient;
-import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JobExecuteAutoConfiguration {
-    @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
-    }
 
-    @Bean
-    AppScopeMappingService appScopeMappingService(ApplicationResourceClient applicationResource) {
-        return new AppScopeMappingServiceImpl(applicationResource);
-    }
+//    @Bean
+//    AppScopeMappingService appScopeMappingService(ServiceApplicationResource applicationResource) {
+//        return new AppScopeMappingServiceImpl(applicationResource);
+//    }
 }

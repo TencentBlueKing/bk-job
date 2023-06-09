@@ -48,7 +48,7 @@ import java.util.Map;
  */
 @RequestMapping("/migration")
 @Slf4j
-@RestController
+@RestController("jobCrontabMigrationResource")
 public class MigrationResource {
     private final AddHostIdForCronVariableMigrationTask addHostIdForCronVariableMigrationTask;
     private final AppScopeMappingService appScopeMappingService;

@@ -44,7 +44,7 @@ import java.util.List;
 public class CustomScriptTemplateDAOImpl implements CustomScriptTemplateDAO {
 
     private final UserCustomScriptTemplate TB = UserCustomScriptTemplate.USER_CUSTOM_SCRIPT_TEMPLATE;
-    private DSLContext ctx;
+    private final DSLContext ctx;
 
     @Autowired
     public CustomScriptTemplateDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext ctx) {

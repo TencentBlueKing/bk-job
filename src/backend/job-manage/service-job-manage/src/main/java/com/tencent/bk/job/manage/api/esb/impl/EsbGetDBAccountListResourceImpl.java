@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -54,15 +53,12 @@ import java.util.List;
 @Slf4j
 public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResource {
     private final AccountService accountService;
-    private final MessageI18nService i18nService;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbGetDBAccountListResourceImpl(AccountService accountService,
-                                           MessageI18nService i18nService,
                                            AppScopeMappingService appScopeMappingService) {
         this.accountService = accountService;
-        this.i18nService = i18nService;
         this.appScopeMappingService = appScopeMappingService;
     }
 

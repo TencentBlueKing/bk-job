@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.customsetting.impl;
+package com.tencent.bk.job.manage.dao.customsetting;
 
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.manage.model.dto.customsetting.UserCustomSettingDTO;

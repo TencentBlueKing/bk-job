@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.common.gse.config;
 
+import com.tencent.bk.job.common.encrypt.Encryptor;
+import com.tencent.bk.job.common.encrypt.RSAEncryptor;
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClientImpl;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
@@ -35,6 +38,9 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 
 @Configuration(proxyBeanMethods = false)
@@ -58,5 +64,10 @@ public class GseAutoConfiguration {
     public AgentStateClient agentStateClient(AgentStateQueryConfig agentStateQueryConfig,
                                              GseClient gseClient) {
         return new AgentStateClientImpl(agentStateQueryConfig, gseClient);
+    }
+
+    @Bean("gseRsaEncryptor")
+    public Encryptor rsaEncryptor() throws IOException, GeneralSecurityException {
+        return new RSAEncryptor(GseConstants.publicKeyPermBase64);
     }
 }

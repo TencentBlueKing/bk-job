@@ -76,7 +76,9 @@ public class AccountServiceImpl implements AccountService {
     private final GlobalSettingsService globalSettingsService;
     private final JobManageConfig jobManageConfig;
 
-    public AccountServiceImpl(@Autowired AccountDAO accountDAO, @Qualifier("gseRsaEncryptor") Encryptor encryptor,
+    @Autowired
+    public AccountServiceImpl(AccountDAO accountDAO,
+                              @Qualifier("gseRsaEncryptor") Encryptor encryptor,
                               GlobalSettingsService globalSettingsService,
                               JobManageConfig jobManageConfig) {
         this.accountDAO = accountDAO;

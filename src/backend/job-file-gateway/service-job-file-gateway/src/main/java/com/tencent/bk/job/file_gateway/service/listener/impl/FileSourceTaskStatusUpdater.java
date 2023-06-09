@@ -35,7 +35,6 @@ import com.tencent.bk.job.file_gateway.service.context.impl.DefaultTaskContext;
 import com.tencent.bk.job.file_gateway.service.listener.FileSourceTaskStatusChangeListener;
 import com.tencent.bk.job.file_gateway.service.listener.FileTaskStatusChangeListener;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,15 +45,14 @@ import java.util.List;
 @Service
 public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener {
 
-    private final DSLContext dslContext;
     private final FileSourceTaskDAO fileSourceTaskDAO;
     private final FileTaskDAO fileTaskDAO;
     private final List<FileSourceTaskStatusChangeListener> fileSourceTaskStatusChangeListenerList = new ArrayList<>();
 
     @Autowired
-    public FileSourceTaskStatusUpdater(DSLContext dslContext, FileSourceTaskDAO fileSourceTaskDAO,
-                                       FileTaskDAO fileTaskDAO, FileSourceTaskStatusChangeListener listener) {
-        this.dslContext = dslContext;
+    public FileSourceTaskStatusUpdater(FileSourceTaskDAO fileSourceTaskDAO,
+                                       FileTaskDAO fileTaskDAO,
+                                       FileSourceTaskStatusChangeListener listener) {
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
         this.addFileTaskStatusChangeListener(listener);
@@ -88,7 +86,7 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
             if (!fileSourceTaskDTO.isDone()) {
                 // 主任务RUNNING
                 fileSourceTaskDTO.setStatus(TaskStatusEnum.RUNNING.getStatus());
-                fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+                fileSourceTaskDAO.updateFileSourceTask(fileSourceTaskDTO);
                 logUpdatedFileSourceTaskStatus(fileSourceTaskId, TaskStatusEnum.RUNNING);
             } else {
                 log.info("fileSourceTask {} already done, do not update to running", fileSourceTaskId);
@@ -99,7 +97,7 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
                 TaskStatusEnum.SUCCESS.getStatus()))) {
                 // 主任务成功
                 fileSourceTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
-                fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+                fileSourceTaskDAO.updateFileSourceTask(fileSourceTaskDTO);
                 logUpdatedFileSourceTaskStatus(fileSourceTaskId, TaskStatusEnum.SUCCESS);
             } else {
                 // 主任务尚未成功
@@ -108,12 +106,12 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
         } else if (TaskStatusEnum.FAILED.equals(currentStatus)) {
             // 主任务失败
             fileSourceTaskDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
-            fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+            fileSourceTaskDAO.updateFileSourceTask(fileSourceTaskDTO);
             logUpdatedFileSourceTaskStatus(fileSourceTaskId, TaskStatusEnum.FAILED);
         } else if (TaskStatusEnum.STOPPED.equals(currentStatus)) {
             // 主任务停止
             fileSourceTaskDTO.setStatus(TaskStatusEnum.STOPPED.getStatus());
-            fileSourceTaskDAO.updateFileSourceTask(dslContext, fileSourceTaskDTO);
+            fileSourceTaskDAO.updateFileSourceTask(fileSourceTaskDTO);
             logUpdatedFileSourceTaskStatus(fileSourceTaskId, TaskStatusEnum.STOPPED);
         }
         // 通知其他关注事件的Listener

@@ -32,6 +32,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import javax.sql.DataSource;
+
 /**
  * Quartz 设置
  */
@@ -69,7 +71,8 @@ public class QuartzConfig {
 
     @Bean
     public SchedulerFactoryBeanCustomizer schedulerFactoryBeanCustomizer(
-        @Qualifier("quartzTaskExecutor") ThreadPoolTaskExecutor quartzTaskExecutor) {
+        @Qualifier("quartzTaskExecutor") ThreadPoolTaskExecutor quartzTaskExecutor,
+        @Qualifier("job-crontab-data-source") DataSource dataSource) {
         return schedulerFactoryBean -> {
             // 自定义taskExecutor
             schedulerFactoryBean.setTaskExecutor(quartzTaskExecutor);
@@ -81,6 +84,7 @@ public class QuartzConfig {
             schedulerFactoryBean.setOverwriteExistingJobs(jobQuartzProperties.getScheduler().isOverwriteExistingJobs());
             schedulerFactoryBean.setAutoStartup(jobQuartzProperties.getScheduler().isAutoStartup());
             schedulerFactoryBean.setStartupDelay(jobQuartzProperties.getScheduler().getStartupDelay());
+            schedulerFactoryBean.setDataSource(dataSource);
         };
 
     }

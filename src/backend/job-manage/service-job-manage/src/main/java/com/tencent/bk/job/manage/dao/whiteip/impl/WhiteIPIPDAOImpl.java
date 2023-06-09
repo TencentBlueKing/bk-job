@@ -32,6 +32,7 @@ import org.jooq.generated.tables.WhiteIpIp;
 import org.jooq.generated.tables.records.WhiteIpIpRecord;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -44,7 +45,7 @@ public class WhiteIPIPDAOImpl implements WhiteIPIPDAO {
     private final DSLContext dslContext;
 
     @Autowired
-    public WhiteIPIPDAOImpl(DSLContext dslContext) {
+    public WhiteIPIPDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

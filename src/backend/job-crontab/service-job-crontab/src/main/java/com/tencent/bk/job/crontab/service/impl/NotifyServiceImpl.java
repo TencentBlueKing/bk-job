@@ -25,32 +25,29 @@
 package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.crontab.client.ServiceNotificationResourceClient;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.NotifyService;
+import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * @since 29/4/2020 15:52
- */
 @Slf4j
-@Service
+@Service("jobCrontabNotifyService")
 public class NotifyServiceImpl implements NotifyService {
 
-    private final ServiceNotificationResourceClient notificationClient;
+    private final ServiceNotificationResource notificationResource;
 
     @Autowired
-    public NotifyServiceImpl(ServiceNotificationResourceClient notificationClient) {
-        this.notificationClient = notificationClient;
+    public NotifyServiceImpl(ServiceNotificationResource notificationResource) {
+        this.notificationResource = notificationResource;
     }
 
     @Override
     public Integer sendCronJobNotification(CronJobInfoDTO cronJobInfo) {
         InternalResponse<Integer> sendNotifyResponse =
-            notificationClient.sendTemplateNotification(CronJobInfoDTO.buildNotifyInfo(cronJobInfo));
+            notificationResource.sendTemplateNotification(CronJobInfoDTO.buildNotifyInfo(cronJobInfo));
         if (sendNotifyResponse != null) {
             if (sendNotifyResponse.isSuccess()) {
                 if (sendNotifyResponse.getData() != null) {
@@ -82,7 +79,7 @@ public class NotifyServiceImpl implements NotifyService {
         }
 
         InternalResponse<Integer> sendNotifyResponse =
-            notificationClient.sendTemplateNotification(templateNotificationRequest);
+            notificationResource.sendTemplateNotification(templateNotificationRequest);
         if (sendNotifyResponse != null) {
             if (sendNotifyResponse.isSuccess()) {
                 if (sendNotifyResponse.getData() != null) {

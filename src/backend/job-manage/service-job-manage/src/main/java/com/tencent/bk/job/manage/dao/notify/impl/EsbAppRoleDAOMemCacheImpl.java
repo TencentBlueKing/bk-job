@@ -33,7 +33,6 @@ import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,11 +42,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Slf4j
 @Repository
 public class EsbAppRoleDAOMemCacheImpl implements EsbAppRoleDAO {
@@ -74,7 +68,7 @@ public class EsbAppRoleDAOMemCacheImpl implements EsbAppRoleDAO {
     }
 
     @Override
-    public List<AppRoleDTO> listEsbAppRole(DSLContext dslContext) {
+    public List<AppRoleDTO> listEsbAppRole() {
         try {
             String lang = JobContextUtil.getUserLang();
             logger.info(String.format("Current Lang:%s", lang));

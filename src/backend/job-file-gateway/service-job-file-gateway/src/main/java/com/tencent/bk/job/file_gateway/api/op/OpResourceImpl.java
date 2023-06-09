@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @Slf4j
-@RestController
+@RestController("jobFileGatewayOpResourceImpl")
 public class OpResourceImpl implements OpResource {
 
     private final ReDispatchService reDispatchService;

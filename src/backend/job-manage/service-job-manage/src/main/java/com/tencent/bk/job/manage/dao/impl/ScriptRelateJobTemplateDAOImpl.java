@@ -46,7 +46,7 @@ import java.util.List;
 @Slf4j
 @Repository
 public class ScriptRelateJobTemplateDAOImpl implements ScriptRelateJobTemplateDAO {
-    private DSLContext ctx;
+    private final DSLContext ctx;
 
     @Autowired
     public ScriptRelateJobTemplateDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext ctx) {

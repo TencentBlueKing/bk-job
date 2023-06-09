@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tencent.bk.job.crontab.config;
 
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
@@ -39,55 +39,62 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
-/**
- * @date 2019/09/19
- */
-@Configuration
+@Configuration(value = "jobCrontabDbConfig")
 @EnableTransactionManagement
-public class BackupDbConfig {
-    @Qualifier("job-backup-data-source")
+public class DbConfig {
+    @Qualifier("job-crontab-data-source")
     @Primary
-    @Bean(name = "job-backup-data-source")
-    @ConfigurationProperties(prefix = "spring.datasource.job-backup")
+    @Bean(name = "job-crontab-data-source")
+    @ConfigurationProperties(prefix = "spring.datasource.job-crontab")
     public DataSource dataSource() {
         return DataSourceBuilder.create().build();
     }
 
-    @Qualifier("transactionManager")
-    @Bean(name = "transactionManager")
-    @DependsOn("job-backup-data-source")
+    @Qualifier("jobCrontabTransactionManager")
+    @Bean(name = "jobCrontabTransactionManager")
+    @DependsOn("job-crontab-data-source")
     @Primary
-    public DataSourceTransactionManager transactionManager(@Qualifier("job-backup-data-source") DataSource dataSource) {
+    public DataSourceTransactionManager
+    transactionManager(@Qualifier("job-crontab-data-source") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 
-    @Qualifier("job-backup-jdbc-template")
-    @Bean(name = "job-backup-jdbc-template")
-    public JdbcTemplate jdbcTemplate(@Qualifier("job-backup-data-source") DataSource dataSource) {
+    @Qualifier("job-crontab-jdbc-template")
+    @Bean(name = "job-crontab-jdbc-template")
+    public JdbcTemplate jdbcTemplate(@Qualifier("job-crontab-data-source") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 
-    @Qualifier("job-backup-dsl-context")
-    @Bean(name = "job-backup-dsl-context")
-    public DSLContext dslContext(@Qualifier("job-backup-jooq-conf") org.jooq.Configuration configuration) {
+    @Qualifier("job-crontab-dsl-context")
+    @Bean(name = "job-crontab-dsl-context")
+    public DSLContext dslContext(@Qualifier("job-crontab-jooq-conf") org.jooq.Configuration configuration) {
         return new DefaultDSLContext(configuration);
     }
 
-    @Qualifier("job-backup-jooq-conf")
-    @Bean(name = "job-backup-jooq-conf")
+    @Qualifier("job-crontab-jooq-conf")
+    @Bean(name = "job-crontab-jooq-conf")
     public org.jooq.Configuration
-    jooqConf(@Qualifier("job-backup-conn-provider") ConnectionProvider connectionProvider) {
+    jooqConf(@Qualifier("job-crontab-conn-provider") ConnectionProvider connectionProvider) {
         return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
     }
 
-    @Qualifier("job-backup-conn-provider")
-    @Bean(name = "job-backup-conn-provider")
-    public ConnectionProvider connectionProvider(@Qualifier("job-backup-data-source") DataSource dataSource) {
-        return new DataSourceConnectionProvider(dataSource);
+    @Qualifier("job-crontab-conn-provider")
+    @Bean(name = "job-crontab-conn-provider")
+    public ConnectionProvider connectionProvider(
+        @Qualifier("jobCrontabTransactionAwareDataSource") TransactionAwareDataSourceProxy transactionAwareDataSource) {
+        return new DataSourceConnectionProvider(transactionAwareDataSource);
+    }
+
+    @Qualifier("jobCrontabTransactionAwareDataSource")
+    @Bean(name = "jobCrontabTransactionAwareDataSource")
+    public TransactionAwareDataSourceProxy
+    transactionAwareDataSourceProxy(@Qualifier("job-crontab-data-source") DataSource dataSource) {
+        return new TransactionAwareDataSourceProxy(dataSource);
     }
 
 }
