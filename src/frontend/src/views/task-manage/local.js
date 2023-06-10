@@ -439,8 +439,8 @@ export default {
     '保留，ID 冲突时自增处理': 'Keep it, auto increment if exists',
     '保留，ID 冲突时不导入': 'Keep it, skip if exists',
     请输入重名后缀: 'Dupl. suffix field is required',
-    '作业导入完成！请及时检查。': 'Import successfully! please check it immediately.',
-    '作业导入出现异常，请稍后再试...': 'Import failed! please try again later...',
+    '作业导入完成（全部成功），请及时检查确认。': 'Job import completed (all successful), please check and confirm promptly.',
+    '作业全部导入失败，请根据日志提示调整后重试。': 'Jobs import all failed, please adjust according to the log prompt and try again.',
     '正在导入作业，请稍候': 'Job Importing, please wait a sec',
     查看详情: 'Open in new tab',
     复制日志: 'Copy logs',
@@ -516,5 +516,6 @@ export default {
     '标签名称：': 'Tag Name: ',
     '标签描述：': 'Tag Desc.: ',
     未发现无效主机: 'No invalid host found',
+    '作业导入任务出错，原因详见下列日志，请稍后再试。': 'Import task encountered an error. Please refer to the log details and try again later.',
   },
 };
