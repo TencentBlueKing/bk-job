@@ -75,7 +75,7 @@
           <render-strategy
             v-else
             left="135">
-            <cron-job
+            <crontab
               v-model="formData.cronExpression"
               class="cron-task" />
           </render-strategy>
@@ -202,7 +202,7 @@
 
   import RenderStrategy from '../render-strategy';
 
-  import CronJob from './cron-job';
+  import Crontab from './crontab';
   import FormItemFactory from './form-item-strategy';
 
   const onceItemList = [
@@ -242,7 +242,7 @@
       RenderStrategy,
       JbInput,
       FormItemFactory,
-      CronJob,
+      Crontab,
     },
     props: {
       data: {

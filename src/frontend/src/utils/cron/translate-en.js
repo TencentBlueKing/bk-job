@@ -1,23 +1,43 @@
+import _ from 'lodash';
+
+import { ordinalSuffixOf } from '@utils/assist';
+
 import Node from './utils/Node';
 
 const weekDayMap = {
-  0: '日',
-  1: '一',
-  2: '二',
-  3: '三',
-  4: '四',
-  5: '五',
-  6: '六',
-  7: '日',
+  0: 'Sunday',
+  1: 'Monday',
+  2: 'Tuesday',
+  3: 'Wednesday',
+  4: 'Thursday',
+  5: 'Friday',
+  6: 'Saturday',
+  7: 'Sunday',
 };
+
 const weekDesDayMap = {
-  sun: '日',
-  mon: '一',
-  tue: '二',
-  wed: '三',
-  thu: '四',
-  fri: '五',
-  sat: '六',
+  sun: 'Sunday',
+  mon: 'Monday',
+  tue: 'Tuesday',
+  wed: 'Wednesday',
+  thu: 'Thursday',
+  fri: 'Friday',
+  sat: 'Sunday',
+};
+
+const dayMap = {
+  1: 'January',
+  2: 'February',
+  3: 'March',
+  4: 'April',
+  5: 'May',
+  6: 'June',
+  7: 'July',
+  8: 'August',
+  9: 'September',
+  10: 'October',
+  11: 'November',
+  12: 'December',
 };
 
 const getWeekDayValue = (value) => {
@@ -31,24 +51,18 @@ const getWeekDayValue = (value) => {
   return value;
 };
 
-const getHourValue = (value) => {
-  const num = ~~value;
-  if (num < 5) {
-    return `凌晨${num}点`;
+const getHourValue = value => value;
+
+const getMonthValue = value => dayMap[value];
+
+const getRepeatIntervalueText = (value) => {
+  if (parseInt(value, 10) === 1) {
+    return ' ';
   }
-  if (num < 12) {
-    return `上午${num}点`;
-  }
-  if (num === 12) {
-    return `中午${num}点`;
-  }
-  if (num < 18) {
-    return `下午${num}点`;
-  }
-  return `晚上${num}点`;
+  return ` ${ordinalSuffixOf(value)} `;
 };
 
-const getMinuteValue = (value) => {
+const formatNumber = (value) => {
   const num = ~~value;
   if (num < 10) {
     return `0${num}`;
@@ -58,95 +72,116 @@ const getMinuteValue = (value) => {
 
 const translateMap = {
   minute: {
-    genAll: () => '每分钟',
-    [Node.TYPE_ENUM]: node => `${getMinuteValue(node.value)}分`,
-    [Node.TYPE_RANG]: node => `${getMinuteValue(node.min)}分到${getMinuteValue(node.max)}分`,
+    genAll: () => 'every minute',
+    [Node.TYPE_ENUM]: node => `${node.value}`,
+    [Node.TYPE_RANG]: node => `every minute from ${node.min} through ${node.max}`,
     [Node.TYPE_REPEAT]: (node) => {
       if (node.value === '*') {
-        return `每隔${node.repeatInterval}分钟`;
+        return `every${getRepeatIntervalueText(node.repeatInterval)}minute`;
       }
-      return `从${getMinuteValue(node.value)}分开始每隔${node.repeatInterval}分钟`;
+      return `every${getRepeatIntervalueText(node.repeatInterval)}minute from ${node.value} through 59`;
     },
     // eslint-disable-next-line max-len
-    [Node.TYPE_RANG_REPEAT]: node => `从${getMinuteValue(node.min)}分开始到${getMinuteValue(node.max)}分的每${node.repeatInterval}分钟`,
+    [Node.TYPE_RANG_REPEAT]: node => `every${getRepeatIntervalueText(node.repeatInterval)}minute from ${node.min} through ${node.max}`,
   },
   hour: {
-    genAll: () => '每小时',
+    genAll: () => '',
     [Node.TYPE_ENUM]: node => `${getHourValue(node.value)}`,
-    [Node.TYPE_RANG]: node => `${getHourValue(node.min)}到${getHourValue(node.max)}`,
+    [Node.TYPE_RANG]: node => `every hour from ${getHourValue(node.min)} through ${getHourValue(node.max)}`,
     [Node.TYPE_REPEAT]: (node) => {
       if (node.value === '*') {
-        return `每隔${node.repeatInterval}个小时`;
+        return `every${getRepeatIntervalueText(node.repeatInterval)}hour`;
       }
-      return `从${getHourValue(node.value)}开始每隔${node.repeatInterval}个小时`;
+      return `every${getRepeatIntervalueText(node.repeatInterval)}hour from ${node.value} through 23`;
     },
     // eslint-disable-next-line max-len
-    [Node.TYPE_RANG_REPEAT]: node => `从${getHourValue(node.min)}开始到${getHourValue(node.max)}的每${node.repeatInterval}个小时`,
+    [Node.TYPE_RANG_REPEAT]: node => `every${getRepeatIntervalueText(node.repeatInterval)}hour from ${node.min} through ${node.max}`,
   },
   dayOfMonth: {
-    genAll: () => '每天',
-    [Node.TYPE_ENUM]: node => `${node.value}号`,
-    [Node.TYPE_RANG]: node => `${node.min}号到${node.max}号`,
+    genAll: () => '',
+    [Node.TYPE_ENUM]: node => `${node.value}`,
+    [Node.TYPE_RANG]: node => `every day-of-month ${node.min} from ${node.max}`,
     [Node.TYPE_REPEAT]: (node) => {
       if (node.value === '*') {
-        return `每隔${node.repeatInterval}天`;
+        return `every ${getRepeatIntervalueText(node.repeatInterval)}day-of-month`;
       }
-      return `从${node.value}号开始每隔${node.repeatInterval}天`;
+      return `every${getRepeatIntervalueText(node.repeatInterval)}day-of-month from ${node.value} through 31`;
     },
     // eslint-disable-next-line max-len
-    [Node.TYPE_RANG_REPEAT]: node => `从${node.min}号开始到${node.max}号的每${node.repeatInterval}天`,
+    [Node.TYPE_RANG_REPEAT]: node => `every${getRepeatIntervalueText(node.repeatInterval)}day-of-month from ${node.min} through ${node.max}`,
   },
   month: {
-    genAll: () => '每月',
-    [Node.TYPE_ENUM]: node => `${node.value}月`,
-    [Node.TYPE_RANG]: node => `${node.min}月到${node.max}月`,
+    genAll: () => '',
+    [Node.TYPE_ENUM]: node => `${getMonthValue(node.value)}`,
+    [Node.TYPE_RANG]: node => `every month from ${getMonthValue(node.min)} through ${getMonthValue(node.max)}`,
     [Node.TYPE_REPEAT]: (node) => {
       if (node.value === '*') {
-        return `每隔${node.repeatInterval}个月`;
+        return `every${getRepeatIntervalueText(node.repeatInterval)}month`;
       }
-      return `从${node.value}月开始每隔${node.repeatInterval}个月`;
+      return `every${getRepeatIntervalueText(node.repeatInterval)}month from ${getMonthValue(node.value)} through December`;
     },
     // eslint-disable-next-line max-len
-    [Node.TYPE_RANG_REPEAT]: node => `从${node.min}月开始到${node.max}月的每${node.repeatInterval}个月`,
+    [Node.TYPE_RANG_REPEAT]: node => `every${getRepeatIntervalueText(node.repeatInterval)}month from ${getMonthValue(node.min)} through ${getMonthValue(node.max)}`,
   },
   dayOfWeek: {
-    genAll: () => '每天',
-    [Node.TYPE_ENUM]: node => `每周${getWeekDayValue(node.value)}`,
-    [Node.TYPE_RANG]: node => `每周${getWeekDayValue(node.min)}到周${getWeekDayValue(node.max)}`,
+    genAll: () => '',
+    [Node.TYPE_ENUM]: node => `${getWeekDayValue(node.value)}`,
+    [Node.TYPE_RANG]: node => `every day-of-week ${getWeekDayValue(node.min)} through ${getWeekDayValue(node.max)}`,
     [Node.TYPE_REPEAT]: (node) => {
       if (node.value === '*') {
-        return `每个星期内的每隔${node.repeatInterval}天`;
+        return `every${getRepeatIntervalueText(node.repeatInterval)}day-of-week`;
       }
-      return `从每周${getWeekDayValue(node.value)}开始每隔${node.repeatInterval}天`;
+      return `every${getRepeatIntervalueText(node.repeatInterval)}day-of-week from ${getWeekDayValue(node.value)} through Sunday`;
     },
     // eslint-disable-next-line max-len
-    [Node.TYPE_RANG_REPEAT]: node => `从每周${getWeekDayValue(node.min)}开始到周${getWeekDayValue(node.max)}的每隔${node.repeatInterval}天`,
+    [Node.TYPE_RANG_REPEAT]: node => `every${getRepeatIntervalueText(node.repeatInterval)}day-of-week from ${getWeekDayValue(node.min)} through ${getWeekDayValue(node.max)}`,
   },
 };
 
 export default (ast) => {
-  const concatTextNew = (ast, field) => {
+  const concatTextNew = (ast, field, prefix, unit) => {
     if (!Object.prototype.hasOwnProperty.call(ast, field)) {
       return '';
     }
     const sequence = ast[field];
     const translate = translateMap[field];
     if (sequence.length < 1) {
-      return translate.genAll();
+      const all = translate.genAll();
+      return all ? `${prefix} ${all}` : all;
     }
+
+    let start = prefix;
+    if (sequence[0].type === Node.TYPE_ENUM && unit) {
+      start = `${start} ${unit}`;
+    }
+
     const stack = sequence.map(node => translate[node.type](node));
     if (stack.length < 2) {
-      return stack.join('');
+      return `${start} ${stack.join('')}`;
     }
     const pre = stack.slice(0, -1);
     const last = stack.slice(-1);
-    return `${pre.join('，')}和${last[0]}`;
+    return `${start} ${pre.join(',')}, and ${last[0]}`;
   };
+
+  let textMinute = concatTextNew(ast, 'minute', 'At', 'minute');
+  let textHour = concatTextNew(ast, 'hour', 'past', 'hour');
+  if (ast.minute.length === 1 && ast.hour.length === 1) {
+    const minuteNode = ast.minute[0];
+    const hourNode = ast.hour[0];
+    if (minuteNode.type === Node.TYPE_ENUM && hourNode.type === Node.TYPE_ENUM) {
+      textMinute = `:${formatNumber(minuteNode.value)}`;
+      textHour = `At ${formatNumber(hourNode.value)}`;
+    }
+  }
+  const textDayOfMonth = concatTextNew(ast, 'dayOfMonth', 'on', 'day-of-month');
+  const textDayOfWeek = concatTextNew(ast, 'dayOfWeek', 'on', '');
+
   return [
-    concatTextNew(ast, 'month'),
-    concatTextNew(ast, 'dayOfMonth'),
-    concatTextNew(ast, 'dayOfWeek'),
-    concatTextNew(ast, 'hour'),
-    concatTextNew(ast, 'minute'),
+    textMinute,
+    textHour,
+    textDayOfMonth,
+    textDayOfMonth && textDayOfWeek ? `and ${textDayOfWeek}` : textDayOfWeek,
+    concatTextNew(ast, 'month', 'in', ''),
   ];
 };
