@@ -47,7 +47,7 @@ const print = (expression) => {
     fieldMap[fieldList[index]] = parsetext(item);
   });
   const ast = optimze(fieldMap);
-  return I18n.local === 'zh-cn' ? translateCN(ast) : translateEN(ast);
+  return I18n.locale === 'zh-CN' ? translateCN(ast) : translateEN(ast);
 };
 
 export default expression => print(expression);
