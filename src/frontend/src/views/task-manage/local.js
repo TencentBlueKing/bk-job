@@ -516,5 +516,6 @@ export default {
     '标签描述：': 'Tag Desc.: ',
     未发现无效主机: 'No invalid host found',
     '作业导入任务出错，原因详见下列日志，请稍后再试。': 'Import task encountered an error. Please refer to the log details and try again later.',
+    '作业导入完成（部分失败），请根据日志提示调整后重新选择导入。': 'Job import completed (some failed), please adjust according to the log prompt and re-select to import again.',
   },
 };
