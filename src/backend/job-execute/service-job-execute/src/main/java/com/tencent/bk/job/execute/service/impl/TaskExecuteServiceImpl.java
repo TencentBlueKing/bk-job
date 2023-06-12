@@ -1080,7 +1080,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (!isStepContainsHostProps(stepInstance)) {
                 continue;
             }
-            hosts.addAll(stepInstance.getTargetServers().extractHosts());
+            if (stepInstance.getTargetServers() != null) {
+                hosts.addAll(stepInstance.getTargetServers().extractHosts());
+            }
             if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
                 if (fileSourceList != null) {
@@ -1093,11 +1095,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
         if (CollectionUtils.isNotEmpty(variables)) {
-            variables.forEach(variable -> {
-                if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-                    hosts.addAll(variable.getTargetServers().extractHosts());
-                }
-            });
+            variables.stream()
+                .filter(variable -> variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
+                    && variable.getTargetServers() != null)
+                .forEach(variable -> hosts.addAll(variable.getTargetServers().extractHosts()));
         }
         return hosts;
     }
