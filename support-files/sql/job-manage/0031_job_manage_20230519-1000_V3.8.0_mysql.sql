@@ -19,7 +19,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'task_template_step_script'
                     AND COLUMN_NAME = 'secure_param_encrypt_algorithm') THEN
-    ALTER TABLE task_template_step_script ADD COLUMN secure_param_encrypt_algorithm varchar(32) NOT NULL DEFAULT "None";
+    ALTER TABLE task_template_step_script ADD COLUMN `secure_param_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None" AFTER `is_secure_param`;
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -27,7 +27,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'task_plan_step_script'
                     AND COLUMN_NAME = 'secure_param_encrypt_algorithm') THEN
-    ALTER TABLE task_plan_step_script ADD COLUMN secure_param_encrypt_algorithm varchar(32) NOT NULL DEFAULT "None";
+    ALTER TABLE task_plan_step_script ADD COLUMN `secure_param_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None" AFTER `is_secure_param`;
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -35,7 +35,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'task_template_variable'
                     AND COLUMN_NAME = 'cipher_encrypt_algorithm') THEN
-    ALTER TABLE task_template_variable ADD COLUMN cipher_encrypt_algorithm varchar(32) NOT NULL DEFAULT "None";
+    ALTER TABLE task_template_variable ADD COLUMN `cipher_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None" AFTER `default_value`;
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -43,7 +43,15 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'task_plan_variable'
                     AND COLUMN_NAME = 'cipher_encrypt_algorithm') THEN
-    ALTER TABLE task_plan_variable ADD COLUMN cipher_encrypt_algorithm varchar(32) NOT NULL DEFAULT "None";
+    ALTER TABLE task_plan_variable ADD COLUMN `cipher_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None" AFTER `default_value`;
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                FROM information_schema.columns
+                WHERE TABLE_SCHEMA = db
+                  AND TABLE_NAME = 'account'
+                  AND COLUMN_NAME = 'db_password_encrypt_algorithm') THEN
+      ALTER TABLE `account` ADD COLUMN `db_password_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "AES" AFTER `db_password`;
   END IF;
 
 COMMIT;

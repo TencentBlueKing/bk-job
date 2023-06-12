@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_script`
     `db_type`                        tinyint(4)           DEFAULT NULL,
     `db_account`                     varchar(256)         DEFAULT NULL,
     `db_password`                    varchar(512)         DEFAULT NULL,
+    `db_password_encrypt_algorithm`  VARCHAR(32) NOT NULL DEFAULT 'AES',
     `db_port`                        int(5)               DEFAULT NULL,
     `row_create_time`                DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`                DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

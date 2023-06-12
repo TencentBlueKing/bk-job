@@ -57,7 +57,7 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastPushFileRequest;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -267,9 +267,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
             fileSourceDTO.setFileType(TaskFileTypeEnum.SERVER.getType());
             List<FileDetailDTO> files = new ArrayList<>();
             if (fileSource.getFiles() != null) {
-                fileSource.getFiles().forEach(file -> {
-                    files.add(new FileDetailDTO(file));
-                });
+                fileSource.getFiles().forEach(file -> files.add(new FileDetailDTO(file)));
             }
             fileSourceDTO.setFiles(files);
             fileSourceDTO.setServers(convertToStandardServers(fileSource.getTargetServer(), fileSource.getIpList(),

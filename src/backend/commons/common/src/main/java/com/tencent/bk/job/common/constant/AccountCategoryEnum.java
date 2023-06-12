@@ -22,12 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts.account;
+package com.tencent.bk.job.common.constant;
 
 /**
  * 账号分类
- *
- * @date 2019/09/19
  */
 public enum AccountCategoryEnum {
     SYSTEM(1, "system"),

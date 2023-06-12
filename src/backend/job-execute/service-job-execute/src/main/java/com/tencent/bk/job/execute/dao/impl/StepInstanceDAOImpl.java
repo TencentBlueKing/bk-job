@@ -25,8 +25,10 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.encrypt.scenario.DbPasswordService;
 import com.tencent.bk.job.common.encrypt.scenario.SensitiveParamService;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -100,12 +102,15 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
 
     private final DSLContext CTX;
     private final SensitiveParamService sensitiveParamService;
+    private final DbPasswordService dbPasswordService;
 
     @Autowired
     public StepInstanceDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX,
-                               SensitiveParamService sensitiveParamService) {
+                               SensitiveParamService sensitiveParamService,
+                               DbPasswordService dbPasswordService) {
         this.CTX = CTX;
         this.sensitiveParamService = sensitiveParamService;
+        this.dbPasswordService = dbPasswordService;
     }
 
     @Override
@@ -160,40 +165,59 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             scriptSourceByteValue = scriptSource.byteValue();
         }
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-        CTX.insertInto(t, t.STEP_INSTANCE_ID, t.SCRIPT_CONTENT, t.SCRIPT_TYPE, t.SCRIPT_PARAM, t.RESOLVED_SCRIPT_PARAM,
-            t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT, t.DB_ACCOUNT_ID,
-            t.DB_TYPE, t.DB_ACCOUNT, t.DB_PASSWORD, t.DB_PORT, t.SCRIPT_SOURCE, t.SCRIPT_ID, t.SCRIPT_VERSION_ID,
-            t.IS_SECURE_PARAM, t.SECURE_PARAM_ENCRYPT_ALGORITHM)
-            .values(stepInstance.getId(),
-                stepInstance.getScriptContent(),
-                JooqDataTypeUtil.toByte(stepInstance.getScriptType()),
-                sensitiveParamService.encryptParamIfNeeded(
-                    stepInstance.isSecureParam(), stepInstance.getScriptParam()),
-                sensitiveParamService.encryptParamIfNeeded(
-                    stepInstance.isSecureParam(), stepInstance.getResolvedScriptParam()),
-                stepInstance.getTimeout(),
-                stepInstance.getAccountId(),
-                stepInstance.getAccount(),
-                stepInstance.getDbAccountId(),
-                JooqDataTypeUtil.toByte(stepInstance.getDbType()),
-                stepInstance.getDbAccount(),
-                stepInstance.getDbPass(),
-                stepInstance.getDbPort(),
-                scriptSourceByteValue,
-                stepInstance.getScriptId(),
-                stepInstance.getScriptVersionId(),
-                stepInstance.isSecureParam() ? JooqDataTypeUtil.toByte(1) :
-                    JooqDataTypeUtil.toByte(0),
-                sensitiveParamService.getSecureParamEncryptAlgorithm(stepInstance.isSecureParam())
-            ).execute();
+        CTX.insertInto(t,
+            t.STEP_INSTANCE_ID,
+            t.SCRIPT_CONTENT,
+            t.SCRIPT_TYPE,
+            t.SCRIPT_PARAM,
+            t.RESOLVED_SCRIPT_PARAM,
+            t.EXECUTION_TIMEOUT,
+            t.SYSTEM_ACCOUNT_ID,
+            t.SYSTEM_ACCOUNT,
+            t.DB_ACCOUNT_ID,
+            t.DB_TYPE,
+            t.DB_ACCOUNT,
+            t.DB_PASSWORD,
+            t.DB_PASSWORD_ENCRYPT_ALGORITHM,
+            t.DB_PORT,
+            t.SCRIPT_SOURCE,
+            t.SCRIPT_ID,
+            t.SCRIPT_VERSION_ID,
+            t.IS_SECURE_PARAM,
+            t.SECURE_PARAM_ENCRYPT_ALGORITHM
+        ).values(
+            stepInstance.getId(),
+            stepInstance.getScriptContent(),
+            JooqDataTypeUtil.toByte(stepInstance.getScriptType()),
+            sensitiveParamService.encryptParamIfNeeded(
+                stepInstance.isSecureParam(), stepInstance.getScriptParam()),
+            sensitiveParamService.encryptParamIfNeeded(
+                stepInstance.isSecureParam(), stepInstance.getResolvedScriptParam()),
+            stepInstance.getTimeout(),
+            stepInstance.getAccountId(),
+            stepInstance.getAccount(),
+            stepInstance.getDbAccountId(),
+            JooqDataTypeUtil.toByte(stepInstance.getDbType()),
+            stepInstance.getDbAccount(),
+            dbPasswordService.encryptDbPasswordIfNeeded(AccountCategoryEnum.DB, stepInstance.getDbPass()),
+            dbPasswordService.getDbPasswordEncryptAlgorithm(AccountCategoryEnum.DB),
+            stepInstance.getDbPort(),
+            scriptSourceByteValue,
+            stepInstance.getScriptId(),
+            stepInstance.getScriptVersionId(),
+            stepInstance.isSecureParam() ? JooqDataTypeUtil.toByte(1) :
+                JooqDataTypeUtil.toByte(0),
+            sensitiveParamService.getSecureParamEncryptAlgorithm(stepInstance.isSecureParam())
+        ).execute();
     }
 
     @Override
     public void addFileStepInstance(StepInstanceDTO stepInstance) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         CTX.insertInto(t, t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.FILE_TARGET_PATH, t.FILE_TARGET_NAME,
-            t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT, t.FILE_DUPLICATE_HANDLE, t.NOT_EXIST_PATH_HANDLER,
-            t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT)
+                t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT, t.FILE_DUPLICATE_HANDLE,
+                t.NOT_EXIST_PATH_HANDLER,
+                t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT)
             .values(stepInstance.getId(),
                 JsonUtils.toJson(stepInstance.getFileSourceList()),
                 stepInstance.getFileTargetPath(),
@@ -226,11 +250,27 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public ScriptStepInstanceDTO getScriptStepInstance(long stepInstanceId) {
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-        Record record = CTX.select(t.STEP_INSTANCE_ID, t.SCRIPT_CONTENT, t.SCRIPT_TYPE, t.SCRIPT_PARAM,
-            t.RESOLVED_SCRIPT_PARAM, t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT,
-            t.DB_ACCOUNT_ID, t.DB_ACCOUNT, t.DB_TYPE, t.DB_PASSWORD, t.DB_PORT, t.SCRIPT_SOURCE, t.SCRIPT_ID,
-            t.SCRIPT_VERSION_ID, t.IS_SECURE_PARAM, t.SECURE_PARAM_ENCRYPT_ALGORITHM
-        ).from(t)
+        Record record = CTX.select(
+                t.STEP_INSTANCE_ID,
+                t.SCRIPT_CONTENT,
+                t.SCRIPT_TYPE,
+                t.SCRIPT_PARAM,
+                t.RESOLVED_SCRIPT_PARAM,
+                t.EXECUTION_TIMEOUT,
+                t.SYSTEM_ACCOUNT_ID,
+                t.SYSTEM_ACCOUNT,
+                t.DB_ACCOUNT_ID,
+                t.DB_ACCOUNT,
+                t.DB_TYPE,
+                t.DB_PASSWORD,
+                t.DB_PASSWORD_ENCRYPT_ALGORITHM,
+                t.DB_PORT,
+                t.SCRIPT_SOURCE,
+                t.SCRIPT_ID,
+                t.SCRIPT_VERSION_ID,
+                t.IS_SECURE_PARAM,
+                t.SECURE_PARAM_ENCRYPT_ALGORITHM
+            ).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
         return extractScriptInfo(record);
     }
@@ -266,7 +306,14 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setDbAccountId(record.get(t.DB_ACCOUNT_ID));
         stepInstance.setDbType(JooqDataTypeUtil.toInteger(record.get(t.DB_TYPE)));
         stepInstance.setDbAccount(record.get(t.DB_ACCOUNT));
-        stepInstance.setDbPass(record.get(t.DB_PASSWORD));
+        String dbPasswordEncryptAlgorithm = record.get(t.DB_PASSWORD_ENCRYPT_ALGORITHM);
+        String encryptedDbPassword = record.get(t.DB_PASSWORD);
+        String dbPassword = dbPasswordService.decryptDbPasswordIfNeeded(
+            AccountCategoryEnum.DB,
+            encryptedDbPassword,
+            dbPasswordEncryptAlgorithm
+        );
+        stepInstance.setDbPass(dbPassword);
         stepInstance.setDbPort(record.get(t.DB_PORT));
         Byte scriptSource = record.get(t.SCRIPT_SOURCE);
         if (scriptSource == null) {
@@ -283,9 +330,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     public FileStepInstanceDTO getFileStepInstance(long stepInstanceId) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         Record record = CTX.select(t.STEP_INSTANCE_ID, t.FILE_SOURCE, t.FILE_TARGET_PATH,
-            t.FILE_TARGET_NAME, t.RESOLVED_FILE_TARGET_PATH, t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT,
-            t.FILE_DUPLICATE_HANDLE,
-            t.NOT_EXIST_PATH_HANDLER, t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT)
+                t.FILE_TARGET_NAME, t.RESOLVED_FILE_TARGET_PATH, t.FILE_UPLOAD_SPEED_LIMIT, t.FILE_DOWNLOAD_SPEED_LIMIT,
+                t.FILE_DUPLICATE_HANDLE,
+                t.NOT_EXIST_PATH_HANDLER, t.EXECUTION_TIMEOUT, t.SYSTEM_ACCOUNT_ID, t.SYSTEM_ACCOUNT)
             .from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
         return extractFileInfo(record);
@@ -325,7 +372,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     public ConfirmStepInstanceDTO getConfirmStepInstance(long stepInstanceId) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
         Record record = CTX.select(t.STEP_INSTANCE_ID, t.CONFIRM_MESSAGE, t.CONFIRM_REASON, t.CONFIRM_USERS,
-            t.CONFIRM_ROLES, t.NOTIFY_CHANNELS).from(t)
+                t.CONFIRM_ROLES, t.NOTIFY_CHANNELS).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
         return extractConfirmInfo(record);
     }

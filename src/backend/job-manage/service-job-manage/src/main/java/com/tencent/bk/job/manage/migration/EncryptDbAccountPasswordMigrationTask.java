@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;

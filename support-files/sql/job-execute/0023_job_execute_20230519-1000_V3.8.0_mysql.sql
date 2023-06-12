@@ -18,7 +18,7 @@ BEGIN
                 WHERE TABLE_SCHEMA = db
                   AND TABLE_NAME = 'step_instance_script'
                   AND COLUMN_NAME = 'secure_param_encrypt_algorithm') THEN
-      ALTER TABLE step_instance_script ADD COLUMN `secure_param_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None";
+      ALTER TABLE step_instance_script ADD COLUMN `secure_param_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None" AFTER `is_secure_param`;
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -26,7 +26,15 @@ BEGIN
                 WHERE TABLE_SCHEMA = db
                   AND TABLE_NAME = 'task_instance_variable'
                   AND COLUMN_NAME = 'cipher_encrypt_algorithm') THEN
-      ALTER TABLE task_instance_variable ADD COLUMN `cipher_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None";
+      ALTER TABLE task_instance_variable ADD COLUMN `cipher_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "None" AFTER `value`;
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = db
+                  AND TABLE_NAME = 'step_instance_script'
+                  AND COLUMN_NAME = 'db_password_encrypt_algorithm') THEN
+      ALTER TABLE step_instance_script ADD COLUMN `db_password_encrypt_algorithm` varchar(32) NOT NULL DEFAULT "AES" AFTER `db_password`;
   END IF;
 
   COMMIT;

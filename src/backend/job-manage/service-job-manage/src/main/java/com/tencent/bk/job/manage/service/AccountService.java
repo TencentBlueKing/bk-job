@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
@@ -44,7 +44,7 @@ public interface AccountService {
     /**
      * 新增账号
      *
-     * @param account
+     * @param account 账号信息
      * @return 账号ID
      */
     long saveAccount(AccountDTO account) throws ServiceException;
@@ -53,7 +53,7 @@ public interface AccountService {
      * 根据ID获取账号信息
      *
      * @param accountId 账号Id
-     * @return
+     * @return 账号信息
      */
     AccountDTO getAccountById(Long accountId) throws ServiceException;
 
@@ -68,32 +68,32 @@ public interface AccountService {
     /**
      * 根据ID获取账号信息
      *
-     * @param appId
-     * @param account
-     * @return
+     * @param appId   Job业务ID
+     * @param account 账号名称
+     * @return 账号信息
      */
     AccountDTO getAccountByAccount(Long appId, String account) throws ServiceException;
 
     /**
      * 更新账号
      *
-     * @param account
+     * @param account 账号信息
      */
     void updateAccount(AccountDTO account) throws ServiceException;
 
     /**
      * 删除账号
      *
-     * @param accountId
+     * @param accountId 账号ID
      */
     void deleteAccount(Long accountId) throws ServiceException;
 
     /**
      * 分页查询账号列表
      *
-     * @param accountQuery
-     * @param baseSearchCondition
-     * @return
+     * @param accountQuery        账号查询条件
+     * @param baseSearchCondition 基础搜索条件
+     * @return 账号分页数据
      */
     PageData<AccountDTO> listPageAccount(AccountDTO accountQuery, BaseSearchCondition baseSearchCondition)
         throws ServiceException;
@@ -101,9 +101,9 @@ public interface AccountService {
     /**
      * 分页搜索账号列表
      *
-     * @param keyword
-     * @param baseSearchCondition
-     * @return
+     * @param keyword             关键字
+     * @param baseSearchCondition 基础搜索条件
+     * @return 账号分页数据
      */
     PageData<AccountDTO> searchPageAccount(
         Long appId, String keyword,
@@ -112,10 +112,10 @@ public interface AccountService {
     /**
      * 根据别名获取账号信息
      *
-     * @param appId
-     * @param category
-     * @param alias
-     * @return
+     * @param appId    Job业务ID
+     * @param category 账号类别
+     * @param alias    账号别名
+     * @return 账号信息
      */
     AccountDTO getAccount(Long appId, AccountCategoryEnum category, String alias);
 
@@ -146,7 +146,7 @@ public interface AccountService {
      * 系统账号是否被DB账号依赖
      *
      * @param accountId 系统账号ID
-     * @return
+     * @return 是否被依赖
      */
     boolean isSystemAccountRefByDbAccount(Long accountId);
 

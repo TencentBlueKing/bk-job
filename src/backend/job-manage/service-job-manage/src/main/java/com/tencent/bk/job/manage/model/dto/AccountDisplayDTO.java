@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import lombok.Getter;
 import lombok.Setter;

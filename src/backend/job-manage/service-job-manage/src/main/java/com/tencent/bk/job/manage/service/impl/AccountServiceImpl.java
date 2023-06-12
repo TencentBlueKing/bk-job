@@ -42,7 +42,7 @@ import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
 import com.tencent.bk.job.manage.config.JobManageConfig;
