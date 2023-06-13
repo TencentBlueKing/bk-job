@@ -283,46 +283,12 @@ public class ImportJobExecutor {
         int totalTemplateNum = templateInfo.size();
         int failedTemplateNum = 0;
         for (BackupTemplateInfoDTO backupTemplateInfo : templateInfo) {
-            long templateId = backupTemplateInfo.getId();
-            TaskTemplateVO oldTemplate = JsonUtils.fromJson(
-                JsonMapper.getAllOutPutMapper().toJson(jobBackupInfo.getTemplateDetailInfoMap().get(templateId)),
-                new TypeReference<TaskTemplateVO>() {
-                }
+            boolean success = processBackupTemplateInfo(
+                backupTemplateInfo,
+                importJob,
+                jobBackupInfo
             );
-            TaskTemplateVO newTemplate = processTemplate(importJob, jobBackupInfo, templateId);
-            if (newTemplate == null) {
-                failedTemplateNum += 1;
-                continue;
-            }
-            TemplateIdMapDTO templateIdMap = processTemplateIdMap(oldTemplate, newTemplate);
-            if (CollectionUtils.isEmpty(backupTemplateInfo.getPlanId())) {
-                continue;
-            }
-            int failedPlanNum = 0;
-            for (Long planId : backupTemplateInfo.getPlanId()) {
-                try {
-                    processPlan(importJob, jobBackupInfo, templateIdMap, newTemplate.getId(), planId);
-                } catch (Exception e) {
-                    failedPlanNum += 1;
-                    FormattingTuple msg = MessageFormatter.arrayFormat(
-                        "Fail to import plan {} of template (id={},name={})",
-                        new Object[]{
-                            planId,
-                            newTemplate.getId(),
-                            newTemplate.getName()
-                        }
-                    );
-                    log.warn(msg.getMessage(), e);
-                }
-            }
-            if (failedPlanNum > 0) {
-                log.warn(
-                    "Fail to import {}/{} plan of template (id={},name={})",
-                    failedPlanNum,
-                    backupTemplateInfo.getPlanId().size(),
-                    newTemplate.getId(),
-                    newTemplate.getName()
-                );
+            if (!success) {
                 failedTemplateNum += 1;
             }
         }
@@ -336,6 +302,66 @@ public class ImportJobExecutor {
             setImportJobResult(importJob, BackupJobStatusEnum.ALL_FAILED);
             return false;
         }
+    }
+
+    /**
+     * 导入单个作业模板及对应的执行方案
+     *
+     * @param backupTemplateInfo 作业模板信息
+     * @param importJob          导入任务信息
+     * @param jobBackupInfo      整体导入数据信息
+     * @return 是否导入成功
+     */
+    private boolean processBackupTemplateInfo(BackupTemplateInfoDTO backupTemplateInfo,
+                                              ImportJobInfoDTO importJob,
+                                              JobBackupInfoDTO jobBackupInfo) {
+        long templateId = backupTemplateInfo.getId();
+        TaskTemplateVO oldTemplate = JsonUtils.fromJson(
+            JsonMapper.getAllOutPutMapper().toJson(jobBackupInfo.getTemplateDetailInfoMap().get(templateId)),
+            new TypeReference<TaskTemplateVO>() {
+            }
+        );
+        Pair<Boolean, TaskTemplateVO> pair = processTemplate(importJob, jobBackupInfo, templateId);
+        Boolean successImportedOrSkipped = pair.getLeft();
+        TaskTemplateVO newTemplate = pair.getRight();
+        if (!successImportedOrSkipped) {
+            return false;
+        }
+        if (newTemplate == null) {
+            return true;
+        }
+        TemplateIdMapDTO templateIdMap = processTemplateIdMap(oldTemplate, newTemplate);
+        if (CollectionUtils.isEmpty(backupTemplateInfo.getPlanId())) {
+            return true;
+        }
+        int failedPlanNum = 0;
+        for (Long planId : backupTemplateInfo.getPlanId()) {
+            try {
+                processPlan(importJob, jobBackupInfo, templateIdMap, newTemplate.getId(), planId);
+            } catch (Exception e) {
+                failedPlanNum += 1;
+                FormattingTuple msg = MessageFormatter.arrayFormat(
+                    "Fail to import plan {} of template (id={},name={})",
+                    new Object[]{
+                        planId,
+                        newTemplate.getId(),
+                        newTemplate.getName()
+                    }
+                );
+                log.warn(msg.getMessage(), e);
+            }
+        }
+        if (failedPlanNum > 0) {
+            log.warn(
+                "Fail to import {}/{} plan of template (id={},name={})",
+                failedPlanNum,
+                backupTemplateInfo.getPlanId().size(),
+                newTemplate.getId(),
+                newTemplate.getName()
+            );
+            return false;
+        }
+        return true;
     }
 
     private void setImportJobResult(ImportJobInfoDTO importJob, BackupJobStatusEnum status) {
@@ -507,8 +533,16 @@ public class ImportJobExecutor {
         }
     }
 
-    private TaskTemplateVO processTemplate(ImportJobInfoDTO importJob, JobBackupInfoDTO jobBackupInfo,
-                                           long templateId) {
+    /**
+     * 导入作业模板
+     *
+     * @param importJob     导入任务信息
+     * @param jobBackupInfo 导入作业信息
+     * @param templateId    作业模板ID
+     * @return Pair<是否成功导入或跳过, 成功导入后得到的作业模板>
+     */
+    private Pair<Boolean, TaskTemplateVO> processTemplate(ImportJobInfoDTO importJob, JobBackupInfoDTO jobBackupInfo,
+                                                          long templateId) {
         TaskTemplateVO templateInfo = jobBackupInfo.getTemplateDetailInfoMap().get(templateId);
 
         logService.addImportLog(importJob.getAppId(), importJob.getId(), LOG_HR);
@@ -517,8 +551,12 @@ public class ImportJobExecutor {
                 importJob.getIdNameInfo().getTemplateNameMap().get(templateId)));
 
         if (templateInfo.getName().length() > 60) {
-            logService.addImportLog(importJob.getAppId(), importJob.getId(), "作业模板名称超长，跳过当前模版和该模版下的所有执行方案");
-            return null;
+            logService.addImportLog(
+                importJob.getAppId(),
+                importJob.getId(),
+                "作业模板名称超长，跳过当前模版和该模版下的所有执行方案"
+            );
+            return Pair.of(false, null);
         }
 
         ServiceIdNameCheckDTO idNameCheckResult =
@@ -537,7 +575,7 @@ public class ImportJobExecutor {
                     logService.addImportLog(importJob.getAppId(), importJob.getId(),
                         String.format(i18nService.getI18n(LogMessage.ID_DUPLICATE_SKIP_SUFFIX),
                             i18nService.getI18n(LogMessage.TEMPLATE)));
-                    return null;
+                    return Pair.of(true, null);
                 } else if (DuplicateIdHandlerEnum.ON_DUPLICATE_INCREMENT == importJob.getDuplicateIdHandler()) {
                     logService.addImportLog(importJob.getAppId(), importJob.getId(),
                         i18nService.getI18n(LogMessage.ID_DUPLICATE_INCREMENT_SUFFIX));
@@ -555,8 +593,12 @@ public class ImportJobExecutor {
                 String.format(i18nService.getI18n(LogMessage.TEMPLATE_NAME_CHANGE), templateInfo.getName()));
 
             if (templateInfo.getName().length() > 60) {
-                logService.addImportLog(importJob.getAppId(), importJob.getId(), "作业模板名称超长，跳过当前模版和该模版下的所有执行方案");
-                return null;
+                logService.addImportLog(
+                    importJob.getAppId(),
+                    importJob.getId(),
+                    "作业模板名称超长，跳过当前模版和该模版下的所有执行方案"
+                );
+                return Pair.of(false, null);
             }
         }
 
@@ -581,9 +623,13 @@ public class ImportJobExecutor {
             logService.addImportLog(importJob.getAppId(), importJob.getId(),
                 i18nService.getI18n(LogMessage.IMPORT_FAILED),
                 LogEntityTypeEnum.ERROR);
-            return null;
+            return Pair.of(false, null);
         }
-        return taskTemplateService.getTemplateById(importJob.getCreator(), importJob.getAppId(), resultTemplateId);
+        return Pair.of(true, taskTemplateService.getTemplateById(
+            importJob.getCreator(),
+            importJob.getAppId(),
+            resultTemplateId)
+        );
     }
 
     private void fixAccount(Map<Long, Long> accountIdMap, List<TaskStepVO> stepList) {
