@@ -131,6 +131,9 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
             executeCount, null, HostDTO.fromHostIdOrCloudIp(hostId, cloudAreaId, ip));
         if (logContent != null && StringUtils.isNotBlank(logContent.getContent())) {
             ipLog.setScriptLogContent(logContent.getContent());
+            if (ipLog.getHostId() == null && logContent.getHostId() != null) {
+                ipLog.setHostId(logContent.getHostId());
+            }
         }
     }
 
@@ -145,6 +148,25 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
         List<EsbFileLogV3DTO> fileLogs = new ArrayList<>();
         fileLogs.addAll(buildDownloadFileLogs(downloadIpLog));
         fileLogs.addAll(buildUploadFileLogs(uploadTaskLogs));
+        // 根据 bk_cloud_id + ip 条件查询，需要补全bk_host_id
+        if (ipLog.getHostId() == null && StringUtils.isNotEmpty(ipLog.getIp()) && ipLog.getCloudAreaId() != null) {
+            for (EsbFileLogV3DTO fileLog : fileLogs) {
+                if (fileLog.getSrcIp() != null) {
+                    if (ipLog.getIp().equals(fileLog.getSrcIp().getIp()) &&
+                        ipLog.getCloudAreaId().equals(fileLog.getSrcIp().getBkCloudId())) {
+                        ipLog.setHostId(fileLog.getSrcIp().getHostId());
+                        break;
+                    }
+                }
+                if (fileLog.getDestIp() != null) {
+                    if (ipLog.getIp().equals(fileLog.getDestIp().getIp()) &&
+                        ipLog.getCloudAreaId().equals(fileLog.getDestIp().getBkCloudId())) {
+                        ipLog.setHostId(fileLog.getDestIp().getHostId());
+                        break;
+                    }
+                }
+            }
+        }
         ipLog.setFileLogs(fileLogs);
     }
 
@@ -170,7 +192,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
         fileLog.setMode(fileTaskLog.getMode());
 
         // source
-        EsbIpDTO srcHost = new EsbIpDTO ();
+        EsbIpDTO srcHost = new EsbIpDTO();
         srcHost.setHostId(fileTaskLog.getSrcHostId());
         EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getSrcIp());
         if (srcIp != null) {
@@ -182,7 +204,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
 
         // dest
         if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskLog.getMode())) {
-            EsbIpDTO destHost = new EsbIpDTO ();
+            EsbIpDTO destHost = new EsbIpDTO();
             destHost.setHostId(fileTaskLog.getDestHostId());
             if (StringUtils.isNotBlank(fileTaskLog.getDestIp())) {
                 EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestIp());
