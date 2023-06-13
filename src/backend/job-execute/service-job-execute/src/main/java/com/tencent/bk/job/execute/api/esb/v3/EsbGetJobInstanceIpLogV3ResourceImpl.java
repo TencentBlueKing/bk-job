@@ -209,8 +209,8 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
             if (StringUtils.isNotBlank(fileTaskLog.getDestIp())) {
                 EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestIp());
                 if (destIp != null) {
-                    srcHost.setBkCloudId(destIp.getBkCloudId());
-                    srcHost.setIp(destIp.getIp());
+                    destHost.setBkCloudId(destIp.getBkCloudId());
+                    destHost.setIp(destIp.getIp());
                 }
             }
             fileLog.setDestIp(destHost);
