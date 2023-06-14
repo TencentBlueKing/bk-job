@@ -388,7 +388,7 @@
             this.renderList = Object.freeze([
               ...this.renderList,
             ]);
-            this.messageSuccess('收藏成功');
+            this.messageSuccess(I18n.t('收藏成功'));
           });
         } else {
           AppManageService.cancelFavorApp({
@@ -399,7 +399,7 @@
             this.renderList = Object.freeze([
               ...this.renderList,
             ]);
-            this.messageSuccess('取消收藏成功');
+            this.messageSuccess(I18n.t('取消收藏成功'));
           });
         }
       },

@@ -54,7 +54,7 @@ export default {
     保留天数必须大于0: 'Must be greater than 0',
     平台信息: 'Platform information',
     '网页 Title 设置:': 'Web title setting:',
-    平台名称: 'Platform ame',
+    平台名称: 'Platform name',
     分隔符: 'Delimiter',
     作业平台: 'BlueKing Job',
     平台名称必填: 'Platform name is required',
