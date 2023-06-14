@@ -36,7 +36,7 @@ export default {
     'Windows 账号数': 'Windows account',
     'DB 账号数': 'DB account',
     活跃业务量: 'Active',
-    '3 天内至少执行过一次任务的业务（定时任务除外）': 'At least one execution record in last 3 days(except Cron)',
+    '3 天内至少执行过一次任务的业务（定时任务除外）': 'At least one execution record in last 3 days(except cron)',
     查看趋势图: 'Trend',
     查看列表: 'List',
     活跃业务量趋势图: 'Trend Of Active Business',
