@@ -38,7 +38,7 @@ public class ScriptGseTaskResult extends GseTaskResult<ScriptTaskResult> {
     }
 
     @Override
-    public boolean isNullResult() {
+    public boolean isEmptyResult() {
         return getResult() == null || CollectionUtils.isEmpty(getResult().getResult());
     }
 }
