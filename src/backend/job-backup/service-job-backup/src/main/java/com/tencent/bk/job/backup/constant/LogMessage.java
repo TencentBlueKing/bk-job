@@ -55,11 +55,15 @@ public class LogMessage {
     public static final String CORRECT_FILE_TYPE = "job.backup.correctFileType";
     public static final String WRONG_FILE_TYPE = "job.backup.wrongFileType";
     public static final String EXTRACT_FILE_DATA = "job.backup.extractFileData";
+    // 导入文件已过期！
+    public static final String IMPORT_FILE_EXPIRED = "job.backup.importFileExpired";
     public static final String EXTRACT_SUCCESS = "job.backup.extractSuccess";
     public static final String FILE_ENCRYPTED = "job.backup.fileEncrypted";
     public static final String CORRECT_PASSWORD = "job.backup.correctPassword";
     public static final String WRONG_PASSWORD = "job.backup.wrongPassword";
     public static final String EXTRACT_FAILED = "job.backup.extractFailed";
+    // 未找到待导入文件
+    public static final String CANNOT_FIND_IMPORT_FILE = "job.backup.cannotFindImportFile";
     public static final String START_IMPORT = "job.backup.startImport";
     public static final String IMPORT_SETTING = "job.backup.importSetting";
     public static final String ID_AUTO_INCREMENT = "job.backup.idAutoIncrement";
@@ -75,6 +79,8 @@ public class LogMessage {
     public static final String START_IMPORT_TEMPLATE = "job.backup.startImportTemplate";
     public static final String TEMPLATE_NAME_CHANGE = "job.backup.templateNameChange";
     public static final String IMPORT_TEMPLATE_SUCCESS = "job.backup.importTemplateSuccess";
+    // 作业模板名称超长，跳过当前模版和该模版下的所有执行方案
+    public static final String TEMPLATE_NAME_TOO_LONG_SKIP = "job.backup.templateNameTooLongSkip";
 
     public static final String START_IMPORT_PLAN = "job.backup.startImportPlan";
     public static final String IMPORT_PLAN_SUCCESS = "job.backup.importPlanSuccess";

@@ -134,67 +134,71 @@ public class ImportJobServiceImpl implements ImportJobService {
     @Override
     public Boolean parseFile(String username, Long appId, String jobId) {
         ImportJobInfoDTO importJob = importJobDAO.getImportJobById(appId, jobId);
-        if (importJob != null) {
-            logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.PROCESS_UPLOAD_FILE));
-            File uploadFile = storageService.getFile(importJob.getFileName());
-            if (uploadFile != null && uploadFile.exists()) {
-                logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.DETECT_FILE_TYPE));
-                if (!uploadFile.getName().endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)
-                    && !uploadFile.getName().endsWith(
-                    Constant.JOB_EXPORT_FILE_SUFFIX.concat(Constant.JOB_IMPORT_DECRYPT_SUFFIX))) {
-                    markJobAllFailed(importJob, i18nService.getI18n(LogMessage.WRONG_FILE_TYPE));
-                    return false;
+        if (importJob == null) {
+            return false;
+        }
+        logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.PROCESS_UPLOAD_FILE));
+        File uploadFile = storageService.getFile(importJob.getFileName());
+        if (uploadFile == null || !uploadFile.exists()) {
+            return false;
+        }
+        logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.DETECT_FILE_TYPE));
+        if (!uploadFile.getName().endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)
+            && !uploadFile.getName().endsWith(
+            Constant.JOB_EXPORT_FILE_SUFFIX.concat(Constant.JOB_IMPORT_DECRYPT_SUFFIX))) {
+            markJobAllFailed(importJob, i18nService.getI18n(LogMessage.WRONG_FILE_TYPE));
+            return false;
+        }
+        logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.CORRECT_FILE_TYPE));
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(uploadFile);
+            List<File> fileList = ZipUtil.unzip(uploadFile);
+            logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.EXTRACT_FILE_DATA));
+            boolean success = false;
+            for (File file : fileList) {
+                if (!file.getName().endsWith(".json")) {
+                    continue;
                 }
-                logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.CORRECT_FILE_TYPE));
-                ZipFile zipFile = null;
+                JobBackupInfoDTO jobBackupInfo = ImportJobExecutor.readJobBackupInfoFromFile(file);
+                if (jobBackupInfo == null) {
+                    continue;
+                }
+                if (jobBackupInfo.getExpireTime() != 0
+                    && jobBackupInfo.getExpireTime() <= System.currentTimeMillis()) {
+                    markJobAllFailed(importJob, i18nService.getI18n(LogMessage.IMPORT_FILE_EXPIRED));
+                }
+                importJob.setExportId(jobBackupInfo.getId());
+                importJob.setStatus(BackupJobStatusEnum.PARSE_SUCCESS);
+                importJob.setTemplateInfo(jobBackupInfo.getTemplateInfo());
+                importJob.setIdNameInfo(extractIdNameInfo(jobBackupInfo));
+                importJobDAO.updateImportJobById(importJob);
+                logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.EXTRACT_SUCCESS));
+                success = true;
+                break;
+            }
+            if (!success) {
+                log.warn("Parse import file fail");
+                markJobAllFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
+            } else {
+                return true;
+            }
+        } catch (IOException | RuntimeException e) {
+            log.error("Error while unzip upload file", e);
+            if (detectAndRemoveMagic(uploadFile)) {
+                importJob.setStatus(BackupJobStatusEnum.NEED_PASSWORD);
+                importJobDAO.updateImportJobById(importJob);
+                logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.FILE_ENCRYPTED),
+                    LogEntityTypeEnum.REQUEST_PASSWORD);
+            } else {
+                markJobAllFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
+            }
+        } finally {
+            if (zipFile != null) {
                 try {
-                    zipFile = new ZipFile(uploadFile);
-                    List<File> fileList = ZipUtil.unzip(uploadFile);
-                    logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.EXTRACT_FILE_DATA));
-                    boolean success = false;
-                    for (File file : fileList) {
-                        if (file.getName().endsWith(".json")) {
-                            JobBackupInfoDTO jobBackupInfo = ImportJobExecutor.readJobBackupInfoFromFile(file);
-                            if (jobBackupInfo != null) {
-                                if (jobBackupInfo.getExpireTime() != 0
-                                    && jobBackupInfo.getExpireTime() <= System.currentTimeMillis()) {
-                                    markJobAllFailed(importJob, "作业已过期！");
-                                }
-                                importJob.setExportId(jobBackupInfo.getId());
-                                importJob.setStatus(BackupJobStatusEnum.PARSE_SUCCESS);
-                                importJob.setTemplateInfo(jobBackupInfo.getTemplateInfo());
-                                importJob.setIdNameInfo(extractIdNameInfo(jobBackupInfo));
-                                importJobDAO.updateImportJobById(importJob);
-                                logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.EXTRACT_SUCCESS));
-                                success = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!success) {
-                        log.warn("Parse import file fail");
-                        markJobAllFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
-                    } else {
-                        return true;
-                    }
-                } catch (IOException | RuntimeException e) {
-                    log.error("Error while unzip upload file", e);
-                    if (detectAndRemoveMagic(uploadFile)) {
-                        importJob.setStatus(BackupJobStatusEnum.NEED_PASSWORD);
-                        importJobDAO.updateImportJobById(importJob);
-                        logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.FILE_ENCRYPTED),
-                            LogEntityTypeEnum.REQUEST_PASSWORD);
-                    } else {
-                        markJobAllFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
-                    }
-                } finally {
-                    if (zipFile != null) {
-                        try {
-                            zipFile.close();
-                        } catch (IOException e) {
-                            log.warn("Error when close", e);
-                        }
-                    }
+                    zipFile.close();
+                } catch (IOException e) {
+                    log.warn("Error when close", e);
                 }
             }
         }

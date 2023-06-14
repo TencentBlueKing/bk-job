@@ -240,7 +240,7 @@ public class ImportJobExecutor {
                     importJobService.markJobAllFailed(importJob, i18nService.getI18n(LogMessage.EXTRACT_FAILED));
                 }
             } else {
-                importJobService.markJobAllFailed(importJob, "未找到待导入文件");
+                importJobService.markJobAllFailed(importJob, i18nService.getI18n(LogMessage.CANNOT_FIND_IMPORT_FILE));
             }
         }
     }
@@ -554,7 +554,7 @@ public class ImportJobExecutor {
             logService.addImportLog(
                 importJob.getAppId(),
                 importJob.getId(),
-                "作业模板名称超长，跳过当前模版和该模版下的所有执行方案"
+                i18nService.getI18n(LogMessage.TEMPLATE_NAME_TOO_LONG_SKIP)
             );
             return Pair.of(false, null);
         }
@@ -596,7 +596,7 @@ public class ImportJobExecutor {
                 logService.addImportLog(
                     importJob.getAppId(),
                     importJob.getId(),
-                    "作业模板名称超长，跳过当前模版和该模版下的所有执行方案"
+                    i18nService.getI18n(LogMessage.TEMPLATE_NAME_TOO_LONG_SKIP)
                 );
                 return Pair.of(false, null);
             }
