@@ -276,7 +276,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<ScriptTaskResult> taskDetail) {
         if (taskDetail == null || taskDetail.isEmptyResult()) {
-            log.info("[{}] Analyse gse task result, result is empty!", gseTask.getTaskUniqueName());
+            log.info("[{}] Analyse gse task result, result is empty!", gseTaskInfo);
             return analyseExecuteResult();
         }
         long currentTime = DateUtils.currentTimeMillis(); // 当前时间
@@ -284,8 +284,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         StopWatch watch = new StopWatch("analyse-gse-script-task");
         watch.start("analyse");
         for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
-            log.info("[{}]: Analyse agent task result, result: {}",
-                gseTask.getTaskUniqueName(), agentTaskResult);
+            log.info("[{}]: Analyse agent task result, result: {}", gseTaskInfo, agentTaskResult);
 
             /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
              *是获取上下文参数的脚本。所以m_id=0的是用户脚本的执行日志，需要分析记录；m_id=1的，则是获取上下文参数
@@ -319,7 +318,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         watch.stop();
 
         log.info("[{}] Analyse gse task result -> notFinishedTargetAgentIds={}, analyseFinishedTargetAgentIds={}",
-            this.gseTask.getTaskUniqueName(), this.notFinishedTargetAgentIds, this.analyseFinishedTargetAgentIds);
+            this.gseTaskInfo, this.notFinishedTargetAgentIds, this.analyseFinishedTargetAgentIds);
 
         GseTaskExecuteResult rst = analyseExecuteResult();
         if (!rst.getResultCode().equals(GseTaskExecuteResult.RESULT_CODE_RUNNING)) {
@@ -329,8 +328,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         }
 
         if (watch.getTotalTimeMillis() > 1000L) {
-            log.info("[{}] Analyse script gse task is slow, statistics: {}", gseTask.getTaskUniqueName(),
-                watch.prettyPrint());
+            log.info("[{}] Analyse script gse task is slow, statistics: {}", gseTaskInfo, watch.prettyPrint());
         }
         return rst;
     }

@@ -38,10 +38,6 @@ public class GseTaskDTO {
      */
     private Long id;
     /**
-     * 作业实例ID
-     */
-    private Long jobInstanceId;
-    /**
      * 步骤实例ID
      */
     private Long stepInstanceId;
@@ -78,8 +74,7 @@ public class GseTaskDTO {
      */
     private String taskUniqueName;
 
-    public GseTaskDTO(Long jobInstanceId, Long stepInstanceId, Integer executeCount, int batch) {
-        this.jobInstanceId = jobInstanceId;
+    public GseTaskDTO(Long stepInstanceId, Integer executeCount, int batch) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
@@ -89,8 +84,7 @@ public class GseTaskDTO {
         if (taskUniqueName != null) {
             return taskUniqueName;
         } else {
-            String taskName = "GseTask:" + id + ":" + jobInstanceId + ":" + stepInstanceId
-                + ":" + executeCount;
+            String taskName = "GseTask:" + id  + ":" + stepInstanceId + ":" + executeCount;
             if (batch > 0) {
                 taskName = taskName + ":" + batch;
             }
