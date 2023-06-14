@@ -225,5 +225,7 @@ export default {
     当前正在显示的内容: 'Currently displayed',
     '复制 IP': 'Copy IP',
     '复制 IPv6': 'Copy IPv6',
+    '没有可复制的 IPv4': 'IPv4 address not found',
+    '没有可复制的 IPv6': 'IPv6 address not found',
   },
 };
