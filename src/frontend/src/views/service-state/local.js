@@ -27,14 +27,14 @@ export default {
   namespace: 'service',
   message: {
     服务名: {
-      colHead: 'SERVICE NAME',
+      colHead: 'Service name',
     },
     版本号: {
-      colHead: 'VERSION',
+      colHead: 'Version',
       label: 'Version',
     },
     实例状态: {
-      colHead: 'STATES',
+      colHead: 'States',
     },
 
     序号: {
@@ -47,7 +47,7 @@ export default {
       colHead: 'State',
     },
     绑定IP: {
-      colHead: 'Bind Address',
+      colHead: 'Bind address',
     },
     端口: {
       colHead: 'Port',
