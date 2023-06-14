@@ -80,9 +80,9 @@ import static com.tencent.bk.job.common.util.function.LambdasUtil.not;
 @Slf4j
 public abstract class AbstractResultHandleTask<T> implements ContinuousScheduledTask {
     /**
-     * GSE任务执行结果为空,Job最大容忍时间,5min.用于异常情况下的任务自动终止，防止长时间占用系统资源
+     * GSE任务执行结果为空,Job最大容忍时间1min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
-    private static final int GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS = 300_000;
+    private static final int GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS = 60_000;
     /**
      * GSE任务超时未结束,Job最大容忍时间。5min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
@@ -210,7 +210,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * 是否包含非法主机
      */
     protected boolean hasInvalidHost;
-
 
 
     protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
@@ -480,9 +479,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             latestPullGseLogSuccessTimeMillis = System.currentTimeMillis();
         }
         boolean isAbnormal = false;
-        if (null == gseTaskResult || gseTaskResult.isNullResult()) {
+        if (null == gseTaskResult || gseTaskResult.isEmptyResult()) {
             long currentTimeMillis = System.currentTimeMillis();
-            // 执行结果持续为空
+            // 执行结果持续为空,并且超出 Job 最大容忍时间，需要终止调度任务
             if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS) {
                 log.warn("[{}]: Execution result log always empty!", gseTask.getTaskUniqueName());
                 this.executeResult = GseTaskExecuteResult.FAILED;

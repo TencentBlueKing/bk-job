@@ -275,7 +275,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
 
     @Override
     GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<ScriptTaskResult> taskDetail) {
-        if (taskDetail == null || taskDetail.getResult() == null) {
+        if (taskDetail == null || taskDetail.isEmptyResult()) {
             log.info("[{}] Analyse gse task result, result is empty!", gseTask.getTaskUniqueName());
             return analyseExecuteResult();
         }
