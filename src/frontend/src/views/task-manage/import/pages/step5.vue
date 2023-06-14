@@ -76,7 +76,7 @@
     <action-bar>
       <bk-button
         class="w120"
-        :disabled="!isImportSuccess"
+        :disabled="isImportFailed"
         theme="primary"
         @click="handleFinish">
         {{ $t('template.完成') }}

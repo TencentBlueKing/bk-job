@@ -287,7 +287,7 @@ export default {
   主机列表: 'Host',
   密文: 'Ciphertext',
   '标签名支持：汉字 A-Z a-z 0-9 _ - ! # @ $ & % ^ ~ = + .': 'only letters, numbers, and _ - ! # @ $ & % ^ ~ = + . are allowed',
-  版本日志: 'ChangeLogs',
+  版本日志: 'Release note',
   单次执行: 'Run once',
   周期执行: 'Round-robin',
   '静态 - IP 选择': 'Static - IP selector',
