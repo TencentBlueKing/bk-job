@@ -35,10 +35,10 @@ export default {
       colHead: 'Description',
     },
     关联作业量: {
-      colHead: 'Related job(S)',
+      colHead: 'Related job(s)',
     },
     关联脚本量: {
-      colHead: 'Related script(S)',
+      colHead: 'Related script(s)',
     },
     创建人: 'Created by',
     创建时间: 'Created at',
