@@ -225,7 +225,7 @@ export default {
     '场景标签：': 'Tags: ',
     '模板描述：': 'Desc: ',
     '全局变量：': 'Global variable: ',
-    '作业步骤：': 'Job Step: ',
+    '作业步骤：': 'Job step: ',
     选择方案: 'Plans',
     模板名称必填: 'Template name is required',
     '模板名称已存在，请重新输入': 'Template name is already exist, please try another one...',
