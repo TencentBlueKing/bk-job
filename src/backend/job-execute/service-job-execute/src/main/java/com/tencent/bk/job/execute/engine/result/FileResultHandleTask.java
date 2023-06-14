@@ -289,7 +289,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 continue;
             }
 
-            log.info("[{}] Analyse file result: {}", gseTask.getTaskUniqueName(), JsonUtils.toJson(result));
+            log.info("[{}] Analyse file result: {}", gseTaskInfo, JsonUtils.toJson(result));
             JobAtomicFileTaskResult jobAtomicFileTaskResult = buildJobAtomicFileTaskResult(result);
 
 
@@ -315,7 +315,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 "notFinishedTargetAgentIds={}, notFinishedSourceAgentIds={}, " +
                 "analyseFinishedTargetAgentIds={}, analyseFinishedSourceAgentIds={}, finishedDownloadFileMap={}, " +
                 "successDownloadFileMap={}, finishedUploadFileMap={}, successUploadFileMap={}",
-            this.gseTask.getTaskUniqueName(),
+            this.gseTaskInfo,
             this.notFinishedTargetAgentIds,
             this.notFinishedSourceAgentIds,
             this.analyseFinishedTargetAgentIds,
@@ -762,7 +762,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         AgentTaskDTO agentTask = getAgentTask(isDownloadResult, agentId);
         if (finishedNum >= fileNum) {
             log.info("[{}] Analyse Agent task finished! agentId: {}, finishedTaskNum: {}, expectedTaskNum: {}",
-                gseTask.getTaskUniqueName(), agentId, finishedNum, fileNum);
+                gseTaskInfo, agentId, finishedNum, fileNum);
             // 更新AgentTask结果
             if (isDownloadResult) {
                 dealTargetAgentFinish(agentId, startTime, endTime, agentTask);
@@ -785,8 +785,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      */
     private void dealUploadAgentFinished(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
         log.info("[{}]: Deal source agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
-            gseTask.getTaskUniqueName(), agentId, startTime, endTime,
-            JsonUtils.toJsonWithoutSkippedFields(agentTask));
+            gseTaskInfo, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
         this.notFinishedSourceAgentIds.remove(agentId);
         this.analyseFinishedSourceAgentIds.add(agentId);
