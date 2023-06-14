@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.encrypt;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -49,7 +50,7 @@ public class EncryptConfig {
 
     private String defaultSymmetricAlgorithm = CryptorNames.NONE;
 
-    private String defaultAsymmetricAlgorithm = CryptorNames.RSA;
+    private String defaultAsymmetricAlgorithm = JobCryptorNames.RSA;
 
     /**
      * 各个场景下使用的加密算法，不配置则使用默认算法

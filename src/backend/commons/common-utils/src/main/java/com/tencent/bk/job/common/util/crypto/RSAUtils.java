@@ -30,9 +30,22 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.crypto.Cipher;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -140,15 +153,39 @@ public class RSAUtils {
     }
 
     public static String encrypt(String rawText, PublicKey publicKey) throws IOException, GeneralSecurityException {
-        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        return Base64.encodeBase64String(cipher.doFinal(rawText.getBytes(CHARSET_NAME)));
+        return encrypt(rawText.getBytes(CHARSET_NAME), publicKey);
     }
 
-    public static String decrypt(String cipherText,
+    public static String encrypt(byte[] messageBytes,
+                                 PublicKey publicKey) throws GeneralSecurityException {
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        return Base64.encodeBase64String(cipher.doFinal(messageBytes));
+    }
+
+    public static byte[] encryptToBytes(byte[] messageBytes,
+                                        PublicKey publicKey) throws GeneralSecurityException {
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        return cipher.doFinal(messageBytes);
+    }
+
+    public static String decrypt(String cipherBase64Text,
+                                 PrivateKey privateKey) throws IOException, GeneralSecurityException {
+        return decrypt(Base64.decodeBase64(cipherBase64Text), privateKey);
+    }
+
+    public static String decrypt(byte[] cipherBytes,
                                  PrivateKey privateKey) throws IOException, GeneralSecurityException {
         Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        return new String(cipher.doFinal(Base64.decodeBase64(cipherText)), CHARSET_NAME);
+        return new String(cipher.doFinal(cipherBytes), CHARSET_NAME);
+    }
+
+    public static byte[] decryptToBytes(byte[] cipherBytes,
+                                        PrivateKey privateKey) throws IOException, GeneralSecurityException {
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        return cipher.doFinal(cipherBytes);
     }
 }

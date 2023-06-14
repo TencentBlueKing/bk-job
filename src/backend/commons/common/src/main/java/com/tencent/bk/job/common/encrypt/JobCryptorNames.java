@@ -24,32 +24,9 @@
 
 package com.tencent.bk.job.common.encrypt;
 
-
-import com.tencent.bk.sdk.gm.annotation.Cryptor;
-import com.tencent.bk.sdk.gm.cryptor.SymmetricCryptor;
-
-/**
- * 不做任何加密操作，直接返回明文的加密实现
- */
-@Cryptor(name = CryptorNames.NONE)
-public class NoneCryptor implements SymmetricCryptor {
-    @Override
-    public byte[] encrypt(byte[] key, byte[] message) {
-        return message;
-    }
-
-    @Override
-    public byte[] decrypt(byte[] key, byte[] encryptedMessage) {
-        return encryptedMessage;
-    }
-
-    @Override
-    public String encrypt(String key, String message) {
-        return message;
-    }
-
-    @Override
-    public String decrypt(String key, String base64EncodedEncryptedMessage) {
-        return base64EncodedEncryptedMessage;
-    }
+public class JobCryptorNames {
+    // 对称加密
+    public static final String AES = "AES";
+    // 非对称加密
+    public static final String RSA = "RSA";
 }

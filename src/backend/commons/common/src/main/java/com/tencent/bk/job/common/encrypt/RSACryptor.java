@@ -25,26 +25,29 @@
 package com.tencent.bk.job.common.encrypt;
 
 import com.tencent.bk.job.common.exception.CryptoException;
-import com.tencent.bk.job.common.util.crypto.AESUtils;
+import com.tencent.bk.job.common.util.crypto.RSAUtils;
 import com.tencent.bk.sdk.crypto.annotation.Cryptor;
 import com.tencent.bk.sdk.crypto.annotation.CryptorTypeEnum;
-import com.tencent.bk.sdk.crypto.cryptor.AbstractSymmetricCryptor;
+import com.tencent.bk.sdk.crypto.cryptor.AbstractASymmetricCryptor;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
 /**
- * 使用AES/CBC/PKCS5Padding的加密实现
+ * 使用RSA的加密实现
  */
-@Cryptor(name = JobCryptorNames.AES, type = CryptorTypeEnum.SYMMETRIC)
-public class AESCryptor extends AbstractSymmetricCryptor {
+@Cryptor(name = JobCryptorNames.RSA, type = CryptorTypeEnum.ASYMMETRIC)
+public class RSACryptor extends AbstractASymmetricCryptor {
     @Override
-    public byte[] encrypt(byte[] key, byte[] message) {
+    public byte[] encrypt(PublicKey publicKey, byte[] message) {
         try {
-            return AESUtils.encrypt(message, key);
+            return RSAUtils.encryptToBytes(message, publicKey);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                "Fail to encrypt using AES, key.len={}, message.len={}",
-                key.length,
+                "Fail to encrypt using RSA, publicKey.len={}, message.len={}",
+                publicKey.getEncoded().length,
                 message.length
             );
             throw new CryptoException(msg.getMessage(), e);
@@ -52,13 +55,13 @@ public class AESCryptor extends AbstractSymmetricCryptor {
     }
 
     @Override
-    public byte[] decrypt(byte[] key, byte[] encryptedMessage) {
+    public byte[] decrypt(PrivateKey privateKey, byte[] encryptedMessage) {
         try {
-            return AESUtils.decrypt(encryptedMessage, key);
+            return RSAUtils.decryptToBytes(encryptedMessage, privateKey);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                "Fail to decrypt using AES, key.len={}, encryptedMessage.len={}",
-                key.length,
+                "Fail to decrypt using RSA, privateKey.len={}, encryptedMessage.len={}",
+                privateKey.getEncoded().length,
                 encryptedMessage.length
             );
             throw new CryptoException(msg.getMessage(), e);

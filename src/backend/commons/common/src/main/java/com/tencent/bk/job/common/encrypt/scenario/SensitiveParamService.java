@@ -25,8 +25,8 @@
 package com.tencent.bk.job.common.encrypt.scenario;
 
 import com.tencent.bk.job.common.encrypt.CryptoScenarioEnum;
-import com.tencent.bk.job.common.encrypt.CryptorNames;
 import com.tencent.bk.job.common.encrypt.SymmetricCryptoService;
+import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

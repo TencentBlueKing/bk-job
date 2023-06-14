@@ -22,15 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.exception;
 
-public class CryptorNames {
-    // 不加密
-    public static final String NONE = "None";
-    // 对称加密
-    public static final String AES = "AES";
-    public static final String SM4 = "SM4";
-    // 非对称加密
-    public static final String RSA = "RSA";
-    public static final String SM2 = "SM2";
+import lombok.Getter;
+import lombok.ToString;
+
+/**
+ * 加解密异常
+ */
+@Getter
+@ToString
+public class CryptoException extends RuntimeException {
+
+    public CryptoException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

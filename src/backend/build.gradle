@@ -130,7 +130,7 @@ ext {
     set('jcommanderVersion', "1.71")
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
-    set('gmJavaSDKVersion', "0.0.4")
+    set('cryptoJavaSDKVersion', "0.0.6")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersion:" + bkjobVersion
@@ -321,7 +321,7 @@ subprojects {
                 entry "hibernate-validator"
             }
             dependency "com.beust:jcommander:$jcommanderVersion"
-            dependency "com.tencent.bk.sdk:gm-java-sdk:$gmJavaSDKVersion"
+            dependency "com.tencent.bk.sdk:crypto-java-sdk:$cryptoJavaSDKVersion"
         }
     }
     dependencies {
