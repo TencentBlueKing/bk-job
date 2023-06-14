@@ -435,6 +435,8 @@ public class ErrorCode {
 
     // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
+    // 用户({0})账号已被冻结，请处理后再重试
+    public static final int IAM_USER_ACCOUNT_FROZEN = 1215002;
 
     // 第三方API请求错误
     public static final int API_ERROR = 1216001;
