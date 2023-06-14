@@ -4,13 +4,13 @@
       class="render-host-list"
       @click="handleShowIp">
       <span class="number strong">{{ data.length }}</span>
-      台主机
+      {{ $t('whiteIP.台主机') }}
     </div>
     <bk-dialog
       v-model="showHostList"
       :draggable="false"
       header-position="left"
-      title="IP预览"
+      :title="$t('whiteIP.IP 预览')"
       :width="940">
       <ip-selector
         v-if="showHostList"
@@ -20,7 +20,7 @@
         :value="{hostList: data}" />
       <template #footer>
         <bk-button @click="handleHideHostList">
-          关闭
+          {{ $t('whiteIP.关闭') }}
         </bk-button>
       </template>
     </bk-dialog>
