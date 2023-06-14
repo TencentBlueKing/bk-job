@@ -55,7 +55,7 @@ export default {
     删除成功: 'Rule has been deleted.',
     '确定删除该规则？': 'Are you sure ?',
     脚本编辑器中匹配该规则将不会再收到提醒: 'The editor will no longer be reminded if the rule has been deleted.',
-    新增检测规则: 'New Rule',
+    新增检测规则: 'New rule',
     扫描: 'Scan',
     拦截: 'Block',
     保存: 'Save',

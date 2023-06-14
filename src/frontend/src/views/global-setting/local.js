@@ -124,7 +124,7 @@ export default {
     '单次执行 or 周期执行': 'Run once or Round-robin',
     定时任务的执行时间: 'Launch time of the cron',
     定时任务提前通知时间: 'Time of notify before launch',
-    请输入: 'Please Input',
+    请输入: 'Please input',
     文件上传设置: 'Local file update',
     本地文件上传大小限制: 'File size limit',
     本地文件上传后缀限制: 'File extension limit',

@@ -60,6 +60,6 @@ export default {
     批量流转关联项: 'Convert',
     批量流转关联项成功: 'Convert success',
     范围不能为空: 'Target is required',
-    提交: 'Commit',
+    提交: 'Submit',
   },
 };
