@@ -140,8 +140,8 @@ export default {
     步骤名称: 'Step name',
     定位到当前步骤: 'Locate to current step',
     开始时间: {
-      label: 'Started',
-      colHead: 'Started',
+      label: 'Started at',
+      colHead: 'Started at',
     },
     任务名称: {
       label: 'Name',
