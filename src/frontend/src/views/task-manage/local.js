@@ -102,7 +102,7 @@ export default {
     '上传限速：': 'Upload speed limit: ',
     '下载限速：': 'Download speed limit: ',
     '文件来源：': 'Source: ',
-    '目标路径：': 'Dst path: ',
+    '目标路径：': 'Dst. path: ',
     '重名处理：': 'Duplication: ',
     '执行帐号：': 'Account: ',
     '执行目标：': 'Host: ',
