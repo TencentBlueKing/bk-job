@@ -337,7 +337,8 @@ public class ImportJobExecutor {
         int failedPlanNum = 0;
         for (Long planId : backupTemplateInfo.getPlanId()) {
             try {
-                processPlan(importJob, jobBackupInfo, templateIdMap, newTemplate.getId(), planId);
+                boolean success = processPlan(importJob, jobBackupInfo, templateIdMap, newTemplate.getId(), planId);
+                failedPlanNum += success ? 0 : 1;
             } catch (Exception e) {
                 failedPlanNum += 1;
                 FormattingTuple msg = MessageFormatter.arrayFormat(
@@ -458,36 +459,101 @@ public class ImportJobExecutor {
         return templateIdMap;
     }
 
-    private void processPlan(ImportJobInfoDTO importJob, JobBackupInfoDTO jobBackupInfo, TemplateIdMapDTO templateIdMap,
-                             Long templateId, Long planId) {
-        TaskPlanVO planInfo = jobBackupInfo.getPlanDetailInfoMap().get(planId);
+    private void addStartImportLog(ImportJobInfoDTO importJob, Long planId) {
+        logService.addImportLog(
+            importJob.getAppId(),
+            importJob.getId(),
+            String.format(
+                i18nService.getI18n(LogMessage.START_IMPORT_PLAN),
+                importJob.getIdNameInfo().getPlanNameMap().get(planId)
+            )
+        );
+    }
 
-        logService.addImportLog(importJob.getAppId(), importJob.getId(),
-            String.format(i18nService.getI18n(LogMessage.START_IMPORT_PLAN),
-                importJob.getIdNameInfo().getPlanNameMap().get(planId)));
-        ServiceIdNameCheckDTO idNameCheckResult =
-            taskPlanService.checkIdAndName(importJob.getAppId(), templateId, planId, planInfo.getName());
+    private void addIdAutoIncrementImportLog(ImportJobInfoDTO importJob) {
+        logService.addImportLog(
+            importJob.getAppId(),
+            importJob.getId(),
+            i18nService.getI18n(LogMessage.ID_AUTO_INCREMENT_SUFFIX)
+        );
+    }
+
+    private void addIdKeepImportLog(ImportJobInfoDTO importJob) {
+        logService.addImportLog(
+            importJob.getAppId(),
+            importJob.getId(),
+            i18nService.getI18n(LogMessage.ID_KEEP_SUFFIX)
+        );
+    }
+
+    private void addIdDuplicateSkipImportLog(ImportJobInfoDTO importJob) {
+        logService.addImportLog(
+            importJob.getAppId(),
+            importJob.getId(),
+            String.format(
+                i18nService.getI18n(LogMessage.ID_DUPLICATE_SKIP_SUFFIX),
+                i18nService.getI18n(LogMessage.PLAN)
+            )
+        );
+    }
+
+    private void addIdDuplicateIncrementLog(ImportJobInfoDTO importJob) {
+        logService.addImportLog(
+            importJob.getAppId(),
+            importJob.getId(),
+            i18nService.getI18n(LogMessage.ID_DUPLICATE_INCREMENT_SUFFIX)
+        );
+    }
+
+    /**
+     * @param importJob  导入任务信息
+     * @param templateId 作业模板ID
+     * @param planId     执行方案ID
+     * @param planInfo   执行方案内容
+     * @return 是否需要跳过该执行方案
+     */
+    private boolean processIdAndName(ImportJobInfoDTO importJob,
+                                     Long templateId,
+                                     Long planId,
+                                     TaskPlanVO planInfo
+    ) {
+        ServiceIdNameCheckDTO idNameCheckResult = taskPlanService.checkIdAndName(
+            importJob.getAppId(),
+            templateId,
+            planId,
+            planInfo.getName()
+        );
 
         if (DuplicateIdHandlerEnum.AUTO_INCREMENT.equals(importJob.getDuplicateIdHandler())) {
-            logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                i18nService.getI18n(LogMessage.ID_AUTO_INCREMENT_SUFFIX));
+            addIdAutoIncrementImportLog(importJob);
             planInfo.setId(0L);
         } else {
             if (idNameCheckResult != null && idNameCheckResult.getIdCheckResult() == 1) {
-                logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                    i18nService.getI18n(LogMessage.ID_KEEP_SUFFIX));
+                addIdKeepImportLog(importJob);
             } else {
                 if (DuplicateIdHandlerEnum.ON_DUPLICATE_SKIP == importJob.getDuplicateIdHandler()) {
-                    logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                        String.format(i18nService.getI18n(LogMessage.ID_DUPLICATE_SKIP_SUFFIX),
-                            i18nService.getI18n(LogMessage.PLAN)));
-                    return;
+                    addIdDuplicateSkipImportLog(importJob);
+                    return true;
                 } else if (DuplicateIdHandlerEnum.ON_DUPLICATE_INCREMENT == importJob.getDuplicateIdHandler()) {
-                    logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                        i18nService.getI18n(LogMessage.ID_DUPLICATE_INCREMENT_SUFFIX));
+                    addIdDuplicateIncrementLog(importJob);
                     planInfo.setId(0L);
                 }
             }
+        }
+        return false;
+    }
+
+    private boolean processPlan(ImportJobInfoDTO importJob,
+                                JobBackupInfoDTO jobBackupInfo,
+                                TemplateIdMapDTO templateIdMap,
+                                Long templateId,
+                                Long planId) {
+        TaskPlanVO planInfo = jobBackupInfo.getPlanDetailInfoMap().get(planId);
+
+        addStartImportLog(importJob, planId);
+        boolean needToSkip = processIdAndName(importJob, templateId, planId, planInfo);
+        if (needToSkip) {
+            return true;
         }
 
         if (planInfo.getVersion().equals(templateIdMap.getOldVersion())) {
@@ -516,21 +582,42 @@ public class ImportJobExecutor {
         }
         fixAccount(importJob.getAccountIdMap(), planInfo.getStepList());
 
-        Long resultPlanId =
-            taskPlanService.savePlan(importJob.getCreator(), importJob.getAppId(), templateId, planInfo);
+        Long resultPlanId = taskPlanService.savePlan(
+            importJob.getCreator(),
+            importJob.getAppId(),
+            templateId, planInfo
+        );
 
         if (resultPlanId != null && resultPlanId > 0) {
-            logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                i18nService.getI18n(LogMessage.IMPORT_PLAN_SUCCESS),
-                LogEntityTypeEnum.PLAN, templateId, resultPlanId);
+            addImportPlanSuccessLog(importJob, templateId, resultPlanId);
             if (MapUtils.isNotEmpty(jobBackupInfo.getPlanFileList())) {
                 processFile(importJob, jobBackupInfo.getPlanFileList().get(planId));
             }
+            return true;
         } else {
-            logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                i18nService.getI18n(LogMessage.IMPORT_FAILED),
-                LogEntityTypeEnum.ERROR);
+            addImportFailedLog(importJob);
+            return false;
         }
+    }
+
+    private void addImportPlanSuccessLog(ImportJobInfoDTO importJob, Long templateId, Long resultPlanId) {
+        logService.addImportLog(
+            importJob.getAppId(),
+            importJob.getId(),
+            i18nService.getI18n(LogMessage.IMPORT_PLAN_SUCCESS),
+            LogEntityTypeEnum.PLAN,
+            templateId,
+            resultPlanId
+        );
+    }
+
+    private void addImportFailedLog(ImportJobInfoDTO importJob) {
+        logService.addImportLog(
+            importJob.getAppId(),
+            importJob.getId(),
+            i18nService.getI18n(LogMessage.IMPORT_FAILED),
+            LogEntityTypeEnum.ERROR
+        );
     }
 
     /**

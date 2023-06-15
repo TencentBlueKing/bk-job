@@ -71,17 +71,25 @@ public class LogMessage {
     public static final String ID_KEEP_ON_DUPLICATE_SKIP = "job.backup.idKeepOnDuplicateSkip";
     public static final String NAME_DUPLICATE_SUFFIX = "job.backup.nameDuplicateSuffix";
 
+    // ID不保留, 将以自增的方式导入
     public static final String ID_AUTO_INCREMENT_SUFFIX = "job.backup.idAutoIncrementSuffix";
+    // ID 已存在, 改为自增 ID 进行导入
     public static final String ID_DUPLICATE_INCREMENT_SUFFIX = "job.backup.idDuplicateIncrementSuffix";
+    // ID 已存在, 取消导入该%s
     public static final String ID_DUPLICATE_SKIP_SUFFIX = "job.backup.idDuplicateSkipSuffix";
+    // ID不存在, 将以原始ID进行导入
     public static final String ID_KEEP_SUFFIX = "job.backup.idKeepSuffix";
 
+    // 准备导入作业模板: [%d] %s
     public static final String START_IMPORT_TEMPLATE = "job.backup.startImportTemplate";
+    // 模板名称已存在! 自动更改为 %s
     public static final String TEMPLATE_NAME_CHANGE = "job.backup.templateNameChange";
+    // 模板导入成功!
     public static final String IMPORT_TEMPLATE_SUCCESS = "job.backup.importTemplateSuccess";
     // 作业模板名称超长，跳过当前模版和该模版下的所有执行方案
     public static final String TEMPLATE_NAME_TOO_LONG_SKIP = "job.backup.templateNameTooLongSkip";
 
+    // >>>>> 准备导入作业执行方案: %s
     public static final String START_IMPORT_PLAN = "job.backup.startImportPlan";
     public static final String IMPORT_PLAN_SUCCESS = "job.backup.importPlanSuccess";
 
