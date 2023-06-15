@@ -27,7 +27,7 @@ export default {
   namespace: 'tag',
   message: {
     新建: 'New',
-    请输入: 'Search...',
+    '搜索标签名, 创建人, 更新人...': 'Search by Tag name / Created by / ...',
     标签名: {
       colHead: 'Tag name',
     },
