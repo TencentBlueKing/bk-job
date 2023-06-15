@@ -120,7 +120,7 @@ export default {
     定时关联的执行方案名: 'Job plan name of the cron',
     定时关联的执行方案ID: 'Job plan ID of the cron',
     这是一个测试的作业执行方案: 'This is a cron job plan...',
-    定时任务的执行策略: 'Repeat Frequency of the cron',
+    定时任务的执行策略: 'Repeat frequency of the cron',
     '单次执行 or 周期执行': 'Run once or Round-robin',
     定时任务的执行时间: 'Launch time of the cron',
     定时任务提前通知时间: 'Time of notify before launch',

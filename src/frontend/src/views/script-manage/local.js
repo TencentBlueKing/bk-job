@@ -70,7 +70,7 @@ export default {
     },
     提交: 'Submit',
     取消: 'Cancel',
-    立即同步: 'Synchronize Nnow',
+    立即同步: 'Synchronize nnow',
     全部重试: 'All retry',
     重试: 'Retry',
     完成: 'inish',

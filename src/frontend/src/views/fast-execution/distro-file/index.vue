@@ -336,7 +336,7 @@
         }
       },
       calcTargetPathTipsPlacement: _.throttle(function () {
-        this.targetPathTipsPlacement = window.innerWidth > 1650 ? 'right-start' : 'top';
+        this.targetPathTipsPlacement = window.innerWidth > 1850 ? 'right-start' : 'top';
       }, 60),
       /**
        * @desc 回溯执行历史
@@ -558,7 +558,7 @@
   };
 </script>
 <style lang='postcss'>
-    @import "@/css/mixins/media";
+    @import url("@/css/mixins/media");
 
     html[lang="en-US"] {
       .recent-result {

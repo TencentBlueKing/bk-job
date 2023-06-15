@@ -70,7 +70,7 @@ export default {
     请填写完整的语法检测表达式和说明: 'Grammar regex and description not defined.',
     新增成功: 'New rule has been created',
     '搜索语法检测表达式，规则说明，脚本类型...': 'Search by Grammar Regex. / Explanation / Script type / ...',
-    语法检测表达式必填: 'Grammar Regex. is required',
+    语法检测表达式必填: 'Grammar regex. is required',
     规则说明必填: 'Grammar Regex. explanation is required',
     脚本类型必填: 'Script type is required',
     动作必填: 'Action is required',
