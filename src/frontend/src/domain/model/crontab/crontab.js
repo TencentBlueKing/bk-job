@@ -31,7 +31,7 @@ import CrontabVariableModel from '@model/crontab/variable';
 import {
   prettyDateTimeFormat,
 } from '@utils/assist';
-import Translate from '@utils/cron/translate';
+import translate from '@utils/cron/translate';
 
 import I18n from '@/i18n';
 
@@ -118,12 +118,26 @@ export default class Crontab {
   get executeTimeTips() {
     if (this.cronExpression) {
       const [
-        month,
+        minute,
+        hour,
         dayOfMonth,
         dayOfWeek,
-        hour,
-        minute,
-      ] = Translate(this.cronExpression);
+        month,
+      ] = translate(this.cronExpression);
+      // 英文解析
+      if (I18n.locale !== 'zh-CN') {
+        if (hour && /^At/.test(hour)) {
+          return _.filter([
+            hour,
+            minute,
+            dayOfMonth,
+            dayOfWeek,
+            month,
+          ], _ => _).join();
+        }
+      }
+
+      // 中文解析
       let text = month;
 
       if (dayOfMonth) {

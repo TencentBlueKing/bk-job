@@ -127,8 +127,11 @@
   import ExecPlanService from '@service/task-plan';
 
   import {
+    checkIllegalHostFromVariableStep,
     findUsedVariable,
     genDefaultName,
+    removeIllegalHostFromStep,
+    removeIllegalHostFromVariable,
   } from '@utils/assist';
   import { planNameRule } from '@utils/validator';
 
@@ -330,6 +333,16 @@
        * @desc 提交新建执行方案
        */
       handleSumbit() {
+        // 包含无效主机
+        const hasIllegalHost = checkIllegalHostFromVariableStep(this.formData.variables, this.formData.steps, () => {
+          this.globalVariableList = removeIllegalHostFromVariable(this.globalVariableList);
+          this.formData.variables = removeIllegalHostFromVariable(this.formData.variables);
+          this.taskStepList = removeIllegalHostFromStep(this.taskStepList);
+          this.formData.enableSteps = removeIllegalHostFromStep(this.formData.enableSteps);
+        });
+        if (hasIllegalHost) {
+          return;
+        }
         this.submitLoading = true;
         Promise.all([
           this.$refs.titleForm.validate(),

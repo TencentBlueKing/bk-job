@@ -127,6 +127,16 @@
       reset() {
         this.$refs.target.reset();
       },
+      /**
+       * @desc 外部调用——移除无效主机
+       */
+      removeIllegalHost() {
+        this.$refs.target.removeIllegalHost && this.$refs.target.removeIllegalHost();
+      },
+      /**
+       * @desc 外部调用——值验证
+       * @returns {Promise}
+       */
       validate() {
         return this.$refs.target.validate()
           .then((data) => {

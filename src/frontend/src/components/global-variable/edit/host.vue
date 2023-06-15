@@ -69,6 +69,10 @@
 
   import TaskHostNodeModel from '@model/task-host-node';
 
+  import {
+    removeIllegalHostFromHostNodeInfo,
+  } from '@utils/assist';
+
   export default {
     props: {
       data: {
@@ -112,8 +116,14 @@
         };
       },
     },
-    created() {
-      this.init();
+    watch: {
+
+      data: {
+        handler() {
+          this.init();
+        },
+        immediate: true,
+      },
     },
     methods: {
       /**
@@ -165,26 +175,32 @@
         this.init();
       },
       /**
+       * @desc 外部调用——移除无效主机
+       */
+      removeIllegalHost() {
+        this.hostNodeInfo = Object.freeze(removeIllegalHostFromHostNodeInfo(this.hostNodeInfo));
+        this.originalHostNodeInfo = Object.freeze(_.cloneDeep(this.hostNodeInfo));
+      },
+      /**
        * @desc 外部调用——值验证
        * @returns {Promise}
        */
       validate() {
         const { type, id, name } = this.data;
 
-        const data = {
-          id,
-          name,
-          type,
-          value: '',
-          targetValue: {
-            hostNodeInfo: this.hostNodeInfo,
-          },
-        };
         return new Promise((resolve, reject) => {
           if (this.isError) {
             return reject(new Error('host error'));
           }
-          resolve(data);
+          resolve({
+            id,
+            name,
+            type,
+            value: '',
+            targetValue: {
+              hostNodeInfo: this.hostNodeInfo,
+            },
+          });
         });
       },
     },

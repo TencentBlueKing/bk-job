@@ -48,7 +48,7 @@
               class="title-example-popover">
               <img
                 class="example-image"
-                src="/static/images/title-example.png">
+                :src="titleExampleImg">
             </div>
           </bk-popover>
           <hgroup>
@@ -123,6 +123,7 @@
     footerCopyRight: '',
   });
 
+
   export default {
     name: '',
     components: {
@@ -140,6 +141,8 @@
     },
     created() {
       this.fetchTitleAndFooter();
+
+      this.titleExampleImg = I18n.locale === 'zh-CN' ? '/static/images/title-example.png' : '/static/images/title-example-en.png';
       this.rules = {
         titleHead: [
           {

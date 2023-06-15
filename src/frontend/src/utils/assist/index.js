@@ -40,6 +40,7 @@ export * from './format';
 export * from './calc-text-width';
 export * from './ordinal-suffix-of';
 export * from './make-map';
+export * from './check-illegal-host-form-varialbe-step';
 
 export const isMac = () => /macintosh|mac os x/i.test(navigator.userAgent);
 

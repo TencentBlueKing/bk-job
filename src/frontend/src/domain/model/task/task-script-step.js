@@ -81,4 +81,8 @@ export default class TaskScriptStep {
   get ignoreErrorText() {
     return this.ignoreError === 0 ? I18n.t('不忽略') : I18n.t('自动忽略错误');
   }
+
+  get scriptParamText() {
+    return this.secureParam === 1 ? '******' : this.scriptParam;
+  }
 }

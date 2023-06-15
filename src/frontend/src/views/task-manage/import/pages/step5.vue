@@ -33,11 +33,15 @@
       <img src="/static/images/import.svg">
     </div>
     <div class="title">
-      <span v-if="isImportSuccess">{{ $t('template.作业导入完成！请及时检查。') }}</span>
-      <template v-else>
-        <span v-if="isImportFailed">{{ $t('template.作业导入出现异常，请稍后再试...') }}</span>
-        <span v-else>{{ $t('template.正在导入作业，请稍候') }}<span class="loading" /></span>
-      </template>
+      <span v-if="isImportSuccess">{{ $t('template.作业导入完成（全部成功），请及时检查确认。') }}</span>
+      <span v-else-if="isPartialFailed">{{ $t('template.作业导入完成（部分失败），请根据日志提示调整后重新选择导入。') }}</span>
+      <span v-else-if="isImportFailed">{{ $t('template.作业全部导入失败，请根据日志提示调整后重试。') }}</span>
+      <span v-else>{{ $t('template.正在导入作业，请稍候') }}<span class="loading" /></span>
+    </div>
+    <div
+      v-if="isPartialFailed || isImportFailed"
+      style="margin-top: 20px; color: #63656e;">
+      {{ $t('template.作业导入任务出错，原因详见下列日志，请稍后再试。') }}
     </div>
     <div class="log-container">
       <div
@@ -72,7 +76,7 @@
     <action-bar>
       <bk-button
         class="w120"
-        :disabled="!isImportSuccess"
+        :disabled="isImportFailed"
         theme="primary"
         @click="handleFinish">
         {{ $t('template.完成') }}
@@ -93,6 +97,7 @@
   const TASK_STATUS_SUCCESS = 6;
   const TASK_STATUS_FAILED = 7;
   const TASK_STATUS_CANCEL = 8;
+  const TASK_STATUS_PARTIAL_FAILED = 10;
 
   export default {
     name: '',
@@ -112,6 +117,9 @@
           TASK_STATUS_SUCCESS,
           TASK_STATUS_CANCEL,
         ].includes(this.status);
+      },
+      isPartialFailed() {
+        return [TASK_STATUS_PARTIAL_FAILED].includes(this.status);
       },
       isImportFailed() {
         return [

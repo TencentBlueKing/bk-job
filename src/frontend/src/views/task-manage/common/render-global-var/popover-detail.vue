@@ -118,12 +118,8 @@
       this.init();
     },
     beforeDestroy() {
-      try {
-        if (this.$refs.detail && document.body.hasChildNodes(this.$refs.detail)) {
-          document.body.removeChild(this.$refs.detail);
-        }
-      } catch (error) {
-        console.log(error);
+      if (this.$refs.detail && this.$refs.detail.parentNode) {
+        this.$refs.detail.parentNode.removeChild(this.$refs.detail);
       }
     },
     methods: {
