@@ -32,7 +32,7 @@ export default {
     创建时间: 'Created at',
     编辑: 'Edit',
     '确定删除该IP白名单？': 'Are you sure to delete it?',
-    '删除后不可恢复，请谨慎操作！': 'Caution! It cannot be restored after deletion.',
+    '删除后不可恢复，请谨慎操作！': 'Caution! it cannot be restored after deletion.',
     编辑IP白名单: 'Whitelist editing',
     新建IP白名单: 'New whitelist',
     提交: 'Submit',

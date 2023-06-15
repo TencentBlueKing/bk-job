@@ -123,7 +123,7 @@
       },
       tipsPlacement: {
         type: String,
-        default: 'right-start',
+        default: 'top',
       },
     },
     watch: {

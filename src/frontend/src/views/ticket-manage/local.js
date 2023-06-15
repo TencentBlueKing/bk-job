@@ -27,7 +27,7 @@ export default {
   namespace: 'ticket',
   message: {
     新建: 'New',
-    名称: 'NAME',
+    名称: 'Name',
     创建人: 'Created by',
     '搜索 ID、名称、描述、创建人、更新人...': 'Search by  Name / Description / Created by / Last modified By...',
     凭证ID: 'ID',
