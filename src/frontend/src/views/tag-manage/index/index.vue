@@ -40,7 +40,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('tag.请输入')"
+          :placeholder="$t('tag.搜索标签名, 创建人, 更新人...')"
           style="width: 420px;"
           @on-change="handleSearch" />
       </template>

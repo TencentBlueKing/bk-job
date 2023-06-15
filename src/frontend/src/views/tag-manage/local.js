@@ -27,7 +27,7 @@ export default {
   namespace: 'tag',
   message: {
     新建: 'New',
-    请输入: 'Search...',
+    '搜索标签名, 创建人, 更新人...': 'Search by Tag name / Created by / ...',
     标签名: {
       colHead: 'Tag name',
     },
@@ -35,10 +35,10 @@ export default {
       colHead: 'Description',
     },
     关联作业量: {
-      colHead: 'Related job(S)',
+      colHead: 'Related job(s)',
     },
     关联脚本量: {
-      colHead: 'Related script(S)',
+      colHead: 'Related script(s)',
     },
     创建人: 'Created by',
     创建时间: 'Created at',
