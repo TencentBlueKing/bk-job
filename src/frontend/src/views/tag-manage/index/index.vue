@@ -61,6 +61,7 @@
         width="60" />
       <bk-table-column
         key="name"
+        :label="$t('tag.标签名.colHead')"
         min-width="200"
         prop="name"
         show-overflow-tooltip
