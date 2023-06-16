@@ -78,9 +78,14 @@ public class HttpHelperFactory {
             log.error("", e);
         }
         httpClientBuilder.setConnectionManager(
+            // esb的keep-alive时间为90s，需要<90s,防止连接超时抛出org.apache.http.NoHttpResponseException:
+            // The target server failed to respond
+            // 因此，timeToLive使用34s
             JobHttpClientConnectionManagerFactory.createWatchableConnectionManager(
                 maxConnPerRoute,
                 maxConnTotal,
+                34,
+                TimeUnit.SECONDS,
                 sslSocketFactory
             ));
         httpClient = httpClientBuilder.build();

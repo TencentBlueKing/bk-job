@@ -57,11 +57,10 @@ public class JobHttpClientConnectionManagerFactory {
     public static HttpClientConnectionManager createWatchableConnectionManager(
         int maxConnPerRoute,
         int maxConnTotal,
+        long timeToLive,
+        TimeUnit timeUnit,
         LayeredConnectionSocketFactory sslSocketFactory
     ) {
-        // esb的keep-alive时间为90s，需要<90s,防止连接超时抛出org.apache.http.NoHttpResponseException:
-        // The target server failed to respond
-        // 因此，timeToLive使用34s
         final PoolingHttpClientConnectionManager poolingmgr =
             new WatchablePoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
@@ -71,8 +70,8 @@ public class JobHttpClientConnectionManagerFactory {
                 new WatchableManagedHttpClientConnectionFactory(),
                 null,
                 null,
-                34,
-                TimeUnit.SECONDS
+                timeToLive,
+                timeUnit
             );
         if (defaultConnectionConfig != null) {
             poolingmgr.setDefaultConnectionConfig(defaultConnectionConfig);

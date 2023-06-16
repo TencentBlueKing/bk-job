@@ -39,6 +39,7 @@ subprojects {
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
         implementation(group: 'org.apache.commons', name: 'commons-pool2')
+        implementation "io.github.openfeign:feign-httpclient"
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testImplementation 'org.junit.jupiter:junit-jupiter'
     }
