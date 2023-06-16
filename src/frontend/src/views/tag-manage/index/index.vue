@@ -40,7 +40,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('tag.请输入')"
+          :placeholder="$t('tag.搜索标签名, 创建人, 更新人...')"
           style="width: 420px;"
           @on-change="handleSearch" />
       </template>
@@ -61,6 +61,7 @@
         width="60" />
       <bk-table-column
         key="name"
+        :label="$t('tag.标签名.colHead')"
         min-width="200"
         prop="name"
         show-overflow-tooltip

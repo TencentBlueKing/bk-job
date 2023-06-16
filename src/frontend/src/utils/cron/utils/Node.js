@@ -23,47 +23,22 @@
  * IN THE SOFTWARE.
 */
 
-export default {
-  namespace: 'whiteIP',
-  message: {
-    新建: 'New',
-    '搜索IP，生效范围，目标业务': 'Search By IP / Acting On / Business ...',
-    创建人: 'Created by',
-    创建时间: 'Created at',
-    编辑: 'Edit',
-    '确定删除该IP白名单？': 'Are you sure to delete it?',
-    '删除后不可恢复，请谨慎操作！': 'Caution! it cannot be restored after deletion.',
-    编辑IP白名单: 'Whitelist editing',
-    新建IP白名单: 'New whitelist',
-    提交: 'Submit',
-    云区域: 'Cloud area',
-    '输入IP，以“回车”分隔': 'Separate with new line...',
-    备注: {
-      label: 'Description',
-      colHead: 'Description',
-    },
-    IP: 'IP',
-    IP必填: 'IP address field is required',
-    备注必填: 'Description field is required',
-    生效范围必填: 'Acting on is required',
-    新建成功: 'New whitelist has been created.',
-    全业务: 'All',
-    更新人: 'Last modified by',
-    更新时间: 'Last modified at',
-    目标业务: {
-      label: 'Business',
-      colHead: 'Business',
-    },
-    生效范围: {
-      label: 'Action on',
-      colHead: 'Action on',
-    },
-    操作: 'Action',
-    删除: 'Delete',
-    保存: 'Save',
-    添加服务器: 'Add hosts',
-    'IP 预览': 'IP preview',
-    关闭: 'Close',
-    台主机: 'host(s)',
-  },
-};
+export default class Node {
+  static TYPE_ENUM = 1;
+  static TYPE_RANG = 2;
+  static TYPE_REPEAT = 3;
+  static TYPE_RANG_REPEAT = 4;
+  constructor({
+    type,
+    value,
+    min,
+    max,
+    repeatInterval,
+  }) {
+    this.type = type;
+    this.value = value || '';
+    this.min = min;
+    this.max = max;
+    this.repeatInterval = repeatInterval;
+  }
+}

@@ -50,7 +50,7 @@
         :placeholder="$t('template.请输入变量的初始值 [可选]')"
         type="password" />
     </jb-form-item>
-    <jb-form-item label="变量描述">
+    <jb-form-item :label="$t('template.变量描述')">
       <bk-input
         v-model="formData.description"
         maxlength="100"

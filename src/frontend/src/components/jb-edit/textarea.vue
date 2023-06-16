@@ -49,13 +49,13 @@
             <icon
               style="font-size: 12px;"
               type="angle-double-up" />
-            <span>收起</span>
+            <span>{{ $t('收起') }}</span>
           </template>
           <template v-else>
             <icon
               style="font-size: 12px;"
               type="angle-double-down" />
-            <span>展开</span>
+            <span>{{ $t('展开') }}</span>
           </template>
         </span>
       </div>
