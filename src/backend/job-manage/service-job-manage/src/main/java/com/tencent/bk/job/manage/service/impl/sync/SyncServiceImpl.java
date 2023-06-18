@@ -53,7 +53,6 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -95,7 +94,6 @@ public class SyncServiceImpl implements SyncService {
     private final String REDIS_KEY_SYNC_HOST_JOB_RUNNING_MACHINE = "sync-host-job-running-machine";
     private final String REDIS_KEY_SYNC_AGENT_STATUS_JOB_RUNNING_MACHINE = "sync-agent-status-job-running-machine";
     private final BlockingQueue<Pair<ApplicationDTO, Integer>> appHostFailQueue = new LinkedBlockingDeque<>();
-    private volatile LinkedBlockingQueue<Long> extraSyncAppQueue;
     private volatile boolean enableSyncApp;
     private volatile boolean enableSyncHost;
     private volatile boolean enableSyncAgentStatus;
@@ -152,14 +150,6 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public void init() {
-        // 额外同步业务主机的队列与线程配置
-        extraSyncAppQueue = new LinkedBlockingQueue<>(500);
-        for (int i = 0; i < 3; i++) {
-            AppHostsSyncer extraAppHostsSyncer = new AppHostsSyncer(applicationService, hostSyncService,
-                extraSyncAppQueue);
-            extraAppHostsSyncer.setName("[" + extraAppHostsSyncer.getId() + "]-extraAppHostsSyncer-" + (i + 1));
-            extraAppHostsSyncer.start();
-        }
         if (jobManageConfig.isEnableResourceWatch()) {
             watchBizEvent();
             watchHostEvent();
@@ -194,21 +184,6 @@ public class SyncServiceImpl implements SyncService {
         // 开一个常驻线程监听业务集变动事件
         bizSetEventWatcher.start();
         bizSetRelationEventWatcher.start();
-    }
-
-    public boolean addExtraSyncBizHostsTask(Long bizId) {
-        if (extraSyncAppQueue.contains(bizId)) {
-            return true;
-        } else if (extraSyncAppQueue.remainingCapacity() > 0) {
-            boolean result = extraSyncAppQueue.add(bizId);
-            if (extraSyncAppQueue.size() > 10) {
-                log.warn("extraSyncAppQueue.size={},queue={}", extraSyncAppQueue.size(), extraSyncAppQueue.toString());
-            } else {
-                log.debug("extraSyncAppQueue.size={},queue={}", extraSyncAppQueue.size(), extraSyncAppQueue.toString());
-            }
-            return result;
-        }
-        return false;
     }
 
     @Override
@@ -264,8 +239,6 @@ public class SyncServiceImpl implements SyncService {
                 } catch (Throwable t) {
                     log.error("FATAL: syncApp thread fail", t);
                 } finally {
-                    // 失败的业务进行补偿同步
-                    handleFailedSyncAppHosts();
                     appSyncRedisKeyHeartBeatThread.setRunFlag(false);
                     watch.stop();
                     log.info("syncApp time consuming:" + watch.prettyPrint());
@@ -279,44 +252,10 @@ public class SyncServiceImpl implements SyncService {
         return 1L;
     }
 
-    /**
-     * 同步主机失败的业务的补偿性同步
-     */
-    private void handleFailedSyncAppHosts() {
-        if (appHostFailQueue.isEmpty()) {
-            return;
-        }
-        Pair<ApplicationDTO, Integer> appInfoRetryCountPair = appHostFailQueue.poll();
-        int maxCount = 1000;
-        int count = 0;
-        while (appInfoRetryCountPair != null && count < maxCount) {
-            ApplicationDTO applicationDTO = appInfoRetryCountPair.getFirst();
-            int retryCount = appInfoRetryCountPair.getSecond();
-            try {
-                if (retryCount > 0) {
-                    arrangeSyncAppHostsTask(applicationDTO);
-                } else {
-                    log.warn("syncAppHost retry over max count, appId={}", applicationDTO.getId());
-                }
-            } catch (Throwable t) {
-                count += 1;
-                try {
-                    appHostFailQueue.put(Pair.of(applicationDTO, retryCount - 1));
-                } catch (InterruptedException e) {
-                    log.error("appHostFailQueue.put(Pair.of(applicationInfoDTO,retryCount-1)) fail", e);
-                }
-            }
-            appInfoRetryCountPair = appHostFailQueue.poll();
-        }
-        if (count >= 1000) {
-            log.error("too many FailedSyncAppHosts, watch for a dead loop!");
-        }
-        log.info("handleFailedSyncAppHosts end");
-    }
-
-    private Future<Pair<Long, Long>> arrangeSyncAppHostsTask(ApplicationDTO applicationDTO) {
+    private Future<Pair<Long, Long>> arrangeSyncBizHostsTask(ApplicationDTO bizApp) {
         return syncHostExecutor.submit(() ->
-            hostSyncService.syncBizHostsAtOnce(applicationDTO));
+            hostSyncService.syncBizHostsAtOnce(bizApp)
+        );
     }
 
     @Override
@@ -363,14 +302,14 @@ public class SyncServiceImpl implements SyncService {
                             .collect(Collectors.toSet());
                     log.info(String.format("localAppIds:%s", String.join(",",
                         localAppIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-                    List<ApplicationDTO> localNormalApps =
+                    List<ApplicationDTO> localBizApps =
                         localApps.stream().filter(ApplicationDTO::isBiz).collect(Collectors.toList());
                     long cmdbInterfaceTimeConsuming = 0L;
                     long writeToDBTimeConsuming = 0L;
                     List<Pair<ApplicationDTO, Future<Pair<Long, Long>>>> appFutureList = new ArrayList<>();
-                    for (ApplicationDTO applicationDTO : localNormalApps) {
-                        Future<Pair<Long, Long>> future = arrangeSyncAppHostsTask(applicationDTO);
-                        appFutureList.add(Pair.of(applicationDTO, future));
+                    for (ApplicationDTO bizApp : localBizApps) {
+                        Future<Pair<Long, Long>> future = arrangeSyncBizHostsTask(bizApp);
+                        appFutureList.add(Pair.of(bizApp, future));
                     }
                     for (Pair<ApplicationDTO, Future<Pair<Long, Long>>> appFuture : appFutureList) {
                         ApplicationDTO applicationDTO = appFuture.getFirst();
@@ -398,8 +337,6 @@ public class SyncServiceImpl implements SyncService {
                 } catch (Throwable t) {
                     log.error("syncHost thread fail", t);
                 } finally {
-                    //失败的同步任务补偿处理
-                    handleFailedSyncAppHosts();
                     hostSyncRedisKeyHeartBeatThread.setRunFlag(false);
                     watch.stop();
                     log.info("syncHost time consuming:" + watch.prettyPrint());
@@ -410,12 +347,6 @@ public class SyncServiceImpl implements SyncService {
             LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_HOST_JOB_LOCK, machineIp);
         }
         return 1L;
-    }
-
-    @Override
-    public Future<Pair<Long, Long>> arrangeSyncBizHostsTask(Long bizId) {
-        log.info("arrangeSyncAppHostsTask:appId={}", bizId);
-        return arrangeSyncAppHostsTask(applicationDAO.getAppById(bizId));
     }
 
     @Override

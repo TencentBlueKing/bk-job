@@ -306,8 +306,7 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<Long> removeHostsFromBiz(Long bizId, List<ApplicationHostDTO> hostList) {
-        List<Long> hostIdList = hostList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
+    public List<Long> removeHostsFromBiz(Long bizId, List<Long> hostIdList) {
         StopWatch watch = new StopWatch();
         watch.start("deleteHostTopoOfBiz");
         List<Long> deleteFailHostIds = new ArrayList<>();

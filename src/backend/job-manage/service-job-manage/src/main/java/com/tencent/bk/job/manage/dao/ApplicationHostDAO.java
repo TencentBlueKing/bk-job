@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.dao;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 
@@ -63,6 +64,8 @@ public interface ApplicationHostDAO {
     List<ApplicationHostDTO> listHostInfoByIps(Long bizId, Collection<String> ips);
 
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
+
+    List<BasicHostDTO> listBasicHostInfoByBizId(long bizId);
 
     List<ApplicationHostDTO> listAllHostInfo(Long start, Long limit);
 

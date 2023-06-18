@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -56,6 +57,7 @@ import org.jooq.Field;
 import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Record1;
+import org.jooq.Record2;
 import org.jooq.Result;
 import org.jooq.SelectSeekStep2;
 import org.jooq.TableField;
@@ -227,12 +229,42 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public List<BasicHostDTO> listBasicHostInfoByBizId(long bizId) {
+        List<Condition> conditions = buildBizIdCondition(bizId);
+        return listBasicHostInfoByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listAllHostInfo(Long start, Long limit) {
         return listHostInfoByConditions(Collections.emptyList(), start, limit);
     }
 
     private List<ApplicationHostDTO> listHostInfoByConditions(Collection<Condition> conditions) {
         return listHostInfoByConditions(conditions, null, null);
+    }
+
+    private List<BasicHostDTO> listBasicHostInfoByConditions(Collection<Condition> conditions) {
+        if (conditions == null) {
+            conditions = Collections.emptyList();
+        }
+        val query = context.select(
+            TABLE.HOST_ID,
+            TABLE.LAST_MODIFY_TIME
+        ).from(TABLE)
+            .where(conditions);
+        Result<Record2<ULong, ULong>> records = query.fetch();
+        List<BasicHostDTO> basicHostInfoList = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(records)) {
+            records.forEach(record -> {
+                BasicHostDTO basicHost = new BasicHostDTO(
+                    JooqDataTypeUtil.getLongFromULong(record.get(TABLE.HOST_ID)),
+                    JooqDataTypeUtil.getLongFromULong(record.get(TABLE.LAST_MODIFY_TIME))
+                );
+                basicHostInfoList.add(basicHost);
+            });
+        }
+        return basicHostInfoList;
     }
 
     private List<Long> listHostIdByConditions(Collection<Condition> conditions) {
@@ -977,7 +1009,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .where(conditions);
     }
 
-    @Transactional
     @Override
     public int batchUpdateBizHostInfoByHostId(List<ApplicationHostDTO> applicationHostDTOList) {
         int batchSize = 1000;
@@ -1246,9 +1277,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             conditions.add(HostTopo.HOST_TOPO.APP_ID.in(bizIds));
         }
         var query = context.select(
-                TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
-                DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
-            ).from(TABLE)
+            TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
+            DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
+        ).from(TABLE)
             .leftJoin(HostTopo.HOST_TOPO).on(TABLE.HOST_ID.eq(HostTopo.HOST_TOPO.HOST_ID))
             .where(conditions)
             .groupBy(TABLE.IS_AGENT_ALIVE);

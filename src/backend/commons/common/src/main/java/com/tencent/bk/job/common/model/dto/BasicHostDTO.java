@@ -22,50 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.common.model.dto;
 
-import java.util.concurrent.ThreadPoolExecutor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
- * 同步服务
+ * 主机基础信息
  */
-public interface SyncService {
-    void init();
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class BasicHostDTO {
 
-    Long syncApp();
+    /**
+     * 主机ID
+     */
+    private Long hostId;
+    /**
+     * 上次修改时间
+     */
+    private Long lastModifyTime;
 
-    Long syncHost();
-
-    Long syncAgentStatus();
-
-    Long getLastFinishTimeSyncApp();
-
-    Long getLastFinishTimeSyncHost();
-
-    Long getLastFinishTimeSyncAgentStatus();
-
-    ThreadPoolExecutor getSyncHostExecutor();
-
-    Boolean syncBizHosts(Long bizId);
-
-    Boolean enableBizWatch();
-
-    Boolean disableBizWatch();
-
-    Boolean enableHostWatch();
-
-    Boolean disableHostWatch();
-
-    Boolean enableSyncApp();
-
-    Boolean disableSyncApp();
-
-    Boolean enableSyncHost();
-
-    Boolean disableSyncHost();
-
-    Boolean enableSyncAgentStatus();
-
-    Boolean disableSyncAgentStatus();
 }
-
