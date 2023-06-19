@@ -1,11 +1,11 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
+import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.StepInstanceRollingTask;
-import org.jooq.generated.tables.records.StepInstanceRollingTaskRecord;
 
 /**
  * step_instance_rolling_task DAO

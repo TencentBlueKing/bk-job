@@ -22,65 +22,61 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.execute.config;
 
 import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
-import com.tencent.bk.job.common.iam.interceptor.JobIamInterceptor;
+import com.tencent.bk.job.common.web.interceptor.CustomTimedMetricsInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
-import com.tencent.bk.job.manage.common.interceptor.UriPermissionInterceptor;
+import com.tencent.bk.job.execute.common.interceptor.UriPermissionInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * @since 6/11/2019 10:38
- */
 @Configuration
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
-    private final AuthAppInterceptor authAppInterceptor;
+    private final CustomTimedMetricsInterceptor customTimedMetricsInterceptor;
     private final UriPermissionInterceptor uriPermissionInterceptor;
+    private final AuthAppInterceptor authAppInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
-    private final EsbReqRewriteInterceptor esbReqRewriteInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
-    private final JobIamInterceptor iamInterceptor;
+    private final EsbReqRewriteInterceptor esbReqRewriteInterceptor;
 
     @Autowired
-    public InterceptorConfiguration(
-        JobCommonInterceptor jobCommonInterceptor,
-        AuthAppInterceptor authAppInterceptor,
-        UriPermissionInterceptor uriPermissionInterceptor,
-        EsbApiLogInterceptor esbApiLogInterceptor,
-        EsbReqRewriteInterceptor esbReqRewriteInterceptor,
-        ServiceSecurityInterceptor serviceSecurityInterceptor,
-        JobIamInterceptor iamInterceptor
-    ) {
+    public InterceptorConfiguration(JobCommonInterceptor jobCommonInterceptor,
+                                    CustomTimedMetricsInterceptor customTimedMetricsInterceptor,
+                                    AuthAppInterceptor authAppInterceptor,
+                                    UriPermissionInterceptor uriPermissionInterceptor,
+                                    EsbApiLogInterceptor esbApiLogInterceptor,
+                                    ServiceSecurityInterceptor serviceSecurityInterceptor,
+                                    EsbReqRewriteInterceptor esbReqRewriteInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
-        this.authAppInterceptor = authAppInterceptor;
+        this.customTimedMetricsInterceptor = customTimedMetricsInterceptor;
         this.uriPermissionInterceptor = uriPermissionInterceptor;
+        this.authAppInterceptor = authAppInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
-        this.esbReqRewriteInterceptor = esbReqRewriteInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
-        this.iamInterceptor = iamInterceptor;
+        this.esbReqRewriteInterceptor = esbReqRewriteInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册拦截器
+        // 最高优先级：初始化JobContext
         registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(0);
+        registry.addInterceptor(customTimedMetricsInterceptor).addPathPatterns("/**").order(10);
         registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
         registry.addInterceptor(uriPermissionInterceptor)
             .addPathPatterns(
                 uriPermissionInterceptor.getControlUriPatterns()
             ).order(30);
-        registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(40);
-        registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(50);
-        registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(60);
-        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(70);
+        registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(40);
+        registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(50);
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(60);
     }
 }

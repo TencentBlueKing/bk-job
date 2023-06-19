@@ -24,15 +24,16 @@
 
 package com.tencent.bk.job.crontab.config;
 
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Getter
-@Configuration
-public class BkConfig {
-
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
-
+@Configuration("jobCrontabConfiguration")
+public class JobCrontabConfiguration {
+    @Bean("AppScopeMappingService")
+    AppScopeMappingService appScopeMappingService(ServiceApplicationResource applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
+    }
 }

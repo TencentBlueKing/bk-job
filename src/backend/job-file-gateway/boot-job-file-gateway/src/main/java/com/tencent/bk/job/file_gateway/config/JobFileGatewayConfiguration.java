@@ -22,26 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.file_gateway.config;
 
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.crontab.client.ServiceApplicationResourceClient;
 import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-public class JobCrontabAutoConfiguration {
-    @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
-    }
-
-    @Bean
-    AppScopeMappingService appScopeMappingService(ServiceApplicationResourceClient applicationResource) {
+@Configuration("jobFileGatewayConfiguration")
+public class JobFileGatewayConfiguration {
+    @Bean("AppScopeMappingService")
+    AppScopeMappingService appScopeMappingService(ServiceApplicationResource applicationResource) {
         return new AppScopeMappingServiceImpl(applicationResource);
     }
 }

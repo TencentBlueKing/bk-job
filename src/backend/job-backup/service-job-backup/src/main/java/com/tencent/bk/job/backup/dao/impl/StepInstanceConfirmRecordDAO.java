@@ -1,11 +1,11 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.execute.model.tables.StepInstanceConfirm;
+import com.tencent.bk.job.execute.model.tables.records.StepInstanceConfirmRecord;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.StepInstanceConfirm;
-import org.jooq.generated.tables.records.StepInstanceConfirmRecord;
 
 /**
  * step_instance_confirm DAO

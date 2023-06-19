@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.StepInstanceRecord;
+import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
 
 /**
  * step_instance 表归档

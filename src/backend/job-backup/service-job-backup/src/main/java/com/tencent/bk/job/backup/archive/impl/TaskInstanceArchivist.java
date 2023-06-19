@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.TaskInstanceRecord;
+import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 
 /**
  * task_instance 表归档

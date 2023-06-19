@@ -36,7 +36,6 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
@@ -48,7 +47,6 @@ import javax.sql.DataSource;
 @EnableTransactionManagement
 public class DbConfig {
     @Qualifier("job-analysis-data-source")
-    @Primary
     @Bean(name = "job-analysis-data-source")
     @ConfigurationProperties(prefix = "spring.datasource.job-analysis")
     public DataSource dataSource() {
@@ -58,7 +56,6 @@ public class DbConfig {
     @Qualifier("jobAnalysisTransactionManager")
     @Bean(name = "jobAnalysisTransactionManager")
     @DependsOn("job-analysis-data-source")
-    @Primary
     public DataSourceTransactionManager transactionManager(
         @Qualifier("job-analysis-data-source") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);

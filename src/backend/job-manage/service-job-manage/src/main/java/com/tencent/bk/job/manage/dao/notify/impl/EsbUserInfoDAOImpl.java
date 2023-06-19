@@ -26,13 +26,13 @@ package com.tencent.bk.job.manage.dao.notify.impl;
 
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
+import com.tencent.bk.job.manage.model.tables.EsbUserInfo;
+import com.tencent.bk.job.manage.model.tables.records.EsbUserInfoRecord;
 import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.EsbUserInfo;
-import org.jooq.generated.tables.records.EsbUserInfoRecord;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

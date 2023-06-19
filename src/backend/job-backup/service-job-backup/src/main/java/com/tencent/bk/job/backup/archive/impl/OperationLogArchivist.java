@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.OperationLogRecord;
+import com.tencent.bk.job.execute.model.tables.records.OperationLogRecord;
 
 /**
  * operation_log 表归档

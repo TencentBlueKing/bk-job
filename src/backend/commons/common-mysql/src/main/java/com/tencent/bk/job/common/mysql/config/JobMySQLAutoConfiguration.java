@@ -22,17 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.config;
+package com.tencent.bk.job.common.mysql.config;
 
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
+import org.jooq.DSLContext;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Configuration;
 
-@Getter
-@Configuration
-public class BkConfig {
+import javax.sql.DataSource;
 
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnClass(DSLContext.class)
+@ConditionalOnBean(DataSource.class)
+public class JobMySQLAutoConfiguration {
 
 }

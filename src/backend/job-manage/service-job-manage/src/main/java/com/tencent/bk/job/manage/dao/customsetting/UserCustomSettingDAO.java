@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.dao.customsetting;
 
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.manage.model.dto.customsetting.UserCustomSettingDTO;
+import com.tencent.bk.job.manage.model.tables.UserCustomSetting;
+import com.tencent.bk.job.manage.model.tables.records.UserCustomSettingRecord;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -33,8 +35,6 @@ import org.jooq.Batch;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.generated.tables.UserCustomSetting;
-import org.jooq.generated.tables.records.UserCustomSettingRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;

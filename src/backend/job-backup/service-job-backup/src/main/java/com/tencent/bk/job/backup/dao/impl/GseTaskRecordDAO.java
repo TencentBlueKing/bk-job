@@ -1,11 +1,11 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.execute.model.tables.GseTask;
+import com.tencent.bk.job.execute.model.tables.records.GseTaskRecord;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.GseTask;
-import org.jooq.generated.tables.records.GseTaskRecord;
 
 public class GseTaskRecordDAO extends AbstractExecuteRecordDAO<GseTaskRecord> {
 

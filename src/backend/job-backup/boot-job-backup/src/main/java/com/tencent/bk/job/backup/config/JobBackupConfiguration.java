@@ -22,45 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.backup.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.oas.annotations.EnableOpenApi;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
-/**
- * Swagger 配置
- */
-@Configuration
-@EnableOpenApi
-@Profile({"dev", "local"})
-public class SwaggerConfig {
-
-    private final JobManageConfig jobManageConfig;
-
-    @Autowired
-    public SwaggerConfig(JobManageConfig jobManageConfig) {
-        this.jobManageConfig = jobManageConfig;
-    }
-
-    @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.OAS_30)
-            .host(jobManageConfig.getSwaggerUrl())
-            .pathMapping("job-manage")
-            .protocols(new HashSet<>(Arrays.asList("http", "https")))
-            .select()
-            .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.manage.api"))
-            .paths(PathSelectors.any())
-            .build();
+@Configuration("jobBackupConfiguration")
+public class JobBackupConfiguration {
+    @Bean("AppScopeMappingService")
+    AppScopeMappingService appScopeMappingService(ServiceApplicationResource applicationResource) {
+        return new AppScopeMappingServiceImpl(applicationResource);
     }
 }

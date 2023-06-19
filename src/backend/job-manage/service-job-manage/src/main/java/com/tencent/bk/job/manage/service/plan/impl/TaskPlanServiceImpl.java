@@ -71,22 +71,35 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
 @Slf4j
 @Service("TaskPlanService")
 public class TaskPlanServiceImpl implements TaskPlanService {
 
     private final TaskPlanDAO taskPlanDAO;
     private final MessageI18nService i18nService;
-    private final CronJobService cronJobService;
     private final AbstractTaskStepService taskPlanStepService;
     private final AbstractTaskVariableService taskTemplateVariableService;
     private final AbstractTaskVariableService taskPlanVariableService;
+    private CronJobService cronJobService;
     private TaskTemplateService taskTemplateService;
 
+    /**
+     * 通过 Set 方式注入，避免循环依赖问题
+     */
     @Autowired
     @Lazy
     public void setTaskTemplateService(TaskTemplateService taskTemplateService) {
         this.taskTemplateService = taskTemplateService;
+    }
+
+    /**
+     * 通过 Set 方式注入，避免循环依赖问题
+     */
+    @Autowired
+    @Lazy
+    public void setCronJobService(CronJobService cronJobService) {
+        this.cronJobService = cronJobService;
     }
 
     @Autowired
@@ -95,13 +108,12 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         @Qualifier("TaskPlanStepServiceImpl") AbstractTaskStepService taskPlanStepService,
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskTemplateVariableService,
         @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService,
-        MessageI18nService i18nService, CronJobService cronJobService) {
+        MessageI18nService i18nService) {
         this.taskPlanDAO = taskPlanDAO;
         this.taskPlanStepService = taskPlanStepService;
         this.taskTemplateVariableService = taskTemplateVariableService;
         this.taskPlanVariableService = taskPlanVariableService;
         this.i18nService = i18nService;
-        this.cronJobService = cronJobService;
     }
 
     /**

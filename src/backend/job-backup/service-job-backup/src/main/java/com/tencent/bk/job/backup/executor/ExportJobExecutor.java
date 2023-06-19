@@ -113,10 +113,14 @@ public class ExportJobExecutor {
     private final LocalFileConfigForBackup localFileConfig;
 
     @Autowired
-    public ExportJobExecutor(ExportJobService exportJobService, TaskTemplateService taskTemplateService,
-                             TaskPlanService taskPlanService, ScriptService scriptService,
-                             AccountService accountService, LogService logService,
-                             StorageService storageService, MessageI18nService i18nService,
+    public ExportJobExecutor(ExportJobService exportJobService,
+                             TaskTemplateService taskTemplateService,
+                             TaskPlanService taskPlanService,
+                             ScriptService scriptService,
+                             AccountService accountService,
+                             LogService logService,
+                             StorageService storageService,
+                             MessageI18nService i18nService,
                              ArtifactoryClient artifactoryClient,
                              ArtifactoryConfig artifactoryConfig,
                              BackupStorageConfig backupStorageConfig,

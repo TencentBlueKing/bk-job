@@ -41,7 +41,8 @@ public class ClearExpiredStatisticsTask extends Thread {
     private final StatisticConfig statisticConfig;
 
     @Autowired
-    public ClearExpiredStatisticsTask(StatisticsDAO statisticsDAO, StatisticConfig statisticConfig) {
+    public ClearExpiredStatisticsTask(StatisticsDAO statisticsDAO,
+                                      StatisticConfig statisticConfig) {
         this.statisticsDAO = statisticsDAO;
         this.statisticConfig = statisticConfig;
     }

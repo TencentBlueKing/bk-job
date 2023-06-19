@@ -25,11 +25,11 @@
 package com.tencent.bk.job.manage.dao.notify.impl;
 
 import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
+import com.tencent.bk.job.manage.model.tables.NotifyConfigStatus;
 import lombok.val;
 import org.joda.time.DateTimeUtils;
 import org.jooq.DSLContext;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.NotifyConfigStatus;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

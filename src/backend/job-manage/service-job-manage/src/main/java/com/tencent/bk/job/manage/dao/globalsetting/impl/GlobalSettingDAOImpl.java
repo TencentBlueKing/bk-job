@@ -26,11 +26,11 @@ package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
+import com.tencent.bk.job.manage.model.tables.GlobalSetting;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.GlobalSetting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;

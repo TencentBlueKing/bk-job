@@ -26,6 +26,8 @@ package com.tencent.bk.job.analysis.dao.impl;
 
 import com.tencent.bk.job.analysis.dao.AnalysisTaskStaticInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskStaticInstanceDTO;
+import com.tencent.bk.job.analysis.model.tables.AnalysisTaskStaticInstance;
+import com.tencent.bk.job.analysis.model.tables.records.AnalysisTaskStaticInstanceRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
@@ -33,8 +35,6 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.AnalysisTaskStaticInstance;
-import org.jooq.generated.tables.records.AnalysisTaskStaticInstanceRecord;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -141,7 +141,7 @@ public class AnalysisTaskStaticInstanceDAOImpl implements AnalysisTaskStaticInst
             log.error(sql);
             throw e;
         }
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::convert);

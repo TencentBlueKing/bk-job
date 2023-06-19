@@ -26,14 +26,15 @@ package com.tencent.bk.job.file_gateway.dao.filesource.impl;
 
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerAbilityDAO;
 import com.tencent.bk.job.file_gateway.model.dto.WorkerAbilityDTO;
+import com.tencent.bk.job.file_gateway.model.tables.FileWorkerAbility;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.generated.tables.FileWorkerAbility;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -47,7 +48,7 @@ public class FileWorkerAbilityDAOImpl implements FileWorkerAbilityDAO {
     private final DSLContext defaultContext;
 
     @Autowired
-    public FileWorkerAbilityDAOImpl(DSLContext dslContext) {
+    public FileWorkerAbilityDAOImpl(@Qualifier("job-file-gateway-dsl-context") DSLContext dslContext) {
         this.defaultContext = dslContext;
     }
 

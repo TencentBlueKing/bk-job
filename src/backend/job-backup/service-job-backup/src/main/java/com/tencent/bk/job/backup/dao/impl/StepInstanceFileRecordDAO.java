@@ -1,11 +1,11 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.execute.model.tables.StepInstanceFile;
+import com.tencent.bk.job.execute.model.tables.records.StepInstanceFileRecord;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.StepInstanceFile;
-import org.jooq.generated.tables.records.StepInstanceFileRecord;
 
 /**
  * step_instance_file DAO

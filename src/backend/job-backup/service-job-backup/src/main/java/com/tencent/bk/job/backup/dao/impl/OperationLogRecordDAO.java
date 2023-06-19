@@ -1,11 +1,11 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.execute.model.tables.OperationLog;
+import com.tencent.bk.job.execute.model.tables.records.OperationLogRecord;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.OperationLog;
-import org.jooq.generated.tables.records.OperationLogRecord;
 
 /**
  * operation_log DAO

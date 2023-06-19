@@ -26,9 +26,9 @@ package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPActionScopeDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
+import com.tencent.bk.job.manage.model.tables.WhiteIpActionScope;
 import lombok.val;
 import org.jooq.DSLContext;
-import org.jooq.generated.tables.WhiteIpActionScope;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

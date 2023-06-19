@@ -22,17 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.config;
+package com.tencent.bk.job.crontab.service.impl;
 
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.crontab.service.CronJobExecuteResultService;
+import com.tencent.bk.job.crontab.service.TaskExecuteResultService;
+import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-@Getter
-@Configuration
-public class BkConfig {
+import java.util.List;
+import java.util.Map;
 
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
+@Service
+public class CronJobExecuteResultServiceImpl implements CronJobExecuteResultService {
 
+
+    private final TaskExecuteResultService taskExecuteResultService;
+
+    @Autowired
+    public CronJobExecuteResultServiceImpl(TaskExecuteResultService taskExecuteResultService) {
+        this.taskExecuteResultService = taskExecuteResultService;
+    }
+
+    @Override
+    public Map<Long, ServiceCronTaskExecuteResultStatistics> getCronJobExecuteHistory(Long appId,
+                                                                                      List<Long> cronIdList) {
+        return taskExecuteResultService.getCronTaskExecuteResultStatistics(appId, cronIdList);
+    }
 }

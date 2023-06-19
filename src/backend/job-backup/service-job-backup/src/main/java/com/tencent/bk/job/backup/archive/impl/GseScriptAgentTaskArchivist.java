@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.GseScriptAgentTaskRecord;
+import com.tencent.bk.job.execute.model.tables.records.GseScriptAgentTaskRecord;
 
 /**
  * gse_script_agent_task 表归档

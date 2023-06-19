@@ -1,11 +1,11 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.execute.model.tables.GseTaskLog;
+import com.tencent.bk.job.execute.model.tables.records.GseTaskLogRecord;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.GseTaskLog;
-import org.jooq.generated.tables.records.GseTaskLogRecord;
 
 /**
  * gse_task_log DAO

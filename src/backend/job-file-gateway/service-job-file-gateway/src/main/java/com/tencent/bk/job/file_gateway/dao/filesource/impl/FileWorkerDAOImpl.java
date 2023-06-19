@@ -32,6 +32,9 @@ import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerTagDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.dto.WorkerAbilityDTO;
 import com.tencent.bk.job.file_gateway.model.dto.WorkerTagDTO;
+import com.tencent.bk.job.file_gateway.model.tables.FileWorker;
+import com.tencent.bk.job.file_gateway.model.tables.FileWorkerAbility;
+import com.tencent.bk.job.file_gateway.model.tables.records.FileWorkerRecord;
 import com.tencent.bk.job.file_gateway.util.JooqTypeUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -44,11 +47,9 @@ import org.jooq.UpdateConditionStep;
 import org.jooq.UpdateSetFirstStep;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.FileWorker;
-import org.jooq.generated.tables.FileWorkerAbility;
-import org.jooq.generated.tables.records.FileWorkerRecord;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -95,7 +96,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     private final FileWorkerTagDAO fileWorkerTagDAO;
 
     @Autowired
-    public FileWorkerDAOImpl(DSLContext dslContext,
+    public FileWorkerDAOImpl(@Qualifier("job-file-gateway-dsl-context") DSLContext dslContext,
                              FileWorkerAbilityDAO fileWorkerAbilityDAO,
                              FileWorkerTagDAO fileWorkerTagDAO) {
         this.defaultContext = dslContext;

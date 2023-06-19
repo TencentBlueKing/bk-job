@@ -29,10 +29,13 @@ import com.tencent.bk.job.crontab.config.JobQuartzProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
+@SpringBootApplication(
+    scanBasePackages = "com.tencent.bk.job.crontab",
+    exclude = {RedisAutoConfiguration.class, JooqAutoConfiguration.class})
 @EnableFeignClients
 @EnableConfigurationProperties({FeatureToggleConfig.class, JobQuartzProperties.class})
 public class JobCrontabBootApplication {

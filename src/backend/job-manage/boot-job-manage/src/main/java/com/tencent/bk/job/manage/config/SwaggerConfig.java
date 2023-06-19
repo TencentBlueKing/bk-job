@@ -22,28 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.manage.config;
 
-import com.tencent.bk.job.common.web.filter.RepeatableReadWriteServletRequestResponseFilter;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import com.tencent.bk.job.common.config.JobCommonConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.oas.annotations.EnableOpenApi;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
+/**
+ * Swagger 配置
+ */
 @Configuration
-public class FilterConfig {
-    @Bean
-    public FilterRegistrationBean repeatableRSRRFilterRegister() {
-        FilterRegistrationBean<RepeatableReadWriteServletRequestResponseFilter> registration =
-            new FilterRegistrationBean<>();
-        registration.setFilter(repeatableRRRFilter());
-        registration.addUrlPatterns("/esb/api/*");
-        registration.setName("repeatableReadRequestResponseFilter");
-        registration.setOrder(0);
-        return registration;
+@EnableOpenApi
+@Profile({"dev", "local"})
+public class SwaggerConfig {
+
+    private final JobCommonConfig jobCommonConfig;
+
+    @Autowired
+    public SwaggerConfig(JobCommonConfig jobCommonConfig) {
+        this.jobCommonConfig = jobCommonConfig;
     }
 
-    @Bean(name = "repeatableReadRequestResponseFilter")
-    public RepeatableReadWriteServletRequestResponseFilter repeatableRRRFilter() {
-        return new RepeatableReadWriteServletRequestResponseFilter();
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.OAS_30)
+            .host(jobCommonConfig.getSwaggerUrl())
+            .pathMapping("job-manage")
+            .protocols(new HashSet<>(Arrays.asList("http", "https")))
+            .select()
+            .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.manage.api"))
+            .paths(PathSelectors.any())
+            .build();
     }
 }

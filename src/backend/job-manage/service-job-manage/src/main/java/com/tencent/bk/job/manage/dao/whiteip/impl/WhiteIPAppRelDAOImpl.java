@@ -26,10 +26,10 @@ package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPAppRelDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPAppRelDTO;
+import com.tencent.bk.job.manage.model.tables.WhiteIpAppRel;
+import com.tencent.bk.job.manage.model.tables.records.WhiteIpAppRelRecord;
 import lombok.val;
 import org.jooq.DSLContext;
-import org.jooq.generated.tables.WhiteIpAppRel;
-import org.jooq.generated.tables.records.WhiteIpAppRelRecord;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

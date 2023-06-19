@@ -32,77 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 @Configuration
-public class BkConfig {
-    //---------------------------- Esb Config ---------------------------------
-    /**
-     * 是否对接ESB测试环境,内部环境使用
-     */
-    @Value("${esb.use.test.env:false}")
-    private boolean useEsbTestEnv;
-    /**
-     * 应用code
-     */
-    @Value("${app.code}")
-    private String appCode;
-
-    /**
-     * ESB App Secret
-     */
-    @Value("${app.secret}")
-    private String appSecret;
-
-    /**
-     * ESB service url
-     */
-    @Value("${esb.service.url:}")
-    private String esbUrl;
-
-    //---------------------------- Login Config ---------------------------------
-    /**
-     * 蓝鲸标准的登录url
-     */
-    @Value("${paas.login.url:}")
-    private String loginUrl;
-
-    /**
-     * 是否使用第三方登录系统
-     */
-    @Value("${paas.login.custom.enabled:false}")
-    private boolean customPaasLoginEnabled;
-
-    /**
-     * 第三方登录系统用户token的cookie名称
-     */
-    @Value("${paas.login.custom.token-name:bk_token}")
-    private String customLoginToken;
-
-    /**
-     * 第三方登录系统登录url
-     */
-    @Value("${paas.login.custom.login-url:}")
-    private String customLoginUrl;
-
-    /**
-     * 第三方登录系统API url，用于根据token获取用户信息
-     */
-    @Value("${paas.login.custom.api-url:}")
-    private String customLoginApiUrl;
-
-
-    //---------------------------- Job Config ---------------------------------
-    @Value("${job.edition:ee}")
-    private String jobEdition;
-
-    /**
-     * 作业平台web访问地址，可配置多个，用","分隔
-     */
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
-
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
-
-    //---------------------------- License Config ---------------------------------
+public class LicenseConfig {
     /**
      * license 校验服务url
      */
@@ -131,6 +61,5 @@ public class BkConfig {
      */
     @Value("${license.check.retry-interval:1}")
     private Integer licenseCheckRetryInterval;
-
 
 }

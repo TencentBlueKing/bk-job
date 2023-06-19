@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.RollingConfigRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.RollingConfigRecord;
+import com.tencent.bk.job.execute.model.tables.records.RollingConfigRecord;
 
 /**
  * rolling_config 表归档

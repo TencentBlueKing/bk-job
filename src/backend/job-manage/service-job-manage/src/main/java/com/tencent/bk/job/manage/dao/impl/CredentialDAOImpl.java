@@ -36,6 +36,8 @@ import com.tencent.bk.job.manage.config.JobTicketConfig;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
+import com.tencent.bk.job.manage.model.tables.Credential;
+import com.tencent.bk.job.manage.model.tables.records.CredentialRecord;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -45,9 +47,8 @@ import org.jooq.Record;
 import org.jooq.SortField;
 import org.jooq.UpdateConditionStep;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.Credential;
-import org.jooq.generated.tables.records.CredentialRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -63,7 +64,8 @@ public class CredentialDAOImpl implements CredentialDAO {
     private final DSLContext dslContext;
 
     @Autowired
-    public CredentialDAOImpl(JobTicketConfig jobTicketConfig, DSLContext dslContext) {
+    public CredentialDAOImpl(JobTicketConfig jobTicketConfig,
+                             @Qualifier("job-file-gateway-dsl-context") DSLContext dslContext) {
         this.jobTicketConfig = jobTicketConfig;
         this.dslContext = dslContext;
     }

@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceConfirmRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.StepInstanceConfirmRecord;
+import com.tencent.bk.job.execute.model.tables.records.StepInstanceConfirmRecord;
 
 /**
  * step_instance_confirm 表归档

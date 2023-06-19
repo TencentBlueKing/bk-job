@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.dao.index.impl;
 
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.model.dto.index.IndexGreetingDTO;
+import com.tencent.bk.job.manage.model.tables.IndexGreeting;
+import com.tencent.bk.job.manage.model.tables.records.IndexGreetingRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
@@ -33,8 +35,6 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.IndexGreeting;
-import org.jooq.generated.tables.records.IndexGreetingRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;

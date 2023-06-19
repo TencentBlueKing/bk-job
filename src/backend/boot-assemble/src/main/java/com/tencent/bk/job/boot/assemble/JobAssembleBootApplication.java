@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.crontab.config.JobQuartzProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -43,7 +44,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
             "com.tencent.bk.job.analysis",
             "com.tencent.bk.job.file_gateway",
             "com.tencent.bk.job.backup"
-        }
+        },
+    exclude = {JooqAutoConfiguration.class}
 )
 @EnableCaching
 @EnableScheduling

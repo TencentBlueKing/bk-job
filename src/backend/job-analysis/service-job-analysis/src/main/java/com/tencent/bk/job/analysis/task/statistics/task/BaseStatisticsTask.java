@@ -42,7 +42,8 @@ public abstract class BaseStatisticsTask implements IStatisticsTask {
     protected final StatisticsDAO statisticsDAO;
     protected final DSLContext dslContext;
 
-    protected BaseStatisticsTask(BasicServiceManager basicServiceManager, StatisticsDAO statisticsDAO,
+    protected BaseStatisticsTask(BasicServiceManager basicServiceManager,
+                                 StatisticsDAO statisticsDAO,
                                  DSLContext dslContext) {
         this.basicServiceManager = basicServiceManager;
         this.statisticsDAO = statisticsDAO;

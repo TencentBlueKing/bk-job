@@ -129,14 +129,14 @@ public class RedisSlideWindowFlowController implements FlowController {
             long duration = System.currentTimeMillis() - timeStart;
 
             if (duration >= 1000) {
-                log.warn("DANGER:slideWindow update time consuming:" + duration + "ms");
+//                log.warn("DANGER:slideWindow update time consuming:" + duration + "ms");
             } else if (duration >= 100) {
                 logDurationWithSuppress(Level.WARN, duration);
             } else if (duration >= 10) {
                 logDurationWithSuppress(Level.INFO, duration);
             }
         } catch (Exception e) {
-            log.error("Exception when clear slideWindows", e);
+//            log.error("Exception when clear slideWindows", e);
         }
     }
 

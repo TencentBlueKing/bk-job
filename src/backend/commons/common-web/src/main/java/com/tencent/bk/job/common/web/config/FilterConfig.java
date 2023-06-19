@@ -22,32 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.web.impl;
+package com.tencent.bk.job.common.web.config;
 
-import com.tencent.bk.job.common.web.controller.WebVersionResource;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
-import org.springframework.boot.actuate.info.InfoEndpoint;
-import org.springframework.web.bind.annotation.RestController;
+import com.tencent.bk.job.common.web.filter.RepeatableReadWriteServletRequestResponseFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.Map;
-
-
-@Slf4j
-@RestController("jobManageWebVersionResourceImpl")
-@ConditionalOnAvailableEndpoint(endpoint = InfoEndpoint.class)
-public class WebVersionResourceImpl implements WebVersionResource {
-
-    private final InfoEndpoint infoEndpoint;
-
-    @Autowired
-    public WebVersionResourceImpl(InfoEndpoint infoEndpoint) {
-        this.infoEndpoint = infoEndpoint;
+@Configuration
+public class FilterConfig {
+    @Bean
+    public FilterRegistrationBean repeatableRSRRFilterRegister() {
+        FilterRegistrationBean<RepeatableReadWriteServletRequestResponseFilter> registration =
+            new FilterRegistrationBean<>();
+        registration.setFilter(repeatableRRRFilter());
+        registration.addUrlPatterns("/esb/api/*");
+        registration.setName("repeatableReadRequestResponseFilter");
+        registration.setOrder(0);
+        return registration;
     }
 
-    @Override
-    public Map<String, Object> getVersion() {
-        return infoEndpoint.info();
+    @Bean(name = "repeatableReadRequestResponseFilter")
+    public RepeatableReadWriteServletRequestResponseFilter repeatableRRRFilter() {
+        return new RepeatableReadWriteServletRequestResponseFilter();
     }
 }

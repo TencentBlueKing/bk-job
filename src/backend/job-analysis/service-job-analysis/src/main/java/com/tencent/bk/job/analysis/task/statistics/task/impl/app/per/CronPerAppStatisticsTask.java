@@ -35,6 +35,7 @@ import com.tencent.bk.job.crontab.api.inner.ServiceCronMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
 
     protected CronPerAppStatisticsTask(BasicServiceManager basicServiceManager,
                                        StatisticsDAO statisticsDAO,
-                                       DSLContext dslContext,
+                                       @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                        ServiceCronMetricsResource cronMetricsResource) {
         super(basicServiceManager, statisticsDAO, dslContext);
         this.cronMetricsResource = cronMetricsResource;

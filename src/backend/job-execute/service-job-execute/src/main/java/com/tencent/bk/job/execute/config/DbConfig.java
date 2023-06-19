@@ -36,7 +36,6 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
@@ -47,7 +46,6 @@ import javax.sql.DataSource;
 public class DbConfig {
 
     @Qualifier("job-execute-data-source")
-    @Primary
     @Bean(name = "job-execute-data-source")
     @ConfigurationProperties(prefix = "spring.datasource.job-execute")
     public DataSource dataSource() {
@@ -57,7 +55,6 @@ public class DbConfig {
     @Qualifier("jobExecuteTransactionManager")
     @Bean(name = "jobExecuteTransactionManager")
     @DependsOn("job-execute-data-source")
-    @Primary
     public DataSourceTransactionManager transactionManager(
         @Qualifier("job-execute-data-source") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);

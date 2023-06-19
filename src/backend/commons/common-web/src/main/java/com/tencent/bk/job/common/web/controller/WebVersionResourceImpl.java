@@ -22,20 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.api.web.impl;
+package com.tencent.bk.job.common.web.controller;
 
-import com.tencent.bk.job.common.web.controller.WebVersionResource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.info.InfoEndpoint;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
 
 @Slf4j
-@RestController("jobCrontabWebVersionResourceImpl")
 @ConditionalOnAvailableEndpoint(endpoint = InfoEndpoint.class)
 public class WebVersionResourceImpl implements WebVersionResource {
 

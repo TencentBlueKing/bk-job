@@ -22,31 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.api.web.impl;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.web.controller.WebVersionResource;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.common.config.JobCommonConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
-import org.springframework.boot.actuate.info.InfoEndpoint;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.oas.annotations.EnableOpenApi;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
 
-import java.util.Map;
+import java.util.Arrays;
+import java.util.HashSet;
 
-@Slf4j
-@RestController("jobBackupWebVersionResourceImpl")
-@ConditionalOnAvailableEndpoint(endpoint = InfoEndpoint.class)
-public class WebVersionResourceImpl implements WebVersionResource {
+/**
+ * Swagger 配置
+ */
+@Configuration
+@EnableOpenApi
+@Profile({"dev", "local"})
+public class SwaggerConfig {
 
-    private final InfoEndpoint infoEndpoint;
+    private final JobCommonConfig jobCommonConfig;
 
     @Autowired
-    public WebVersionResourceImpl(InfoEndpoint infoEndpoint) {
-        this.infoEndpoint = infoEndpoint;
+    public SwaggerConfig(JobCommonConfig jobCommonConfig) {
+        this.jobCommonConfig = jobCommonConfig;
     }
 
-    @Override
-    public Map<String, Object> getVersion() {
-        return infoEndpoint.info();
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.OAS_30)
+            .host(jobCommonConfig.getSwaggerUrl())
+            .pathMapping("/job-execute")
+            .protocols(new HashSet<>(Arrays.asList("http", "https")))
+            .select()
+            .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.execute.api"))
+            .paths(PathSelectors.any())
+            .build();
     }
 }

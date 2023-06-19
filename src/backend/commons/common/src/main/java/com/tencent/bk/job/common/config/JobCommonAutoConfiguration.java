@@ -22,29 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.config;
 
-import com.tencent.bk.job.common.encrypt.Encryptor;
-import com.tencent.bk.job.common.encrypt.RSAEncryptor;
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
-@Configuration
-public class JobManageAutoConfiguration {
-
-    @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
-    }
-
-    @Bean("gseRsaEncryptor")
-    public Encryptor rsaEncryptor(@Autowired GseConfigForManage config) throws IOException, GeneralSecurityException {
-        return new RSAEncryptor(config.getGsePublicKeyPermBase64());
+@Configuration(proxyBeanMethods = false)
+@Import(JobCommonConfig.class)
+public class JobCommonAutoConfiguration {
+    @Bean("applicationContextRegister")
+    @Lazy(false)
+    public ApplicationContextRegister applicationContextRegister() {
+        return new ApplicationContextRegister();
     }
 }
