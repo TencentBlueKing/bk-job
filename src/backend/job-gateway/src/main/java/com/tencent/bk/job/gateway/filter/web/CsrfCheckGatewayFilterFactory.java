@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.gateway.filter.web;
 
-import com.tencent.bk.job.common.config.JobCommonConfig;
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.common.util.UrlUtil;
 import com.tencent.bk.job.gateway.web.service.LoginService;

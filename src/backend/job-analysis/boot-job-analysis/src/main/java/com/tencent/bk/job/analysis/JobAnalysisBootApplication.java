@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;

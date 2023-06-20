@@ -27,6 +27,7 @@ package com.tencent.bk.job.crontab.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.quartz.SchedulerFactoryBeanCustomizer;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -39,6 +40,7 @@ import javax.sql.DataSource;
  */
 @Configuration
 @Profile("!test")
+@EnableConfigurationProperties({JobQuartzProperties.class})
 public class QuartzConfig {
 
     private final JobQuartzProperties jobQuartzProperties;

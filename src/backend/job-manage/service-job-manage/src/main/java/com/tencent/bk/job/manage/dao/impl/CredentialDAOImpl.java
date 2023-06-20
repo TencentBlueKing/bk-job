@@ -65,7 +65,7 @@ public class CredentialDAOImpl implements CredentialDAO {
 
     @Autowired
     public CredentialDAOImpl(JobTicketConfig jobTicketConfig,
-                             @Qualifier("job-file-gateway-dsl-context") DSLContext dslContext) {
+                             @Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.jobTicketConfig = jobTicketConfig;
         this.dslContext = dslContext;
     }

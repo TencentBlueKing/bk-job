@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.gateway.config;
 
-import com.tencent.bk.job.common.config.JobCommonConfig;
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;

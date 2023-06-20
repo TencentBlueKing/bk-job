@@ -112,7 +112,7 @@ ext {
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.64")
-    set('reflectionsVersion', "0.9.12")
+    set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
     set('commonsValidatorVersion', "1.6")

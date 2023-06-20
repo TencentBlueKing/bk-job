@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.gateway.filter;
 
-import com.tencent.bk.job.common.config.JobCommonConfig;
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.gateway.filter.web.CsrfCheckGatewayFilterFactory;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import org.junit.jupiter.api.AfterEach;

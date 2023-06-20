@@ -27,13 +27,13 @@ package com.tencent.bk.job.manage.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-manage:service:GlobalSettings"})
-@RestController
+@SmartFeignClient(value = "job-manage", contextId = "globalSettingsResource")
 @InternalAPI
 public interface ServiceGlobalSettingsResource {
 

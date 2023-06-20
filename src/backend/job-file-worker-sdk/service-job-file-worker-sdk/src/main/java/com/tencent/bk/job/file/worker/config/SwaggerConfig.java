@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file.worker.config;
 
-import com.tencent.bk.job.common.config.JobCommonConfig;
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

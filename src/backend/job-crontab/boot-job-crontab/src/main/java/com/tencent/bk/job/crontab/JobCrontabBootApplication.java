@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import com.tencent.bk.job.crontab.config.JobQuartzProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

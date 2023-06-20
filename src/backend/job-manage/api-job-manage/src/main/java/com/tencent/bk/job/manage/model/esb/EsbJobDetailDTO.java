@@ -27,17 +27,15 @@ package com.tencent.bk.job.manage.model.esb;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
 /**
  * 作业执行方案详情
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-@Getter
-@Setter
 public class EsbJobDetailDTO extends EsbAppScopeDTO {
     /**
      * id

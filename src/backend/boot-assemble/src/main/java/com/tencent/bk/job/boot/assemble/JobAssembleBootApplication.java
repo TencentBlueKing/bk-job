@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.boot.assemble;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import com.tencent.bk.job.crontab.config.JobQuartzProperties;
+import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(
@@ -49,7 +49,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 )
 @EnableCaching
 @EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class, JobQuartzProperties.class})
+@EnableConfigurationProperties({FeatureToggleConfig.class})
+@EnableFeignClients(basePackages = "com.tencent.bk.job")
 public class JobAssembleBootApplication {
 
     public static void main(String[] args) {

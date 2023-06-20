@@ -52,6 +52,7 @@ public class JobQuartzProperties {
 
     /**
      * 执行定时任务的线程池配置，配置参考 ThreadPoolTaskExecutor
+     *
      * @see ThreadPoolTaskExecutor
      */
     @Data
