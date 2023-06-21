@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.gateway;
 
+import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
@@ -41,9 +41,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 /**
- * @date 2019/09/20
+ * Job Gateway Spring Boot Application
  */
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job")
+@JobBootApplication(scanBasePackages = "com.tencent.bk.job.gateway")
 @EnableDiscoveryClient
 @Slf4j
 @EnableConfigurationProperties({FeatureToggleConfig.class})

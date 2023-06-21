@@ -74,7 +74,7 @@ import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
@@ -87,11 +87,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @since 2/1/2020 12:18
- */
+
 @Slf4j
-@Component
+@Service
 public class CronJobServiceImpl implements CronJobService {
 
     private final CronJobDAO cronJobDAO;

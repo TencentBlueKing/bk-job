@@ -24,27 +24,17 @@
 
 package com.tencent.bk.job.manage;
 
-import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
-@SpringBootApplication(
-    scanBasePackages = "com.tencent.bk.job.manage",
-    exclude = {RedisAutoConfiguration.class, JooqAutoConfiguration.class})
-@EnableConfigurationProperties({FeatureToggleConfig.class})
-@EnableCaching
-@EnableFeignClients
-@EnableScheduling
+//@JobBootApplication(
+//    scanBasePackages = "com.tencent.bk.job.manage",
+//    exclude = {JooqAutoConfiguration.class})
+//@EnableConfigurationProperties({FeatureToggleConfig.class})
+//@EnableCaching
+//@EnableFeignClients(basePackages = "com.tencent.bk.job")
+//@EnableScheduling
 public class JobManageTestBootApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobManageTestBootApplication.class, args);
-    }
+//    public static void main(String[] args) {
+//        SpringApplication.run(JobManageTestBootApplication.class, args);
+//    }
 
 }

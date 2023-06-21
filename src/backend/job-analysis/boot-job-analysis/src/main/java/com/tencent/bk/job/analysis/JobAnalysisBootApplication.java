@@ -24,25 +24,22 @@
 
 package com.tencent.bk.job.analysis;
 
+import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(
+@JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.analysis",
-    exclude = {RedisAutoConfiguration.class, JooqAutoConfiguration.class})
+    exclude = {JooqAutoConfiguration.class})
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling
 @EnableConfigurationProperties({FeatureToggleConfig.class})
-@DependsOn("applicationContextRegister")
 public class JobAnalysisBootApplication {
 
     public static void main(String[] args) {

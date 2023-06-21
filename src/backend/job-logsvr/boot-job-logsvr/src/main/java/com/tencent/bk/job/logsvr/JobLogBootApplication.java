@@ -24,17 +24,16 @@
 
 package com.tencent.bk.job.logsvr;
 
+import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication(
+@JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.logsvr",
-    exclude = {RedisAutoConfiguration.class, JooqAutoConfiguration.class})
+    exclude = {JooqAutoConfiguration.class})
 @EnableFeignClients
 @EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobLogBootApplication {

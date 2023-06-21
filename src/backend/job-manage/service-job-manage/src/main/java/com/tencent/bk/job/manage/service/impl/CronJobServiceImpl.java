@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Service("jobManageCronJobService")
+@Service
 public class CronJobServiceImpl implements CronJobService {
 
     private final ServiceCronJobResource serviceCronJobResource;

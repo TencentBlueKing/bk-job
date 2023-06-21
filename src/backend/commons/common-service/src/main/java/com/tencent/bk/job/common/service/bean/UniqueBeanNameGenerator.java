@@ -22,22 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker;
+package com.tencent.bk.job.common.service.bean;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.annotation.AnnotationBeanNameGenerator;
+import org.springframework.util.StringUtils;
 
-@SpringBootApplication(
-    scanBasePackages = "com.tencent.bk.job.file.worker",
-    exclude = {JooqAutoConfiguration.class})
-@EnableCaching
-@EnableScheduling
-public class JobFileWorkerBootApplication {
+/**
+ * 自定义唯一名称 Bean 生成规则，避免Bean名称冲突
+ */
+public class UniqueBeanNameGenerator extends AnnotationBeanNameGenerator {
+    @Override
+    public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
+        if (definition instanceof AnnotatedBeanDefinition) {
+            String beanName = determineBeanNameFromAnnotation((AnnotatedBeanDefinition) definition);
+            if (StringUtils.hasText(beanName)) {
+                // Explicit bean name found.
+                return beanName;
+            }
+        }
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobFileWorkerBootApplication.class, args);
+        // 如果该bean名称没有指定，则按照“package+className”的规则生成
+        return definition.getBeanClassName();
     }
 }

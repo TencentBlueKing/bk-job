@@ -24,20 +24,17 @@
 
 package com.tencent.bk.job.execute;
 
+import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 
-@SpringBootApplication(
+@JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.execute",
-    exclude = {RedisAutoConfiguration.class, JooqAutoConfiguration.class})
-@EnableDiscoveryClient
+    exclude = {JooqAutoConfiguration.class})
 @EnableFeignClients
 @EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobExecuteBootApplication {
