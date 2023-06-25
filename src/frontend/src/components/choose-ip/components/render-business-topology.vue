@@ -79,7 +79,7 @@
     <div class="host-list">
       <mult-input
         class="host-search"
-        :placeholder="$t('输入 主机 IP / 主机名 / 操作系统 / 云区域 进行搜索...')"
+        :placeholder="$t('输入 主机 IP / 主机名 / 操作系统 / 管控区域 进行搜索...')"
         @input="handleHostSearch" />
       <host-table
         v-bkloading="{ isLoading }"
@@ -96,7 +96,7 @@
               {{ $t('主机IP') }}
             </th>
             <th style="width: 12.8%;">
-              {{ $t('云区域') }}
+              {{ $t('管控区域') }}
             </th>
             <th style="width: 13.4%;">
               <div

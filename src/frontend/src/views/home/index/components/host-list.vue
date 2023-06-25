@@ -40,7 +40,7 @@
         class-name="ip-item"
         label="IP"
         prop="ip" />
-      <bk-table-column :label="$t('home.云区域')">
+      <bk-table-column :label="$t('home.管控区域')">
         <template slot-scope="{ row }">
           {{ row.cloudAreaInfo.name || '--' }}
         </template>

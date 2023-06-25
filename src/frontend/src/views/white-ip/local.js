@@ -32,11 +32,11 @@ export default {
     创建时间: 'Created at',
     编辑: 'Edit',
     '确定删除该IP白名单？': 'Are you sure to delete it?',
-    '删除后不可恢复，请谨慎操作！': 'Caution! it cannot be restored after deletion.',
+    '删除后不可恢复，请谨慎操作！': 'Caution! It cannot be restored after deletion.',
     编辑IP白名单: 'Whitelist editing',
     新建IP白名单: 'New whitelist',
     提交: 'Submit',
-    云区域: 'Cloud area',
+    管控区域: 'BK-Net',
     '输入IP，以“回车”分隔': 'Separate with new line...',
     备注: {
       label: 'Description',

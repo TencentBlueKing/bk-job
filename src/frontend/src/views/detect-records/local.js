@@ -31,8 +31,8 @@ export default {
     '搜索拦截ID，表达式，业务，执行人，执行方式，调用方，动作…': 'Search by ID / Grammar Regex. / Ran by / ...',
     拦截ID: 'ID',
     表达式: {
-      label: 'Grammar regex',
-      colHead: 'Grammar regex',
+      label: 'Grammar regex.',
+      colHead: 'Grammar regex.',
     },
     业务: {
       label: 'APP',
@@ -66,7 +66,7 @@ export default {
     近1天: 'Last 24 hours',
     近7天: 'Last 7 days',
     至今: 'until now',
-    定时执行: 'Crons',
+    定时执行: 'Cron',
     API调用: 'API',
     页面执行: 'Web UI',
     扫描: 'Scan',
