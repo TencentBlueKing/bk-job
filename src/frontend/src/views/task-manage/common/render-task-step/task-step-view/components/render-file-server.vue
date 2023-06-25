@@ -46,9 +46,6 @@
       </template>
       <div class="content-wraper">
         <scroll-faker>
-          <!-- <server-panel
-                        detail-mode="dialog"
-                        :host-node-info="hostNodeInfo" /> -->
           <ip-selector
             readonly
             show-view
@@ -62,13 +59,11 @@
   import TaskHostNodeModel from '@model/task-host-node';
 
   import ScrollFaker from '@components/scroll-faker';
-  // import ServerPanel from '@components/choose-ip/server-panel';
 
   export default {
     name: '',
     components: {
       ScrollFaker,
-      // ServerPanel,
     },
     props: {
       data: {

@@ -39,7 +39,7 @@ export default {
     操作: 'Actions',
     编辑: 'Edit',
     '确定删除该定时任务？': 'Are you sure to delete it?',
-    '删除后不可恢复，请谨慎操作！': 'It cannot be restored after deletion, please proceed with caution!',
+    '删除后不可恢复，请谨慎操作！': 'Caution! It cannot be restored after deletion.',
     删除: 'Delete',
     编辑定时任务: 'Edit Cron',
     新建定时任务: 'New Cron',

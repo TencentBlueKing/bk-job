@@ -91,7 +91,7 @@
 
   import QueryGlobalSettingService from '@service/query-global-setting';
 
-  import Agent from './components/agent';
+  import Agent from './components/agent/index.vue';
   import LayoutCard from './components/card';
   import FavorTask from './components/favor-task';
   import HistoryRecord from './components/history-record';

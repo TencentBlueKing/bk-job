@@ -40,8 +40,8 @@ export default {
     含义: 'Description',
     示例: 'Example',
     保存成功: 'The change has been saved.',
-    重置成功: 'Reset successful',
-    还原默认成功: 'Initialize successful',
+    重置成功: 'Reset successfully',
+    还原默认成功: 'Initialize successfully',
     '脚本模板仅对当前用户在新建脚本相关场景下有效（如快速执行脚本、新建脚本、作业脚本步骤）': 'Script template is only valid for the current user in scenarios related to new scripts (e.g. quick script execution, new scripts, new job script steps)',
   },
 };

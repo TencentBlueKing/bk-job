@@ -79,12 +79,6 @@
       </template>
       <div class="content-wraper">
         <scroll-faker>
-          <!-- <server-panel
-                        detail-mode="dialog"
-                        :host-node-info="hostNodeInfo"
-                        :node-diff="nodeDiff"
-                        :host-diff="hostDiff"
-                        :group-diff="groupDiff" /> -->
           <ip-selector
             readonly
             show-view
@@ -97,7 +91,6 @@
 <script>
   import TaskHostNodeModel from '@model/task-host-node';
 
-  // import ServerPanel from '@components/choose-ip/server-panel';
   import {
     findParent,
   } from '@utils/vdom';
@@ -131,7 +124,6 @@
     name: '',
     components: {
       ScrollFaker,
-      // ServerPanel,
     },
     props: {
       preHost: {
