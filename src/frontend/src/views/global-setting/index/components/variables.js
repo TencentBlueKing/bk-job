@@ -115,7 +115,7 @@ export const InternalVariables = {
       examples: I18n.t('setting.请确认以上执行步骤是否执行正常'),
     },
     {
-      name: '{{ task.step.confirmer }}',
+      name: '{{ task.step.username }}',
       meaning: I18n.t('setting.任务的确认步骤的干系人'),
       examples: 'admin',
     },

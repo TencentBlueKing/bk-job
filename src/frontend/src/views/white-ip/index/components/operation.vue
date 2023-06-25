@@ -49,7 +49,7 @@
         </div>
       </jb-form-item>
       <jb-form-item
-        :label="$t('whiteIP.云区域')"
+        :label="$t('whiteIP.管控区域')"
         property="cloudAreaId"
         required>
         <bk-select
@@ -116,7 +116,7 @@
     actionScopeIdList: [],
     // 业务ID
     scopeList: [],
-    // 云区域ID
+    // 管控区域ID
     cloudAreaId: '',
     ipStr: '',
     // 备注
@@ -233,7 +233,7 @@
           });
       },
       /**
-       * @desc 获取云区域列表
+       * @desc 获取管控区域列表
        */
       fetchAllCloudArea() {
         return WhiteIpService.getAllCloudArea()

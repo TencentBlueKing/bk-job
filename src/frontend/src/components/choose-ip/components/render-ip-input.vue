@@ -33,7 +33,7 @@
         :class="{
           'focus-error': isFocusError,
         }"
-        :placeholder="$t('请输入 IP 地址，多IP可用 空格 换行 ; , |分隔 \n带云区域请用冒号分隔，如（ 0:192.168.1.101 ）')"
+        :placeholder="$t('请输入 IP 地址，多IP可用 空格 换行 ; , |分隔 \n带管控区域请用冒号分隔，如（ 0:192.168.1.101 ）')"
         :rows="inputRows"
         type="textarea"
         :value="ipInputText"
@@ -273,7 +273,7 @@
                   id: cloudAreaInfo.id,
                 },
               });
-              // 记录 IP 和 云区域 ID + IP 组成的检索
+              // 记录 IP 和 管控区域 ID + IP 组成的检索
               hostIPMap[ip] = true;
               hostIPMap[`${cloudAreaInfo.id}:${ip}`] = true;
             });

@@ -182,7 +182,7 @@
     },
     methods: {
       /**
-       * @desc 通过ip和云区域获取主机信息
+       * @desc 通过ip和管控区域获取主机信息
        */
       fetchHostOfHost() {
         this.isLoading = true;
