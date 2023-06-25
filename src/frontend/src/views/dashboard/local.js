@@ -68,7 +68,7 @@ export default {
     '7 天内': 'in 7 days',
     '14 天内': 'in 14 days',
     '30 天内': 'in 30 days',
-    页面执行: 'Web',
+    页面执行: 'Web UI',
     'API 调用': 'API',
     定时执行: 'Cron',
     执行数: 'Number of execution',

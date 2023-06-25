@@ -37,7 +37,7 @@
               {{ $t('主机IP') }}
             </th>
             <th style="width: 20%;">
-              {{ $t('云区域') }}
+              {{ $t('管控区域') }}
             </th>
             <th style="width: 150px;">
               {{ $t('Agent 状态') }}
@@ -62,7 +62,7 @@
                 <span
                   v-if="row.repeat"
                   class="repeat"
-                  :tippy-tips="$t('指和其他主机的IP地址相同，但云区域不同')">
+                  :tippy-tips="$t('指和其他主机的IP地址相同，但管控区域不同')">
                   {{ $t('重复') }}
                 </span>
                 <div class="cell-text">

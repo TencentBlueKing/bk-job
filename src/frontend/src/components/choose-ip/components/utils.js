@@ -100,7 +100,7 @@ export const filterTopology = (topologyTreeData, showEmpty = true) => {
  * @returns { Boolean }
  */
 export const statisticsHost = (list) => {
-  // 主机的唯一标记是ip + 云区域
+  // 主机的唯一标记是ip + 管控区域
   const total = list.length;
   let fail = 0;
   // eslint-disable-next-line no-plusplus
