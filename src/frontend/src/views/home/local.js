@@ -73,7 +73,7 @@ export default {
     'Agent 未安装的机器列表': '',
     'Agent 状态': 'Agent status',
     管控区域: 'BK-Net',
-    主机名: 'hostname',
+    主机名: 'Hostname',
     操作系统: 'OS',
     操作系统名称: 'OS name',
     复制全部: 'Copy all',
