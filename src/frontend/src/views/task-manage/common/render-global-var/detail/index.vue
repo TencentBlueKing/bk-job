@@ -44,10 +44,6 @@
       </tr>
     </table>
     <template v-if="data.isHost">
-      <!-- <server-panel
-                style="margin-top: 20px;"
-                detail-fullscreen
-                :host-node-info="data.defaultTargetValue.hostNodeInfo" /> -->
       <ip-selector
         readonly
         show-view
@@ -58,7 +54,6 @@
 <script>
   import GlobalVariableModel from '@model/task/global-variable';
 
-  // import ServerPanel from '@components/choose-ip/server-panel';
   import JbEditTextarea from '@components/jb-edit/textarea';
 
   import I18n from '@/i18n';
@@ -82,7 +77,6 @@
   export default {
     name: 'GlobalVarView',
     components: {
-      // ServerPanel,
       JbEditTextarea,
     },
     props: {
