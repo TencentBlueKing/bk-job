@@ -20,6 +20,9 @@ spring:
       config:
         # trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
         traceIdRatioBased: 0.1
+bk:
+  # 蓝鲸根域名。指蓝鲸产品公共 cookies 写入的目录，同时也是各个系统的公共域名部分
+  bkDomain: __BK_DOMAIN__
 app:
   code: __BK_JOB_APP_CODE__
   secret: __BK_JOB_APP_SECRET__

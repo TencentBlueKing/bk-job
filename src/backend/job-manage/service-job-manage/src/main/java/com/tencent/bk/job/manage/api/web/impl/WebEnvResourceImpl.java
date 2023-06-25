@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.esb.config.BkApiConfig;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.web.WebEnvResource;
@@ -40,16 +41,19 @@ import java.util.Map;
 public class WebEnvResourceImpl implements WebEnvResource {
 
     private final BkApiConfig bkApiConfig;
+    private final BkConfig bkConfig;
 
     @Autowired
-    public WebEnvResourceImpl(BkApiConfig bkApiConfig) {
+    public WebEnvResourceImpl(BkApiConfig bkApiConfig, BkConfig bkConfig) {
         this.bkApiConfig = bkApiConfig;
+        this.bkConfig = bkConfig;
     }
 
     @Override
     public Response<Map<String, String>> getJobEnvProperties(String username) {
         Map<String, String> properties = new HashMap<>();
         properties.put("esb.url", standardUrl(bkApiConfig.getEsbUrl()));
+        properties.put("bkDomain", bkConfig.getBkDomain());
         return Response.buildSuccessResp(properties);
     }
 
