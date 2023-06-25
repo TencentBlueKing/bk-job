@@ -78,12 +78,12 @@
     execCopy,
   } from '@utils/assist';
 
-  import ActionExtend from '@components/choose-ip/components/action-extend';
-  import SidesliderBox from '@components/choose-ip/components/sideslider-box';
-
   import I18n from '@/i18n';
 
-  import HostList from './host-list';
+  import HostList from '../host-list';
+
+  import ActionExtend from './components/action-extend';
+  import SidesliderBox from './components/sideslider-box';
 
   export default {
     name: '',

@@ -38,7 +38,7 @@ export default {
     },
 
     序号: {
-      colHead: 'Sn.',
+      colHead: 'SN.',
     },
     实例名: {
       colHead: 'Node',

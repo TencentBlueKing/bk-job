@@ -37,7 +37,7 @@ class WhiteIp {
     });
   }
 
-  // 获取业务下云区域列表
+  // 获取业务下管控区域列表
   getAllCloudArea() {
     return Request.get(`${this.module}/cloudAreas/list`);
   }

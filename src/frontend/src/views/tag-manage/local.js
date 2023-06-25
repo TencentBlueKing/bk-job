@@ -58,7 +58,7 @@ export default {
     标签: 'Tags',
     新建标签: 'New',
     批量流转关联项: 'Convert',
-    批量流转关联项成功: 'Convert success',
+    批量流转关联项成功: 'Convert successfully',
     范围不能为空: 'Target is required',
     提交: 'Submit',
   },

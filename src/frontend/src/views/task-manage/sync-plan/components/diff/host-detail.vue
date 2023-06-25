@@ -62,12 +62,6 @@
       </template>
       <div class="content-wraper">
         <scroll-faker>
-          <!-- <server-panel
-                        detail-mode="dialog"
-                        :host-node-info="hostNodeInfo"
-                        :node-diff="nodeDiff"
-                        :host-diff="hostDiff"
-                        :group-diff="groupDiff" /> -->
           <ip-selector
             readonly
             show-view
@@ -89,13 +83,11 @@
   import ScrollFaker from '@components/scroll-faker';
 
   import I18n from '@/i18n';
-  // import ServerPanel from '@components/choose-ip/server-panel';
 
   export default {
     name: 'StepViewGlobalVariable',
     components: {
       ScrollFaker,
-      // ServerPanel,
     },
     props: {
       type: {

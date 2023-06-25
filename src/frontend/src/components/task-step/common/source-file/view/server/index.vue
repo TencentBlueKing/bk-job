@@ -120,13 +120,6 @@
         @on-cancel="handleAddCancel"
         @on-change="handleAddSave" />
     </table>
-    <!-- <lower-component level="custom" :custom="isShowChooseIp">
-            <choose-ip
-                v-model="isShowChooseIp"
-                required
-                :host-node-info="currentHost"
-                @on-change="handleHostChange" />
-        </lower-component> -->
     <ip-selector
       :show-dialog="isShowChooseIp"
       :value="currentHost"
@@ -142,7 +135,6 @@
   import TaskHostNodeModel from '@model/task-host-node';
 
   import AccountSelect from '@components/account-select';
-  import ChooseIp from '@components/choose-ip';
   import RenderServerAgent from '@components/render-server-agent';
 
   import EditFilePath from '../../components/edit-file-path';
@@ -153,7 +145,6 @@
   export default {
     name: 'SourceFileServer',
     components: {
-      ChooseIp,
       RenderServerAgent,
       AccountSelect,
       AddOnlyHost,

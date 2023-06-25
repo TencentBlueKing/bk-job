@@ -38,9 +38,7 @@ const BLUEKINNG_LANGUAGE = 'blueking_language';
 
 // 解析cookie，默认语言
 let localeLanguage = 'zh-CN';
-const bluekingLanguage = Cookie.get(BLUEKINNG_LANGUAGE, {
-  domain: window.location.hostname.replace(/^.*(\.[^.]+\.[^.]+)$/, '$1'),
-});
+const bluekingLanguage = Cookie.get(BLUEKINNG_LANGUAGE);
 if (bluekingLanguage && bluekingLanguage.toLowerCase() === 'en') {
   localeLanguage = 'en-US';
 }

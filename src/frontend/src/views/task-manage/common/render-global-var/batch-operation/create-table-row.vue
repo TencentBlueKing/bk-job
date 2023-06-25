@@ -112,10 +112,6 @@
         type="reduce-fill"
         @click="handleDelete" />
     </td>
-    <!-- <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-            @on-change="handleHostChange" /> -->
     <ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
@@ -131,7 +127,6 @@
 
   import { globalVariableNameRule } from '@utils/validator';
 
-  // import ChooseIp from '@components/choose-ip';
   import JbEditHost from '@components/jb-edit/host';
 
   import I18n from '@/i18n';
@@ -141,7 +136,6 @@
   export default {
     name: '',
     components: {
-      // ChooseIp,
       JbEditHost,
     },
     props: {

@@ -89,10 +89,6 @@
         </bk-button>
       </td>
     </tr>
-    <!-- <choose-ip
-            ref="chooseIp"
-            v-model="isShowChooseIp"
-            @on-change="handleHostChange" /> -->
     <ip-selector
       ref="ipSelector"
       :show-dialog="isShowChooseIp"
@@ -110,7 +106,6 @@
     findParent,
   } from '@utils/vdom';
 
-  // import ChooseIp from '@components/choose-ip';
   import AccountSelect from '@components/account-select';
 
   import SourceFileVO from '@domain/variable-object/source-file';
@@ -126,7 +121,6 @@
   export default {
     name: '',
     components: {
-      // ChooseIp,
       AccountSelect,
       EditFilePath,
     },
