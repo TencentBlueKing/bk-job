@@ -28,7 +28,7 @@ export default {
   namespace: 'home',
   message: {
     基本信息: 'Base info',
-    操作: 'Action',
+    操作: 'Actions',
     查看详情: 'Details',
     关闭: 'Close',
     '使用禁用脚本的作业模板/执行方案': 'Jobs contains "Banned" script version',
@@ -63,7 +63,7 @@ export default {
     '午饭过后，闲庭几步、小憩片刻，下午办公精神更佳！': 'We suggest you take a nap after lunch, it will make your spirit better in the afternoon.',
     '下午好！预防「久坐成疾」，记得多起来走动走动，松松肩颈，放松片刻。': '{HH:MM} Good afternoon ! A man is not old as long as he is seeking something. A man is not old until regrets take the place of dreams.',
     '晚上好！夜间人体内消化能力偏弱，饮食切忌太饱，健康绿色膳食为宜。': '{HH:MM} Good Evening ! Success is actually simple — when you are about to fail to hold, hang on a bit longer.',
-    '晚上好！少加班，多锻炼噢~ 只要每天做好规划，不怕事情做不好！': 'It\'s {HH:MM} in the evening. Make the choice to be happy. the biggest part of being happy is to simply make up your mind to be a happy person.',
+    '晚上好！少加班，多锻炼噢~ 只要每天做好规划，不怕事情做不好！': 'It\'s {HH:MM} in the evening. Make the choice to be happy. The biggest part of being happy is to simply make up your mind to be a happy person.',
     '现在是晚上 {HH:MM}，夜深了... 为了自己的身体健康，请早点休息，保持足够睡眠！': '{HH:MM} It\'s late night now ! For your own health, you should go to bed early.',
     正常: 'OK',
     异常: 'Abnormal',
