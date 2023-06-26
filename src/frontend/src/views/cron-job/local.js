@@ -67,7 +67,7 @@ export default {
     '任务名称已存在，请重新输入': 'Name already exist, please try another one...',
     作业模板必填: 'Job template is required',
     执行方案必填: 'Job plan is required',
-    定时任务编辑成功: '',
+    定时任务编辑成功: 'Save successfully',
     '定时任务创建成功(默认关闭，请手动开启)': 'New cron has been created (default status: OFF)',
     '执行时间无效（早于当前时间）': 'Invalid execute time (earlier than now)',
     定时任务详情: 'Cron Details',

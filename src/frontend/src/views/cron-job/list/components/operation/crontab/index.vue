@@ -244,7 +244,7 @@
           this.$emit('change', '');
           this.$emit('input', '');
         }
-      }, 200),
+      }, 100),
       /**
        * @desc 展示下次执行时间列表
        */
