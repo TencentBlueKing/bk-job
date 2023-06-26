@@ -197,6 +197,11 @@
 
   .bk-dialog-content {
     width: 100%;
+
+    .bk-dialog-tool {
+      pointer-events: none;
+      cursor: default !important;
+    }
   }
 }
 

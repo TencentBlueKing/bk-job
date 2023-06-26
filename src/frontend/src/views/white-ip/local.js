@@ -65,5 +65,6 @@ export default {
     'IP 预览': 'IP preview',
     关闭: 'Close',
     台主机: 'host(s)',
+    删除成功: 'Remove successfully',
   },
 };
