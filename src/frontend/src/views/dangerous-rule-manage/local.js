@@ -27,10 +27,10 @@
 export default {
   namespace: 'dangerousRule',
   message: {
-    新建: 'new',
+    新建: 'New',
     语法检测表达式: {
-      col: 'Grammar regex',
-      label: 'Grammar regex',
+      col: 'Grammar regex.',
+      label: 'Grammar regex.',
     },
     规则说明: {
       col: 'Explanation',
@@ -64,14 +64,14 @@ export default {
     '命中规则的脚本执行任务仅会做记录，不会拦截': 'The script execution task that hits the rule will only be recorded and not be blocked',
     '【拦截】': 'BLOCK',
     '命中规则的脚本执行任务会被记录，并中止运行': 'The script execution task that hits the rule will be recorded and blocked',
-    语法检测表达式不能为空: 'Grammar regex is required',
+    语法检测表达式不能为空: 'Grammar regex. is required',
     规则说明不能为空: 'Explanaction is required',
     脚本类型不能为空: 'Script type is required',
-    请填写完整的语法检测表达式和说明: 'Grammar regex and description not defined.',
+    请填写完整的语法检测表达式和说明: 'Grammar regex. and description not defined.',
     新增成功: 'New rule has been created',
     '搜索语法检测表达式，规则说明，脚本类型...': 'Search by Grammar Regex. / Explanation / Script type / ...',
     语法检测表达式必填: 'Grammar regex. is required',
-    规则说明必填: 'Grammar Regex. explanation is required',
+    规则说明必填: 'Grammar Regex. is required',
     脚本类型必填: 'Script type is required',
     动作必填: 'Action is required',
     创建人: 'Created by',

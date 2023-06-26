@@ -57,11 +57,6 @@
       :value="localValue.hostNodeInfo"
       @change="handleHostChange"
       @close-dialog="handleCloseIPSelector" />
-    <!-- <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="localValue.hostNodeInfo"
-            :original-value
-            @on-change="handleHostChange" /> -->
   </div>
 </template>
 <script>
@@ -70,13 +65,9 @@
   import TaskHostNodeModel from '@model/task-host-node';
 
   import I18n from '@/i18n';
-  // import ChooseIp from '@components/choose-ip';
 
   export default {
     name: 'JbEditHost',
-    // components: {
-    //     ChooseIp,
-    // },
     props: {
       /**
        * @value block 块级交互

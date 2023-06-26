@@ -131,10 +131,6 @@
       :show-dialog="isShowChooseIp"
       @change="handleHostChange"
       @close-dialog="handleCloseIpSelector" />
-    <!-- <choose-ip
-            ref="chooseIp"
-            v-model="isShowChooseIp"
-            @on-change="handleHostChange" /> -->
   </tbody>
 </template>
 <script>
@@ -145,7 +141,6 @@
 
   import { findParent } from '@utils/vdom';
 
-  // import ChooseIp from '@components/choose-ip';
   import AccountSelect from '@components/account-select';
 
   import SourceFileVO from '@domain/variable-object/source-file';

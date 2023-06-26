@@ -72,9 +72,6 @@
       v-else
       :label="$t('template.执行目标：')"
       layout="vertical">
-      <!-- <server-panel
-                detail-fullscreen
-                :host-node-info="stepInfo.fileDestination.server.hostNodeInfo" /> -->
       <ip-selector
         readonly
         show-view
@@ -89,13 +86,11 @@
   import DetailItem from '@components/detail-layout/item';
 
   import RenderGlobalVariable from './components/render-global-variable';
-  // import ServerPanel from '@components/choose-ip/server-panel';
   import RenderSourceFile from './components/render-source-file';
 
   export default {
     name: '',
     components: {
-      // ServerPanel,
       RenderSourceFile,
       RenderGlobalVariable,
       DetailItem,

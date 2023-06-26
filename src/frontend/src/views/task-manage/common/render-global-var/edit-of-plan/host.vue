@@ -54,12 +54,6 @@
         :value="formData.defaultTargetValue.hostNodeInfo"
         @change="handleHostChange"
         @close-dialog="handleCloseIPSelector" />
-      <!-- <server-panel
-                class="view-server-panel"
-                :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-                editable
-                detail-fullscreen
-                @on-change="handleHostChange" /> -->
     </jb-form-item>
     <jb-form-item :label="$t('template.变量描述')">
       <bk-input
@@ -78,10 +72,6 @@
         {{ $t('template.执行时必填') }}
       </bk-checkbox>
     </jb-form-item>
-    <!-- <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="formData.defaultTargetValue.hostNodeInfo"
-            @on-change="handleHostChange" /> -->
   </jb-form>
 </template>
 <script>
@@ -89,8 +79,6 @@
 
   import TaskGlobalVariableModel from '@model/task/global-variable';
   import TaskHostNodeModel from '@model/task-host-node';
-  // import ChooseIp from '@components/choose-ip';
-  // import ServerPanel from '@components/choose-ip/server-panel';
 
   const getDefaultData = () => ({
     id: 0,
@@ -110,10 +98,6 @@
 
   export default {
     name: 'VarHost',
-    components: {
-      // ChooseIp,
-      // ServerPanel,
-    },
     props: {
       data: {
         type: Object,

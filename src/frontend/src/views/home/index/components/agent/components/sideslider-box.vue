@@ -125,10 +125,7 @@
 
   .sideslider-box {
     position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: 2000;
     display: flex;
     overflow: hidden;
@@ -197,50 +194,9 @@
 
     .box-mask {
       position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
+      inset: 0;
       cursor: pointer;
       background: rgb(0 0 0 / 60%);
-    }
-  }
-
-  .choose-ip-dialog {
-    .sideslider-box {
-      position: absolute;
-      top: 0;
-      right: 0;
-      left: 0;
-      z-index: 9;
-      display: flex;
-      justify-content: flex-end;
-      overflow: hidden;
-
-      &.hide {
-        height: 0;
-      }
-
-      .container {
-        height: 100%;
-      }
-
-      .host-content-enter-active,
-      .host-content-leave-active {
-        transition: all 0.3s ease;
-      }
-
-      .host-content-enter,
-      .host-content-leave-to {
-        transform: translateX(100%);
-      }
-    }
-
-    .host-sideslider-enter,
-    .host-sideslider-leave-to {
-      .container {
-        transform: translateX(100%);
-      }
     }
   }
 </style>

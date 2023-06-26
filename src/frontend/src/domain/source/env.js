@@ -23,23 +23,19 @@
  * IN THE SOFTWARE.
 */
 
-export * from './permission';
-export * from './leave-confirm';
-export * from './time';
-export * from './url';
-export * from './encode';
-export * from './generator-default-value';
-export * from './dom';
-export * from './business';
-export * from './script-error-confirm';
-export * from './byte-pretty';
-export * from './format';
-export * from './calc-text-width';
-export * from './ordinal-suffix-of';
-export * from './make-map';
-export * from './check-illegal-host-form-varialbe-step';
-export * from './jsonp';
-export * from './format-number';
-export * from './download-url';
-export * from './exec-copy';
-export * from './format-script-type-value';
+import Request from '@utils/request';
+
+class Env {
+  constructor() {
+    this.module = 'job-manage/web/env';
+  }
+
+  // 获取环境配置
+  getProperties() {
+    return Request.get(`${this.module}/properties`, {
+      cache: true,
+    });
+  }
+}
+
+export default new Env();

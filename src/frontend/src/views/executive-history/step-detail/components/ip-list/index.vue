@@ -127,7 +127,7 @@
       checked: true,
     },
     {
-      label: I18n.t('history.云区域'),
+      label: I18n.t('history.管控区域'),
       name: 'cloudAreaName',
       orderField: 'cloudAreaId',
       order: '',

@@ -117,10 +117,12 @@
 <script>
   import Cookie from 'js-cookie';
 
+  import EnvService from '@service/env';
   import LogoutService from '@service/logout';
   import QueryGlobalSettingService from '@service/query-global-setting';
   import UserService from '@service/user';
 
+  import { jsonp } from '@utils/assist';
   import EventBus from '@utils/event-bus';
 
   import RouterBack from '@components/router-back';
@@ -149,6 +151,10 @@
         appList: [],
         showSystemLog: false,
         relatedSystemUrls: {},
+        envConfig: {
+          'esb.url': '',
+          bkDomain: '',
+        },
       };
     },
     computed: {
@@ -171,6 +177,7 @@
       this.fetchUserInfo();
       this.fetchTitleConfig();
       this.fetchRelatedSystemUrls();
+      this.fetchEnv();
     },
     /**
      * @desc 页面渲染完成
@@ -219,6 +226,13 @@
             this.relatedSystemUrls = Object.freeze(data);
           });
       },
+      fetchEnv() {
+        EnvService.fetchProperties()
+          .then((data) => {
+            console.log(data);
+            this.envConfig = data;
+          });
+      },
       /**
        * @desc 更新网站title
        */
@@ -241,9 +255,10 @@
         Cookie.remove('blueking_language', { path: '' });
         Cookie.set('blueking_language', lang, {
           expires: 3600,
-          domain: window.location.hostname.replace(/^.*(\.[^.]+\.[^.]+)$/, '$1'),
+          domain: this.envConfig.bkDomain,
         });
         setLocale(lang);
+        jsonp(`${this.envConfig['esb.url']}/api/c/compapi/v2/usermanage/fe_update_user_language/?language=${lang}`);
       },
       /**
        * @desc 显示版本更新日志

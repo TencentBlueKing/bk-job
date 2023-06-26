@@ -30,7 +30,7 @@ export default {
     分发文件: 'File transfer',
     基本信息: 'Information',
     任务名称: 'Task name',
-    '取一个便于记忆的任务名，方便后续在历史记录中快速定位...': 'Take an memorable task name for fast follow-up in historical records',
+    '取一个便于记忆的任务名，方便后续在历史记录中快速定位...': 'Take a memorable task name for fast follow-up in historical records',
     上传限速: 'Upload speed limit',
     下载限速: 'Download speed limit',
     文件来源: 'Source',
