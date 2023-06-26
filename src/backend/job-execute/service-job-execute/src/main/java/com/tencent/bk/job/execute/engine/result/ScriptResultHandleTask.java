@@ -286,7 +286,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         watch.start("analyse");
         for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
             String agentId = agentTaskResult.getAgentId();
-            if (shouldAnalyse(agentTaskResult)) {
+            if (!shouldAnalyse(agentTaskResult)) {
                 continue;
             }
 
