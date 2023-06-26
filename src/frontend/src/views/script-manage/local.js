@@ -29,15 +29,9 @@ export default {
   message: {
     新建: 'New',
     '搜索脚本名称，类型，场景标签，更新人...': 'Search by Script Name / Type / Tag / Created by...',
-    脚本语言: {
-      colHead: 'Type',
-      label: 'Type',
-    },
+    脚本语言: 'Type',
     线上版本: 'On-line',
-    创建时间: {
-      colHead: 'Created at',
-      label: 'Created at',
-    },
+    创建时间: 'Created at',
     操作: 'Actions',
     去执行: 'Launch',
     同步: 'Sync',

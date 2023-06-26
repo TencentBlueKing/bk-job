@@ -86,7 +86,7 @@
         style="width: 282px;">
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.脚本语言.label') }}:
+            {{ $t('script.脚本语言') }}:
           </div>
           <div class="item-value">
             <div class="text-box">
@@ -108,7 +108,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.创建时间.label') }}:
+            {{ $t('script.创建时间') }}:
           </div>
           <div
             v-bk-overflow-tips
