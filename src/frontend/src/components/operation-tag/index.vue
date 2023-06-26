@@ -28,6 +28,8 @@
 <template>
   <jb-dialog
     class="job-tag-create-dialog"
+    :close-icon="false"
+    :esc-close="false"
     header-position="left"
     :mask-close="false"
     :title="dialogInfo.title"

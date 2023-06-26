@@ -29,15 +29,9 @@ export default {
   message: {
     新建: 'New',
     '搜索脚本名称，类型，场景标签，更新人...': 'Search by Script Name / Type / Tag / Created by...',
-    脚本语言: {
-      colHead: 'Type',
-      label: 'Type',
-    },
+    脚本语言: 'Type',
     线上版本: 'On-line',
-    创建时间: {
-      colHead: 'Created at',
-      label: 'Created at',
-    },
+    创建时间: 'Created at',
     操作: 'Actions',
     去执行: 'Launch',
     同步: 'Sync',
@@ -77,7 +71,7 @@ export default {
     同步作业模板: 'Synchronize job templates',
     版本号必填: 'Version number is required',
     '版本号已存在，请重新输入': 'Version number is already exist, please try another one...',
-    操作成功: 'Successful',
+    操作成功: 'Successfully',
     '推荐按照该脚本逻辑提供的使用场景来取名...': 'Type your script name here...',
     标签对资源的分类管理有很大帮助: 'Select or type any tag you want...',
     在此处标注该脚本的备注和使用说明: 'Type the usage scenario description of this script here...',

@@ -30,7 +30,7 @@ export default {
     通知设置: 'Notification',
     存储策略: 'History setting',
     账号命名规则: 'Naming rules',
-    高危语句规则: 'High-risk grammar',
+    高危语句规则: 'High-risk statement',
     'Linux 账号不能为空': 'Linux account rule is required',
     'Windows 账号不能为空': 'Windows account rule is required',
     数据库账号不能为空: 'DB account is required',

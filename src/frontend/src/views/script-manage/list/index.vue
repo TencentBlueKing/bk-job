@@ -101,7 +101,7 @@
         v-if="allRenderColumnMap.type"
         key="type"
         align="left"
-        :label="$t('script.脚本语言.colHead')"
+        :label="$t('script.脚本语言')"
         prop="type"
         sortable="custom"
         width="120">
@@ -368,7 +368,7 @@
           default: true,
         },
         {
-          name: I18n.t('script.脚本语言.colHead'),
+          name: I18n.t('script.脚本语言'),
           id: 'type',
           remoteMethod: PublicScriptService.scriptTypeList,
           remoteExecuteImmediate: true,
@@ -414,7 +414,7 @@
         },
         {
           id: 'type',
-          label: I18n.t('script.脚本语言.colHead'),
+          label: I18n.t('script.脚本语言'),
         },
         {
           id: 'related',
