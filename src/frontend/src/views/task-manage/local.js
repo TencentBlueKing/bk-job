@@ -485,7 +485,7 @@ export default {
     移除无效主机: 'Remove invd.',
     批量编辑: 'Multi-edit',
     源和目标服务器相同: '',
-    '检测到文件传输源和目标服务器是同一批，若是单台建议使用本地 cp 方式效率会更高，请问你是否确定参数无误？': '',
+    '检测到文件传输源和目标服务器是同一批，若是单台建议使用本地 cp 方式效率会更高，请问你是否确定参数无误？': 'The source and target hosts for file transfer are the same batch. If it is a single local transfers, using the "cp" command will be more efficient. Are you sure the parameters provided are correct?',
     '是的，确定无误': 'I\'m sure, keep going',
     变量使用指引: 'How to use global var',
     魔法变量: 'Magic var.',

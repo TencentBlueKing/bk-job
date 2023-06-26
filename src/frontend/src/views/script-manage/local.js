@@ -77,7 +77,7 @@ export default {
     同步作业模板: 'Synchronize job templates',
     版本号必填: 'Version number is required',
     '版本号已存在，请重新输入': 'Version number is already exist, please try another one...',
-    操作成功: 'Successful',
+    操作成功: 'Successfully',
     '推荐按照该脚本逻辑提供的使用场景来取名...': 'Type your script name here...',
     标签对资源的分类管理有很大帮助: 'Select or type any tag you want...',
     在此处标注该脚本的备注和使用说明: 'Type the usage scenario description of this script here...',
