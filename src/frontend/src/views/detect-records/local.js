@@ -28,11 +28,11 @@
 export default {
   namespace: 'detectRecords',
   message: {
-    '搜索拦截ID，表达式，业务，执行人，执行方式，调用方，动作…': 'Search by ID / Grammar Regex. / Ran by / ...',
+    '搜索拦截ID，表达式，业务，执行人，执行方式，调用方，动作…': 'Search by ID / Statement Regex. / Ran by / ...',
     拦截ID: 'ID',
     表达式: {
-      label: 'Grammar regex.',
-      colHead: 'Grammar regex.',
+      label: 'Statement Regex.',
+      colHead: 'Statement Regex.',
     },
     业务: {
       label: 'APP',

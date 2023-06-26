@@ -60,6 +60,6 @@ export default {
     操作: 'Action',
     删除: 'Delete',
     保存: 'Save',
-    操作成功: 'Successfully',
+    删除成功: 'Remove successfully',
   },
 };
