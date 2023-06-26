@@ -71,7 +71,7 @@ export default {
     新增成功: 'New rule has been created',
     '搜索语法检测表达式，规则说明，脚本类型...': 'Search by Statement Regex. / Explanation / Script type / ...',
     语法检测表达式必填: 'Statement Regex. is required',
-    规则说明必填: 'Statement Regex. is required',
+    规则说明必填: 'Statement explanation is required',
     脚本类型必填: 'Script type is required',
     动作必填: 'Action is required',
     创建人: 'Created by',
