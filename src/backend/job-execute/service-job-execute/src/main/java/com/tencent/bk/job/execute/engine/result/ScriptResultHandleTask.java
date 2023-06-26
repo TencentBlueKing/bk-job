@@ -286,23 +286,18 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         watch.start("analyse");
         for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
             String agentId = agentTaskResult.getAgentId();
-            // 该Agent已经日志分析结束，不要再分析
-            if (this.analyseFinishedTargetAgentIds.contains(agentId)) {
+            if (shouldAnalyse(agentTaskResult)) {
                 continue;
             }
-            if (!this.targetAgentIds.contains(agentId)) {
-                log.warn("[{}] Unexpected target agentId {}. result: {}", gseTaskInfo, agentId,
+
+            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
+            if (agentTask == null) {
+                log.warn("[{}] No agent task found for agentId {}. result: {}", gseTaskInfo, agentId,
                     JsonUtils.toJson(agentTaskResult));
                 continue;
             }
 
             log.info("[{}]: Analyse agent task result, result: {}", gseTaskInfo, agentTaskResult);
-
-
-            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
-            if (agentTask == null) {
-                continue;
-            }
 
             /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
              *是获取上下文参数的脚本。所以m_id=0的是用户脚本的执行日志，需要分析记录；m_id=1的，则是获取上下文参数
@@ -338,6 +333,20 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             log.info("[{}] Analyse script gse task is slow, statistics: {}", gseTaskInfo, watch.prettyPrint());
         }
         return rst;
+    }
+
+    private boolean shouldAnalyse(ScriptAgentTaskResult agentTaskResult) {
+        String agentId = agentTaskResult.getAgentId();
+        // 该Agent已经日志分析结束，不要再分析
+        if (this.analyseFinishedTargetAgentIds.contains(agentId)) {
+            return false;
+        }
+        if (!this.targetAgentIds.contains(agentId)) {
+            log.warn("[{}] Unexpected target agentId {}. result: {}", gseTaskInfo, agentId,
+                JsonUtils.toJson(agentTaskResult));
+            return false;
+        }
+        return true;
     }
 
     private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs,
