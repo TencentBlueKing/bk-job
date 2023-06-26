@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
@@ -284,23 +285,29 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         StopWatch watch = new StopWatch("analyse-gse-script-task");
         watch.start("analyse");
         for (ScriptAgentTaskResult agentTaskResult : taskDetail.getResult().getResult()) {
-            log.info("[{}]: Analyse agent task result, result: {}", gseTaskInfo, agentTaskResult);
-
-            /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
-             *是获取上下文参数的脚本。所以m_id=0的是用户脚本的执行日志，需要分析记录；m_id=1的，则是获取上下文参数
-             *输出的日志内容，不需要记录，仅需要从日志分析提取上下文参数*/
-            boolean isUserScriptResult = agentTaskResult.getAtomicTaskId() == 0;
             String agentId = agentTaskResult.getAgentId();
-
             // 该Agent已经日志分析结束，不要再分析
             if (this.analyseFinishedTargetAgentIds.contains(agentId)) {
                 continue;
             }
+            if (!this.targetAgentIds.contains(agentId)) {
+                log.warn("[{}] Unexpected target agentId {}. result: {}", gseTaskInfo, agentId,
+                    JsonUtils.toJson(agentTaskResult));
+                continue;
+            }
+
+            log.info("[{}]: Analyse agent task result, result: {}", gseTaskInfo, agentTaskResult);
+
+
             AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
             if (agentTask == null) {
                 continue;
             }
 
+            /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
+             *是获取上下文参数的脚本。所以m_id=0的是用户脚本的执行日志，需要分析记录；m_id=1的，则是获取上下文参数
+             *输出的日志内容，不需要记录，仅需要从日志分析提取上下文参数*/
+            boolean isUserScriptResult = agentTaskResult.getAtomicTaskId() == 0;
             if (isUserScriptResult) {
                 addScriptLogsAndRefreshPullProgress(scriptLogs, agentTaskResult, agentId, agentTask, currentTime);
             }

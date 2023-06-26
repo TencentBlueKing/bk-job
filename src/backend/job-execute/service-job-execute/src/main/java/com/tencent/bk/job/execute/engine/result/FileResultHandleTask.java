@@ -552,25 +552,33 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         boolean isDownloadMode = content.isDownloadMode();
         String agentId = isDownloadMode ?
             content.getDestAgentId() : content.getSourceAgentId();
-        boolean shouldAnalyse = true;
         if (isDownloadMode) {
-            if (this.analyseFinishedTargetAgentIds.contains(agentId) // 该ip已经日志分析结束，不要再分析
+            if (this.analyseFinishedTargetAgentIds.contains(agentId) // 该Agent已经分析结束，不需要再分析
                 // 该文件下载任务已结束
                 || (this.finishedDownloadFileMap.get(agentId) != null
-                && this.finishedDownloadFileMap.get(agentId).contains(content.getTaskId()))
-                // 非目标IP
-                || !this.fileDownloadTaskNumMap.containsKey(agentId)) {
-                shouldAnalyse = false;
+                && this.finishedDownloadFileMap.get(agentId).contains(content.getTaskId()))) {
+                return false;
+            }
+            // 不属于当前任务的目标Agent
+            if (!this.fileDownloadTaskNumMap.containsKey(agentId)) {
+                log.warn("[{}] Unexpected target agentId {}. result: {}", gseTaskInfo, agentId,
+                    JsonUtils.toJson(result));
+                return false;
             }
         } else {
-            if ((this.finishedUploadFileMap.get(agentId) != null
-                && this.finishedUploadFileMap.get(agentId).contains(content.getTaskId()))
-                // 非源IP
-                || !this.fileUploadTaskNumMap.containsKey(agentId)) {
-                shouldAnalyse = false;
+            if (this.analyseFinishedSourceAgentIds.contains(agentId) // 该Agent已经分析结束，不需要再分析
+                || (this.finishedUploadFileMap.get(agentId) != null
+                && this.finishedUploadFileMap.get(agentId).contains(content.getTaskId()))) {
+                return false;
+            }
+            // 不属于当前任务的源Agent
+            if (!this.fileUploadTaskNumMap.containsKey(agentId)) {
+                log.warn("[{}] Unexpected source agentId {}. result: {}", gseTaskInfo, agentId,
+                    JsonUtils.toJson(result));
+                return false;
             }
         }
-        return shouldAnalyse;
+        return true;
     }
 
     private void analyseFailedFileResult(JobAtomicFileTaskResult result,
