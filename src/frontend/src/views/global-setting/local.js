@@ -36,7 +36,7 @@ export default {
     数据库账号不能为空: 'DB account is required',
     保存: 'Save',
     取消: 'Cancel',
-    请填写完整的语法检测表达式和说明: 'Grammar regex. and description not defined.',
+    请填写完整的语法检测表达式和说明: 'Statement Regex. and description not defined.',
     新增成功: 'New rule has been created',
     请输入命名规则: 'Please enter the rule expressions...',
     请输入命名规则提醒文案: 'Please enter the rule explanation...',
