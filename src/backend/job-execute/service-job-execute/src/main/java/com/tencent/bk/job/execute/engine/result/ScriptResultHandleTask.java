@@ -299,7 +299,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
 
             log.info("[{}]: Analyse agent task result, result: {}", gseTaskInfo, agentTaskResult);
 
-            /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下下发两个脚本。第一个脚本是用户脚本，第二个脚本
+            /*为了解决shell上下文传参的问题，在下发用户脚本的时候，实际上下发两个脚本。第一个脚本是用户脚本，第二个脚本
              *是获取上下文参数的脚本。所以m_id=0的是用户脚本的执行日志，需要分析记录；m_id=1的，则是获取上下文参数
              *输出的日志内容，不需要记录，仅需要从日志分析提取上下文参数*/
             boolean isUserScriptResult = agentTaskResult.getAtomicTaskId() == 0;
