@@ -52,7 +52,7 @@ public class WebEnvResourceImpl implements WebEnvResource {
     @Override
     public Response<Map<String, String>> getJobEnvProperties(String username) {
         Map<String, String> properties = new HashMap<>();
-        properties.put("esb.url", standardUrl(bkApiConfig.getEsbUrl()));
+        properties.put("esb.url", standardUrl(bkApiConfig.getEsbPublicUrl()));
         properties.put("bkDomain", bkConfig.getBkDomain());
         return Response.buildSuccessResp(properties);
     }

@@ -39,8 +39,17 @@ public class BkApiConfig {
     @Value("${app.secret:}")
     private String appSecret;
 
+    /**
+     * ESB 后端调用 URL
+     */
     @Value("${esb.service.url:}")
     private String esbUrl;
+
+    /**
+     * ESB 前端调用 URL
+     */
+    @Value("${esb.service.publicUrl:}")
+    private String esbPublicUrl;
 
     @Value("${esb.use.test.env:false}")
     private boolean useEsbTestEnv;

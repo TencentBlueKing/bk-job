@@ -29,6 +29,7 @@ app:
 esb:
   service:
     url: __BK_PAAS_PRIVATE_URL__
+    publicUrl: __BK_PAAS_PUBLIC_URL__
 # 蓝鲸Api Gateway 配置    
 bkApiGateway:
   gse:
