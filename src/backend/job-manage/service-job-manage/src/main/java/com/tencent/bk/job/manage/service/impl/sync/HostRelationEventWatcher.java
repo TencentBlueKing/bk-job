@@ -155,8 +155,6 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
     }
 
     private void dispatchEventToHandler(ResourceEvent<HostRelationEventDetail> event) {
-        HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        Long appId = hostTopoDTO.getBizId();
-        eventsHandler.commitEvent(appId, event);
+        eventsHandler.commitEvent(event);
     }
 }

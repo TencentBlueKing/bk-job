@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
+import com.tencent.bk.job.common.cc.model.result.HostWithModules;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -83,22 +84,22 @@ public interface IBizCmdbClient {
     List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList);
 
     /**
-     * 根据topo实例获取hosts
+     * 根据topo实例获取主机及主机关系
      *
      * @param bizId      cmdb业务ID
      * @param ccInstList topo节点列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> getHostsByTopology(long bizId, List<CcInstanceDTO> ccInstList);
+    List<HostWithModules> getHostRelationsByTopology(long bizId, List<CcInstanceDTO> ccInstList);
 
     /**
-     * 根据module获取hosts
+     * 根据module获取主机及主机关系
      *
      * @param bizId        cmdb业务ID
      * @param moduleIdList 模块ID列表
      * @return 主机
      */
-    List<ApplicationHostDTO> findHostByModule(long bizId, List<Long> moduleIdList);
+    List<HostWithModules> findHostRelationByModule(long bizId, List<Long> moduleIdList);
 
     /**
      * 从CC获取所有业务信息

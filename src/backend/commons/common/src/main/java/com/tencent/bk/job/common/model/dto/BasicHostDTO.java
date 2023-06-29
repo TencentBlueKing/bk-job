@@ -45,8 +45,8 @@ public class BasicHostDTO {
      */
     private Long hostId;
     /**
-     * 上次修改时间
+     * CMDB数据的上次修改时间
      */
-    private Long lastModifyTime;
+    private Long lastTime;
 
 }

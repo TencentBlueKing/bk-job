@@ -45,7 +45,6 @@ public abstract class EventsHandler<T> extends Thread {
     private final CmdbEventSampler cmdbEventSampler;
     protected boolean enabled = true;
     BlockingQueue<ResourceEvent<T>> queue;
-    Long bizId = null;
 
     public EventsHandler(BlockingQueue<ResourceEvent<T>> queue,
                          Tracer tracer,
@@ -55,17 +54,11 @@ public abstract class EventsHandler<T> extends Thread {
         this.cmdbEventSampler = cmdbEventSampler;
     }
 
-    public Long getBizId() {
-        return bizId;
-    }
-
-    public void commitEvent(Long bizId, ResourceEvent<T> event) {
+    public void commitEvent(ResourceEvent<T> event) {
         try {
             boolean result = this.queue.add(event);
             if (!result) {
                 log.warn("Fail to commitEvent:{}", event);
-            } else {
-                this.bizId = bizId;
             }
         } catch (Exception e) {
             log.warn("Fail to commitEvent:" + event, e);
@@ -118,10 +111,6 @@ public abstract class EventsHandler<T> extends Thread {
                 log.warn("queue.take interrupted", e);
             } catch (Throwable t) {
                 log.warn("Fail to handleOneEvent:" + event, t);
-            } finally {
-                if (queue.size() == 0) {
-                    this.bizId = null;
-                }
             }
         }
     }

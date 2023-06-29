@@ -22,32 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.cc.model.result;
+
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Getter
 @Setter
 @ToString
-public class FindModuleHostRelationReq extends EsbReq {
-    @JsonProperty("bk_biz_id")
-    private long bizId;
-    @JsonProperty("bk_module_ids")
-    private List<Long> moduleIdList;
-
-    @JsonProperty("module_fields")
-    private List<String> moduleFields = Arrays.asList("bk_module_id", "bk_set_id", "last_time");
-
-    @JsonProperty("host_fields")
-    private List<String> hostFields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6",
-        "bk_agent_id", "bk_host_name", "bk_os_name", "bk_cloud_id", "bk_os_type", "bk_cloud_vendor", "last_time");
-
-    private Page page;
+public class ModuleProp {
+    @JsonProperty("bk_module_id")
+    private Long moduleId;
+    @JsonProperty("bk_set_id")
+    private Long setId;
+    @JsonProperty("bk_module_type")
+    private String moduleType;
+    @JsonProperty("last_time")
+    private String lastTime;
 }

@@ -133,6 +133,11 @@ public class ApplicationHostDTO {
     private String cloudVendorName;
 
     /**
+     * CMDB中的上次修改时间
+     */
+    private Long lastTime;
+
+    /**
      * 集群ID
      */
     private List<Long> setId = new ArrayList<>();
