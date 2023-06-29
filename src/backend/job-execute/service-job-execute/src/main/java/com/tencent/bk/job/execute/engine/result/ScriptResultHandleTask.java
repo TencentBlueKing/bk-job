@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptAgentTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.BatchUtil;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
@@ -192,7 +192,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     GseLogBatchPullResult<ScriptTaskResult> pullGseTaskResultInBatches() {
         if (pullAgentIdBatches.isEmpty()) {
             List<String> queryAgentIdList = new ArrayList<>(notFinishedTargetAgentIds);
-            pullAgentIdBatches = BatchUtil.buildBatchList(queryAgentIdList, currentBatchSize);
+            pullAgentIdBatches = CollectionUtil.partitionList(queryAgentIdList, currentBatchSize);
         }
         return tryPullGseResultWithRetry();
     }
@@ -260,7 +260,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         }
         pullAgentIdBatches.subList(pullResultBatchesIndex.get() - 1, pullAgentIdBatches.size())
             .forEach(leftAgentIds::addAll);
-        newBatchList.addAll(BatchUtil.buildBatchList(leftAgentIds, currentBatchSize));
+        newBatchList.addAll(CollectionUtil.partitionList(leftAgentIds, currentBatchSize));
         pullAgentIdBatches = newBatchList;
         return true;
     }
