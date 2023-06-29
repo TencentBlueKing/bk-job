@@ -34,7 +34,7 @@
         @mouseleave="handleMouseleave">
         <bk-input
           ref="input"
-          :max="604800"
+          :max="259200"
           :min="1"
           :placeholder="$t('此处留空将默认为7200s')"
           :precision="0"
@@ -56,7 +56,7 @@
         ref="tips"
         @mouseenter="handleTipsMouseenter"
         @mouseleave="handleMouseleave">
-        {{ $t('允许最小 1s，最大为 604800s') }}
+        {{ $t('允许最小 1s，最大为 259200s') }}
       </div>
     </div>
   </div>
