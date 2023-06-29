@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -581,20 +582,26 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     @Override
     public void saveTaskInstanceHosts(long taskInstanceId,
                                       Collection<HostDTO> hosts) {
-        BatchBindStep batchInsert = ctx.batch(
-            ctx.insertInto(TASK_INSTANCE_HOST, TASK_INSTANCE_HOST.TASK_INSTANCE_ID,
-                TASK_INSTANCE_HOST.HOST_ID, TASK_INSTANCE_HOST.IP, TASK_INSTANCE_HOST.IPV6)
-                .values((Long) null, null, null, null)
-        );
-
-        for (HostDTO host : hosts) {
-            batchInsert = batchInsert.bind(
-                taskInstanceId,
-                host.getHostId(),
-                host.getIp(),
-                host.getIpv6()
-            );
+        if (CollectionUtils.isEmpty(hosts)) {
+            return;
         }
-        batchInsert.execute();
+        List<List<HostDTO>> hostBatches = CollectionUtil.partitionCollection(hosts, 2000);
+        hostBatches.forEach(batchHosts -> {
+            BatchBindStep batchInsert = ctx.batch(
+                ctx.insertInto(TASK_INSTANCE_HOST, TASK_INSTANCE_HOST.TASK_INSTANCE_ID,
+                    TASK_INSTANCE_HOST.HOST_ID, TASK_INSTANCE_HOST.IP, TASK_INSTANCE_HOST.IPV6)
+                    .values((Long) null, null, null, null)
+            );
+
+            for (HostDTO host : batchHosts) {
+                batchInsert = batchInsert.bind(
+                    taskInstanceId,
+                    host.getHostId(),
+                    host.getIp(),
+                    host.getIpv6()
+                );
+            }
+            batchInsert.execute();
+        });
     }
 }

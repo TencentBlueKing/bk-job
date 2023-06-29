@@ -25,29 +25,32 @@
 package com.tencent.bk.job.common.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * 分批工具
+ * 常用的集合工具
  */
-public class BatchUtil {
+public class CollectionUtil {
     /**
-     * 分批
+     * 对 List 进行分片，每一分片的大小相同（最后一个分片可能小于)
      *
-     * @param elements  用于分批的集合
-     * @param batchSize 每一批的最大数量
-     * @return 分批结果
+     * @param list 需要分片的集合
+     * @param size 分片大小
+     * @return 集合分片
      */
-    public static <E> List<List<E>> buildBatchList(List<E> elements, int batchSize) {
+    public static <E> List<List<E>> partitionList(List<E> list, int size) {
         List<List<E>> batchList = new ArrayList<>();
-        int total = elements.size();
-        if (total <= batchSize) {
-            batchList.add(elements);
+        int total = list.size();
+        if (total <= size) {
+            batchList.add(list);
             return batchList;
         }
 
-        int batch = total / batchSize;
-        int left = total % batchSize;
+        int batch = total / size;
+        int left = total % size;
         if (left > 0) {
             batch += 1;
         }
@@ -55,14 +58,34 @@ public class BatchUtil {
         for (int i = 1; i <= batch; i++) {
             List<E> subList;
             if (i == batch && left > 0) {
-                subList = elements.subList(startIndex, startIndex + left);
+                subList = list.subList(startIndex, startIndex + left);
                 startIndex += left;
             } else {
-                subList = elements.subList(startIndex, startIndex + batchSize);
-                startIndex += batchSize;
+                subList = list.subList(startIndex, startIndex + size);
+                startIndex += size;
             }
             batchList.add(subList);
         }
         return batchList;
+    }
+
+    /**
+     * 对集合进行分片，每一分片的大小相同（最后一个分片可能小于)
+     *
+     * @param collection 需要分片的集合
+     * @param size       分片大小
+     * @return 集合分片
+     */
+    public static <E> List<List<E>> partitionCollection(Collection<E> collection, int size) {
+        int limit = (collection.size() + size - 1) / size;
+        return Stream.iterate(0, n -> n + 1)
+            .limit(limit)
+            .parallel()
+            .map(a -> collection.stream()
+                .skip(a * size)
+                .limit(size)
+                .parallel()
+                .collect(Collectors.toList()))
+            .collect(Collectors.toList());
     }
 }

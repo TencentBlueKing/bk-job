@@ -32,7 +32,7 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.BatchUtil;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.FileLogQuery;
@@ -101,7 +101,7 @@ public class LogServiceImpl implements LogService {
         String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
         List<Document> scriptLogDocList = taskHostLogs.stream()
             .map(taskHostLog -> buildScriptLogDoc(taskHostLog.getScriptTaskLog())).collect(Collectors.toList());
-        List<List<Document>> batchDocList = BatchUtil.buildBatchList(scriptLogDocList, BATCH_SIZE);
+        List<List<Document>> batchDocList = CollectionUtil.partitionList(scriptLogDocList, BATCH_SIZE);
         long start = System.currentTimeMillis();
         batchDocList.forEach(docs ->
             logCollectionFactory.getCollection(collectionName)
@@ -116,7 +116,7 @@ public class LogServiceImpl implements LogService {
         String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
 
         List<WriteModel<Document>> updateOps = buildUpdateOpsFileTask(taskHostLogs);
-        List<List<WriteModel<Document>>> batchList = BatchUtil.buildBatchList(updateOps, BATCH_SIZE);
+        List<List<WriteModel<Document>>> batchList = CollectionUtil.partitionList(updateOps, BATCH_SIZE);
 
         long start = System.currentTimeMillis();
         batchList.forEach(batchOps -> logCollectionFactory.getCollection(collectionName)
