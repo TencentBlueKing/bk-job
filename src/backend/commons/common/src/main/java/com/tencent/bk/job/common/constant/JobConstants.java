@@ -83,7 +83,7 @@ public class JobConstants {
     /**
      * 作业最大超时时间，单位秒
      */
-    public static final int MAX_JOB_TIMEOUT_SECONDS = 86400;
+    public static final int MAX_JOB_TIMEOUT_SECONDS = 259200;
     /**
      * 请求来源：备份服务
      */
