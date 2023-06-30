@@ -37,6 +37,8 @@ import com.tencent.bk.job.manage.service.host.HostService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.BlockingQueue;
@@ -100,8 +102,8 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                     log.warn("Ignore hostEvent without hostId:{}", event);
                     break;
                 }
-                // 找出Agent有效的IP，并设置Agent状态
-                updateIpAndAgentStatus(hostInfoDTO);
+                // 尝试设置Agent状态
+                tryToUpdateAgentStatus(hostInfoDTO);
                 // 更新DB与缓存中的主机数据
                 hostService.createOrUpdateHostBeforeLastTime(hostInfoDTO);
                 break;
@@ -113,12 +115,20 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
         }
     }
 
-    private void updateIpAndAgentStatus(ApplicationHostDTO hostInfoDTO) {
-        String agentId = StringUtils.isNotBlank(hostInfoDTO.getAgentId()) ?
-            hostInfoDTO.getAgentId() : hostInfoDTO.getCloudIp();
-        AgentState agentState = agentStateClient.getAgentState(agentId);
-        if (agentState != null) {
-            hostInfoDTO.setGseAgentStatus(agentState.getStatusCode());
+    private void tryToUpdateAgentStatus(ApplicationHostDTO hostInfoDTO) {
+        try {
+            String agentId = StringUtils.isNotBlank(hostInfoDTO.getAgentId()) ?
+                hostInfoDTO.getAgentId() : hostInfoDTO.getCloudIp();
+            AgentState agentState = agentStateClient.getAgentState(agentId);
+            if (agentState != null) {
+                hostInfoDTO.setGseAgentStatus(agentState.getStatusCode());
+            }
+        } catch (Exception e) {
+            FormattingTuple msg = MessageFormatter.format(
+                "Fail to updateAgentStatus, host={}",
+                hostInfoDTO
+            );
+            log.warn(msg.getMessage(), e);
         }
     }
 

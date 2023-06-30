@@ -76,10 +76,10 @@ public abstract class EventsHandler<T> extends Thread {
         Span span = buildSpan();
         try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
             handleEvent(event);
-        } catch (Exception e) {
-            span.error(e);
+        } catch (Throwable t) {
+            span.error(t);
             eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_FAILED;
-            throw e;
+            log.warn("Fail to handleOneEvent:" + event, t);
         } finally {
             span.end();
             long timeConsuming = System.currentTimeMillis() - event.getCreateTime();
@@ -103,14 +103,14 @@ public abstract class EventsHandler<T> extends Thread {
     @Override
     public void run() {
         while (enabled) {
-            ResourceEvent<T> event = null;
+            ResourceEvent<T> event;
             try {
                 event = queue.take();
                 handleEventWithTrace(event);
             } catch (InterruptedException e) {
                 log.warn("queue.take interrupted", e);
             } catch (Throwable t) {
-                log.warn("Fail to handleOneEvent:" + event, t);
+                log.error("Fail to handleEventWithTrace", t);
             }
         }
     }
