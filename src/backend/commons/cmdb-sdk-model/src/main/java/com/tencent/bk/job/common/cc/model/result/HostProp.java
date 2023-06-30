@@ -29,60 +29,57 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
-@Data
-public class HostEventDetail {
-
+@Getter
+@Setter
+@ToString
+public class HostProp {
     @JsonProperty("bk_host_id")
     private Long hostId;
-
     @JsonProperty("bk_host_innerip")
-    private String hostInnerIp;
-
+    private String ip;
     @JsonProperty("bk_host_innerip_v6")
-    private String innerIpv6;
-
+    private String ipv6;
     @JsonProperty("bk_agent_id")
     private String agentId;
-
     @JsonProperty("bk_host_name")
     private String hostName;
-
     @JsonProperty("bk_os_name")
     private String osName;
-
     @JsonProperty("bk_os_type")
     private String osType;
-
     @JsonProperty("bk_cloud_id")
-    private String cloudId;
-
+    private Long cloudAreaId = 0L;
     @JsonProperty("bk_cloud_vendor")
     private String cloudVendorId;
-
     @JsonProperty("last_time")
     private String lastTime;
 
-    public static ApplicationHostDTO toHostInfoDTO(HostEventDetail eventDetail) {
-        ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
-        hostInfoDTO.setHostId(eventDetail.hostId);
-        List<String> ipList = StringUtil.strToList(eventDetail.hostInnerIp, String.class, ",");
-        hostInfoDTO.setDisplayIp(eventDetail.hostInnerIp);
-        hostInfoDTO.setIpv6(eventDetail.innerIpv6);
-        hostInfoDTO.setAgentId(eventDetail.agentId);
-        hostInfoDTO.setIpList(ipList);
+    public ApplicationHostDTO toApplicationHostDTO() {
+        ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
+        applicationHostDTO.setHostId(hostId);
+        List<String> ipList = StringUtil.strToList(ip, String.class, ",");
+        applicationHostDTO.setIpList(ipList);
         if (ipList != null && !ipList.isEmpty()) {
-            hostInfoDTO.setIp(ipList.get(0));
+            applicationHostDTO.setIp(ipList.get(0));
         }
-        hostInfoDTO.setHostName(eventDetail.hostName);
-        hostInfoDTO.setOsName(eventDetail.osName);
-        hostInfoDTO.setOsType(eventDetail.osType);
-        hostInfoDTO.setCloudAreaId(Long.parseLong(eventDetail.getCloudId()));
-        hostInfoDTO.setCloudVendorId(eventDetail.cloudVendorId);
-        hostInfoDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime()));
-        return hostInfoDTO;
+        applicationHostDTO.setDisplayIp(ip);
+        applicationHostDTO.setIpv6(ipv6);
+        applicationHostDTO.setAgentId(agentId);
+        int hostNameMaxLength = 2000;
+        int osNameMaxLength = 512;
+        int osTypeNameMaxLength = 32;
+        applicationHostDTO.setHostName(StringUtil.substring(hostName, hostNameMaxLength));
+        applicationHostDTO.setOsName(StringUtil.substring(osName, osNameMaxLength));
+        applicationHostDTO.setOsType(StringUtil.substring(osType, osTypeNameMaxLength));
+        applicationHostDTO.setCloudAreaId(cloudAreaId);
+        applicationHostDTO.setCloudVendorId(cloudVendorId);
+        applicationHostDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(lastTime));
+        return applicationHostDTO;
     }
 }

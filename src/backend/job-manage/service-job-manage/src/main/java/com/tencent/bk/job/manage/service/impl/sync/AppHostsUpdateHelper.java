@@ -112,7 +112,7 @@ public class AppHostsUpdateHelper {
         heartBeatThreadMap.put(Thread.currentThread().getName(), appHostUpdateRedisKeyHeartBeatThread);
     }
 
-    public void endToUpdateBizHosts(Long appId) {
+    public void endToUpdateBizHosts() {
         String key = Thread.currentThread().getName();
         RedisKeyHeartBeatThread heartBeatThread = heartBeatThreadMap.get(key);
         if (heartBeatThread != null) {

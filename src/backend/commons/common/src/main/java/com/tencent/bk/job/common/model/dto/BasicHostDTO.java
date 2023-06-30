@@ -22,32 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
-import java.util.List;
+/**
+ * 主机基础信息
+ */
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class BasicHostDTO {
 
-@Getter
-@Setter
-@ToString
-public class FindModuleHostRelationReq extends EsbReq {
-    @JsonProperty("bk_biz_id")
-    private long bizId;
-    @JsonProperty("bk_module_ids")
-    private List<Long> moduleIdList;
+    /**
+     * 主机ID
+     */
+    private Long hostId;
+    /**
+     * CMDB数据的上次修改时间
+     */
+    private Long lastTime;
 
-    @JsonProperty("module_fields")
-    private List<String> moduleFields = Arrays.asList("bk_module_id", "bk_set_id", "last_time");
-
-    @JsonProperty("host_fields")
-    private List<String> hostFields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6",
-        "bk_agent_id", "bk_host_name", "bk_os_name", "bk_cloud_id", "bk_os_type", "bk_cloud_vendor", "last_time");
-
-    private Page page;
 }

@@ -22,32 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.util.time;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
-import java.util.Arrays;
-import java.util.List;
+import com.tencent.bk.job.common.util.TimeUtil;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-@Getter
-@Setter
-@ToString
-public class FindModuleHostRelationReq extends EsbReq {
-    @JsonProperty("bk_biz_id")
-    private long bizId;
-    @JsonProperty("bk_module_ids")
-    private List<Long> moduleIdList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-    @JsonProperty("module_fields")
-    private List<String> moduleFields = Arrays.asList("bk_module_id", "bk_set_id", "last_time");
+public class TimeUtilTest {
 
-    @JsonProperty("host_fields")
-    private List<String> hostFields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6",
-        "bk_agent_id", "bk_host_name", "bk_os_name", "bk_cloud_id", "bk_os_type", "bk_cloud_vendor", "last_time");
+    @Test
+    @DisplayName("测试解析 DateTimeFormatter.ISO_DATE_TIME 格式的时间")
+    void testParseIsoZonedTimeToMillis() {
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis(null)).isNull();
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("")).isNull();
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-01-01T00:00:00.000AA")).isNull();
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-01-01T00:00:00.000Z")).isEqualTo(1672531200000L);
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-01-01T00:00:00.000+08:00")).isEqualTo(1672502400000L);
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-01-01T00:00:00.000-08:00")).isEqualTo(1672560000000L);
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-05-08T19:37:08.191+08:00")).isEqualTo(1683545828191L);
+    }
 
-    private Page page;
 }

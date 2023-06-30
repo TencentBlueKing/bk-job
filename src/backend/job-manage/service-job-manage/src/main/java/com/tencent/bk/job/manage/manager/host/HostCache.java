@@ -32,9 +32,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -94,6 +98,25 @@ public class HostCache {
         String hostIdKey = buildHostIdKey(applicationHostDTO);
         redisTemplate.delete(hostIpKey);
         redisTemplate.delete(hostIdKey);
+    }
+
+    /**
+     * 批量删除缓存中的主机
+     *
+     * @param hosts 主机集合
+     */
+    public void batchDeleteHost(Collection<ApplicationHostDTO> hosts) {
+        if (CollectionUtils.isEmpty(hosts)) {
+            return;
+        }
+        Set<String> hostIpKeys = new HashSet<>();
+        Set<String> hostIdKeys = new HashSet<>();
+        for (ApplicationHostDTO host : hosts) {
+            hostIpKeys.add(buildHostIpKey(host));
+            hostIdKeys.add(buildHostIdKey(host));
+        }
+        redisTemplate.delete(hostIpKeys);
+        redisTemplate.delete(hostIdKeys);
     }
 
     /**
