@@ -104,7 +104,8 @@ class CollectionUtilTest {
             assertThat(partitionLists.get(1004)).hasSize(1);
             assertThat(partitionLists.get(1004).get(0)).isEqualTo("test2009");
 
-            List<String> mergedElements = partitionLists.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+            List<String> mergedElements =
+                partitionLists.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
             // 测试分区之后与原始的在数量上一致
             assertThat(mergedElements).hasSize(2009);
         }
@@ -167,7 +168,8 @@ class CollectionUtilTest {
             assertThat(partitionLists.get(1)).hasSize(2);
             assertThat(partitionLists.get(1004)).hasSize(1);
 
-            List<String> mergedElements = partitionLists.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+            List<String> mergedElements =
+                partitionLists.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
             // 测试分区之后与原始的在数量上一致
             assertThat(mergedElements).hasSize(2009);
         }
