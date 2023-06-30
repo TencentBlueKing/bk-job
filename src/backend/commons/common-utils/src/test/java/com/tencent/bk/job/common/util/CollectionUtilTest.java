@@ -28,9 +28,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
@@ -87,6 +89,25 @@ class CollectionUtilTest {
             assertThat(partitionLists).hasSize(2);
             assertThat(partitionLists.get(0)).hasSize(2);
             assertThat(partitionLists.get(1)).hasSize(2);
+
+            // 测试分区较多的场景
+            list = new ArrayList<>();
+            for (int i = 1; i <= 2009; i++) {
+                list.add("test" + i);
+            }
+            partitionLists = CollectionUtil.partitionCollection(list, 2);
+            assertThat(partitionLists).hasSize(1005);
+            assertThat(partitionLists.get(0)).hasSize(2);
+            assertThat(partitionLists.get(0).get(0)).isEqualTo("test1");
+            assertThat(partitionLists.get(0).get(1)).isEqualTo("test2");
+            assertThat(partitionLists.get(1)).hasSize(2);
+            assertThat(partitionLists.get(1004)).hasSize(1);
+            assertThat(partitionLists.get(1004).get(0)).isEqualTo("test2009");
+
+            List<String> mergedElements =
+                partitionLists.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+            // 测试分区之后与原始的在数量上一致
+            assertThat(mergedElements).hasSize(2009);
         }
 
         @Test
@@ -135,6 +156,22 @@ class CollectionUtilTest {
             assertThat(partitionLists.get(0)).hasSize(3);
             assertThat(partitionLists.get(1)).hasSize(3);
             assertThat(partitionLists.get(2)).hasSize(1);
+
+            // 测试分区较多的场景
+            Set<String> set6 = new HashSet<>();
+            for (int i = 1; i <= 2009; i++) {
+                set6.add("test" + i);
+            }
+            partitionLists = CollectionUtil.partitionCollection(set6, 2);
+            assertThat(partitionLists).hasSize(1005);
+            assertThat(partitionLists.get(0)).hasSize(2);
+            assertThat(partitionLists.get(1)).hasSize(2);
+            assertThat(partitionLists.get(1004)).hasSize(1);
+
+            List<String> mergedElements =
+                partitionLists.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList());
+            // 测试分区之后与原始的在数量上一致
+            assertThat(mergedElements).hasSize(2009);
         }
 
     }
