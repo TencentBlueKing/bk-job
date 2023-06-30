@@ -80,11 +80,9 @@ public class CollectionUtil {
         int limit = (collection.size() + size - 1) / size;
         return Stream.iterate(0, n -> n + 1)
             .limit(limit)
-            .parallel()
             .map(a -> collection.stream()
                 .skip(a * size)
                 .limit(size)
-                .parallel()
                 .collect(Collectors.toList()))
             .collect(Collectors.toList());
     }
