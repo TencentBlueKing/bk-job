@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.common.gse.service;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
@@ -73,14 +71,16 @@ public class AgentStateClientImpl implements AgentStateClient {
                 "cannot find agent state by agentId:{}",
                 agentId
             );
-            throw new InternalException(ErrorCode.GSE_API_DATA_ERROR, new String[]{msg.getMessage()});
+            log.warn(msg.getMessage());
+            return null;
         } else if (agentStateList.size() > 1) {
             FormattingTuple msg = MessageFormatter.format(
-                "multi({}) agent states by agentId:{}",
+                "multi({}) agent states by agentId:{}, use the first one",
                 agentStateList.size(),
                 agentId
             );
-            throw new InternalException(ErrorCode.GSE_API_DATA_ERROR, new String[]{msg.getMessage()});
+            log.warn(msg.getMessage());
+            return agentStateList.get(0);
         }
         return agentStateList.get(0);
     }
