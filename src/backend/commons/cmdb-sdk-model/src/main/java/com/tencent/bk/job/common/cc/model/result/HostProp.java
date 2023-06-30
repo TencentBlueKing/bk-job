@@ -79,7 +79,7 @@ public class HostProp {
         applicationHostDTO.setOsType(StringUtil.substring(osType, osTypeNameMaxLength));
         applicationHostDTO.setCloudAreaId(cloudAreaId);
         applicationHostDTO.setCloudVendorId(cloudVendorId);
-        applicationHostDTO.setLastTime(TimeUtil.parseZonedTime(lastTime));
+        applicationHostDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(lastTime));
         return applicationHostDTO;
     }
 }

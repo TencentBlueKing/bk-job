@@ -82,7 +82,7 @@ public class HostEventDetail {
         hostInfoDTO.setOsType(eventDetail.osType);
         hostInfoDTO.setCloudAreaId(Long.parseLong(eventDetail.getCloudId()));
         hostInfoDTO.setCloudVendorId(eventDetail.cloudVendorId);
-        hostInfoDTO.setLastTime(TimeUtil.parseZonedTime(eventDetail.getLastTime()));
+        hostInfoDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime()));
         return hostInfoDTO;
     }
 }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -204,14 +205,10 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             return 0;
         }
         int batchSize = 1000;
-        int size = hostTopoList.size();
-        int start = 0;
-        int end;
         List<Query> queryList = new ArrayList<>();
         int affectedNum = 0;
-        do {
-            end = Math.min(start + batchSize, size);
-            List<HostTopoDTO> subList = hostTopoList.subList(start, end);
+        List<List<HostTopoDTO>> subListList = CollectionUtil.partitionList(hostTopoList, batchSize);
+        for (List<HostTopoDTO> subList : subListList) {
             for (HostTopoDTO hostTopo : subList) {
                 List<Condition> conditions = buildHostTopoMainFieldCondition(hostTopo);
                 conditions.add(defaultTable.LAST_TIME.lessThan(hostTopo.getLastTime()));
@@ -225,11 +222,11 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             for (int result : results) {
                 affectedNum += result;
             }
-            start += batchSize;
-        } while (end < size);
+        }
         return affectedNum;
     }
 
+    @Override
     public int updateBeforeLastTime(HostTopoDTO hostTopo) {
         List<Condition> conditions = buildHostTopoMainFieldCondition(hostTopo);
         conditions.add(defaultTable.LAST_TIME.lessThan(hostTopo.getLastTime()));
@@ -250,14 +247,10 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             return 0;
         }
         int batchSize = 1000;
-        int size = hostTopoList.size();
-        int start = 0;
-        int end;
         List<Query> queryList = new ArrayList<>();
         int affectedNum = 0;
-        do {
-            end = Math.min(start + batchSize, size);
-            List<HostTopoDTO> subList = hostTopoList.subList(start, end);
+        List<List<HostTopoDTO>> subListList = CollectionUtil.partitionList(hostTopoList, batchSize);
+        for (List<HostTopoDTO> subList : subListList) {
             for (HostTopoDTO hostTopo : subList) {
                 List<Condition> conditions = buildHostTopoMainFieldCondition(hostTopo);
                 conditions.add(defaultTable.LAST_TIME.eq(hostTopo.getLastTime()));
@@ -270,8 +263,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             for (int result : results) {
                 affectedNum += result;
             }
-            start += batchSize;
-        } while (end < size);
+        }
         return affectedNum;
     }
 

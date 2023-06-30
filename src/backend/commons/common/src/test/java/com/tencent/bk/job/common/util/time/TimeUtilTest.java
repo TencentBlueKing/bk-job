@@ -22,51 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto;
+package com.tencent.bk.job.common.util.time;
 
-import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
+
 import com.tencent.bk.job.common.util.TimeUtil;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-/**
- * 主机拓扑
- */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class HostTopoDTO {
-    /**
-     * 主机Id
-     */
-    private Long hostId;
-    /**
-     * 业务ID
-     */
-    private Long bizId;
-    /**
-     * 集群ID
-     */
-    private Long setId;
-    /**
-     * 模块ID
-     */
-    private Long moduleId;
-    /**
-     * CMDB中的数据最后修改时间
-     */
-    private Long lastTime;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-    public static HostTopoDTO fromHostRelationEvent(HostRelationEventDetail eventDetail) {
-        return new HostTopoDTO(
-            eventDetail.getHostId(),
-            eventDetail.getBizId(),
-            eventDetail.getSetId(),
-            eventDetail.getModuleId(),
-            TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime())
-        );
+public class TimeUtilTest {
+
+    @Test
+    @DisplayName("测试解析 DateTimeFormatter.ISO_DATE_TIME 格式的时间")
+    void testParseIsoZonedTimeToMillis() {
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis(null)).isNull();
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("")).isNull();
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-01-01T00:00:00.000AA")).isNull();
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-01-01T00:00:00.000Z")).isEqualTo(1672531200000L);
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-01-01T00:00:00.000+08:00")).isEqualTo(1672502400000L);
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-01-01T00:00:00.000-08:00")).isEqualTo(1672560000000L);
+        assertThat(TimeUtil.parseIsoZonedTimeToMillis("2023-05-08T19:37:08.191+08:00")).isEqualTo(1683545828191L);
     }
+
 }

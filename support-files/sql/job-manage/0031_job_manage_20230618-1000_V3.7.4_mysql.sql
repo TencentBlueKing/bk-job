@@ -19,7 +19,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'host'
                     AND COLUMN_NAME = 'last_time') THEN
-    ALTER TABLE host ADD COLUMN last_time BIGINT(20) NOT NULL DEFAULT 0 COMMENT 'CMDB中的数据最后修改时间';
+    ALTER TABLE host ADD COLUMN last_time BIGINT(20) NOT NULL DEFAULT 0 COMMENT 'host last time from CMDB';
   END IF;
 
   -- Update `host_topo` schema
@@ -28,7 +28,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'host_topo'
                     AND COLUMN_NAME = 'last_time') THEN
-    ALTER TABLE host_topo ADD COLUMN last_time BIGINT(20) NOT NULL DEFAULT 0 COMMENT 'CMDB中的数据最后修改时间' AFTER `app_id`;
+    ALTER TABLE host_topo ADD COLUMN last_time BIGINT(20) NOT NULL DEFAULT 0 COMMENT 'host topo last time from CMDB' AFTER `app_id`;
   END IF;
 
 COMMIT;

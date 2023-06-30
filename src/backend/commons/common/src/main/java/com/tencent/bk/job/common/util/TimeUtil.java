@@ -155,7 +155,13 @@ public class TimeUtil {
         return formatter.format(date);
     }
 
-    public static Long parseZonedTime(String zonedTimeStr) {
+    /**
+     * 解析 DateTimeFormatter.ISO_DATE_TIME 格式的时间
+     *
+     * @param zonedTimeStr 带有时区的时间字符串
+     * @return Unix时间戳（ms）
+     */
+    public static Long parseIsoZonedTimeToMillis(String zonedTimeStr) {
         try {
             ZonedDateTime zonedDateTime = ZonedDateTime.parse(zonedTimeStr, DateTimeFormatter.ISO_DATE_TIME);
             return zonedDateTime.toInstant().toEpochMilli();

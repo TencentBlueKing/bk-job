@@ -182,7 +182,7 @@ public class HostSyncService {
         if (!localHostIds.contains(hostProp.getHostId())) {
             return false;
         }
-        Long lastTime = TimeUtil.parseZonedTime(hostProp.getLastTime());
+        Long lastTime = TimeUtil.parseIsoZonedTimeToMillis(hostProp.getLastTime());
         if (lastTime == null || lastTime < 0) {
             lastTime = cmdbHostsFetchTimeMills;
             log.warn(
@@ -235,7 +235,7 @@ public class HostSyncService {
                 cmdbHostIds.add(hostProp.getHostId());
                 BasicHostDTO cmdbBasicHost = new BasicHostDTO(
                     hostProp.getHostId(),
-                    TimeUtil.parseZonedTime(hostProp.getLastTime())
+                    TimeUtil.parseIsoZonedTimeToMillis(hostProp.getLastTime())
                 );
                 cmdbBasicHosts.add(cmdbBasicHost);
             }
@@ -661,7 +661,7 @@ public class HostSyncService {
             bizId,
             moduleProp.getSetId(),
             moduleProp.getModuleId(),
-            TimeUtil.parseZonedTime(moduleProp.getLastTime())
+            TimeUtil.parseIsoZonedTimeToMillis(moduleProp.getLastTime())
         );
     }
 
@@ -746,7 +746,9 @@ public class HostSyncService {
         } else if (watch.getTotalTimeMillis() > 50_000) {
             log.info("Performance:refreshBizHostAndRelations: bizId={}, {}", bizId, watch.prettyPrint());
         } else {
-            log.debug("Performance:refreshBizHostAndRelations: bizId={}, {}", bizId, watch.prettyPrint());
+            if (log.isDebugEnabled()) {
+                log.debug("Performance:refreshBizHostAndRelations: bizId={}, {}", bizId, watch.prettyPrint());
+            }
         }
         log.info(
             "RefreshBizHostAndRelationsStatistics:bizId={}, insertedHostTopoNum={}, " +

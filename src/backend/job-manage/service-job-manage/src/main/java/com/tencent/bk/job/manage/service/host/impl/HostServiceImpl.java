@@ -158,7 +158,9 @@ public class HostServiceImpl implements HostService {
         log.info("{} hosts inserted", affectedNum);
         insertList.forEach(hostCache::addOrUpdateHost);
         watch.stop();
-        log.debug("Performance:insertHosts:{}", watch.prettyPrint());
+        if (log.isDebugEnabled()) {
+            log.debug("Performance:insertHosts:{}", watch.prettyPrint());
+        }
         return affectedNum;
     }
 
@@ -181,7 +183,9 @@ public class HostServiceImpl implements HostService {
         hostInfoList.forEach(hostCache::addOrUpdateHost);
         watch.stop();
         if (watch.getTotalTimeMillis() < 10_000L) {
-            log.debug("Performance:batchUpdateHostsBeforeLastTime:{}", watch.prettyPrint());
+            if (log.isDebugEnabled()) {
+                log.debug("Performance:batchUpdateHostsBeforeLastTime:{}", watch.prettyPrint());
+            }
         } else if (watch.getTotalTimeMillis() < 60_000L) {
             log.info("Performance:batchUpdateHostsBeforeLastTime:{}", watch.prettyPrint());
         } else {
