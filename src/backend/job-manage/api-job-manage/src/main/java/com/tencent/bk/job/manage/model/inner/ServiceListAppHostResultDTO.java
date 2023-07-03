@@ -11,6 +11,11 @@ import java.util.List;
 @Data
 public class ServiceListAppHostResultDTO {
     /**
+     * 空的实例
+     */
+    public static final ServiceListAppHostResultDTO EMPTY = new ServiceListAppHostResultDTO();
+
+    /**
      * 合法的主机（在当前业务下)
      */
     private List<HostDTO> validHosts;
