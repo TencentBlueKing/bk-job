@@ -1985,6 +1985,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 new String[]{hostVariableName});
         }
 
+        if (serverVariable.getTargetServers() == null) {
+            return null;
+        }
         ServersDTO targetServers = serverVariable.getTargetServers().clone();
         targetServers.setVariable(hostVariableName);
         return targetServers;
