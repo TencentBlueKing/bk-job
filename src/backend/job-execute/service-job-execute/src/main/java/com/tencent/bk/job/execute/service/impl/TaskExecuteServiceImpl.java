@@ -934,7 +934,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServersDTO targetServers = stepInstance.getTargetServers();
         if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
             log.warn("Empty target server! stepInstanceName: {}", stepInstance.getName());
-            throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+            throw new FailedPreconditionException(ErrorCode.STEP_TARGET_HOST_EMPTY,
+                new String[]{stepInstance.getName()});
         }
         if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
@@ -944,7 +945,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     ServersDTO servers = fileSource.getServers();
                     if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
                         log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
-                        throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+                        throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_HOST_EMPTY,
+                            new String[]{stepInstance.getName()});
                     }
                 }
             }

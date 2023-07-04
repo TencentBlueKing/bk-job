@@ -246,6 +246,10 @@ public class ErrorCode {
     public static final int INVALID_ROLLING_EXPR = 1244026;
     // 滚动批次不能大于{}
     public static final int EXCEED_MAX_ALLOWED_BATCH_SIZE = 1244027;
+    // 步骤：{} 的目标主机为空
+    public static final int STEP_TARGET_HOST_EMPTY = 1244028;
+    // 步骤：{} 的源文件主机为空
+    public static final int STEP_SOURCE_HOST_EMPTY = 1244029;
     // 作业执行 end
 
     // 定时作业 start
