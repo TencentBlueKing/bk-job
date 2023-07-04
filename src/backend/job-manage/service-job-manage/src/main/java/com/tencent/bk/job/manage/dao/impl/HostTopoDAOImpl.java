@@ -31,6 +31,7 @@ import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -376,6 +377,23 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         ).from(defaultTable)
             .where(defaultTable.HOST_ID.eq(JooqDataTypeUtil.buildULong(hostId)));
         return query.fetch().map(record -> record.get(defaultTable.MODULE_ID, Long.class));
+    }
+
+    @Override
+    public List<Pair<Long, Long>> listHostIdAndModuleIdByBizId(Long bizId) {
+        List<Condition> conditions = new ArrayList<>();
+        if (bizId != null) {
+            conditions.add(defaultTable.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
+        }
+        val query = defaultContext.select(
+            defaultTable.HOST_ID,
+            defaultTable.MODULE_ID
+        ).from(defaultTable)
+            .where(conditions);
+        return query.fetch().map(record -> Pair.of(
+            record.get(defaultTable.HOST_ID, Long.class),
+            record.get(defaultTable.MODULE_ID, Long.class)
+        ));
     }
 
     private HostTopoDTO convertRecordToDto(HostTopoRecord record) {

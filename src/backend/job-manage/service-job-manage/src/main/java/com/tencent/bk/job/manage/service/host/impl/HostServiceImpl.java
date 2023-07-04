@@ -687,28 +687,54 @@ public class HostServiceImpl implements HostService {
         }
         //填充云区域名称
         fillCloudAreaName(dbHosts);
-        List<HostInfoVO> hostInfoVOList = dbHosts.stream()
-            .map(ApplicationHostDTO::toVO).collect(Collectors.toList());
         //将主机挂载到topo树
+        setHostsToTopoTree(bizId, dbHosts, topologyTree, map, watch);
+    }
+
+    private void setHostsToTopoTree(Long bizId,
+                                    List<ApplicationHostDTO> dbHosts,
+                                    CcTopologyNodeVO topologyTree,
+                                    Map<Long, CcTopologyNodeVO> map,
+                                    StopWatch watch) {
+        List<HostInfoVO> hostInfoVOList = new ArrayList<>();
+        for (ApplicationHostDTO dbHost : dbHosts) {
+            hostInfoVOList.add(dbHost.toVO());
+        }
         watch.start("setToTopoTree");
+        List<Pair<Long, Long>> hostModuleIdPairList = hostTopoDAO.listHostIdAndModuleIdByBizId(bizId);
+        Map<Long, List<Long>> hostIdModuleMap = new HashMap<>();
+        hostModuleIdPairList.forEach(pair -> {
+            List<Long> moduleIdList = hostIdModuleMap.computeIfAbsent(pair.getLeft(), aLong -> new ArrayList<>());
+            moduleIdList.add(pair.getRight());
+        });
         for (int i = 0; i < hostInfoVOList.size(); i++) {
             ApplicationHostDTO host = dbHosts.get(i);
             HostInfoVO hostInfoVO = hostInfoVOList.get(i);
-            List<Long> moduleIdList = hostTopoDAO.listModuleIdByHostId(host.getHostId());
-            moduleIdList.forEach(moduleId -> {
-                CcTopologyNodeVO moduleNode = map.get(moduleId);
-                if (moduleNode == null) {
-                    log.warn("cannot find moduleNode in topoTree, cache may expire, ignore this moduleNode");
-                } else {
-                    moduleNode.getIpListStatus().add(hostInfoVO);
-                }
-            });
+            List<Long> moduleIdList = hostIdModuleMap.get(host.getHostId());
+            if (CollectionUtils.isNotEmpty(moduleIdList)) {
+                moduleIdList.forEach(moduleId -> {
+                    CcTopologyNodeVO moduleNode = map.get(moduleId);
+                    if (moduleNode == null) {
+                        log.warn("cannot find moduleNode in topoTree, cache may expire, ignore this moduleNode");
+                    } else {
+                        moduleNode.getIpListStatus().add(hostInfoVO);
+                    }
+                });
+            } else {
+                log.info("No moduleId found for host:{}, ignore", host);
+            }
         }
         watch.stop();
         watch.start("countHosts");
         countHosts(topologyTree);
         watch.stop();
-        log.debug(watch.toString());
+        if (watch.getTotalTimeMillis() > 4000) {
+            log.warn("PERF:SLOW:fillHostInfo: {}", watch.toString());
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("fillHostInfo: {}", watch.toString());
+            }
+        }
     }
 
     @Override
