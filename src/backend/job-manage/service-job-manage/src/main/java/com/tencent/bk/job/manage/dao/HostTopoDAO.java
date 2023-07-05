@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao;
 
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.List;
@@ -80,4 +81,12 @@ public interface HostTopoDAO {
      * @return 模块ID列表
      */
     List<Long> listModuleIdByHostId(Long hostId);
+
+    /**
+     * 根据业务ID批量查询主机Id与模块Id信息
+     *
+     * @param bizId 业务ID
+     * @return <主机ID,模块ID>列表
+     */
+    List<Pair<Long, Long>> listHostIdAndModuleIdByBizId(Long bizId);
 }
