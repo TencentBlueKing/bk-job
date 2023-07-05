@@ -315,6 +315,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      */
     private Map<Long, List<String>> getHostAllowedActions(long appId, Collection<HostDTO> hosts) {
         Map<Long, List<String>> hostAllowActionsMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(hosts)) {
+            return hostAllowActionsMap;
+        }
         for (HostDTO host : hosts) {
             List<String> allowActions = whiteHostCache.getHostAllowedAction(appId, host.getHostId());
             if (CollectionUtils.isNotEmpty(allowActions)) {
@@ -678,6 +681,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 提取作业包含的主机列表
         Set<HostDTO> queryHosts = extractHosts(stepInstances, variables);
 
+        if (CollectionUtils.isEmpty(queryHosts)) {
+            return ServiceListAppHostResultDTO.EMPTY;
+        }
+
         ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts,
             needRefreshHostBkAgentId(taskInstance));
 
@@ -685,7 +692,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 如果主机在cmdb不存在，直接报错
             throwHostInvalidException(queryHostsResult.getNotExistHosts());
         }
-
 
         fillTaskInstanceHostDetail(appId, stepInstances, variables, queryHostsResult);
 
@@ -928,7 +934,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServersDTO targetServers = stepInstance.getTargetServers();
         if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
             log.warn("Empty target server! stepInstanceName: {}", stepInstance.getName());
-            throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+            throw new FailedPreconditionException(ErrorCode.STEP_TARGET_HOST_EMPTY,
+                new String[]{stepInstance.getName()});
         }
         if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
@@ -938,7 +945,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     ServersDTO servers = fileSource.getServers();
                     if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
                         log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
-                        throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+                        throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_HOST_EMPTY,
+                            new String[]{stepInstance.getName()});
                     }
                 }
             }
@@ -1979,6 +1987,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 new String[]{hostVariableName});
         }
 
+        if (serverVariable.getTargetServers() == null) {
+            return null;
+        }
         ServersDTO targetServers = serverVariable.getTargetServers().clone();
         targetServers.setVariable(hostVariableName);
         return targetServers;
