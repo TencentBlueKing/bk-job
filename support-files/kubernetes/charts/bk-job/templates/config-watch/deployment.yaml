@@ -7,6 +7,7 @@ metadata:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-config-watcher"
     {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+    {{ include "job.labelKeys.imageTag" . }}: {{ .Values.k8sConfigWatcherConfig.image.tag | quote }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
@@ -26,6 +27,7 @@ spec:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: job-config-watcher
         {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+        {{ include "job.labelKeys.imageTag" . }}: {{ .Values.k8sConfigWatcherConfig.image.tag | quote }}
     spec:
       {{- include "job.imagePullSecrets" . | nindent 6 }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
