@@ -39,11 +39,7 @@ public enum AgentAliveStatusEnum {
     /**
      * 正常
      */
-    ALIVE(1),
-    /**
-     * 未知
-     */
-    UNKNOWN(2);
+    ALIVE(1);
     @JsonValue
     private final int status;
 
@@ -62,13 +58,17 @@ public enum AgentAliveStatusEnum {
     }
 
     public static AgentAliveStatusEnum fromAgentState(AgentState agentState) {
-        if (agentState == null || agentState.getStatusCode() == null) {
-            return UNKNOWN;
-        } else if (agentState.getStatusCode().equals(AgentStateStatusEnum.RUNNING.getValue())) {
-            return ALIVE;
-        } else {
+        if (agentState == null) {
             return NOT_ALIVE;
         }
+        Integer statusCode = agentState.getStatusCode();
+        if (statusCode == null) {
+            return NOT_ALIVE;
+        }
+        if (!statusCode.equals(AgentStateStatusEnum.RUNNING.getValue())) {
+            return NOT_ALIVE;
+        }
+        return ALIVE;
     }
 
     public int getStatusValue() {
