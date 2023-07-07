@@ -87,6 +87,10 @@
         type: Boolean,
         default: false,
       },
+      withValidate: {
+        type: Boolean,
+        default: true,
+      },
     },
     data() {
       return {

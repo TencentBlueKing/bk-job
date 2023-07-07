@@ -95,8 +95,6 @@
   import {
     checkIllegalHostFromVariableTargetValue,
     findUsedVariable,
-    removeIllegalHostFromStep,
-    removeIllegalHostFromVariable,
   } from '@utils/assist';
 
   import BackTop from '@components/back-top';
