@@ -179,7 +179,7 @@
           },
         };
         return new Promise((resolve, reject) => {
-          if (this.isError) {
+          if (this.withValidate && this.isError) {
             return reject(new Error('host error'));
           }
           resolve(data);

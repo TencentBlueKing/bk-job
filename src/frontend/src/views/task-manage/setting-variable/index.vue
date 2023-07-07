@@ -52,7 +52,8 @@
               :key="variable.id"
               ref="unused"
               :data="variable"
-              :type="variable.type" />
+              :type="variable.type"
+              :with-validate="false" />
           </div>
         </toggle-display>
       </global-variable-layout>
