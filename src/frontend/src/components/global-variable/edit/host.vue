@@ -87,6 +87,10 @@
         type: Boolean,
         default: false,
       },
+      withValidate: {
+        type: Boolean,
+        default: true,
+      },
     },
     data() {
       return {
@@ -189,7 +193,7 @@
         const { type, id, name } = this.data;
 
         return new Promise((resolve, reject) => {
-          if (this.isError) {
+          if (this.withValidate && this.isError) {
             return reject(new Error('host error'));
           }
           resolve({

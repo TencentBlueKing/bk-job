@@ -55,6 +55,10 @@
         type: Boolean,
         default: false,
       },
+      withValidate: {
+        type: Boolean,
+        default: true,
+      },
     },
     data() {
       return {
@@ -113,7 +117,7 @@
           return Promise.resolve(data);
         }
         return new Promise((resolve, reject) => {
-          if (this.isError) {
+          if (this.withValidate && this.isError) {
             return reject(new Error('namespace error'));
           }
           resolve(data);
