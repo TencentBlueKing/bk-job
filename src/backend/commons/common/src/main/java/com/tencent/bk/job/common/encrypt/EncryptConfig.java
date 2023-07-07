@@ -46,11 +46,9 @@ import java.util.Map;
 @Slf4j
 public class EncryptConfig {
 
+    private CryptoTypeEnum type;
+
     private String password;
-
-    private String defaultSymmetricAlgorithm = CryptorNames.NONE;
-
-    private String defaultAsymmetricAlgorithm = JobCryptorNames.RSA;
 
     /**
      * 各个场景下使用的加密算法，不配置则使用默认算法

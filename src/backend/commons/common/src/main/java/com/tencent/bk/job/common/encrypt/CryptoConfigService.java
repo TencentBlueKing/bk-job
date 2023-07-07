@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.encrypt;
 
+import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -85,11 +86,18 @@ public class CryptoConfigService {
      */
     public String getSymmetricAlgorithmByScenario(CryptoScenarioEnum cryptoScenarioEnum) {
         if (cryptoScenarioEnum == null) {
-            return encryptConfig.getDefaultSymmetricAlgorithm();
+            return getDefaultSymmetricAlgorithm();
         }
         if (scenarioAlgorithms != null && scenarioAlgorithms.containsKey(cryptoScenarioEnum.getValue())) {
             return scenarioAlgorithms.get(cryptoScenarioEnum.getValue());
         }
-        return encryptConfig.getDefaultSymmetricAlgorithm();
+        return getDefaultSymmetricAlgorithm();
+    }
+
+    private String getDefaultSymmetricAlgorithm() {
+        if (encryptConfig.getType() == CryptoTypeEnum.SHANGMI) {
+            return CryptorNames.SM4;
+        }
+        return JobCryptorNames.AES_CBC;
     }
 }

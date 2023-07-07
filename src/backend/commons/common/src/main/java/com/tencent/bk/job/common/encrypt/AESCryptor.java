@@ -35,15 +35,21 @@ import org.slf4j.helpers.MessageFormatter;
 /**
  * 使用AES/CBC/PKCS5Padding的加密实现
  */
-@Cryptor(name = JobCryptorNames.AES, type = CryptorTypeEnum.SYMMETRIC)
+@Cryptor(name = JobCryptorNames.AES_CBC, type = CryptorTypeEnum.SYMMETRIC)
 public class AESCryptor extends AbstractSymmetricCryptor {
+
     @Override
-    public byte[] encrypt(byte[] key, byte[] message) {
+    public String getName() {
+        return JobCryptorNames.AES_CBC;
+    }
+
+    @Override
+    public byte[] encryptIndeed(byte[] key, byte[] message) {
         try {
             return AESUtils.encrypt(message, key);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                "Fail to encrypt using AES, key.len={}, message.len={}",
+                "Fail to encrypt using AES_CBC, key.len={}, message.len={}",
                 key.length,
                 message.length
             );
@@ -52,12 +58,12 @@ public class AESCryptor extends AbstractSymmetricCryptor {
     }
 
     @Override
-    public byte[] decrypt(byte[] key, byte[] encryptedMessage) {
+    public byte[] decryptIndeed(byte[] key, byte[] encryptedMessage) {
         try {
             return AESUtils.decrypt(encryptedMessage, key);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                "Fail to decrypt using AES, key.len={}, encryptedMessage.len={}",
+                "Fail to decrypt using AES_CBC, key.len={}, encryptedMessage.len={}",
                 key.length,
                 encryptedMessage.length
             );

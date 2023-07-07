@@ -80,6 +80,7 @@ job:
   edition: ce
   {% endif -%}
   encrypt:
+    type: __BK_CRYPTO_TYPE__
     password: __BK_JOB_ENCRYPT_PASSWORD__
   web:
     url: __BK_JOB_PUBLIC_URL__

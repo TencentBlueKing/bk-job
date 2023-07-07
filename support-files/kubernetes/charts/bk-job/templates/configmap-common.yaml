@@ -93,6 +93,7 @@ data:
           public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
       edition: {{ .Values.job.edition }}
       encrypt:
+        type: {{ .Values.job.encrypt.type }}
         password: {{ .Values.job.encrypt.password }}
       web:
         url: {{ include "job.web.url" . }}

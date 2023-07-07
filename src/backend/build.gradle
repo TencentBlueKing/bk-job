@@ -130,7 +130,7 @@ ext {
     set('jcommanderVersion', "1.71")
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
-    set('cryptoJavaSDKVersion', "0.0.6")
+    set('cryptoJavaSDKVersion', "0.0.7-SNAPSHOT")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersion:" + bkjobVersion

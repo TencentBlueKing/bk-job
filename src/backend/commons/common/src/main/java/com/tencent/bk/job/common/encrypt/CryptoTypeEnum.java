@@ -24,7 +24,14 @@
 
 package com.tencent.bk.job.common.encrypt;
 
-public class JobCryptorNames {
-    // 对称加密
-    public static final String AES_CBC = "AES_CBC";
+/**
+ * 加密类型枚举值
+ */
+public enum CryptoTypeEnum {
+
+    // 经典密码算法（RSA、AES等）
+    CLASSIC,
+    // 国家商用密码算法（SM2、SM4等）
+    SHANGMI
+
 }

@@ -1,4 +1,13 @@
 # chart values 更新日志
+## 0.5.0
+1.增加 加密类型 配置
+```yaml
+job:
+  encrypt:
+    # 可选值：CLASSIC（经典国际算法RSA、AES等），SHANGMI（国家商用密码算法SM2、SM4等）
+    type: "CLASSIC"
+```
+
 ## 0.4.5
 1.增加 bkDomain 配置
 
