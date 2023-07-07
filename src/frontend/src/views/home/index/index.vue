@@ -86,7 +86,7 @@
   </div>
 </template>
 <script>
-  import marked from 'marked';
+  import * as marked from 'marked';
   import xss from 'xss';
 
   import QueryGlobalSettingService from '@service/query-global-setting';

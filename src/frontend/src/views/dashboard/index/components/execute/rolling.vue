@@ -58,7 +58,7 @@
 </template>
 <script>
 /* eslint-disable max-len */
-  import echarts from 'lib/echarts.min.js';
+  import * as echarts from 'echarts';
   import _ from 'lodash';
 
   import StatisticsService from '@service/statistics';

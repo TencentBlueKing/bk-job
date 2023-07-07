@@ -90,7 +90,7 @@
 </template>
 <script>
   import _ from 'lodash';
-  import marked from 'marked';
+  import * as marked from 'marked';
 
   import StatisticsIndexService from '@service/statistics-index';
   import UserService from '@service/user';
