@@ -592,4 +592,6 @@ export default {
   清除成功: 'Successful',
   收藏成功: 'Add to my-favorite-list successful',
   取消收藏成功: 'Remove from my-favorite-list successful',
+  '复制 IP': 'Copy IP',
+  '复制 IPv6': 'Copy IPv6',
 };
