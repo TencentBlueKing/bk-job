@@ -56,6 +56,10 @@
         type: Boolean,
         default: false,
       },
+      withValidate: {
+        type: Boolean,
+        default: true,
+      },
     },
     data() {
       return {
@@ -113,7 +117,7 @@
           targetValue: {},
         };
         return new Promise((resolve, reject) => {
-          if (this.isError) {
+          if (this.withValidate && this.isError) {
             return reject(new Error('password error'));
           }
           resolve(data);
