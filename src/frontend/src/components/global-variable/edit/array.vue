@@ -55,6 +55,10 @@
         type: Boolean,
         default: false,
       },
+      withValidate: {
+        type: Boolean,
+        default: true,
+      },
     },
     data() {
       return {
@@ -110,7 +114,7 @@
           server: {},
         };
         return new Promise((resolve, reject) => {
-          if (this.isError) {
+          if (this.withValidate && this.isError) {
             return reject(new Error('string error'));
           }
           resolve(data);
