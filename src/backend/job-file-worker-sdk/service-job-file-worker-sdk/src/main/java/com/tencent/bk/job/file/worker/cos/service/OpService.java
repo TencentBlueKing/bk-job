@@ -77,15 +77,10 @@ public class OpService {
         offLineReq.setTaskIdList(runningTaskIdList);
         offLineReq.setInitDelayMills(3000L);
         offLineReq.setIntervalMills(3000L);
+        log.info("offLine: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(offLineReq));
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, offLineReq);
         String respStr;
         try {
-            log.info(
-                "url={},body={},headers={}",
-                url,
-                JsonUtils.toJsonWithoutSkippedFields(req.getBody()),
-                JsonUtils.toJson(req.getHeaders())
-            );
             respStr = httpHelper.post(url, req.getBody(), req.getHeaders());
             log.info(String.format("respStr=%s", respStr));
             // 停止任务
@@ -98,7 +93,7 @@ public class OpService {
                 "Fail to request file-gateway,url={},body={},headers={}",
                 new String[]{
                     url,
-                    JsonUtils.toJsonWithoutSkippedFields(req.getBody()),
+                    JsonUtils.toJsonWithoutSkippedFields(offLineReq),
                     JsonUtils.toJson(req.getHeaders())
                 }
             );

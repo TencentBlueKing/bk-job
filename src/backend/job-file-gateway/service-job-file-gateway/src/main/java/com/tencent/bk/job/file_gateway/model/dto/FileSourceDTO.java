@@ -199,4 +199,8 @@ public class FileSourceDTO {
         fileSourceVO.setLastModifyTime(fileSourceDTO.getLastModifyTime());
         return fileSourceVO;
     }
+
+    public String getBasicDesc() {
+        return "(id=" + id + ", appId=" + appId + ", code=" + code + ", alias=" + alias + ", enable=" + enable + ")";
+    }
 }

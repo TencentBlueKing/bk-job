@@ -149,7 +149,7 @@ public class DispatchServiceImpl implements DispatchService {
             MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_GATEWAY));
         long millis = TimeUnit.NANOSECONDS.toMillis(nanoSeconds);
         if (millis > 2000) {
-            log.warn("Dispatch time over 2000ms, fileSourceDTO={}", JsonUtils.toJson(fileSourceDTO));
+            log.warn("Dispatch time over 2000ms, fileSourceDTO={}", fileSourceDTO.getBasicDesc());
         }
         return fileWorkerDTO;
     }
@@ -211,7 +211,7 @@ public class DispatchServiceImpl implements DispatchService {
     private FileWorkerDTO findBestFileWorkerIndeed(FileSourceDTO fileSourceDTO) {
         String mode = fileSourceDTO.getWorkerSelectMode();
         FileWorkerDTO fileWorkerDTO;
-        log.info("select worker with mode={},fileSourceDTO={}", mode, JsonUtils.toJson(fileSourceDTO));
+        log.info("select worker with mode={},fileSourceDTO={}", mode, fileSourceDTO.getBasicDesc());
         if (WorkerSelectModeEnum.MANUAL.name().equals(mode)) {
             Long workerId = fileSourceDTO.getWorkerId();
             fileWorkerDTO = fileWorkerDAO.getFileWorkerById(workerId);
@@ -225,10 +225,13 @@ public class DispatchServiceImpl implements DispatchService {
             throw new RuntimeException(String.format("workerSelectMode %s not supported yet", mode));
         }
         if (fileWorkerDTO != null) {
-            log.info("FileSource ({},{}) choose worker:{}", fileSourceDTO.getCode(), fileSourceDTO.getAlias(),
-                JsonUtils.toJson(fileWorkerDTO.toBaseVO()));
+            log.info(
+                "FileSource {} choose worker:{}",
+                fileSourceDTO.getBasicDesc(),
+                JsonUtils.toJson(fileWorkerDTO.toBaseVO())
+            );
         } else {
-            log.info("FileSource ({},{}) can not find worker", fileSourceDTO.getCode(), fileSourceDTO.getAlias());
+            log.info("FileSource {} can not find worker", fileSourceDTO.getBasicDesc());
         }
         return fileWorkerDTO;
     }
