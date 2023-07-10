@@ -64,7 +64,7 @@ public class BaseRemoteFileReqGenServiceImpl {
             req.setCredential(commonCredential);
             log.debug("Credential of id {} is {}", credentialId, commonCredential);
         } else if (StringUtils.isNotBlank(credentialId)) {
-            log.warn("Cannot find credential by id {}, fileSource={}", credentialId, fileSourceDTO);
+            log.warn("Cannot find credential by id {}, fileSource={}", credentialId, fileSourceDTO.getBasicDesc());
         }
         req.setFileSourceTypeCode(fileSourceDTO.getFileSourceType().getCode());
         req.setFileSourceInfoMap(fileSourceDTO.getFileSourceInfoMap());

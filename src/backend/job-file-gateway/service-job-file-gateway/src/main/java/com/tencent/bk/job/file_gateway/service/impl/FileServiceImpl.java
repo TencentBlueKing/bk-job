@@ -81,7 +81,7 @@ public class FileServiceImpl implements FileService {
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
-        log.info("choose file worker:" + fileWorkerDTO);
+        log.info("choose file worker:" + fileWorkerDTO.getBasicDesc());
         // 访问文件Worker接口，拿到available状态信息
         HttpReq req = fileSourceReqGenService.genFileAvailableReq(appId, fileWorkerDTO, fileSourceDTO);
         String respStr;
@@ -107,7 +107,7 @@ public class FileServiceImpl implements FileService {
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
-        log.info("choose file worker:" + fileWorkerDTO);
+        log.info("choose file worker:" + fileWorkerDTO.getBasicDesc());
         // 访问文件Worker接口，拿到FileNode信息
         HttpReq req = fileSourceReqGenService.genListFileNodeReq(appId, path, finalName, start, pageSize,
             fileWorkerDTO, fileSourceDTO);
@@ -133,7 +133,7 @@ public class FileServiceImpl implements FileService {
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
-        log.info("choose file worker:" + fileWorkerDTO);
+        log.info("choose file worker:" + fileWorkerDTO.getBasicDesc());
         HttpReq req = fileSourceReqGenService.genExecuteActionReq(appId, executeActionReq.getActionCode(),
             executeActionReq.getParams(), fileWorkerDTO, fileSourceDTO);
         String respStr;

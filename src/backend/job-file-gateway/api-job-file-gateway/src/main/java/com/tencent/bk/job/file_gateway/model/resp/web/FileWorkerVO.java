@@ -61,11 +61,6 @@ public class FileWorkerVO {
     @ApiModelProperty("描述")
     private String description;
     /**
-     * 密钥
-     */
-    @ApiModelProperty("密钥")
-    private String token;
-    /**
      * 所在机器云区域Id
      */
     @ApiModelProperty("所在机器云区域Id")
