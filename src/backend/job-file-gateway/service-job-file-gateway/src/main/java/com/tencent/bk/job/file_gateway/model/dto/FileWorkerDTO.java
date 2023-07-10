@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import com.tencent.bk.job.common.util.json.SkipLogFields;
 import com.tencent.bk.job.file_gateway.consts.FileGatewayConsts;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceMetaData;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
@@ -72,6 +73,7 @@ public class FileWorkerDTO {
     /**
      * 密钥
      */
+    @SkipLogFields
     private String token;
     /**
      * 访问Host
@@ -213,7 +215,6 @@ public class FileWorkerDTO {
 
         fileWorkerVO.setName(name);
         fileWorkerVO.setDescription(description);
-        fileWorkerVO.setToken(token);
         fileWorkerVO.setCloudAreaId(cloudAreaId);
         fileWorkerVO.setInnerIp(innerIp);
         fileWorkerVO.setAbilityTagList(abilityTagList);
@@ -262,5 +263,9 @@ public class FileWorkerDTO {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public String getBasicDesc() {
+        return "(id=" + id + ", appId=" + appId + ", name=" + name + ")";
     }
 }
