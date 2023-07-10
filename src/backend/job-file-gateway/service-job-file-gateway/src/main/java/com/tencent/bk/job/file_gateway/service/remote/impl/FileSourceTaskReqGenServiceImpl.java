@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.service.remote.impl;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.JobUUID;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.model.req.ClearTaskFilesReq;
 import com.tencent.bk.job.file.worker.model.req.DownloadFilesTaskReq;
 import com.tencent.bk.job.file.worker.model.req.StopTasksReq;
@@ -36,13 +37,14 @@ import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+@Slf4j
 @Service
 public class FileSourceTaskReqGenServiceImpl
     extends BaseRemoteFileReqGenServiceImpl implements FileSourceTaskReqGenService {
@@ -67,7 +69,7 @@ public class FileSourceTaskReqGenServiceImpl
         req.setFilePrefix(filePrefix);
         req.setFilePathList(fileSourceTaskDTO.getFileTaskList().stream()
             .map(FileTaskDTO::getFilePath).collect(Collectors.toList()));
-
+        log.info("genDownloadFilesReq: url={},req={}", url, JsonUtils.toJsonWithoutSkippedFields(req));
         return genRemoteFileReq(url, req);
     }
 
@@ -76,6 +78,7 @@ public class FileSourceTaskReqGenServiceImpl
         ClearTaskFilesReq req = new ClearTaskFilesReq(taskIdList);
         String url = getCompleteUrl(fileWorkerDTO, "/filetask/clearFiles");
         req.setTaskIdList(taskIdList);
+        log.info("genClearTaskFilesReq: url={},req={}", url, JsonUtils.toJsonWithoutSkippedFields(req));
         return genRemoteFileReq(url, req);
     }
 
@@ -85,6 +88,7 @@ public class FileSourceTaskReqGenServiceImpl
         String url = getCompleteUrl(fileWorkerDTO, "/filetask/downloadFiles/stop");
         req.setTaskIdList(taskIdList);
         req.setTaskCommand(command.getValue());
+        log.info("genStopTasksReq: url={},req={}", url, JsonUtils.toJsonWithoutSkippedFields(req));
         return genRemoteFileReq(url, req);
     }
 }

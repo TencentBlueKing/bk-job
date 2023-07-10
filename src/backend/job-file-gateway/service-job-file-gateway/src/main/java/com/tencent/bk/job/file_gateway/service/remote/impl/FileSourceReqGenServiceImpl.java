@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.service.remote.impl;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;
@@ -32,12 +33,13 @@ import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceReqGenService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-
+@Slf4j
 @Service
 public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl implements FileSourceReqGenService {
 
@@ -50,6 +52,7 @@ public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl
     public HttpReq genFileAvailableReq(Long appId, FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO) {
         BaseReq req = new BaseReq();
         String url = fillBaseReqGetUrl(req, fileWorkerDTO, fileSourceDTO, "/file/available");
+        log.info("genFileAvailableReq: url={},req={}", url, JsonUtils.toJsonWithoutSkippedFields(req));
         return genRemoteFileReq(url, req);
     }
 
@@ -62,6 +65,7 @@ public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl
         req.setName(name);
         req.setStart(start);
         req.setPageSize(pageSize);
+        log.info("genListFileNodeReq: url={},req={}", url, JsonUtils.toJsonWithoutSkippedFields(req));
         return genRemoteFileReq(url, req);
     }
 
@@ -72,6 +76,7 @@ public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl
         String url = fillBaseReqGetUrl(req, fileWorkerDTO, fileSourceDTO, "/file/executeAction");
         req.setActionCode(actionCode);
         req.setParams(actionParams);
+        log.info("genExecuteActionReq: url={},req={}", url, JsonUtils.toJsonWithoutSkippedFields(req));
         return genRemoteFileReq(url, req);
     }
 
