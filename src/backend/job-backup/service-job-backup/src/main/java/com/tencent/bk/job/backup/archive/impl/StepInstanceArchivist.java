@@ -25,10 +25,13 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import org.jooq.generated.tables.records.StepInstanceRecord;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * step_instance 表归档
@@ -37,19 +40,16 @@ public class StepInstanceArchivist extends AbstractArchivist<StepInstanceRecord>
 
     public StepInstanceArchivist(StepInstanceRecordDAO executeRecordDAO,
                                  ExecuteArchiveDAO executeArchiveDAO,
-                                 ArchiveProgressService archiveProgressService) {
-        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+                                 ArchiveProgressService archiveProgressService,
+                                 ArchiveConfig archiveConfig,
+                                 Long maxNeedArchiveId,
+                                 CountDownLatch countDownLatch) {
+        super(executeRecordDAO,
+            executeArchiveDAO,
+            archiveProgressService,
+            archiveConfig,
+            maxNeedArchiveId,
+            countDownLatch);
         this.deleteIdStepSize = 10_000;
-    }
-
-    /**
-     * 获取作业实例ID范围内的步骤实例ID最大值
-     *
-     * @param taskInstanceId 作业实例ID
-     * @return 步骤实例ID 最大值
-     */
-    public Long getMaxId(Long taskInstanceId) {
-        StepInstanceRecordDAO stepInstanceRecordDAO = (StepInstanceRecordDAO) executeRecordDAO;
-        return stepInstanceRecordDAO.getMaxId(taskInstanceId);
     }
 }

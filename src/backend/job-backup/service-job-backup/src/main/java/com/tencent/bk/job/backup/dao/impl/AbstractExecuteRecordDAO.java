@@ -63,12 +63,12 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
     }
 
     @Override
-    public Long getFirstArchiveId() {
+    public Long getMinArchiveId() {
         Record1<Long> firstArchiveIdRecord = context.select(min(getArchiveIdField())).from(getTable()).fetchOne();
         if (firstArchiveIdRecord != null && firstArchiveIdRecord.get(0) != null) {
             return (Long) firstArchiveIdRecord.get(0);
         }
-        return 0L;
+        return null;
     }
 
     public abstract Table<T> getTable();
