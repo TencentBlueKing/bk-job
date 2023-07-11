@@ -30,6 +30,7 @@ import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.model.dto.ArchiveSummary;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -112,11 +113,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 return;
             }
 
-            log.info("Start archive, tableName: {}, archiveConfig: {}", tableName, archiveConfig);
+            log.info("[{}] Start archive, archiveConfig: {}", tableName, JsonUtils.toJson(archiveConfig));
             minExistedRecordArchiveId = executeRecordDAO.getMinArchiveId();
             if (minExistedRecordArchiveId == null) {
                 // min 查询返回 null，说明是空表，无需归档
-                log.info("Empty table: {}, do not need archive!", tableName);
+                log.info("[{}] Empty table, do not need archive!", tableName);
                 return;
             }
 
@@ -124,7 +125,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             if (archiveConfig.isArchiveEnabled()) {
                 archiveSuccess = archiveTable();
             } else {
-                log.info("Archive is not enabled, skip archiveTable {}!", tableName);
+                log.info("[{}] Archive is not enabled, skip archive table!", tableName);
                 archiveSuccess = true;
             }
 
@@ -152,7 +153,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         boolean isLockAcquired = ArchiveTaskLock.getInstance().lock(tableName);
         archiveSummary.setSkip(!isLockAcquired);
         if (!isLockAcquired) {
-            log.info("Acquire lock fail, tableName: {}", tableName);
+            log.info("[{}] Acquire lock fail", tableName);
         }
         return isLockAcquired;
     }
@@ -165,9 +166,9 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     private boolean archiveTable() {
         // 计算本次归档的起始 ID
         computeMinNeedArchiveId();
-        if (maxNeedArchiveId <= this.minNeedArchiveId) {
-            log.info("MinNeedArchiveId {} is greater than or equal to maxNeedArchiveId {}, skip archiveTable {}!",
-                minNeedArchiveId, maxNeedArchiveId, tableName);
+        if (maxNeedArchiveId < this.minNeedArchiveId) {
+            log.info("[{}] MinNeedArchiveId {} is greater than maxNeedArchiveId {}, skip archive table!",
+                tableName, minNeedArchiveId, maxNeedArchiveId);
             return true;
         }
 
@@ -178,7 +179,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         long start = this.minNeedArchiveId - 1;
         long stop = start;
         try {
-            log.info("ArchiveTable {} start, minNeedArchiveId: {}, maxNeedArchiveId:{}",
+            log.info("[{}] Archive table start, minNeedArchiveId: {}, maxNeedArchiveId:{}",
                 tableName, minNeedArchiveId, maxNeedArchiveId);
             List<T> recordList = new ArrayList<>(readIdStepSize);
 
@@ -253,6 +254,9 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             0 : archiveProgress.getLastArchivedId();
         // 本次归档为表中的最小记录 ID 与上次归档记录的ID中的较大者，减少需要处理的数据
         this.minNeedArchiveId = Math.max(lastArchiveId + 1, minExistedRecordArchiveId);
+        log.info("[{}] Compute minNeedArchiveId, lastArchiveId: {}, minExistedRecordArchiveId: {}," + "" +
+                "minNeedArchiveId: {}",
+            tableName, lastArchiveId, minExistedRecordArchiveId, minNeedArchiveId);
     }
 
     /**
@@ -261,12 +265,15 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     private void computeNeedDeleteIdRange() {
         ArchiveProgressDTO archiveProgress = archiveProgressService.queryArchiveProgress(tableName);
         // 上次删除记录的截止ID
-        long lastDeleteId = (archiveProgress == null || archiveProgress.getLastArchivedId() == null) ?
-            0 : archiveProgress.getLastDeletedId();
-        // 本次删除为表中的最小记录ID与上次删除记录的ID中的较大者，减少需要处理的数据
-        this.minNeedDeleteId = Math.max(lastDeleteId + 1, minExistedRecordArchiveId);
+        Long lastDeleteId = (archiveProgress == null || archiveProgress.getLastDeletedId() == null) ?
+            null : archiveProgress.getLastDeletedId();
+        // 需要删除的最小 ID 为表中实际数据的最小 ID
+        this.minNeedDeleteId = minExistedRecordArchiveId;
         // 需要删除的最大 ID 为本次归档的截止 ID
         this.maxNeedDeleteId = maxNeedArchiveId;
+        log.info("[{}] Compute deleteIdRange, lastDeleteId: {}, minExistedRecordArchiveId: {}," + "" +
+                "minNeedDeleteId: {}, maxNeedDeleteId: {}",
+            tableName, lastDeleteId, minExistedRecordArchiveId, minNeedDeleteId, maxNeedDeleteId);
     }
 
     private void updateArchiveProgress(long lastArchivedId) {
@@ -292,8 +299,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         long deletedRows = 0;
 
         log.info("Delete {} start|{}|{}", tableName, minNeedDeleteId, maxNeedDeleteId);
-        if (maxNeedDeleteId <= minNeedDeleteId) {
-            log.info("MinNeedDeleteId {} is greater than or equal to maxNeedDeleteId {}, skip delete {}!",
+        if (maxNeedDeleteId < minNeedDeleteId) {
+            log.info("MinNeedDeleteId {} is greater than maxNeedDeleteId {}, skip delete {}!",
                 minNeedDeleteId, maxNeedDeleteId, tableName);
             return;
         }

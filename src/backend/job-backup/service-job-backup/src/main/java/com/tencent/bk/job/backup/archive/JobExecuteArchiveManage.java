@@ -61,6 +61,7 @@ import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.slf4j.helpers.MessageFormatter;
@@ -187,14 +188,13 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         @Override
         public void run() {
             try {
-                log.info("Job Execute archive task begin|{}", System.currentTimeMillis());
-                log.info("Archive days : {}", archiveConfig.getDataKeepDays());
+                log.info("Job Execute archive task begin, archiveConfig: {}", JsonUtils.toJson(archiveConfig));
                 if (archiveConfig.isArchiveEnabled() || archiveConfig.isDeleteEnabled()) {
                     doArchive(getEndTime(archiveConfig.getDataKeepDays()));
                 } else {
                     log.info("Archive and delete tasks are disabled, skip archive");
                 }
-                log.info("Job Execute archive task finished|{}", System.currentTimeMillis());
+                log.info("Job Execute archive task finished");
             } catch (InterruptedException e) {
                 log.warn("Thread interrupted!");
             }
@@ -213,7 +213,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
         private void doArchive(Long endTime) throws InterruptedException {
             try {
-                log.info("Start job execute archive before {} at {}", endTime, System.currentTimeMillis());
+                log.info("Start job execute archive before {}", endTime);
 
                 long maxNeedArchiveTaskInstanceId = computeMaxNeedArchiveTaskInstanceId(endTime);
                 long maxNeedArchiveStepInstanceId = computeMaxNeedArchiveStepInstanceId(maxNeedArchiveTaskInstanceId);
@@ -225,7 +225,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 archive(maxNeedArchiveTaskInstanceId, maxNeedArchiveStepInstanceId);
                 ArchiveSummaryHolder.getInstance().print();
 
-                log.info("Job execute archive before {} success at {}", endTime, System.currentTimeMillis());
+                log.info("Job execute archive before {} success", endTime);
             } catch (InterruptedException e) {
                 throw e;
             } catch (Throwable e) {
