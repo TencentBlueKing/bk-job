@@ -221,6 +221,17 @@ Return the JDBC MySQL Driver Class
 {{- end -}}
 
 {{/*
+Return the MariaDB jdbc connection url properties
+*/}}
+{{- define "job.mariadb.connection.properties" -}}
+{{- if .Values.mariadb.enabled }}
+    {{- printf "%s" .Values.mariadb.connection.properties -}}
+{{- else -}}
+    {{- printf "%s" .Values.externalMariaDB.connection.properties -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the JDBC MySQL scheme
 */}}
 {{- define "job.jdbcMysqlScheme" -}}
