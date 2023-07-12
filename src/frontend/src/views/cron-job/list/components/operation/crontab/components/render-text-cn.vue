@@ -37,7 +37,7 @@
     <template v-if="data[3]">
       <span class="dayOfWeek">{{ data[3] }}</span>
     </template>
-    <template v-if="data[3]">
+    <template v-if="data[2]">
       <span class="hour">{{ data[1] }}</span>
     </template>
     <span class="minute">{{ data[0] }}</span>
