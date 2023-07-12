@@ -256,7 +256,6 @@
 </script>
 <style lang='postcss'>
     .cron-job {
-      background: #f0f1f5;
 
       &.is-error {
         .time-input {
