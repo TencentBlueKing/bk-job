@@ -167,13 +167,7 @@ export default (ast) => {
     const last = stack.slice(-1);
     return `${pre.join('，')}和${last[0]}`;
   };
-  // return [
-  //   concatTextNew(ast, 'month'),
-  //   concatTextNew(ast, 'dayOfMonth'),
-  //   concatTextNew(ast, 'dayOfWeek'),
-  //   concatTextNew(ast, 'hour'),
-  //   concatTextNew(ast, 'minute'),
-  // ];
+
   return [
     concatTextNew(ast, 'minute'),
     concatTextNew(ast, 'hour'),
