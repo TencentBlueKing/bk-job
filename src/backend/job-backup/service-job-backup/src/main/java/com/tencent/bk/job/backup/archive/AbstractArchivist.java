@@ -30,7 +30,6 @@ import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.model.dto.ArchiveSummary;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -113,7 +112,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 return;
             }
 
-            log.info("[{}] Start archive, archiveConfig: {}", tableName, JsonUtils.toJson(archiveConfig));
+            log.info("[{}] Start archive", tableName);
             minExistedRecordArchiveId = executeRecordDAO.getMinArchiveId();
             if (minExistedRecordArchiveId == null) {
                 // min 查询返回 null，说明是空表，无需归档

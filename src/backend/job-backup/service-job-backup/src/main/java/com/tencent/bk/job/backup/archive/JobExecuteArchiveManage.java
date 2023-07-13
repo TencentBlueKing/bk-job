@@ -61,7 +61,6 @@ import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.slf4j.helpers.MessageFormatter;
@@ -188,7 +187,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         @Override
         public void run() {
             try {
-                log.info("Job Execute archive task begin, archiveConfig: {}", JsonUtils.toJson(archiveConfig));
+                log.info("Job Execute archive task begin, archiveConfig: {}", archiveConfig);
                 if (archiveConfig.isArchiveEnabled() || archiveConfig.isDeleteEnabled()) {
                     doArchive(getEndTime(archiveConfig.getDataKeepDays()));
                 } else {
