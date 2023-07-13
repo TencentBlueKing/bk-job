@@ -73,10 +73,10 @@ public class GseUtils {
     public static AgentTaskStatusEnum getStatusByGseErrorCode(int gseErrorCode) {
         AgentTaskStatusEnum status = Consts.GSE_ERROR_CODE_2_STATUS_MAP.get(gseErrorCode);
         if (status == null) {
-            if (gseErrorCode > 0) {
-                status = AgentTaskStatusEnum.UNKNOWN_ERROR;
-            } else {
+            if (gseErrorCode == 0) {
                 status = AgentTaskStatusEnum.SUCCESS;
+            } else {
+                status = AgentTaskStatusEnum.UNKNOWN_ERROR;
             }
         }
         return status;
