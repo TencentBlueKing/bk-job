@@ -33,7 +33,11 @@ import com.tencent.bk.job.backup.util.DbRecordMapper;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record13;
+import org.jooq.Result;
+import org.jooq.UpdateSetMoreStep;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,9 +115,7 @@ public class ImportJobDAOImpl implements ImportJobDAO {
                     TABLE.DUPLICATE_SUFFIX, TABLE.DUPLICATE_ID_HANDLER, TABLE.ID_NAME_INFO, TABLE.LOCALE)
                 .from(TABLE).where(conditions).fetch();
         List<ImportJobInfoDTO> importJobInfoList = new ArrayList<>();
-        if (result != null) {
-            result.forEach(record -> importJobInfoList.add(DbRecordMapper.convertRecordToImportJobInfo(record)));
-        }
+        result.forEach(record -> importJobInfoList.add(DbRecordMapper.convertRecordToImportJobInfo(record)));
         return importJobInfoList;
     }
 
@@ -123,7 +125,7 @@ public class ImportJobDAOImpl implements ImportJobDAO {
         conditions.add(TABLE.ID.equal(importJobInfo.getId()));
         conditions.add(TABLE.APP_ID.equal(ULong.valueOf(importJobInfo.getAppId())));
         conditions.add(TABLE.CREATOR.equal(importJobInfo.getCreator()));
-        conditions.add(TABLE.STATUS.notIn(UByte.valueOf(BackupJobStatusEnum.FAILED.getStatus()),
+        conditions.add(TABLE.STATUS.notIn(UByte.valueOf(BackupJobStatusEnum.ALL_FAILED.getStatus()),
             UByte.valueOf(BackupJobStatusEnum.CANCEL.getStatus())));
 
         UpdateSetMoreStep<ImportJobRecord> updateStep =
@@ -170,9 +172,7 @@ public class ImportJobDAOImpl implements ImportJobDAO {
                 TABLE.STATUS, TABLE.EXPORT_ID, TABLE.FILE_NAME, TABLE.TEMPLATE_PLAN_INFO, TABLE.DUPLICATE_SUFFIX,
                 TABLE.DUPLICATE_ID_HANDLER, TABLE.ID_NAME_INFO, TABLE.LOCALE).from(TABLE).where(conditions).fetch();
         List<ImportJobInfoDTO> importJobInfoList = new ArrayList<>();
-        if (result != null) {
-            result.forEach(record -> importJobInfoList.add(DbRecordMapper.convertRecordToImportJobInfo(record)));
-        }
+        result.forEach(record -> importJobInfoList.add(DbRecordMapper.convertRecordToImportJobInfo(record)));
         return importJobInfoList;
     }
 

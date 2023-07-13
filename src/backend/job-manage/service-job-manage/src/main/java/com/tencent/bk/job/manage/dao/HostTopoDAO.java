@@ -25,38 +25,45 @@
 package com.tencent.bk.job.manage.dao;
 
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface HostTopoDAO {
-    void insertHostTopo(HostTopoDTO hostTopoDTO);
+    int insertHostTopo(HostTopoDTO hostTopoDTO);
 
     int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
 
     void deleteHostTopoByHostId(Long appId, Long hostId);
 
-    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
+    int deleteHostTopoBeforeOrEqualLastTime(Long hostId, Long bizId, Long setId, Long moduleId, Long lastTime);
 
     int batchDeleteHostTopo(List<Long> hostIdList);
 
+    int batchDeleteWithLastTime(List<HostTopoDTO> hostTopoList);
+
     int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
 
-    int countHostTopo(Long bizId, Long hostId);
+    int batchUpdateBeforeLastTime(List<HostTopoDTO> hostTopoList);
+
+    int updateBeforeLastTime(HostTopoDTO hostTopo);
 
     List<HostTopoDTO> listHostTopoByHostId(Long hostId);
+
+    List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostId);
 
     List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds);
 
     List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
 
     /**
-     * 根据CMDB业务IDs查询下属主机ID列表
+     * 根据要排除的hostId查询其他拓扑
      *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
+     * @param excludeHostIds 要排除的hostId集合
+     * @return 拓扑列表
      */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
+    List<HostTopoDTO> listHostTopoByExcludeHostIds(Collection<Long> excludeHostIds);
 
     /**
      * 根据CMDB业务ID与主机ID集合查询下属主机ID列表
@@ -66,4 +73,20 @@ public interface HostTopoDAO {
      * @return 主机ID列表
      */
     List<Long> listHostIdByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds);
+
+    /**
+     * 根据hostId查询所属模块Id
+     *
+     * @param hostId 主机ID
+     * @return 模块ID列表
+     */
+    List<Long> listModuleIdByHostId(Long hostId);
+
+    /**
+     * 根据业务ID批量查询主机Id与模块Id信息
+     *
+     * @param bizId 业务ID
+     * @return <主机ID,模块ID>列表
+     */
+    List<Pair<Long, Long>> listHostIdAndModuleIdByBizId(Long bizId);
 }

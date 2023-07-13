@@ -38,7 +38,7 @@ public class FileGseTaskResult extends GseTaskResult<FileTaskResult> {
     }
 
     @Override
-    public boolean isNullResult() {
+    public boolean isEmptyResult() {
         return getResult() == null || CollectionUtils.isEmpty(getResult().getAtomicFileTaskResults());
     }
 }

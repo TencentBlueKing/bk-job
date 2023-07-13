@@ -42,4 +42,7 @@ public class HostRelationEventDetail {
 
     @JsonProperty("bk_module_id")
     private Long moduleId;
+
+    @JsonProperty("last_time")
+    private String lastTime;
 }

@@ -291,6 +291,7 @@ subprojects {
                 entry "jackson-annotations"
             }
             dependency "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
+            dependency "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jacksonVersion"
             dependencySet(group: 'ch.qos.logback', version: "$logbackVersion") {
                 entry "logback-core"
                 entry "logback-classic"

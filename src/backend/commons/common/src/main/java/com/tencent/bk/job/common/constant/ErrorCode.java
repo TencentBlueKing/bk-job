@@ -246,6 +246,10 @@ public class ErrorCode {
     public static final int INVALID_ROLLING_EXPR = 1244026;
     // 滚动批次不能大于{}
     public static final int EXCEED_MAX_ALLOWED_BATCH_SIZE = 1244027;
+    // 步骤：{} 的目标主机为空
+    public static final int STEP_TARGET_HOST_EMPTY = 1244028;
+    // 步骤：{} 的源文件主机为空
+    public static final int STEP_SOURCE_HOST_EMPTY = 1244029;
     // 作业执行 end
 
     // 定时作业 start
@@ -365,28 +369,6 @@ public class ErrorCode {
     // 命令行参数异常：{0}
     public static final int INVALID_CMD_ARGS = 1240007;
 
-    // ========= 系统错误-API通用 ==================//
-    // IP:{}无访问权限
-    public static final int API_IP_NO_ACCESS = 1239001;
-    // 用户无访问权限
-    public static final int API_USER_NO_ACCESS = 1239002;
-    // 不支持的API接口
-    public static final int API_UNSUPPORTED = 1239003;
-    // 缺少请求报文或报文不合法
-    public static final int API_PARAM_NULL_OR_ILLEGAL = 1239004;
-    // 异步调用的方法超时了
-    public static final int API_INVOKE_TIMEOUT = 1239005;
-    // 调用方法出错了
-    public static final int API_INVOKE_ERROR = 1239006;
-    // API接口已经过期废弃
-    public static final int API_DEPRECATED = 1239007;
-    // API服务过载，拒绝服务请求
-    public static final int API_OVER_LOAD = 1239008;
-    // API回调其他接口失败
-    public static final int API_CALLBACK_FAIL = 1239009;
-    // Api.cert文件不可用
-    public static final int API_CERT_ERROR = 1239010;
-
     // ======= 系统错误-公共组件错误 =======//
     // Redis服务不可用，连接不上 - IP不存在或者配置错误
     public static final int REDIS_CONNECT_FAIL = 1250001;
@@ -435,6 +417,8 @@ public class ErrorCode {
 
     // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
+    // 用户({0})账号已被冻结，请处理后再重试
+    public static final int IAM_USER_ACCOUNT_FROZEN = 1215002;
 
     // 第三方API请求错误
     public static final int API_ERROR = 1216001;

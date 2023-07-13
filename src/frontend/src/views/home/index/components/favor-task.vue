@@ -118,7 +118,7 @@
         class="list-empty">
         <img
           class="empty-flag"
-          src="/static/images/favor-task-empty.png">
+          :src="emptyUrl">
         <div style="margin-top: 12px; font-size: 14px; color: #63656e;">
           {{ $t('home.暂无收藏的作业') }}
         </div>
@@ -132,6 +132,8 @@
 <script>
   import HomeService from '@service/home';
 
+  import I18n from '@/i18n';
+
   export default {
     data() {
       return {
@@ -142,6 +144,7 @@
     },
     created() {
       this.fetchMyFavorList();
+      this.emptyUrl = I18n.locale === 'zh-CN' ? '/static/images/favor-task-empty.png' : '/static/images/favor-task-empty-en.png';
     },
     mounted() {
       this.init();

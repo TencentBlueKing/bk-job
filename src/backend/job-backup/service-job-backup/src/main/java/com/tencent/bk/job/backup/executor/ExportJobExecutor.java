@@ -194,14 +194,14 @@ public class ExportJobExecutor {
             processTemplatePlanDetail(exportInfo, jobBackupInfo);
             try {
                 // 2.处理账号
-                processAccount(exportInfo, jobBackupInfo);
+                processAccount(jobBackupInfo);
             } catch (Exception e) {
                 log.error("Error while processing account!", e);
                 logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
                     "Process account failed! Please try again!"
                 );
                 exportInfo.setPassword(null);
-                exportInfo.setStatus(BackupJobStatusEnum.FAILED);
+                exportInfo.setStatus(BackupJobStatusEnum.ALL_FAILED);
                 exportJobService.updateExportJob(exportInfo);
             }
             // 3.处理本地文件
@@ -239,7 +239,7 @@ public class ExportJobExecutor {
             }
 
             exportInfo.setPassword(null);
-            exportInfo.setStatus(BackupJobStatusEnum.SUCCESS);
+            exportInfo.setStatus(BackupJobStatusEnum.ALL_SUCCESS);
             exportInfo.setFileName(fileName);
             exportJobService.updateExportJob(exportInfo);
 
@@ -256,7 +256,7 @@ public class ExportJobExecutor {
         }
     }
 
-    private void processAccount(ExportJobInfoDTO exportInfo, JobBackupInfoDTO jobBackupInfo) {
+    private void processAccount(JobBackupInfoDTO jobBackupInfo) {
         List<ServiceAccountDTO> accountList = new ArrayList<>();
         Set<Long> accountIdSet = new HashSet<>();
         for (TaskTemplateVO taskTemplate : jobBackupInfo.getTemplateDetailInfoMap().values()) {
@@ -298,7 +298,6 @@ public class ExportJobExecutor {
                     }
                     break;
                 default:
-                    continue;
             }
         }
     }
@@ -314,7 +313,7 @@ public class ExportJobExecutor {
                 FileUtils.deleteQuietly(zipFile);
             } catch (Exception e) {
                 log.error("Error while processing export job! Encrypt failed!", e);
-                exportInfo.setStatus(BackupJobStatusEnum.FAILED);
+                exportInfo.setStatus(BackupJobStatusEnum.ALL_FAILED);
                 exportJobService.updateExportJob(exportInfo);
                 return null;
             }
@@ -326,7 +325,7 @@ public class ExportJobExecutor {
                 IOUtils.copy(in, out);
             } catch (IOException e) {
                 log.error("Error while processing export job! Generate final file failed!", e);
-                exportInfo.setStatus(BackupJobStatusEnum.FAILED);
+                exportInfo.setStatus(BackupJobStatusEnum.ALL_FAILED);
                 exportJobService.updateExportJob(exportInfo);
                 return null;
             }
@@ -603,6 +602,7 @@ public class ExportJobExecutor {
         }
     }
 
+    @SuppressWarnings("InfiniteLoopStatement")
     class ExportJobExecutorThread extends Thread {
         @Override
         public void run() {

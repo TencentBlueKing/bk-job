@@ -45,6 +45,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
@@ -77,9 +78,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -135,11 +136,6 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public boolean existHost(long bizId, String ip) {
-        return applicationHostDAO.existsHost(bizId, ip);
-    }
-
-    @Override
     public List<ApplicationHostDTO> getHostsByAppId(Long appId) {
         ApplicationDTO applicationDTO = applicationService.getAppByAppId(appId);
         ResourceScope scope = applicationDTO.getScope();
@@ -150,119 +146,52 @@ public class HostServiceImpl implements HostService {
         }
     }
 
-    private boolean insertOrUpdateOneAppHost(Long bizId, ApplicationHostDTO infoDTO) {
-        try {
-            applicationHostDAO.insertOrUpdateHost(infoDTO);
-            hostCache.addOrUpdateHost(infoDTO);
-        } catch (Throwable t) {
-            log.error(String.format("insertHost fail:bizId=%d,hostInfo=%s", bizId, infoDTO), t);
-            return false;
+    @Override
+    public int batchInsertHosts(List<ApplicationHostDTO> insertList) {
+        if (CollectionUtils.isEmpty(insertList)) {
+            return 0;
         }
-        return true;
+        StopWatch watch = new StopWatch();
+        watch.start("batchInsertHost");
+        // 批量插入主机
+        int affectedNum = applicationHostDAO.batchInsertHost(insertList);
+        log.info("{} hosts inserted", affectedNum);
+        insertList.forEach(hostCache::addOrUpdateHost);
+        watch.stop();
+        if (log.isDebugEnabled()) {
+            log.debug("Performance:insertHosts:{}", watch.prettyPrint());
+        }
+        return affectedNum;
     }
 
     @Override
-    public List<Long> insertHostsToBiz(Long bizId, List<ApplicationHostDTO> insertList) {
+    public int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostInfoList) {
+        if (CollectionUtils.isEmpty(hostInfoList)) {
+            return 0;
+        }
         StopWatch watch = new StopWatch();
-        // 插入主机
-        watch.start("insertAppHostInfo");
-        List<Long> insertFailHostIds = new ArrayList<>();
-        boolean batchInserted = false;
-        try {
-            //尝试批量插入
-            if (!insertList.isEmpty()) {
-                int affectedNum = applicationHostDAO.batchInsertAppHostInfo(insertList);
-                log.info("{} hosts inserted", affectedNum);
-                insertList.forEach(hostCache::addOrUpdateHost);
-            }
-            batchInserted = true;
-        } catch (Throwable throwable) {
-            if (throwable instanceof DataAccessException) {
-                String errorMessage = throwable.getMessage();
-                if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                    log.info("Fail to batchInsertAppHostInfo, try to insert one by one");
-                } else {
-                    log.warn("Fail to batchInsertAppHostInfo, try to insert one by one.", throwable);
-                }
-            } else {
-                log.warn("Fail to batchInsertAppHostInfo, try to insert one by one..", throwable);
-            }
-            //批量插入失败，尝试逐条插入
-            for (ApplicationHostDTO infoDTO : insertList) {
-                if (!insertOrUpdateOneAppHost(bizId, infoDTO)) {
-                    insertFailHostIds.add(infoDTO.getHostId());
-                }
-            }
-        }
+        watch.start("batchUpdateHostsBeforeLastTime to DB");
+        // 批量更新主机
+        int affectedNum = applicationHostDAO.batchUpdateHostsBeforeLastTime(hostInfoList);
+        log.info("try to update {} hosts, {} updated", hostInfoList.size(), affectedNum);
         watch.stop();
-        if (!batchInserted) {
-            watch.start("log insertAppHostInfo");
-            if (!insertFailHostIds.isEmpty()) {
-                log.warn(String.format("appId=%s,insertFailHostIds.size=%d,insertFailHostIds=%s",
-                    bizId, insertFailHostIds.size(), String.join(",",
-                        insertFailHostIds.stream().map(Object::toString).collect(Collectors.toSet()))));
-            }
-            watch.stop();
-        }
-        log.debug("Performance:insertHostsToApp:appId={},{}", bizId, watch.prettyPrint());
-        return insertFailHostIds;
-    }
-
-    @Override
-    public List<Long> updateHostsInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList) {
-        StopWatch watch = new StopWatch();
-        watch.start("updateAppHostInfo");
-        // 更新主机
-        long updateCount = 0L;
-        List<Long> updateHostIds = new ArrayList<>();
-        long errorCount = 0L;
-        List<Long> errorHostIds = new ArrayList<>();
-        boolean batchUpdated = false;
-        try {
-            // 尝试批量更新
-            if (!hostInfoList.isEmpty()) {
-                int affectedNum = applicationHostDAO.batchUpdateBizHostInfoByHostId(hostInfoList);
-                log.info("{} hosts updated", affectedNum);
-                hostInfoList.forEach(hostCache::addOrUpdateHost);
-            }
-            batchUpdated = true;
-        } catch (Throwable throwable) {
-            if (throwable instanceof DataAccessException) {
-                String errorMessage = throwable.getMessage();
-                if (errorMessage.contains("Duplicate entry") && errorMessage.contains("PRIMARY")) {
-                    log.info("Fail to batchUpdateAppHostInfoByHostId, try to update one by one");
-                } else {
-                    log.warn("Fail to batchUpdateAppHostInfoByHostId, try to update one by one.", throwable);
-                }
-            } else {
-                log.warn("Fail to batchUpdateAppHostInfoByHostId, try to update one by one..", throwable);
-            }
-            // 批量更新失败，尝试逐条更新
-            for (ApplicationHostDTO hostInfoDTO : hostInfoList) {
-                try {
-                    if (!applicationHostDAO.existAppHostInfoByHostId(hostInfoDTO.getHostId())) {
-                        applicationHostDAO.updateBizHostInfoByHostId(hostInfoDTO.getBizId(), hostInfoDTO);
-                        hostCache.addOrUpdateHost(hostInfoDTO);
-                        updateCount += 1;
-                        updateHostIds.add(hostInfoDTO.getHostId());
-                    }
-                } catch (Throwable t) {
-                    log.error(String.format("updateHost fail:appId=%d,hostInfo=%s", bizId, hostInfoDTO), t);
-                    errorCount += 1;
-                    errorHostIds.add(hostInfoDTO.getHostId());
-                }
-            }
-        }
+        watch.start("listHostInfoByHostIds");
+        List<Long> hostIds = hostInfoList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
+        hostInfoList = applicationHostDAO.listHostInfoByHostIds(hostIds);
         watch.stop();
-        if (!batchUpdated) {
-            watch.start("log updateAppHostInfo");
-            log.info("Update host of appId={},errorCount={}," +
-                    "updateCount={},errorHostIds={},updateHostIds={}",
-                bizId, errorCount, updateCount, errorHostIds, updateHostIds);
-            watch.stop();
+        watch.start("updateHostToCache");
+        hostInfoList.forEach(hostCache::addOrUpdateHost);
+        watch.stop();
+        if (watch.getTotalTimeMillis() < 10_000L) {
+            if (log.isDebugEnabled()) {
+                log.debug("Performance:batchUpdateHostsBeforeLastTime:{}", watch.prettyPrint());
+            }
+        } else if (watch.getTotalTimeMillis() < 60_000L) {
+            log.info("Performance:batchUpdateHostsBeforeLastTime:{}", watch.prettyPrint());
+        } else {
+            log.warn("Performance:batchUpdateHostsBeforeLastTime:{}", watch.prettyPrint());
         }
-        log.debug("Performance:updateHostsInApp:appId={},{}", bizId, watch.prettyPrint());
-        return errorHostIds;
+        return affectedNum;
     }
 
     @Override
@@ -305,21 +234,86 @@ public class HostServiceImpl implements HostService {
         return updateCount;
     }
 
+    @Transactional
     @Override
-    public List<Long> removeHostsFromBiz(Long bizId, List<ApplicationHostDTO> hostList) {
-        List<Long> hostIdList = hostList.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
-        StopWatch watch = new StopWatch();
-        watch.start("deleteHostTopoOfBiz");
-        List<Long> deleteFailHostIds = new ArrayList<>();
-        // 删除业务与主机的关系
-        hostTopoDAO.batchDeleteHostTopo(bizId, hostIdList);
-        watch.stop();
-        watch.start("syncHostTopo");
-        // 同步主机关系到host表
-        hostIdList.forEach(applicationHostDAO::syncHostTopo);
-        watch.stop();
-        log.debug("Performance:removeHostsFromBiz:bizId={},{}", bizId, watch.prettyPrint());
-        return deleteFailHostIds;
+    public int createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+        try {
+            if (applicationHostDAO.existAppHostInfoByHostId(hostInfoDTO.getHostId())) {
+                // 只更新事件中的主机属性与agent状态
+                applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+                return 0;
+            } else {
+                hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
+                int affectedNum = applicationHostDAO.insertHostWithoutTopo(hostInfoDTO);
+                log.info("insert host: id={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
+                return affectedNum;
+            }
+        } catch (Throwable t) {
+            log.error("createOrUpdateHostBeforeLastTime fail", t);
+            return 0;
+        } finally {
+            // 从拓扑表向主机表同步拓扑数据
+            int affectedNum = applicationHostDAO.syncHostTopo(hostInfoDTO.getHostId());
+            log.info("hostTopo synced: hostId={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
+            // 更新缓存
+            updateHostCache(hostInfoDTO);
+        }
+    }
+
+    public int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+        return applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+    }
+
+    @Override
+    public void deleteHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+        int affectedRowNum = applicationHostDAO.deleteHostBeforeLastTime(
+            null,
+            hostInfoDTO.getHostId(),
+            hostInfoDTO.getLastTime()
+        );
+        log.info(
+            "{} host deleted, id={} ,ip={}",
+            affectedRowNum,
+            hostInfoDTO.getHostId(),
+            hostInfoDTO.getIp()
+        );
+        if (affectedRowNum > 0) {
+            hostCache.deleteHost(hostInfoDTO);
+        }
+    }
+
+    private void updateHostCache(ApplicationHostDTO hostInfoDTO) {
+        hostInfoDTO = applicationHostDAO.getHostById(hostInfoDTO.getHostId());
+        if (hostInfoDTO.getBizId() != null && hostInfoDTO.getBizId() > 0) {
+            // 只更新常规业务的主机到缓存
+            if (applicationService.existBiz(hostInfoDTO.getBizId())) {
+                hostCache.addOrUpdateHost(hostInfoDTO);
+                log.info("host cache updated: hostId:{}", hostInfoDTO.getHostId());
+            }
+        }
+    }
+
+    @Override
+    public List<BasicHostDTO> listAllBasicHost() {
+        return applicationHostDAO.listAllBasicHost();
+    }
+
+    @Override
+    public int deleteByBasicHost(List<BasicHostDTO> basicHostList) {
+        if (CollectionUtils.isEmpty(basicHostList)) {
+            return 0;
+        }
+        List<Long> hostIdList = basicHostList.stream().map(BasicHostDTO::getHostId).collect(Collectors.toList());
+        // 先查出主机信息用于更新缓存
+        List<ApplicationHostDTO> hostList = applicationHostDAO.listHostInfoByHostIds(hostIdList);
+        // 从DB删除
+        int deletedNum = applicationHostDAO.deleteByBasicHost(basicHostList);
+        // 删除缓存
+        hostCache.batchDeleteHost(hostList);
+        hostList = applicationHostDAO.listHostInfoByHostIds(hostIdList);
+        // 未成功从DB删除的主机重新加入缓存
+        hostCache.addOrUpdateHosts(hostList);
+        return deletedNum;
     }
 
     @Override
@@ -693,27 +687,54 @@ public class HostServiceImpl implements HostService {
         }
         //填充云区域名称
         fillCloudAreaName(dbHosts);
-        List<HostInfoVO> hostInfoVOList = dbHosts.stream()
-            .map(ApplicationHostDTO::toVO).collect(Collectors.toList());
         //将主机挂载到topo树
+        setHostsToTopoTree(bizId, dbHosts, topologyTree, map, watch);
+    }
+
+    private void setHostsToTopoTree(Long bizId,
+                                    List<ApplicationHostDTO> dbHosts,
+                                    CcTopologyNodeVO topologyTree,
+                                    Map<Long, CcTopologyNodeVO> map,
+                                    StopWatch watch) {
+        List<HostInfoVO> hostInfoVOList = new ArrayList<>();
+        for (ApplicationHostDTO dbHost : dbHosts) {
+            hostInfoVOList.add(dbHost.toVO());
+        }
         watch.start("setToTopoTree");
+        List<Pair<Long, Long>> hostModuleIdPairList = hostTopoDAO.listHostIdAndModuleIdByBizId(bizId);
+        Map<Long, List<Long>> hostIdModuleMap = new HashMap<>();
+        hostModuleIdPairList.forEach(pair -> {
+            List<Long> moduleIdList = hostIdModuleMap.computeIfAbsent(pair.getLeft(), aLong -> new ArrayList<>());
+            moduleIdList.add(pair.getRight());
+        });
         for (int i = 0; i < hostInfoVOList.size(); i++) {
             ApplicationHostDTO host = dbHosts.get(i);
             HostInfoVO hostInfoVO = hostInfoVOList.get(i);
-            host.getModuleId().forEach(moduleId -> {
-                CcTopologyNodeVO moduleNode = map.get(moduleId);
-                if (moduleNode == null) {
-                    log.warn("cannot find moduleNode in topoTree, cache may expire, ignore this moduleNode");
-                } else {
-                    moduleNode.getIpListStatus().add(hostInfoVO);
-                }
-            });
+            List<Long> moduleIdList = hostIdModuleMap.get(host.getHostId());
+            if (CollectionUtils.isNotEmpty(moduleIdList)) {
+                moduleIdList.forEach(moduleId -> {
+                    CcTopologyNodeVO moduleNode = map.get(moduleId);
+                    if (moduleNode == null) {
+                        log.warn("cannot find moduleNode in topoTree, cache may expire, ignore this moduleNode");
+                    } else {
+                        moduleNode.getIpListStatus().add(hostInfoVO);
+                    }
+                });
+            } else {
+                log.info("No moduleId found for host:{}, ignore", host);
+            }
         }
         watch.stop();
         watch.start("countHosts");
         countHosts(topologyTree);
         watch.stop();
-        log.debug(watch.toString());
+        if (watch.getTotalTimeMillis() > 4000) {
+            log.warn("PERF:SLOW:fillHostInfo: {}", watch.toString());
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("fillHostInfo: {}", watch.toString());
+            }
+        }
     }
 
     @Override

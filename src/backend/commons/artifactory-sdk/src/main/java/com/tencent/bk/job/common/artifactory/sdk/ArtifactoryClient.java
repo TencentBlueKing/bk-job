@@ -647,12 +647,7 @@ public class ArtifactoryClient {
     public void shutdown() {
     }
 
-    private String getSimplifiedStrForLog(String respStr) {
-        String simplifiedStr = StringUtils.deleteWhitespace(respStr);
-        int maxLength = 20000;
-        if (simplifiedStr.length() > maxLength) {
-            simplifiedStr = simplifiedStr.substring(0, maxLength);
-        }
-        return simplifiedStr;
+    private String getSimplifiedStrForLog(String rawStr) {
+        return StringUtil.substring(rawStr, 20000);
     }
 }

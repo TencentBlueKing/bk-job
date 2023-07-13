@@ -34,6 +34,9 @@ import java.util.Map;
  */
 public interface CronJobExecuteResultService {
     /**
+     * ESB 后端调用 URL
+     */
+    /**
      * 根据定时任务 ID 批量执行历史
      *
      * @param appId      业务 ID

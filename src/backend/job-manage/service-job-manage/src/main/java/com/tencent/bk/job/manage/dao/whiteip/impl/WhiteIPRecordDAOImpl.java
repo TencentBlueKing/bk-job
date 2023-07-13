@@ -430,7 +430,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
             .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
             .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
             .join(tWhiteIpAppRel).on(tWhiteIPRecord.ID.eq(tWhiteIpAppRel.RECORD_ID))
-            .join(tApplication).on(tWhiteIpAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
+            .leftJoin(tApplication).on(tWhiteIpAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
             .where(conditions);
         return query.fetchOne(0, Long.class);
     }

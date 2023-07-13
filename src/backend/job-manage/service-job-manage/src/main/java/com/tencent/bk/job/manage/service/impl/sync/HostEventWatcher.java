@@ -29,13 +29,10 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.config.JobManageConfig;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.host.HostService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -60,10 +57,8 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
     private final BizCmdbClient bizCmdbClient;
-    private final ApplicationService applicationService;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final HostService hostService;
     private final AgentStateClient agentStateClient;
-    private final HostCache hostCache;
 
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private final int eventsHandlerNum;
@@ -75,19 +70,15 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
                             Tracer tracer,
                             CmdbEventSampler cmdbEventSampler,
                             BizCmdbClient bizCmdbClient,
-                            ApplicationService applicationService,
-                            ApplicationHostDAO applicationHostDAO,
+                            HostService hostService,
                             AgentStateClient agentStateClient,
-                            HostCache hostCache,
                             JobManageConfig jobManageConfig) {
         super("host", redisTemplate, tracer, cmdbEventSampler);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;
-        this.applicationService = applicationService;
-        this.applicationHostDAO = applicationHostDAO;
+        this.hostService = hostService;
         this.agentStateClient = agentStateClient;
-        this.hostCache = hostCache;
         this.eventsHandlerNum = jobManageConfig.getHostEventHandlerNum();
     }
 
@@ -163,10 +154,8 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
             tracer,
             cmdbEventSampler,
             hostEventQueue,
-            applicationService,
-            applicationHostDAO,
-            agentStateClient,
-            hostCache
+            hostService,
+            agentStateClient
         );
     }
 
@@ -177,10 +166,7 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     }
 
     private void dispatchEventToHandler(ResourceEvent<HostEventDetail> event) {
-        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
-        Long hostId = hostInfoDTO.getHostId();
-        ApplicationHostDTO oldHostInfoDTO = applicationHostDAO.getHostById(hostId);
-        HostEventHandler eventsHandler = chooseHandler(hostId);
-        eventsHandler.commitEvent(oldHostInfoDTO == null ? null : oldHostInfoDTO.getBizId(), event);
+        HostEventHandler eventsHandler = chooseHandler(event.getDetail().getHostId());
+        eventsHandler.commitEvent(event);
     }
 }

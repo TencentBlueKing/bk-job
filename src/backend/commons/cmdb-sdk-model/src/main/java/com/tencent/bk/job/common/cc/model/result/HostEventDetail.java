@@ -28,6 +28,7 @@ package com.tencent.bk.job.common.cc.model.result;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.TimeUtil;
 import lombok.Data;
 
 import java.util.List;
@@ -62,6 +63,9 @@ public class HostEventDetail {
     @JsonProperty("bk_cloud_vendor")
     private String cloudVendorId;
 
+    @JsonProperty("last_time")
+    private String lastTime;
+
     public static ApplicationHostDTO toHostInfoDTO(HostEventDetail eventDetail) {
         ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
         hostInfoDTO.setHostId(eventDetail.hostId);
@@ -78,6 +82,7 @@ public class HostEventDetail {
         hostInfoDTO.setOsType(eventDetail.osType);
         hostInfoDTO.setCloudAreaId(Long.parseLong(eventDetail.getCloudId()));
         hostInfoDTO.setCloudVendorId(eventDetail.cloudVendorId);
+        hostInfoDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime()));
         return hostInfoDTO;
     }
 }

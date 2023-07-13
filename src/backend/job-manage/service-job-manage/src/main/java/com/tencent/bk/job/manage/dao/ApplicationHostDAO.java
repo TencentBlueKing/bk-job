@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.dao;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 
@@ -39,9 +40,6 @@ import java.util.List;
 public interface ApplicationHostDAO {
 
     // 查询类操作
-
-    boolean existsHost(long bizId, String ip);
-
     boolean existAppHostInfoByHostId(Long hostId);
 
     ApplicationHostDTO getHostById(Long hostId);
@@ -63,6 +61,8 @@ public interface ApplicationHostDAO {
     List<ApplicationHostDTO> listHostInfoByIps(Long bizId, Collection<String> ips);
 
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
+
+    List<BasicHostDTO> listBasicHostInfo(Collection<Long> hostIds);
 
     List<ApplicationHostDTO> listAllHostInfo(Long start, Long limit);
 
@@ -158,6 +158,13 @@ public interface ApplicationHostDAO {
     List<HostSimpleDTO> listAllHostSimpleInfo();
 
     /**
+     * 查询全部主机，主机对象只有基础属性
+     *
+     * @return 主机列表
+     */
+    List<BasicHostDTO> listAllBasicHost();
+
+    /**
      * 批量更新主机状态
      *
      * @param status     主机状态
@@ -167,27 +174,19 @@ public interface ApplicationHostDAO {
     int batchUpdateHostStatusByHostIds(int status, List<Long> hostIdList);
 
     // 新增、更新类操作
-
     int insertHostWithoutTopo(ApplicationHostDTO applicationHostDTO);
 
-    void insertOrUpdateHost(ApplicationHostDTO hostDTO);
+    int batchInsertHost(List<ApplicationHostDTO> applicationHostDTOList);
 
-    int batchInsertAppHostInfo(List<ApplicationHostDTO> applicationHostDTOList);
+    int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO);
 
-    void updateHostAttrsById(ApplicationHostDTO applicationHostDTO);
-
-    void updateBizHostInfoByHostId(Long bizId, ApplicationHostDTO applicationHostDTO);
-
-    int updateBizHostInfoByHostId(Long bizId, ApplicationHostDTO applicationHostDTO, boolean updateTopo);
-
-    int batchUpdateBizHostInfoByHostId(List<ApplicationHostDTO> applicationHostDTOList);
+    int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> applicationHostDTOList);
 
     int syncHostTopo(Long hostId);
 
 
     // 删除类操作
-
-    int deleteBizHostInfoById(Long bizId, Long hostId);
+    int deleteHostBeforeLastTime(Long bizId, Long hostId, Long lastTime);
 
     /**
      * 根据传入的主机ID批量删除主机
@@ -222,6 +221,14 @@ public interface ApplicationHostDAO {
      * @return 删除的主机数量
      */
     int deleteBizHostInfoByBizId(long bizId);
+
+    /**
+     * 根据主机基础信息进行批量删除
+     *
+     * @param basicHostList 主机基础信息列表
+     * @return 成功删除的主机数量
+     */
+    int deleteByBasicHost(List<BasicHostDTO> basicHostList);
 
     /**
      * 根据业务id统计主机状态数量

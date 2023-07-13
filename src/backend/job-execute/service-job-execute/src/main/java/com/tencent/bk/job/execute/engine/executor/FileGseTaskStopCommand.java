@@ -67,7 +67,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
 
     @Override
     public void execute() {
-        log.info("Stop gse file task, gseTask:" + gseTaskUniqueName);
+        log.info("Stop gse file task, gseTask:" + gseTaskInfo);
         List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         List<String> agentIds = agentTasks.stream()
             .map(AgentTaskDTO::getAgentId)
@@ -78,9 +78,9 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
         TerminateGseTaskRequest request = new TerminateGseTaskRequest(gseTask.getGseTaskId(), agentIds);
         GseTaskResponse gseTaskResponse = gseClient.terminateGseFileTask(request);
         if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
-            log.error("Terminate gse task failed! gseTask: {}", gseTaskUniqueName);
+            log.error("Terminate gse task failed! gseTask: {}", gseTaskInfo);
         } else {
-            log.info("Terminate gse task response success! gseTask: {}", gseTaskUniqueName);
+            log.info("Terminate gse task response success! gseTask: {}", gseTaskInfo);
             gseTask.setStatus(RunStatusEnum.STOPPING.getValue());
             gseTaskService.updateGseTask(gseTask);
         }

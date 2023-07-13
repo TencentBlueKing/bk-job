@@ -122,6 +122,11 @@
   import TaskManageService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
 
+  import {
+    checkIllegalHostFromVariableStep,
+    removeIllegalHostFromStep,
+    removeIllegalHostFromVariable,
+  } from '@utils/assist';
   import { taskTemplateName } from '@utils/validator';
 
   import BackTop from '@components/back-top';
@@ -483,6 +488,14 @@
         this.$refs.templateOperateRef.clearError();
       },
       /**
+       * @desc
+       * @param { Boolean } name
+       * @returns { Boolean }
+       */
+      handleClearIllegalHost() {
+        console.log('handleClearIllegalHost');
+      },
+      /**
        * @desc 保存作业模板
        *
        * 需要对作模板数据做逻辑验证处理
@@ -496,6 +509,14 @@
             this.messageError(I18n.t('template.请将「待补全」的步骤信息完善后提交重试'));
             return;
           }
+        }
+        // 包含无效主机
+        const hasIllegalHost = checkIllegalHostFromVariableStep(this.formData.variables, this.formData.steps, () => {
+          this.formData.variables = removeIllegalHostFromVariable(this.formData.variables);
+          this.formData.steps = removeIllegalHostFromStep(this.formData.steps);
+        });
+        if (hasIllegalHost) {
+          return;
         }
         // 提交作业模板
         // 再主动拉取作业模板对应的执行方案列表，判断执行方案是否为空和是否需要同步
@@ -571,30 +592,30 @@
         };
 
         const subHeader = () => (
-                <div>
-                    <p style={{ marginBottom: '10px', color: '#979BA5' }}>
-                        {I18n.t('template.还差一步「 设置执行方案」，即可执行作业')}
-                    </p>
-                    <p>
-                        <bk-button
-                            style={{ marginRight: '10px' }}
-                            text
-                            onClick={handleGoTemplateEdit}>
-                            {I18n.t('template.继续编辑')}
-                        </bk-button>
-                        <bk-button
-                            style={{ marginRight: '10px' }}
-                            text
-                            onClick={handleGoTemplateDetail}>
-                            {I18n.t('template.立即查看')}
-                        </bk-button>
-                        <bk-button
-                            text
-                            onClick={handleGoPlan}>
-                            {I18n.t('template.设置方案')}
-                        </bk-button>
-                    </p>
-                </div>
+          <div>
+            <p style={{ marginBottom: '10px', color: '#979BA5' }}>
+              {I18n.t('template.还差一步「 设置执行方案」，即可执行作业')}
+            </p>
+            <p>
+              <bk-button
+                style={{ marginRight: '10px' }}
+                text
+                onClick={handleGoTemplateEdit}>
+                {I18n.t('template.继续编辑')}
+              </bk-button>
+              <bk-button
+                style={{ marginRight: '10px' }}
+                text
+                onClick={handleGoTemplateDetail}>
+                {I18n.t('template.立即查看')}
+              </bk-button>
+              <bk-button
+                text
+                onClick={handleGoPlan}>
+                {I18n.t('template.设置方案')}
+              </bk-button>
+            </p>
+          </div>
         );
 
         confirmInfo = this.$bkInfo({
@@ -658,31 +679,31 @@
           confirmInfo.close();
         };
         const subHeader = () => (
-                <div>
-                    <p style={{ marginBottom: '10px', color: '#979BA5' }}>
-                        {I18n.t('template.可以通过 “立即同步” 入口前往更新所有执行方案')}
-                    </p>
-                    <p>
-                        <bk-button
-                            class="mr10"
-                            text
-                            onClick={handleGoTemplateDetail}>
-                            {I18n.t('template.返回查看')}
-                        </bk-button>
-                        <bk-button
-                            class="mr10"
-                            text
-                            disabled={!planSync}
-                            onClick={handleGoSync}>
-                            {I18n.t('template.立即同步')}
-                        </bk-button>
-                        <bk-button
-                            text
-                            onClick={handleGoPlan}>
-                            {I18n.t('template.查看方案')}
-                        </bk-button>
-                    </p>
-                </div>
+          <div>
+            <p style={{ marginBottom: '10px', color: '#979BA5' }}>
+              {I18n.t('template.可以通过 “立即同步” 入口前往更新所有执行方案')}
+            </p>
+            <p>
+              <bk-button
+                class="mr10"
+                text
+                onClick={handleGoTemplateDetail}>
+                {I18n.t('template.返回查看')}
+              </bk-button>
+              <bk-button
+                class="mr10"
+                text
+                disabled={!planSync}
+                onClick={handleGoSync}>
+                {I18n.t('template.立即同步')}
+              </bk-button>
+              <bk-button
+                text
+                onClick={handleGoPlan}>
+                {I18n.t('template.查看方案')}
+              </bk-button>
+            </p>
+          </div>
         );
 
         confirmInfo = this.$bkInfo({

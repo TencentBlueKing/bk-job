@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.model.query.HostQuery;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -39,6 +40,7 @@ import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -217,6 +219,15 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             appTopoNodeList,
             searchContent
         );
+        if (CollectionUtils.isNotEmpty(ipv6KeyList)) {
+            // 对有效的IPv6地址补全为全写形式再搜索
+            ipv6KeyList = ipv6KeyList.stream().map(ipv6Key -> {
+                if (IpUtils.checkIpv6(ipv6Key)) {
+                    return IpUtils.getFullIpv6ByCompressedOne(ipv6Key);
+                }
+                return ipv6Key;
+            }).collect(Collectors.toList());
+        }
         HostQuery hostQuery = HostQuery.builder()
             .bizIds(basicConditions.getBizIds())
             .moduleIds(basicConditions.getModuleIds())

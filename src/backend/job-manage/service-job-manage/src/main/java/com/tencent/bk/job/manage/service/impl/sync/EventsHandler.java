@@ -45,7 +45,6 @@ public abstract class EventsHandler<T> extends Thread {
     private final CmdbEventSampler cmdbEventSampler;
     protected boolean enabled = true;
     BlockingQueue<ResourceEvent<T>> queue;
-    Long bizId = null;
 
     public EventsHandler(BlockingQueue<ResourceEvent<T>> queue,
                          Tracer tracer,
@@ -55,17 +54,11 @@ public abstract class EventsHandler<T> extends Thread {
         this.cmdbEventSampler = cmdbEventSampler;
     }
 
-    public Long getBizId() {
-        return bizId;
-    }
-
-    public void commitEvent(Long bizId, ResourceEvent<T> event) {
+    public void commitEvent(ResourceEvent<T> event) {
         try {
             boolean result = this.queue.add(event);
             if (!result) {
                 log.warn("Fail to commitEvent:{}", event);
-            } else {
-                this.bizId = bizId;
             }
         } catch (Exception e) {
             log.warn("Fail to commitEvent:" + event, e);
@@ -83,10 +76,10 @@ public abstract class EventsHandler<T> extends Thread {
         Span span = buildSpan();
         try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
             handleEvent(event);
-        } catch (Exception e) {
-            span.error(e);
+        } catch (Throwable t) {
+            span.error(t);
             eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_FAILED;
-            throw e;
+            log.warn("Fail to handleOneEvent:" + event, t);
         } finally {
             span.end();
             long timeConsuming = System.currentTimeMillis() - event.getCreateTime();
@@ -110,18 +103,14 @@ public abstract class EventsHandler<T> extends Thread {
     @Override
     public void run() {
         while (enabled) {
-            ResourceEvent<T> event = null;
+            ResourceEvent<T> event;
             try {
                 event = queue.take();
                 handleEventWithTrace(event);
             } catch (InterruptedException e) {
                 log.warn("queue.take interrupted", e);
             } catch (Throwable t) {
-                log.warn("Fail to handleOneEvent:" + event, t);
-            } finally {
-                if (queue.size() == 0) {
-                    this.bizId = null;
-                }
+                log.error("Fail to handleEventWithTrace", t);
             }
         }
     }

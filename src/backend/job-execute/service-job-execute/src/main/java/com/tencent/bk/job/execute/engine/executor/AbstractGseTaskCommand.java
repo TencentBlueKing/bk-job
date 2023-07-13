@@ -79,9 +79,9 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
      */
     protected int batch;
     /**
-     * GSE 任务唯一名称
+     * GSE 任务信息
      */
-    protected String gseTaskUniqueName;
+    protected String gseTaskInfo;
     /**
      * 是否是GSE V2 Task
      */
@@ -111,7 +111,11 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.stepInstanceId = gseTask.getStepInstanceId();
         this.executeCount = gseTask.getExecuteCount();
         this.batch = gseTask.getBatch();
-        this.gseTaskUniqueName = gseTask.getTaskUniqueName();
+        this.gseTaskInfo = buildGseTaskInfo(stepInstance.getTaskInstanceId(), gseTask);
+    }
+
+    private String buildGseTaskInfo(Long jobInstanceId, GseTaskDTO gseTask) {
+        return "Job:" + jobInstanceId + "-" + gseTask.getTaskUniqueName();
     }
 
     /**

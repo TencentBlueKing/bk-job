@@ -181,10 +181,7 @@
     vertical-align: middle;
 
     &.bk-dialog-fullscreen {
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
+      inset: 0;
     }
 
     &.bk-info-box {
@@ -200,6 +197,11 @@
 
   .bk-dialog-content {
     width: 100%;
+
+    .bk-dialog-tool {
+      pointer-events: none;
+      cursor: default !important;
+    }
   }
 }
 

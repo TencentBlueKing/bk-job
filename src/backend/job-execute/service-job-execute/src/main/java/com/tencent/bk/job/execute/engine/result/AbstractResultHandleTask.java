@@ -80,9 +80,9 @@ import static com.tencent.bk.job.common.util.function.LambdasUtil.not;
 @Slf4j
 public abstract class AbstractResultHandleTask<T> implements ContinuousScheduledTask {
     /**
-     * GSE任务执行结果为空,Job最大容忍时间,5min.用于异常情况下的任务自动终止，防止长时间占用系统资源
+     * GSE任务执行结果为空,Job最大容忍时间1min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
-    private static final int GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS = 300_000;
+    private static final int GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS = 60_000;
     /**
      * GSE任务超时未结束,Job最大容忍时间。5min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
@@ -210,7 +210,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * 是否包含非法主机
      */
     protected boolean hasInvalidHost;
-
+    /**
+     * GSE 任务信息，用于日志输出
+     */
+    protected String gseTaskInfo;
 
 
     protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
@@ -253,6 +256,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.targetAgentTasks = targetAgentTasks;
         this.gseTask = gseTask;
         this.agentTasks = agentTasks;
+        this.gseTaskInfo = buildGseTaskInfo(stepInstance.getTaskInstanceId(), gseTask);
 
         targetAgentTasks.values().forEach(agentTask -> this.targetAgentIds.add(agentTask.getAgentId()));
         this.notFinishedTargetAgentIds.addAll(targetAgentIds);
@@ -268,6 +272,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         }
 
         this.hasInvalidHost = agentTasks.stream().anyMatch(agentTask -> StringUtils.isEmpty(agentTask.getAgentId()));
+    }
+
+    private String buildGseTaskInfo(Long jobInstanceId, GseTaskDTO gseTask) {
+        return "Job:" + jobInstanceId + "-" + gseTask.getTaskUniqueName();
     }
 
     /**
@@ -299,7 +307,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @return 是否应当继续后续流程
      */
     private boolean pullGSEResultAndAnalyse(StopWatch watch) {
-        log.info("[{}]: Start pull gse task result, times: {}", gseTask.getTaskUniqueName(),
+        log.info("[{}]: Start pull gse task result, times: {}", gseTaskInfo,
             pullLogTimes.addAndGet(1));
         GseLogBatchPullResult<T> gseLogBatchPullResult;
         int batch = 0;
@@ -331,7 +339,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 this.executeResult = analyseGseTaskResult(gseTaskResult);
                 watch.stop();
             } catch (Throwable e) {
-                log.error("[" + gseTask.getTaskUniqueName() + "]: analyse gse task result error.", e);
+                log.error("[" + gseTaskInfo + "]: analyse gse task result error.", e);
                 throw e;
             }
         } while (!gseLogBatchPullResult.isLastBatch());
@@ -360,7 +368,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             watch.start("check-skip-or-stop");
             if (shouldSkipStep()) {
                 this.executeResult = GseTaskExecuteResult.SKIPPED;
-                log.info("[{}]: Skip task, set unfinished ip task status to unknown!", gseTask.getTaskUniqueName());
+                log.info("[{}]: Skip task, set unfinished ip task status to unknown!", gseTaskInfo);
                 saveStatusWhenSkip();
                 return;
             }
@@ -379,7 +387,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 watch.stop();
             }
         } catch (Throwable e) {
-            log.error("[" + gseTask.getTaskUniqueName() + "]: result handle error.", e);
+            log.error("[" + gseTaskInfo + "]: result handle error.", e);
             this.executeResult = GseTaskExecuteResult.EXCEPTION;
             finishGseTask(this.executeResult, true);
         } finally {
@@ -401,13 +409,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private boolean checkTaskActiveAndSetRunningStatus() {
         if (!isActive) {
-            log.info("Task is inactive, task: {}", gseTask.getTaskUniqueName());
+            log.info("Task is inactive, task: {}", gseTaskInfo);
             return false;
         }
         this.isRunning = true;
         // 二次确认，防止isActive在设置this.isRunning=true期间发生变化
         if (!isActive) {
-            log.info("Task is inactive, task: {}", gseTask.getTaskUniqueName());
+            log.info("Task is inactive, task: {}", gseTaskInfo);
             return false;
         }
         return true;
@@ -419,8 +427,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             // 如果任务处于“终止中”状态，触发任务终止
             if (this.taskInstance.getStatus() == RunStatusEnum.STOPPING) {
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
-                        "task:{}",
-                    taskInstance.getId(), gseTask.getTaskUniqueName());
+                    "task:{}", taskInstance.getId(), gseTaskInfo);
                 taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.stopGseTask(
                     gseTask.getStepInstanceId(), gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId()));
                 this.isGseTaskTerminating = true;
@@ -461,7 +468,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         long timeout = stepInstance.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : stepInstance.getTimeout();
         if (runDuration - 1000 * timeout >= GSE_TASK_TIMEOUT_MAX_TOLERATION_MILLS) {
-            log.warn("[{}]: Task execution timeout! runDuration: {}ms, timeout: {}s", gseTask.getTaskUniqueName(),
+            log.warn("[{}]: Task execution timeout! runDuration: {}ms, timeout: {}s", gseTaskInfo,
                 runDuration, stepInstance.getTimeout());
             this.executeResult = GseTaskExecuteResult.FAILED;
             saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR,
@@ -480,11 +487,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             latestPullGseLogSuccessTimeMillis = System.currentTimeMillis();
         }
         boolean isAbnormal = false;
-        if (null == gseTaskResult || gseTaskResult.isNullResult()) {
+        if (null == gseTaskResult || gseTaskResult.isEmptyResult()) {
             long currentTimeMillis = System.currentTimeMillis();
-            // 执行结果持续为空
+            // 执行结果持续为空,并且超出 Job 最大容忍时间，需要终止调度任务
             if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS) {
-                log.warn("[{}]: Execution result log always empty!", gseTask.getTaskUniqueName());
+                log.warn("[{}]: Execution result log always empty!", gseTaskInfo);
                 this.executeResult = GseTaskExecuteResult.FAILED;
                 saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR, "Execution result log always empty.");
                 finishGseTask(GseTaskExecuteResult.FAILED, true);
@@ -498,7 +505,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private boolean checkPullResult(GseLogBatchPullResult<T> gseLogBatchPullResult) {
         if (!gseLogBatchPullResult.isSuccess()) {
-            log.error("[{}] Pull gse task result error, errorMsg: {}", gseTask.getTaskUniqueName(),
+            log.error("[{}] Pull gse task result error, errorMsg: {}", gseTaskInfo,
                 gseLogBatchPullResult.getErrorMsg());
             this.executeResult = GseTaskExecuteResult.FAILED;
             saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR, gseLogBatchPullResult.getErrorMsg());
@@ -519,7 +526,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected void dealTargetAgentFinish(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
         log.info("[{}]: Deal target agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
-            gseTask.getTaskUniqueName(), agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
+            gseTaskInfo, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
         notFinishedTargetAgentIds.remove(agentId);
         analyseFinishedTargetAgentIds.add(agentId);
@@ -543,7 +550,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         int gseTaskExecuteResult = result.getResultCode();
 
         // 处理GSE任务执行结果
-        log.info("Finish gse task, task:{}, executeResult:{}", gseTask.getTaskUniqueName(), gseTaskExecuteResult);
+        log.info("Finish gse task, task:{}, executeResult:{}", gseTaskInfo, gseTaskExecuteResult);
 
         long startTime = this.gseTask.getStartTime();
         long endTime = DateUtils.currentTimeMillis();
@@ -603,7 +610,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
         log.info("[{}]: Deal unfinished agent result| notFinishedTargetAgentIds : {}",
-            gseTask.getTaskUniqueName(), notFinishedTargetAgentIds);
+            gseTaskInfo, notFinishedTargetAgentIds);
         long startTime = (gseTask != null && gseTask.getStartTime() != null) ?
             gseTask.getStartTime() : System.currentTimeMillis();
         for (String agentId : notFinishedTargetAgentIds) {
@@ -622,14 +629,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 this.isActive = false;
                 tryStopImmediately();
             } else {
-                log.info("Task is stopped, task: {}", gseTask.getTaskUniqueName());
+                log.info("Task is stopped, task: {}", gseTaskInfo);
             }
         }
     }
 
     private void tryStopImmediately() {
         if (!this.isRunning) {
-            log.info("ResultHandleTask-onStop start, task: {}", gseTask.getTaskUniqueName());
+            log.info("ResultHandleTask-onStop start, task: {}", gseTaskInfo);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
             taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
                 ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
@@ -637,7 +644,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
             this.isStopped = true;
             StopTaskCounter.getInstance().decrement(getTaskId());
-            log.info("ResultHandleTask-onStop end, task: {}", gseTask.getTaskUniqueName());
+            log.info("ResultHandleTask-onStop end, task: {}", gseTaskInfo);
         } else {
             log.info("ResultHandleTask-onStop, task is running now, will stop when idle. stepInstanceId: {}",
                 stepInstanceId);

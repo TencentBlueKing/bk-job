@@ -69,12 +69,15 @@ public class JobHttpClientImpl implements JobHttpClient {
     }
 
     private void logReq(HttpReq req) {
-        log.info(
-            "url={},body={},headers={}",
-            req.getUrl(),
-            req.getBody(),
-            JsonUtils.toJson(req.getHeaders())
-        );
+        if (log.isDebugEnabled()) {
+            // 内容中可能有敏感信息，非必要不开启
+            log.debug(
+                "url={},body={},headers={}",
+                req.getUrl(),
+                req.getBody(),
+                JsonUtils.toJson(req.getHeaders())
+            );
+        }
     }
 
     private void logRespStr(String respStr) {

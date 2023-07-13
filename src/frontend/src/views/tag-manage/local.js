@@ -27,26 +27,26 @@ export default {
   namespace: 'tag',
   message: {
     新建: 'New',
-    请输入: 'Search...',
+    '搜索标签名, 创建人, 更新人...': 'Search by Tag name / Created by / ...',
     标签名: {
-      colHead: 'TAG NAME',
+      colHead: 'Tag name',
     },
     描述: {
-      colHead: 'DESCRIPTION',
+      colHead: 'Description',
     },
     关联作业量: {
-      colHead: 'RELATED JOB(S)',
+      colHead: 'Related job(s)',
     },
     关联脚本量: {
-      colHead: 'RELATED SCRIPT(S)',
+      colHead: 'Related script(s)',
     },
-    创建人: 'CREATED BY',
-    创建时间: 'CREATED AT',
+    创建人: 'Created by',
+    创建时间: 'Created at',
     更新人: {
-      colHead: 'LAST MODIFIED BY',
+      colHead: 'Last modified by',
     },
-    更新时间: 'LAST MODIFIED AT',
-    操作: 'ACTIONS',
+    更新时间: 'Last modified at',
+    操作: 'Actions',
     编辑: 'Edit',
     '确认删除该标签？': 'Are you sure to delete it?',
     '关联的作业、脚本，将同时移除本标签': 'This action will also remove the tag from those associated job templates and scripts',
@@ -58,8 +58,8 @@ export default {
     标签: 'Tags',
     新建标签: 'New',
     批量流转关联项: 'Convert',
-    批量流转关联项成功: 'Convert success',
+    批量流转关联项成功: 'Convert successfully',
     范围不能为空: 'Target is required',
-    提交: 'Commit',
+    提交: 'Submit',
   },
 };

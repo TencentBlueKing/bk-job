@@ -73,7 +73,7 @@
         <jb-edit-textarea
           field="scriptParam"
           readonly
-          :value="stepInfo.scriptParam" />
+          :value="stepInfo.scriptParam || '--'" />
       </detail-item>
       <detail-item :label="$t('template.超时时长：')">
         {{ stepInfo.timeout }}（s）
@@ -97,9 +97,6 @@
       v-else
       :label="$t('template.执行目标：')"
       layout="vertical">
-      <!-- <server-panel
-                detail-fullscreen
-                :host-node-info="stepInfo.executeTarget.hostNodeInfo" /> -->
       <ip-selector
         readonly
         show-view
@@ -121,7 +118,6 @@
   } from '@utils/assist';
 
   import AceEditor from '@components/ace-editor';
-  // import ServerPanel from '@components/choose-ip/server-panel';
   import DetailItem from '@components/detail-layout/item';
   import JbEditTextarea from '@components/jb-edit/textarea';
 
@@ -132,7 +128,6 @@
     name: '',
     components: {
       AceEditor,
-      // ServerPanel,
       DetailItem,
       JbEditTextarea,
       RenderGlobalVariable,

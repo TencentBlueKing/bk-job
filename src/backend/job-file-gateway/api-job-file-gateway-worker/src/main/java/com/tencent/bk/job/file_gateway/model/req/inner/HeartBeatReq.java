@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.req.inner;
 
+import com.tencent.bk.job.common.util.json.SkipLogFields;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,7 @@ public class HeartBeatReq {
     List<String> tagList;
     @ApiModelProperty(value = "业务ID", required = true)
     Long appId;
+    @SkipLogFields(value = "token")
     @ApiModelProperty(value = "密钥", required = true)
     String token;
     @ApiModelProperty(value = "访问worker使用的host", required = true)

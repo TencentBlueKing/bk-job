@@ -27,6 +27,7 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-databind'
     api 'com.fasterxml.jackson.core:jackson-annotations'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
     api 'net.sf.dozer:dozer'
     api 'org.apache.commons:commons-collections4'
     api 'commons-codec:commons-codec'

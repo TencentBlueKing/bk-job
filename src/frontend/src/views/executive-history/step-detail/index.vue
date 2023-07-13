@@ -541,7 +541,7 @@
           if (fieldDataList.length < 1) {
             this.$bkMessage({
               theme: 'warning',
-              message: `${I18n.t('history.没有可复制内容')}`,
+              message: fieldName === 'ip' ? `${I18n.t('history.没有可复制的 IPv4')}` : `${I18n.t('history.没有可复制的 IPv6')}`,
               limit: 1,
             });
             return;

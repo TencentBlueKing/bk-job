@@ -74,7 +74,7 @@
 <script>
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
   import Cookie from 'js-cookie';
-  import marked from 'marked';
+  import * as marked from 'marked';
 
   import WebGlobalService from '@service/web-global';
 
@@ -158,7 +158,7 @@
         }
         this.popperInstance.setContent(`
                     <div style="width: 220px; font-size: 12px; line-height: 20px; color: #63656E;">
-                        <div style="color: #979BA5">JOB 小贴士：</div>
+                        <div style="color: #979BA5">Job 小贴士：</div>
                         <div> 想要再次查阅「版本日志」也可以从此处进入喔～</div>
                     </div>
                 `);

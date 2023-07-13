@@ -65,9 +65,6 @@
         </template>
         <div class="content-wraper">
           <scroll-faker>
-            <!-- <server-panel
-                            detail-mode="dialog"
-                            :host-node-info="hostNodeInfo" /> -->
             <ip-selector
               readonly
               show-view
@@ -82,13 +79,9 @@
   import HostManageService from '@service/host-manage';
 
   import TaskHostNodeModel from '@model/task-host-node';
-  // import ServerPanel from '@components/choose-ip/server-panel';
 
   export default {
     name: '',
-    components: {
-      // ServerPanel,
-    },
     props: {
       title: {
         type: String,

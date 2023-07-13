@@ -59,10 +59,6 @@
           type="edit-2" />
       </div>
     </div>
-    <!-- <choose-ip
-            v-model="isShowChooseIp"
-            :host-node-info="hostNodeInfo"
-            @on-change="handleChange" /> -->
     <ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
@@ -75,12 +71,8 @@
   import _ from 'lodash';
 
   import TaskHostNodeModel from '@model/task-host-node';
-  // import ChooseIp from '@components/choose-ip';
 
   export default {
-    // components: {
-    //     ChooseIp,
-    // },
     props: {
       data: {
         type: Object,

@@ -33,7 +33,6 @@ import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -155,8 +154,6 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
     }
 
     private void dispatchEventToHandler(ResourceEvent<HostRelationEventDetail> event) {
-        HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        Long appId = hostTopoDTO.getBizId();
-        eventsHandler.commitEvent(appId, event);
+        eventsHandler.commitEvent(event);
     }
 }

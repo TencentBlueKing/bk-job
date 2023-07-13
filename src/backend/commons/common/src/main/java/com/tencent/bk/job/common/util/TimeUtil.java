@@ -24,21 +24,20 @@
 
 package com.tencent.bk.job.common.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 
-/**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
- */
+@Slf4j
 public class TimeUtil {
 
     public static final String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -154,5 +153,21 @@ public class TimeUtil {
         Date date = new Date(timeMills);
         DateFormat formatter = new SimpleDateFormat(format);
         return formatter.format(date);
+    }
+
+    /**
+     * 解析 DateTimeFormatter.ISO_DATE_TIME 格式的时间
+     *
+     * @param zonedTimeStr 带有时区的时间字符串
+     * @return Unix时间戳（ms）
+     */
+    public static Long parseIsoZonedTimeToMillis(String zonedTimeStr) {
+        try {
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(zonedTimeStr, DateTimeFormatter.ISO_DATE_TIME);
+            return zonedDateTime.toInstant().toEpochMilli();
+        } catch (Exception e) {
+            log.warn("Fail to parseZonedTime from: {}", zonedTimeStr);
+            return null;
+        }
     }
 }

@@ -55,10 +55,6 @@ public class ScriptHostLogContent {
      */
     private String cloudIpv6;
     /**
-     * 主机IPv6
-     */
-    private String ipv6;
-    /**
      * 日志内容
      */
     private String content;

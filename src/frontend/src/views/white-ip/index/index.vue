@@ -363,6 +363,7 @@
         return WhiteIpService.whiteDelete({
           id: data.id,
         }).then(() => {
+          this.messageSuccess(I18n.t('whiteIP.删除成功'));
           this.fetchData();
           return true;
         });

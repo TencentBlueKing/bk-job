@@ -40,6 +40,13 @@ public class EsbProperties {
     @Setter
     @ToString
     public static class EsbServiceConfig {
+        /**
+         * ESB 后端调用 URL
+         */
         private String url;
+        /**
+         * ESB 前端调用 URL
+         */
+        private String publicUrl;
     }
 }
