@@ -149,12 +149,12 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     private boolean acquireLock() {
-        boolean isLockAcquired = ArchiveTaskLock.getInstance().lock(tableName);
-        archiveSummary.setSkip(!isLockAcquired);
-        if (!isLockAcquired) {
+        this.isAcquireLock = ArchiveTaskLock.getInstance().lock(tableName);
+        archiveSummary.setSkip(!isAcquireLock);
+        if (!isAcquireLock) {
             log.info("[{}] Acquire lock fail", tableName);
         }
-        return isLockAcquired;
+        return isAcquireLock;
     }
 
     /**
