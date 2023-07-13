@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -81,13 +82,13 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public WebStatisticsResourceImpl(AppStatisticService appStatisticService,
+    public WebStatisticsResourceImpl(@Qualifier("appStatisticService") AppStatisticService appStatisticService,
                                      ExecutedTaskStatisticService executedTaskStatisticService,
                                      RollingTaskStatisticService rollingTaskStatisticService,
                                      FastScriptStatisticService fastScriptStatisticService,
                                      FastFileStatisticService fastFileStatisticService,
                                      TagStatisticService tagStatisticService,
-                                     CommonStatisticService commonStatisticService,
+                                     @Qualifier("commonStatisticService") CommonStatisticService commonStatisticService,
                                      StatisticConfig statisticConfig,
                                      RedisTemplate<String, String> redisTemplate,
                                      AppScopeMappingService appScopeMappingService) {

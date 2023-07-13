@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
+@Service("commonStatisticService")
 public class CommonStatisticService {
 
     protected final StatisticsDAO statisticsDAO;

@@ -43,7 +43,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
             "com.tencent.bk.job.logsvr",
             "com.tencent.bk.job.analysis",
             "com.tencent.bk.job.file_gateway",
-            "com.tencent.bk.job.backup"
+            "com.tencent.bk.job.backup",
+            "com.tencent.bk.job.common.config"
         },
     exclude = {JooqAutoConfiguration.class}
 )
