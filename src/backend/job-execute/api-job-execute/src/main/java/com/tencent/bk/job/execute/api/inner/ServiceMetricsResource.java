@@ -27,10 +27,13 @@ package com.tencent.bk.job.execute.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRequest;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -71,5 +74,12 @@ public interface ServiceMetricsResource {
         @RequestParam(value = "dimensionValue", required = true) String dimensionValue,
         @ApiParam(value = "统计日期(yyyy-MM-dd)", required = true)
         @RequestParam(value = "dateStr", required = true) String dateStr
+    );
+
+    @ApiOperation(value = "触发指定时间的数据统计", produces = "application/json")
+    @PostMapping("/service/metrics/statistics/trigger")
+    InternalResponse<Boolean> triggerStatistics(
+        @ApiParam(value = "统计日期(yyyy-MM-dd)", required = false)
+        @RequestBody ServiceTriggerStatisticsRequest request
     );
 }

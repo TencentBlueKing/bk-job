@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRequest;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
 import io.micrometer.core.annotation.Timed;
@@ -66,5 +67,10 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
                                                          String dimensionValue, String dateStr) {
         return InternalResponse.buildSuccessResp(statisticsService.getStatistics(appId, resource, dimension,
             dimensionValue, dateStr));
+    }
+
+    @Override
+    public InternalResponse<Boolean> triggerStatistics(ServiceTriggerStatisticsRequest request) {
+        return InternalResponse.buildSuccessResp(statisticsService.triggerStatistics(request.getDateList()));
     }
 }
