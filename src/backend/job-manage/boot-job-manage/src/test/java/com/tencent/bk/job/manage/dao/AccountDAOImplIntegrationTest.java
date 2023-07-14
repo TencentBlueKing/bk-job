@@ -319,6 +319,7 @@ public class AccountDAOImplIntegrationTest {
         AccountDTO account1 = new AccountDTO();
         account1.setId(3L);
         account1.setDbPassword("ax798sdfs");
+        account1.setCategory(AccountCategoryEnum.DB);
         updateAccounts.add(account1);
         accountDAO.batchUpdateDbAccountPassword(updateAccounts);
 

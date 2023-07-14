@@ -273,7 +273,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getResolvedScriptParam()).isEqualTo("var1");
         assertThat(returnStepInstance.getScriptType()).isEqualTo(1);
         assertThat(returnStepInstance.getTimeout()).isEqualTo(1000);
-        assertThat(returnStepInstance.isSecureParam()).isEqualTo(false);
+        assertThat(returnStepInstance.isSecureParam()).isEqualTo(true);
     }
 
     @Test

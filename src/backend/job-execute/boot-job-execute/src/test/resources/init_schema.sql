@@ -89,27 +89,25 @@ CREATE TABLE IF NOT EXISTS `step_instance`
 
 CREATE TABLE IF NOT EXISTS `step_instance_script`
 (
-    `step_instance_id`               bigint(20)  NOT NULL,
-    `script_content`                 mediumtext,
-    `script_type`                    tinyint(4)           DEFAULT NULL,
-    `script_param`                   text,
-    `resolved_script_param`          text,
-    `execution_timeout`              int(11)              DEFAULT NULL,
-    `system_account_id`              bigint(20)           DEFAULT NULL,
-    `system_account`                 varchar(256)         DEFAULT NULL,
-    `db_account_id`                  bigint(20)           DEFAULT NULL,
-    `db_type`                        tinyint(4)           DEFAULT NULL,
-    `db_account`                     varchar(256)         DEFAULT NULL,
-    `db_password`                    varchar(512)         DEFAULT NULL,
-    `db_password_encrypt_algorithm`  VARCHAR(32) NOT NULL DEFAULT 'AES',
-    `db_port`                        int(5)               DEFAULT NULL,
-    `row_create_time`                DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`                DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `script_source`                  tinyint(4)           DEFAULT 1,
-    `script_id`                      varchar(32)          DEFAULT NULL,
-    `script_version_id`              bigint(20)           DEFAULT NULL,
-    `is_secure_param`                tinyint(1)           DEFAULT 0,
-    `secure_param_encrypt_algorithm` VARCHAR(32) NOT NULL DEFAULT 'None',
+    `step_instance_id`      bigint(20) NOT NULL,
+    `script_content`        mediumtext,
+    `script_type`           tinyint(4)          DEFAULT NULL,
+    `script_param`          text,
+    `resolved_script_param` text,
+    `execution_timeout`     int(11)             DEFAULT NULL,
+    `system_account_id`     bigint(20)          DEFAULT NULL,
+    `system_account`        varchar(256)        DEFAULT NULL,
+    `db_account_id`         bigint(20)          DEFAULT NULL,
+    `db_type`               tinyint(4)          DEFAULT NULL,
+    `db_account`            varchar(256)        DEFAULT NULL,
+    `db_password`           varchar(512)        DEFAULT NULL,
+    `db_port`               int(5)              DEFAULT NULL,
+    `row_create_time`       DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`       DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `script_source`         tinyint(4)          DEFAULT 1,
+    `script_id`             varchar(32)         DEFAULT NULL,
+    `script_version_id`     bigint(20)          DEFAULT NULL,
+    `is_secure_param`       tinyint(1)          DEFAULT 0,
     PRIMARY KEY (`step_instance_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -273,15 +271,14 @@ CREATE TABLE IF NOT EXISTS `operation_log`
 
 CREATE TABLE IF NOT EXISTS `task_instance_variable`
 (
-    `id`                       bigint(20)   NOT NULL AUTO_INCREMENT,
-    `task_instance_id`         bigint(20)   NOT NULL,
-    `name`                     varchar(512) NOT NULL,
-    `type`                     tinyint(4)   NOT NULL,
-    `value`                    longtext,
-    `is_changeable`            tinyint(1)   NOT NULL,
-    `cipher_encrypt_algorithm` VARCHAR(32)  NOT NULL DEFAULT 'None',
-    `row_create_time`          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `id`               bigint(20)   NOT NULL AUTO_INCREMENT,
+    `task_instance_id` bigint(20)   NOT NULL,
+    `name`             varchar(512) NOT NULL,
+    `type`             tinyint(4)   NOT NULL,
+    `value`            longtext,
+    `is_changeable`    tinyint(1)   NOT NULL,
+    `row_create_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY (`task_instance_id`)
 ) ENGINE = InnoDB
@@ -364,15 +361,15 @@ CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
 
 CREATE TABLE IF NOT EXISTS `task_instance_host`
 (
-    `task_instance_id` bigint(20) NOT NULL DEFAULT '0',
-    `host_id`          bigint(20) NOT NULL DEFAULT '0',
-    `ip`               varchar(15)         DEFAULT NULL,
-    `ipv6`             varchar(46)         DEFAULT NULL,
-    `row_create_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`task_instance_id`, `host_id`),
+    `task_instance_id` bigint(20)  NOT NULL DEFAULT '0',
+    `host_id`          bigint(20)  NOT NULL DEFAULT '0',
+    `ip`               varchar(15) DEFAULT NULL,
+    `ipv6`             varchar(46) DEFAULT NULL,
+    `row_create_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`task_instance_id`,`host_id`),
     KEY (`ip`),
     KEY (`ipv6`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4;
 

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.encrypt.scenario;
 
+import com.cronutils.utils.StringUtils;
 import com.tencent.bk.job.common.encrypt.CryptoScenarioEnum;
 import com.tencent.bk.job.common.encrypt.SymmetricCryptoService;
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
@@ -36,20 +37,24 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class SensitiveParamService {
+public class SensitiveParamCryptoService {
 
     private final SymmetricCryptoService symmetricCryptoService;
 
     @Autowired
-    public SensitiveParamService(SymmetricCryptoService symmetricCryptoService) {
+    public SensitiveParamCryptoService(SymmetricCryptoService symmetricCryptoService) {
         this.symmetricCryptoService = symmetricCryptoService;
     }
 
-    public String getSecureParamEncryptAlgorithm(Boolean secureParam) {
-        if (secureParam == null || !secureParam) {
+    public String getSecureParamEncryptAlgorithmByCipher(boolean secureParam, String cipher) {
+        if (!secureParam || StringUtils.isEmpty(cipher)) {
             return CryptorNames.NONE;
         }
-        return symmetricCryptoService.getAlgorithmByScenario(CryptoScenarioEnum.SCRIPT_SENSITIVE_PARAM);
+        String algorithm = symmetricCryptoService.getAlgorithmFromCipher(cipher);
+        if (algorithm != null) {
+            return algorithm;
+        }
+        return CryptorNames.NONE;
     }
 
     public String encryptParamIfNeeded(boolean secureParam, String param) {
@@ -59,17 +64,11 @@ public class SensitiveParamService {
         return symmetricCryptoService.encryptToBase64Str(param, CryptoScenarioEnum.SCRIPT_SENSITIVE_PARAM);
     }
 
-    public String encryptParamIfNeeded(boolean secureParam, String param, String encryptAlgorithm) {
-        if (!secureParam) {
-            return param;
-        }
-        return symmetricCryptoService.encryptToBase64Str(param, encryptAlgorithm);
-    }
-
-    public String decryptParamIfNeeded(boolean secureParam, String encryptedParam, String algorithm) {
+    public String decryptParamIfNeeded(boolean secureParam, String encryptedParam) {
         if (!secureParam) {
             return encryptedParam;
         }
+        String algorithm = getSecureParamEncryptAlgorithmByCipher(secureParam, encryptedParam);
         return symmetricCryptoService.decrypt(encryptedParam, algorithm);
     }
 

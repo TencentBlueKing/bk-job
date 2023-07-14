@@ -24,9 +24,9 @@
 
 truncate table task_instance_variable;
 
-INSERT INTO job_execute.task_instance_variable (task_instance_id,name,type,value,is_changeable,cipher_encrypt_algorithm) VALUES
-(1,'param1',1,'param1_value',1,'None');
-INSERT INTO job_execute.task_instance_variable (task_instance_id,name,type,value,is_changeable,cipher_encrypt_algorithm) VALUES
-(1,'param2',2,'param2_value',1,'None');
-INSERT INTO job_execute.task_instance_variable (task_instance_id,name,type,value,is_changeable,cipher_encrypt_algorithm) VALUES
-(2,'param1',1,'param1_value',0,'None');
+INSERT INTO job_execute.task_instance_variable (task_instance_id,name,type,value,is_changeable) VALUES
+(1,'param1',1,'param1_value',1);
+INSERT INTO job_execute.task_instance_variable (task_instance_id,name,type,value,is_changeable) VALUES
+(1,'param2',2,'param2_value',1);
+INSERT INTO job_execute.task_instance_variable (task_instance_id,name,type,value,is_changeable) VALUES
+(2,'param1',1,'param1_value',0);

@@ -65,11 +65,6 @@ public class CronJobVariableDTO implements Cloneable {
     private TaskVariableTypeEnum type;
 
     /**
-     * 密文变量使用的加密算法
-     */
-    private String cipherEncryptAlgorithm;
-
-    /**
      * 普通变量值
      */
     private String value;
@@ -168,7 +163,6 @@ public class CronJobVariableDTO implements Cloneable {
         cronJobVariableDTO.setId(id);
         cronJobVariableDTO.setType(type);
         cronJobVariableDTO.setName(name);
-        cronJobVariableDTO.setCipherEncryptAlgorithm(cipherEncryptAlgorithm);
         cronJobVariableDTO.setValue(value);
         if (server != null) {
             cronJobVariableDTO.setServer(server.clone());

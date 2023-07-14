@@ -35,7 +35,11 @@ public enum CryptoScenarioEnum {
     // DB账号的密码
     DATABASE_PASSWORD((byte) 0, "databasePassword"),
     // 凭证信息
-    CREDENTIAL((byte) 0, "credential");
+    CREDENTIAL((byte) 0, "credential"),
+    // 导出作业的密码
+    EXPORT_JOB_PASSWORD((byte) 0, "exportJobPassword"),
+    // 导出作业的备份文件
+    BACKUP_FILE((byte) 0, "backupFile");
 
     // 加密类型：0为对称加密，1为非对称加密
     private final byte type;

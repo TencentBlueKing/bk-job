@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.model.dto;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.encrypt.scenario.CipherVariableService;
+import com.tencent.bk.job.common.encrypt.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.AllArgsConstructor;
@@ -53,16 +53,15 @@ public class EncryptEnableVariables {
     protected List<CronJobVariableDTO> variableValue;
 
     public String getEncryptedVariableValue() {
-        CipherVariableService cipherVariableService = ApplicationContextRegister.getBean(CipherVariableService.class);
+        CipherVariableCryptoService cipherVariableCryptoService =
+            ApplicationContextRegister.getBean(CipherVariableCryptoService.class);
         if (CollectionUtils.isEmpty(this.variableValue)) {
             return JsonUtils.toJson(this.variableValue);
         }
         List<CronJobVariableDTO> cloneVariableList = new ArrayList<>(this.variableValue.size());
         for (CronJobVariableDTO cronJobVariableDTO : this.variableValue) {
             CronJobVariableDTO cloneCronJobVariable = cronJobVariableDTO.clone();
-            String algorithm = cipherVariableService.getCipherVariableEncryptAlgorithm(cloneCronJobVariable.getType());
-            cloneCronJobVariable.setCipherEncryptAlgorithm(algorithm);
-            String encryptedValue = cipherVariableService.encryptTaskVariableIfNeeded(
+            String encryptedValue = cipherVariableCryptoService.encryptTaskVariableIfNeeded(
                 cloneCronJobVariable.getType(),
                 cloneCronJobVariable.getValue()
             );
@@ -73,7 +72,8 @@ public class EncryptEnableVariables {
     }
 
     public void decryptAndSetVariableValue(String encryptedVariableValue) {
-        CipherVariableService cipherVariableService = ApplicationContextRegister.getBean(CipherVariableService.class);
+        CipherVariableCryptoService cipherVariableCryptoService =
+            ApplicationContextRegister.getBean(CipherVariableCryptoService.class);
         if (StringUtils.isBlank(encryptedVariableValue)) {
             this.variableValue = new ArrayList<>();
         }
@@ -86,10 +86,9 @@ public class EncryptEnableVariables {
             return;
         }
         for (CronJobVariableDTO cronJobVariableDTO : this.variableValue) {
-            String decryptedValue = cipherVariableService.decryptTaskVariableIfNeeded(
+            String decryptedValue = cipherVariableCryptoService.decryptTaskVariableIfNeeded(
                 cronJobVariableDTO.getType(),
-                cronJobVariableDTO.getValue(),
-                cronJobVariableDTO.getCipherEncryptAlgorithm()
+                cronJobVariableDTO.getValue()
             );
             cronJobVariableDTO.setValue(decryptedValue);
         }

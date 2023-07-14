@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.common.encrypt.scenario.DbPasswordService;
+import com.tencent.bk.job.common.encrypt.scenario.DbPasswordCryptoService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -78,7 +78,6 @@ public class AccountDAOImpl implements AccountDAO {
         TB_ACCOUNT.OS,
         TB_ACCOUNT.PASSWORD,
         TB_ACCOUNT.DB_PASSWORD,
-        TB_ACCOUNT.DB_PASSWORD_ENCRYPT_ALGORITHM,
         TB_ACCOUNT.DB_PORT,
         TB_ACCOUNT.DB_SYSTEM_ACCOUNT_ID,
         TB_ACCOUNT.CREATOR,
@@ -87,57 +86,55 @@ public class AccountDAOImpl implements AccountDAO {
         TB_ACCOUNT.LAST_MODIFY_TIME
     };
     private final DSLContext ctx;
-    private final DbPasswordService dbPasswordService;
+    private final DbPasswordCryptoService dbPasswordCryptoService;
 
     @Autowired
     public AccountDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext create,
-                          DbPasswordService dbPasswordService) {
+                          DbPasswordCryptoService dbPasswordCryptoService) {
         this.ctx = create;
-        this.dbPasswordService = dbPasswordService;
+        this.dbPasswordCryptoService = dbPasswordCryptoService;
     }
 
     @Override
     public long saveAccountWithId(AccountDTO account) {
         Record record = ctx.insertInto(
-                TB_ACCOUNT,
-                TB_ACCOUNT.ID,
-                TB_ACCOUNT.ACCOUNT_,
-                TB_ACCOUNT.ALIAS,
-                TB_ACCOUNT.CATEGORY,
-                TB_ACCOUNT.TYPE,
-                TB_ACCOUNT.APP_ID,
-                TB_ACCOUNT.GRANTEE,
-                TB_ACCOUNT.REMARK,
-                TB_ACCOUNT.OS,
-                TB_ACCOUNT.PASSWORD,
-                TB_ACCOUNT.DB_PASSWORD,
-                TB_ACCOUNT.DB_PASSWORD_ENCRYPT_ALGORITHM,
-                TB_ACCOUNT.DB_PORT,
-                TB_ACCOUNT.DB_SYSTEM_ACCOUNT_ID,
-                TB_ACCOUNT.CREATOR,
-                TB_ACCOUNT.CREATE_TIME,
-                TB_ACCOUNT.LAST_MODIFY_USER,
-                TB_ACCOUNT.LAST_MODIFY_TIME
-            ).values(
-                account.getId(),
-                account.getAccount(),
-                account.getAlias(),
-                JooqDataTypeUtil.getByteFromInteger(account.getCategory().getValue()),
-                JooqDataTypeUtil.getByteFromInteger(account.getType().getType()),
-                account.getAppId(),
-                account.getGrantees(),
-                account.getRemark(),
-                account.getOs(),
-                account.getPassword(),
-                dbPasswordService.encryptDbPasswordIfNeeded(account.getCategory(), account.getDbPassword()),
-                dbPasswordService.getDbPasswordEncryptAlgorithm(account.getCategory()),
-                account.getDbPort(),
-                account.getDbSystemAccountId(),
-                account.getCreator(),
-                ULong.valueOf(account.getCreateTime()),
-                account.getLastModifyUser(),
-                ULong.valueOf(account.getLastModifyTime())
-            ).returning(TB_ACCOUNT.ID)
+            TB_ACCOUNT,
+            TB_ACCOUNT.ID,
+            TB_ACCOUNT.ACCOUNT_,
+            TB_ACCOUNT.ALIAS,
+            TB_ACCOUNT.CATEGORY,
+            TB_ACCOUNT.TYPE,
+            TB_ACCOUNT.APP_ID,
+            TB_ACCOUNT.GRANTEE,
+            TB_ACCOUNT.REMARK,
+            TB_ACCOUNT.OS,
+            TB_ACCOUNT.PASSWORD,
+            TB_ACCOUNT.DB_PASSWORD,
+            TB_ACCOUNT.DB_PORT,
+            TB_ACCOUNT.DB_SYSTEM_ACCOUNT_ID,
+            TB_ACCOUNT.CREATOR,
+            TB_ACCOUNT.CREATE_TIME,
+            TB_ACCOUNT.LAST_MODIFY_USER,
+            TB_ACCOUNT.LAST_MODIFY_TIME
+        ).values(
+            account.getId(),
+            account.getAccount(),
+            account.getAlias(),
+            JooqDataTypeUtil.getByteFromInteger(account.getCategory().getValue()),
+            JooqDataTypeUtil.getByteFromInteger(account.getType().getType()),
+            account.getAppId(),
+            account.getGrantees(),
+            account.getRemark(),
+            account.getOs(),
+            account.getPassword(),
+            dbPasswordCryptoService.encryptDbPasswordIfNeeded(account.getCategory(), account.getDbPassword()),
+            account.getDbPort(),
+            account.getDbSystemAccountId(),
+            account.getCreator(),
+            ULong.valueOf(account.getCreateTime()),
+            account.getLastModifyUser(),
+            ULong.valueOf(account.getLastModifyTime())
+        ).returning(TB_ACCOUNT.ID)
             .fetchOne();
         assert record != null;
         return record.get(TB_ACCOUNT.ID);
@@ -146,41 +143,39 @@ public class AccountDAOImpl implements AccountDAO {
     @Override
     public long saveAccount(AccountDTO account) {
         Record record = ctx.insertInto(TB_ACCOUNT,
-                TB_ACCOUNT.ACCOUNT_,
-                TB_ACCOUNT.ALIAS,
-                TB_ACCOUNT.CATEGORY,
-                TB_ACCOUNT.TYPE,
-                TB_ACCOUNT.APP_ID,
-                TB_ACCOUNT.GRANTEE,
-                TB_ACCOUNT.REMARK,
-                TB_ACCOUNT.OS,
-                TB_ACCOUNT.PASSWORD,
-                TB_ACCOUNT.DB_PASSWORD,
-                TB_ACCOUNT.DB_PASSWORD_ENCRYPT_ALGORITHM,
-                TB_ACCOUNT.DB_PORT,
-                TB_ACCOUNT.DB_SYSTEM_ACCOUNT_ID,
-                TB_ACCOUNT.CREATOR,
-                TB_ACCOUNT.CREATE_TIME,
-                TB_ACCOUNT.LAST_MODIFY_USER,
-                TB_ACCOUNT.LAST_MODIFY_TIME
-            ).values(account.getAccount(),
-                account.getAlias(),
-                JooqDataTypeUtil.getByteFromInteger(account.getCategory().getValue()),
-                JooqDataTypeUtil.getByteFromInteger(account.getType().getType()),
-                account.getAppId(),
-                account.getGrantees(),
-                account.getRemark(),
-                account.getOs(),
-                account.getPassword(),
-                dbPasswordService.encryptDbPasswordIfNeeded(account.getCategory(), account.getDbPassword()),
-                dbPasswordService.getDbPasswordEncryptAlgorithm(account.getCategory()),
-                account.getDbPort(),
-                account.getDbSystemAccountId(),
-                account.getCreator(),
-                ULong.valueOf(account.getCreateTime()),
-                account.getLastModifyUser(),
-                ULong.valueOf(DateUtils.currentTimeMillis())
-            ).returning(TB_ACCOUNT.ID)
+            TB_ACCOUNT.ACCOUNT_,
+            TB_ACCOUNT.ALIAS,
+            TB_ACCOUNT.CATEGORY,
+            TB_ACCOUNT.TYPE,
+            TB_ACCOUNT.APP_ID,
+            TB_ACCOUNT.GRANTEE,
+            TB_ACCOUNT.REMARK,
+            TB_ACCOUNT.OS,
+            TB_ACCOUNT.PASSWORD,
+            TB_ACCOUNT.DB_PASSWORD,
+            TB_ACCOUNT.DB_PORT,
+            TB_ACCOUNT.DB_SYSTEM_ACCOUNT_ID,
+            TB_ACCOUNT.CREATOR,
+            TB_ACCOUNT.CREATE_TIME,
+            TB_ACCOUNT.LAST_MODIFY_USER,
+            TB_ACCOUNT.LAST_MODIFY_TIME
+        ).values(account.getAccount(),
+            account.getAlias(),
+            JooqDataTypeUtil.getByteFromInteger(account.getCategory().getValue()),
+            JooqDataTypeUtil.getByteFromInteger(account.getType().getType()),
+            account.getAppId(),
+            account.getGrantees(),
+            account.getRemark(),
+            account.getOs(),
+            account.getPassword(),
+            dbPasswordCryptoService.encryptDbPasswordIfNeeded(account.getCategory(), account.getDbPassword()),
+            account.getDbPort(),
+            account.getDbSystemAccountId(),
+            account.getCreator(),
+            ULong.valueOf(account.getCreateTime()),
+            account.getLastModifyUser(),
+            ULong.valueOf(DateUtils.currentTimeMillis())
+        ).returning(TB_ACCOUNT.ID)
             .fetchOne();
         assert record != null;
         return record.get(TB_ACCOUNT.ID);
@@ -198,13 +193,13 @@ public class AccountDAOImpl implements AccountDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TB_ACCOUNT.ID.in(accountIds));
         val records = ctx.select(
-                TB_ACCOUNT.ID,
-                TB_ACCOUNT.ACCOUNT_,
-                TB_ACCOUNT.ALIAS,
-                TB_ACCOUNT.CATEGORY,
-                TB_ACCOUNT.TYPE,
-                TB_ACCOUNT.APP_ID
-            ).from(TB_ACCOUNT)
+            TB_ACCOUNT.ID,
+            TB_ACCOUNT.ACCOUNT_,
+            TB_ACCOUNT.ALIAS,
+            TB_ACCOUNT.CATEGORY,
+            TB_ACCOUNT.TYPE,
+            TB_ACCOUNT.APP_ID
+        ).from(TB_ACCOUNT)
             .where(conditions)
             .and(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)))
             .fetch();
@@ -279,13 +274,14 @@ public class AccountDAOImpl implements AccountDAO {
         account.setRemark(record.get(TB_ACCOUNT.REMARK));
         account.setOs(record.get(TB_ACCOUNT.OS));
         account.setPassword(record.get(TB_ACCOUNT.PASSWORD));
-        String dbPasswordEncryptAlgorithm = record.get(TB_ACCOUNT.DB_PASSWORD_ENCRYPT_ALGORITHM);
+
+        // 解密DB账号密码
         String encryptedDbPassword = record.get(TB_ACCOUNT.DB_PASSWORD);
-        String dbPassword = dbPasswordService.decryptDbPasswordIfNeeded(
+        String dbPassword = dbPasswordCryptoService.decryptDbPasswordIfNeeded(
             account.getCategory(),
-            encryptedDbPassword,
-            dbPasswordEncryptAlgorithm
+            encryptedDbPassword
         );
+
         account.setDbPassword(dbPassword);
         account.setDbPort(record.get(TB_ACCOUNT.DB_PORT));
         account.setDbSystemAccountId(record.get(TB_ACCOUNT.DB_SYSTEM_ACCOUNT_ID));
@@ -312,9 +308,7 @@ public class AccountDAOImpl implements AccountDAO {
             update.set(TB_ACCOUNT.PASSWORD, account.getPassword());
         }
         if (StringUtils.isNotEmpty(account.getDbPassword())) {
-            update.set(TB_ACCOUNT.DB_PASSWORD_ENCRYPT_ALGORITHM,
-                dbPasswordService.getDbPasswordEncryptAlgorithm(account.getCategory()));
-            update.set(TB_ACCOUNT.DB_PASSWORD, dbPasswordService.encryptDbPasswordIfNeeded(
+            update.set(TB_ACCOUNT.DB_PASSWORD, dbPasswordCryptoService.encryptDbPasswordIfNeeded(
                 account.getCategory(),
                 account.getDbPassword()
             ));
@@ -668,8 +662,12 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     private void updateDbPasswordAccount(DSLContext dsl, AccountDTO account) {
-        dsl.update(TB_ACCOUNT).set(TB_ACCOUNT.DB_PASSWORD, account.getDbPassword())
-            .where(TB_ACCOUNT.ID.eq(account.getId()))
+        dsl.update(TB_ACCOUNT).set(
+            TB_ACCOUNT.DB_PASSWORD, dbPasswordCryptoService.encryptDbPasswordIfNeeded(
+                account.getCategory(),
+                account.getDbPassword()
+            )
+        ).where(TB_ACCOUNT.ID.eq(account.getId()))
             .and(TB_ACCOUNT.CATEGORY.eq(JooqDataTypeUtil.getByteFromInteger(AccountCategoryEnum.DB.getValue())))
             .execute();
     }

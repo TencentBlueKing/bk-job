@@ -34,7 +34,6 @@ import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
-import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -94,12 +93,10 @@ public class CronJobDAOImplIntegrationTest {
         VARIABLE_1.setName("a");
         VARIABLE_1.setValue("b");
         VARIABLE_1.setType(TaskVariableTypeEnum.HOST_LIST);
-        VARIABLE_1.setCipherEncryptAlgorithm(CryptorNames.NONE);
 
         VARIABLE_2.setName("b");
         VARIABLE_2.setValue("c");
         VARIABLE_2.setType(TaskVariableTypeEnum.CIPHER);
-        VARIABLE_2.setCipherEncryptAlgorithm(CryptorNames.NONE);
 
         NOTIFY_USER_1.setUserList(Arrays.asList("userC", "userJ"));
         NOTIFY_USER_1.setRoleList(Arrays.asList("JOB_ROLE_1", "JOB_ROLE_2"));

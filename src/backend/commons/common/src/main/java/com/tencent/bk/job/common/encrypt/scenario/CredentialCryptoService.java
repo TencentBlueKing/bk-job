@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.common.encrypt.scenario;
 
-import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.encrypt.CryptoScenarioEnum;
+import com.tencent.bk.job.common.encrypt.JobCryptorNames;
 import com.tencent.bk.job.common.encrypt.SymmetricCryptoService;
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import lombok.extern.slf4j.Slf4j;
@@ -34,44 +34,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * 密文变量相关加解密服务
+ * DB账号密码相关加解密服务
  */
 @Slf4j
 @Service
-public class CipherVariableService {
+public class CredentialCryptoService {
 
     private final SymmetricCryptoService symmetricCryptoService;
 
     @Autowired
-    public CipherVariableService(SymmetricCryptoService symmetricCryptoService) {
+    public CredentialCryptoService(SymmetricCryptoService symmetricCryptoService) {
         this.symmetricCryptoService = symmetricCryptoService;
     }
 
-    public String getCipherVariableEncryptAlgorithm(TaskVariableTypeEnum taskVariableTypeEnum) {
-        if (!isCipherVariable(taskVariableTypeEnum)) {
+    public String getCredentialEncryptAlgorithmByCipher(String cipher) {
+        if (StringUtils.isEmpty(cipher)) {
             return CryptorNames.NONE;
         }
-        return symmetricCryptoService.getAlgorithmByScenario(CryptoScenarioEnum.CIPHER_VARIABLE);
-    }
-
-    private boolean isCipherVariable(TaskVariableTypeEnum taskVariableTypeEnum) {
-        return TaskVariableTypeEnum.CIPHER == taskVariableTypeEnum;
-    }
-
-    public String encryptTaskVariableIfNeeded(TaskVariableTypeEnum taskVariableTypeEnum, String taskVariable) {
-        if (!isCipherVariable(taskVariableTypeEnum)) {
-            return taskVariable;
+        String algorithm = symmetricCryptoService.getAlgorithmFromCipher(cipher);
+        if (algorithm != null) {
+            return algorithm;
         }
-        return symmetricCryptoService.encryptToBase64Str(taskVariable, CryptoScenarioEnum.CIPHER_VARIABLE);
+        return JobCryptorNames.AES_CBC;
     }
 
-    public String decryptTaskVariableIfNeeded(TaskVariableTypeEnum taskVariableTypeEnum,
-                                              String encryptedTaskVariable,
-                                              String algorithm) {
-        if (!isCipherVariable(taskVariableTypeEnum) || StringUtils.isBlank(algorithm)) {
-            return encryptedTaskVariable;
+    public String encryptCredential(String credentialValue) {
+        return symmetricCryptoService.encryptToBase64Str(credentialValue, CryptoScenarioEnum.CREDENTIAL);
+    }
+
+    public String decryptCredential(String encryptedCredential) {
+        String algorithm = getCredentialEncryptAlgorithmByCipher(encryptedCredential);
+        if (StringUtils.isBlank(algorithm)) {
+            return encryptedCredential;
         }
-        return symmetricCryptoService.decrypt(encryptedTaskVariable, algorithm);
+        return symmetricCryptoService.decrypt(encryptedCredential, algorithm);
     }
 
 }

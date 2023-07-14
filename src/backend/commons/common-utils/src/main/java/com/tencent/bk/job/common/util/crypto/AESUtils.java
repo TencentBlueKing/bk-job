@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.util.crypto;
 
 import com.tencent.bk.job.common.util.Base64Util;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -33,11 +34,15 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 
+@Slf4j
 public class AESUtils {
     /**
      * 加密/解密算法/工作模式/填充方式
@@ -187,33 +192,43 @@ public class AESUtils {
     }
 
     public static void encrypt(File inFile, File outFile, String password) throws Exception {
+        try (FileInputStream in = new FileInputStream(inFile); FileOutputStream out = new FileOutputStream(outFile)) {
+            encrypt(in, out, password);
+        }
+    }
+
+    public static void encrypt(InputStream in, OutputStream out, String password) throws Exception {
         byte[] key = password.getBytes(StandardCharsets.UTF_8);
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, getKeySpec(cipher, key));
-        try (FileInputStream in = new FileInputStream(inFile); FileOutputStream out = new FileOutputStream(outFile)) {
-            byte[] arr = cipher.getIV();
-            if (arr == null) {
-                throw new RuntimeException(String.format("CIPHER_ALGORITHM %s is invalid", CIPHER_ALGORITHM));
-            }
-            out.write(arr);
-            write(in, out, cipher);
+        byte[] arr = cipher.getIV();
+        if (arr == null) {
+            throw new RuntimeException(String.format("CIPHER_ALGORITHM %s is invalid", CIPHER_ALGORITHM));
         }
+        out.write(arr);
+        write(in, out, cipher);
     }
 
     public static void decrypt(File inFile, File outFile, String password) throws Exception {
-        byte[] key = password.getBytes(StandardCharsets.UTF_8);
-        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         try (FileInputStream in = new FileInputStream(inFile); FileOutputStream out = new FileOutputStream(outFile)) {
-            byte[] iv = new byte[cipher.getBlockSize()];
-            if (in.read(iv) < iv.length) {
-                throw new RuntimeException();
-            }
-            cipher.init(Cipher.DECRYPT_MODE, getKeySpec(cipher, key), new IvParameterSpec(iv));
-            write(in, out, cipher);
+            decrypt(in, out, password);
         }
     }
 
-    private static void write(FileInputStream in, FileOutputStream out, Cipher cipher) throws Exception {
+    public static void decrypt(InputStream in, OutputStream out, String password) throws Exception {
+        log.debug("decrypt: in.available={}", in.available());
+        byte[] key = password.getBytes(StandardCharsets.UTF_8);
+        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        byte[] iv = new byte[cipher.getBlockSize()];
+        if (in.read(iv) < iv.length) {
+            throw new RuntimeException();
+        }
+        log.debug("decrypt: iv={}", Arrays.toString(iv));
+        cipher.init(Cipher.DECRYPT_MODE, getKeySpec(cipher, key), new IvParameterSpec(iv));
+        write(in, out, cipher);
+    }
+
+    private static void write(InputStream in, OutputStream out, Cipher cipher) throws Exception {
         byte[] iBuffer = new byte[1024];
         int len;
         while ((len = in.read(iBuffer)) != -1) {

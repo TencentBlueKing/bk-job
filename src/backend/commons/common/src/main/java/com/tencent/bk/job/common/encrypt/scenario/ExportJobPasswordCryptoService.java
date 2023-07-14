@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.encrypt.scenario;
 
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.encrypt.CryptoScenarioEnum;
 import com.tencent.bk.job.common.encrypt.SymmetricCryptoService;
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
@@ -34,44 +33,46 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * DB账号密码相关加解密服务
+ * 作业导出任务密码相关加解密服务
  */
 @Slf4j
 @Service
-public class DbPasswordService {
+public class ExportJobPasswordCryptoService {
 
     private final SymmetricCryptoService symmetricCryptoService;
 
     @Autowired
-    public DbPasswordService(SymmetricCryptoService symmetricCryptoService) {
+    public ExportJobPasswordCryptoService(SymmetricCryptoService symmetricCryptoService) {
         this.symmetricCryptoService = symmetricCryptoService;
     }
 
-    public String getDbPasswordEncryptAlgorithm(AccountCategoryEnum accountCategoryEnum) {
-        if (!isDbAccount(accountCategoryEnum)) {
+    public String getExportJobPasswordEncryptAlgorithmByCipher(String cipher) {
+        if (StringUtils.isEmpty(cipher)) {
             return CryptorNames.NONE;
         }
-        return symmetricCryptoService.getAlgorithmByScenario(CryptoScenarioEnum.DATABASE_PASSWORD);
-    }
-
-    private boolean isDbAccount(AccountCategoryEnum accountCategoryEnum) {
-        return AccountCategoryEnum.DB == accountCategoryEnum;
-    }
-
-    public String encryptDbPasswordIfNeeded(AccountCategoryEnum accountCategoryEnum, String dbPassword) {
-        if (!isDbAccount(accountCategoryEnum)) {
-            return dbPassword;
+        String algorithm = symmetricCryptoService.getAlgorithmFromCipher(cipher);
+        if (algorithm != null) {
+            return algorithm;
         }
-        return symmetricCryptoService.encryptToBase64Str(dbPassword, CryptoScenarioEnum.DATABASE_PASSWORD);
+        return CryptorNames.NONE;
     }
 
-    public String decryptDbPasswordIfNeeded(AccountCategoryEnum accountCategoryEnum,
-                                            String encryptedDbPassword,
-                                            String algorithm) {
-        if (!isDbAccount(accountCategoryEnum) || StringUtils.isBlank(algorithm)) {
-            return encryptedDbPassword;
+    public String encryptExportJobPassword(String exportJobPassword) {
+        if (StringUtils.isEmpty(exportJobPassword)) {
+            return exportJobPassword;
         }
-        return symmetricCryptoService.decrypt(encryptedDbPassword, algorithm);
+        return symmetricCryptoService.encryptToBase64Str(exportJobPassword, CryptoScenarioEnum.EXPORT_JOB_PASSWORD);
+    }
+
+    public String decryptExportJobPassword(String encryptedExportJobPassword) {
+        if (StringUtils.isEmpty(encryptedExportJobPassword)) {
+            return encryptedExportJobPassword;
+        }
+        String algorithm = getExportJobPasswordEncryptAlgorithmByCipher(encryptedExportJobPassword);
+        if (StringUtils.isBlank(algorithm)) {
+            return encryptedExportJobPassword;
+        }
+        return symmetricCryptoService.decrypt(encryptedExportJobPassword, algorithm);
     }
 
 }

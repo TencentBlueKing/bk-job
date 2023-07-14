@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.plan.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.encrypt.scenario.SensitiveParamService;
+import com.tencent.bk.job.common.encrypt.scenario.SensitiveParamCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
@@ -38,7 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
-import org.jooq.Record16;
+import org.jooq.Record15;
 import org.jooq.Result;
 import org.jooq.generated.tables.TaskPlan;
 import org.jooq.generated.tables.TaskPlanStep;
@@ -70,17 +70,17 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
     private static final TaskPlanStepScript tableTTStepScript = TaskPlanStepScript.TASK_PLAN_STEP_SCRIPT;
 
     private final DSLContext context;
-    private final SensitiveParamService sensitiveParamService;
+    private final SensitiveParamCryptoService sensitiveParamCryptoService;
 
     @Autowired
     public TaskPlanScriptStepDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context,
-                                     SensitiveParamService sensitiveParamService) {
+                                     SensitiveParamCryptoService sensitiveParamCryptoService) {
         this.context = context;
-        this.sensitiveParamService = sensitiveParamService;
+        this.sensitiveParamCryptoService = sensitiveParamCryptoService;
     }
 
-    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record16<ULong, ULong, ULong, UByte,
-        String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte, UByte, String> record) {
+    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record15<ULong, ULong, ULong, UByte,
+        String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte, UByte> record) {
         if (record == null) {
             return null;
         }
@@ -100,10 +100,12 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         taskScriptStep.setExecuteTarget(TaskTargetDTO.fromJsonString(record.get(TABLE.DESTINATION_HOST_LIST)));
         taskScriptStep.setSecureParam((record.get(TABLE.IS_SECURE_PARAM)).intValue() == 1);
         String encryptedScriptParam = record.get(TABLE.SCRIPT_PARAM);
-        String algorithm = record.get(TABLE.SECURE_PARAM_ENCRYPT_ALGORITHM);
-        taskScriptStep.setScriptParam(sensitiveParamService.decryptParamIfNeeded(
-            taskScriptStep.getSecureParam(), encryptedScriptParam, algorithm
+
+        // 敏感参数解密
+        taskScriptStep.setScriptParam(sensitiveParamCryptoService.decryptParamIfNeeded(
+            taskScriptStep.getSecureParam(), encryptedScriptParam
         ));
+
         taskScriptStep.setStatus((record.get(TABLE.STATUS)).intValue());
         taskScriptStep.setIgnoreError((record.get(TABLE.IGNORE_ERROR)).intValue() == 1);
         return taskScriptStep;
@@ -114,8 +116,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.PLAN_ID.eq(ULong.valueOf(parentId)));
         Result<
-            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte, String>> result =
+            Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
+                UByte, UByte>> result =
             context
                 .select(
                     TABLE.ID,
@@ -132,8 +134,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
-                    TABLE.IGNORE_ERROR,
-                    TABLE.SECURE_PARAM_ENCRYPT_ALGORITHM
+                    TABLE.IGNORE_ERROR
                 ).from(TABLE).where(conditions).fetch();
 
         List<TaskScriptStepDTO> taskScriptStepList = new ArrayList<>();
@@ -150,8 +151,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         Result<
-            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte, String>> result =
+            Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
+                UByte, UByte>> result =
             context
                 .select(
                     TABLE.ID,
@@ -168,8 +169,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
-                    TABLE.IGNORE_ERROR,
-                    TABLE.SECURE_PARAM_ENCRYPT_ALGORITHM
+                    TABLE.IGNORE_ERROR
                 ).from(TABLE).where(conditions).fetch();
 
         Map<Long, TaskScriptStepDTO> taskScriptStepMap = new HashMap<>(stepIdList.size());
@@ -187,8 +187,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
     public TaskScriptStepDTO getScriptStepById(long stepId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
-        Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte,
-            UByte, String> record = context.select(
+        Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte,
+            UByte> record = context.select(
             TABLE.ID,
             TABLE.PLAN_ID,
             TABLE.STEP_ID,
@@ -203,8 +203,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
             TABLE.DESTINATION_HOST_LIST,
             TABLE.IS_SECURE_PARAM,
             TABLE.STATUS,
-            TABLE.IGNORE_ERROR,
-            TABLE.SECURE_PARAM_ENCRYPT_ALGORITHM
+            TABLE.IGNORE_ERROR
         ).from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             return convertRecordToTaskScriptStep(record);
@@ -239,8 +238,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 TABLE.DESTINATION_HOST_LIST,
                 TABLE.IS_SECURE_PARAM,
                 TABLE.STATUS,
-                TABLE.IGNORE_ERROR,
-                TABLE.SECURE_PARAM_ENCRYPT_ALGORITHM
+                TABLE.IGNORE_ERROR
             ).values(
                 ULong.valueOf(scriptStep.getPlanId()),
                 ULong.valueOf(scriptStep.getStepId()),
@@ -249,14 +247,13 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 scriptStep.getScriptVersionId() == null ? null : ULong.valueOf(scriptStep.getScriptVersionId()),
                 scriptStep.getContent(),
                 UByte.valueOf(scriptStep.getLanguage().getValue()),
-                sensitiveParamService.encryptParamIfNeeded(scriptStep.getSecureParam(), scriptStep.getScriptParam()),
+                sensitiveParamCryptoService.encryptParamIfNeeded(scriptStep.getSecureParam(), scriptStep.getScriptParam()),
                 ULong.valueOf(scriptStep.getTimeout()),
                 ULong.valueOf(scriptStep.getAccount()),
                 scriptStep.getExecuteTarget().toJsonString(),
                 isSecureParam,
                 status,
-                ignoreError,
-                sensitiveParamService.getSecureParamEncryptAlgorithm(scriptStep.getSecureParam())
+                ignoreError
             ).returning(TABLE.ID).fetchOne();
         assert record != null;
         return record.getId().longValue();

@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.dao.plan.impl;
 import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.encrypt.scenario.CipherVariableService;
+import com.tencent.bk.job.common.encrypt.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
@@ -36,7 +36,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.InsertValuesStep9;
+import org.jooq.InsertValuesStep8;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.TableField;
@@ -63,17 +63,16 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
     private static final TaskPlanVariable TABLE = TaskPlanVariable.TASK_PLAN_VARIABLE;
 
     private static final TableField<?, ?>[] ALL_FIELDS = {TABLE.TEMPLATE_VARIABLE_ID, TABLE.PLAN_ID,
-        TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION, TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED,
-        TABLE.CIPHER_ENCRYPT_ALGORITHM};
+        TABLE.NAME, TABLE.TYPE, TABLE.DEFAULT_VALUE, TABLE.DESCRIPTION, TABLE.IS_CHANGEABLE, TABLE.IS_REQUIRED};
 
     private final DSLContext context;
-    private final CipherVariableService cipherVariableService;
+    private final CipherVariableCryptoService cipherVariableCryptoService;
 
     @Autowired
     public TaskPlanVariableDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context,
-                                   CipherVariableService cipherVariableService) {
+                                   CipherVariableCryptoService cipherVariableCryptoService) {
         this.context = context;
-        this.cipherVariableService = cipherVariableService;
+        this.cipherVariableCryptoService = cipherVariableCryptoService;
     }
 
     @Override
@@ -96,11 +95,10 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
         taskVariable.setName(record.get(TABLE.NAME));
         taskVariable.setType(TaskVariableTypeEnum.valOf(record.get(TABLE.TYPE).intValue()));
         String encryptedDefaultValue = record.get(TABLE.DEFAULT_VALUE);
-        String cipherEncryptAlgorithm = record.get(TABLE.CIPHER_ENCRYPT_ALGORITHM);
-        String defaultValue = cipherVariableService.decryptTaskVariableIfNeeded(
+        // 密文变量解密
+        String defaultValue = cipherVariableCryptoService.decryptTaskVariableIfNeeded(
             taskVariable.getType(),
-            encryptedDefaultValue,
-            cipherEncryptAlgorithm
+            encryptedDefaultValue
         );
         taskVariable.setDefaultValue(defaultValue);
         taskVariable.setDescription(record.get(TABLE.DESCRIPTION));
@@ -139,18 +137,16 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
                 TABLE.DEFAULT_VALUE,
                 TABLE.DESCRIPTION,
                 TABLE.IS_CHANGEABLE,
-                TABLE.IS_REQUIRED,
-                TABLE.CIPHER_ENCRYPT_ALGORITHM
+                TABLE.IS_REQUIRED
             ).values(
                 ULong.valueOf(variable.getId()),
                 ULong.valueOf(variable.getPlanId()),
                 variable.getName(),
                 UByte.valueOf(variable.getType().getType()),
-                cipherVariableService.encryptTaskVariableIfNeeded(variable.getType(), variable.getDefaultValue()),
+                cipherVariableCryptoService.encryptTaskVariableIfNeeded(variable.getType(), variable.getDefaultValue()),
                 variable.getDescription(),
                 getChangeable(variable.getChangeable()),
-                getRequired(variable.getRequired()),
-                cipherVariableService.getCipherVariableEncryptAlgorithm(variable.getType())
+                getRequired(variable.getRequired())
             ).returning(TABLE.TEMPLATE_VARIABLE_ID).fetchOne();
         assert record != null;
         return record.getTemplateVariableId().longValue();
@@ -161,8 +157,8 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
         if (CollectionUtils.isEmpty(variableList)) {
             return Collections.emptyList();
         }
-        InsertValuesStep9<TaskPlanVariableRecord, ULong, ULong, String, UByte, String, String, UByte,
-            UByte, String> insertStep = context.insertInto(TABLE)
+        InsertValuesStep8<TaskPlanVariableRecord, ULong, ULong, String, UByte, String, String, UByte,
+            UByte> insertStep = context.insertInto(TABLE)
             .columns(
                 TABLE.TEMPLATE_VARIABLE_ID,
                 TABLE.PLAN_ID,
@@ -171,8 +167,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
                 TABLE.DEFAULT_VALUE,
                 TABLE.DESCRIPTION,
                 TABLE.IS_CHANGEABLE,
-                TABLE.IS_REQUIRED,
-                TABLE.CIPHER_ENCRYPT_ALGORITHM
+                TABLE.IS_REQUIRED
             );
 
         variableList.forEach(variable ->
@@ -181,11 +176,10 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
                 ULong.valueOf(variable.getPlanId()),
                 variable.getName(),
                 UByte.valueOf(variable.getType().getType()),
-                cipherVariableService.encryptTaskVariableIfNeeded(variable.getType(), variable.getDefaultValue()),
+                cipherVariableCryptoService.encryptTaskVariableIfNeeded(variable.getType(), variable.getDefaultValue()),
                 variable.getDescription(),
                 getChangeable(variable.getChangeable()),
-                getRequired(variable.getRequired()),
-                cipherVariableService.getCipherVariableEncryptAlgorithm(variable.getType())
+                getRequired(variable.getRequired())
             ));
 
         Result<TaskPlanVariableRecord> result = insertStep.returning(TABLE.TEMPLATE_VARIABLE_ID).fetch();
@@ -217,9 +211,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
         } else {
             updateStep = context.update(TABLE)
                 .set(TABLE.DEFAULT_VALUE,
-                    cipherVariableService.encryptTaskVariableIfNeeded(variable.getType(), variable.getDefaultValue()))
-                .set(TABLE.CIPHER_ENCRYPT_ALGORITHM,
-                    cipherVariableService.getCipherVariableEncryptAlgorithm(variable.getType()));
+                    cipherVariableCryptoService.encryptTaskVariableIfNeeded(variable.getType(), variable.getDefaultValue()));
         }
         if (StringUtils.isNotBlank(variable.getName())) {
             updateStep.set(TABLE.NAME, variable.getName());
@@ -265,9 +257,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
         return 1 ==
             context.update(TABLE)
                 .set(TABLE.DEFAULT_VALUE,
-                    cipherVariableService.encryptTaskVariableIfNeeded(variable.getType(), variable.getDefaultValue()))
-                .set(TABLE.CIPHER_ENCRYPT_ALGORITHM,
-                    cipherVariableService.getCipherVariableEncryptAlgorithm(variable.getType()))
+                    cipherVariableCryptoService.encryptTaskVariableIfNeeded(variable.getType(), variable.getDefaultValue()))
                 .where(conditions).limit(1)
                 .execute();
     }

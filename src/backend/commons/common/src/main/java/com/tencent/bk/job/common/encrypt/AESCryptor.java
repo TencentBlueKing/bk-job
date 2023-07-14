@@ -32,6 +32,9 @@ import com.tencent.bk.sdk.crypto.cryptor.AbstractSymmetricCryptor;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+
 /**
  * 使用AES/CBC/PKCS5Padding的加密实现
  */
@@ -48,10 +51,13 @@ public class AESCryptor extends AbstractSymmetricCryptor {
         try {
             return AESUtils.encrypt(message, key);
         } catch (Exception e) {
-            FormattingTuple msg = MessageFormatter.format(
-                "Fail to encrypt using AES_CBC, key.len={}, message.len={}",
-                key.length,
-                message.length
+            FormattingTuple msg = MessageFormatter.arrayFormat(
+                "Fail to encrypt using {}, key.len={}, message.len={}",
+                new Object[]{
+                    getName(),
+                    key.length,
+                    message.length
+                }
             );
             throw new CryptoException(msg.getMessage(), e);
         }
@@ -62,12 +68,47 @@ public class AESCryptor extends AbstractSymmetricCryptor {
         try {
             return AESUtils.decrypt(encryptedMessage, key);
         } catch (Exception e) {
-            FormattingTuple msg = MessageFormatter.format(
-                "Fail to decrypt using AES_CBC, key.len={}, encryptedMessage.len={}",
-                key.length,
-                encryptedMessage.length
+            FormattingTuple msg = MessageFormatter.arrayFormat(
+                "Fail to decrypt using {}, key.len={}, encryptedMessage.len={}",
+                new Object[]{
+                    getName(),
+                    key.length,
+                    encryptedMessage.length
+                }
             );
             throw new CryptoException(msg.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void encryptIndeed(String key, InputStream in, OutputStream out) {
+        try {
+            AESUtils.encrypt(in, out, key);
+        } catch (Exception e) {
+            FormattingTuple msg = MessageFormatter.arrayFormat(
+                "Fail to encrypt using {}, key.len={}",
+                new Object[]{
+                    getName(),
+                    key.length()
+                }
+            );
+            throw new com.tencent.bk.sdk.crypto.exception.CryptoException(msg.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void decryptIndeed(String key, InputStream in, OutputStream out) {
+        try {
+            AESUtils.decrypt(in, out, key);
+        } catch (Exception e) {
+            FormattingTuple msg = MessageFormatter.arrayFormat(
+                "Fail to decrypt using {}, key.len={}",
+                new Object[]{
+                    getName(),
+                    key.length()
+                }
+            );
+            throw new com.tencent.bk.sdk.crypto.exception.CryptoException(msg.getMessage(), e);
         }
     }
 }

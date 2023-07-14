@@ -45,11 +45,11 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.encrypt.scenario.BackupFileCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.FileUtil;
-import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -111,16 +111,22 @@ public class ExportJobExecutor {
     private final ArtifactoryConfig artifactoryConfig;
     private final BackupStorageConfig backupStorageConfig;
     private final LocalFileConfigForBackup localFileConfig;
+    private final BackupFileCryptoService backupFileCryptoService;
 
     @Autowired
-    public ExportJobExecutor(ExportJobService exportJobService, TaskTemplateService taskTemplateService,
-                             TaskPlanService taskPlanService, ScriptService scriptService,
-                             AccountService accountService, LogService logService,
-                             StorageService storageService, MessageI18nService i18nService,
+    public ExportJobExecutor(ExportJobService exportJobService,
+                             TaskTemplateService taskTemplateService,
+                             TaskPlanService taskPlanService,
+                             ScriptService scriptService,
+                             AccountService accountService,
+                             LogService logService,
+                             StorageService storageService,
+                             MessageI18nService i18nService,
                              ArtifactoryClient artifactoryClient,
                              ArtifactoryConfig artifactoryConfig,
                              BackupStorageConfig backupStorageConfig,
-                             LocalFileConfigForBackup localFileConfig) {
+                             LocalFileConfigForBackup localFileConfig,
+                             BackupFileCryptoService backupFileCryptoService) {
         this.exportJobService = exportJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -133,6 +139,7 @@ public class ExportJobExecutor {
         this.artifactoryConfig = artifactoryConfig;
         this.backupStorageConfig = backupStorageConfig;
         this.localFileConfig = localFileConfig;
+        this.backupFileCryptoService = backupFileCryptoService;
 
         File storageDirectory = new File(storageService.getStoragePath().concat(JOB_EXPORT_FILE_PREFIX));
         checkDirectory(storageDirectory);
@@ -305,7 +312,7 @@ public class ExportJobExecutor {
                 i18nService.getI18n(LogMessage.START_ENCRYPTING));
             File finalFileTmp = new File(zipFile.getPath().concat(".enc.tmp"));
             try {
-                AESUtils.encrypt(zipFile, finalFileTmp, exportInfo.getPassword());
+                backupFileCryptoService.encryptBackupFile(exportInfo.getPassword(), zipFile, finalFileTmp);
                 FileUtils.deleteQuietly(zipFile);
             } catch (Exception e) {
                 log.error("Error while processing export job! Encrypt failed!", e);
