@@ -361,7 +361,7 @@ public class DateUtils {
      * @return 当天（UTC 时区)的截止时间戳，单位毫秒
      */
     public static long getUTCCurrentDayEndTimestamp() {
-        return 1000 * getUTCDayEndTimestamp(LocalDate.now(ZoneId.of("UTC")));
+        return getUTCDayEndTimestamp(LocalDate.now(ZoneId.of("UTC")));
     }
 
     /**
