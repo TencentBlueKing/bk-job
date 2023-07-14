@@ -29,8 +29,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -470,43 +468,6 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .set(TASK_INSTANCE.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
             .where(TASK_INSTANCE.ID.eq(taskInstanceId))
             .execute();
-    }
-
-    public Integer countTaskInstanceByConditions(Collection<Condition> conditions) {
-        return ctx.selectCount().from(TASK_INSTANCE)
-            .where(conditions).fetchOne().value1();
-    }
-
-    @Override
-    public Integer countTaskInstances(Long appId, Long minTotalTime, Long maxTotalTime,
-                                      TaskStartupModeEnum taskStartupMode, TaskTypeEnum taskType,
-                                      List<Byte> runStatusList, Long fromTime, Long toTime) {
-        List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(TASK_INSTANCE.APP_ID.eq(appId));
-        }
-        if (taskStartupMode != null) {
-            conditions.add(TASK_INSTANCE.STARTUP_MODE.eq((byte) (taskStartupMode.getValue())));
-        }
-        if (taskType != null) {
-            conditions.add(TASK_INSTANCE.TYPE.eq(taskType.getValue().byteValue()));
-        }
-        if (runStatusList != null) {
-            conditions.add(TASK_INSTANCE.STATUS.in(runStatusList));
-        }
-        if (minTotalTime != null) {
-            conditions.add(TASK_INSTANCE.TOTAL_TIME.greaterOrEqual(minTotalTime * 1000));
-        }
-        if (maxTotalTime != null) {
-            conditions.add(TASK_INSTANCE.TOTAL_TIME.lessOrEqual(maxTotalTime * 1000));
-        }
-        if (fromTime != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.greaterOrEqual(fromTime));
-        }
-        if (toTime != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.lessThan(toTime));
-        }
-        return countTaskInstanceByConditions(conditions);
     }
 
     @Override

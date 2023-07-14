@@ -26,6 +26,10 @@ package com.tencent.bk.job.common.util.date;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DateUtilsTest {
@@ -41,5 +45,33 @@ public class DateUtilsTest {
         assertThat(DateUtils.calcDaysBetween("2020-12-31", "2021-1-1")).isEqualTo(1);
         assertThat(DateUtils.calcDaysBetween("2021-2-28", "2021-3-1")).isEqualTo(1);
         assertThat(DateUtils.calcDaysBetween("2020-2-28", "2020-3-1")).isEqualTo(2);
+    }
+
+    @Test
+    void getUTCDayEndTimestamp() {
+        ZonedDateTime dateTime = LocalDateTime.of(2023, 7, 14, 15, 14, 23, 12312)
+            .atZone(ZoneId.of("UTC"));
+        long endTime = DateUtils.getUTCDayEndTimestamp(dateTime.toLocalDate());
+        // 2023-07-15 00:00:00 UTC
+        assertThat(endTime).isEqualTo(1689379200000L);
+
+
+        ZonedDateTime dateTime2 = LocalDateTime.of(2023, 7, 14, 7, 15, 22, 123)
+            .atZone(ZoneId.of("UTC"));
+        long endTime2 = DateUtils.getUTCDayEndTimestamp(dateTime2.toLocalDate());
+        // 2023-07-15 00:00:00 UTC
+        assertThat(endTime2).isEqualTo(1689379200000L);
+
+        ZonedDateTime dateTime3 = LocalDateTime.of(2023, 7, 13, 0, 0, 0, 0)
+            .atZone(ZoneId.of("UTC"));
+        long endTime3 = DateUtils.getUTCDayEndTimestamp(dateTime3.toLocalDate());
+        // 2023-07-14 00:00:00 UTC
+        assertThat(endTime3).isEqualTo(1689292800000L);
+
+        ZonedDateTime dateTime4 = LocalDateTime.of(2023, 7, 13, 23, 59, 59, 99999999)
+            .atZone(ZoneId.of("UTC"));
+        long endTime4 = DateUtils.getUTCDayEndTimestamp(dateTime4.toLocalDate());
+        // 2023-07-14 00:00:00 UTC
+        assertThat(endTime4).isEqualTo(1689292800000L);
     }
 }

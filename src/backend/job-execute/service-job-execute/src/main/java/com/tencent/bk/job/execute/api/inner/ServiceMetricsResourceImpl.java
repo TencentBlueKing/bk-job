@@ -26,14 +26,8 @@ package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRequest;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import io.micrometer.core.annotation.Timed;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -68,47 +62,9 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     }
 
     @Override
-    @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public InternalResponse<Integer> countFastPushFile(Long appId, Integer transferMode, Boolean localUpload,
-                                                  RunStatusEnum runStatus, Long fromTime, Long toTime) {
-        return InternalResponse.buildSuccessResp(taskInstanceService.countFastPushFile(appId, transferMode,
-            localUpload, runStatus, fromTime, toTime));
-    }
-
-    @Override
-    @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public InternalResponse<Integer> countStepInstances(Long appId, List<Long> stepIdList,
-                                                   StepExecuteTypeEnum stepExecuteType, Integer scriptType,
-                                                   RunStatusEnum runStatus, Long fromTime, Long toTime) {
-        return InternalResponse.buildSuccessResp(taskInstanceService.countStepInstances(appId, stepIdList,
-            stepExecuteType, ScriptTypeEnum.valueOf(scriptType), runStatus, fromTime, toTime));
-    }
-
-    @Override
-    @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public InternalResponse<Integer> countTaskInstances(Long appId, Long minTotalTime, Long maxTotalTime,
-                                                   TaskStartupModeEnum taskStartupMode, TaskTypeEnum taskType,
-                                                   List<Byte> runStatusList, Long fromTime, Long toTime) {
-        return InternalResponse.buildSuccessResp(taskInstanceService.countTaskInstances(appId, minTotalTime,
-            maxTotalTime, taskStartupMode, taskType, runStatusList, fromTime, toTime));
-    }
-
-    @Override
     public InternalResponse<StatisticsDTO> getStatistics(Long appId, String resource, String dimension,
-                                                    String dimensionValue, String dateStr) {
+                                                         String dimensionValue, String dateStr) {
         return InternalResponse.buildSuccessResp(statisticsService.getStatistics(appId, resource, dimension,
             dimensionValue, dateStr));
-    }
-
-    @Override
-    public InternalResponse<List<StatisticsDTO>> listStatistics(Long appId, String resource, String dimension,
-                                                           String dimensionValue, String dateStr) {
-        return InternalResponse.buildSuccessResp(statisticsService.listStatistics(appId, resource, dimension,
-            dimensionValue, dateStr));
-    }
-
-    @Override
-    public InternalResponse<Boolean> triggerStatistics(ServiceTriggerStatisticsRequest request) {
-        return InternalResponse.buildSuccessResp(statisticsService.triggerStatistics(request.getDateList()));
     }
 }

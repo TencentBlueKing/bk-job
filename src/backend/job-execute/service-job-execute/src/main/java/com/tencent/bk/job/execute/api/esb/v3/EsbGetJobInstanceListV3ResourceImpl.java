@@ -147,8 +147,13 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "create_time_end");
         }
         long period = request.getCreateTimeEnd() - request.getCreateTimeStart();
-        if (period > Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
-            log.warn("Search time range greater than 30 days!");
+        if (period <= 0) {
+            log.warn("CreateStartTime is greater or equal to createTimeEnd, getCreateTimeStart={}, createTimeEnd={}",
+                request.getCreateTimeStart(), request.getCreateTimeEnd());
+            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
+                "create_time_start|create_time_end");
+        } else if (period > Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
+            log.warn("Search time range greater than {} days!", Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS);
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM, "create_time_start|create_time_end");
         }
         if (request.getTaskType() != null && TaskTypeEnum.valueOf(request.getTaskType()) == null) {
