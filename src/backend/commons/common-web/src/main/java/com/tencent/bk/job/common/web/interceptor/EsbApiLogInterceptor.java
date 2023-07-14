@@ -92,9 +92,9 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
         } catch (Throwable e) {
             return true;
         } finally {
-            log.info("request-id: {}|lang: {}|API: {}|uri: {}|appCode: {}|username: {}|body: {}|queryParams: {}", requestId,
-                lang, apiName,
-                request.getRequestURI(), appCode, username, desensitizedBody, desensitizedQueryParams);
+            log.info("request-id: {}|lang: {}|API: {}|uri: {}|appCode: {}|username: {}|body: {}|queryParams: {}",
+                requestId, lang, apiName, request.getRequestURI(), appCode, username, desensitizedBody,
+                desensitizedQueryParams);
         }
         return true;
     }
