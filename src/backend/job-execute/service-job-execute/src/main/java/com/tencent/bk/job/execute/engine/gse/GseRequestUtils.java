@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.gse;
 import com.tencent.bk.gse.taskapi.*;
 import com.tencent.bk.job.common.model.dto.IpDTO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.execute.common.exception.ReadTimeoutException;
 import com.tencent.bk.job.execute.engine.model.GseTaskResponse;
 import com.tencent.bk.job.execute.engine.model.LogPullProgress;
@@ -496,7 +497,9 @@ public class GseRequestUtils {
                 connect = true;
                 if (gseClient == null) {
                     connect = false;
-                    continue; //如果拿不到连接 ，则重试
+                    // 如果拿不到连接 ，则等待3s重试
+                    ThreadUtils.sleep(3000L);
+                    continue;
                 }
                 return caller.callback(gseClient);
             } catch (TTransportException e) {

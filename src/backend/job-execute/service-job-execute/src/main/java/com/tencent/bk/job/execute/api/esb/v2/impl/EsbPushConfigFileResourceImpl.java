@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -194,6 +195,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         stepInstance.setOperator(request.getUserName());
         stepInstance.setStatus(RunStatusEnum.BLANK.getValue());
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
+        stepInstance.setTimeout(JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS);
         return stepInstance;
     }
 
