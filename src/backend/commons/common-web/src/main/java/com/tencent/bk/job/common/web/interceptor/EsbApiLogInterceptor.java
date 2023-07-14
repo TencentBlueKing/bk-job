@@ -92,7 +92,7 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
         } catch (Throwable e) {
             return true;
         } finally {
-            log.info("request-id: {}|lang:{}|API:{}|uri:{}|appCode:{}|username:{}|body:{}|queryParams:{}", requestId,
+            log.info("request-id: {}|lang: {}|API: {}|uri: {}|appCode: {}|username: {}|body: {}|queryParams: {}", requestId,
                 lang, apiName,
                 request.getRequestURI(), appCode, username, desensitizedBody, desensitizedQueryParams);
         }
@@ -142,7 +142,7 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
             int respStatus = response.getStatus();
             long cost = System.currentTimeMillis() - startTimeInMills;
-            log.info("request-id:{}|API:{}|uri:{}|appCode:{}|username:{}|status:{}|resp:{}|cost:{}",
+            log.info("request-id: {}|API: {}|uri: {}|appCode: {}|username: {}|status: {}|resp: {}|cost: {}",
                 requestId,
                 apiName,
                 request.getRequestURI(),
