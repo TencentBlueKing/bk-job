@@ -250,7 +250,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         baseSearchCondition.setLength(pageSize);
 
 
-        PageData<TaskInstanceDTO> pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
+        PageData<TaskInstanceDTO> pageData;
+        if (timeRange == null) {
+            pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
+        } else {
+            // 临时优化代码，使用 timeRange 的 web 页面会触发全表扫描的问题。后续跟前端一块优化
+            pageData = taskResultService.listPageTaskInstanceWithoutCount(taskQuery, baseSearchCondition);
+        }
         if (pageData == null) {
             return Response.buildSuccessResp(PageData.emptyPageData(start, pageSize));
         }

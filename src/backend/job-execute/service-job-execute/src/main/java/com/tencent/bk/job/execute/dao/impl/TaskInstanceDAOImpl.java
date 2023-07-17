@@ -235,21 +235,31 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     @Override
     public PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                           BaseSearchCondition baseSearchCondition) {
+        return listPageTaskInstanceInternal(taskQuery, baseSearchCondition, true);
+    }
+
+    private PageData<TaskInstanceDTO> listPageTaskInstanceInternal(TaskInstanceQuery taskQuery,
+                                                                   BaseSearchCondition baseSearchCondition,
+                                                                   boolean countTotalRecords) {
         if (StringUtils.isNotEmpty(taskQuery.getIp()) || StringUtils.isNotEmpty(taskQuery.getIpv6())) {
-            return listPageTaskInstanceByIp(taskQuery, baseSearchCondition);
+            return listPageTaskInstanceByIp(taskQuery, baseSearchCondition, countTotalRecords);
         } else {
-            return listPageTaskInstanceByBasicInfo(taskQuery, baseSearchCondition);
+            return listPageTaskInstanceByBasicInfo(taskQuery, baseSearchCondition, countTotalRecords);
         }
     }
 
     private PageData<TaskInstanceDTO> listPageTaskInstanceByBasicInfo(TaskInstanceQuery taskQuery,
-                                                                      BaseSearchCondition baseSearchCondition) {
+                                                                      BaseSearchCondition baseSearchCondition,
+                                                                      boolean countTotalRecords) {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        int count = getPageTaskInstanceCount(taskQuery);
-        if (count == 0) {
-            return PageData.emptyPageData(start, length);
+        int count = 0;
+        if (countTotalRecords) {
+            count = getPageTaskInstanceCount(taskQuery);
+            if (count == 0) {
+                return PageData.emptyPageData(start, length);
+            }
         }
 
         Collection<SortField<?>> orderFields = new ArrayList<>();
@@ -271,7 +281,8 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     }
 
     private PageData<TaskInstanceDTO> listPageTaskInstanceByIp(TaskInstanceQuery taskQuery,
-                                                               BaseSearchCondition baseSearchCondition) {
+                                                               BaseSearchCondition baseSearchCondition,
+                                                               boolean countTotalRecords) {
         List<Condition> conditions = buildSearchCondition(taskQuery);
         if (StringUtils.isNotEmpty(taskQuery.getIp())) {
             conditions.add(TASK_INSTANCE_HOST.IP.eq(taskQuery.getIp()));
@@ -280,12 +291,15 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-        int count = ctx.selectCount().from(TaskInstance.TASK_INSTANCE)
-            .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
-            .where(conditions)
-            .fetchOne(0, Integer.class);
-        if (count == 0) {
-            return PageData.emptyPageData(start, length);
+        int count = 0;
+        if (countTotalRecords) {
+            count = ctx.selectCount().from(TaskInstance.TASK_INSTANCE)
+                .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
+                .where(conditions)
+                .fetchOne(0, Integer.class);
+            if (count == 0) {
+                return PageData.emptyPageData(start, length);
+            }
         }
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.ID.desc());
@@ -368,6 +382,11 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             conditions.add(TASK_INSTANCE.CRON_TASK_ID.eq(taskQuery.getCronTaskId()));
         }
         return conditions;
+    }
+
+    public PageData<TaskInstanceDTO> listPageTaskInstanceWithoutCount(TaskInstanceQuery taskQuery,
+                                                                      BaseSearchCondition baseSearchCondition) {
+        return listPageTaskInstanceInternal(taskQuery, baseSearchCondition, false);
     }
 
     @Override
