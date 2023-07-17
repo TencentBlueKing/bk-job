@@ -30,8 +30,8 @@ public interface ExecuteRecordDAO<T extends Record> {
     /**
      * 根据起始/结束ID获取表记录
      *
-     * @param start 起始ID
-     * @param end   结束ID
+     * @param start 起始ID(exclude)
+     * @param end   结束ID(include)
      * @return 表记录
      */
     List<T> listRecords(Long start, Long end);
@@ -39,16 +39,16 @@ public interface ExecuteRecordDAO<T extends Record> {
     /**
      * 根据起始/结束ID删除表记录
      *
-     * @param start 起始ID
-     * @param end   结束ID
+     * @param start 起始ID(exclude)
+     * @param end   结束ID(include)
      * @return 删除的记录数量
      */
     int deleteRecords(Long start, Long end);
 
     /**
-     * 获取表中第一条数据的ID(按照ID升序)
+     * 获取表中最小归档ID
      *
-     * @return id值
+     * @return id值。如果表中没有数据，那么返回 null
      */
-    Long getFirstArchiveId();
+    Long getMinArchiveId();
 }
