@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
 */
 
+import _ from 'lodash';
 import Vue from 'vue';
 
 import createRouter from '@router';
@@ -139,14 +140,16 @@ entryTask.add((context) => {
 entryTask.add(context => AppManageService.fetchWholeAppList().then((data) => {
   context.appList = data.data;
   if (!context.scopeType || !context.scopeId) {
-    const [
-      {
+    // 没有指定业务，默认选择第一个有权限的业务
+    const firstHasPermissionApp = _.find([...context.appList], item => item.hasPermission);
+    if (firstHasPermissionApp) {
+      const  {
         scopeType,
         scopeId,
-      },
-    ] = data.data;
-    context.scopeType = scopeType;
-    context.scopeId = scopeId;
+      } = firstHasPermissionApp;
+      context.scopeType = scopeType;
+      context.scopeId = scopeId;
+    }
   }
 }));
 

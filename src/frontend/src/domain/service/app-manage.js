@@ -34,7 +34,7 @@ export default {
   },
   fetchWholeAppList() {
     return AppManageSource.getWholeAppList()
-      .then(({ data }) => Object.freeze(data));
+      .then(({ data }) => data);
   },
   favorApp(params) {
     return AppManageSource.updateFavorApp(params)
