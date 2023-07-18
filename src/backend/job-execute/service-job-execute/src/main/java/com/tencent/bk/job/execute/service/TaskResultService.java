@@ -53,15 +53,6 @@ public interface TaskResultService {
     PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                    BaseSearchCondition baseSearchCondition);
 
-    /**
-     * 分页查询作业执行实例（不包含总数）
-     *
-     * @param taskQuery           查询
-     * @param baseSearchCondition 基础查询条件
-     * @return 分页结果
-     */
-    PageData<TaskInstanceDTO> listPageTaskInstanceWithoutCount(TaskInstanceQuery taskQuery,
-                                                               BaseSearchCondition baseSearchCondition);
 
     /**
      * 获取作业执行结果

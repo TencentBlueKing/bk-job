@@ -106,12 +106,15 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "耗时类型", name = "totalTimeType")
         @RequestParam(value = "totalTimeType", required = false)
             TaskTotalTimeTypeEnum totalTimeType,
-        @ApiParam(value = "分页-开始")
+        @ApiParam(value = "分页-开始，默认值：0")
         @RequestParam(value = "start", required = false)
             Integer start,
-        @ApiParam(value = "分页-每页大小")
+        @ApiParam(value = "分页-每页大小，默认值：10")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize,
+        @ApiParam(value = "分页-是否计算总数；默认值：true。计算总数可能会影响 API 性能, 必要场景才可使用")
+        @RequestParam(value = "countPageTotal", required = false)
+            Boolean countPageTotal,
         @ApiParam(value = "定时任务ID")
         @RequestParam(value = "cronTaskId", required = false)
             Long cronTaskId,

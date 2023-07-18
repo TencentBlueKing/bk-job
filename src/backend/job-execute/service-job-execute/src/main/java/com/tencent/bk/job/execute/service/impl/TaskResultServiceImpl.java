@@ -164,15 +164,6 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     @Override
-    public PageData<TaskInstanceDTO> listPageTaskInstanceWithoutCount(TaskInstanceQuery taskQuery,
-                                                                      BaseSearchCondition baseSearchCondition) {
-        PageData<TaskInstanceDTO> pageData = taskInstanceDAO.listPageTaskInstanceWithoutCount(
-            taskQuery, baseSearchCondition);
-        computeTotalTime(pageData.getData());
-        return pageData;
-    }
-
-    @Override
     public TaskExecuteResultDTO getTaskExecutionResult(String username, Long appId,
                                                        Long taskInstanceId) throws ServiceException {
         TaskInstanceDTO taskInstance = taskInstanceDAO.getTaskInstance(taskInstanceId);
