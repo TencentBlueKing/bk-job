@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.model;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,24 +40,25 @@ public class BaseSearchCondition implements Cloneable {
     /**
      * 分页起始
      */
-    @ApiModelProperty(value = "分页起始", required = false)
     private Integer start;
     /**
      * 分页大小
      */
-    @ApiModelProperty(value = "分页大小", required = false)
     private Integer length;
+
+    /**
+     * 分页-是否计算总数；默认计算。分页计算总数可能会影响 API 性能, 必要场景才可使用
+     */
+    private boolean countPageTotal = true;
 
     /**
      * 排序 0：降序 1：升序
      */
-    @ApiModelProperty(value = "排序 0：降序 1：升序", required = false)
     private Integer order;
 
     /**
      * 排序的字段
      */
-    @ApiModelProperty(value = "排序的字段", required = false)
     private String orderField;
 
 
@@ -94,6 +94,15 @@ public class BaseSearchCondition implements Cloneable {
         BaseSearchCondition searchCondition = new BaseSearchCondition();
         searchCondition.setStart(start);
         searchCondition.setLength(length);
+        searchCondition.setCountPageTotal(true);
+        return searchCondition;
+    }
+
+    public static BaseSearchCondition pageCondition(Integer start, Integer length, boolean countPageTotal) {
+        BaseSearchCondition searchCondition = new BaseSearchCondition();
+        searchCondition.setStart(start);
+        searchCondition.setLength(length);
+        searchCondition.setCountPageTotal(countPageTotal);
         return searchCondition;
     }
 
