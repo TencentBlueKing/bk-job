@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.service.config;
 
+import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +32,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 
 @Configuration(proxyBeanMethods = false)
-@Import(JobCommonConfig.class)
+@Import({JobCommonConfig.class, BkConfig.class})
 public class JobCommonAutoConfiguration {
     @Bean("applicationContextRegister")
     @Lazy(false)

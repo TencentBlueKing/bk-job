@@ -39,7 +39,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     scanBasePackages = "com.tencent.bk.job.file_gateway",
     exclude = {JooqAutoConfiguration.class})
 @EnableCaching
-@EnableFeignClients
+@EnableFeignClients(
+    basePackages = {
+        "com.tencent.bk.job.manage.api"
+    }
+)
 @EnableScheduling
 @EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobFileGatewayBootApplication {

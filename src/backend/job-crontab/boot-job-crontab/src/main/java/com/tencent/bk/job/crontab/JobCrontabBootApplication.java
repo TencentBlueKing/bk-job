@@ -33,9 +33,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.crontab",
+    scanBasePackages = {
+        "com.tencent.bk.job.crontab"},
     exclude = {JooqAutoConfiguration.class})
-@EnableFeignClients
+@EnableFeignClients(basePackages = {"com.tencent.bk.job.manage.api", "com.tencent.bk.job.execute.api"})
 @EnableConfigurationProperties({FeatureToggleConfig.class, JobQuartzProperties.class})
 public class JobCrontabBootApplication {
 

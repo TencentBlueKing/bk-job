@@ -35,7 +35,13 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.execute",
     exclude = {JooqAutoConfiguration.class})
-@EnableFeignClients
+@EnableFeignClients(
+    basePackages = {
+        "com.tencent.bk.job.manage.api",
+        "com.tencent.bk.job.logsvr.api",
+        "com.tencent.bk.job.file_gateway.api"
+    }
+)
 @EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobExecuteBootApplication {
 

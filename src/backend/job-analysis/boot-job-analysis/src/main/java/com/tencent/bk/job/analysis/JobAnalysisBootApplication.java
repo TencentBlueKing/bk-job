@@ -37,7 +37,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     scanBasePackages = "com.tencent.bk.job.analysis",
     exclude = {JooqAutoConfiguration.class})
 @EnableCaching
-@EnableFeignClients
+@EnableFeignClients(
+    basePackages = {
+        "com.tencent.bk.job.manage.api",
+        "com.tencent.bk.job.execute.api",
+        "com.tencent.bk.job.crontab.api"
+    }
+)
 @EnableScheduling
 @EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobAnalysisBootApplication {
