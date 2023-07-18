@@ -34,6 +34,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -352,5 +353,24 @@ public class DateUtils {
             log.error(msg, e);
             return null;
         }
+    }
+
+    /**
+     * 计算当天（UTC 时区)的截止时间戳
+     *
+     * @return 当天（UTC 时区)的截止时间戳，单位毫秒
+     */
+    public static long getUTCCurrentDayEndTimestamp() {
+        return getUTCDayEndTimestamp(LocalDate.now(ZoneId.of("UTC")));
+    }
+
+    /**
+     * 根据日期（UTC 时区)计算这一天的截止时间戳
+     *
+     * @return 日期（UTC 时区)对应当天截止时间戳，单位毫秒
+     */
+    public static long getUTCDayEndTimestamp(LocalDate localDateUTC) {
+
+        return 1000 * (localDateUTC.atStartOfDay().toEpochSecond(ZoneOffset.UTC) + 86400);
     }
 }

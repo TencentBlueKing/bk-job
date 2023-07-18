@@ -26,14 +26,10 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 
 import java.util.Collection;
 import java.util.List;
@@ -218,15 +214,6 @@ public interface TaskInstanceService {
      * @return 步骤详情
      */
     StepInstanceDTO getStepInstanceByTaskInstanceId(long taskInstanceId);
-
-    Integer countTaskInstances(Long appId, Long minTotalTime, Long maxTotalTime, TaskStartupModeEnum taskStartupMode,
-                               TaskTypeEnum taskType, List<Byte> runStatusList, Long fromTime, Long toTime);
-
-    Integer countStepInstances(Long appId, List<Long> stepIdList, StepExecuteTypeEnum stepExecuteType,
-                               ScriptTypeEnum scriptType, RunStatusEnum runStatus, Long fromTime, Long toTime);
-
-    Integer countFastPushFile(Long appId, Integer transferMode, Boolean localUpload, RunStatusEnum runStatus,
-                              Long fromTime, Long toTime);
 
     List<Long> getJoinedAppIdList();
 

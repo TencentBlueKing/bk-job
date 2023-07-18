@@ -52,6 +52,28 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected ExecuteRecordDAO<T> executeRecordDAO;
     protected ExecuteArchiveDAO executeArchiveDAO;
     protected ArchiveProgressService archiveProgressService;
+    private ArchiveConfig archiveConfig;
+    /**
+     * 需要归档的记录的最大 ID (include)
+     */
+    private Long maxNeedArchiveId;
+    /**
+     * 需要归档的记录的最小 ID (include)
+     */
+    private Long minNeedArchiveId;
+    /**
+     * 需要删除的记录的最小 ID (include)
+     */
+    private Long minNeedDeleteId;
+    /**
+     * 需要删除的记录的最大 ID (include)
+     */
+    private Long maxNeedDeleteId;
+    /**
+     * 表中已存在的记录的最小 ID
+     */
+    private Long minExistedRecordArchiveId;
+    private CountDownLatch countDownLatch;
     /**
      * 读取DB 步长
      */
@@ -66,41 +88,48 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected int deleteIdStepSize = 10_000;
     protected String tableName;
     private ArchiveSummary archiveSummary;
+    private boolean isAcquireLock;
 
     public AbstractArchivist(ExecuteRecordDAO<T> executeRecordDAO,
                              ExecuteArchiveDAO executeArchiveDAO,
-                             ArchiveProgressService archiveProgressService) {
+                             ArchiveProgressService archiveProgressService,
+                             ArchiveConfig archiveConfig,
+                             Long maxNeedArchiveId,
+                             CountDownLatch countDownLatch) {
         this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
+        this.archiveConfig = archiveConfig;
+        this.maxNeedArchiveId = maxNeedArchiveId;
+        this.countDownLatch = countDownLatch;
         this.tableName = executeRecordDAO.getTable().getName().toLowerCase();
+        this.archiveSummary = new ArchiveSummary(this.tableName);
     }
 
-    public void archive(ArchiveConfig archiveConfig, Long maxNeedArchiveId, CountDownLatch countDownLatch) {
-        boolean isAcquireLock = false;
+    public void archive() {
         try {
-            archiveSummary = new ArchiveSummary();
-            archiveSummary.setTableName(tableName);
-            if (!ArchiveTaskLock.getInstance().lock(tableName)) {
-                archiveSummary.setSkip(true);
-                isAcquireLock = false;
+            if (!acquireLock()) {
                 return;
-            } else {
-                isAcquireLock = true;
             }
-            archiveSummary.setSkip(false);
-            log.info("Start archive and delete, tableName: {}, archiveConfig: {}", tableName, archiveConfig);
+
+            log.info("[{}] Start archive", tableName);
+            minExistedRecordArchiveId = executeRecordDAO.getMinArchiveId();
+            if (minExistedRecordArchiveId == null) {
+                // min 查询返回 null，说明是空表，无需归档
+                log.info("[{}] Empty table, do not need archive!", tableName);
+                return;
+            }
 
             boolean archiveSuccess;
             if (archiveConfig.isArchiveEnabled()) {
-                archiveSuccess = archive(maxNeedArchiveId);
+                archiveSuccess = archiveTable();
             } else {
-                log.info("Archive is not enabled, skip archive {}!", tableName);
+                log.info("[{}] Archive is not enabled, skip archive table!", tableName);
                 archiveSuccess = true;
             }
 
             if (archiveSuccess && archiveConfig.isDeleteEnabled()) {
-                delete(maxNeedArchiveId, archiveConfig);
+                delete();
             }
         } catch (Throwable e) {
             String msg = MessageFormatter.format(
@@ -112,84 +141,86 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             archiveSummary.setArchiveEnabled(archiveConfig.isArchiveEnabled());
             archiveSummary.setDeleteEnabled(archiveConfig.isDeleteEnabled());
             storeArchiveSummary();
-            if (isAcquireLock) {
+            if (this.isAcquireLock) {
                 ArchiveTaskLock.getInstance().unlock(tableName);
             }
             countDownLatch.countDown();
         }
     }
 
-    private boolean archive(Long maxNeedArchiveId) {
-        long lastArchivedId = 0;
+    private boolean acquireLock() {
+        this.isAcquireLock = ArchiveTaskLock.getInstance().lock(tableName);
+        archiveSummary.setSkip(!isAcquireLock);
+        if (!isAcquireLock) {
+            log.info("[{}] Acquire lock fail", tableName);
+        }
+        return isAcquireLock;
+    }
+
+    /**
+     * 归档表数据
+     *
+     * @return true: 归档操作成功
+     */
+    private boolean archiveTable() {
+        // 计算本次归档的起始 ID
+        computeMinNeedArchiveId();
+        if (maxNeedArchiveId < this.minNeedArchiveId) {
+            log.info("[{}] MinNeedArchiveId {} is greater than maxNeedArchiveId {}, skip archive table!",
+                tableName, minNeedArchiveId, maxNeedArchiveId);
+            return true;
+        }
+
         long archivedRows = 0;
         long readRows = 0;
         long startTime = System.currentTimeMillis();
-        long minNeedArchiveId = 0;
         long archiveCost = 0;
+        long start = this.minNeedArchiveId - 1;
+        long stop = start;
         try {
-            lastArchivedId = getLastArchivedId();
-            minNeedArchiveId = lastArchivedId;
-            log.info("Archive {} start, minNeedArchiveId: {}, maxNeedArchiveId:{}",
+            log.info("[{}] Archive table start, minNeedArchiveId: {}, maxNeedArchiveId:{}",
                 tableName, minNeedArchiveId, maxNeedArchiveId);
-
-            long start = lastArchivedId;
-            long stop = start;
             List<T> recordList = new ArrayList<>(readIdStepSize);
 
-            if (maxNeedArchiveId <= lastArchivedId) {
-                log.info("LastArchivedId {} is greater than or equal to maxNeedArchiveId {}, skip archive {}!",
-                    lastArchivedId, maxNeedArchiveId, tableName);
-            }
-
             while (maxNeedArchiveId > start) {
-                stop = start + readIdStepSize;
-                if (stop > maxNeedArchiveId) {
-                    stop = maxNeedArchiveId;
-                }
+                stop = Math.min(maxNeedArchiveId, start + readIdStepSize);
                 // 选取start<recordId<=stop的数据
                 List<T> records = listRecord(start, stop);
                 readRows += records.size();
                 log.info("Read {} rows from {}", records.size(), tableName);
 
-                if (CollectionUtils.isEmpty(records)) {
-                    if (stop >= maxNeedArchiveId) {
-                        log.info("Read {} finished!", tableName);
-                        break;
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Fetching {} found data hole at {} {}", tableName, start, readIdStepSize);
-                        }
-                    }
-                } else {
+                if (CollectionUtils.isNotEmpty(records)) {
                     recordList.addAll(records);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Fetching {} found data hole at {} {}", tableName, start, readIdStepSize);
+                    }
                 }
 
                 start = stop;
                 if (recordList.size() >= batchInsertRow) {
                     int insertRows = insertAndReset(stop, recordList);
-                    lastArchivedId = stop;
                     archivedRows += insertRows;
-                    updateArchiveProgress(lastArchivedId);
+                    updateArchiveProgress(stop);
                 }
             }
+
             if (CollectionUtils.isNotEmpty(recordList)) {
+                // 处理没有达到批量插入阈值的最后一个批次的数据
                 int insertRows = insertAndReset(stop, recordList);
-                lastArchivedId = stop;
                 archivedRows += insertRows;
-                updateArchiveProgress(lastArchivedId);
+                updateArchiveProgress(stop);
             }
 
             // 即使没有需要归档的数据，仍然需要更新归档进度
             if (readRows == 0) {
-                lastArchivedId = stop;
-                updateArchiveProgress(lastArchivedId);
+                updateArchiveProgress(stop);
             }
 
             archiveCost = System.currentTimeMillis() - startTime;
-            log.info("Archive {} finished, minNeedArchiveId: {}, maxNeedArchiveId: {}, lastArchivedId: {}, readRows: " +
-                    "{}, archivedRows: {}, cost: {}ms",
-                tableName, minNeedArchiveId, maxNeedArchiveId, lastArchivedId, readRows,
-                archivedRows, archiveCost);
+            log.info("Archive {} finished, minNeedArchiveId: {}, maxNeedArchiveId: {}, readRows: {}, " +
+                    "archivedRows: {}, cost: {}ms",
+                tableName, minNeedArchiveId, maxNeedArchiveId, readRows, archivedRows, archiveCost);
             if (readRows != archivedRows) {
                 log.warn("Archive row are unexpected, table: {}, expected: {}, actual: {}", tableName, readRows,
                     archivedRows);
@@ -207,34 +238,41 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             archiveSummary.setArchiveIdEnd(maxNeedArchiveId);
             archiveSummary.setNeedArchiveRecordSize(readRows);
             archiveSummary.setArchivedRecordSize(archivedRows);
-            archiveSummary.setLastArchivedId(lastArchivedId);
+            archiveSummary.setLastArchivedId(stop);
             archiveSummary.setArchiveCost(archiveCost);
         }
     }
 
     /**
-     * 获取上一次已归档完成的最后一个数据Id，后续用大于该Id选取范围数据
+     * 计算本次归档的起始 ID
      */
-    private long getLastArchivedId() {
+    private void computeMinNeedArchiveId() {
         ArchiveProgressDTO archiveProgress = archiveProgressService.queryArchiveProgress(tableName);
-        if (archiveProgress == null || archiveProgress.getLastArchivedId() == null
-            || archiveProgress.getLastArchivedId() <= 0L) {
-            long lastArchivedId = getFirstInstanceId() - 1;
-            log.info("Archive {} for the first time! lastArchivedId: {}", tableName, lastArchivedId);
-            return lastArchivedId;
-        }
-        return archiveProgress.getLastArchivedId();
+        // 上次归档记录的截止ID
+        long lastArchiveId = (archiveProgress == null || archiveProgress.getLastArchivedId() == null) ?
+            0 : archiveProgress.getLastArchivedId();
+        // 本次归档为表中的最小记录 ID 与上次归档记录的ID中的较大者，减少需要处理的数据
+        this.minNeedArchiveId = Math.max(lastArchiveId + 1, minExistedRecordArchiveId);
+        log.info("[{}] Compute minNeedArchiveId, lastArchiveId: {}, minExistedRecordArchiveId: {}," + "" +
+                "minNeedArchiveId: {}",
+            tableName, lastArchiveId, minExistedRecordArchiveId, minNeedArchiveId);
     }
 
-    private long getLastDeletedId() {
+    /**
+     * 计算本次删除的 ID范围
+     */
+    private void computeNeedDeleteIdRange() {
         ArchiveProgressDTO archiveProgress = archiveProgressService.queryArchiveProgress(tableName);
-        if (archiveProgress == null || archiveProgress.getLastDeletedId() == null
-            || archiveProgress.getLastDeletedId() <= 0L) {
-            long lastDeletedId = getFirstInstanceId() - 1;
-            log.info("Delete {} for the first time! lastDeletedId: {}", tableName, lastDeletedId);
-            return lastDeletedId;
-        }
-        return archiveProgress.getLastDeletedId();
+        // 上次删除记录的截止ID
+        Long lastDeleteId = (archiveProgress == null || archiveProgress.getLastDeletedId() == null) ?
+            null : archiveProgress.getLastDeletedId();
+        // 需要删除的最小 ID 为表中实际数据的最小 ID
+        this.minNeedDeleteId = minExistedRecordArchiveId;
+        // 需要删除的最大 ID 为本次归档的截止 ID
+        this.maxNeedDeleteId = maxNeedArchiveId;
+        log.info("[{}] Compute deleteIdRange, lastDeleteId: {}, minExistedRecordArchiveId: {}," + "" +
+                "minNeedDeleteId: {}, maxNeedDeleteId: {}",
+            tableName, lastDeleteId, minExistedRecordArchiveId, minNeedDeleteId, maxNeedDeleteId);
     }
 
     private void updateArchiveProgress(long lastArchivedId) {
@@ -253,48 +291,35 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         archiveProgressService.saveDeleteProgress(archiveProgress);
     }
 
-    private void delete(Long maxNeedArchiveId, ArchiveConfig archiveConfig) {
+    private void delete() {
         long startTime = System.currentTimeMillis();
+        computeNeedDeleteIdRange();
 
-        Long maxNeedDeleteId;
-        if (archiveConfig.isArchiveEnabled()) {
-            // 如果开启归档，那么删除的最大ID必须等于已经归档的ID，保证数据在删除之前已经被正确归档
-            maxNeedDeleteId = getLastArchivedId();
-        } else {
-            maxNeedDeleteId = maxNeedArchiveId;
-        }
-
-        long lastDeletedId = getLastDeletedId();
-        long minNeedDeleteId = lastDeletedId;
         long deletedRows = 0;
 
-        try {
-            log.info("Delete {} start|{}|{}", tableName, minNeedDeleteId, maxNeedDeleteId);
-            if (maxNeedDeleteId <= lastDeletedId) {
-                log.info("LastDeletedId {} is greater than or equal to maxNeedDeleteId {}, skip delete {}!",
-                    lastDeletedId, maxNeedDeleteId, tableName);
-                return;
-            }
+        log.info("Delete {} start|{}|{}", tableName, minNeedDeleteId, maxNeedDeleteId);
+        if (maxNeedDeleteId < minNeedDeleteId) {
+            log.info("MinNeedDeleteId {} is greater than maxNeedDeleteId {}, skip delete {}!",
+                minNeedDeleteId, maxNeedDeleteId, tableName);
+            return;
+        }
 
-            long start = minNeedDeleteId;
+        long start = minNeedDeleteId - 1;
+        long stop = minNeedDeleteId;
+        try {
             while (maxNeedDeleteId > start) {
                 long batchDeleteStartTime = System.currentTimeMillis();
-                long stop = start + deleteIdStepSize;
-                if (stop > maxNeedDeleteId) {
-                    stop = maxNeedDeleteId;
-                }
+                stop = Math.min(maxNeedDeleteId, start + deleteIdStepSize);
                 int deleteCount = deleteRecord(start, stop);
-                lastDeletedId = stop;
                 deletedRows += deleteCount;
+                log.info("Delete {}, start: {}, stop: {}, delete rows: {}, cost: {}ms", tableName,
+                    start, stop, deleteCount, System.currentTimeMillis() - batchDeleteStartTime);
                 start += deleteIdStepSize;
-                log.info("Delete {}, lastDeletedId: {}, delete rows: {}, cost: {}ms", tableName,
-                    lastDeletedId, deleteCount, System.currentTimeMillis() - batchDeleteStartTime);
-                updateDeleteProgress(lastDeletedId);
+                updateDeleteProgress(stop);
             }
-            log.info("Delete {} finished, minNeedDeleteId: {}, maxNeedDeleteId: {}, lastDeletedId: {}, deletedRows: " +
+            log.info("Delete {} finished, minNeedDeleteId: {}, maxNeedDeleteId: {}, deletedRows: " +
                     "{}, cost: {}ms",
-                tableName, minNeedDeleteId, maxNeedDeleteId, lastDeletedId, deletedRows,
-                System.currentTimeMillis() - startTime);
+                tableName, minNeedDeleteId, maxNeedDeleteId, deletedRows, System.currentTimeMillis() - startTime);
         } catch (Throwable e) {
             String msg = MessageFormatter.format(
                 "Error while deleting {}",
@@ -305,7 +330,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             archiveSummary.setDeleteCost(System.currentTimeMillis() - startTime);
             archiveSummary.setDeleteIdStart(minNeedDeleteId);
             archiveSummary.setDeleteIdEnd(maxNeedDeleteId);
-            archiveSummary.setLastDeletedId(lastDeletedId);
+            archiveSummary.setLastDeletedId(stop);
             archiveSummary.setDeleteRecordSize(deletedRows);
         }
     }
@@ -341,9 +366,5 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     private int deleteRecord(Long start, Long stop) {
         return executeRecordDAO.deleteRecords(start, stop);
-    }
-
-    private long getFirstInstanceId() {
-        return executeRecordDAO.getFirstArchiveId();
     }
 }

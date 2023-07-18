@@ -532,7 +532,6 @@ public class StatisticsServiceImpl implements StatisticsService {
                             updateStartJobStatistics(taskInstance);
                         }
                         offset += limit;
-                        Thread.sleep(2000);
                     } while (taskInstanceIds.size() == limit);
                 }
             }

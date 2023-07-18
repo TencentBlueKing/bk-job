@@ -25,10 +25,13 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceVariableRecord;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * task_instance_variable 表归档
@@ -37,8 +40,16 @@ public class TaskInstanceVariableArchivist extends AbstractArchivist<TaskInstanc
 
     public TaskInstanceVariableArchivist(TaskInstanceVariableRecordDAO executeRecordDAO,
                                          ExecuteArchiveDAO executeArchiveDAO,
-                                         ArchiveProgressService archiveProgressService) {
-        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+                                         ArchiveProgressService archiveProgressService,
+                                         ArchiveConfig archiveConfig,
+                                         Long maxNeedArchiveId,
+                                         CountDownLatch countDownLatch) {
+        super(executeRecordDAO,
+            executeArchiveDAO,
+            archiveProgressService,
+            archiveConfig,
+            maxNeedArchiveId,
+            countDownLatch);
         this.deleteIdStepSize = 100_000;
     }
 }

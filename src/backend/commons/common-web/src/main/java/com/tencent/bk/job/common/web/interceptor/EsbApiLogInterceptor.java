@@ -66,6 +66,7 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             request.setAttribute(ATTR_REQUEST_START, System.currentTimeMillis());
             apiName = getAPIName(wrapperRequest.getRequestURI());
             request.setAttribute(ATTR_API_NAME, apiName);
+            desensitizedQueryParams = desensitizeQueryParams(request.getQueryString());
             if (request.getMethod().equals(HttpMethod.POST.name())
                 || request.getMethod().equals(HttpMethod.PUT.name())) {
                 if (StringUtils.isNotBlank(wrapperRequest.getBody())) {
@@ -83,17 +84,15 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             } else if (request.getMethod().equals(HttpMethod.GET.name())) {
                 username = request.getParameter("bk_username");
                 appCode = request.getParameter("bk_app_code");
-                desensitizedQueryParams = desensitizeQueryParams(request.getQueryString());
-
                 request.setAttribute(ATTR_USERNAME, username);
                 request.setAttribute(ATTR_APP_CODE, appCode);
             }
         } catch (Throwable e) {
             return true;
         } finally {
-            log.info("request-id:{}|lang:{}|API:{}|uri:{}|appCode:{}|username:{}|body:{}|queryParams:{}", requestId,
-                lang, apiName,
-                request.getRequestURI(), appCode, username, desensitizedBody, desensitizedQueryParams);
+            log.info("request-id: {}|lang: {}|API: {}|uri: {}|appCode: {}|username: {}|body: {}|queryParams: {}",
+                requestId, lang, apiName, request.getRequestURI(), appCode, username, desensitizedBody,
+                desensitizedQueryParams);
         }
         return true;
     }
@@ -141,7 +140,7 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
             int respStatus = response.getStatus();
             long cost = System.currentTimeMillis() - startTimeInMills;
-            log.info("request-id:{}|API:{}|uri:{}|appCode:{}|username:{}|status:{}|resp:{}|cost:{}",
+            log.info("request-id: {}|API: {}|uri: {}|appCode: {}|username: {}|status: {}|resp: {}|cost: {}",
                 requestId,
                 apiName,
                 request.getRequestURI(),

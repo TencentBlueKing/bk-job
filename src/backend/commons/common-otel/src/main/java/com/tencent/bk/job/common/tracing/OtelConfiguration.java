@@ -34,12 +34,15 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanLimits;
 import io.opentelemetry.sdk.trace.SpanProcessor;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessorBuilder;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.sleuth.autoconfig.otel.OtelProcessorProperties;
 import org.springframework.cloud.sleuth.autoconfig.otel.SpanProcessorProvider;
 import org.springframework.cloud.sleuth.otel.bridge.SpanExporterCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -49,6 +52,7 @@ import org.springframework.context.annotation.Profile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -105,6 +109,36 @@ class OtelConfiguration {
         }
         processors.forEach(sdkTracerProviderBuilder::addSpanProcessor);
         return sdkTracerProviderBuilder.build();
+    }
+
+    @Bean
+    SpanProcessorProvider otelBatchSpanProcessorProvider(OtelProcessorProperties otelProcessorProperties) {
+        return new SpanProcessorProvider() {
+            @Override
+            public SpanProcessor toSpanProcessor(SpanExporter spanExporter) {
+                BatchSpanProcessorBuilder builder = BatchSpanProcessor.builder(spanExporter);
+                setBuilderProperties(otelProcessorProperties, builder);
+                return builder.build();
+            }
+
+            private void setBuilderProperties(OtelProcessorProperties otelProcessorProperties,
+                                              BatchSpanProcessorBuilder builder) {
+                if (otelProcessorProperties.getBatch().getExporterTimeout() != null) {
+                    builder.setExporterTimeout(otelProcessorProperties.getBatch().getExporterTimeout(),
+                        TimeUnit.MILLISECONDS);
+                }
+                if (otelProcessorProperties.getBatch().getMaxExportBatchSize() != null) {
+                    builder.setMaxExportBatchSize(otelProcessorProperties.getBatch().getMaxExportBatchSize());
+                }
+                if (otelProcessorProperties.getBatch().getMaxQueueSize() != null) {
+                    builder.setMaxQueueSize(otelProcessorProperties.getBatch().getMaxQueueSize());
+                }
+                if (otelProcessorProperties.getBatch().getScheduleDelay() != null) {
+                    builder.setScheduleDelay(otelProcessorProperties.getBatch().getScheduleDelay(),
+                        TimeUnit.MILLISECONDS);
+                }
+            }
+        };
     }
 
     @Bean("jobOpenTelemetry")

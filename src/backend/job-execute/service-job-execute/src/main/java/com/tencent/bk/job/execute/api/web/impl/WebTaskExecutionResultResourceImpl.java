@@ -108,9 +108,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -251,7 +248,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         baseSearchCondition.setLength(pageSize);
 
 
-        PageData<TaskInstanceDTO> pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
+        PageData<TaskInstanceDTO> pageData;
+        if (timeRange == null) {
+            pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
+        } else {
+            // 临时优化代码，使用 timeRange 的 web 页面会触发全表扫描的问题。后续跟前端一块优化
+            pageData = taskResultService.listPageTaskInstanceWithoutCount(taskQuery, baseSearchCondition);
+        }
         if (pageData == null) {
             return Response.buildSuccessResp(PageData.emptyPageData(start, pageSize));
         }
@@ -284,9 +287,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 log.warn("Param timeRange should less then 30");
                 return ValidateResult.fail(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
             }
-            // 当天结束时间
-            long todayMaxMills = LocalDateTime.of(LocalDate.now(), LocalTime.MAX).getSecond() * 1000L;
-            start = todayMaxMills - 30 * 24 * 3600 * 1000L;
+            // 当天结束时间 - 往前的天数
+            start = DateUtils.getUTCCurrentDayEndTimestamp() - timeRange * 24 * 3600 * 1000L;
         } else {
             if (StringUtils.isNotBlank(startTime)) {
                 start = DateUtils.convertUnixTimestampFromDateTimeStr(startTime, "yyyy-MM-dd HH:mm:ss",

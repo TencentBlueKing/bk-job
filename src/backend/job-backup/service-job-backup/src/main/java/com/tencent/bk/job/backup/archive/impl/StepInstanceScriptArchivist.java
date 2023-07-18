@@ -25,10 +25,13 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.config.ArchiveConfig;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceScriptRecord;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * step_instance_script 表归档
@@ -37,8 +40,16 @@ public class StepInstanceScriptArchivist extends AbstractArchivist<StepInstanceS
 
     public StepInstanceScriptArchivist(StepInstanceScriptRecordDAO executeRecordDAO,
                                        ExecuteArchiveDAO executeArchiveDAO,
-                                       ArchiveProgressService archiveProgressService) {
-        super(executeRecordDAO, executeArchiveDAO, archiveProgressService);
+                                       ArchiveProgressService archiveProgressService,
+                                       ArchiveConfig archiveConfig,
+                                       Long maxNeedArchiveId,
+                                       CountDownLatch countDownLatch) {
+        super(executeRecordDAO,
+            executeArchiveDAO,
+            archiveProgressService,
+            archiveConfig,
+            maxNeedArchiveId,
+            countDownLatch);
         this.deleteIdStepSize = 10_000;
     }
 }

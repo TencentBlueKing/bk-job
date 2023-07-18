@@ -24,13 +24,9 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
-import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
@@ -42,7 +38,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,8 +47,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SCRIPT;
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SQL;
@@ -294,90 +287,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         StepInstanceDTO stepInstance = new StepInstanceDTO(stepInstanceList.get(0));
         fillStepInstanceDetail(stepInstance);
         return stepInstance;
-    }
-
-    @Override
-    public Integer countTaskInstances(Long appId, Long minTotalTime, Long maxTotalTime,
-                                      TaskStartupModeEnum taskStartupMode, TaskTypeEnum taskType,
-                                      List<Byte> runStatusList, Long fromTime, Long toTime) {
-        return taskInstanceDAO.countTaskInstances(appId, minTotalTime, maxTotalTime, taskStartupMode, taskType,
-            runStatusList, fromTime, toTime);
-    }
-
-    @Override
-    public Integer countStepInstances(Long appId, List<Long> stepIdList, StepExecuteTypeEnum stepExecuteType,
-                                      ScriptTypeEnum scriptType, RunStatusEnum runStatus, Long fromTime, Long toTime) {
-        return stepInstanceDAO.count(appId, stepIdList, stepExecuteType, scriptType, runStatus, fromTime, toTime);
-    }
-
-    @Override
-    public Integer countFastPushFile(Long appId, Integer transferMode, Boolean localUpload, RunStatusEnum runStatus,
-                                     Long fromTime, Long toTime) {
-        if (localUpload == null) {
-            // 不区分本地与服务器文件
-            if (transferMode == null) {
-                // 不区分模式
-                return stepInstanceDAO.countFastPushFile(appId, null, null, null, null, runStatus, fromTime, toTime);
-            } else if (transferMode == 1) {
-                // 严谨模式
-                return stepInstanceDAO.countFastPushFile(appId, null, null, NotExistPathHandlerEnum.STEP_FAIL, null,
-                    runStatus, fromTime, toTime);
-            } else if (transferMode == 2) {
-                // 强制模式
-                Integer count = 0;
-                count += stepInstanceDAO.countFastPushFile(appId, null, null, NotExistPathHandlerEnum.CREATE_DIR,
-                    null, runStatus, fromTime, toTime);
-                count += stepInstanceDAO.countFastPushFile(appId, null, null, null, true, runStatus, fromTime, toTime);
-                return count;
-            } else {
-                log.warn("Unexpected transferMode={}", transferMode);
-                return 0;
-            }
-        } else {
-            // 区分本地与服务器文件
-            // 查出所有记录
-            List<List<FileSourceDTO>> recordList = new ArrayList<>();
-            if (transferMode == null) {
-                // 不区分模式
-                recordList.addAll(stepInstanceDAO.listFastPushFileSource(appId, null, null, null, null, runStatus,
-                    fromTime, toTime));
-            } else if (transferMode == 1) {
-                // 严谨模式
-                recordList.addAll(stepInstanceDAO.listFastPushFileSource(appId, null, null,
-                    NotExistPathHandlerEnum.STEP_FAIL, null, runStatus, fromTime, toTime));
-            } else if (transferMode == 2) {
-                // 强制模式
-                recordList.addAll(stepInstanceDAO.listFastPushFileSource(appId, null, null,
-                    NotExistPathHandlerEnum.CREATE_DIR, null, runStatus, fromTime, toTime));
-                recordList.addAll(stepInstanceDAO.listFastPushFileSource(appId, null, null, null, true, runStatus,
-                    fromTime, toTime));
-            } else {
-                log.warn("Unexpected transferMode={}", transferMode);
-                return 0;
-            }
-            // 筛选本地文件与服务器文件
-            int localCount = 0;
-            int serverCount = 0;
-            for (List<FileSourceDTO> fileSourceDTOList : recordList) {
-                Set<Boolean> localFlagSet =
-                    fileSourceDTOList.stream().map(FileSourceDTO::isLocalUpload).collect(Collectors.toSet());
-                if (localFlagSet.size() == 2) {
-                    localCount += 1;
-                    serverCount += 1;
-                } else if (localFlagSet.size() == 1) {
-                    if (localFlagSet.iterator().next()) {
-                        localCount += 1;
-                    } else {
-                        serverCount += 1;
-                    }
-                }
-            }
-            if (localUpload) {
-                return localCount;
-            } else {
-                return serverCount;
-            }
-        }
     }
 
     @Override
