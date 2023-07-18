@@ -83,6 +83,8 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
   // scope 是有有权限查看
   let hasScopePermission = false;
 
+  const noScope = !scopeType && !scopeId;
+
   const appInfo = appList.find(_ => _.scopeType === scopeType && _.scopeId === scopeId);
   // scope 存在于业务列表中——有效的 scope
   if (appInfo) {
@@ -109,7 +111,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
       children: systemManageRoute,
     },
     {
-      path: `/${scopeType}/${scopeId}`,
+      path: noScope ? '/' : `/${scopeType}/${scopeId}`,
       component: Entry,
       redirect: {
         name: 'home',
@@ -144,10 +146,10 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     },
   ];
 
-  if (!isValidScope) {
-    renderPageWithComponent(routes[1], NotFound);
-  } else if (!hasScopePermission) {
+  if (noScope || !hasScopePermission) {
     renderPageWithComponent(routes[1], BusinessPermission);
+  } else if (!isValidScope) {
+    renderPageWithComponent(routes[1], NotFound);
   }
 
   // admin用户拥有系统设置功能
