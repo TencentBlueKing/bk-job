@@ -125,6 +125,7 @@
 
         const params = {
           timeRange: 30,
+          countPageTotal: false,
         };
         if (this.recordOperator) {
           params.operator = this.recordOperator;
