@@ -42,6 +42,8 @@ import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.cloud.sleuth.autoconfig.otel.OtelAutoConfiguration;
 import org.springframework.cloud.sleuth.autoconfig.otel.OtelProcessorProperties;
 import org.springframework.cloud.sleuth.autoconfig.otel.SpanProcessorProvider;
 import org.springframework.cloud.sleuth.otel.bridge.SpanExporterCustomizer;
@@ -69,6 +71,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Configuration(proxyBeanMethods = false)
 @Profile("!test")
+@AutoConfigureBefore(OtelAutoConfiguration.class)
 class OtelConfiguration {
 
     @Value("${spring.sleuth.otel.exporter.enabled:false}")
