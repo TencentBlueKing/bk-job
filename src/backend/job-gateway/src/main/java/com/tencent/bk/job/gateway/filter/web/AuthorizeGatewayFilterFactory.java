@@ -24,8 +24,12 @@
 
 package com.tencent.bk.job.gateway.filter.web;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
 import com.tencent.bk.job.common.util.RequestUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.gateway.config.LoginExemptionConfig;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
@@ -33,12 +37,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -87,13 +94,11 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 response.getHeaders().add("x-login-url", loginService.getLoginRedirectUrl());
                 return response.setComplete();
             }
-            BkUserDTO user = null;
-            // 遍历所有传入token找出当前环境的
-            for (String bkToken : bkTokenList) {
-                user = loginService.getUser(bkToken);
-                if (user != null) {
-                    break;
-                }
+            BkUserDTO user;
+            try {
+                user = getUserByTokenList(bkTokenList);
+            } catch (AppPermissionDeniedException e) {
+                return getUserAccessAppForbiddenResp(response, e.getMessage());
             }
             if (user == null) {
                 log.warn("Invalid user token");
@@ -106,6 +111,27 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             request.mutate().header("username", new String[]{username}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    private Mono<Void> getUserAccessAppForbiddenResp(ServerHttpResponse response, String data) {
+        Response<?> resp = new Response<>(ErrorCode.USER_ACCESS_APP_FORBIDDEN, data);
+        response.setStatusCode(HttpStatus.FORBIDDEN);
+        String body = JsonUtils.toJson(resp);
+        DataBuffer dataBuffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
+        response.getHeaders().setContentLength(body.length());
+        response.writeWith(Mono.just(dataBuffer)).subscribe();
+        return response.setComplete();
+    }
+
+    private BkUserDTO getUserByTokenList(List<String> bkTokenList) {
+        // 遍历所有传入token找出当前环境的
+        for (String bkToken : bkTokenList) {
+            BkUserDTO user = loginService.getUser(bkToken);
+            if (user != null) {
+                return user;
+            }
+        }
+        return null;
     }
 
     @Override
