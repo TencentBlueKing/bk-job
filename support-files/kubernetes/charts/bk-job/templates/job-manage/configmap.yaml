@@ -67,12 +67,6 @@ data:
           default:
             connectTimeout: 5000
             readTimeout: 20000
-          sync:
-            connectTimeout: 5000
-            readTimeout: 30000
-          log:
-            connectTimeout: 5000
-            readTimeout: 30000
     bk:
       doc:
         root: {{ .Values.bkDocsCenterUrl }}

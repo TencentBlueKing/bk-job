@@ -1415,7 +1415,7 @@ public class HostServiceImpl implements HostService {
             if (watch.isRunning()) {
                 watch.stop();
             }
-            if (watch.getTotalTimeMillis() > 1000) {
+            if (watch.getTotalTimeMillis() > 3000) {
                 log.warn("ListAppHostsPreferCache slow, watch: {}", watch.prettyPrint());
             }
         }

@@ -113,6 +113,12 @@ data:
       ConnectTimeout: 10000
       eureka:
         enabled: false
+    feign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 20000
     job:
       crontab:
         db:
