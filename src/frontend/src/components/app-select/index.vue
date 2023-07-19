@@ -40,7 +40,7 @@
         <input
           class="app-name"
           readonly
-          :value="`${scopeName} (${scopeId})`"
+          :value="scopeId ? `${scopeName} (${scopeId})` : ''"
           @keydown.down.prevent="handleStep('next')"
           @keydown.enter.prevent="handleSelect"
           @keydown.up.prevent="handleStep('prev')">
