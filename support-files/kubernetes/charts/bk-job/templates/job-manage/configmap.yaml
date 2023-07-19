@@ -61,6 +61,12 @@ data:
         multipart:
           max-file-size: 5GB
           max-request-size: 5GB
+    feign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 20000
     bk:
       doc:
         root: {{ .Values.bkDocsCenterUrl }}
