@@ -29,6 +29,8 @@ import {
   parseURL,
 } from '@utils/assist';
 
+import SystemPermission from '@views/system-permission.vue';
+
 import ApplyPermissionDialog from '@components/apply-permission/apply-dialog';
 
 import PassLogin from '@blueking/paas-login';
@@ -136,6 +138,18 @@ export const permissionDialog = (authParams = {}, authResult = {}) => {
   permissionInstance.$nextTick(() => {
     document.body.appendChild(permissionInstance.$el);
   });
+};
+
+let systemPermissionInstance;
+export const systemPermission = (message) => {
+  if (!systemPermissionInstance) {
+    systemPermissionInstance = new Vue(SystemPermission).$mount();
+    systemPermissionInstance.message = message;
+    console.dir(systemPermissionInstance.$el);
+    systemPermissionInstance.$nextTick(() => {
+      document.body.innerHTML = systemPermissionInstance.$el.outerHTML;
+    });
+  }
 };
 
 Vue.prototype.messageError = messageError;
