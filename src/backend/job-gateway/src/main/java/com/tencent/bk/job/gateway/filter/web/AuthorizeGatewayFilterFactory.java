@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.filter.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
@@ -37,8 +38,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -47,6 +50,8 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.BLUEKING_LANG_HEADER;
 
 /**
  * 用户token校验
@@ -81,6 +86,12 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             ServerHttpResponse response = exchange.getResponse();
             String tokenCookieName = loginService.getCookieNameForToken();
             List<String> bkTokenList = RequestUtil.getCookieValuesFromHeader(request, tokenCookieName);
+            String lang = RequestUtil.getCookieValue(request, BLUEKING_LANG_HEADER);
+            if (StringUtils.isBlank(lang)) {
+                lang = LocaleUtils.LANG_EN;
+                log.warn("Cannot find blueking_language in cookie, use en");
+            }
+            LocaleContextHolder.setLocale(LocaleUtils.getLocale(lang), true);
             if (CollectionUtils.isEmpty(bkTokenList)) {
                 log.warn("Fail to parse token from headers, please check");
                 String bkToken = RequestUtil.getCookieValue(request, tokenCookieName);
@@ -96,7 +107,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             }
             BkUserDTO user;
             try {
-                user = getUserByTokenList(bkTokenList);
+                user = getUserByTokenList(bkTokenList, lang);
             } catch (AppPermissionDeniedException e) {
                 return getUserAccessAppForbiddenResp(response, e.getMessage());
             }
@@ -117,16 +128,18 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
         Response<?> resp = new Response<>(ErrorCode.USER_ACCESS_APP_FORBIDDEN, data);
         response.setStatusCode(HttpStatus.FORBIDDEN);
         String body = JsonUtils.toJson(resp);
-        DataBuffer dataBuffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
-        response.getHeaders().setContentLength(body.length());
+        byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
+        DataBuffer dataBuffer = response.bufferFactory().wrap(bodyBytes);
+        response.getHeaders().setContentLength(bodyBytes.length);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         response.writeWith(Mono.just(dataBuffer)).subscribe();
         return response.setComplete();
     }
 
-    private BkUserDTO getUserByTokenList(List<String> bkTokenList) {
+    private BkUserDTO getUserByTokenList(List<String> bkTokenList, String lang) {
         // 遍历所有传入token找出当前环境的
         for (String bkToken : bkTokenList) {
-            BkUserDTO user = loginService.getUser(bkToken);
+            BkUserDTO user = loginService.getUser(bkToken, lang);
             if (user != null) {
                 return user;
             }

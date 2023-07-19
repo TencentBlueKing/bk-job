@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.gateway.config;
 
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.paas.login.CustomLoginClient;
 import com.tencent.bk.job.common.paas.login.EELoginClient;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
@@ -44,12 +45,31 @@ public class SdkClientConfig {
         return new CustomLoginClient(bkConfig.getCustomLoginApiUrl());
     }
 
-    @Bean
+    @Bean(name = "enLoginClient")
     @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "false", matchIfMissing = true)
     @Primary
-    public ILoginClient standardLoginClient(@Autowired BkConfig bkConfig) {
-        log.info("Init standard login client");
-        return new EELoginClient(bkConfig.getEsbUrl(), bkConfig.getAppCode(), bkConfig.getAppSecret(),
-            bkConfig.isUseEsbTestEnv());
+    public ILoginClient enLoginClient(@Autowired BkConfig bkConfig) {
+        log.info("Init standard en login client");
+        return new EELoginClient(
+            bkConfig.getEsbUrl(),
+            bkConfig.getAppCode(),
+            bkConfig.getAppSecret(),
+            LocaleUtils.LANG_EN,
+            bkConfig.isUseEsbTestEnv()
+        );
+    }
+
+    @Bean(name = "cnLoginClient")
+    @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "false", matchIfMissing = true)
+    @Primary
+    public ILoginClient cnLoginClient(@Autowired BkConfig bkConfig) {
+        log.info("Init standard cn login client");
+        return new EELoginClient(
+            bkConfig.getEsbUrl(),
+            bkConfig.getAppCode(),
+            bkConfig.getAppSecret(),
+            LocaleUtils.LANG_ZH_CN,
+            bkConfig.isUseEsbTestEnv()
+        );
     }
 }

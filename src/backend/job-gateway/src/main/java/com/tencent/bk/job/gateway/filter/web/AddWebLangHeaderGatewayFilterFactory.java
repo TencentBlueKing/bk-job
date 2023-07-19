@@ -35,6 +35,7 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
+import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.BLUEKING_LANG_HEADER;
 import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
@@ -54,7 +55,7 @@ public class AddWebLangHeaderGatewayFilterFactory
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-            String webLangCookieValue = RequestUtil.getCookieValue(request, "blueking_language");
+            String webLangCookieValue = RequestUtil.getCookieValue(request, BLUEKING_LANG_HEADER);
             String commonLang = LocaleUtils.LANG_ZH_CN;
             if (!StringUtils.isEmpty(webLangCookieValue)) {
                 if (webLangCookieValue.equalsIgnoreCase(WebLangCookie.EN)) {

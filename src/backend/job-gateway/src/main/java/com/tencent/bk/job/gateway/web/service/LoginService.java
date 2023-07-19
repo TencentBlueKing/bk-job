@@ -41,9 +41,10 @@ public interface LoginService {
      * 根据token获取用户信息
      *
      * @param bkToken 用户token
+     * @param lang    语言
      * @return 用户信息
      */
-    BkUserDTO getUser(String bkToken);
+    BkUserDTO getUser(String bkToken, String lang);
 
     /**
      * 获取登录跳转url
