@@ -1370,7 +1370,8 @@ public class HostServiceImpl implements HostService {
             if (application.isAllBizSet()) {
                 // 如果是全业务，所以主机都是合法的
                 result.setNotExistHosts(notExistHosts);
-                result.setValidHosts(existHosts.stream().map(ApplicationHostDTO::toHostDTO).collect(Collectors.toList()));
+                result.setValidHosts(existHosts.stream().map(ApplicationHostDTO::toHostDTO)
+                    .collect(Collectors.toList()));
                 result.setNotInAppHosts(Collections.emptyList());
                 return result;
             }
