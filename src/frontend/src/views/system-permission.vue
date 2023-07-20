@@ -9,13 +9,11 @@
   </div>
 </template>
 <script setup>
-  import { getCurrentInstance } from 'vue';
 
   defineProps({
     message: String,
   });
 
-  console.log('getCurrentInstance = ', getCurrentInstance());
 </script>
 <style lang="postcss">
 .system-permission{
