@@ -1,17 +1,21 @@
 <template>
   <div class="system-permission">
     <bk-exception type="403">
-      <span>无该应用的访问权限</span>
+      <span>{{ $t('无该应用的访问权限') }}</span>
       <div class="text-subtitle">
-        请联系 {{ message }} 开通
+        {{ message }}
       </div>
     </bk-exception>
   </div>
 </template>
 <script setup>
+  import { getCurrentInstance } from 'vue';
+
   defineProps({
     message: String,
   });
+
+  console.log('getCurrentInstance = ', getCurrentInstance());
 </script>
 <style lang="postcss">
 .system-permission{

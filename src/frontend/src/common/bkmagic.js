@@ -35,6 +35,8 @@ import ApplyPermissionDialog from '@components/apply-permission/apply-dialog';
 
 import PassLogin from '@blueking/paas-login';
 
+import i18n from '@/i18n';
+
 // 全量引入
 import './fully-import';
 
@@ -143,9 +145,11 @@ export const permissionDialog = (authParams = {}, authResult = {}) => {
 let systemPermissionInstance;
 export const systemPermission = (message) => {
   if (!systemPermissionInstance) {
-    systemPermissionInstance = new Vue(SystemPermission).$mount();
-    systemPermissionInstance.message = message;
-    console.dir(systemPermissionInstance.$el);
+    systemPermissionInstance = new Vue({
+      i18n,
+      render: h => h(SystemPermission, { attrs: { message } }),
+    }).$mount();
+
     systemPermissionInstance.$nextTick(() => {
       document.body.innerHTML = systemPermissionInstance.$el.outerHTML;
     });
