@@ -24,14 +24,18 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class RollingServerBatchResolverTest {
 
@@ -384,5 +388,74 @@ class RollingServerBatchResolverTest {
             new HostDTO(0L, "127.0.0.16")
         );
         assertThat(serverBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("100%");
+    }
+
+    @Test
+    @DisplayName("计算滚动批次 - 超过最大允许批次 500")
+    void resolveExceedMaxBatchSize() {
+        List<HostDTO> servers = new ArrayList<>();
+        for (int i = 1; i <= 1000; i++) {
+            servers.add(HostDTO.fromHostId((long) i));
+        }
+        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1");
+        assertThatExceptionOfType(FailedPreconditionException.class).isThrownBy(
+            context::resolve
+        );
+    }
+
+    @Nested
+    @DisplayName("计算滚动批次性能测试")
+    class RollingResolvePerformanceTest {
+
+        @Test
+        @DisplayName("计算滚动批次 - 按数量分批，性能测试")
+        @Timeout(1)
+        void resolveQuantityExpr() {
+            List<HostDTO> servers = new ArrayList<>();
+            for (int i = 1; i <= 50000; i++) {
+                servers.add(HostDTO.fromHostId((long) i));
+            }
+            RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "500");
+            List<RollingServerBatch> serverBatchList = context.resolve();
+            assertThat(serverBatchList).hasSize(100);
+        }
+
+        @Test
+        @DisplayName("计算滚动批次 - 按比例分批，性能测试")
+        @Timeout(1)
+        void resolvePercentExpr() {
+            List<HostDTO> servers = new ArrayList<>();
+            for (int i = 1; i <= 50000; i++) {
+                servers.add(HostDTO.fromHostId((long) i));
+            }
+            RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1%");
+            List<RollingServerBatch> serverBatchList = context.resolve();
+            assertThat(serverBatchList).hasSize(100);
+        }
+
+        @Test
+        @DisplayName("计算滚动批次 - 按加法递增分批，性能测试")
+        @Timeout(1)
+        void resolvePlusIncrementRollingExpr() {
+            List<HostDTO> servers = new ArrayList<>();
+            for (int i = 1; i <= 50000; i++) {
+                servers.add(HostDTO.fromHostId((long) i));
+            }
+            RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "+10");
+            List<RollingServerBatch> serverBatchList = context.resolve();
+            assertThat(serverBatchList).hasSize(100);
+        }
+
+        @Test
+        @DisplayName("计算滚动批次 - 按指数递增分批，性能测试")
+        @Timeout(1)
+        void resolveExponentIncrRollingExpr() {
+            List<HostDTO> servers = new ArrayList<>();
+            for (int i = 1; i <= 50000; i++) {
+                servers.add(HostDTO.fromHostId((long) i));
+            }
+            RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "*2");
+            context.resolve();
+        }
     }
 }

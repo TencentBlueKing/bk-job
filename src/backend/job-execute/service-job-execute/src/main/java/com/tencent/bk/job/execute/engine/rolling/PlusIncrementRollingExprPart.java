@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,13 +79,10 @@ public class PlusIncrementRollingExprPart extends RollingExprPart {
     public List<HostDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
         List<HostDTO> candidateServers = context.getRemainedServers();
         // 上一批次的主机
-        RollingServerBatch preServerBatch = context.getServerBatches().get(context.getServerBatches().size() - 1);
-        if (preServerBatch == null) {
-            log.warn("Invalid rolling expr part : {}, no preServerBatch", getExpr());
-            throw new RollingExprParseException();
-        }
+        RollingServerBatch preServerBatch = CollectionUtils.isEmpty(context.getServerBatches()) ?
+            null : context.getServerBatches().get(context.getServerBatches().size() - 1);
 
-        int currentBatchSize = preServerBatch.getServers().size() + addend;
+        int currentBatchSize = preServerBatch == null ? addend : preServerBatch.getServers().size() + addend;
         return new ArrayList<>(candidateServers.subList(0, Math.min(currentBatchSize, candidateServers.size())));
     }
 }
