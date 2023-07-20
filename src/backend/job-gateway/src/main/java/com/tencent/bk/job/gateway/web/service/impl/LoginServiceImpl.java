@@ -30,15 +30,19 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.gateway.config.BkConfig;
 import com.tencent.bk.job.gateway.web.service.LoginService;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -49,14 +53,22 @@ public class LoginServiceImpl implements LoginService {
     private final BkConfig bkConfig;
     private final String tokenName;
     private final String loginUrl;
-    private final ILoginClient loginClient;
-    private LoadingCache<String, Optional<BkUserDTO>> onlineUserCache = CacheBuilder.newBuilder()
+    private final ILoginClient enLoginClient;
+    private final ILoginClient cnLoginClient;
+    private LoadingCache<BkTokenWithLang, Optional<BkUserDTO>> onlineUserCache = CacheBuilder.newBuilder()
         .maximumSize(200).expireAfterWrite(10, TimeUnit.SECONDS).build(
-            new CacheLoader<String, Optional<BkUserDTO>>() {
+            new CacheLoader<BkTokenWithLang, Optional<BkUserDTO>>() {
                 @Override
-                public Optional<BkUserDTO> load(String bkToken) throws Exception {
+                public Optional<BkUserDTO> load(BkTokenWithLang bkTokenWithLang) throws Exception {
                     try {
-                        BkUserDTO userDto = loginClient.getUserInfoByToken(bkToken);
+                        String lang = bkTokenWithLang.getLang();
+                        String bkToken = bkTokenWithLang.getBkToken();
+                        BkUserDTO userDto;
+                        if (LocaleUtils.LANG_ZH_CN.equals(lang)) {
+                            userDto = cnLoginClient.getUserInfoByToken(bkToken);
+                        } else {
+                            userDto = enLoginClient.getUserInfoByToken(bkToken);
+                        }
                         return Optional.ofNullable(userDto);
                     } catch (Exception e) {
                         return Optional.empty();
@@ -66,13 +78,16 @@ public class LoginServiceImpl implements LoginService {
         );
 
     @Autowired
-    public LoginServiceImpl(BkConfig bkConfig, ILoginClient loginClient) {
+    public LoginServiceImpl(BkConfig bkConfig,
+                            @Qualifier("enLoginClient") ILoginClient enLoginClient,
+                            @Qualifier("cnLoginClient") ILoginClient cnLoginClient) {
         this.bkConfig = bkConfig;
-        this.loginClient = loginClient;
+        this.enLoginClient = enLoginClient;
+        this.cnLoginClient = cnLoginClient;
         this.loginUrl = getLoginUrlProp();
         this.tokenName = bkConfig.isCustomPaasLoginEnabled() ? bkConfig.getCustomLoginToken() : "bk_token";
         log.info("Init login service, customLoginEnabled:{}, loginClient:{}, loginUrl:{}, tokenName:{}",
-            bkConfig.isCustomPaasLoginEnabled(), loginClient.getClass(), loginUrl, tokenName);
+            bkConfig.isCustomPaasLoginEnabled(), enLoginClient.getClass(), loginUrl, tokenName);
     }
 
     private String getLoginUrlProp() {
@@ -96,14 +111,43 @@ public class LoginServiceImpl implements LoginService {
         onlineUserCache.invalidate(bkToken);
     }
 
+    @Getter
+    class BkTokenWithLang {
+        private String bkToken;
+        private String lang;
+
+        BkTokenWithLang(String bkToken, String lang) {
+            this.bkToken = bkToken;
+            this.lang = lang;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof BkTokenWithLang)) return false;
+            BkTokenWithLang that = (BkTokenWithLang) o;
+            return Objects.equals(bkToken, that.bkToken) &&
+                Objects.equals(lang, that.lang);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(bkToken, lang);
+        }
+    }
 
     @Override
-    public BkUserDTO getUser(String bkToken) {
+    public BkUserDTO getUser(String bkToken, String lang) {
         if (StringUtils.isBlank(bkToken)) {
             return null;
         }
+        if (StringUtils.isBlank(lang)) {
+            log.warn("getUser: lang is null or blank, use default en");
+            lang = LocaleUtils.LANG_EN;
+        }
         try {
-            Optional<BkUserDTO> userDto = onlineUserCache.get(bkToken);
+            BkTokenWithLang bkTokenWithLang = new BkTokenWithLang(bkToken, lang);
+            Optional<BkUserDTO> userDto = onlineUserCache.get(bkTokenWithLang);
             return userDto.orElse(null);
         } catch (ExecutionException | UncheckedExecutionException e) {
             log.warn("Error occur when get user from paas!");
