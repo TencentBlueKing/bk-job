@@ -38,6 +38,7 @@ import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -55,24 +56,20 @@ public class LoginServiceImpl implements LoginService {
     private final String loginUrl;
     private final ILoginClient enLoginClient;
     private final ILoginClient cnLoginClient;
-    private LoadingCache<BkTokenWithLang, Optional<BkUserDTO>> onlineUserCache = CacheBuilder.newBuilder()
+    private final LoadingCache<BkTokenWithLang, Optional<BkUserDTO>> onlineUserCache = CacheBuilder.newBuilder()
         .maximumSize(200).expireAfterWrite(10, TimeUnit.SECONDS).build(
             new CacheLoader<BkTokenWithLang, Optional<BkUserDTO>>() {
                 @Override
-                public Optional<BkUserDTO> load(BkTokenWithLang bkTokenWithLang) throws Exception {
-                    try {
-                        String lang = bkTokenWithLang.getLang();
-                        String bkToken = bkTokenWithLang.getBkToken();
-                        BkUserDTO userDto;
-                        if (LocaleUtils.LANG_ZH_CN.equals(lang)) {
-                            userDto = cnLoginClient.getUserInfoByToken(bkToken);
-                        } else {
-                            userDto = enLoginClient.getUserInfoByToken(bkToken);
-                        }
-                        return Optional.ofNullable(userDto);
-                    } catch (Exception e) {
-                        return Optional.empty();
+                public Optional<BkUserDTO> load(@NotNull BkTokenWithLang bkTokenWithLang) {
+                    String normalLang = bkTokenWithLang.getNormalLang();
+                    String bkToken = bkTokenWithLang.getBkToken();
+                    BkUserDTO userDto;
+                    if (LocaleUtils.LANG_ZH_CN.equals(normalLang)) {
+                        userDto = cnLoginClient.getUserInfoByToken(bkToken);
+                    } else {
+                        userDto = enLoginClient.getUserInfoByToken(bkToken);
                     }
+                    return Optional.ofNullable(userDto);
                 }
             }
         );
@@ -108,17 +105,18 @@ public class LoginServiceImpl implements LoginService {
         if (StringUtils.isBlank(bkToken)) {
             return;
         }
-        onlineUserCache.invalidate(bkToken);
+        onlineUserCache.invalidate(new BkTokenWithLang(bkToken, LocaleUtils.LANG_EN));
+        onlineUserCache.invalidate(new BkTokenWithLang(bkToken, LocaleUtils.LANG_ZH_CN));
     }
 
     @Getter
-    class BkTokenWithLang {
-        private String bkToken;
-        private String lang;
+    static class BkTokenWithLang {
+        final private String bkToken;
+        final private String normalLang;
 
-        BkTokenWithLang(String bkToken, String lang) {
+        BkTokenWithLang(String bkToken, String normalLang) {
             this.bkToken = bkToken;
-            this.lang = lang;
+            this.normalLang = normalLang;
         }
 
         @Override
@@ -127,26 +125,27 @@ public class LoginServiceImpl implements LoginService {
             if (!(o instanceof BkTokenWithLang)) return false;
             BkTokenWithLang that = (BkTokenWithLang) o;
             return Objects.equals(bkToken, that.bkToken) &&
-                Objects.equals(lang, that.lang);
+                Objects.equals(normalLang, that.normalLang);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(bkToken, lang);
+            return Objects.hash(bkToken, normalLang);
         }
     }
 
     @Override
-    public BkUserDTO getUser(String bkToken, String lang) {
+    public BkUserDTO getUser(String bkToken, String bkLang) {
         if (StringUtils.isBlank(bkToken)) {
             return null;
         }
-        if (StringUtils.isBlank(lang)) {
-            log.warn("getUser: lang is null or blank, use default en");
-            lang = LocaleUtils.LANG_EN;
+        if (StringUtils.isBlank(bkLang)) {
+            log.warn("getUser: bkLang is null or blank, use default en");
+            bkLang = LocaleUtils.LANG_EN;
         }
         try {
-            BkTokenWithLang bkTokenWithLang = new BkTokenWithLang(bkToken, lang);
+            String normalLang = LocaleUtils.getNormalLang(bkLang);
+            BkTokenWithLang bkTokenWithLang = new BkTokenWithLang(bkToken, normalLang);
             Optional<BkUserDTO> userDto = onlineUserCache.get(bkTokenWithLang);
             return userDto.orElse(null);
         } catch (ExecutionException | UncheckedExecutionException e) {

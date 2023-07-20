@@ -33,7 +33,7 @@ public interface LoginService {
     /**
      * 使用户失效
      *
-     * @param bkToken
+     * @param bkToken 用户Token
      */
     void deleteUser(String bkToken);
 

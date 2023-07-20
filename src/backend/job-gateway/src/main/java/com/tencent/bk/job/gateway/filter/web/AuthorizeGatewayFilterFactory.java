@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.filter.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
@@ -108,8 +109,13 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             BkUserDTO user;
             try {
                 user = getUserByTokenList(bkTokenList, lang);
-            } catch (AppPermissionDeniedException e) {
-                return getUserAccessAppForbiddenResp(response, e.getMessage());
+            } catch (InternalUserManageException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof AppPermissionDeniedException) {
+                    return getUserAccessAppForbiddenResp(response, cause.getMessage());
+                } else {
+                    throw e;
+                }
             }
             if (user == null) {
                 log.warn("Invalid user token");
