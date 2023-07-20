@@ -31,6 +31,7 @@ import {
   loginDialog,
   messageError,
   permissionDialog,
+  systemPermission,
 } from '@/common/bkmagic';
 
 import RequestError from '../lib/request-error';
@@ -67,7 +68,7 @@ export default (interceptors) => {
     if (error.response) {
       // 登录状态失效
       if (error.response.status === 401
-                && error.response.headers['x-login-url']) {
+        && error.response.headers['x-login-url']) {
         return Promise.reject(new RequestError(401, error.response.headers['x-login-url']));
       }
       // 默认使用 http 错误描述，
@@ -98,19 +99,26 @@ export default (interceptors) => {
         break;
         // 没权限
       case 403: {
-        const requestPayload = error.response.config.payload;
-        const authResult = new AuthResultModel(error.response.data.authResult || {});
-
-        if (requestPayload.permission === 'page') {
-          // 配合 jb-router-view（@components/jb-router-view）全局展示没权限提示
-          EventBus.$emit('permission-page', authResult);
-        } else if (requestPayload.permission === 'catch') {
-          // 配合 apply-section （@components/apply-permission/apply-section）使用，局部展示没权限提示
-          EventBus.$emit('permission-catch', authResult);
+        // 系统访问权限
+        if (error.response.data.code === 1247403) {
+          systemPermission(error.response.data.data);
         } else {
+          // 资源访问权限
+          const requestPayload = error.response.config.payload;
+          const authResult = new AuthResultModel(error.response.data.authResult || {});
+
+          if (requestPayload.permission === 'page') {
+          // 配合 jb-router-view（@components/jb-router-view）全局展示没权限提示
+            EventBus.$emit('permission-page', authResult);
+          } else if (requestPayload.permission === 'catch') {
+          // 配合 apply-section （@components/apply-permission/apply-section）使用，局部展示没权限提示
+            EventBus.$emit('permission-catch', authResult);
+          } else {
           // 弹框展示没权限提示
-          permissionDialog('', authResult);
+            permissionDialog('', authResult);
+          }
         }
+
         break;
       }
       case 'CANCEL':
