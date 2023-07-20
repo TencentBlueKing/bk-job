@@ -55,11 +55,15 @@ public class LogMessage {
     public static final String CORRECT_FILE_TYPE = "job.backup.correctFileType";
     public static final String WRONG_FILE_TYPE = "job.backup.wrongFileType";
     public static final String EXTRACT_FILE_DATA = "job.backup.extractFileData";
+    // 导入文件已过期！
+    public static final String IMPORT_FILE_EXPIRED = "job.backup.importFileExpired";
     public static final String EXTRACT_SUCCESS = "job.backup.extractSuccess";
     public static final String FILE_ENCRYPTED = "job.backup.fileEncrypted";
     public static final String CORRECT_PASSWORD = "job.backup.correctPassword";
     public static final String WRONG_PASSWORD = "job.backup.wrongPassword";
     public static final String EXTRACT_FAILED = "job.backup.extractFailed";
+    // 未找到待导入文件
+    public static final String CANNOT_FIND_IMPORT_FILE = "job.backup.cannotFindImportFile";
     public static final String START_IMPORT = "job.backup.startImport";
     public static final String IMPORT_SETTING = "job.backup.importSetting";
     public static final String ID_AUTO_INCREMENT = "job.backup.idAutoIncrement";
@@ -67,15 +71,25 @@ public class LogMessage {
     public static final String ID_KEEP_ON_DUPLICATE_SKIP = "job.backup.idKeepOnDuplicateSkip";
     public static final String NAME_DUPLICATE_SUFFIX = "job.backup.nameDuplicateSuffix";
 
+    // ID不保留, 将以自增的方式导入
     public static final String ID_AUTO_INCREMENT_SUFFIX = "job.backup.idAutoIncrementSuffix";
+    // ID 已存在, 改为自增 ID 进行导入
     public static final String ID_DUPLICATE_INCREMENT_SUFFIX = "job.backup.idDuplicateIncrementSuffix";
+    // ID 已存在, 取消导入该%s
     public static final String ID_DUPLICATE_SKIP_SUFFIX = "job.backup.idDuplicateSkipSuffix";
+    // ID不存在, 将以原始ID进行导入
     public static final String ID_KEEP_SUFFIX = "job.backup.idKeepSuffix";
 
+    // 准备导入作业模板: [%d] %s
     public static final String START_IMPORT_TEMPLATE = "job.backup.startImportTemplate";
+    // 模板名称已存在! 自动更改为 %s
     public static final String TEMPLATE_NAME_CHANGE = "job.backup.templateNameChange";
+    // 模板导入成功!
     public static final String IMPORT_TEMPLATE_SUCCESS = "job.backup.importTemplateSuccess";
+    // 作业模板名称超长，跳过当前模版和该模版下的所有执行方案
+    public static final String TEMPLATE_NAME_TOO_LONG_SKIP = "job.backup.templateNameTooLongSkip";
 
+    // >>>>> 准备导入作业执行方案: %s
     public static final String START_IMPORT_PLAN = "job.backup.startImportPlan";
     public static final String IMPORT_PLAN_SUCCESS = "job.backup.importPlanSuccess";
 

@@ -476,7 +476,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         List<TaskPlanInfoDTO> taskPlanInfoList = taskPlanService.listTaskPlansBasicInfo(appId, templateId);
         if (CollectionUtils.isNotEmpty(taskPlanInfoList)) {
             List<Long> taskPlanIdList =
-                taskPlanInfoList.parallelStream().map(TaskPlanInfoDTO::getId).collect(Collectors.toList());
+                taskPlanInfoList.stream().map(TaskPlanInfoDTO::getId).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(taskPlanIdList)) {
                 Map<Long, List<CronJobVO>> taskPlanCronJobMap =
                     cronJobService.batchListCronJobByPlanIds(appId, taskPlanIdList);

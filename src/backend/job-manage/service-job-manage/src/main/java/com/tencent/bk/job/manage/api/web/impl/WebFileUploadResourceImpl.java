@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.manage.api.web.WebFileUploadResource;
@@ -50,6 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.FormattingTuple;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -85,9 +88,9 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
     /**
      * 将上传的文件保存至本机挂载的NFS
      *
-     * @param username
-     * @param uploadFiles
-     * @return
+     * @param username    用户名
+     * @param uploadFiles 上传的文件
+     * @return 文件上传结果
      */
     private List<UploadLocalFileResultVO> saveFileToLocal(String username, MultipartFile[] uploadFiles) {
         String uploadPath = storageSystemConfig.getJobStorageRootPath() + "/localupload/";
@@ -96,9 +99,13 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         for (MultipartFile file : uploadFiles) {
             UploadLocalFileResultVO result = new UploadLocalFileResultVO();
             try {
+                String originalFileName = file.getOriginalFilename();
+                if (StringUtils.isBlank(originalFileName)) {
+                    continue;
+                }
                 String fileName = Utils.getUUID() +
                     File.separatorChar + username + File.separatorChar +
-                    file.getOriginalFilename();
+                    FilePathUtils.parseDirAndFileName(originalFileName).getRight();
 
                 String fullFileName = uploadPath.concat(fileName);
                 File theFile = new File(fullFileName);
@@ -155,9 +162,9 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
     /**
      * 将上传的文件保存至蓝鲸制品库
      *
-     * @param username
-     * @param uploadFiles
-     * @return
+     * @param username    用户名
+     * @param uploadFiles 上传的文件
+     * @return 文件上传结果
      */
     private List<UploadLocalFileResultVO> saveFileToArtifactory(String username, MultipartFile[] uploadFiles) {
         List<UploadLocalFileResultVO> fileUploadResults = Lists.newArrayListWithCapacity(uploadFiles.length);
@@ -184,15 +191,13 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
                 fileResultVO.setMd5(nodeDTO.getMd5());
                 fileResultVO.setStatus(0);
             } catch (IOException e) {
-                String errMsg = String.format(
-                    "Fail to upload file %s to artifactory project {} repo {}",
-                    filePath,
-                    project,
-                    repo
+                FormattingTuple errMsg = MessageFormatter.arrayFormat(
+                    "Fail to upload file {} to artifactory project {} repo {}",
+                    new String[]{filePath, project, repo}
                 );
                 fileResultVO.setStatus(-1);
-                log.error(errMsg, e);
-                throw new InternalException(errMsg, ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+                log.error(errMsg.getMessage(), e);
+                throw new InternalException(errMsg.getMessage(), ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             } finally {
                 fileUploadResults.add(fileResultVO);
             }
@@ -297,7 +302,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
         return Response.buildSuccessResp(
             new UploadTargetVO(
                 urlInfoList
-                    .parallelStream()
+                    .stream()
                     .map(TempUrlInfo::getUrl)
                     .collect(Collectors.toList())
             )

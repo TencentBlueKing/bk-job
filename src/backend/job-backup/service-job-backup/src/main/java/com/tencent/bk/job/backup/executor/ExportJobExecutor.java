@@ -190,14 +190,14 @@ public class ExportJobExecutor {
             processTemplatePlanDetail(exportInfo, jobBackupInfo);
             try {
                 // 2.处理账号
-                processAccount(exportInfo, jobBackupInfo);
+                processAccount(jobBackupInfo);
             } catch (Exception e) {
                 log.error("Error while processing account!", e);
                 logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
                     "Process account failed! Please try again!"
                 );
                 exportInfo.setPassword(null);
-                exportInfo.setStatus(BackupJobStatusEnum.FAILED);
+                exportInfo.setStatus(BackupJobStatusEnum.ALL_FAILED);
                 exportJobService.updateExportJob(exportInfo);
             }
             // 3.处理本地文件
@@ -235,7 +235,7 @@ public class ExportJobExecutor {
             }
 
             exportInfo.setPassword(null);
-            exportInfo.setStatus(BackupJobStatusEnum.SUCCESS);
+            exportInfo.setStatus(BackupJobStatusEnum.ALL_SUCCESS);
             exportInfo.setFileName(fileName);
             exportJobService.updateExportJob(exportInfo);
 
@@ -252,7 +252,7 @@ public class ExportJobExecutor {
         }
     }
 
-    private void processAccount(ExportJobInfoDTO exportInfo, JobBackupInfoDTO jobBackupInfo) {
+    private void processAccount(JobBackupInfoDTO jobBackupInfo) {
         List<ServiceAccountDTO> accountList = new ArrayList<>();
         Set<Long> accountIdSet = new HashSet<>();
         for (TaskTemplateVO taskTemplate : jobBackupInfo.getTemplateDetailInfoMap().values()) {
@@ -294,7 +294,6 @@ public class ExportJobExecutor {
                     }
                     break;
                 default:
-                    continue;
             }
         }
     }
@@ -310,7 +309,7 @@ public class ExportJobExecutor {
                 FileUtils.deleteQuietly(zipFile);
             } catch (Exception e) {
                 log.error("Error while processing export job! Encrypt failed!", e);
-                exportInfo.setStatus(BackupJobStatusEnum.FAILED);
+                exportInfo.setStatus(BackupJobStatusEnum.ALL_FAILED);
                 exportJobService.updateExportJob(exportInfo);
                 return null;
             }
@@ -322,7 +321,7 @@ public class ExportJobExecutor {
                 IOUtils.copy(in, out);
             } catch (IOException e) {
                 log.error("Error while processing export job! Generate final file failed!", e);
-                exportInfo.setStatus(BackupJobStatusEnum.FAILED);
+                exportInfo.setStatus(BackupJobStatusEnum.ALL_FAILED);
                 exportJobService.updateExportJob(exportInfo);
                 return null;
             }
@@ -387,7 +386,7 @@ public class ExportJobExecutor {
                         exportInfo.getAppId(), backupTemplateInfo.getId());
                     if (CollectionUtils.isNotEmpty(taskPlanList)) {
                         backupTemplateInfo.setPlanId(
-                            taskPlanList.parallelStream().map(TaskPlanVO::getId).collect(Collectors.toList()));
+                            taskPlanList.stream().map(TaskPlanVO::getId).collect(Collectors.toList()));
                     }
                 }
                 for (TaskPlanVO taskPlan : taskPlanService.getTaskPlanByIdList(exportInfo.getCreator(),
@@ -489,7 +488,7 @@ public class ExportJobExecutor {
         }
 
         Map<Long,
-            TaskVariableVO> needProcessVariableList = variableList.parallelStream()
+            TaskVariableVO> needProcessVariableList = variableList.stream()
             .filter(taskVariableVO -> taskVariableVO.getType().equals(TaskVariableTypeEnum.CIPHER.getType()))
             .collect(Collectors.toMap(TaskVariableVO::getId, taskVariableVO -> taskVariableVO));
 
@@ -599,6 +598,7 @@ public class ExportJobExecutor {
         }
     }
 
+    @SuppressWarnings("InfiniteLoopStatement")
     class ExportJobExecutorThread extends Thread {
         @Override
         public void run() {

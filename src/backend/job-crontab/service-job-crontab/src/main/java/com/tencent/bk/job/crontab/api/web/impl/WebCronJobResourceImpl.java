@@ -194,7 +194,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         Map<Long, CronJobLaunchResultStatistics> cronJobLaunchHistory;
         try {
             List<Long> cronJobIdList =
-                resultCronJobs.parallelStream().map(CronJobVO::getId).collect(Collectors.toList());
+                resultCronJobs.stream().map(CronJobVO::getId).collect(Collectors.toList());
             cronJobExecuteHistory = cronJobService.getCronJobExecuteHistory(appId, cronJobIdList);
             cronJobLaunchHistory = cronJobHistoryService.getCronTaskLaunchResultStatistics(appId, cronJobIdList);
         } catch (Exception e) {
@@ -471,7 +471,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         List<CronJobInfoDTO> cronJobInfoList = cronJobService.listCronJobByPlanId(appId, planId);
         if (CollectionUtils.isNotEmpty(cronJobInfoList)) {
             List<CronJobVO> cronJobList =
-                cronJobInfoList.parallelStream().map(CronJobInfoDTO::toBasicVO).collect(Collectors.toList());
+                cronJobInfoList.stream().map(CronJobInfoDTO::toBasicVO).collect(Collectors.toList());
             processCronJobPermission(appResourceScope, cronJobList);
             return Response.buildSuccessResp(cronJobList);
         } else {
@@ -493,7 +493,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
             for (Map.Entry<Long, List<CronJobInfoDTO>> cronJobInfoListEntity : cronJobInfoMap.entrySet()) {
                 List<CronJobInfoDTO> cronJobInfoList = cronJobInfoListEntity.getValue();
                 List<CronJobVO> cronJobList =
-                    cronJobInfoList.parallelStream().map(CronJobInfoDTO::toBasicVO).collect(Collectors.toList());
+                    cronJobInfoList.stream().map(CronJobInfoDTO::toBasicVO).collect(Collectors.toList());
                 processCronJobPermission(appResourceScope, cronJobList);
                 cronJobMap.put(cronJobInfoListEntity.getKey(), cronJobList);
             }

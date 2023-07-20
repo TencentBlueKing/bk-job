@@ -144,8 +144,13 @@ public class TaskResultServiceImpl implements TaskResultService {
     public PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                           BaseSearchCondition baseSearchCondition) {
         PageData<TaskInstanceDTO> pageData = taskInstanceDAO.listPageTaskInstance(taskQuery, baseSearchCondition);
-        if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-            pageData.getData().forEach(taskInstanceDTO -> {
+        computeTotalTime(pageData.getData());
+        return pageData;
+    }
+
+    private void computeTotalTime(List<TaskInstanceDTO> pageData) {
+        if (CollectionUtils.isNotEmpty(pageData)) {
+            pageData.forEach(taskInstanceDTO -> {
                 if (taskInstanceDTO.getTotalTime() == null) {
                     RunStatusEnum status = taskInstanceDTO.getStatus();
                     if (status == RunStatusEnum.RUNNING || status == RunStatusEnum.WAITING_USER
@@ -156,7 +161,6 @@ public class TaskResultServiceImpl implements TaskResultService {
                 }
             });
         }
-        return pageData;
     }
 
     @Override

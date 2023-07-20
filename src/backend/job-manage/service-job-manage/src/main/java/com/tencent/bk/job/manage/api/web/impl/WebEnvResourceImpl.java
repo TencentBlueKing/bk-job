@@ -22,47 +22,51 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.manage.api.web.impl;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.tencent.bk.job.common.config.BkConfig;
+import com.tencent.bk.job.common.esb.config.BkApiConfig;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.api.web.WebEnvResource;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 分批工具
- */
-public class BatchUtil {
-    /**
-     * 分批
-     *
-     * @param elements  用于分批的集合
-     * @param batchSize 每一批的最大数量
-     * @return 分批结果
-     */
-    public static <E> List<List<E>> buildBatchList(List<E> elements, int batchSize) {
-        List<List<E>> batchList = new ArrayList<>();
-        int total = elements.size();
-        if (total <= batchSize) {
-            batchList.add(elements);
-            return batchList;
-        }
+import java.util.HashMap;
+import java.util.Map;
 
-        int batch = total / batchSize;
-        int left = total % batchSize;
-        if (left > 0) {
-            batch += 1;
-        }
-        int startIndex = 0;
-        for (int i = 1; i <= batch; i++) {
-            List<E> subList;
-            if (i == batch && left > 0) {
-                subList = elements.subList(startIndex, startIndex + left);
-                startIndex += left;
-            } else {
-                subList = elements.subList(startIndex, startIndex + batchSize);
-                startIndex += batchSize;
-            }
-            batchList.add(subList);
-        }
-        return batchList;
+@RestController
+@Slf4j
+public class WebEnvResourceImpl implements WebEnvResource {
+
+    private final BkApiConfig bkApiConfig;
+    private final BkConfig bkConfig;
+
+    @Autowired
+    public WebEnvResourceImpl(BkApiConfig bkApiConfig, BkConfig bkConfig) {
+        this.bkApiConfig = bkApiConfig;
+        this.bkConfig = bkConfig;
     }
+
+    @Override
+    public Response<Map<String, String>> getJobEnvProperties(String username) {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("esb.url", standardUrl(bkApiConfig.getEsbPublicUrl()));
+        properties.put("bkDomain", bkConfig.getBkDomain());
+        return Response.buildSuccessResp(properties);
+    }
+
+    private String standardUrl(String url) {
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        // 移除最后的/
+        if (url.endsWith("/")) {
+            return url.substring(0, url.length() - 1);
+        } else {
+            return url;
+        }
+    }
+
 }

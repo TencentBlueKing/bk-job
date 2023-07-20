@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.util;
+package com.tencent.bk.job.common.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -65,32 +65,6 @@ public class FilePathUtils {
 
     private static boolean isFilePathSeparator(char ch) {
         return ch == '/' || ch == '\\';
-    }
-
-    /**
-     * 标准化GSE返回的文件路径
-     *
-     * @param filePath GSE返回的文件路径
-     * @return 标准化文件路径
-     */
-    public static String standardizedGSEFilePath(String filePath) {
-        if (StringUtils.isEmpty(filePath)) {
-            return "";
-        }
-        // GSE对于Windows的路径，不管下发参数dir中是否包含路径分隔符，都会默认加上/,比如C:\Users\/；这里需要对路径进行标准化
-        Pair<String, String> dirAndFileName = FilePathUtils.parseDirAndFileName(filePath);
-        String dir = dirAndFileName.getLeft();
-        String fileName = dirAndFileName.getRight();
-        int lastBackSlashIndex = dir.lastIndexOf("\\");
-        if (lastBackSlashIndex == -1) {
-            return dir + fileName;
-        }
-        // "C:\/"这种路径，需要删除掉最后一个GSE添加的"/"
-        if (lastBackSlashIndex == dir.length() - 2) {
-            return dir.substring(0, lastBackSlashIndex + 1) + fileName;
-        } else {
-            return dir + fileName;
-        }
     }
 
     /**

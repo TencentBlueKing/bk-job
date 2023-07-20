@@ -124,7 +124,7 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         List<ServiceTaskVariable> taskVariables = null;
         if (CollectionUtils.isNotEmpty(variables)) {
             taskVariables =
-                variables.parallelStream().map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
+                variables.stream().map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
         }
 
         boolean executeFailed = false;

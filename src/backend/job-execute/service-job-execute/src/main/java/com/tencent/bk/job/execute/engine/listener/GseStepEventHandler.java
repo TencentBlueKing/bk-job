@@ -227,8 +227,8 @@ public class GseStepEventHandler implements StepEventHandler {
      * @return GSE 任务ID
      */
     private Long saveInitialGseTask(StepInstanceDTO stepInstance) {
-        GseTaskDTO gseTask = new GseTaskDTO(stepInstance.getId(), stepInstance.getExecuteCount(),
-            stepInstance.getBatch());
+        GseTaskDTO gseTask = new GseTaskDTO(stepInstance.getId(),
+            stepInstance.getExecuteCount(), stepInstance.getBatch());
         gseTask.setStatus(RunStatusEnum.WAITING_USER.getValue());
 
         return gseTaskService.saveGseTask(gseTask);

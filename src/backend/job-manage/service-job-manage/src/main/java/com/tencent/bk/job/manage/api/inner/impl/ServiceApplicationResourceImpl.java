@@ -59,7 +59,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     public InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps() {
         List<ApplicationDTO> appList = applicationService.listAllApps();
         List<ServiceAppBaseInfoDTO> resultList =
-            appList.parallelStream().filter(ApplicationDTO::isBiz)
+            appList.stream().filter(ApplicationDTO::isBiz)
                 .map(this::convertToServiceAppBaseInfo).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
     }
@@ -69,7 +69,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         List<ApplicationDTO> applicationInfoDTOList =
             applicationService.listAppsByScopeType(ResourceScopeTypeEnum.BIZ_SET);
         List<ServiceApplicationDTO> resultList =
-            applicationInfoDTOList.parallelStream().map(this::convertToServiceApp).collect(Collectors.toList());
+            applicationInfoDTOList.stream().map(this::convertToServiceApp).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
     }
 

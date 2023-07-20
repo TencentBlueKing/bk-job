@@ -364,21 +364,21 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             null,
             null
         );
-        taskPlanInfoList.parallelStream().forEach(taskPlan ->
+        taskPlanInfoList.forEach(taskPlan ->
             taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(taskPlan.getId())));
         return fillTemplateInfo(appId, taskPlanInfoList);
     }
 
     private List<TaskPlanInfoDTO> fillTemplateInfo(Long appId, List<TaskPlanInfoDTO> planList) {
-        List<Long> templateIdList = planList.parallelStream().map(TaskPlanInfoDTO::getTemplateId).distinct()
+        List<Long> templateIdList = planList.stream().map(TaskPlanInfoDTO::getTemplateId).distinct()
             .collect(Collectors.toList());
         List<TaskTemplateInfoDTO> templateInfoList =
             taskTemplateService.listTaskTemplateBasicInfoByIds(appId, templateIdList);
 
         Map<Long, TaskTemplateInfoDTO> templateInfoMap = new ConcurrentHashMap<>(templateInfoList.size());
-        templateInfoList.parallelStream()
+        templateInfoList
             .forEach(taskTemplateInfoDTO -> templateInfoMap.put(taskTemplateInfoDTO.getId(), taskTemplateInfoDTO));
-        return planList.parallelStream()
+        return planList.stream()
             .filter(planInfo -> templateInfoMap.containsKey(planInfo.getTemplateId())).peek(taskPlanInfoDTO -> {
                 taskPlanInfoDTO.setTemplateName(templateInfoMap.get(taskPlanInfoDTO.getTemplateId()).getName());
                 taskPlanInfoDTO.setTemplateVersion(templateInfoMap.get(taskPlanInfoDTO.getTemplateId()).getVersion());
@@ -501,7 +501,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             List<Long> oldVariableIdList;
             if (CollectionUtils.isNotEmpty(oldVariableList)) {
                 oldVariableIdList =
-                    oldVariableList.parallelStream().map(TaskVariableDTO::getId).collect(Collectors.toList());
+                    oldVariableList.stream().map(TaskVariableDTO::getId).collect(Collectors.toList());
             } else {
                 oldVariableIdList = null;
             }

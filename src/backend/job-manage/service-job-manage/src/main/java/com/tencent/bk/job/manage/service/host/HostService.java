@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
@@ -48,36 +49,47 @@ import java.util.Map;
  * 主机、topo相关服务
  */
 public interface HostService {
-    boolean existHost(long bizId, String ip);
 
     List<ApplicationHostDTO> getHostsByAppId(Long appId);
 
     /**
-     * 新增业务下的主机
+     * 批量新增主机
      *
-     * @param bizId      业务ID
      * @param insertList 主机信息
-     * @return 新增失败的主机ID
+     * @return 成功插入的主机数量
      */
-    List<Long> insertHostsToBiz(Long bizId, List<ApplicationHostDTO> insertList);
+    int batchInsertHosts(List<ApplicationHostDTO> insertList);
 
     /**
-     * 更新业务下的主机
+     * 批量更新主机（只更新时间戳比当前数据旧的）
      *
-     * @param bizId        业务ID
      * @param hostInfoList 主机信息
-     * @return 更新失败的主机ID
+     * @return 成功更新的主机数量
      */
-    List<Long> updateHostsInBiz(Long bizId, List<ApplicationHostDTO> hostInfoList);
+    int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostInfoList);
 
     /**
-     * 将主机从业务下移除但不删除
+     * 创建或更新主机（仅更新时间戳在当前数据之前的数据）
      *
-     * @param bizId    业务ID
-     * @param hostList 主机信息
-     * @return 移除失败的主机ID
+     * @param hostInfoDTO 主机信息
+     * @return 新增主机数量
      */
-    List<Long> removeHostsFromBiz(Long bizId, List<ApplicationHostDTO> hostList);
+    int createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+
+    /**
+     * 更新主机属性（仅更新时间戳在当前数据之前的数据）
+     *
+     * @param hostInfoDTO 主机信息
+     * @return 成功更新的主机数量
+     */
+    int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+
+    /**
+     * 删除主机（仅删除时间戳在当前数据之前的数据）
+     *
+     * @param hostInfoDTO 主机信息
+     */
+    void deleteHostBeforeLastTime(ApplicationHostDTO hostInfoDTO);
 
     long countHostsByOsType(String osType);
 
@@ -242,4 +254,18 @@ public interface HostService {
      * @return 更新成功的条数
      */
     int updateHostsStatus(List<HostSimpleDTO> simpleHostList);
+
+    /**
+     * 查询所有主机基础信息
+     *
+     * @return 主机基础信息
+     */
+    List<BasicHostDTO> listAllBasicHost();
+
+    /**
+     * 根据主机基础信息批量删除主机
+     *
+     * @return 成功删除的主机数量
+     */
+    int deleteByBasicHost(List<BasicHostDTO> basicHostList);
 }

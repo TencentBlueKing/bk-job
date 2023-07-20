@@ -25,11 +25,13 @@
 package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
@@ -41,6 +43,7 @@ import java.util.List;
 @Data
 @ApiModel("主机节点信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
 public class TaskHostNodeVO {
 
     @ApiModelProperty("机器 IP 列表")
@@ -52,35 +55,32 @@ public class TaskHostNodeVO {
     @ApiModelProperty("动态分组 ID")
     private List<String> dynamicGroupList;
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         boolean allEmpty = true;
         if (!CollectionUtils.isEmpty(topoNodeList)) {
             allEmpty = false;
             for (TargetNodeVO targetNodeVO : topoNodeList) {
-                if (!targetNodeVO.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Host node info validate failed!");
-                    return false;
-                }
+                targetNodeVO.validate(isCreate);
             }
         }
         if (!CollectionUtils.isEmpty(dynamicGroupList)) {
             allEmpty = false;
             for (String dynamicGroup : dynamicGroupList) {
                 if (!StringUtils.isNoneBlank(dynamicGroup)) {
-                    JobContextUtil.addDebugMessage("Host dynamic group id is empty!");
-                    return false;
+                    log.warn("Host dynamic group id is empty!");
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
             }
         }
         if (!CollectionUtils.isEmpty(ipList)) {
             allEmpty = false;
             for (HostInfoVO hostInfoVO : ipList) {
-                if (!hostInfoVO.validate(isCreate)) {
-                    JobContextUtil.addDebugMessage("Host info validate failed!");
-                    return false;
-                }
+                hostInfoVO.validate(isCreate);
             }
         }
-        return !allEmpty;
+        if (allEmpty) {
+            log.warn("TaskHostNode is empty!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
     }
 }

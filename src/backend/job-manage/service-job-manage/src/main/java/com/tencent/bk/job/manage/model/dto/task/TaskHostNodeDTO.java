@@ -66,7 +66,7 @@ public class TaskHostNodeDTO {
         TaskHostNodeVO hostNodeVO = new TaskHostNodeVO();
         if (CollectionUtils.isNotEmpty(hostNode.getNodeInfoList())) {
             hostNodeVO.setNodeList(
-                hostNode.getNodeInfoList().parallelStream()
+                hostNode.getNodeInfoList().stream()
                     .map(TaskNodeInfoDTO::toVO).collect(Collectors.toList()));
         }
         hostNodeVO.setDynamicGroupIdList(hostNode.getDynamicGroupId());
@@ -87,7 +87,7 @@ public class TaskHostNodeDTO {
         TaskHostNodeDTO taskHostNodeDTO = new TaskHostNodeDTO();
         if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
             taskHostNodeDTO.setNodeInfoList(
-                hostNode.getNodeList().parallelStream()
+                hostNode.getNodeList().stream()
                     .map(TaskNodeInfoDTO::fromVO).collect(Collectors.toList()));
         }
         if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {

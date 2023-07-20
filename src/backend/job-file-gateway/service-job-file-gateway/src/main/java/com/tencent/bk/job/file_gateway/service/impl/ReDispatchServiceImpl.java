@@ -182,7 +182,7 @@ public class ReDispatchServiceImpl implements ReDispatchService {
                 List<FileTaskDTO> fileTaskDTOList = fileTaskService.listFileTasks(fileSourceTaskId);
                 log.debug("fileTaskDTOList={}", fileTaskDTOList);
                 List<String> filePathList =
-                    fileTaskDTOList.parallelStream().map(FileTaskDTO::getFilePath).collect(Collectors.toList());
+                    fileTaskDTOList.stream().map(FileTaskDTO::getFilePath).collect(Collectors.toList());
 
                 FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(fileSourceTaskDTO.getFileSourceId());
                 while (!reDispatchSuccess && retryCount < 100) {

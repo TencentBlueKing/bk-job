@@ -46,7 +46,7 @@ public class TaskHostNodeConverter {
         List<ServiceHostInfoDTO> serviceHostInfoDTOList = new ArrayList<>();
         if (hostInfoDTOList != null && !hostInfoDTOList.isEmpty()) {
             serviceHostInfoDTOList =
-                hostInfoDTOList.parallelStream()
+                hostInfoDTOList.stream()
                     .map(HostInfoConverter::convertToServiceHostInfoDTO).collect(Collectors.toList());
         }
         serviceTaskHostNodeDTO.setHostList(serviceHostInfoDTOList);
@@ -54,7 +54,7 @@ public class TaskHostNodeConverter {
         List<ServiceTaskNodeInfoDTO> serviceTaskNodeInfoDTOList = new ArrayList<>();
         if (taskNodeInfoDTOList != null && !taskNodeInfoDTOList.isEmpty()) {
             serviceTaskNodeInfoDTOList =
-                taskNodeInfoDTOList.parallelStream()
+                taskNodeInfoDTOList.stream()
                     .map(TaskNodeInfoConverter::convertToServiceTaskNodeInfoDTO).collect(Collectors.toList());
         }
         serviceTaskHostNodeDTO.setNodeInfoList(serviceTaskNodeInfoDTOList);

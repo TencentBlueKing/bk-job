@@ -107,6 +107,9 @@ spring:
             instanceId: AUTO
             skipUpdateCheck: true
             batchTriggerAcquisitionMaxCount: 50
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 300
 ribbon:
   ReadTimeout: 120000
   ConnectTimeout: 10000

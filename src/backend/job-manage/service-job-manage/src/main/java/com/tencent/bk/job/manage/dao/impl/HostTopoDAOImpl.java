@@ -24,18 +24,21 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.DeleteConditionStep;
 import org.jooq.Query;
 import org.jooq.Result;
+import org.jooq.UpdateConditionStep;
 import org.jooq.conf.ParamType;
 import org.jooq.generated.tables.HostTopo;
 import org.jooq.generated.tables.records.HostTopoRecord;
@@ -63,23 +66,28 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public void insertHostTopo(HostTopoDTO hostTopoDTO) {
+    public int insertHostTopo(HostTopoDTO hostTopoDTO) {
         val query = defaultContext.insertInto(defaultTable,
             defaultTable.HOST_ID,
             defaultTable.APP_ID,
             defaultTable.SET_ID,
-            defaultTable.MODULE_ID
+            defaultTable.MODULE_ID,
+            defaultTable.LAST_TIME
         ).values(
             ULong.valueOf(hostTopoDTO.getHostId()),
             ULong.valueOf(hostTopoDTO.getBizId()),
             hostTopoDTO.getSetId(),
-            hostTopoDTO.getModuleId()
+            hostTopoDTO.getModuleId(),
+            hostTopoDTO.getLastTime()
         ).onDuplicateKeyIgnore();
-        query.execute();
+        return query.execute();
     }
 
     @Override
     public int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList) {
+        if (CollectionUtils.isEmpty(hostTopoDTOList)) {
+            return 0;
+        }
         int batchSize = 1000;
         int size = hostTopoDTOList.size();
         int start = 0;
@@ -89,17 +97,15 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             end = start + batchSize;
             end = Math.min(end, size);
             List<HostTopoDTO> subList = hostTopoDTOList.subList(start, end);
-            if (subList.isEmpty()) {
-                // 避免插入空数据
-                break;
-            }
             val insertQuery = defaultContext.insertInto(defaultTable,
                 defaultTable.HOST_ID,
                 defaultTable.APP_ID,
                 defaultTable.SET_ID,
-                defaultTable.MODULE_ID
+                defaultTable.MODULE_ID,
+                defaultTable.LAST_TIME
             ).values(
                 (ULong) null,
+                null,
                 null,
                 null,
                 null
@@ -110,7 +116,8 @@ public class HostTopoDAOImpl implements HostTopoDAO {
                     ULong.valueOf(hostTopoDTO.getHostId()),
                     hostTopoDTO.getBizId(),
                     hostTopoDTO.getSetId(),
-                    hostTopoDTO.getModuleId()
+                    hostTopoDTO.getModuleId(),
+                    hostTopoDTO.getLastTime()
                 );
             }
             int[] results = batchQuery.execute();
@@ -123,10 +130,10 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public void deleteHostTopoByHostId(Long appId, Long hostId) {
+    public void deleteHostTopoByHostId(Long bizId, Long hostId) {
         List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(defaultTable.APP_ID.eq(ULong.valueOf(appId)));
+        if (bizId != null) {
+            conditions.add(defaultTable.APP_ID.eq(ULong.valueOf(bizId)));
         }
         if (hostId != null) {
             conditions.add(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)));
@@ -137,12 +144,13 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId) {
-        defaultContext.deleteFrom(defaultTable)
+    public int deleteHostTopoBeforeOrEqualLastTime(Long hostId, Long bizId, Long setId, Long moduleId, Long lastTime) {
+        return defaultContext.deleteFrom(defaultTable)
             .where(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)))
-            .and(defaultTable.APP_ID.eq(ULong.valueOf(appId)))
+            .and(defaultTable.APP_ID.eq(ULong.valueOf(bizId)))
             .and(defaultTable.SET_ID.eq(setId))
             .and(defaultTable.MODULE_ID.eq(moduleId))
+            .and(defaultTable.LAST_TIME.lessOrEqual(lastTime))
             .execute();
     }
 
@@ -183,9 +191,81 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         return affectedNum;
     }
 
+    private List<Condition> buildHostTopoMainFieldCondition(HostTopoDTO hostTopo) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.HOST_ID.eq(JooqDataTypeUtil.buildULong(hostTopo.getHostId())));
+        conditions.add(defaultTable.APP_ID.eq(JooqDataTypeUtil.buildULong(hostTopo.getBizId())));
+        conditions.add(defaultTable.SET_ID.eq(hostTopo.getSetId()));
+        conditions.add(defaultTable.MODULE_ID.eq(hostTopo.getModuleId()));
+        return conditions;
+    }
+
+    @Override
+    public int batchUpdateBeforeLastTime(List<HostTopoDTO> hostTopoList) {
+        if (CollectionUtils.isEmpty(hostTopoList)) {
+            return 0;
+        }
+        int batchSize = 1000;
+        List<Query> queryList = new ArrayList<>();
+        int affectedNum = 0;
+        List<List<HostTopoDTO>> subListList = CollectionUtil.partitionList(hostTopoList, batchSize);
+        for (List<HostTopoDTO> subList : subListList) {
+            for (HostTopoDTO hostTopo : subList) {
+                List<Condition> conditions = buildHostTopoMainFieldCondition(hostTopo);
+                conditions.add(defaultTable.LAST_TIME.lessThan(hostTopo.getLastTime()));
+                UpdateConditionStep<HostTopoRecord> step = defaultContext.update(defaultTable)
+                    .set(defaultTable.LAST_TIME, hostTopo.getLastTime())
+                    .where(conditions);
+                queryList.add(step);
+            }
+            int[] results = defaultContext.batch(queryList).execute();
+            queryList.clear();
+            for (int result : results) {
+                affectedNum += result;
+            }
+        }
+        return affectedNum;
+    }
+
+    @Override
+    public int updateBeforeLastTime(HostTopoDTO hostTopo) {
+        List<Condition> conditions = buildHostTopoMainFieldCondition(hostTopo);
+        conditions.add(defaultTable.LAST_TIME.lessThan(hostTopo.getLastTime()));
+        return defaultContext.update(defaultTable)
+            .set(defaultTable.LAST_TIME, hostTopo.getLastTime())
+            .where(conditions)
+            .execute();
+    }
+
     @Override
     public int batchDeleteHostTopo(List<Long> hostIdList) {
         return batchDeleteHostTopo(null, hostIdList);
+    }
+
+    @Override
+    public int batchDeleteWithLastTime(List<HostTopoDTO> hostTopoList) {
+        if (CollectionUtils.isEmpty(hostTopoList)) {
+            return 0;
+        }
+        int batchSize = 1000;
+        List<Query> queryList = new ArrayList<>();
+        int affectedNum = 0;
+        List<List<HostTopoDTO>> subListList = CollectionUtil.partitionList(hostTopoList, batchSize);
+        for (List<HostTopoDTO> subList : subListList) {
+            for (HostTopoDTO hostTopo : subList) {
+                List<Condition> conditions = buildHostTopoMainFieldCondition(hostTopo);
+                conditions.add(defaultTable.LAST_TIME.eq(hostTopo.getLastTime()));
+                DeleteConditionStep<HostTopoRecord> step = defaultContext.deleteFrom(defaultTable)
+                    .where(conditions);
+                queryList.add(step);
+            }
+            int[] results = defaultContext.batch(queryList).execute();
+            queryList.clear();
+            for (int result : results) {
+                affectedNum += result;
+            }
+        }
+        return affectedNum;
     }
 
     private List<HostTopoDTO> listHostTopoByConditions(Collection<Condition> conditions) {
@@ -226,21 +306,20 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
-    public int countHostTopo(Long bizId, Long hostId) {
-        List<Condition> conditions = new ArrayList<>();
-        if (hostId != null) {
-            conditions.add(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)));
-        }
-        if (bizId != null) {
-            conditions.add(defaultTable.APP_ID.eq(ULong.valueOf(bizId)));
-        }
-        return countHostTopoByConditions(conditions);
-    }
-
-    @Override
     public List<HostTopoDTO> listHostTopoByHostId(Long hostId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.HOST_ID.eq(ULong.valueOf(hostId)));
+        return listHostTopoByConditions(conditions);
+    }
+
+    @Override
+    public List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.HOST_ID.in(
+            hostIds.stream()
+                .map(JooqDataTypeUtil::buildULong)
+                .collect(Collectors.toList())
+        ));
         return listHostTopoByConditions(conditions);
     }
 
@@ -257,20 +336,18 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         return listHostTopoByConditions(conditions, start, limit);
     }
 
+    @Override
+    public List<HostTopoDTO> listHostTopoByExcludeHostIds(Collection<Long> excludeHostIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.HOST_ID.notIn(excludeHostIds));
+        return listHostTopoByConditions(conditions, null, null);
+    }
+
     private List<Long> listHostIdByConditions(Collection<Condition> conditions) {
         val query = defaultContext.select(
             defaultTable.HOST_ID
         ).from(defaultTable).where(conditions);
         return query.fetch().map(record -> record.get(defaultTable.HOST_ID, Long.class));
-    }
-
-    @Override
-    public List<Long> listHostIdByBizIds(Collection<Long> bizIds) {
-        List<Condition> conditions = new ArrayList<>();
-        if (bizIds != null) {
-            conditions.add(defaultTable.APP_ID.in(bizIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
-        }
-        return listHostIdByConditions(conditions);
     }
 
     @Override
@@ -293,12 +370,39 @@ public class HostTopoDAOImpl implements HostTopoDAO {
         return listHostIdByConditions(conditions);
     }
 
+    @Override
+    public List<Long> listModuleIdByHostId(Long hostId) {
+        val query = defaultContext.select(
+            defaultTable.MODULE_ID
+        ).from(defaultTable)
+            .where(defaultTable.HOST_ID.eq(JooqDataTypeUtil.buildULong(hostId)));
+        return query.fetch().map(record -> record.get(defaultTable.MODULE_ID, Long.class));
+    }
+
+    @Override
+    public List<Pair<Long, Long>> listHostIdAndModuleIdByBizId(Long bizId) {
+        List<Condition> conditions = new ArrayList<>();
+        if (bizId != null) {
+            conditions.add(defaultTable.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
+        }
+        val query = defaultContext.select(
+            defaultTable.HOST_ID,
+            defaultTable.MODULE_ID
+        ).from(defaultTable)
+            .where(conditions);
+        return query.fetch().map(record -> Pair.of(
+            record.get(defaultTable.HOST_ID, Long.class),
+            record.get(defaultTable.MODULE_ID, Long.class)
+        ));
+    }
+
     private HostTopoDTO convertRecordToDto(HostTopoRecord record) {
         return new HostTopoDTO(
             record.getHostId().longValue(),
             record.getAppId().longValue(),
             record.getSetId(),
-            record.getModuleId()
+            record.getModuleId(),
+            record.getLastTime()
         );
     }
 }

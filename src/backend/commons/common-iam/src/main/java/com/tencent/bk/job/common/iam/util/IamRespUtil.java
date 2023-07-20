@@ -19,7 +19,7 @@ public class IamRespUtil {
         List<T> rawDataList,
         InstanceInfoDTOConverter<T> converter
     ) {
-        return rawDataList.parallelStream().map(converter::convert).collect(Collectors.toList());
+        return rawDataList.stream().map(converter::convert).collect(Collectors.toList());
     }
 
     public static <T> ListInstanceResponseDTO getListInstanceRespFromPageData(

@@ -95,7 +95,7 @@ public class BatchTaskServiceImpl implements BatchTaskService {
         List<String> fileSourceTaskIdList = new ArrayList<>();
         for (String batchTaskId : batchTaskIdList) {
             List<FileSourceTaskDTO> fileSourceTaskDTOList = fileSourceTaskDAO.listByBatchTaskId(batchTaskId);
-            fileSourceTaskIdList.addAll(fileSourceTaskDTOList.parallelStream()
+            fileSourceTaskIdList.addAll(fileSourceTaskDTOList.stream()
                 .map(FileSourceTaskDTO::getId).collect(Collectors.toList()));
         }
         return fileSourceTaskIdList;

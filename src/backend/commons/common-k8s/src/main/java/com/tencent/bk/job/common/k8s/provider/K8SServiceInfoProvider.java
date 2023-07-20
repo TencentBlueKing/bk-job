@@ -167,7 +167,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             }
         }
         tryToLogServiceInstanceList(serviceInstanceList);
-        return serviceInstanceList.parallelStream().filter(
+        return serviceInstanceList.stream().filter(
                 serviceInstance -> !serviceInstance.getServiceId().contains("job-gateway-management")
             ).filter(serviceInstance -> getNameSpace(serviceInstance) != null)
             .map(this::getDetailFromK8s).collect(Collectors.toList());

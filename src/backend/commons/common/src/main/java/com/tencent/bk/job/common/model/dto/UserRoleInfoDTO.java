@@ -65,8 +65,8 @@ public class UserRoleInfoDTO {
         if (CollectionUtils.isEmpty(userList) && CollectionUtils.isEmpty(roleList)) {
             return false;
         }
-        userList = userList.parallelStream().filter(Objects::nonNull).collect(Collectors.toList());
-        roleList = roleList.parallelStream().filter(Objects::nonNull).collect(Collectors.toList());
+        userList = userList.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        roleList = roleList.stream().filter(Objects::nonNull).collect(Collectors.toList());
         return true;
     }
 }

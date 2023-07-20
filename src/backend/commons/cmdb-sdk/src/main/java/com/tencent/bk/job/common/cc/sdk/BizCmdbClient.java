@@ -69,9 +69,12 @@ import com.tencent.bk.job.common.cc.model.result.FindModuleHostRelationResult;
 import com.tencent.bk.job.common.cc.model.result.GetBizInternalModuleResult;
 import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
+import com.tencent.bk.job.common.cc.model.result.HostProp;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
+import com.tencent.bk.job.common.cc.model.result.HostWithModules;
 import com.tencent.bk.job.common.cc.model.result.ListBizHostResult;
 import com.tencent.bk.job.common.cc.model.result.ListHostsWithoutBizResult;
+import com.tencent.bk.job.common.cc.model.result.ModuleProp;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.model.result.SearchAppResult;
 import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
@@ -429,12 +432,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList) {
-        return getHostsByTopology(bizId, ccInstList);
+        List<HostWithModules> hostWithModuleList = getHostRelationsByTopology(bizId, ccInstList);
+        return convertToHostInfoDTOList(bizId, hostWithModuleList);
     }
 
     @Override
-    public List<ApplicationHostDTO> getHostsByTopology(long bizId, List<CcInstanceDTO> ccInstList) {
-        StopWatch watch = new StopWatch("getHostsByTopology");
+    public List<HostWithModules> getHostRelationsByTopology(long bizId, List<CcInstanceDTO> ccInstList) {
+        StopWatch watch = new StopWatch("getHostRelationsByTopology");
         watch.start("getCachedBizInstCompleteTopology");
         InstanceTopologyDTO appCompleteTopology = getCachedBizInstCompleteTopology(bizId);
         watch.stop();
@@ -454,22 +458,33 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         watch.stop();
 
         //根据module找主机
-        watch.start("findHostByModule");
-        List<ApplicationHostDTO> applicationHostDTOList = findHostByModule(bizId,
+        watch.start("findHostRelationByModule");
+        List<HostWithModules> hostWithModulesList = findHostRelationByModule(bizId,
             new ArrayList<>(moduleIdSet));
         watch.stop();
 
         if (watch.getTotalTimeMillis() > 1000L) {
-            log.warn("Get hosts by topo is slow, bizId: {}, ccInsts: {}, watchInfo: {}", bizId, ccInstList,
+            log.warn("Get hostRelations by topo is slow, bizId: {}, ccInsts: {}, watchInfo: {}", bizId, ccInstList,
                 watch.prettyPrint());
         }
-        return applicationHostDTOList;
+        hostWithModulesList = hostWithModulesList.stream().filter(hostWithModules -> {
+            boolean valid = hostWithModules.getHost() != null && hostWithModules.getHost().getHostId() != null;
+            if (!valid) {
+                log.warn("Ignore hostWithModules because of null host/hostId:{}", hostWithModules);
+            }
+            if (hostWithModules.getModules() == null) {
+                log.warn("Ignore hostWithModules because of null modules:{}", hostWithModules);
+                valid = false;
+            }
+            return valid;
+        }).collect(Collectors.toList());
+        return hostWithModulesList;
     }
 
     @Override
-    public List<ApplicationHostDTO> findHostByModule(long bizId, List<Long> moduleIdList) {
+    public List<HostWithModules> findHostRelationByModule(long bizId, List<Long> moduleIdList) {
         //moduleId分批
-        List<ApplicationHostDTO> resultList = new ArrayList<>();
+        List<HostWithModules> resultList = new ArrayList<>();
         int batchSize = 200;
         int start = 0;
         int end = start + batchSize;
@@ -478,7 +493,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         do {
             List<Long> moduleIdSubList = moduleIdList.subList(start, end);
             if (moduleIdSubList.size() > 0) {
-                // 使用find_module_host_relation接口
                 resultList.addAll(findModuleHostRelationConcurrently(bizId, moduleIdSubList));
             }
             start += batchSize;
@@ -513,20 +527,19 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
      * @param moduleIdList 模块ID列表
      * @return 主机列表
      */
-    private List<ApplicationHostDTO> findModuleHostRelationConcurrently(long bizId, List<Long> moduleIdList) {
+    private List<HostWithModules> findModuleHostRelationConcurrently(long bizId,
+                                                                     List<Long> moduleIdList) {
         if (moduleIdList == null || moduleIdList.isEmpty()) {
             return Collections.emptyList();
         }
-
-        List<ApplicationHostDTO> applicationHostDTOList;
         int start = 0;
         //已调优
         int limit = 500;
         FindModuleHostRelationReq req = genFindModuleHostRelationReq(bizId, moduleIdList, start, limit);
         //先拉一次获取总数
         FindModuleHostRelationResult pageData = getHostsByReq(req);
-        List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList = pageData.getRelation();
-        LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue =
+        List<HostWithModules> hostWithModulesList = pageData.getRelation();
+        LinkedBlockingQueue<HostWithModules> resultQueue =
             new LinkedBlockingQueue<>(hostWithModulesList);
         // 如果该页未达到limit，说明是最后一页
         if (pageData.getCount() <= limit) {
@@ -563,19 +576,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             log.warn("bizId {}:{} hosts in total, {} hosts indeed, CMDB interface params invalid", bizId,
                 pageData.getCount(), resultQueue.size());
         }
-        Long startTime = System.currentTimeMillis();
-        applicationHostDTOList = convertToHostInfoDTOList(bizId, new ArrayList<>(resultQueue));
-        Long endTime = System.currentTimeMillis();
-        long timeConsuming = endTime - startTime;
-        if (timeConsuming >= 1000) {
-            log.info("convertToHostInfoDTOList time consuming:" + timeConsuming);
-        }
-        return applicationHostDTOList;
+        return new ArrayList<>(resultQueue);
     }
 
     private void fillAgentInfo(
         ApplicationHostDTO applicationHostDTO,
-        FindModuleHostRelationResult.HostProp host
+        HostProp host
     ) {
         String multiIp = host.getIp();
         multiIp = multiIp.trim();
@@ -590,9 +596,9 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     private ApplicationHostDTO convertToHostInfoDTO(
         Long bizId,
-        FindModuleHostRelationResult.HostWithModules hostWithModules
+        HostWithModules hostWithModules
     ) {
-        FindModuleHostRelationResult.HostProp host = hostWithModules.getHost();
+        HostProp host = hostWithModules.getHost();
         String multiIp = host.getIp();
         if (multiIp != null) {
             multiIp = multiIp.trim();
@@ -609,21 +615,21 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         applicationHostDTO.setHostId(host.getHostId());
         applicationHostDTO.setCloudVendorId(host.getCloudVendorId());
         fillAgentInfo(applicationHostDTO, host);
-        List<FindModuleHostRelationResult.ModuleProp> modules = hostWithModules.getModules();
-        for (FindModuleHostRelationResult.ModuleProp module : modules) {
+        List<ModuleProp> modules = hostWithModules.getModules();
+        for (ModuleProp module : modules) {
             if (module == null || null == module.getModuleId()) {
                 log.warn("invalid host:" + JsonUtils.toJson(applicationHostDTO));
             }
         }
-        List<FindModuleHostRelationResult.ModuleProp> validModules =
+        List<ModuleProp> validModules =
             hostWithModules.getModules().stream().filter(Objects::nonNull).collect(Collectors.toList());
         applicationHostDTO.setModuleId(
             validModules.stream()
-                .map(FindModuleHostRelationResult.ModuleProp::getModuleId)
+                .map(ModuleProp::getModuleId)
                 .collect(Collectors.toList()));
         applicationHostDTO.setSetId(
             validModules.stream()
-                .map(FindModuleHostRelationResult.ModuleProp::getSetId)
+                .map(ModuleProp::getSetId)
                 .collect(Collectors.toList()));
         applicationHostDTO.setModuleType(validModules.stream().map(it -> {
             try {
@@ -645,12 +651,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     private List<ApplicationHostDTO> convertToHostInfoDTOList(
         long bizId,
-        List<FindModuleHostRelationResult.HostWithModules> hostWithModulesList
+        List<HostWithModules> hostWithModulesList
     ) {
         List<ApplicationHostDTO> applicationHostDTOList = new ArrayList<>();
         Set<String> ipSet = new HashSet<>();
-        for (FindModuleHostRelationResult.HostWithModules hostWithModules : hostWithModulesList) {
-            FindModuleHostRelationResult.HostProp host = hostWithModules.getHost();
+        for (HostWithModules hostWithModules : hostWithModulesList) {
+            HostProp host = hostWithModules.getHost();
             if (host == null) {
                 log.warn("host=null,hostWithTopoInfo={}", JsonUtils.toJson(hostWithModules));
                 continue;
@@ -1317,7 +1323,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
         req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
-            "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id", "bk_cloud_vendor"));
+            "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id", "bk_cloud_vendor", "last_time"));
         req.setResource("host");
         req.setCursor(cursor);
         req.setStartTime(startTime);
@@ -1331,7 +1337,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeBaseReqByWeb(
             ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
-        req.setFields(Arrays.asList("bk_host_id", "bk_biz_id", "bk_set_id", "bk_module_id"));
+        req.setFields(Arrays.asList("bk_host_id", "bk_biz_id", "bk_set_id", "bk_module_id", "last_time"));
         req.setResource("host_relation");
         req.setCursor(cursor);
         req.setStartTime(startTime);
@@ -1358,11 +1364,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     class FindModuleHostRelationTask implements Runnable {
         //结果队列
-        LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue;
+        LinkedBlockingQueue<HostWithModules> resultQueue;
         FindModuleHostRelationReq req;
         String requestId;
 
-        FindModuleHostRelationTask(LinkedBlockingQueue<FindModuleHostRelationResult.HostWithModules> resultQueue,
+        FindModuleHostRelationTask(LinkedBlockingQueue<HostWithModules> resultQueue,
                                    FindModuleHostRelationReq req, String requestId) {
             this.resultQueue = resultQueue;
             this.req = req;

@@ -28,4 +28,5 @@ dependencies {
     }
     api 'org.springframework.cloud:spring-cloud-sleuth-otel-autoconfigure'
     api "io.opentelemetry.instrumentation:opentelemetry-jdbc"
+    api "io.opentelemetry:opentelemetry-exporter-otlp"
 }

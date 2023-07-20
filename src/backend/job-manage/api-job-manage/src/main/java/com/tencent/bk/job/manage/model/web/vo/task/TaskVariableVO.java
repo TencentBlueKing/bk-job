@@ -24,11 +24,14 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -36,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Data
 @ApiModel("全局变量信息")
+@Slf4j
 public class TaskVariableVO {
 
     @ApiModelProperty(value = "变量 ID 新增时无需填写，删除时仅需填写 id 和 delete", required = true)
@@ -71,28 +75,27 @@ public class TaskVariableVO {
     @ApiModelProperty(value = "删除 0-不删除 1-删除，仅在删除时填写")
     private Integer delete;
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         if (isCreate && !JobContextUtil.isAllowMigration()) {
             if (id != null && id > 0) {
-                JobContextUtil.addDebugMessage("Create request has variable id!");
-                return false;
+                log.warn("Create request has variable id!");
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
         }
         if (StringUtils.isBlank(name)) {
-            JobContextUtil.addDebugMessage("Empty variable name!");
-            return false;
+            log.warn("Empty variable name!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (description == null) {
             description = "";
         }
         if (type <= 0 || type > 6) {
-            JobContextUtil.addDebugMessage("Invalid variable type!");
-            return false;
+            log.warn("Invalid variable type: {}", type);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (required == null || required > 1) {
-            JobContextUtil.addDebugMessage("Invalid require option!");
-            return false;
+            log.warn("Invalid require option : {}", required);
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return true;
     }
 }

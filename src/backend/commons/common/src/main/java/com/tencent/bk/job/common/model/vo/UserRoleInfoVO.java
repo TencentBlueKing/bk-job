@@ -25,10 +25,12 @@
 package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
@@ -39,6 +41,7 @@ import java.util.List;
 @Data
 @ApiModel("用户角色列表")
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
 public class UserRoleInfoVO {
     @ApiModelProperty("用户列表")
     private List<String> userList;
@@ -46,11 +49,10 @@ public class UserRoleInfoVO {
     @ApiModelProperty("角色列表")
     private List<String> roleList;
 
-    public boolean validate() {
+    public void validate() throws InvalidParamException {
         if (CollectionUtils.isEmpty(userList) && CollectionUtils.isEmpty(roleList)) {
-            JobContextUtil.addDebugMessage("Approval user info is empty!");
-            return false;
+            log.warn("Approval user info is empty!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return true;
     }
 }

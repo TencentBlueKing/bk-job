@@ -104,20 +104,27 @@ public class TaskTargetDTO {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
             if (CollectionUtils.isEmpty(hostIds)) {
-                // TMP: 兼容前端只传入ip的场景；发布完成后删除,并加入前端校验
                 return;
             }
             Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
+            if (hosts == null || hosts.isEmpty()) {
+                return;
+            }
+
             target.getHostNodeList().getHostList().forEach(hostNode -> {
                 ApplicationHostDTO host = hosts.get(hostNode.getHostId());
-                hostNode.setAgentId(host.getAgentId());
-                hostNode.setCloudAreaId(host.getCloudAreaId());
-                hostNode.setIp(host.getIp());
-                hostNode.setIpv6(host.getIpv6());
-                hostNode.setDisplayIp(host.getDisplayIp());
-                hostNode.setOsName(host.getOsName());
-                hostNode.setOsType(host.getOsType());
-                hostNode.setGseAgentStatus(host.getGseAgentStatus());
+                if (host != null) {
+                    hostNode.setAgentId(host.getAgentId());
+                    hostNode.setCloudAreaId(host.getCloudAreaId());
+                    hostNode.setIp(host.getIp());
+                    hostNode.setIpv6(host.getIpv6());
+                    hostNode.setDisplayIp(host.getDisplayIp());
+                    hostNode.setOsName(host.getOsName());
+                    hostNode.setOsType(host.getOsType());
+                    hostNode.setGseAgentStatus(host.getGseAgentStatus());
+                } else {
+                    log.warn("Cannot find host by hostId={}", hostNode.getHostId());
+                }
             });
         }
     }
@@ -159,18 +166,18 @@ public class TaskTargetDTO {
         esbServer.setVariable(taskTarget.getVariable());
         if (taskTarget.getHostNodeList() != null) {
             if (CollectionUtils.isNotEmpty(taskTarget.getHostNodeList().getHostList())) {
-                esbServer.setIps(taskTarget.getHostNodeList().getHostList().parallelStream()
+                esbServer.setIps(taskTarget.getHostNodeList().getHostList().stream()
                     .map(EsbIpDTO::fromApplicationHostInfo).collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(taskTarget.getHostNodeList().getDynamicGroupId())) {
-                esbServer.setDynamicGroups(taskTarget.getHostNodeList().getDynamicGroupId().parallelStream().map(id -> {
+                esbServer.setDynamicGroups(taskTarget.getHostNodeList().getDynamicGroupId().stream().map(id -> {
                     EsbDynamicGroupDTO esbDynamicGroup = new EsbDynamicGroupDTO();
                     esbDynamicGroup.setId(id);
                     return esbDynamicGroup;
                 }).collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(taskTarget.getHostNodeList().getNodeInfoList())) {
-                esbServer.setTopoNodes(taskTarget.getHostNodeList().getNodeInfoList().parallelStream()
+                esbServer.setTopoNodes(taskTarget.getHostNodeList().getNodeInfoList().stream()
                     .map(TaskNodeInfoDTO::toEsbCmdbTopoNode).collect(Collectors.toList()));
             }
         }
@@ -183,7 +190,7 @@ public class TaskTargetDTO {
         if (hostNodeList != null) {
             ServiceTaskHostNodeDTO targetServer = new ServiceTaskHostNodeDTO();
             if (CollectionUtils.isNotEmpty(hostNodeList.getNodeInfoList())) {
-                targetServer.setNodeInfoList(hostNodeList.getNodeInfoList().parallelStream()
+                targetServer.setNodeInfoList(hostNodeList.getNodeInfoList().stream()
                     .map(TaskNodeInfoDTO::toServiceTaskHostNodeDTO).collect(Collectors.toList()));
             } else {
                 targetServer.setNodeInfoList(Collections.emptyList());

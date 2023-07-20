@@ -35,7 +35,7 @@ data:
         job-crontab:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab{{ include "job.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
@@ -105,15 +105,24 @@ data:
                 instanceId: AUTO
                 skipUpdateCheck: true
                 batchTriggerAcquisitionMaxCount: 50
+              threadPool:
+                class: org.quartz.simpl.SimpleThreadPool
+                threadCount: 300
     ribbon:
       ReadTimeout: 120000
       ConnectTimeout: 10000
       eureka:
         enabled: false
+    feign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 20000
     job:
       crontab:
         db:
-          url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+          url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab{{ include "job.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}

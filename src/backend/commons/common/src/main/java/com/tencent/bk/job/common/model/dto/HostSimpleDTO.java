@@ -54,9 +54,9 @@ public class HostSimpleDTO {
      */
     private Long bizId;
     /**
-     * 主机Agent状态
+     * 主机Agent状态，取值参考AgentStatusEnum
      */
-    private Integer gseAgentAlive;
+    private Integer agentAliveStatus;
     /**
      * 云区域+ip
      */
@@ -113,7 +113,7 @@ public class HostSimpleDTO {
     public static List<String> buildAgentIdList(List<HostSimpleDTO> hosts) {
         List<String> agentIdList = new ArrayList<>();
         for (HostSimpleDTO host : hosts) {
-            if(StringUtils.isBlank(host.getIp()) && StringUtils.isBlank(host.getAgentId())){
+            if (StringUtils.isBlank(host.getIp()) && StringUtils.isBlank(host.getAgentId())) {
                 log.warn("buildAgentIdList, ip and agentId is blank, {}", host);
                 continue;
             }
@@ -122,13 +122,12 @@ public class HostSimpleDTO {
         return agentIdList;
     }
 
-    public ApplicationHostDTO convertToHostDTO(){
+    public ApplicationHostDTO convertToHostDTO() {
         ApplicationHostDTO hostDTO = new ApplicationHostDTO();
         hostDTO.setIp(this.getIp());
         hostDTO.setCloudAreaId(this.getCloudAreaId());
         hostDTO.setCloudIp(this.getCloudIp());
-        hostDTO.setGseAgentAlive(this.getGseAgentAlive().intValue() == 1);
-        hostDTO.setGseAgentStatus(this.getGseAgentAlive());
+        hostDTO.setGseAgentAlive(this.getAgentAliveStatus() == 1);
         hostDTO.setBizId(this.getBizId());
         hostDTO.setHostId(this.getHostId());
         hostDTO.setAgentId(this.getAgentId());

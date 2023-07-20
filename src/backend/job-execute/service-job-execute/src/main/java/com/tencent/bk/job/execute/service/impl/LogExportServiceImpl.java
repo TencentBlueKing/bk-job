@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.common.util.BatchUtil;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -380,7 +380,7 @@ public class LogExportServiceImpl implements LogExportService {
         }
 
         void batchHosts() {
-            hostBatches = BatchUtil.buildBatchList(hosts, MAX_BATCH_IPS);
+            hostBatches = CollectionUtil.partitionList(hosts, MAX_BATCH_IPS);
         }
     }
 }

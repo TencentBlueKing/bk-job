@@ -84,7 +84,7 @@ public class GseTaskDTO {
         if (taskUniqueName != null) {
             return taskUniqueName;
         } else {
-            String taskName = "GseTask:" + id + ":" + stepInstanceId + ":" + executeCount;
+            String taskName = "GseTask:" + id  + ":" + stepInstanceId + ":" + executeCount;
             if (batch > 0) {
                 taskName = taskName + ":" + batch;
             }

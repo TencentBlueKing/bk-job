@@ -24,11 +24,7 @@
 
 package com.tencent.bk.job.common.cc.model.result;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 import java.util.List;
 
@@ -39,47 +35,4 @@ public class FindModuleHostRelationResult {
 
     private List<HostWithModules> relation;
 
-    @Getter
-    @Setter
-    @ToString
-    public static class HostWithModules {
-        private HostProp host;
-        private List<ModuleProp> modules;
-    }
-
-    @Getter
-    @Setter
-    @ToString
-    public static class HostProp {
-        @JsonProperty("bk_host_id")
-        private Long hostId;
-        @JsonProperty("bk_host_innerip")
-        private String ip;
-        @JsonProperty("bk_host_innerip_v6")
-        private String ipv6;
-        @JsonProperty("bk_agent_id")
-        private String agentId;
-        @JsonProperty("bk_host_name")
-        private String hostName;
-        @JsonProperty("bk_os_name")
-        private String osName;
-        @JsonProperty("bk_os_type")
-        private String osType;
-        @JsonProperty("bk_cloud_id")
-        private Long cloudAreaId = 0L;
-        @JsonProperty("bk_cloud_vendor")
-        private String cloudVendorId;
-    }
-
-    @Getter
-    @Setter
-    @ToString
-    public static class ModuleProp {
-        @JsonProperty("bk_module_id")
-        private Long moduleId;
-        @JsonProperty("bk_set_id")
-        private Long setId;
-        @JsonProperty("bk_module_type")
-        private String moduleType;
-    }
 }

@@ -106,9 +106,8 @@ public interface ImportJobService {
      * 更新导入任务信息
      *
      * @param importJob 导入任务信息
-     * @return 更新是否成功
      */
-    Boolean updateImportJob(ImportJobInfoDTO importJob);
+    void updateImportJob(ImportJobInfoDTO importJob);
 
     /**
      * 标记任务为失败
@@ -116,7 +115,7 @@ public interface ImportJobService {
      * @param importJob 导入任务信息
      * @param message   提示信息
      */
-    void markJobFailed(ImportJobInfoDTO importJob, String message);
+    void markJobAllFailed(ImportJobInfoDTO importJob, String message);
 
     /**
      * 清理导入文件

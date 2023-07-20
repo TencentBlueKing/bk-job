@@ -22,39 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util;
+package com.tencent.bk.job.manage.api.web;
 
-import org.junit.jupiter.api.Test;
+import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.model.Response;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+/**
+ * Job 环境相关 Web API
+ */
+@Api(tags = {"job-manage:web:env"})
+@RequestMapping("/web/env")
+@WebAPI
+public interface WebEnvResource {
 
-class BatchUtilTest {
-    @Test
-    void testBuildBatchList() {
-        List<String> list = new ArrayList<>();
-        list.add("a");
-        List<List<String>> batchList = BatchUtil.buildBatchList(list, 1);
-        assertThat(batchList).hasSize(1);
-        assertThat(batchList.get(0)).hasSize(1);
 
-        list.add("b");
-        batchList = BatchUtil.buildBatchList(list, 3);
-        assertThat(batchList).hasSize(1);
-        assertThat(batchList.get(0)).hasSize(2);
-
-        list.add("c");
-        batchList = BatchUtil.buildBatchList(list, 2);
-        assertThat(batchList).hasSize(2);
-        assertThat(batchList.get(0)).hasSize(2);
-        assertThat(batchList.get(1)).hasSize(1);
-
-        list.add("d");
-        batchList = BatchUtil.buildBatchList(list, 2);
-        assertThat(batchList).hasSize(2);
-        assertThat(batchList.get(0)).hasSize(2);
-        assertThat(batchList.get(1)).hasSize(2);
-    }
+    /**
+     * 获取Job环境的属性
+     *
+     * @param username 用户名
+     * @return Map, key: 属性名, value: 属性值
+     */
+    @ApiOperation(value = "获取Job环境的属性", produces = "application/json")
+    @GetMapping("/properties")
+    Response<Map<String, String>> getJobEnvProperties(
+        @ApiIgnore
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username
+    );
 }

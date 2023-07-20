@@ -134,7 +134,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         } else {
             exportJobInfoDTO.setExpireTime(0L);
         }
-        exportJobInfoDTO.setTemplateInfo(exportRequest.getTemplateInfo().parallelStream()
+        exportJobInfoDTO.setTemplateInfo(exportRequest.getTemplateInfo().stream()
             .map(BackupTemplateInfoDTO::fromVO).collect(Collectors.toList()));
         String id = exportJobService.startExport(exportJobInfoDTO);
 
@@ -221,7 +221,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                                                String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appResourceScope.getAppId(), jobId);
         if (exportInfo != null) {
-            if (BackupJobStatusEnum.SUCCESS.equals(exportInfo.getStatus())) {
+            if (BackupJobStatusEnum.ALL_SUCCESS.equals(exportInfo.getStatus())) {
                 Pair<Long, StreamingResponseBody> fileInfoPair;
                 switch (backupStorageConfig.getStorageBackend()) {
                     case JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY:
@@ -260,7 +260,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                             String jobId) {
         ExportJobInfoDTO exportInfo = exportJobService.getExportInfo(appResourceScope.getAppId(), jobId);
         if (exportInfo != null) {
-            if (BackupJobStatusEnum.SUCCESS.equals(exportInfo.getStatus())) {
+            if (BackupJobStatusEnum.ALL_SUCCESS.equals(exportInfo.getStatus())) {
                 exportInfo.setStatus(BackupJobStatusEnum.FINISHED);
                 exportInfo.setFileName(null);
                 return Response.buildSuccessResp(exportJobService.updateExportJob(exportInfo));
@@ -417,11 +417,11 @@ public class WebBackupResourceImpl implements WebBackupResource {
         BackupJobInfoVO backupJobInfo = new BackupJobInfoVO();
         if (CollectionUtils.isNotEmpty(exportJobInfoList)) {
             backupJobInfo.setExportJob(
-                exportJobInfoList.parallelStream().map(ExportJobInfoDTO::toVO).collect(Collectors.toList()));
+                exportJobInfoList.stream().map(ExportJobInfoDTO::toVO).collect(Collectors.toList()));
         }
         if (CollectionUtils.isNotEmpty(importJobInfoList)) {
             backupJobInfo.setImportJob(
-                importJobInfoList.parallelStream().map(ImportJobInfoDTO::toVO).collect(Collectors.toList()));
+                importJobInfoList.stream().map(ImportJobInfoDTO::toVO).collect(Collectors.toList()));
         }
         return Response.buildSuccessResp(backupJobInfo);
     }

@@ -71,7 +71,15 @@ public class RollingBatchServersResolver {
     public List<RollingServerBatch> resolve() {
         RollingExpr rollingExpr = new RollingExpr(this.rollingExpr);
         while (context.hasRemainedServer()) {
+            if (context.getServerBatches().size() > MAX_ALLOWED_ROLLING_BATCH_SIZE) {
+                log.warn("Batch {} size greater than {}", context.getServerBatches().size(),
+                    MAX_ALLOWED_ROLLING_BATCH_SIZE);
+                throw new FailedPreconditionException(ErrorCode.EXCEED_MAX_ALLOWED_BATCH_SIZE,
+                    new Integer[]{MAX_ALLOWED_ROLLING_BATCH_SIZE});
+            }
+
             context.increaseBatchCount();
+
             RollingExprPart rollingExprPart = rollingExpr.nextRollingExprPart(context.getBatchCount());
             List<HostDTO> serversOnBatch = rollingExprPart.compute(context);
             context.removeResolvedServers(serversOnBatch);
@@ -82,11 +90,6 @@ public class RollingBatchServersResolver {
             context.addServerBatch(rollingServerBatch);
         }
 
-        if (context.getServerBatches().size() > MAX_ALLOWED_ROLLING_BATCH_SIZE) {
-            log.warn("Batch {} size greater than {}", context.getServerBatches().size(), MAX_ALLOWED_ROLLING_BATCH_SIZE);
-            throw new FailedPreconditionException(ErrorCode.EXCEED_MAX_ALLOWED_BATCH_SIZE,
-                new Integer[]{MAX_ALLOWED_ROLLING_BATCH_SIZE});
-        }
         return context.getServerBatches();
     }
 

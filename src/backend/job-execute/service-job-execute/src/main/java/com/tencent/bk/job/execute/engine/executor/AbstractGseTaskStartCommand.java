@@ -172,7 +172,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      */
     @Override
     public void execute() {
-        StopWatch watch = new StopWatch("startGseTask-" + this.gseTaskUniqueName);
+        StopWatch watch = new StopWatch("startGseTask-" + this.gseTaskInfo);
 
         // 初始化任务执行上下文
         watch.start("initExecutionContext");
@@ -216,13 +216,13 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         if (!isGseTaskStarted) {
             watch.start("sendGseTask");
             gseTask.setStartTime(System.currentTimeMillis());
-            log.info("[{}] Sending task to gse server", this.gseTaskUniqueName);
+            log.info("[{}] Sending task to gse server", this.gseTaskInfo);
             GseTaskResponse gseTaskResponse = startGseTask();
             watch.stop();
 
             watch.start("handleGseResponse");
             if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
-                log.error("[{}] Start gse task fail, response: {}", this.gseTaskUniqueName, gseTaskResponse);
+                log.error("[{}] Start gse task fail, response: {}", this.gseTaskInfo, gseTaskResponse);
                 handleStartGseTaskError(gseTaskResponse);
                 gseTasksExceptionCounter.increment();
                 taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
@@ -230,7 +230,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                 watch.stop();
                 return false;
             } else {
-                log.info("[{}] Start gse task successfully, gseTaskId: {}", this.gseTaskUniqueName,
+                log.info("[{}] Start gse task successfully, gseTaskId: {}", this.gseTaskInfo,
                     gseTaskResponse.getGseTaskId());
                 updateGseTaskExecutionInfo(gseTaskResponse.getGseTaskId(), RunStatusEnum.RUNNING, null);
             }
@@ -238,7 +238,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             return true;
         } else {
             // GSE 任务已经下发过，不做处理
-            log.info("[{}] Gse Task had already started!", this.gseTaskUniqueName);
+            log.info("[{}] Gse Task had already started!", this.gseTaskInfo);
             return true;
         }
     }
@@ -258,7 +258,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             .filter(AgentTaskDTO::isAgentIdEmpty)
             .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(invalidAgentTasks)) {
-            log.warn("{} contains invalid agent tasks: {}", gseTaskUniqueName, invalidAgentTasks);
+            log.warn("{} contains invalid agent tasks: {}", gseTaskInfo, invalidAgentTasks);
             invalidAgentTasks.forEach(agentTask -> {
                 agentTask.setStatus(AgentTaskStatusEnum.AGENT_NOT_INSTALLED);
                 agentTask.setStartTime(System.currentTimeMillis());

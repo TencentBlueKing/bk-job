@@ -24,11 +24,9 @@
 
 package com.tencent.bk.job.common.gse.service;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
-import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
@@ -73,14 +71,16 @@ public class AgentStateClientImpl implements AgentStateClient {
                 "cannot find agent state by agentId:{}",
                 agentId
             );
-            throw new InternalException(ErrorCode.GSE_API_DATA_ERROR, new String[]{msg.getMessage()});
+            log.warn(msg.getMessage());
+            return null;
         } else if (agentStateList.size() > 1) {
             FormattingTuple msg = MessageFormatter.format(
-                "multi({}) agent states by agentId:{}",
+                "multi({}) agent states by agentId:{}, use the first one",
                 agentStateList.size(),
                 agentId
             );
-            throw new InternalException(ErrorCode.GSE_API_DATA_ERROR, new String[]{msg.getMessage()});
+            log.warn(msg.getMessage());
+            return agentStateList.get(0);
         }
         return agentStateList.get(0);
     }
@@ -156,7 +156,8 @@ public class AgentStateClientImpl implements AgentStateClient {
         for (Map.Entry<String, AgentState> entry : agentStateMap.entrySet()) {
             String agentId = entry.getKey();
             AgentState agentState = entry.getValue();
-            agentAliveStatusMap.put(agentId, AgentStatusEnum.fromAgentState(agentState) == AgentStatusEnum.ALIVE);
+            agentAliveStatusMap.put(agentId,
+                AgentAliveStatusEnum.fromAgentState(agentState) == AgentAliveStatusEnum.ALIVE);
         }
         return agentAliveStatusMap;
     }

@@ -57,15 +57,20 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
 
     @Override
     public InternalResponse<Integer> sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
-        log.info(String.format("Input:%s", JsonUtils.toJson(serviceUserNotificationDTO)));
-        return InternalResponse.buildSuccessResp(notifyService.asyncSendNotificationsToUsers(serviceUserNotificationDTO));
+        if (log.isDebugEnabled()) {
+            log.debug("Input: {}", JsonUtils.toJson(serviceUserNotificationDTO));
+        }
+        return InternalResponse.buildSuccessResp(
+            notifyService.asyncSendNotificationsToUsers(serviceUserNotificationDTO));
     }
 
     @Override
     public InternalResponse<Integer> sendNotificationsToAdministrators(
         ServiceNotificationMessage serviceNotificationMessage
     ) {
-        log.info(String.format("Input:%s", JsonUtils.toJson(serviceNotificationMessage)));
+        if (log.isDebugEnabled()) {
+            log.debug("Input: {}", JsonUtils.toJson(serviceNotificationMessage));
+        }
         return InternalResponse.buildSuccessResp(
             notifyService.asyncSendNotificationsToAdministrators(serviceNotificationMessage)
         );
@@ -75,7 +80,9 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     public InternalResponse<Integer> triggerTemplateNotification(
         ServiceTriggerTemplateNotificationDTO triggerTemplateNotification
     ) {
-        log.info(String.format("Input:%s", JsonUtils.toJson(triggerTemplateNotification)));
+        if (log.isDebugEnabled()) {
+            log.debug("Input: {}", JsonUtils.toJson(triggerTemplateNotification));
+        }
         StopWatch watch = new StopWatch();
         watch.start("triggerTemplateNotification");
         Integer result = notifyService.triggerTemplateNotification(triggerTemplateNotification);
@@ -90,13 +97,14 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
 
     @Override
     public InternalResponse<Integer> sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO) {
-        log.info(String.format("Input:%s", JsonUtils.toJson(templateNotificationDTO)));
+        if (log.isDebugEnabled()) {
+            log.debug("Input: {}", JsonUtils.toJson(templateNotificationDTO));
+        }
         return InternalResponse.buildSuccessResp(notifyService.sendTemplateNotification(templateNotificationDTO));
     }
 
     @Override
     public InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String lang) {
-        log.info(String.format("Input:%s", lang));
         List<AppRoleDTO> roles = notifyService.listRoles();
         List<ServiceAppRoleDTO> result = roles.stream().map(role -> new ServiceAppRoleDTO(role.getId(),
             role.getName())).collect(Collectors.toList());
@@ -105,7 +113,6 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
 
     @Override
     public InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(String lang) {
-        log.info(String.format("Input:%s", lang));
         List<NotifyEsbChannelDTO> channels = notifyService.listAllNotifyChannel();
         List<ServiceNotifyChannelDTO> result =
             channels.stream().map(channel ->

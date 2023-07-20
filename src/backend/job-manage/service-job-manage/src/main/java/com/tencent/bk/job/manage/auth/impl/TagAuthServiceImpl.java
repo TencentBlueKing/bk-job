@@ -87,8 +87,8 @@ public class TagAuthServiceImpl implements TagAuthService {
                                          List<Long> tagIdList) {
         List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_TAG,
             appResourceScope, ResourceTypeEnum.TAG,
-            tagIdList.parallelStream().map(Object::toString).collect(Collectors.toList()));
-        return allowedIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            tagIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override

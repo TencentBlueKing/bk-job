@@ -152,7 +152,7 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
 
         if (CollectionUtils.isNotEmpty(excludePlanIdList)) {
             conditions.add(
-                TABLE.ID.notIn(excludePlanIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+                TABLE.ID.notIn(excludePlanIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         }
 
         long count = getPageTaskPlanCount(conditions);
@@ -224,7 +224,7 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
                 taskPlanQuery.getTemplateIdList().add(taskPlanQuery.getTemplateId());
             }
             if (CollectionUtils.isNotEmpty(taskPlanQuery.getTemplateIdList())) {
-                conditions.add(TABLE.TEMPLATE_ID.in(taskPlanQuery.getTemplateIdList().parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+                conditions.add(TABLE.TEMPLATE_ID.in(taskPlanQuery.getTemplateIdList().stream().map(ULong::valueOf).collect(Collectors.toList())));
             }
             if (taskPlanQuery.getName() != null) {
                 conditions.add(TABLE.NAME.like("%" + taskPlanQuery.getName() + "%"));
@@ -370,7 +370,7 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         if (taskPlanQuery == null) {
             conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
         }
-        conditions.add(TABLE.ID.in(planIdList.parallelStream().map(ULong::valueOf).collect(Collectors.toList())));
+        conditions.add(TABLE.ID.in(planIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         Result<Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
             UByte>> result =
             context.select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
@@ -520,7 +520,7 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
         List<ULong> uLongPlanId = context.select(TABLE.ID).from(TABLE).where(conditions).fetch(TABLE.ID);
         if (CollectionUtils.isNotEmpty(uLongPlanId)) {
-            return uLongPlanId.parallelStream().map(ULong::longValue).collect(Collectors.toList());
+            return uLongPlanId.stream().map(ULong::longValue).collect(Collectors.toList());
         } else {
             return new ArrayList<>();
         }

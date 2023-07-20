@@ -53,6 +53,7 @@ public interface TaskResultService {
     PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                    BaseSearchCondition baseSearchCondition);
 
+
     /**
      * 获取作业执行结果
      *

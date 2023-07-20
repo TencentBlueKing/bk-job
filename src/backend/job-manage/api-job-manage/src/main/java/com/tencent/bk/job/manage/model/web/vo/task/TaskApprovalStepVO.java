@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +40,7 @@ import java.util.List;
  */
 @Data
 @ApiModel("任务审批步骤信息")
+@Slf4j
 public class TaskApprovalStepVO {
 
     @ApiModelProperty(value = "审批类型 暂未启用 1-任意人审批 2-所有人审批")
@@ -52,7 +55,7 @@ public class TaskApprovalStepVO {
     @ApiModelProperty("通知渠道")
     private List<String> notifyChannel;
 
-    public boolean validate(boolean isCreate) {
+    public void validate(boolean isCreate) throws InvalidParamException {
         if (notifyChannel == null) {
             notifyChannel = Collections.emptyList();
         }
@@ -60,9 +63,9 @@ public class TaskApprovalStepVO {
             approvalMessage = "";
         }
         if (approvalUser == null) {
-            JobContextUtil.addDebugMessage("Approval step must have user!");
-            return false;
+            log.warn("Approval step must have user!");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        return approvalUser.validate();
+        approvalUser.validate();
     }
 }

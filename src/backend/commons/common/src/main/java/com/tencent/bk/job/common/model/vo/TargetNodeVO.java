@@ -26,7 +26,8 @@ package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -77,11 +78,13 @@ public class TargetNodeVO {
         log.warn("Use compatible field type:{}", type);
     }
 
-    public boolean validate(boolean isCreate) {
-        if (instanceId != null && instanceId > 0 && StringUtils.isNotBlank(objectId)) {
-            return true;
+    public void validate(boolean isCreate) throws InvalidParamException {
+        if (instanceId == null || instanceId <= 0) {
+            log.warn("Invalid target node instanceId");
         }
-        JobContextUtil.addDebugMessage("Target node info does not have id or type");
-        return false;
+        if (StringUtils.isBlank(objectId)) {
+            log.warn("Invalid target node type");
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
     }
 }

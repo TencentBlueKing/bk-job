@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.gse.constants.AgentStatusEnum;
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -315,6 +315,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      */
     private Map<Long, List<String>> getHostAllowedActions(long appId, Collection<HostDTO> hosts) {
         Map<Long, List<String>> hostAllowActionsMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(hosts)) {
+            return hostAllowActionsMap;
+        }
         for (HostDTO host : hosts) {
             List<String> allowActions = whiteHostCache.getHostAllowedAction(appId, host.getHostId());
             if (CollectionUtils.isNotEmpty(allowActions)) {
@@ -629,9 +632,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         accounts.add(stepInstance.getAccountId());
         stepInstance.getFileSourceList().stream()
             .filter(fileSource -> !fileSource.isLocalUpload() && fileSource.getAccountId() != null)
-            .forEach(fileSource -> {
-                accounts.add(fileSource.getAccountId());
-            });
+            .forEach(fileSource -> accounts.add(fileSource.getAccountId()));
 
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accounts);
@@ -641,9 +642,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .filter(fileSource -> !fileSource.isLocalUpload()
                 && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
                 && fileSource.getServers() != null)
-            .forEach(fileSource -> {
-                servers.merge(fileSource.getServers());
-            });
+            .forEach(fileSource -> servers.merge(fileSource.getServers()));
         filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, servers, whiteHostAllowActions);
         if (servers.isEmpty()) {
             // 如果主机为空，无需对主机进行权限
@@ -682,6 +681,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 提取作业包含的主机列表
         Set<HostDTO> queryHosts = extractHosts(stepInstances, variables);
 
+        if (CollectionUtils.isEmpty(queryHosts)) {
+            return ServiceListAppHostResultDTO.EMPTY;
+        }
+
         ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts,
             needRefreshHostBkAgentId(taskInstance));
 
@@ -689,7 +692,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 如果主机在cmdb不存在，直接报错
             throwHostInvalidException(queryHostsResult.getNotExistHosts());
         }
-
 
         fillTaskInstanceHostDetail(appId, stepInstances, variables, queryHostsResult);
 
@@ -932,7 +934,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ServersDTO targetServers = stepInstance.getTargetServers();
         if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
             log.warn("Empty target server! stepInstanceName: {}", stepInstance.getName());
-            throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+            throw new FailedPreconditionException(ErrorCode.STEP_TARGET_HOST_EMPTY,
+                new String[]{stepInstance.getName()});
         }
         if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
@@ -942,7 +945,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     ServersDTO servers = fileSource.getServers();
                     if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
                         log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
-                        throw new FailedPreconditionException(ErrorCode.SERVER_EMPTY);
+                        throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_HOST_EMPTY,
+                            new String[]{stepInstance.getName()});
                     }
                 }
             }
@@ -1084,7 +1088,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (!isStepContainsHostProps(stepInstance)) {
                 continue;
             }
-            hosts.addAll(stepInstance.getTargetServers().extractHosts());
+            if (stepInstance.getTargetServers() != null) {
+                hosts.addAll(stepInstance.getTargetServers().extractHosts());
+            }
             if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
                 if (fileSourceList != null) {
@@ -1097,11 +1103,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
         if (CollectionUtils.isNotEmpty(variables)) {
-            variables.forEach(variable -> {
-                if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-                    hosts.addAll(variable.getTargetServers().extractHosts());
-                }
-            });
+            variables.stream()
+                .filter(variable -> variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
+                    && variable.getTargetServers() != null)
+                .forEach(variable -> hosts.addAll(variable.getTargetServers().extractHosts()));
         }
         return hosts;
     }
@@ -1111,7 +1116,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
         log.warn("The following hosts are invalid, hosts={}", invalidHosts);
-        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{hostListStr});
+        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{invalidHosts.size(), hostListStr});
     }
 
     private String printHostIdOrIp(HostDTO host) {
@@ -1856,18 +1861,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 ServersDTO targetServers = buildFinalTargetServers(target, variableValueMap);
                 fileSource.setServers(targetServers);
                 List<FileDetailDTO> fileList = new ArrayList<>();
-                originFile.getFileLocation().forEach(fileLocation -> {
-                    fileList.add(new FileDetailDTO(fileLocation));
-                });
+                originFile.getFileLocation().forEach(fileLocation -> fileList.add(new FileDetailDTO(fileLocation)));
                 fileSource.setFiles(fileList);
             } else if (originFile.getFileType() == TaskFileTypeEnum.FILE_SOURCE.getType()) {
                 fileSource.setLocalUpload(false);
                 fileSource.setServers(ServersDTO.emptyInstance());
                 // 文件源文件只需要fileSourceId与文件路径
                 List<FileDetailDTO> fileList = new ArrayList<>();
-                originFile.getFileLocation().forEach(fileLocation -> {
-                    fileList.add(new FileDetailDTO(fileLocation));
-                });
+                originFile.getFileLocation().forEach(fileLocation -> fileList.add(new FileDetailDTO(fileLocation)));
                 fileSource.setFiles(fileList);
                 fileSource.setFileSourceId(originFile.getFileSourceId());
             }
@@ -1986,6 +1987,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 new String[]{hostVariableName});
         }
 
+        if (serverVariable.getTargetServers() == null) {
+            return null;
+        }
         ServersDTO targetServers = serverVariable.getTargetServers().clone();
         targetServers.setVariable(hostVariableName);
         return targetServers;
@@ -2049,21 +2053,21 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             return;
         }
         List<String> agentIdList = hosts.stream()
-            .filter(host -> StringUtils.isNotEmpty(host.getAgentId()))
             .map(HostDTO::getAgentId)
+            .filter(StringUtils::isNotEmpty)
             .distinct()
             .collect(Collectors.toList());
         Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
 
         for (HostDTO host : hosts) {
             if (StringUtils.isEmpty(host.getAgentId())) {
-                host.setAlive(AgentStatusEnum.NOT_ALIVE.getValue());
+                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
             } else {
                 AgentState agentState = agentStateMap.get(host.getAgentId());
                 if (agentState != null) {
-                    host.setAlive(AgentStatusEnum.fromAgentState(agentState).getValue());
+                    host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
                 } else {
-                    host.setAlive(AgentStatusEnum.NOT_ALIVE.getValue());
+                    host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
                 }
             }
         }
@@ -2392,10 +2396,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (RunStatusEnum.STOPPING == taskInstance.getStatus()) {
-            log.warn("TaskInstance:{} status is stopping now, should not terminate it!", taskInstance.getId());
-            throw new FailedPreconditionException(ErrorCode.TASK_STOPPING_DO_NOT_REPEAT);
-        }
         taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstanceId));
         OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2406,13 +2406,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                 TaskOperationEnum operation) throws ServiceException {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
-        switch (operation) {
-            case TERMINATE_JOB:
-                terminateJob(operator, appId, taskInstanceId);
-                break;
-            default:
-                log.warn("Undefined task operation!");
-                break;
+        if (operation == TaskOperationEnum.TERMINATE_JOB) {
+            terminateJob(operator, appId, taskInstanceId);
+        } else {
+            log.warn("Undefined task operation!");
         }
     }
 

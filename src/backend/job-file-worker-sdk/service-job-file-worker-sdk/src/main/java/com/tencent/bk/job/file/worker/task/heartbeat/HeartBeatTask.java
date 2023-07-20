@@ -27,6 +27,7 @@ package com.tencent.bk.job.file.worker.task.heartbeat;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.machine.MachineUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import com.tencent.bk.job.file.worker.cos.service.EnvironmentService;
@@ -69,7 +70,7 @@ public class HeartBeatTask {
         runFlag = false;
     }
 
-    private HeartBeatReq getWorkerInfo() {
+    private HeartBeatReq getHeartBeatReq() {
         HeartBeatReq heartBeatReq = new HeartBeatReq();
         heartBeatReq.setName(workerConfig.getName());
         heartBeatReq.setTagList(workerConfig.getTagList());
@@ -106,7 +107,9 @@ public class HeartBeatTask {
             return;
         }
         String url = gatewayInfoService.getHeartBeatUrl();
-        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, getWorkerInfo());
+        HeartBeatReq heartBeatReq = getHeartBeatReq();
+        log.info("HeartBeat: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(heartBeatReq));
+        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, heartBeatReq);
         jobHttpClient.post(req);
     }
 }

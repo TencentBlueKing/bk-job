@@ -219,7 +219,7 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         } else {
             records = query.fetch();
         }
-        return records.parallelStream().map(record -> record.get(defaultTable.FILE_SOURCE_TASK_ID)).collect(Collectors.toList());
+        return records.stream().map(record -> record.get(defaultTable.FILE_SOURCE_TASK_ID)).collect(Collectors.toList());
     }
 
     @Override

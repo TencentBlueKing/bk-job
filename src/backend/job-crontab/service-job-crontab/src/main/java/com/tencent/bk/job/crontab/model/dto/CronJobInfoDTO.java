@@ -208,7 +208,7 @@ public class CronJobInfoDTO {
         }
         cronJobVO.setExecuteTime(cronJobInfo.getExecuteTime());
         if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
-            cronJobVO.setVariableValue(cronJobInfo.getVariableValue().parallelStream().map(CronJobVariableDTO::toVO)
+            cronJobVO.setVariableValue(cronJobInfo.getVariableValue().stream().map(CronJobVariableDTO::toVO)
                 .collect(Collectors.toList()));
         } else {
             cronJobVO.setVariableValue(Collections.emptyList());
@@ -242,7 +242,7 @@ public class CronJobInfoDTO {
         cronJobVO.setTaskPlanId(cronJobInfo.getTaskPlanId());
         cronJobVO.setEnable(cronJobInfo.getEnable());
         if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
-            cronJobVO.setVariableValue(cronJobInfo.getVariableValue().parallelStream().map(CronJobVariableDTO::toVO)
+            cronJobVO.setVariableValue(cronJobInfo.getVariableValue().stream().map(CronJobVariableDTO::toVO)
                 .collect(Collectors.toList()));
         } else {
             cronJobVO.setVariableValue(Collections.emptyList());
@@ -276,7 +276,7 @@ public class CronJobInfoDTO {
             cronJobInfo.setExecuteTime(cronJobCreateUpdateReq.getExecuteTime());
         }
         if (CollectionUtils.isNotEmpty(cronJobCreateUpdateReq.getVariableValue())) {
-            cronJobInfo.setVariableValue(cronJobCreateUpdateReq.getVariableValue().parallelStream()
+            cronJobInfo.setVariableValue(cronJobCreateUpdateReq.getVariableValue().stream()
                 .map(CronJobVariableDTO::fromVO).collect(Collectors.toList()));
         } else {
             cronJobInfo.setVariableValue(null);
@@ -495,7 +495,7 @@ public class CronJobInfoDTO {
         esbCronInfoResponse.setLastModifyUser(cronJobInfoDTO.getLastModifyUser());
         esbCronInfoResponse.setLastModifyTime(cronJobInfoDTO.getLastModifyTime());
         if (CollectionUtils.isNotEmpty(cronJobInfoDTO.getVariableValue())) {
-            esbCronInfoResponse.setGlobalVarList(cronJobInfoDTO.getVariableValue().parallelStream()
+            esbCronInfoResponse.setGlobalVarList(cronJobInfoDTO.getVariableValue().stream()
                 .map(CronJobVariableDTO::toEsbGlobalVarV3).collect(Collectors.toList()));
         }
         return esbCronInfoResponse;

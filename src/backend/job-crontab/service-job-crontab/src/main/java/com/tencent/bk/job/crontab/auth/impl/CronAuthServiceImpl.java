@@ -90,8 +90,8 @@ public class CronAuthServiceImpl implements CronAuthService {
 
         List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_CRON,
             appResourceScope, ResourceTypeEnum.CRON,
-            cronIdList.parallelStream().map(Objects::toString).collect(Collectors.toList()));
-        return allowedIdList.parallelStream().map(Long::valueOf).collect(Collectors.toList());
+            cronIdList.stream().map(Objects::toString).collect(Collectors.toList()));
+        return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override

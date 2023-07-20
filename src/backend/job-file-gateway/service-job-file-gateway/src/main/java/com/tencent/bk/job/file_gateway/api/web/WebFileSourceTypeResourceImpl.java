@@ -57,7 +57,7 @@ public class WebFileSourceTypeResourceImpl implements WebFileSourceTypeResource 
                                                                String scopeId,
                                                                String storageType) {
         List<FileSourceTypeVO> resultList =
-            fileSourceService.listUniqueFileSourceType(storageType).parallelStream()
+            fileSourceService.listUniqueFileSourceType(storageType).stream()
                 .map(FileSourceTypeDTO::toVO)
                 .collect(Collectors.toList());
         return Response.buildSuccessResp(resultList);

@@ -43,11 +43,11 @@ public class FindModuleHostRelationReq extends EsbReq {
     private List<Long> moduleIdList;
 
     @JsonProperty("module_fields")
-    private List<String> moduleFields = Arrays.asList("bk_module_id", "bk_set_id");
+    private List<String> moduleFields = Arrays.asList("bk_module_id", "bk_set_id", "last_time");
 
     @JsonProperty("host_fields")
     private List<String> hostFields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6",
-        "bk_agent_id", "bk_host_name", "bk_os_name", "bk_cloud_id", "bk_os_type", "bk_cloud_vendor");
+        "bk_agent_id", "bk_host_name", "bk_os_name", "bk_cloud_id", "bk_os_type", "bk_cloud_vendor", "last_time");
 
     private Page page;
 }

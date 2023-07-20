@@ -47,7 +47,7 @@ public abstract class GseTaskResult<T> {
     /**
      * 任务执行结果是否为空
      */
-    public boolean isNullResult() {
+    public boolean isEmptyResult() {
         return false;
     }
 }
