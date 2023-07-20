@@ -73,7 +73,7 @@
         <jb-edit-textarea
           field="scriptParam"
           readonly
-          :value="stepInfo.scriptParam || '--'" />
+          :value="stepInfo.scriptParamText || '--'" />
       </detail-item>
       <detail-item :label="$t('template.超时时长：')">
         {{ stepInfo.timeout }}（s）

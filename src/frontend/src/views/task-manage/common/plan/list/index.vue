@@ -611,7 +611,7 @@
         this.$refs.list.$emit('onFetch', searchParams);
       },
       /**
-       * @desc 登陆用户信息
+       * @desc 登录用户信息
        */
       fetchUserInfo() {
         UserService.fetchUserInfo()

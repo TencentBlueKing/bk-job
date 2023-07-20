@@ -191,7 +191,7 @@
     },
     methods: {
       /**
-       * @desc 获取登陆用户信息
+       * @desc 获取登录用户信息
        */
       fetchUserInfo() {
         UserService.fetchUserInfo()

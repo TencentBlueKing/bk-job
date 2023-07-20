@@ -545,7 +545,7 @@
         this.$refs.list.$emit('onFetch', searchParams);
       },
       /**
-       * @desc 获取登陆用户名
+       * @desc 获取登录用户名
        */
       fetchUserInfo() {
         UserService.fetchUserInfo()
@@ -646,7 +646,7 @@
         this.$refs.tagPanelRef.init();
       },
       /**
-       * @desc 查看登陆用户的作业模板
+       * @desc 查看登录用户的作业模板
        */
       handleMyTask() {
         const currentUserName = this.currentUser.username;

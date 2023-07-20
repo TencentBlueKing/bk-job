@@ -57,7 +57,7 @@
     <detail-item :label="$t('template.传输模式：')">
       {{ stepInfo.transferModeText }}
     </detail-item>
-    <detail-item :label="$t('template.执行帐号：')">
+    <detail-item :label="$t('template.执行账号：')">
       {{ executeAccountText }}
     </detail-item>
     <detail-item

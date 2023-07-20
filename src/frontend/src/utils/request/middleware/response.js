@@ -88,7 +88,7 @@ export default (interceptors) => {
   // 统一错误处理逻辑
   interceptors.use(undefined, (error) => {
     switch (error.code) {
-      // 未登陆
+      // 未登录
       case 401:
         if (hasLogined) {
           loginDialog(error.message);
