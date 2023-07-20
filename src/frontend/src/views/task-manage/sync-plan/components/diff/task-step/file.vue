@@ -75,7 +75,7 @@
     <div
       class="row"
       :class="diff.executeAccount">
-      <span class="label">{{ $t('template.执行帐号：') }}</span>
+      <span class="label">{{ $t('template.执行账号：') }}</span>
       <span class="value">{{ findName(data.executeAccount) }}</span>
     </div>
     <div
