@@ -143,11 +143,11 @@ export const permissionDialog = (authParams = {}, authResult = {}) => {
 };
 
 let systemPermissionInstance;
-export const systemPermission = (message) => {
+export const systemPermission = (message, data) => {
   if (!systemPermissionInstance) {
     systemPermissionInstance = new Vue({
       i18n,
-      render: h => h(SystemPermission, { attrs: { message } }),
+      render: h => h(SystemPermission, { attrs: { message, data } }),
     }).$mount();
 
     systemPermissionInstance.$nextTick(() => {

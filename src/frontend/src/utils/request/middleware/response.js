@@ -101,7 +101,7 @@ export default (interceptors) => {
       case 403: {
         // 系统访问权限
         if (error.response.data.code === 1247403) {
-          systemPermission(error.response.data.data);
+          systemPermission(error.response.data.errorMsg, error.response.data.data);
         } else {
           // 资源访问权限
           const requestPayload = error.response.config.payload;
