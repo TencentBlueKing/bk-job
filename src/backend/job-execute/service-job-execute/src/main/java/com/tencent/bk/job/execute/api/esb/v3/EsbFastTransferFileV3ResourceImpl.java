@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.client.FileSourceResourceClient;
 import com.tencent.bk.job.execute.common.constants.*;
+import com.tencent.bk.job.execute.common.util.TaskUtil;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -243,7 +244,7 @@ public class EsbFastTransferFileV3ResourceImpl
         if (request.getTimeout() == null) {
             stepInstance.setTimeout(7200);
         } else {
-            stepInstance.setTimeout(calculateTimeout(request.getTimeout()));
+            stepInstance.setTimeout(TaskUtil.calculateTimeout(request.getTimeout()));
         }
         if (request.getUploadSpeedLimit() != null && request.getUploadSpeedLimit() > 0) {
             stepInstance.setFileUploadSpeedLimit(request.getUploadSpeedLimit() << 10);
