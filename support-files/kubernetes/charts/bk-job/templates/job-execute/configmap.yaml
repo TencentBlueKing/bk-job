@@ -192,7 +192,7 @@ data:
         config:
           default:
             connectTimeout: 5000
-            readTimeout: 5000
+            readTimeout: 20000
           sync:
             connectTimeout: 5000
             readTimeout: 30000

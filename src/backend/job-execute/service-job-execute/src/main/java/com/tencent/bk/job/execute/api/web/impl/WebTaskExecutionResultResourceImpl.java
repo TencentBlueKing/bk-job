@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -41,7 +43,6 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
@@ -210,19 +211,55 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  TaskTotalTimeTypeEnum totalTimeType,
                                                                  Integer start,
                                                                  Integer pageSize,
+                                                                 Boolean countPageTotal,
                                                                  Long cronTaskId,
                                                                  String startupModes,
                                                                  String ip) {
+        TaskInstanceQuery taskQuery = buildListTaskInstanceQuery(appResourceScope, taskName, taskInstanceId,
+            status, operator, taskType, startTime, endTime, timeRange, totalTimeType, cronTaskId, startupModes, ip);
+        BaseSearchCondition baseSearchCondition = BaseSearchCondition.pageCondition(start, pageSize,
+            countPageTotal == null ? true : countPageTotal);
+
+        PageData<TaskInstanceDTO> pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
+        if (pageData == null) {
+            return Response.buildSuccessResp(PageData.emptyPageData(start, pageSize));
+        }
+
+        PageData<TaskInstanceVO> pageDataVO = new PageData<>();
+        pageDataVO.setTotal(pageData.getTotal());
+        pageDataVO.setStart(pageData.getStart());
+        pageDataVO.setPageSize(pageData.getPageSize());
+
+        List<TaskInstanceVO> taskInstanceVOS = new ArrayList<>();
+        if (pageData.getData() != null) {
+            pageData.getData().forEach(taskInstanceDTO -> taskInstanceVOS.add(TaskInstanceConverter
+                .convertToTaskInstanceVO(taskInstanceDTO)));
+        }
+        pageDataVO.setData(taskInstanceVOS);
+        batchSetPermissionsForTaskInstance(username, appResourceScope, taskInstanceVOS);
+        return Response.buildSuccessResp(pageDataVO);
+    }
+
+    private TaskInstanceQuery buildListTaskInstanceQuery(AppResourceScope appResourceScope,
+                                                         String taskName,
+                                                         Long taskInstanceId,
+                                                         Integer status,
+                                                         String operator,
+                                                         Integer taskType,
+                                                         String startTime,
+                                                         String endTime,
+                                                         Integer timeRange,
+                                                         TaskTotalTimeTypeEnum totalTimeType,
+                                                         Long cronTaskId,
+                                                         String startupModes,
+                                                         String ip) {
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setTaskInstanceId(taskInstanceId);
         taskQuery.setAppId(appResourceScope.getAppId());
         taskQuery.setTaskName(taskName);
         taskQuery.setCronTaskId(cronTaskId);
 
-        ValidateResult validateResult = validateAndSetQueryTimeRange(taskQuery, startTime, endTime, timeRange);
-        if (!validateResult.isPass()) {
-            return Response.buildValidateFailResp(validateResult);
-        }
+        validateAndSetQueryTimeRange(taskQuery, startTime, endTime, timeRange);
 
         setTotalTimeCondition(taskQuery, totalTimeType);
         taskQuery.setOperator(operator);
@@ -243,49 +280,24 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             }
         }
         taskQuery.setIp(ip);
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(start);
-        baseSearchCondition.setLength(pageSize);
 
-
-        PageData<TaskInstanceDTO> pageData;
-        if (timeRange == null) {
-            pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
-        } else {
-            // 临时优化代码，使用 timeRange 的 web 页面会触发全表扫描的问题。后续跟前端一块优化
-            pageData = taskResultService.listPageTaskInstanceWithoutCount(taskQuery, baseSearchCondition);
-        }
-        if (pageData == null) {
-            return Response.buildSuccessResp(PageData.emptyPageData(start, pageSize));
-        }
-
-        PageData<TaskInstanceVO> pageDataVO = new PageData<>();
-        pageDataVO.setTotal(pageData.getTotal());
-        pageDataVO.setStart(pageData.getStart());
-        pageDataVO.setPageSize(pageData.getPageSize());
-
-        List<TaskInstanceVO> taskInstanceVOS = new ArrayList<>();
-        if (pageData.getData() != null) {
-            pageData.getData().forEach(taskInstanceDTO -> taskInstanceVOS.add(TaskInstanceConverter
-                .convertToTaskInstanceVO(taskInstanceDTO)));
-        }
-        pageDataVO.setData(taskInstanceVOS);
-        batchSetPermissionsForTaskInstance(username, appResourceScope, taskInstanceVOS);
-        return Response.buildSuccessResp(pageDataVO);
+        return taskQuery;
     }
 
-    private ValidateResult validateAndSetQueryTimeRange(TaskInstanceQuery taskInstanceQuery, String startTime,
-                                                        String endTime, Integer timeRange) {
+    private void validateAndSetQueryTimeRange(TaskInstanceQuery taskInstanceQuery,
+                                              String startTime,
+                                              String endTime,
+                                              Integer timeRange) {
         Long start = null;
         Long end = null;
         if (timeRange != null) {
             if (timeRange < 1) {
                 log.warn("Param timeRange should greater than 0");
-                return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM);
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
             if (timeRange > 30) {
                 log.warn("Param timeRange should less then 30");
-                return ValidateResult.fail(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
+                throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
             }
             // 当天结束时间 - 往前的天数
             start = DateUtils.getUTCCurrentDayEndTimestamp() - timeRange * 24 * 3600 * 1000L;
@@ -301,20 +313,19 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
             if (start == null) {
                 log.info("StartTime should not be empty!");
-                return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM);
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
             if (end == null) {
                 end = System.currentTimeMillis();
             }
             if (end - start > MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
                 log.info("Query task instance history time span must be less than 30 days");
-                return ValidateResult.fail(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
+                throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
             }
         }
 
         taskInstanceQuery.setStartTime(start);
         taskInstanceQuery.setEndTime(end);
-        return ValidateResult.pass();
     }
 
     private void setTotalTimeCondition(TaskInstanceQuery taskQuery, TaskTotalTimeTypeEnum totalTimeType) {

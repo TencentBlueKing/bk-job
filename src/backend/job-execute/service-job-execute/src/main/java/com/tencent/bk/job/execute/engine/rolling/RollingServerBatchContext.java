@@ -7,7 +7,9 @@ import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 主机计算滚动分批上下文
@@ -40,7 +42,7 @@ public class RollingServerBatchContext {
     /**
      * Constructor
      *
-     * @param servers     所有参与滚动的主机
+     * @param servers 所有参与滚动的主机
      */
     public RollingServerBatchContext(List<HostDTO> servers) {
         this.servers = servers;
@@ -69,7 +71,12 @@ public class RollingServerBatchContext {
      * @param resolvedServers 已经解析(分批)过的主机
      */
     public void removeResolvedServers(Collection<HostDTO> resolvedServers) {
-        this.remainedServers.removeAll(resolvedServers);
+        if (resolvedServers instanceof Set) {
+            this.remainedServers.removeAll(resolvedServers);
+        } else {
+            // 非 Set 集合，List.removeAll() 的实现有性能瓶颈
+            this.remainedServers.removeAll(new HashSet<>(resolvedServers));
+        }
     }
 
     /**
