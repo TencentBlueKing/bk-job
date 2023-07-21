@@ -53,7 +53,9 @@
           v-for="(showKey, colIndex) in showColumns"
           :key="showKey"
           :class="colIndex === 0 && item.result">
-          <div class="cell-text">
+          <div
+            v-bk-overflow-tips="item[showKey]"
+            class="cell-text">
             <template v-if="showKey === 'exitCode'">
               {{ item[showKey] }}
             </template>
