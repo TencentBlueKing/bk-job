@@ -261,7 +261,11 @@
                 width: 30,
                 color: '#63656E',
                 opacity: 0.16,
+                type: 'solid',
               },
+            },
+            textStyle: {
+              color: '#fff',
             },
             backgroundColor: 'rgba(0,0,0,0.8)',
           },
@@ -327,6 +331,9 @@
               sampling: 'average',
               ...styleMap[styles],
               data: valueList,
+              emphasis: {
+                focus: 'series',
+              },
             },
           ],
         };
