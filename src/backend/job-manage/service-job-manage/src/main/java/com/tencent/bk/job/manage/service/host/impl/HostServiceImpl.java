@@ -312,7 +312,7 @@ public class HostServiceImpl implements HostService {
         hostCache.batchDeleteHost(hostList);
         hostList = applicationHostDAO.listHostInfoByHostIds(hostIdList);
         // 未成功从DB删除的主机重新加入缓存
-        hostCache.addOrUpdateHosts(hostList);
+        hostCache.batchAddOrUpdateHosts(hostList);
         return deletedNum;
     }
 
@@ -1642,10 +1642,12 @@ public class HostServiceImpl implements HostService {
                         // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
                         continue;
                     }
-                    hostCache.addOrUpdateHost(appHost);
                     notExistCloudIps.remove(appHost.getCloudIp());
                     appHosts.add(appHost);
                 }
+            }
+            if (CollectionUtils.isNotEmpty(appHosts)) {
+                hostCache.batchAddOrUpdateHosts(appHosts);
             }
 
             long cost = System.currentTimeMillis() - start;
@@ -1669,7 +1671,7 @@ public class HostServiceImpl implements HostService {
                 notExistCloudIps.removeAll(cmdbExistHostIds);
                 log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
 
-                hostCache.addOrUpdateHosts(cmdbExistHosts);
+                hostCache.batchAddOrUpdateHosts(cmdbExistHosts);
             }
 
             long cost = System.currentTimeMillis() - start;
@@ -1716,12 +1718,14 @@ public class HostServiceImpl implements HostService {
                         // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
                         continue;
                     }
-                    hostCache.addOrUpdateHost(appHost);
                     notExistHostIds.remove(appHost.getHostId());
                     appHosts.add(appHost);
                 }
             }
 
+            if (CollectionUtils.isNotEmpty(appHosts)) {
+                hostCache.batchAddOrUpdateHosts(appHosts);
+            }
             long cost = System.currentTimeMillis() - start;
             if (cost > 1000) {
                 log.warn("ListHostsFromMySQL slow, hostSize: {}, cost: {}", hostIds.size(), cost);
@@ -1741,7 +1745,7 @@ public class HostServiceImpl implements HostService {
                 notExistHostIds.removeAll(cmdbExistHostIds);
                 log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
 
-                hostCache.addOrUpdateHosts(cmdbExistHosts);
+                hostCache.batchAddOrUpdateHosts(cmdbExistHosts);
             }
 
             long cost = System.currentTimeMillis() - start;

@@ -25,14 +25,17 @@
 package com.tencent.bk.job.manage.manager.host;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -49,11 +52,13 @@ import java.util.stream.Collectors;
 @Component
 public class HostCache {
 
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    // 1天过期
+    private static final int EXPIRE_DAYS = 1;
 
     @Autowired
-    public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<Object, Object> redisTemplate,
-                     AppScopeMappingService appScopeMappingService) {
+    public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -81,7 +86,12 @@ public class HostCache {
 
     private List<CacheHostDO> getHostsByKeys(List<String> hostKeys) {
         try {
-            return (List<CacheHostDO>) redisTemplate.opsForValue().multiGet(hostKeys);
+            List<Object> results = redisTemplate.opsForValue().multiGet(hostKeys);
+            if (CollectionUtils.isEmpty(results)) {
+                return Collections.emptyList();
+            }
+            // 通过 Object 间接强制转换 List
+            return (List<CacheHostDO>) (Object) results;
         } catch (Exception e) {
             log.warn("Batch get host in cache exception", e);
             return Collections.emptyList();
@@ -128,8 +138,8 @@ public class HostCache {
         CacheHostDO cacheHost = CacheHostDO.fromApplicationHostDTO(applicationHostDTO);
         String hostIpKey = buildHostIpKey(applicationHostDTO);
         String hostIdKey = buildHostIdKey(applicationHostDTO);
-        redisTemplate.opsForValue().set(hostIpKey, cacheHost, 1, TimeUnit.DAYS);
-        redisTemplate.opsForValue().set(hostIdKey, cacheHost, 1, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(hostIpKey, cacheHost, EXPIRE_DAYS, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(hostIdKey, cacheHost, EXPIRE_DAYS, TimeUnit.DAYS);
     }
 
     /**
@@ -137,8 +147,33 @@ public class HostCache {
      *
      * @param hosts 主机列表
      */
-    public void addOrUpdateHosts(List<ApplicationHostDTO> hosts) {
-        hosts.forEach(this::addOrUpdateHost);
+    public void batchAddOrUpdateHosts(List<ApplicationHostDTO> hosts) {
+        if (CollectionUtils.isEmpty(hosts)) {
+            return;
+        }
+        if (hosts.size() == 1) {
+            addOrUpdateHost(hosts.get(0));
+            return;
+        }
+
+        long start = System.currentTimeMillis();
+        redisTemplate.executePipelined(new SessionCallback<Object>() {
+            @Override
+            public Object execute(@NotNull RedisOperations operations) throws DataAccessException {
+                hosts.forEach(host -> {
+                    CacheHostDO cacheHost = CacheHostDO.fromApplicationHostDTO(host);
+                    String hostIpKey = buildHostIpKey(host);
+                    String hostIdKey = buildHostIdKey(host);
+                    operations.opsForValue().set(hostIpKey, cacheHost, EXPIRE_DAYS, TimeUnit.DAYS);
+                    operations.opsForValue().set(hostIdKey, cacheHost, EXPIRE_DAYS, TimeUnit.DAYS);
+                });
+                return null;
+            }
+        });
+        long cost = System.currentTimeMillis() - start;
+        if (cost > 1000) {
+            log.info("BatchAddOrUpdateHosts slow, hostSize: {}, cost: {}", hosts.size(), cost);
+        }
     }
 
 
