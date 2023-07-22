@@ -23,6 +23,22 @@
  */
 
 rootProject.name = 'bk-job-backend'
+
+def assemblyMode = System.getProperty("assemblyMode")
+if (assemblyMode == null || assemblyMode.isEmpty()) {
+    assemblyMode = "binary,microservice"
+    println("Compile with default assembly mode: $assemblyMode")
+} else {
+    println("Compile with assembly mode: $assemblyMode")
+}
+String[] assemblyModeProps = assemblyMode.trim().split(",")
+// 是否容器化部署
+def k8sMode = assemblyModeProps.contains("k8s")
+// 是否微服务部署
+def msMode = assemblyModeProps.contains("microservice")
+ext.set("k8sMode", k8sMode)
+ext.set("msMode", msMode)
+
 include 'commons'
 include 'commons:artifactory-sdk'
 include 'commons:common'
@@ -60,7 +76,9 @@ include 'job-crontab:model-job-crontab'
 include 'job-execute'
 include 'job-execute:api-job-execute'
 include 'job-execute:service-job-execute'
-include 'job-execute:boot-job-execute'
+if (msMode) {
+    include 'job-execute:boot-job-execute'
+}
 include 'job-execute:model-job-execute'
 include 'job-logsvr'
 include 'job-logsvr:api-job-logsvr'
