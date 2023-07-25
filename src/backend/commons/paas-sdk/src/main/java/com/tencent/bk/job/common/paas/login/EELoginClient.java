@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
 import com.tencent.bk.job.common.paas.model.EsbUserDto;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.Tag;
@@ -40,6 +41,14 @@ import org.apache.http.client.methods.HttpGet;
 
 @Slf4j
 public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient {
+
+    // 用户认证失败，即用户登录态无效
+    private static final Integer ESB_CODE_USER_NOT_LOGIN = 1302100;
+    // 用户不存在
+    private static final Integer ESB_CODE_USER_NOT_EXIST = 1302103;
+    // 用户认证成功，但用户无应用访问权限
+    private static final Integer ESB_CODE_USER_NO_APP_PERMISSION = 1302403;
+
     private static final String API_GET_USER_INFO = "/api/c/compapi/v2/bk_login/get_user/";
 
     public EELoginClient(String esbHostUrl, String appCode, String appSecret, String lang) {
@@ -81,13 +90,30 @@ public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient 
                 new TypeReference<EsbResp<EsbUserDto>>() {
                 }
             );
-            return convertToBkUserDTO(esbResp.getData());
+            Integer code = esbResp.getCode();
+            if (ESB_CODE_OK.equals(code)) {
+                return convertToBkUserDTO(esbResp.getData());
+            } else {
+                handleNotOkResp(esbResp);
+                return null;
+            }
         } catch (Exception e) {
             String errorMsg = "Get " + API_GET_USER_INFO + " error";
             log.error(errorMsg, e);
             throw new InternalUserManageException(errorMsg, e, ErrorCode.USER_MANAGE_API_ACCESS_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
+    private void handleNotOkResp(EsbResp<EsbUserDto> esbResp) {
+        Integer code = esbResp.getCode();
+        if (ESB_CODE_USER_NO_APP_PERMISSION.equals(code)) {
+            throw new AppPermissionDeniedException(esbResp.getMessage());
+        } else if (ESB_CODE_USER_NOT_LOGIN.equals(code)) {
+            log.info("User not login, esbResp.code={}, esbResp.message={}", esbResp.getCode(), esbResp.getMessage());
+        } else if (ESB_CODE_USER_NOT_EXIST.equals(code)) {
+            log.info("User not exist, esbResp.code={}, esbResp.message={}", esbResp.getCode(), esbResp.getMessage());
         }
     }
 

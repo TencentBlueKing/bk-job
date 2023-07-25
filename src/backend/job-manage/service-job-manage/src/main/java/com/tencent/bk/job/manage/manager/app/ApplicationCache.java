@@ -57,13 +57,13 @@ import java.util.stream.Collectors;
 public class ApplicationCache {
 
     private final ApplicationDAO applicationDAO;
-    private final RedisTemplate<Object, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final String APP_HASH_KEY = "job:manage:apps";
     private final String SCOPE_HASH_KEY = "job:manage:scopes";
 
     @Autowired
     public ApplicationCache(ApplicationDAO applicationDAO,
-                            @Qualifier("jsonRedisTemplate") RedisTemplate<Object, Object> redisTemplate) {
+                            @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate) {
         this.applicationDAO = applicationDAO;
         this.redisTemplate = redisTemplate;
     }

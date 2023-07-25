@@ -46,6 +46,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.BLUEKING_LANG_HEADER;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 
 @Slf4j
@@ -95,6 +96,7 @@ public class RouteConfig {
 
             String tokenCookieName = loginService.getCookieNameForToken();
             List<String> cookieList = request.headers().header("cookie");
+            String lang = request.headers().firstHeader(BLUEKING_LANG_HEADER);
 
             List<String> bkTokenList = RequestUtil.getCookieValuesFromCookies(cookieList, tokenCookieName);
             if (CollectionUtils.isEmpty(bkTokenList)) {
@@ -107,7 +109,7 @@ public class RouteConfig {
             BkUserDTO user = null;
             // 遍历所有传入token找出当前环境的
             for (String bkToken : bkTokenList) {
-                user = loginService.getUser(bkToken);
+                user = loginService.getUser(bkToken, lang);
                 if (user != null) {
                     break;
                 }

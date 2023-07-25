@@ -58,7 +58,7 @@ public class Response<T> {
     @ApiModelProperty("错误信息")
     private String errorMsg;
 
-    @ApiModelProperty("请求成功返回的数据")
+    @ApiModelProperty("请求成功/失败返回的数据")
     private T data;
 
     @ApiModelProperty("请求 ID")

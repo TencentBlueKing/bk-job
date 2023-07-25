@@ -22,41 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.web.service;
+package com.tencent.bk.job.common.paas.exception;
 
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.error.ErrorType;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
- * 登录服务
+ * 应用权限不足异常
  */
-public interface LoginService {
-    /**
-     * 使用户失效
-     *
-     * @param bkToken 用户Token
-     */
-    void deleteUser(String bkToken);
+@Getter
+@ToString
+public class AppPermissionDeniedException extends ServiceException {
 
-    /**
-     * 根据token获取用户信息
-     *
-     * @param bkToken 用户token
-     * @param lang    语言
-     * @return 用户信息
-     */
-    BkUserDTO getUser(String bkToken, String lang);
+    // 源于用户管理接口：进一步的操作提示
+    private final String message;
 
-    /**
-     * 获取登录跳转url
-     *
-     * @return 登录跳转url
-     */
-    String getLoginRedirectUrl();
+    public AppPermissionDeniedException(String message) {
+        super(ErrorType.PERMISSION_DENIED, ErrorCode.USER_ACCESS_APP_FORBIDDEN);
+        this.message = message;
+    }
 
-    /**
-     * 获取token对应的cookie名称。默认使用bk_token
-     *
-     * @return cookie名称
-     */
-    String getCookieNameForToken();
+    public String getMessage() {
+        return message;
+    }
 }

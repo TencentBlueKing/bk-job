@@ -39,6 +39,10 @@ public class LocaleUtils {
     public static final String LANG_EN = "en";
     public static final String LANG_EN_US = "en_US";
     /**
+     * 蓝鲸通用的LANG HEADER
+     */
+    public static final String BLUEKING_LANG_HEADER = "blueking_language";
+    /**
      * 定义项目通用的LANG HEADER
      */
     public static final String COMMON_LANG_HEADER = "lang";
