@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.gse.v2;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.gse.config.GseV2Properties;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -38,9 +37,9 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "gseV2.enabled", havingValue = "true", matchIfMissing = true)
 public class GseV2AutoConfiguration {
 
-    @Bean("GseV2ApiClient")
+    @Bean("gseV2ApiClient")
     public GseV2ApiClient gseV2ApiClient(AppProperties appProperties,
-                                         ObjectProvider<BkApiGatewayProperties> bkApiGatewayPropertiesProvider) {
-        return new GseV2ApiClient(appProperties, bkApiGatewayPropertiesProvider.getIfAvailable());
+                                         BkApiGatewayProperties bkApiGatewayProperties) {
+        return new GseV2ApiClient(appProperties, bkApiGatewayProperties);
     }
 }
