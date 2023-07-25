@@ -38,10 +38,18 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 @Slf4j
 public class SdkClientConfig {
-    @Bean
+
+    @Bean(name = "enLoginClient")
     @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "true")
-    public ILoginClient innerLoginClient(@Autowired BkConfig bkConfig) {
-        log.info("Init custom login client");
+    public ILoginClient innerEnLoginClient(@Autowired BkConfig bkConfig) {
+        log.info("Init custom en login client");
+        return new CustomLoginClient(bkConfig.getCustomLoginApiUrl());
+    }
+
+    @Bean(name = "cnLoginClient")
+    @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "true")
+    public ILoginClient innerCnLoginClient(@Autowired BkConfig bkConfig) {
+        log.info("Init custom cn login client");
         return new CustomLoginClient(bkConfig.getCustomLoginApiUrl());
     }
 
