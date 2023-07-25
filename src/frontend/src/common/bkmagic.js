@@ -29,9 +29,13 @@ import {
   parseURL,
 } from '@utils/assist';
 
+import SystemPermission from '@views/system-permission.vue';
+
 import ApplyPermissionDialog from '@components/apply-permission/apply-dialog';
 
 import PassLogin from '@blueking/paas-login';
+
+import i18n from '@/i18n';
 
 // 全量引入
 import './fully-import';
@@ -136,6 +140,20 @@ export const permissionDialog = (authParams = {}, authResult = {}) => {
   permissionInstance.$nextTick(() => {
     document.body.appendChild(permissionInstance.$el);
   });
+};
+
+let systemPermissionInstance;
+export const systemPermission = (message, data) => {
+  if (!systemPermissionInstance) {
+    systemPermissionInstance = new Vue({
+      i18n,
+      render: h => h(SystemPermission, { attrs: { message, data } }),
+    }).$mount();
+
+    systemPermissionInstance.$nextTick(() => {
+      document.body.innerHTML = systemPermissionInstance.$el.outerHTML;
+    });
+  }
 };
 
 Vue.prototype.messageError = messageError;

@@ -1093,6 +1093,11 @@ public class WebScriptResourceImpl implements WebScriptResource {
             return Response.buildValidateFailResp(validateResult);
         }
 
+        if (CollectionUtils.isEmpty(req.getAddTagIdList()) && CollectionUtils.isEmpty(req.getDeleteTagIdList())) {
+            // do nothing
+            return Response.buildSuccessResp(true);
+        }
+
         boolean isPublicScript = appResourceScope == null;
         List<String> scriptIdList = req.getIdList();
         AuthResult authResult;
@@ -1130,12 +1135,6 @@ public class WebScriptResourceImpl implements WebScriptResource {
         if (CollectionUtils.isEmpty(req.getIdList())) {
             log.warn("ScriptTagBatchUpdateReq->idList is empty");
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "idList");
-        }
-
-        if (CollectionUtils.isEmpty(req.getAddTagIdList()) && CollectionUtils.isEmpty(req.getDeleteTagIdList())) {
-            log.warn("ScriptTagBatchUpdateReq->No script tags changed!");
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "addTagIdList|deleteTagIdList");
         }
         return ValidateResult.pass();
     }

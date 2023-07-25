@@ -48,6 +48,10 @@ import static com.tencent.bk.job.common.constant.HttpHeader.HDR_CONTENT_TYPE;
  * ESB API 调用基础实现
  */
 public abstract class AbstractEsbSdkClient {
+
+    // 请求成功
+    protected static final Integer ESB_CODE_OK = 0;
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.nonDefaultMapper();
@@ -150,6 +154,10 @@ public abstract class AbstractEsbSdkClient {
             }
 
             esbResp = JSON_MAPPER.fromJson(respStr, typeReference);
+            if (esbResp == null) {
+                log.warn("[AbstractEsbSdkClient] warn:esbResp is null after JSON parse, respStr={}", respStr);
+                throw new InternalException("Esb api resp unexpected, fail to parse json data", ErrorCode.API_ERROR);
+            }
             apiContext.setResp(esbResp);
             if (!esbResp.getResult()) {
                 log.warn(

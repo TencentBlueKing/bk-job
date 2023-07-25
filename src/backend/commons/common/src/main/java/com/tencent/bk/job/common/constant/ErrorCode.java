@@ -273,6 +273,8 @@ public class ErrorCode {
     // 用户服务 start
     // 用户不存在或者未登录
     public static final int USER_NOT_EXIST_OR_NOT_LOGIN_IN = 1247001;
+    // 用户认证成功，但用户无应用访问权限
+    public static final int USER_ACCESS_APP_FORBIDDEN = 1247403;
     // 用户服务 end
 
     // 业务网关 start

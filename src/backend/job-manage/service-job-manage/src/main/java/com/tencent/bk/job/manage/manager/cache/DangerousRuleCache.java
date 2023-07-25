@@ -25,12 +25,12 @@ public class DangerousRuleCache {
     public static final String DANGEROUS_RULE_HASH_KEY = "job:manage:dangerousRules";
     private final DSLContext dslContext;
     private final DangerousRuleDAO dangerousRuleDAO;
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     public DangerousRuleCache(DSLContext dslContext,
                               DangerousRuleDAO dangerousRuleDAO,
-                              @Qualifier("jsonRedisTemplate") RedisTemplate redisTemplate) {
+                              @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate) {
         this.dslContext = dslContext;
         this.dangerousRuleDAO = dangerousRuleDAO;
         this.redisTemplate = redisTemplate;
