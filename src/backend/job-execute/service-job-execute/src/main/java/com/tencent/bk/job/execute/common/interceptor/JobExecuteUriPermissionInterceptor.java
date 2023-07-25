@@ -22,14 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.interceptor;
+package com.tencent.bk.job.execute.common.interceptor;
 
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.AsyncHandlerInterceptor;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,32 +45,54 @@ import java.util.List;
  * Uri权限控制拦截
  */
 @Slf4j
-@Component("jobFileGatewayUriPermissionInterceptor")
-public class UriPermissionInterceptor implements AsyncHandlerInterceptor {
+@Component
+public class JobExecuteUriPermissionInterceptor extends HandlerInterceptorAdapter {
+    private final String URI_PATTERN_DANGEROUS_RECORD = "/web/dangerous-record/**";
+    private final AuthService authService;
+    private final PathMatcher pathMatcher;
 
     @Autowired
-    public UriPermissionInterceptor() {
+    public JobExecuteUriPermissionInterceptor(AuthService authService) {
+        this.authService = authService;
+        this.pathMatcher = new AntPathMatcher();
     }
 
-    public List<String> getControlUriPatternsList() {
-        return Collections.emptyList();
+    public String[] getControlUriPatterns() {
+        Object[] rawArr = getControlUriPatternsList().toArray();
+        String[] arr = new String[rawArr.length];
+        for (int i = 0; i < rawArr.length; i++) {
+            arr[i] = (String) rawArr[i];
+        }
+        return arr;
+    }
+
+    private List<String> getControlUriPatternsList() {
+        return Collections.singletonList(
+            // 高危语句拦截记录
+            URI_PATTERN_DANGEROUS_RECORD
+        );
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request,
-                             @NonNull HttpServletResponse response,
-                             @NonNull Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String username = JobContextUtil.getUsername();
         String uri = request.getRequestURI();
         log.info("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
             "controlUriPatterns=" + getControlUriPatternsList());
+        if (pathMatcher.match(URI_PATTERN_DANGEROUS_RECORD, uri)) {
+            AuthResult authResult = authService.auth(username, ActionId.HIGH_RISK_DETECT_RECORD);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
+            }
+        }
         return true;
     }
 
     @Override
-    public void afterCompletion(@NonNull HttpServletRequest request,
-                                @NonNull HttpServletResponse response,
-                                @NonNull Object handler,
+    public void afterCompletion(HttpServletRequest request,
+                                HttpServletResponse response,
+                                Object handler,
                                 Exception ex) {
+
     }
 }

@@ -39,7 +39,7 @@ dependencies {
     testImplementation("com.h2database:h2")
 }
 springBoot {
-    getMainClass().set("com.tencent.bk.job.assemble.JobAssembleBootApplication")
+    getMainClass().set("com.tencent.bk.job.boot.assemble.JobAssembleBootApplication")
     buildInfo()
 }
 task renameArtifacts(type: Copy) {

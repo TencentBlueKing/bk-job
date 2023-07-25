@@ -42,7 +42,8 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册拦截器
-        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
+        // 0-50 Job 通用拦截器
+        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
     }
 
 }

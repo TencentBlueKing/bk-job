@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.dao.notify.impl;
 
-import com.tencent.bk.job.common.RequestIdLogger;
-import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
@@ -41,6 +39,7 @@ import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.tables.NotifyTriggerPolicy;
 import com.tencent.bk.job.manage.model.tables.records.NotifyTriggerPolicyRecord;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
 import org.jooq.Condition;
@@ -49,7 +48,6 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
 import org.jooq.types.ULong;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -62,10 +60,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Repository
+@Slf4j
 public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
-
-    private static final RequestIdLogger logger =
-        new SimpleRequestIdLogger(LoggerFactory.getLogger(NotifyTriggerPolicyDAOImpl.class));
     private static final NotifyTriggerPolicy T_NOTIFY_TRIGGER_POLICY = NotifyTriggerPolicy.NOTIFY_TRIGGER_POLICY;
     private static final NotifyTriggerPolicy defaultTable = T_NOTIFY_TRIGGER_POLICY;
 
@@ -117,7 +113,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             assert record != null;
             return record.get(T_NOTIFY_TRIGGER_POLICY.ID);
         } catch (Exception e) {
-            logger.errorWithRequestId(sql);
+            log.error(sql);
             throw e;
         }
     }
@@ -156,14 +152,14 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             .fetch();
         if (records.isEmpty()) {
             if (!notifyConfigStatusDAO.exist(triggerUser, appId)) {
-                logger.warn(triggerUser + "未在业务(id=" + appId + ")下配置消息通知策略，采用业务无关通用默认策略");
+                log.warn(triggerUser + "未在业务(id=" + appId + ")下配置消息通知策略，采用业务无关通用默认策略");
                 records = dslContext.selectFrom(defaultTable)
                     .where(defaultTable.TRIGGER_USER.eq(NotifyConsts.DEFAULT_TRIGGER_USER))
                     .and(defaultTable.APP_ID.eq(NotifyConsts.DEFAULT_APP_ID))
                     .and(defaultTable.RESOURCE_ID.eq(resourceId))
                     .fetch();
                 if (records.isEmpty()) {
-                    logger.info("业务无关通用默认策略未配置");
+                    log.info("业务无关通用默认策略未配置");
                 }
             } else {
                 //已配置为不发送任何通知
@@ -264,7 +260,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
             }
         });
         if (currentTriggerTypeRecords.isEmpty()) {
-            logger.info(triggerType.getDefaultName() + " Default Policy not configed");
+            log.info(triggerType.getDefaultName() + " Default Policy not configed");
             //返回空数据
             return getEmptyTriggerPolicyVO(triggerType);
         }

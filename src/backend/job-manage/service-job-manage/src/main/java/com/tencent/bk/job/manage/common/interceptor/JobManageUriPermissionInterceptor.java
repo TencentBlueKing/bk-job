@@ -22,11 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.interceptor;
+package com.tencent.bk.job.manage.common.interceptor;
 
-import com.tencent.bk.job.analysis.consts.AnalysisConsts;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -47,14 +45,20 @@ import java.util.List;
  * Uri权限控制拦截
  */
 @Slf4j
-@Component("jobAnalysisUriPermissionInterceptor")
-public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
-    private final String URI_PATTERN_WEB_STATISTICS = "/web/statistics/**";
-    private AuthService authService;
-    private PathMatcher pathMatcher;
+@Component
+public class JobManageUriPermissionInterceptor extends HandlerInterceptorAdapter {
+    private final String URI_PATTERN_WHITE_IP = "/web/whiteIP/**";
+    private final String URI_PATTERN_NOTIFY_BLACKLIST = "/web/notify/users/blacklist";
+    private final String URI_PATTERN_GLOBAL_SETTINGS = "/web/globalSettings/**";
+    private final String URI_PATTERN_PUBLIC_SCRIPT = "/web/public_script/**";
+    private final String URI_PATTERN_PUBLIC_TAG = "/web/public_tag/**";
+    private final String URI_PATTERN_SERVICE_INFO = "/web/serviceInfo/**";
+    private final String URI_PATTERN_DANGEROUS_RULE = "/web/dangerousRule/**";
+    private final AuthService authService;
+    private final PathMatcher pathMatcher;
 
     @Autowired
-    public UriPermissionInterceptor(AuthService authService) {
+    public JobManageUriPermissionInterceptor(AuthService authService) {
         this.authService = authService;
         this.pathMatcher = new AntPathMatcher();
     }
@@ -70,26 +74,47 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
 
     private List<String> getControlUriPatternsList() {
         return Arrays.asList(
-            // 运营视图所有接口
-            URI_PATTERN_WEB_STATISTICS
+            //IP白名单
+            URI_PATTERN_WHITE_IP,
+            //通知黑名单
+            URI_PATTERN_NOTIFY_BLACKLIST,
+            //全局设置
+            URI_PATTERN_GLOBAL_SETTINGS,
+            // 公共脚本
+            URI_PATTERN_PUBLIC_SCRIPT,
+            // 公共标签
+            URI_PATTERN_PUBLIC_TAG,
+            // 服务状态
+            URI_PATTERN_SERVICE_INFO,
+            // 高危语句规则
+            URI_PATTERN_DANGEROUS_RULE
         );
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-        throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String username = JobContextUtil.getUsername();
         String uri = request.getRequestURI();
         log.info("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
             "controlUriPatterns=" + getControlUriPatternsList());
-        if (pathMatcher.match(URI_PATTERN_WEB_STATISTICS, uri)) {
-            AuthResult authResult = authService.auth(
-                username,
-                ActionId.DASHBOARD_VIEW,
-                ResourceTypeEnum.DASHBOARD_VIEW,
-                AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID,
-                null
-            );
+        //仅超级管理员可使用管理相关接口
+        if (pathMatcher.match(URI_PATTERN_NOTIFY_BLACKLIST, uri)) {
+            AuthResult authResult = authService.auth(username, ActionId.GLOBAL_SETTINGS);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
+            }
+        } else if (pathMatcher.match(URI_PATTERN_GLOBAL_SETTINGS, uri)) {
+            AuthResult authResult = authService.auth(username, ActionId.GLOBAL_SETTINGS);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
+            }
+        } else if (pathMatcher.match(URI_PATTERN_SERVICE_INFO, uri)) {
+            AuthResult authResult = authService.auth(username, ActionId.SERVICE_STATE_ACCESS);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
+            }
+        } else if (pathMatcher.match(URI_PATTERN_DANGEROUS_RULE, uri)) {
+            AuthResult authResult = authService.auth(username, ActionId.HIGH_RISK_DETECT_RULE);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
@@ -98,8 +123,9 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-        throws Exception {
+    public void afterCompletion(HttpServletRequest request,
+                                HttpServletResponse response,
+                                Object handler, Exception ex) {
 
     }
 }

@@ -24,19 +24,17 @@
 
 package com.tencent.bk.job.manage.dao.notify.impl;
 
-import com.tencent.bk.job.common.RequestIdLogger;
-import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.manage.dao.notify.NotifyPolicyRoleTargetDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyRoleTargetChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
 import com.tencent.bk.job.manage.model.tables.NotifyPolicyRoleTarget;
 import com.tencent.bk.job.manage.model.tables.records.NotifyPolicyRoleTargetRecord;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.conf.ParamType;
 import org.jooq.types.ULong;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -45,9 +43,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
+@Slf4j
 public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO {
-    private static final RequestIdLogger logger =
-        new SimpleRequestIdLogger(LoggerFactory.getLogger(NotifyPolicyRoleTargetDAOImpl.class));
     private static final NotifyPolicyRoleTarget T_NOTIFY_POLICY_ROLE_TARGET =
         NotifyPolicyRoleTarget.NOTIFY_POLICY_ROLE_TARGET;
     private static final NotifyPolicyRoleTarget defaultTable = T_NOTIFY_POLICY_ROLE_TARGET;
@@ -89,7 +86,7 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
             assert record != null;
             return record.get(T_NOTIFY_POLICY_ROLE_TARGET.ID);
         } catch (Exception e) {
-            logger.errorWithRequestId(sql);
+            log.error(sql);
             throw e;
         }
     }

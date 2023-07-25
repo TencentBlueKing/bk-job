@@ -22,17 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.interceptor;
+package com.tencent.bk.job.analysis.interceptor;
 
-import com.tencent.bk.job.common.RequestIdLogger;
+import com.tencent.bk.job.analysis.consts.AnalysisConsts;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
@@ -41,23 +40,21 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Uri权限控制拦截
  */
 @Slf4j
-@Component("jobExecuteUriPermissionInterceptor")
-public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
-    private static final RequestIdLogger logger =
-        new SimpleRequestIdLogger(LoggerFactory.getLogger(UriPermissionInterceptor.class));
-    private final String URI_PATTERN_DANGEROUS_RECORD = "/web/dangerous-record/**";
-    private final AuthService authService;
-    private final PathMatcher pathMatcher;
+@Component
+public class JobAnalysisUriPermissionInterceptor extends HandlerInterceptorAdapter {
+    private final String URI_PATTERN_WEB_STATISTICS = "/web/statistics/**";
+    private AuthService authService;
+    private PathMatcher pathMatcher;
 
     @Autowired
-    public UriPermissionInterceptor(AuthService authService) {
+    public JobAnalysisUriPermissionInterceptor(AuthService authService) {
         this.authService = authService;
         this.pathMatcher = new AntPathMatcher();
     }
@@ -72,9 +69,9 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
     }
 
     private List<String> getControlUriPatternsList() {
-        return Collections.singletonList(
-            // 高危语句拦截记录
-            URI_PATTERN_DANGEROUS_RECORD
+        return Arrays.asList(
+            // 运营视图所有接口
+            URI_PATTERN_WEB_STATISTICS
         );
     }
 
@@ -83,10 +80,16 @@ public class UriPermissionInterceptor extends HandlerInterceptorAdapter {
         throws Exception {
         String username = JobContextUtil.getUsername();
         String uri = request.getRequestURI();
-        logger.infoWithRequestId("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
+        log.info("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
             "controlUriPatterns=" + getControlUriPatternsList());
-        if (pathMatcher.match(URI_PATTERN_DANGEROUS_RECORD, uri)) {
-            AuthResult authResult = authService.auth(username, ActionId.HIGH_RISK_DETECT_RECORD);
+        if (pathMatcher.match(URI_PATTERN_WEB_STATISTICS, uri)) {
+            AuthResult authResult = authService.auth(
+                username,
+                ActionId.DASHBOARD_VIEW,
+                ResourceTypeEnum.DASHBOARD_VIEW,
+                AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID,
+                null
+            );
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }

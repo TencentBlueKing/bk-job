@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({GseV2Properties.class})
-@ConditionalOnProperty(name = "gse-v2.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "gseV2.enabled", havingValue = "true", matchIfMissing = true)
 public class GseV2AutoConfiguration {
 
     @Bean("GseV2ApiClient")

@@ -25,15 +25,17 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
+import com.tencent.bk.job.common.web.interceptor.AppResourceScopeInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * @since 6/11/2019 10:38
+ * 拦截器配置
  */
 @Configuration
 public class InterceptorConfiguration implements WebMvcConfigurer {
@@ -41,23 +43,36 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     private final JobCommonInterceptor jobCommonInterceptor;
     private final AuthAppInterceptor authAppInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
+    private AppResourceScopeInterceptor appResourceScopeInterceptor;
 
     @Autowired
     public InterceptorConfiguration(
         JobCommonInterceptor jobCommonInterceptor,
         AuthAppInterceptor authAppInterceptor,
-        ServiceSecurityInterceptor serviceSecurityInterceptor
-    ) {
+        ServiceSecurityInterceptor serviceSecurityInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
         this.authAppInterceptor = authAppInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
     }
 
+    /**
+     * Setter 注入，懒加载，避免引起循环依赖问题
+     */
+    @Autowired
+    @Lazy
+    public void setAppResourceScopeInterceptor(AppResourceScopeInterceptor appResourceScopeInterceptor) {
+        this.appResourceScopeInterceptor = appResourceScopeInterceptor;
+    }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册拦截器
-        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
-        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(10);
-        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(30);
+        // 0-50 Job 通用拦截器
+        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(0);
+        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
+        // 51-100 Job 业务相关拦截器
+        registry.addInterceptor(appResourceScopeInterceptor).addPathPatterns("/**").order(51);
+
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(61);
     }
 }

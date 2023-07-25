@@ -26,38 +26,54 @@ package com.tencent.bk.job.crontab.config;
 
 import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
 import com.tencent.bk.job.common.iam.interceptor.JobIamInterceptor;
+import com.tencent.bk.job.common.web.interceptor.AppResourceScopeInterceptor;
+import com.tencent.bk.job.common.web.interceptor.CustomTimedMetricsInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * @since 6/11/2019 10:38
+ * 拦截器配置
  */
 @Configuration
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
+    private final CustomTimedMetricsInterceptor customTimedMetricsInterceptor;
     private final AuthAppInterceptor authAppInterceptor;
     private final EsbApiLogInterceptor esbApiLogInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
     private final JobIamInterceptor iamInterceptor;
     private final EsbReqRewriteInterceptor esbReqRewriteInterceptor;
 
+    private AppResourceScopeInterceptor appResourceScopeInterceptor;
+
+    /**
+     * Setter 注入，懒加载，避免引起循环依赖问题
+     */
+    @Autowired
+    @Lazy
+    public void setAppResourceScopeInterceptor(AppResourceScopeInterceptor appResourceScopeInterceptor) {
+        this.appResourceScopeInterceptor = appResourceScopeInterceptor;
+    }
+
     @Autowired
     public InterceptorConfiguration(
         JobCommonInterceptor jobCommonInterceptor,
+        CustomTimedMetricsInterceptor customTimedMetricsInterceptor,
         AuthAppInterceptor authAppInterceptor,
         EsbApiLogInterceptor esbApiLogInterceptor,
         ServiceSecurityInterceptor serviceSecurityInterceptor,
         JobIamInterceptor iamInterceptor,
-        EsbReqRewriteInterceptor esbReqRewriteInterceptor
-    ) {
+        EsbReqRewriteInterceptor esbReqRewriteInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
+        this.customTimedMetricsInterceptor = customTimedMetricsInterceptor;
         this.authAppInterceptor = authAppInterceptor;
         this.esbApiLogInterceptor = esbApiLogInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
@@ -68,12 +84,17 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册拦截器
-        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
-        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(10);
-        registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(30);
+        // 0-50 Job 通用拦截器
+        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(0);
+        registry.addInterceptor(customTimedMetricsInterceptor).addPathPatterns("/**").order(10);
+        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
         registry.addInterceptor(esbApiLogInterceptor).addPathPatterns("/esb/api/**").order(40);
         registry.addInterceptor(esbReqRewriteInterceptor).addPathPatterns("/esb/api/**").order(50);
-        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(60);
+        // 51-100 Job 业务相关拦截器
+        registry.addInterceptor(appResourceScopeInterceptor).addPathPatterns("/**").order(51);
+
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(61);
+        registry.addInterceptor(iamInterceptor).addPathPatterns("/iam/api/v1/resources/**").order(62);
     }
 
 }

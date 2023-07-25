@@ -34,7 +34,7 @@ dependencies {
     api 'org.springframework.cloud:spring-cloud-loadbalancer'
     api 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
     api 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
-    if (ext.k8sMode) {
+    if (rootProject.ext.k8sMode) {
         println("Compile module[common-service] with kubernetes mode")
         api project(":commons:common-k8s")
         api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'

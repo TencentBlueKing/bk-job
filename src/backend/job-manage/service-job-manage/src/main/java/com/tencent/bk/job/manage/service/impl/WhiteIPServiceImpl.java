@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.google.common.collect.Lists;
-import com.tencent.bk.job.common.RequestIdLogger;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
@@ -45,7 +44,6 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.LogUtil;
-import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -72,7 +70,6 @@ import lombok.val;
 import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -90,9 +87,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class WhiteIPServiceImpl implements WhiteIPService {
-
-    private static final RequestIdLogger LOG =
-        new SimpleRequestIdLogger(LoggerFactory.getLogger(WhiteIPServiceImpl.class));
     private static final String SEPERATOR_COMMA = ",";
     private static final String SEPERATOR_ENTER = "\n";
     private final MessageI18nService i18nService;
@@ -156,7 +150,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         String orderField,
         Integer order
     ) {
-        LOG.infoWithRequestId(
+        log.info(
             LogUtil.getInputLog(
                 username, ipStr, appIdStr,
                 actionScopeIdStr, lastModifyUser, start,
@@ -208,7 +202,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             total,
             whiteIPRecordList
         );
-        LOG.infoWithRequestId(
+        log.info(
             "Output:whiteIPRecordPageData("
                 + start
                 + "," + pageSize
@@ -446,7 +440,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
-        LOG.infoWithRequestId("Input(" + username + "," + createUpdateReq.toString() + ")");
+        log.info("Input(" + username + "," + createUpdateReq.toString() + ")");
         // 1.参数校验、预处理
         List<String> ipv4List = checkReqAndGetIpList(createUpdateReq);
         List<HostIdWithMeta> hostList = createUpdateReq.getHostList();
@@ -492,7 +486,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                 username,
                 System.currentTimeMillis()
             ));
-            LOG.infoWithRequestId("insert success,recordId=" + recordId);
+            log.info("insert success,recordId=" + recordId);
         }
         return recordId;
     }
@@ -505,7 +499,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public WhiteIPRecordVO getWhiteIPDetailById(String username, Long id) {
-        LOG.infoWithRequestId("Input(" + username + "," + id + ")");
+        log.info("Input(" + username + "," + id + ")");
         val record = whiteIPRecordDAO.getWhiteIPRecordById(id);
         Long cloudAreaId = null;
         if (record.getIpList().size() > 0) {
@@ -542,7 +536,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public List<CloudAreaInfoVO> listCloudAreas(String username) {
-        LOG.infoWithRequestId("Input(" + username + ")");
+        log.info("Input(" + username + ")");
         List<CcCloudAreaInfoDTO> cloudAreaInfoList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
             .getCloudAreaList();
         return cloudAreaInfoList.stream().map(it ->

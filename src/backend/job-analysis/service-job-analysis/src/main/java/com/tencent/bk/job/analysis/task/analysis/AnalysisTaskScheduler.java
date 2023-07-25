@@ -85,7 +85,6 @@ public class AnalysisTaskScheduler {
         List<String> beanNames = Arrays.asList(context.getBeanDefinitionNames());
         beanNames.forEach(beanName -> {
             Object bean = context.getBean(beanName);
-            log.info("check " + beanName);
             if (bean instanceof IAnalysisTask) {
                 log.info("add " + beanName);
                 IAnalysisTask taskBean = (IAnalysisTask) bean;

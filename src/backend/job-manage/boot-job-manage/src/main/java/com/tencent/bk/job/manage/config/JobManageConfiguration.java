@@ -22,15 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.manage.config;
 
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.web.interceptor.AppResourceScopeInterceptor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class JobExecuteAutoConfiguration {
+public class JobManageConfiguration {
 
-//    @Bean
-//    AppScopeMappingService appScopeMappingService(ServiceApplicationResource applicationResource) {
-//        return new AppScopeMappingServiceImpl(applicationResource);
-//    }
+    @Bean
+    public AppResourceScopeInterceptor appResourceScopeInterceptor(AppScopeMappingService appScopeMappingService) {
+        return new AppResourceScopeInterceptor(appScopeMappingService);
+    }
 }

@@ -24,43 +24,63 @@
 
 package com.tencent.bk.job.analysis.config;
 
-import com.tencent.bk.job.analysis.interceptor.UriPermissionInterceptor;
+import com.tencent.bk.job.analysis.interceptor.JobAnalysisUriPermissionInterceptor;
 import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;
+import com.tencent.bk.job.common.web.interceptor.AppResourceScopeInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * 拦截器配置
+ */
 @Configuration
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
     private final JobCommonInterceptor jobCommonInterceptor;
     private final AuthAppInterceptor authAppInterceptor;
     private final ServiceSecurityInterceptor serviceSecurityInterceptor;
-    private final UriPermissionInterceptor uriPermissionInterceptor;
+    private final JobAnalysisUriPermissionInterceptor jobAnalysisUriPermissionInterceptor;
+    private AppResourceScopeInterceptor appResourceScopeInterceptor;
+
+    /**
+     * Setter 注入，懒加载，避免引起循环依赖问题
+     */
+    @Autowired
+    @Lazy
+    public void setAppResourceScopeInterceptor(AppResourceScopeInterceptor appResourceScopeInterceptor) {
+        this.appResourceScopeInterceptor = appResourceScopeInterceptor;
+    }
 
     @Autowired
     public InterceptorConfiguration(
         JobCommonInterceptor jobCommonInterceptor,
         AuthAppInterceptor authAppInterceptor,
         ServiceSecurityInterceptor serviceSecurityInterceptor,
-        UriPermissionInterceptor uriPermissionInterceptor
-    ) {
+        JobAnalysisUriPermissionInterceptor jobAnalysisUriPermissionInterceptor) {
         this.jobCommonInterceptor = jobCommonInterceptor;
         this.authAppInterceptor = authAppInterceptor;
         this.serviceSecurityInterceptor = serviceSecurityInterceptor;
-        this.uriPermissionInterceptor = uriPermissionInterceptor;
+        this.jobAnalysisUriPermissionInterceptor = jobAnalysisUriPermissionInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册拦截器
-        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(0);
-        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(10);
-        registry.addInterceptor(uriPermissionInterceptor)
-            .addPathPatterns(uriPermissionInterceptor.getControlUriPatterns()).order(30);
-        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(40);
+        // 0-50 Job 通用拦截器
+        registry.addInterceptor(jobCommonInterceptor).addPathPatterns("/**").order(0);
+        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
+        // 51-100 Job 业务相关拦截器
+        registry.addInterceptor(appResourceScopeInterceptor).addPathPatterns("/**").order(51);
+
+        registry.addInterceptor(authAppInterceptor).addPathPatterns("/web/**", "/esb/api/**").order(61);
+        registry.addInterceptor(jobAnalysisUriPermissionInterceptor)
+            .addPathPatterns(
+                jobAnalysisUriPermissionInterceptor.getControlUriPatterns()
+            ).order(65);
     }
 }
