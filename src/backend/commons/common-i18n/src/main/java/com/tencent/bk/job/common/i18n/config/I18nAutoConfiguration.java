@@ -40,7 +40,7 @@ public class I18nAutoConfiguration {
     @Bean("messageSource")
     public ReloadableResourceBundleMessageSource messageSource() {
         MultiReloadableResourceBundleMessageSource messageSource = new MultiReloadableResourceBundleMessageSource();
-        messageSource.addBasenames("classpath:i18n/message", "classpath*:i18n/exception/message",
+        messageSource.addBasenames("classpath*:i18n/message", "classpath*:i18n/exception/message",
             "classpath*:i18n/common/message", "classpath*:i18n/validation/ValidationMessages");
         messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
         return messageSource;
