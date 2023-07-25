@@ -33,10 +33,18 @@ class TimeTask extends ModuleBase {
     this.module = '/job-crontab/web';
   }
 
+  create(params = {}) {
+    return Request.post(`${this.path}/cron/job`, { params });
+  }
+
   // 新增/更新定时任务
   update(params) {
-    const { id } = params;
-    return Request.put(`${this.path}/cron/job/${id}`, { params });
+    const realParams = { ...params };
+    delete realParams.id;
+
+    return Request.put(`${this.path}/cron/job/${params.id}`, {
+      params: realParams,
+    });
   }
 
   // 获取定时任务信息

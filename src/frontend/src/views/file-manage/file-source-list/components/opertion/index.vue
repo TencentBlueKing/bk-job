@@ -508,13 +508,13 @@
             });
 
             if (params.id < 0) {
-              return FileSourceManageService.addSource(params)
+              return FileSourceManageService.create(params)
                 .then(() => {
                   this.messageSuccess(I18n.t('file.创建成功'));
                   this.$emit('on-change');
                 });
             }
-            return FileSourceManageService.updateSource(params)
+            return FileSourceManageService.update(params)
               .then(() => {
                 this.messageSuccess(I18n.t('file.更新成功'));
                 this.$emit('on-change');

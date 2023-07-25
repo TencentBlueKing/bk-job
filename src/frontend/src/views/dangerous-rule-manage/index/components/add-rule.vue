@@ -145,8 +145,7 @@
        */
       submit() {
         return this.$refs.form.validate()
-          .then(() => DangerousRuleService.update({
-            id: -1,
+          .then(() => DangerousRuleService.create({
             ...this.formData,
           }).then(() => {
             this.messageSuccess(I18n.t('dangerousRule.新增成功'));

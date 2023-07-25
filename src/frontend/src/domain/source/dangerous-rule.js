@@ -38,9 +38,19 @@ class DangerousRule {
     });
   }
 
+  // 新增
+  create(params = {}) {
+    return Request.post(`${this.module}`, {
+      params,
+    });
+  }
+
   // 添加/修改高危语句规则
   update(params = {}) {
-    return Request.post(`${this.module}`, {
+    const realParams = { ...params };
+    delete realParams.id;
+
+    return Request.put(`${this.module}/${params.id}`, {
       params,
     });
   }

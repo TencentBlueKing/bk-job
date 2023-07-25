@@ -77,6 +77,9 @@ export default {
   planSyncInfo(params) {
     return TaskPlanSource.updateSyncInfo(params);
   },
+  create(params) {
+    return TaskPlanSource.create(params).then(({ data }) => data);
+  },
   planUpdate(params) {
     return TaskPlanSource.update(params).then(({ data }) => data);
   },

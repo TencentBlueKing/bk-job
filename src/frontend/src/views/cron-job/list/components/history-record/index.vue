@@ -73,8 +73,8 @@
   </div>
 </template>
 <script>
+  import CronJobService from '@service/cron-job';
   import TaskExecuteService from '@service/task-execute';
-  import TimeTaskService from '@service/time-task';
 
   import LaunchList from './launch-list';
   import UnlaunchList from './unlaunch-list';
@@ -127,7 +127,7 @@
           .finally(() => {
             this.isLaunchLoading = false;
           });
-        TimeTaskService.fetchUnlaunchHistory({
+        CronJobService.fetchUnlaunchHistory({
           cronTaskId: this.data.id,
           start: 0,
           pageSize: 1,
@@ -170,7 +170,7 @@
         align-items: center;
 
         &.active {
-          color: ##313238;
+          color: #313238;
           background: #fff;
           border-color: #dcdee5;
 

@@ -56,6 +56,13 @@ class TaskPlan extends ModuleBase {
     });
   }
 
+  // 新建执行方案
+  create(params = {}) {
+    return Request.post(`${this.path}/task/plan/${params.templateId}`, {
+      params,
+    });
+  }
+
   // 更新执行方案
   update(params = {}) {
     const realParams = { ...params };
