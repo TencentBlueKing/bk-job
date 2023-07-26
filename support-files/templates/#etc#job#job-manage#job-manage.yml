@@ -91,4 +91,7 @@ notify:
   default:
     channels:
       available: mail
+      
+server:
+  port: __BK_JOB_MANAGE_SERVER_PORT__
 

@@ -27,7 +27,7 @@ spring:
       idle-timeout: 600000
       poolName: "job-backup"
       validationTimeout: 5000
-    job-execute-db:
+    job-execute:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
       type: com.zaxxer.hikari.HikariDataSource
       jdbc-url: jdbc:otel:mysql://__BK_JOB_EXECUTE_MYSQL_HOST__:__BK_JOB_EXECUTE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
@@ -36,7 +36,7 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 2
       idle-timeout: 6000
-      poolName: "job-execute-db"
+      poolName: "job-execute"
       validationTimeout: 5000
     # 执行数据归档DB配置，若需开启数据归档请去除注释并添加相应环境变量进行配置
     #job-execute-archive:
@@ -112,5 +112,7 @@ job:
         keep_days: 365
       delete:
         enabled: false
+server:
+  port: __BK_JOB_BACKUP_SERVER_PORT__
 
 

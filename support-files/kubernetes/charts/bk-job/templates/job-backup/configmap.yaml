@@ -47,7 +47,7 @@ data:
           idle-timeout: 600000
           poolName: "job-backup"
           validationTimeout: 5000
-        job-execute-db:
+        job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
           jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ include "job.mariadb.connection.properties" . }}
@@ -60,7 +60,7 @@ data:
           maximum-pool-size: 10
           minimum-idle: 2
           idle-timeout: 6000
-          poolName: "job-execute-db"
+          poolName: "job-execute"
           validationTimeout: 5000
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -108,10 +108,10 @@ data:
           repo: {{ .Values.backupConfig.artifactory.repo }}
       execute:
         archive:
-          enabled: true
+          enabled: false
           cron: 0 0 4 * * *
           data:
-            keep_days: 30
+            keep_days: 365
           delete:
-            enabled: true
+            enabled: false
 {{- end }}

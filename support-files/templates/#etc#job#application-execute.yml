@@ -25,6 +25,3 @@ spring:
       password: __BK_JOB_SECURITY_PASSWORD__
       enabled: true
       fail-fast: true
-
-server:
-  port: __BK_JOB_EXECUTE_SERVER_PORT__

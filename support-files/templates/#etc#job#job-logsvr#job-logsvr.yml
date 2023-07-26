@@ -25,3 +25,6 @@ job:
     mongodb:
       shard:
         enabled: false
+        
+server:
+  port: __BK_JOB_LOGSVR_SERVER_PORT__

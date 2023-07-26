@@ -59,7 +59,10 @@ gse:
       num: 5
     batchSize: 5000
   script:
-    rootPath: "/tmp/bkjob"    
+    rootPath: "/tmp/bkjob"   
+gseV2:
+  # 是否初始化 GSE2.0 Client
+  enabled: true 
 iam:
   base-url: __BK_IAM_PRIVATE_URL__
   system-id: bk_job

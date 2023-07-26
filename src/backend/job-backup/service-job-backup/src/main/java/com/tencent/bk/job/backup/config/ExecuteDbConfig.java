@@ -44,22 +44,22 @@ public class ExecuteDbConfig {
 
     @Qualifier("job-execute-source")
     @Bean(name = "job-execute-source")
-    @ConfigurationProperties(prefix = "spring.datasource.job-execute-db")
-    @ConditionalOnProperty("spring.datasource.job-execute-db.jdbc-url")
+    @ConfigurationProperties(prefix = "spring.datasource.job-execute")
+    @ConditionalOnProperty("spring.datasource.job-execute.jdbc-url")
     public DataSource executeDataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Qualifier("job-execute-dsl-context")
     @Bean(name = "job-execute-dsl-context")
-    @ConditionalOnProperty("spring.datasource.job-execute-db.jdbc-url")
+    @ConditionalOnProperty("spring.datasource.job-execute.jdbc-url")
     public DSLContext executeDslContext(@Qualifier("job-execute-jooq-conf") org.jooq.Configuration configuration) {
         return new DefaultDSLContext(configuration);
     }
 
     @Qualifier("job-execute-jooq-conf")
     @Bean(name = "job-execute-jooq-conf")
-    @ConditionalOnProperty("spring.datasource.job-execute-db.jdbc-url")
+    @ConditionalOnProperty("spring.datasource.job-execute.jdbc-url")
     public org.jooq.Configuration
     executeJooqConf(@Qualifier("job-execute-conn-provider") ConnectionProvider connectionProvider) {
         return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
@@ -67,7 +67,7 @@ public class ExecuteDbConfig {
 
     @Qualifier("job-execute-conn-provider")
     @Bean(name = "job-execute-conn-provider")
-    @ConditionalOnProperty("spring.datasource.job-execute-db.jdbc-url")
+    @ConditionalOnProperty("spring.datasource.job-execute.jdbc-url")
     public ConnectionProvider executeConnectionProvider(@Qualifier("job-execute-source") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);
     }

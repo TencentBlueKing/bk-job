@@ -209,3 +209,6 @@ log-export:
   # artifactory:
   #   # 存储执行日志导出临时文件的仓库名称
   #   repo: filedata
+  
+server:
+  port: __BK_JOB_EXECUTE_SERVER_PORT__

@@ -72,3 +72,6 @@ feign:
         connectTimeout: 5000
         readTimeout: 300000
 
+server:
+  port: __BK_JOB_ANALYSIS_SERVER_PORT__
+

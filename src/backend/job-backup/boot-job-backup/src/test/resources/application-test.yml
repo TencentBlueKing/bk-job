@@ -17,7 +17,7 @@ spring:
       idle-timeout: 600000
       poolName: "job-backup"
       validationTimeout: 5000
-    job-execute-db:
+    job-execute:
       driver-class-name: com.mysql.cj.jdbc.Driver
       type: com.zaxxer.hikari.HikariDataSource
       jdbc-url: ${job.execute.db.dr.url:}
@@ -26,7 +26,7 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 2
       idle-timeout: 6000
-      poolName: "job-execute-db"
+      poolName: "job-execute"
       validationTimeout: 5000
     job-execute-archive:
       driver-class-name: com.mysql.cj.jdbc.Driver
