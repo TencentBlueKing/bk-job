@@ -177,7 +177,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Long saveCronJobInfo(CronJobInfoDTO cronJobInfo) {
         checkCronJobPlanOrScript(cronJobInfo);
         saveSnapShotForHostVaiableValue(cronJobInfo);
@@ -307,7 +307,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Boolean changeCronJobEnableStatus(String username, Long appId, Long cronJobId, Boolean enable) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         cronJobInfo.setAppId(appId);
@@ -346,7 +346,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Boolean disableExpiredCronJob(Long appId, Long cronJobId, String lastModifyUser, Long lastModifyTime) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         cronJobInfo.setAppId(appId);
@@ -402,7 +402,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Error.class, Exception.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Error.class, Exception.class})
     public Boolean addInnerJob(ServiceAddInnerCronJobRequestDTO request) {
         if (!request.validate()) {
             return false;
@@ -494,7 +494,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Boolean batchUpdateCronJob(Long appId, BatchUpdateCronJobReq batchUpdateCronJobReq) {
         if (batchUpdateCronJobReq != null) {
             if (CollectionUtils.isNotEmpty(batchUpdateCronJobReq.getCronJobInfoList())) {

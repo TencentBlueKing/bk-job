@@ -71,7 +71,7 @@ public class FileWorkerServiceImpl implements FileWorkerService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = Throwable.class)
     public Long heartBeat(FileWorkerDTO fileWorkerDTO) {
         Long id;
         String configStr = fileWorkerDTO.getConfigStr();

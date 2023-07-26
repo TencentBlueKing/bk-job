@@ -99,7 +99,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
     }
 
     @Override
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
     public InternalResponse<Pair<String, Long>> createScriptWithVersionId(String username, Long createTime,
                                                                           Long lastModifyTime, String lastModifyUser,
                                                                           Integer scriptStatus, Long appId,

@@ -359,7 +359,7 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public Pair<String, Long> createScriptWithVersionId(
         String operator,
         Long appId,
@@ -477,7 +477,7 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public void deleteScriptVersion(String operator, Long appId, Long scriptVersionId) throws ServiceException {
         ScriptDTO existScript = scriptDAO.getScriptVersionById(scriptVersionId);
         checkDeleteScriptPermission(appId, existScript);
@@ -496,7 +496,7 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public void deleteScript(String operator, Long appId, String scriptId) throws ServiceException {
         ScriptDTO existScript = getScript(operator, appId, scriptId);
         checkDeleteScriptPermission(appId, existScript);
@@ -964,7 +964,7 @@ public class ScriptServiceImpl implements ScriptService {
         }
     }
 
-    @Transactional(rollbackFor = {Throwable.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class, Error.class})
     public boolean updateTemplateRefScript(long appId, long templateId, long stepId, long syncScriptVersionId) {
         boolean success = taskScriptStepDAO.updateScriptStepRefScriptVersionId(
             templateId,

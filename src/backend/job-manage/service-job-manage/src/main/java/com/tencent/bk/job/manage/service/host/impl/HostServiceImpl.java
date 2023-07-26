@@ -234,7 +234,7 @@ public class HostServiceImpl implements HostService {
         return updateCount;
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
         try {

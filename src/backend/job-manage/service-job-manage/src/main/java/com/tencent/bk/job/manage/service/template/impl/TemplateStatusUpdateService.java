@@ -150,7 +150,7 @@ public class TemplateStatusUpdateService {
         }
     }
 
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public void processTemplateStatus(ULong templateId) {
         Result<Record2<ULong, ULong>> records =
             context.select(STEP_SCRIPT_TABLE.ID, STEP_SCRIPT_TABLE.SCRIPT_VERSION_ID).from(STEP_SCRIPT_TABLE)
@@ -226,7 +226,7 @@ public class TemplateStatusUpdateService {
         }
     }
 
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public void updateTemplateStatus(ULong templateId, int scriptStatus) {
         taskTemplateDAO.updateTemplateStatus(templateId, scriptStatus);
     }

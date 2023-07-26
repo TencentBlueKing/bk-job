@@ -139,7 +139,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
         }
     }
 
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public void saveDefaultNotifyChannelsToDb(List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
         if (!globalSettingsService.isNotifyChannelConfiged()) {
             globalSettingsService.setNotifyChannelConfiged();

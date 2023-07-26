@@ -142,7 +142,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @SuppressWarnings("all")
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public Long insertWhiteIPRecord(WhiteIPRecordDTO whiteIPRecordDTO) {
         //插入Record表
@@ -194,7 +194,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return recordId;
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int deleteWhiteIPRecordById(Long id) {
         //删关联表
@@ -435,7 +435,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return query.fetchOne(0, Long.class);
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int updateWhiteIPRecordById(WhiteIPRecordDTO whiteIPRecordDTO) {
         //更新Record表

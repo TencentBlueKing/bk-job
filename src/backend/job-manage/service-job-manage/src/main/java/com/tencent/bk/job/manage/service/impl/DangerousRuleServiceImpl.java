@@ -88,7 +88,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public Integer moveDangerousRule(String username, MoveDangerousRuleReq req) {
         int dir = req.getDir();
         DangerousRuleDTO currentRuleDTO = dangerousRuleDAO.getDangerousRuleById(req.getId());
@@ -144,7 +144,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public Integer deleteDangerousRuleById(String username, Long id) {
         DangerousRuleDTO existDangerousRuleDTO = dangerousRuleDAO.getDangerousRuleById(id);
         if (existDangerousRuleDTO == null) {

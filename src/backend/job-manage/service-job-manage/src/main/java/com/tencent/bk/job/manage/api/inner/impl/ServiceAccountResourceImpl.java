@@ -135,7 +135,7 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     }
 
     @Override
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
     public InternalResponse<ServiceAccountDTO> saveOrGetAccount(String username, Long createTime, Long lastModifyTime,
                                                                 String lastModifyUser, Long appId,
                                                                 AccountCreateUpdateReq accountCreateUpdateReq) {

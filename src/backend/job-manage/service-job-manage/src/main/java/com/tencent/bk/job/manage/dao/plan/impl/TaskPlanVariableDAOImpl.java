@@ -208,7 +208,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public boolean updateVariableByName(TaskVariableDTO variable) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.PLAN_ID.equal(ULong.valueOf(variable.getPlanId())));

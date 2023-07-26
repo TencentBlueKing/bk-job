@@ -60,7 +60,7 @@ public class UserCustomSettingDAO {
         this.dslContext = dslContext;
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     public int batchSave(List<UserCustomSettingDTO> customSettingList) {
         List<String> keyList = extractKeyList(customSettingList);
         Set<String> existKeys = new HashSet<>(listExistKeys(keyList));

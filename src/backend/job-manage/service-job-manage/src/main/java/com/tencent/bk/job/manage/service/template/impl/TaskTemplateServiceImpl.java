@@ -303,7 +303,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(rollbackFor = ServiceException.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = ServiceException.class)
     public Long saveTaskTemplate(TaskTemplateInfoDTO taskTemplateInfo) {
         String lockKey = null;
         try {
@@ -484,7 +484,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     public Boolean deleteTaskTemplate(Long appId, Long templateId) {
         List<TaskPlanInfoDTO> taskPlanInfoList = taskPlanService.listTaskPlansBasicInfo(appId, templateId);
         if (CollectionUtils.isNotEmpty(taskPlanInfoList)) {
@@ -606,7 +606,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public Long saveTaskTemplateForMigration(
         TaskTemplateInfoDTO taskTemplateInfo,
         Long createTime,

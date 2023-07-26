@@ -982,7 +982,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum;
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int deleteHostBeforeLastTime(Long bizId, Long hostId, Long lastTime) {
         int affectedNum;
@@ -1003,7 +1003,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum;
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int batchDeleteHostById(List<Long> hostIdList) {
         if (CollectionUtils.isEmpty(hostIdList)) {
@@ -1020,7 +1020,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .execute();
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int batchDeleteBizHostInfoById(Long bizId, List<Long> hostIdList) {
         int affectedNum = 0;

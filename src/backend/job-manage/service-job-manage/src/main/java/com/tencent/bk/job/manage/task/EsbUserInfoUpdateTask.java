@@ -153,7 +153,7 @@ public class EsbUserInfoUpdateTask {
         return true;
     }
 
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public void saveEsbUserInfos(Set<EsbUserInfoDTO> deleteSet, Set<EsbUserInfoDTO> insertSet) {
         deleteSet.forEach(esbUserInfoDTO -> esbUserInfoDAO.deleteEsbUserInfoById(
             esbUserInfoDTO.getId()));

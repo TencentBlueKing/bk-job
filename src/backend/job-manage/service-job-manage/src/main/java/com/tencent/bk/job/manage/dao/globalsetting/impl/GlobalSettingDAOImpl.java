@@ -52,7 +52,7 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public int upsertGlobalSetting(GlobalSettingDTO globalSettingDTO) {
         AtomicInteger affectedNum = new AtomicInteger(0);
         deleteGlobalSetting(globalSettingDTO.getKey());

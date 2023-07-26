@@ -257,7 +257,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     public Long saveAppDefaultNotifyPoliciesToLocal(String operator, Long appId, String triggerUser,
                                                     NotifyPoliciesCreateUpdateReq createUpdateReq) {
         val policyList = createUpdateReq.getTriggerPoliciesList();
@@ -384,7 +384,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
         List<String> channelCodeList =
             Arrays.asList(req.getChannelCodeStr().trim().split(NotifyConsts.SEPERATOR_COMMA));

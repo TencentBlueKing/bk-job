@@ -442,7 +442,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        @Transactional(rollbackFor = {Throwable.class})
+        @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
         public void updateTaskTargets(List<TaskTargetRecord> records) {
             if (CollectionUtils.isEmpty(records)) {
                 return;
@@ -648,7 +648,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        @Transactional(rollbackFor = {Throwable.class})
+        @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
         public void updateTaskTargets(List<TaskTargetRecord> records) {
             if (CollectionUtils.isEmpty(records)) {
                 return;
