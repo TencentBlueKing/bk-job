@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.encrypt.Encryptor;
+import com.tencent.bk.job.common.crypto.Encryptor;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;

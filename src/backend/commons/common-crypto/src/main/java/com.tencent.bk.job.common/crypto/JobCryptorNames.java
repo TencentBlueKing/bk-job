@@ -22,41 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.crypto;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * 加密配置
- */
-@ConfigurationProperties(prefix = "job.encrypt")
-@ToString
-@Getter
-@Setter
-@Slf4j
-public class EncryptConfig {
-
-    private CryptoTypeEnum type;
-
-    private String password;
-
-    /**
-     * 各个场景下使用的加密算法，不配置则使用默认算法
-     */
-    private Map<String, String> scenarioAlgorithms = new HashMap<>();
-
-    @PostConstruct
-    public void print() {
-        log.info("EncryptConfig init: {}", JsonUtils.toJson(this));
-    }
+public class JobCryptorNames {
+    // 对称加密
+    public static final String AES_CBC = "AES_CBC";
 }

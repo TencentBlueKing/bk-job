@@ -22,40 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.crypto;
 
 /**
- * 加密场景枚举值
+ * 非对称加密器
  */
-public enum CryptoScenarioEnum {
-    // 脚本敏感参数
-    SCRIPT_SENSITIVE_PARAM((byte) 0, "scriptSensitiveParam"),
-    // 密文变量
-    CIPHER_VARIABLE((byte) 0, "cipherVariable"),
-    // DB账号的密码
-    DATABASE_PASSWORD((byte) 0, "databasePassword"),
-    // 凭证信息
-    CREDENTIAL((byte) 0, "credential"),
-    // 导出作业的密码
-    EXPORT_JOB_PASSWORD((byte) 0, "exportJobPassword"),
-    // 导出作业的备份文件
-    BACKUP_FILE((byte) 0, "backupFile");
+public interface AsymmetricEncryptor extends Encryptor {
 
-    // 加密类型：0为对称加密，1为非对称加密
-    private final byte type;
-    // 场景标识
-    private final String value;
-
-    CryptoScenarioEnum(byte type, String value) {
-        this.type = type;
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public byte getType() {
-        return type;
-    }
+    /**
+     * 校验消息的签名是否一致 通过公钥对消息内容进行校验signature内容（由私钥加签名）
+     *
+     * @param message   原消息内容
+     * @param signature 消息的签名
+     * @return 是否签名一致
+     */
+    boolean verify(String message, String signature);
 }

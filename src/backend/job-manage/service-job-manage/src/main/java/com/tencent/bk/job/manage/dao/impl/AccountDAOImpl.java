@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.common.encrypt.scenario.DbPasswordCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.date.DateUtils;

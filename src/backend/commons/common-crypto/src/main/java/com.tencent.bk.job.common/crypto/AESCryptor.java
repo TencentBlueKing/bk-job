@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.crypto;
 
 import com.tencent.bk.job.common.exception.CryptoException;
 import com.tencent.bk.job.common.util.crypto.AESUtils;

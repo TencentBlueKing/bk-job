@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.plan.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.encrypt.scenario.SensitiveParamCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;

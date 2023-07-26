@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.encrypt.scenario.CredentialCryptoService;
+import com.tencent.bk.job.manage.crypto.CredentialCryptoService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.CommonCredential;

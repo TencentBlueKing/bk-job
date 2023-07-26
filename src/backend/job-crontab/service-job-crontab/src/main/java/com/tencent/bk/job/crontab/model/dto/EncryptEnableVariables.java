@@ -25,7 +25,7 @@
 package com.tencent.bk.job.crontab.model.dto;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.encrypt.scenario.CipherVariableCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.AllArgsConstructor;

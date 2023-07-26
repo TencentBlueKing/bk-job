@@ -45,7 +45,7 @@ import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.encrypt.scenario.BackupFileCryptoService;
+import com.tencent.bk.job.backup.crypto.BackupFileCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;

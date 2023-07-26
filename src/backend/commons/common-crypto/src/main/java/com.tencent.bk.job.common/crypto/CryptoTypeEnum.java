@@ -22,30 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup;
-
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.crypto.EncryptConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.scheduling.annotation.EnableScheduling;
+package com.tencent.bk.job.common.crypto;
 
 /**
- * @since 21/7/2020 10:55
+ * 加密类型枚举值
  */
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
-@EnableCaching
-@EnableFeignClients
-@EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
-@DependsOn("applicationContextRegister")
-public class JobBackupBootApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(JobBackupBootApplication.class, args);
-    }
+public enum CryptoTypeEnum {
+
+    // 经典密码算法（RSA、AES等）
+    CLASSIC,
+    // 国家商用密码算法（SM2、SM4等）
+    SHANGMI
+
 }

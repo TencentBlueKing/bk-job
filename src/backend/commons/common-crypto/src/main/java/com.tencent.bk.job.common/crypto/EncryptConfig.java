@@ -22,19 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.crypto;
+
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 非对称加密器
+ * 加密配置
  */
-public interface AsymmetricEncryptor extends Encryptor {
+@ConfigurationProperties(prefix = "job.encrypt")
+@ToString
+@Getter
+@Setter
+@Slf4j
+public class EncryptConfig {
+
+    private CryptoTypeEnum type;
+
+    private String password;
 
     /**
-     * 校验消息的签名是否一致 通过公钥对消息内容进行校验signature内容（由私钥加签名）
-     *
-     * @param message   原消息内容
-     * @param signature 消息的签名
-     * @return 是否签名一致
+     * 各个场景下使用的加密算法，不配置则使用默认算法
      */
-    boolean verify(String message, String signature);
+    private Map<String, String> scenarioAlgorithms = new HashMap<>();
+
+    @PostConstruct
+    public void print() {
+        log.info("EncryptConfig init: {}", JsonUtils.toJson(this));
+    }
 }

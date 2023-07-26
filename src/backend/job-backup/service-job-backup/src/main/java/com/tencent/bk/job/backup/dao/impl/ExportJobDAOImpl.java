@@ -32,7 +32,7 @@ import com.tencent.bk.job.backup.model.dto.BackupTemplateInfoDTO;
 import com.tencent.bk.job.backup.model.dto.ExportJobInfoDTO;
 import com.tencent.bk.job.backup.model.tables.ExportJob;
 import com.tencent.bk.job.backup.model.tables.records.ExportJobRecord;
-import com.tencent.bk.job.common.encrypt.scenario.ExportJobPasswordCryptoService;
+import com.tencent.bk.job.backup.crypto.ExportJobPasswordCryptoService;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;

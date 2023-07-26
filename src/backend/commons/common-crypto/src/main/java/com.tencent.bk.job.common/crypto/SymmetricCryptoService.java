@@ -22,9 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.crypto;
 
-import com.tencent.bk.sdk.crypto.cryptor.CryptorMetaDefinition;
 import com.tencent.bk.sdk.crypto.cryptor.SymmetricCryptor;
 import com.tencent.bk.sdk.crypto.cryptor.SymmetricCryptorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -33,10 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,76 +51,6 @@ public class SymmetricCryptoService {
     @Autowired
     public SymmetricCryptoService(CryptoConfigService cryptoConfigService) {
         this.cryptoConfigService = cryptoConfigService;
-    }
-
-    /**
-     * 从密文的前缀元数据中解析出使用的加密算法名称
-     *
-     * @param cipher 密文
-     * @return 加密算法名称，如果密文不包含指定前缀的元数据则返回null
-     */
-    public String getAlgorithmFromCipher(String cipher) {
-        String prefix = CryptorMetaDefinition.getCipherMetaPrefix();
-        if (cipher.startsWith(prefix)) {
-            int indexOfPrefixLastChar = cipher.indexOf(CryptorMetaDefinition.getCipherMetaSuffix());
-            if (indexOfPrefixLastChar < 0) {
-                return null;
-            }
-            return cipher.substring(prefix.length(), indexOfPrefixLastChar);
-        }
-        return null;
-    }
-
-    /**
-     * 从密文的前缀元数据中解析出使用的加密算法名称
-     *
-     * @param cipherIns 密文输入流
-     * @return 加密算法名称，如果密文不包含指定前缀的元数据则返回null
-     */
-    public String getAlgorithmFromCipherStream(BufferedInputStream cipherIns) {
-        String prefix = CryptorMetaDefinition.getCipherMetaPrefix();
-        String suffix = CryptorMetaDefinition.getCipherMetaSuffix();
-        int algorithmMaxLength = 100;
-        int cipherMetaMaxLength = prefix.length() + suffix.length() + algorithmMaxLength;
-        cipherIns.mark(cipherMetaMaxLength);
-        byte[] realPrefixBytes = new byte[prefix.length()];
-        try {
-            int n = cipherIns.read(realPrefixBytes);
-            if (n < prefix.length()) {
-                log.info("Cannot find enough cipherMetaPrefix bytes: expected={}, actually={}", prefix.length(), n);
-                return null;
-            }
-            if (!Arrays.equals(realPrefixBytes, prefix.getBytes())) {
-                log.info(
-                    "Cannot find cipherMetaPrefix: expected={}, actually={}",
-                    Arrays.toString(prefix.getBytes()),
-                    Arrays.toString(realPrefixBytes)
-                );
-                return null;
-            }
-            byte[] algorithmWithSuffixBytes = new byte[algorithmMaxLength + suffix.length()];
-            n = cipherIns.read(algorithmWithSuffixBytes);
-            String algorithmWithSuffix = new String(algorithmWithSuffixBytes);
-            int indexOfSuffix = algorithmWithSuffix.indexOf(suffix);
-            if (indexOfSuffix == -1) {
-                log.info(
-                    "Cannot find cipherMetaSuffix: algorithmWithSuffixBytes={}, suffixBytes={}",
-                    Arrays.toString(algorithmWithSuffixBytes),
-                    suffix.getBytes()
-                );
-                return null;
-            }
-            return algorithmWithSuffix.substring(0, indexOfSuffix);
-        } catch (Exception e) {
-            log.warn("Fail to read cipherMetaPrefix from cipherIns", e);
-            return null;
-        } finally {
-            try {
-                cipherIns.reset();
-            } catch (IOException e) {
-                log.error("Fail to reset cipherIns", e);
-            }
-        }
     }
 
     /**

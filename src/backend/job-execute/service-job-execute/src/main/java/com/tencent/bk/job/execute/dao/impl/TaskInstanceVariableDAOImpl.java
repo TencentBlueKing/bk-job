@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.encrypt.scenario.CipherVariableCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;

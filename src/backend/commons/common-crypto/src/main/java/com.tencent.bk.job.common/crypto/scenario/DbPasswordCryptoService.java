@@ -22,13 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt.scenario;
+package com.tencent.bk.job.common.crypto.scenario;
 
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.common.encrypt.CryptoScenarioEnum;
-import com.tencent.bk.job.common.encrypt.JobCryptorNames;
-import com.tencent.bk.job.common.encrypt.SymmetricCryptoService;
+import com.tencent.bk.job.common.crypto.CryptoScenarioEnum;
+import com.tencent.bk.job.common.crypto.JobCryptorNames;
+import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
+import com.tencent.bk.sdk.crypto.util.CryptorMetaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ public class DbPasswordCryptoService {
         if (!isDbAccount(accountCategoryEnum) || StringUtils.isEmpty(cipher)) {
             return CryptorNames.NONE;
         }
-        String algorithm = symmetricCryptoService.getAlgorithmFromCipher(cipher);
+        String algorithm = CryptorMetaUtil.getCryptorNameFromCipher(cipher);
         if (algorithm != null) {
             return algorithm;
         }

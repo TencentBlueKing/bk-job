@@ -30,6 +30,7 @@ dependencies {
     api project(":job-crontab:api-job-crontab")
     api project(":job-analysis:api-job-analysis")
     api project(":commons:common")
+    api project(":commons:common-crypto")
     api project(":commons:common-security")
     api project(":commons:common-redis")
     api project(":commons:cmdb-sdk-ext")

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.crypto;
 
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import lombok.extern.slf4j.Slf4j;

@@ -22,57 +22,65 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt.scenario;
+package com.tencent.bk.job.common.crypto.scenario;
 
-import com.tencent.bk.job.common.encrypt.CryptoScenarioEnum;
-import com.tencent.bk.job.common.encrypt.SymmetricCryptoService;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.crypto.CryptoScenarioEnum;
+import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
+import com.tencent.bk.sdk.crypto.util.CryptorMetaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * 作业导出任务密码相关加解密服务
+ * 密文变量相关加解密服务
  */
 @Slf4j
 @Service
-public class ExportJobPasswordCryptoService {
+public class CipherVariableCryptoService {
 
     private final SymmetricCryptoService symmetricCryptoService;
 
     @Autowired
-    public ExportJobPasswordCryptoService(SymmetricCryptoService symmetricCryptoService) {
+    public CipherVariableCryptoService(SymmetricCryptoService symmetricCryptoService) {
         this.symmetricCryptoService = symmetricCryptoService;
     }
 
-    public String getExportJobPasswordEncryptAlgorithmByCipher(String cipher) {
-        if (StringUtils.isEmpty(cipher)) {
+    public String getCipherVariableEncryptAlgorithmByCipher(TaskVariableTypeEnum taskVariableTypeEnum, String cipher) {
+        if (!isCipherVariable(taskVariableTypeEnum) || StringUtils.isEmpty(cipher)) {
             return CryptorNames.NONE;
         }
-        String algorithm = symmetricCryptoService.getAlgorithmFromCipher(cipher);
+        String algorithm = CryptorMetaUtil.getCryptorNameFromCipher(cipher);
         if (algorithm != null) {
             return algorithm;
         }
         return CryptorNames.NONE;
     }
 
-    public String encryptExportJobPassword(String exportJobPassword) {
-        if (StringUtils.isEmpty(exportJobPassword)) {
-            return exportJobPassword;
-        }
-        return symmetricCryptoService.encryptToBase64Str(exportJobPassword, CryptoScenarioEnum.EXPORT_JOB_PASSWORD);
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean isCipherVariable(TaskVariableTypeEnum taskVariableTypeEnum) {
+        return TaskVariableTypeEnum.CIPHER == taskVariableTypeEnum;
     }
 
-    public String decryptExportJobPassword(String encryptedExportJobPassword) {
-        if (StringUtils.isEmpty(encryptedExportJobPassword)) {
-            return encryptedExportJobPassword;
+    public String encryptTaskVariableIfNeeded(TaskVariableTypeEnum taskVariableTypeEnum, String taskVariable) {
+        if (!isCipherVariable(taskVariableTypeEnum)) {
+            return taskVariable;
         }
-        String algorithm = getExportJobPasswordEncryptAlgorithmByCipher(encryptedExportJobPassword);
+        return symmetricCryptoService.encryptToBase64Str(taskVariable, CryptoScenarioEnum.CIPHER_VARIABLE);
+    }
+
+    public String decryptTaskVariableIfNeeded(TaskVariableTypeEnum taskVariableTypeEnum,
+                                              String encryptedTaskVariable) {
+        if (!isCipherVariable(taskVariableTypeEnum)) {
+            return encryptedTaskVariable;
+        }
+        String algorithm = getCipherVariableEncryptAlgorithmByCipher(taskVariableTypeEnum, encryptedTaskVariable);
         if (StringUtils.isBlank(algorithm)) {
-            return encryptedExportJobPassword;
+            return encryptedTaskVariable;
         }
-        return symmetricCryptoService.decrypt(encryptedExportJobPassword, algorithm);
+        return symmetricCryptoService.decrypt(encryptedTaskVariable, algorithm);
     }
 
 }

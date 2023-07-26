@@ -22,9 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
-
-public class JobCryptorNames {
-    // 对称加密
-    public static final String AES_CBC = "AES_CBC";
+dependencies {
+    api project(':commons:common')
+    api 'com.tencent.bk.sdk:crypto-java-sdk'
 }
