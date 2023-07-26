@@ -48,7 +48,7 @@ class Permission {
   }
 
   jobFileSource(params = {}) {
-    return Request.get('/job-file-gateway/web/permission/fileGateWay/check', {
+    return Request.get('/job-file-gateway/web/permission/fileGateway/check', {
       params,
       cache: 2000,
     });
