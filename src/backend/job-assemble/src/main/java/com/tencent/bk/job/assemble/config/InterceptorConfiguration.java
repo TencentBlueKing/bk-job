@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.boot.assemble.config;
+package com.tencent.bk.job.assemble.config;
 
 import com.tencent.bk.job.analysis.interceptor.JobAnalysisUriPermissionInterceptor;
 import com.tencent.bk.job.common.iam.interceptor.AuthAppInterceptor;

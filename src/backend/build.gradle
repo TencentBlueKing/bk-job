@@ -223,6 +223,7 @@ subprojects {
         }
         include '**/*Test.class'
     }
+    build.dependsOn testAll
 
     dependencyManagement {
         applyMavenExclusions = false

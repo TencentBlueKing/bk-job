@@ -21,7 +21,13 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-
+version = "1.0.0"
+if (System.getProperty("jobAssembleVersion")) {
+    version = System.getProperty("jobAssembleVersion")
+} else if (System.getProperty("bkjobVersion")) {
+    version = System.getProperty("bkjobVersion")
+}
+println "jobAssembleVersion: ${version}"
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 dependencies {
@@ -39,24 +45,16 @@ dependencies {
     testImplementation("com.h2database:h2")
 }
 springBoot {
-    getMainClass().set("com.tencent.bk.job.boot.assemble.JobAssembleBootApplication")
+    getMainClass().set("com.tencent.bk.job.assemble.JobAssembleBootApplication")
     buildInfo()
 }
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-assemble-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-assemble-${version}.jar", "job-assemble-${version}.jar"
-}
-renameArtifacts.dependsOn jar
-assemble.dependsOn renameArtifacts
 
 task copyToLatestJar(type: Copy) {
     group = "local"
     from('build/libs')
-    include "boot-job-assemble-${version}.jar"
+    include "job-assemble-${version}.jar"
     destinationDir file('build/libs/')
-    rename "boot-job-assemble-${version}.jar", "job-assemble.jar"
+    rename "job-assemble-${version}.jar", "job-assemble.jar"
 }
 copyToLatestJar.dependsOn assemble
 
