@@ -180,7 +180,7 @@ if [[ -d "support-files/templates" ]]; then
     fi
     simpleName=${m:4}
     # job-assemble 配置文件单独处理
-    if [[ "${simpleName}" == "job-assemble" ]]; then
+    if [[ "${m}" == "job-assemble" ]]; then
       moduleConfigFilePath="support-files/templates/#etc#job#job-${simpleName}#application-job-${simpleName}.yml"
       if [[ -f "${moduleConfigFilePath}" ]]; then
         cp "${moduleConfigFilePath}" release/job/support-files/templates
