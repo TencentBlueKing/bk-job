@@ -229,6 +229,7 @@ const translateEN = (value) => {
 
     throw new Error(`${atoms} is not allowed.`);
   };
+
   const result = [];
   value.forEach((atoms, index) => {
     // eslint-disable-next-line prefer-spread
