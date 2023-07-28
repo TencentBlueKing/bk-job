@@ -203,7 +203,7 @@ build_backend_modules () {
     MODULES=$1
     log "Building backdend {MODULES} image, version: ${VERSION}..."
     tasks=""
-    for MODULE in "${MODULES[@]}"; do
+    for MODULE in ${MODULES[@]}; do
         if [[ "${MODULE}" == "job-assemble" ]] || [[ "${MODULE}" == "job-gateway" ]]; then
             tasks+=":${MODULE}:build "
         else
@@ -211,7 +211,7 @@ build_backend_modules () {
         fi
     done
     $BACKEND_DIR/gradlew -p $BACKEND_DIR clean ${tasks} -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION --parallel
-    for MODULE in "${MODULES[@]}"; do
+    for MODULE in ${MODULES[@]}; do
         rm -rf tmp/backend/*
         cp $BACKEND_DIR/release/$MODULE-$VERSION.jar tmp/backend/$MODULE.jar
         cp backend/startup.sh backend/tini tmp/backend/
