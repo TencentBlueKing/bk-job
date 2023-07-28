@@ -13,12 +13,13 @@ BUILD_BACKEND=0
 BUILD_MIGRATION=0
 BUILD_STARTUP_CONTROLLER=0
 BUILD_MODULES=()
+BUILD_BACKEND_MODULES=()
 VERSION=latest
 PUSH=0
 REGISTRY=docker.io
 USERNAME=
 PASSWORD=
-BACKENDS=(job-gateway job-manage job-execute job-crontab job-logsvr job-analysis job-backup job-file-gateway job-file-worker)
+BACKENDS=(job-gateway job-manage job-execute job-crontab job-logsvr job-analysis job-backup job-file-gateway job-file-worker job-assemble)
 MYSQL_URL=
 MYSQL_USERNAME=
 MYSQL_PASSWORD=
@@ -41,7 +42,7 @@ Usage:
             [ --backend             [Optional] Build backend image ]
             [ --migration           [Optional] Build migration image ]
             [ --startup-controller  [Optional] Build startup-controller image ]
-			[ -m, --modules         [Optional] Build specified module images, modules are separated by commas. values:job-frontend,job-migration,job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-file-gateway,job-file-worker. Example: job-manage,job-execute ]
+			[ -m, --modules         [Optional] Build specified module images, modules are separated by commas. values:job-frontend,job-migration,job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-file-gateway,job-file-worker,job-assemble. Example: job-manage,job-execute ]
             [ -v, --version         [Optional] Image tag, default latest ]
             [ -p, --push            [Optional] Push the image to the docker remote repository, not push by default ]
             [ -r, --registry        [Optional] docker repository, default docker.io ]
@@ -194,21 +195,27 @@ build_frontend_module () {
 }
 
 # Build backend image
-build_backend_module () {
-    SERVICE=$1
-    log "Building ${SERVICE} image, version: ${VERSION}..."
-    if [[ ${SERVICE} == "job-gateway" ]] ; then
-      $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
-    else
-      $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :$SERVICE:boot-$SERVICE:build -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
-    fi
-    rm -rf tmp/*
-    cp $BACKEND_DIR/release/$SERVICE-$VERSION.jar tmp/$SERVICE.jar
-    cp backend/startup.sh backend/tini tmp/
-    docker build -f backend/backend.Dockerfile -t $REGISTRY/$SERVICE:$VERSION tmp --network=host
-    if [[ $PUSH -eq 1 ]] ; then
-        docker push $REGISTRY/$SERVICE:$VERSION
-    fi
+build_backend_modules () {
+    MODULES=$1
+    log "Building ${MODULES} image, version: ${VERSION}..."
+    tasks=""
+    for MODULE in "${MODULES[@]}"; do
+        if [[ "${MODULE}" == "job-assemble" ]] || [[ "${MODULE}" == "job-gateway" ]]; then
+            tasks+=":${MODULE}:build "
+        else
+            tasks+=":${MODULE}:boot-${MODULE}:build "
+        fi
+    done
+    $BACKEND_DIR/gradlew -p $BACKEND_DIR clean ${tasks} -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION --parallel
+    for MODULE in "${MODULES[@]}"; do
+        rm -rf tmp/*
+        cp $BACKEND_DIR/release/$MODULE-$VERSION.jar tmp/$MODULE.jar
+        cp backend/startup.sh backend/tini tmp/
+        docker build -f backend/backend.Dockerfile -t $REGISTRY/$MODULE:$VERSION tmp --network=host
+        if [[ $PUSH -eq 1 ]] ; then
+            docker push $REGISTRY/$MODULE:$VERSION
+        fi
+    done
 }
 
 # Build migration image
@@ -249,10 +256,7 @@ if [[ $BUILD_ALL -eq 1 || $BUILD_STARTUP_CONTROLLER -eq 1 ]] ; then
     build_startup_controller_image
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
-    for SERVICE in ${BACKENDS[@]};
-    do
-        build_backend_module $SERVICE
-    done
+    build_backend_modules "${BACKENDS[@]}"
 fi
 if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
     log "Build ${BUILD_MODULES[@]}"
@@ -266,9 +270,14 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	    elif [[ "$SERVICE" == "startup-controller" ]]; then
 		    build_startup_controller_image
 		else
-		    build_backend_module $SERVICE
+            if [[ ${BACKENDS[@]} =~ "${SERVICE}" ]]
+                BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${SERVICE}
+            fi        
 		fi
 	done
+    if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then
+        build_backend_modules "${BUILD_BACKEND_MODULES[@]}"
+    fi
 fi
 
 echo "BUILD SUCCESSFUL!"
