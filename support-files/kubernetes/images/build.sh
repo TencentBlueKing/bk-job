@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -x
+#!/bin/bash -x
 # Description: build and push docker image
 
 # Safe mode
