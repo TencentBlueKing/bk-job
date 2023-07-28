@@ -164,8 +164,12 @@ if [[ $PUSH -eq 1 && -n "$USERNAME" ]] ; then
 fi
 
 # Create tmp dir
-mkdir -p $WORKING_DIR/tmp
 tmp_dir=$WORKING_DIR/tmp
+mkdir -p $tmp_dir/frontend
+mkdir -p $tmp_dir/backend
+mkdir -p $tmp_dir/startup_controller
+mkdir -p $tmp_dir/migration
+
 # Automatically clean up the tmp directory when executing exit
 trap 'rm -rf $tmp_dir' EXIT TERM
 
@@ -180,15 +184,15 @@ build_frontend_module () {
     npm run build
     cd $WORKING_DIR || exit 1
 
-    rm -rf tmp/*
-    cp -rf $FRONTEND_DIR/dist tmp/
+    rm -rf $tmp_dir/frontend/*
+    cp -rf $FRONTEND_DIR/dist $tmp_dir/frontend/
     log "Building version logs"
     cd $VERSION_LOGS_DIR || exit 1
     python genBundledVersionLog.py
     cd $WORKING_DIR || exit 1
-    cp $VERSION_LOGS_DIR/bundledVersionLog*.json tmp/dist/static
+    cp $VERSION_LOGS_DIR/bundledVersionLog*.json tmp/frontend/dist/static
 
-    docker build -f frontend/frontend.Dockerfile -t $REGISTRY/job-frontend:$VERSION tmp --network=host
+    docker build -f frontend/frontend.Dockerfile -t $REGISTRY/job-frontend:$VERSION tmp/frontend --network=host
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/job-frontend:$VERSION
     fi
@@ -208,10 +212,10 @@ build_backend_modules () {
     done
     $BACKEND_DIR/gradlew -p $BACKEND_DIR clean ${tasks} -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION --parallel
     for MODULE in "${MODULES[@]}"; do
-        rm -rf tmp/*
-        cp $BACKEND_DIR/release/$MODULE-$VERSION.jar tmp/$MODULE.jar
-        cp backend/startup.sh backend/tini tmp/
-        docker build -f backend/backend.Dockerfile -t $REGISTRY/$MODULE:$VERSION tmp --network=host
+        rm -rf tmp/backend/*
+        cp $BACKEND_DIR/release/$MODULE-$VERSION.jar tmp/backend/$MODULE.jar
+        cp backend/startup.sh backend/tini tmp/backend/
+        docker build -f backend/backend.Dockerfile -t $REGISTRY/$MODULE:$VERSION tmp/backend --network=host
         if [[ $PUSH -eq 1 ]] ; then
             docker push $REGISTRY/$MODULE:$VERSION
         fi
@@ -221,11 +225,11 @@ build_backend_modules () {
 # Build migration image
 build_migration_image(){
     log "Building migration image, version: ${VERSION}..."
-    rm -rf tmp/*
-    cp migration/startup.sh tmp/
-    cp -r $SUPPORT_FILES_DIR/bkiam tmp/
-    cp -r $SUPPORT_FILES_DIR/sql tmp/
-    docker build -f migration/migration.Dockerfile -t $REGISTRY/job-migration:$VERSION tmp --network=host
+    rm -rf tmp/migration/*
+    cp migration/startup.sh tmp/migration
+    cp -r $SUPPORT_FILES_DIR/bkiam tmp/migration/
+    cp -r $SUPPORT_FILES_DIR/sql tmp/migration/
+    docker build -f migration/migration.Dockerfile -t $REGISTRY/job-migration:$VERSION tmp/migration --network=host
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/job-migration:$VERSION
     fi
@@ -236,10 +240,10 @@ build_startup_controller_image(){
     log "Building startup-controller image, version: ${VERSION}..."
     TOOL_NAME="k8s-startup-controller"
     $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :job-tools:$TOOL_NAME:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
-    rm -rf tmp/*
-    cp $BACKEND_DIR/release/$TOOL_NAME-$VERSION.jar tmp/$TOOL_NAME.jar
-    cp startup-controller/startup.sh tmp/
-    docker build -f startup-controller/startupController.Dockerfile -t $REGISTRY/job-tools-$TOOL_NAME:$VERSION tmp --network=host
+    rm -rf tmp/startup_controller/*
+    cp $BACKEND_DIR/release/$TOOL_NAME-$VERSION.jar tmp/startup_controller/$TOOL_NAME.jar
+    cp startup-controller/startup.sh tmp/startup_controller/
+    docker build -f startup-controller/startupController.Dockerfile -t $REGISTRY/job-tools-$TOOL_NAME:$VERSION tmp/startup_controller --network=host
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/job-tools-$TOOL_NAME:$VERSION
     fi
@@ -247,16 +251,16 @@ build_startup_controller_image(){
 
 # Building
 if [[ $BUILD_ALL -eq 1 || $BUILD_FRONTEND -eq 1 ]] ; then
-    build_frontend_module
+    build_frontend_module &
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_MIGRATION -eq 1 ]] ; then
-    build_migration_image
+    build_migration_image &
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_STARTUP_CONTROLLER -eq 1 ]] ; then
-    build_startup_controller_image
+    build_startup_controller_image &
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
-    build_backend_modules "${BACKENDS[@]}"
+    build_backend_modules "${BACKENDS[@]}" &
 fi
 if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
     log "Build ${BUILD_MODULES[@]}"
@@ -264,11 +268,11 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	do
 	    log "$MODULE"
 	    if [[ "$MODULE" == "job-frontend" ]]; then
-		    build_frontend_module
+		    build_frontend_module &
 	    elif [[ "$MODULE" == "job-migration" ]]; then
-		    build_migration_image	
+		    build_migration_image &
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
-		    build_startup_controller_image
+		    build_startup_controller_image &
 		else
             if [[ ${BACKENDS[@]} =~ "${MODULE}" ]]
                 BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
@@ -276,8 +280,10 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 		fi
 	done
     if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then
-        build_backend_modules "${BUILD_BACKEND_MODULES[@]}"
+        build_backend_modules "${BUILD_BACKEND_MODULES[@]}" &
     fi
 fi
 
+## Wait all jobs done
+wait
 echo "BUILD SUCCESSFUL!"
