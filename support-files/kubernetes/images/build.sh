@@ -210,6 +210,7 @@ build_backend_modules () {
             tasks+=":${MODULE}:boot-${MODULE}:build "
         fi
     done
+    log "Building backdend modules, gradle tasks: ${tasks}"
     $BACKEND_DIR/gradlew -p $BACKEND_DIR clean ${tasks} -DassemblyMode=k8s -DmysqlURL=$MYSQL_URL -DmysqlUser=$MYSQL_USERNAME -DmysqlPasswd=$MYSQL_PASSWORD -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION --parallel
     for MODULE in ${MODULES[@]}; do
         rm -rf tmp/backend/*
