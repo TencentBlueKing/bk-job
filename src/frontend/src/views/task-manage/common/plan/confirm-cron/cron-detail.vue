@@ -98,7 +98,7 @@
 <script>
   import _ from 'lodash';
 
-  import TimeTaskService from '@service/cron-job';
+  import TimeTaskService from '@service/time-task';
 
   import PermissionSection from '@components/apply-permission/apply-section';
   import Empty from '@components/empty';

@@ -256,7 +256,7 @@
         this.$refs.form.validate()
           .then(() => scriptErrorConfirm())
           .then(() => {
-            this.serviceHandler.scriptVersionUpdate({
+            this.serviceHandler.scriptUpdate({
               ...this.formData,
               scriptVersionId: this.scriptInfo.scriptVersionId,
             }).then(() => {

@@ -369,7 +369,7 @@
     */
   import NotifyService from '@service/notify';
   import TaskExecuteService from '@service/task-execute';
-  import TaskPlanService from '@service/task-plan';
+  import ExecPlanService from '@service/task-plan';
   import UserService from '@service/user';
 
   import { leaveConfirm } from '@utils/assist';
@@ -511,7 +511,7 @@
 
       this.fetchUserInfo();
 
-      this.listDataSource = TaskPlanService.fetchAllPlan;
+      this.listDataSource = ExecPlanService.fetchAllPlan;
 
       // 查看指定作业模板的执行方案列表，不支持作业模板名称搜索
       this.searchData = [
@@ -838,7 +838,7 @@
        * @param {Object} plan 操作的执行方案数据
        */
       handleCollection(plan) {
-        const requestHander = plan.favored ? TaskPlanService.deleteFavorite : TaskPlanService.updateFavorite;
+        const requestHander = plan.favored ? ExecPlanService.deleteFavorite : ExecPlanService.updateFavorite;
         requestHander({
           id: plan.id,
           templateId: plan.templateId,
@@ -866,7 +866,7 @@
        */
       handleExecute(row) {
         // 获取作业详情
-        TaskPlanService.fetchPlanDetailInfo({
+        ExecPlanService.fetchPlanDetailInfo({
           id: row.id,
           templateId: row.templateId,
         }).then((data) => {
@@ -955,7 +955,7 @@
        * @param {Object} row 操作的执行方案数据
        */
       handleDelete(row) {
-        return TaskPlanService.planDelete({
+        return ExecPlanService.planDelete({
           id: row.id,
           templateId: row.templateId,
         }).then((data) => {

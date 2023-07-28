@@ -149,6 +149,7 @@
         }
         this.isSubmiting = true;
         DangerousRuleService.update({
+          id: -1,
           ...this.formData,
         }).then(() => {
           this.messageSuccess(I18n.t('dangerousRule.新增成功'));

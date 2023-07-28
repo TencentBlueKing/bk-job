@@ -26,9 +26,7 @@
 -->
 
 <template>
-  <div
-    v-bkloading="{ isLoading }"
-    class="white-ip-operation-box">
+  <div v-bkloading="{ isLoading }">
     <jb-form
       ref="whiteIpForm"
       form-type="vertical"
@@ -301,9 +299,7 @@
               });
             }
 
-            const requestHandler = this.formData.id ? WhiteIpService.whiteIpUpdate : WhiteIpService.create;
-
-            return requestHandler(params)
+            return WhiteIpService.whiteIpUpdate(params)
               .then(() => {
                 this.messageSuccess(this.formData.id ? I18n.t('whiteIP.编辑成功') : I18n.t('whiteIP.新建成功'));
                 this.$emit('on-update');
@@ -314,22 +310,20 @@
   };
 </script>
 <style lang='postcss'>
-  .white-ip-operation-box {
-    .app-wraper {
-      display: flex;
-      align-items: center;
+  .app-wraper {
+    display: flex;
+    align-items: center;
 
-      .app-select {
-        flex: 1;
-      }
-
-      .whole-business {
-        margin-left: 10px;
-      }
+    .app-select {
+      flex: 1;
     }
 
-    .scope-checkbox {
-      margin-right: 30px;
+    .whole-business {
+      margin-left: 10px;
     }
+  }
+
+  .scope-checkbox {
+    margin-right: 30px;
   }
 </style>

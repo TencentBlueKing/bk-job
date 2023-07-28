@@ -50,10 +50,6 @@ export default {
         return Object.freeze(new TaskModel(data, true));
       });
   },
-  create(params) {
-    return TaskManageSource.create(params)
-      .then(({ data }) => data);
-  },
   taskUpdate(params) {
     return TaskManageSource.update(params)
       .then(({ data }) => data);

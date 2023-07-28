@@ -95,7 +95,7 @@
 </template>
 <script>
   import TaskExecuteService from '@service/task-execute';
-  import TaskPlanService from '@service/task-plan';
+  import ExecPlanService from '@service/task-plan';
 
   import {
     checkIllegalHostFromVariableStep,
@@ -163,7 +163,7 @@
        * @desc 获取调试数据
        */
       fetchData() {
-        TaskPlanService.fetchDebugInfo({
+        ExecPlanService.fetchDebugInfo({
           templateId: this.formData.templateId,
         }).then((data) => {
           this.variableList = Object.freeze(data.variableList);
@@ -261,7 +261,7 @@
           return;
         }
         this.isExecuting = true;
-        TaskPlanService.planUpdate(this.formData)
+        ExecPlanService.planUpdate(this.formData)
           .then(() => {
             if (this.variableList.length < 1) {
               this.$bkInfo({
