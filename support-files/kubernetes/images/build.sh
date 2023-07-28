@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -x
 # Description: build and push docker image
 
 # Safe mode
@@ -260,18 +260,18 @@ if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
 fi
 if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
     log "Build ${BUILD_MODULES[@]}"
-    for SERVICE in ${BUILD_MODULES[@]};
+    for MODULE in ${BUILD_MODULES[@]};
 	do
-	    log "$SERVICE"
-	    if [[ "$SERVICE" == "job-frontend" ]]; then
+	    log "$MODULE"
+	    if [[ "$MODULE" == "job-frontend" ]]; then
 		    build_frontend_module
-	    elif [[ "$SERVICE" == "job-migration" ]]; then
+	    elif [[ "$MODULE" == "job-migration" ]]; then
 		    build_migration_image	
-	    elif [[ "$SERVICE" == "startup-controller" ]]; then
+	    elif [[ "$MODULE" == "startup-controller" ]]; then
 		    build_startup_controller_image
 		else
-            if [[ ${BACKENDS[@]} =~ "${SERVICE}" ]]
-                BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${SERVICE}
+            if [[ ${BACKENDS[@]} =~ "${MODULE}" ]]
+                BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
             fi        
 		fi
 	done
