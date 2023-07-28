@@ -239,7 +239,7 @@ build_migration_image(){
 build_startup_controller_image(){
     log "Building startup-controller image, version: ${VERSION}..."
     TOOL_NAME="k8s-startup-controller"
-    $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :job-tools:$TOOL_NAME:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
+    $BACKEND_DIR/gradlew -p $BACKEND_DIR/job-tools clean :job-tools:$TOOL_NAME:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     rm -rf tmp/startup_controller/*
     cp $BACKEND_DIR/release/$TOOL_NAME-$VERSION.jar tmp/startup_controller/$TOOL_NAME.jar
     cp startup-controller/startup.sh tmp/startup_controller/
@@ -251,16 +251,16 @@ build_startup_controller_image(){
 
 # Building
 if [[ $BUILD_ALL -eq 1 || $BUILD_FRONTEND -eq 1 ]] ; then
-    build_frontend_module &
+    build_frontend_module
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_MIGRATION -eq 1 ]] ; then
-    build_migration_image &
+    build_migration_image
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_STARTUP_CONTROLLER -eq 1 ]] ; then
-    build_startup_controller_image &
+    build_startup_controller_image
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
-    build_backend_modules "${BACKENDS[@]}" &
+    build_backend_modules "${BACKENDS[@]}"
 fi
 if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
     log "Build ${BUILD_MODULES[@]}"
@@ -268,20 +268,18 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	do
 	    log "$MODULE"
 	    if [[ "$MODULE" == "job-frontend" ]]; then
-		    build_frontend_module &
+		    build_frontend_module
 	    elif [[ "$MODULE" == "job-migration" ]]; then
-		    build_migration_image &
+		    build_migration_image
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
-		    build_startup_controller_image &
+		    build_startup_controller_image
 		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
             BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}     
 		fi
 	done
     if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then
-        build_backend_modules "${BUILD_BACKEND_MODULES[@]}" &
+        build_backend_modules "${BUILD_BACKEND_MODULES[@]}"
     fi
 fi
 
-## Wait all jobs done
-wait
 echo "BUILD SUCCESSFUL!"
