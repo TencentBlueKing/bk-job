@@ -8,6 +8,9 @@ spring:
   cloud:
     config:
       enabled: false
+    kubernetes:
+      discovery:
+        enabled: false
 de:
   flapdoodle:
     mongodb:

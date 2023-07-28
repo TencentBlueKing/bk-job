@@ -18,6 +18,9 @@ global:
   storageClass: ""
   # 蓝鲸根域名。指蓝鲸产品公共 cookies 写入的目录，同时也是各个系统的公共域名部分
   bkDomain: "example.com"
+deploy:
+  ## 部署方式。支持微服务(microservice) 和 合并部署(assemble)方式
+  mode: microservice  
 
 ## @section Common parameters
 

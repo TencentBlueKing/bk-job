@@ -35,6 +35,9 @@ spring:
   cloud:
     config:
       enabled: false
+    kubernetes:
+      discovery:
+        enabled: false
   quartz:
     thread-pool:
       core-pool-size: 3

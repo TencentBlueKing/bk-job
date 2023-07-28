@@ -5,6 +5,11 @@ spring:
   cloud:
     refresh:
       extra-refreshable: javax.sql.DataSource
+    config:
+      enabled: false
+    kubernetes:
+      discovery:
+        enabled: false
   datasource:
     job-backup:
       driver-class-name: com.mysql.cj.jdbc.Driver
