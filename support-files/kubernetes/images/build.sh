@@ -201,7 +201,7 @@ build_frontend_module () {
 # Build backend image
 build_backend_modules () {
     MODULES=$1
-    log "Building ${MODULES} image, version: ${VERSION}..."
+    log "Building backdend {MODULES} image, version: ${VERSION}..."
     tasks=""
     for MODULE in "${MODULES[@]}"; do
         if [[ "${MODULE}" == "job-assemble" ]] || [[ "${MODULE}" == "job-gateway" ]]; then
@@ -260,7 +260,7 @@ if [[ $BUILD_ALL -eq 1 || $BUILD_STARTUP_CONTROLLER -eq 1 ]] ; then
     build_startup_controller_image
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_BACKEND -eq 1 ]] ; then
-    build_backend_modules "${BACKENDS[@]}"
+    build_backend_modules "${BACKENDS[*]}"
 fi
 if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
     log "Build ${BUILD_MODULES[@]}"
@@ -278,7 +278,7 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 		fi
 	done
     if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then
-        build_backend_modules "${BUILD_BACKEND_MODULES[@]}"
+        build_backend_modules "${BUILD_BACKEND_MODULES[*]}"
     fi
 fi
 
