@@ -185,9 +185,9 @@
   </div>
 </template>
 <script>
-  import CronJobService from '@service/cron-job';
   import TaskService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
+  import CronJobService from '@service/time-task';
 
   import {
     checkIllegalHostFromVariableStep,
