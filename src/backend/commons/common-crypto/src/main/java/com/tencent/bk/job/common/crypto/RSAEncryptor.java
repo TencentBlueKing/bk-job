@@ -22,19 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.exception;
+package com.tencent.bk.job.common.crypto;
 
-import lombok.Getter;
-import lombok.ToString;
+import com.tencent.bk.job.common.crypto.util.RSAUtils;
+import com.tencent.bk.sdk.crypto.exception.CryptoException;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * 加解密异常
- */
-@Getter
-@ToString
-public class CryptoException extends RuntimeException {
+import java.security.PublicKey;
 
-    public CryptoException(String message, Throwable cause) {
-        super(message, cause);
+@Slf4j
+public class RSAEncryptor implements Encryptor {
+
+    private final PublicKey publicKey;
+
+    public RSAEncryptor(String rsaPublicKeyBase64) {
+        publicKey = RSAUtils.getPublicKey(rsaPublicKeyBase64);
+    }
+
+    public String encrypt(String rawText) {
+        try {
+            return RSAUtils.encrypt(rawText, publicKey);
+        } catch (CryptoException e) {
+            log.error("Fail to encrypt", e);
+            return null;
+        }
     }
 }

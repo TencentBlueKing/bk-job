@@ -24,6 +24,7 @@
 
 dependencies {
     api project(':commons:common-utils')
+    api project(':commons:common-jwt')
     implementation 'io.jsonwebtoken:jjwt'
     implementation 'com.google.guava:guava'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'

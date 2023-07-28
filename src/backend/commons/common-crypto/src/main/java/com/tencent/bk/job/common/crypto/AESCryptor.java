@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.common.crypto;
 
-import com.tencent.bk.job.common.exception.CryptoException;
-import com.tencent.bk.job.common.util.crypto.AESUtils;
+import com.tencent.bk.job.common.crypto.util.AESUtils;
 import com.tencent.bk.sdk.crypto.annotation.Cryptor;
 import com.tencent.bk.sdk.crypto.annotation.CryptorTypeEnum;
 import com.tencent.bk.sdk.crypto.cryptor.AbstractSymmetricCryptor;
+import com.tencent.bk.sdk.crypto.exception.CryptoException;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -92,7 +92,7 @@ public class AESCryptor extends AbstractSymmetricCryptor {
                     key.length()
                 }
             );
-            throw new com.tencent.bk.sdk.crypto.exception.CryptoException(msg.getMessage(), e);
+            throw new CryptoException(msg.getMessage(), e);
         }
     }
 
@@ -108,7 +108,7 @@ public class AESCryptor extends AbstractSymmetricCryptor {
                     key.length()
                 }
             );
-            throw new com.tencent.bk.sdk.crypto.exception.CryptoException(msg.getMessage(), e);
+            throw new CryptoException(msg.getMessage(), e);
         }
     }
 }

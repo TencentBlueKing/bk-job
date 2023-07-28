@@ -22,19 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.jwt;
+package com.tencent.bk.job.common.jwt;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.tencent.bk.job.common.util.crypto.RSAUtils;
+import com.tencent.bk.job.common.crypto.util.RSAUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
@@ -51,17 +49,16 @@ public class BasicJwtManager implements JwtManager {
     private final Cache<String, Long> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(9999).expireAfterWrite(5, TimeUnit.MINUTES).build();
 
-    public BasicJwtManager(String privateKeyBase64,
-                           String publicKeyBase64) throws IOException, GeneralSecurityException {
+    public BasicJwtManager(String privateKeyBase64, String publicKeyBase64) {
         this.privateKey = RSAUtils.getPrivateKey(privateKeyBase64);
         this.publicKey = RSAUtils.getPublicKey(publicKeyBase64);
         log.info("Init JwtManager successfully!");
     }
 
     /**
-     * 获取JWT jwt token
+     * 获取 jwt token
      *
-     * @return
+     * @return jwt token
      */
     @Override
     public String getToken() {
@@ -89,7 +86,7 @@ public class BasicJwtManager implements JwtManager {
      * 验证JWT
      *
      * @param token jwt token
-     * @return
+     * @return 是否通过
      */
     @Override
     public boolean verifyJwt(String token) {

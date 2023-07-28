@@ -24,5 +24,8 @@
 
 dependencies {
     api project(':commons:common')
+    api project(':commons:common-utils')
     api 'com.tencent.bk.sdk:crypto-java-sdk'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

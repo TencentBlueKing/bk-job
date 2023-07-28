@@ -22,19 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.crypto;
+package com.tencent.bk.job.common.crypto.util;
 
-/**
- * 非对称加密器
- */
-public interface AsymmetricEncryptor extends Encryptor {
+import org.assertj.core.api.AssertionsForClassTypes;
+import org.junit.jupiter.api.Test;
 
-    /**
-     * 校验消息的签名是否一致 通过公钥对消息内容进行校验signature内容（由私钥加签名）
-     *
-     * @param message   原消息内容
-     * @param signature 消息的签名
-     * @return 是否签名一致
-     */
-    boolean verify(String message, String signature);
+public class AESUtilsTest {
+    @Test
+    void testEncryptToBase64EncodedCipherText() {
+        String text = "job";
+        String encryptPassword = "job#123";
+        String encryptedData = AESUtils.encryptToBase64EncodedCipherText(text, encryptPassword);
+        AssertionsForClassTypes.assertThat(encryptedData).isNotEmpty();
+    }
+
+    @Test
+    void testDecryptBase64EncodedCipherText() {
+        String encryptedBase64EncodedData = "GQ6kLqtMevL8z/kXGVANQ+VP5o2Bt30yzXALfZbeOoY=";
+        String encryptPassword = "job#123";
+        String decodeData = AESUtils.decryptBase64EncodedDataToPlainText(encryptedBase64EncodedData, encryptPassword);
+        AssertionsForClassTypes.assertThat(decodeData).isEqualTo("job");
+    }
+
 }

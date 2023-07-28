@@ -22,39 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.crypto;
-
-import com.tencent.bk.job.common.util.crypto.RSAUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.PublicKey;
-
-public class RSAEncryptor implements AsymmetricEncryptor {
-    private PublicKey publicKey;
-
-    public RSAEncryptor(File rsaPubPermFile) throws IOException, GeneralSecurityException {
-        publicKey = RSAUtils.getPublicKey(rsaPubPermFile);
-    }
-
-    public RSAEncryptor(String rsaPublicKeyBase64) throws IOException, GeneralSecurityException {
-        publicKey = RSAUtils.getPublicKey(rsaPublicKeyBase64);
-    }
-
-    public String encrypt(String rawText) {
-        try {
-            return RSAUtils.encrypt(rawText, publicKey);
-        } catch (IOException | GeneralSecurityException e) {
-            return null;
-        }
-    }
-
-    public boolean verify(String message, String signature) {
-        try {
-            return RSAUtils.verify(publicKey, message, signature);
-        } catch (Exception e) {
-            return false;
-        }
-    }
+dependencies {
+    api project(':commons:common-crypto')
+    api 'com.google.guava:guava'
+    api 'io.jsonwebtoken:jjwt'
 }

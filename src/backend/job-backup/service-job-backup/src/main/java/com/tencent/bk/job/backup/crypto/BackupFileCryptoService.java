@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.crypto;
 import com.tencent.bk.job.common.crypto.CryptoScenarioEnum;
 import com.tencent.bk.job.common.crypto.JobCryptorNames;
 import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
-import com.tencent.bk.job.common.exception.CryptoException;
+import com.tencent.bk.sdk.crypto.exception.CryptoException;
 import com.tencent.bk.sdk.crypto.util.CryptorMetaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

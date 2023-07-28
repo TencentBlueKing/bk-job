@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.security.feign;
 
-import com.tencent.bk.job.common.util.jwt.JwtManager;
+import com.tencent.bk.job.common.jwt.JwtManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +36,6 @@ public class FeignSecurityConfiguration {
      * Feign 服务认证拦截
      *
      * @param jwtManager jwt管理
-     * @return
      */
     @Bean
     public FeignBasicAuthRequestInterceptor basicAuthRequestInterceptor(@Autowired JwtManager jwtManager) {
