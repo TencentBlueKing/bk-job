@@ -218,9 +218,9 @@
 <script>
   import _ from 'lodash';
 
-  import CronJobService from '@service/cron-job';
   import TaskManageService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
+  import TimeTaskService from '@service/time-task';
 
   import {
     getOffset,
@@ -349,7 +349,7 @@
           const needCheckCronJobStatusPlanIds = Object.keys(needCheckCronJobStatusPlanMap);
           if (needCheckCronJobStatusPlanIds.length > 0) {
             this.isCronJobLoading = true;
-            CronJobService.fetchTaskOfPlanBatch({
+            TimeTaskService.fetchTaskOfPlanBatch({
               planIds: needCheckCronJobStatusPlanIds.join(','),
             }).then((data) => {
               for (const planId in data) {
@@ -443,7 +443,7 @@
             TaskManageService.taskDetail({
               id: currentSyncPlan.templateId,
             }),
-            CronJobService.fetchTaskOfPlan({
+            TimeTaskService.fetchTaskOfPlan({
               id: currentSyncPlan.id,
             }),
           ]).then(([
@@ -671,7 +671,7 @@
             // 有定时任务才会执行同步定时任务
             if (this.syncValueMemoMap[currentSyncPlan.id]
               && this.syncValueMemoMap[currentSyncPlan.id].cronJobInfoList.length > 0) {
-              return CronJobService.updatePlanTask({
+              return TimeTaskService.updatePlanTask({
                 cronJobInfoList: this.syncValueMemoMap[currentSyncPlan.id].cronJobInfoList,
               });
             }
@@ -707,7 +707,7 @@
           planId: plan.id,
           templateId: plan.templateId,
           templateVersion: plan.templateVersion,
-        }).then(() => CronJobService.updatePlanTask({
+        }).then(() => TimeTaskService.updatePlanTask({
           cronJobInfoList: this.syncValueMemoMap[plan.id].cronJobList,
         }))
           .then(() => {

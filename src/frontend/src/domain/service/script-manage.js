@@ -32,10 +32,6 @@ import ScriptSyncModel from '@model/script/script-sync';
 import ScriptManageSource from '../source/script-manage';
 
 export default {
-  scriptCreate(params) {
-    return ScriptManageSource.create(params)
-      .then(({ data }) => data);
-  },
   scriptList(params, payload) {
     return ScriptManageSource.getAll(params, payload)
       .then(({ data }) => {
@@ -58,8 +54,8 @@ export default {
     return ScriptManageSource.getAllVersion(params, config)
       .then(({ data }) => data.map(script => Object.freeze(new ScriptModel(script))));
   },
-  scriptVersionUpdate(params) {
-    return ScriptManageSource.versionUpdate(params)
+  scriptUpdate(params) {
+    return ScriptManageSource.update(params)
       .then(({ data }) => data);
   },
   scriptUpdateMeta(params) {
@@ -67,10 +63,6 @@ export default {
   },
   scriptDelete(params) {
     return ScriptManageSource.deleteById(params);
-  },
-  createVersion(params) {
-    return ScriptManageSource.createVersion(params)
-      .then(({ data }) => data);
   },
   versionDetail(params, config) {
     return ScriptManageSource.getDataByVersionId(params, config)

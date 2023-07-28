@@ -99,7 +99,7 @@
 <script>
   import _ from 'lodash';
 
-  import CronJobService from '@service/cron-job';
+  import TimeTaskService from '@service/time-task';
 
   import Empty from '@components/empty';
   import GlobalVariable from '@components/global-variable/edit';
@@ -162,7 +162,7 @@
     methods: {
       fetchData() {
         this.isLoading = true;
-        CronJobService.getDetail({
+        TimeTaskService.getDetail({
           id: this.data.id,
         }).then(({ name, variableValue }) => {
           this.info.name = name;

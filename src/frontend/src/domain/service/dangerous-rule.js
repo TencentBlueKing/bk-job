@@ -35,10 +35,6 @@ export default {
     return DangerousRuleSource.getData(params, payload)
       .then(({ data }) => data.map(item => new DangerousRuleModel(item)));
   },
-  create(params) {
-    return DangerousRuleSource.create(params)
-      .then(({ data }) => data);
-  },
   update(params) {
     return DangerousRuleSource.update(params)
       .then(({ data }) => data);

@@ -55,10 +55,7 @@ class AccountManage extends ModuleBase {
 
   // 更新账号
   update(params) {
-    const realParams = { ...params };
-    delete realParams.id;
-
-    return Request.put(`${this.path}/account/${params.id}`, {
+    return Request.put(`${this.path}/account`, {
       params,
     });
   }

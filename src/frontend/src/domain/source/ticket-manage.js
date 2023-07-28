@@ -41,15 +41,8 @@ class TicketManage extends ModuleBase {
   }
 
   // 新建凭证
-  create(params = {}) {
-    return Request.post(`${this.path}`, {
-      params,
-    });
-  }
-
-  // 修改凭证
   update(params) {
-    return Request.put(`${this.path}/${params.id}`, {
+    return Request.post(`${this.path}/`, {
       params,
     });
   }

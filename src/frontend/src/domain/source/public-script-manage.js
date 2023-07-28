@@ -31,9 +31,22 @@ class PublicScriptManage {
     this.module = 'job-manage/web/public_script';
   }
 
-  create(params = {}) {
+  // 更新脚本
+  update(params = {}) {
     return Request.post(`${this.module}/script`, {
       params,
+    });
+  }
+
+  // 通过脚本id获取脚本详情
+  getDataByScriptId({ id }) {
+    return Request.get(`${this.module}/script/${id}`);
+  }
+
+  // 删除脚本
+  deleteById({ id }) {
+    return Request.delete(`${this.module}/script/${id}`, {
+      prefixPath: this.prefixPath,
     });
   }
 
@@ -45,19 +58,6 @@ class PublicScriptManage {
     delete params.id;
     return Request.put(`${this.module}/script/${payload.id}/info`, {
       params,
-    });
-  }
-
-
-  // 通过脚本id获取脚本详情
-  getDataByScriptId({ id }) {
-    return Request.get(`${this.module}/script/${id}`);
-  }
-
-  // 删除脚本
-  deleteById({ id }) {
-    return Request.delete(`${this.module}/script/${id}`, {
-      prefixPath: this.prefixPath,
     });
   }
 
@@ -84,7 +84,7 @@ class PublicScriptManage {
     delete realParams.id;
     delete realParams.scriptVersionId;
 
-    return Request.put(`${this.module}/script/${params.id}/scriptVersion/${params.scriptVersionId}`, {
+    return Request.post(`${this.module}/script/${params.id}/scriptVersion/${params.scriptVersionId}`, {
       params: realParams,
     });
   }

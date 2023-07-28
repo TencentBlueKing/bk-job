@@ -55,18 +55,15 @@ class FileSourceManage extends ModuleBase {
   }
 
   // 新增文件源
-  create(params = {}) {
+  addFileSource(params) {
     return Request.post(`${this.path}`, {
       params,
     });
   }
 
   // 更新文件源
-  update(params = {}) {
-    const realParams = { ...params };
-    delete realParams.id;
-
-    return Request.put(`${this.path}/${params.id}`, {
+  updateFileSource(params) {
+    return Request.put(`${this.path}`, {
       params,
     });
   }
@@ -77,7 +74,7 @@ class FileSourceManage extends ModuleBase {
   }
 
   // 删除文件源
-  removeFileSource(params = {}) {
+  removeFileSource(params) {
     return Request.delete(`${this.path}/ids/${params.id}`);
   }
 
