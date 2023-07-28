@@ -273,10 +273,8 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 		    build_migration_image &
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
 		    build_startup_controller_image &
-		else
-            if [[ ${BACKENDS[@]} =~ "${MODULE}" ]]
-                BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
-            fi        
+		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
+            BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}     
 		fi
 	done
     if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then
