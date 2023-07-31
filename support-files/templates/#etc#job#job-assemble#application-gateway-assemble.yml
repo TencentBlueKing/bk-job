@@ -7,8 +7,8 @@ spring:
       enabled: true
       discovery:
         prefer-ip-address: true
-        service-name: job-gateway-assemble
-        instance-id: job-gateway-assemble-${machine.ip}-${server.port}
+        service-name: job-gateway
+        instance-id: job-gateway-${machine.ip}-${server.port}
         scheme: http
         enabled: true
     config:

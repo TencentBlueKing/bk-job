@@ -18,10 +18,10 @@ data:
         name: job-assemble
       profiles:
         active: prod
-    servlet:
-      multipart:
-        max-file-size: 5GB
-        max-request-size: 5GB
+      servlet:
+        multipart:
+          max-file-size: 5GB
+          max-request-size: 5GB
       cloud:
         stream:
           defaultBinder: jobCommon
@@ -355,7 +355,7 @@ data:
             handlerNum: {{ .Values.manageConfig.sync.hostEvent.handlerNum }}
     # 执行日志导出产生的临时文件相关配置        
     log-export:
-      storage-backend: {{ .Values.assembleConfig.logExport.storageBackend }}
+      storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
       artifactory:
         repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
 

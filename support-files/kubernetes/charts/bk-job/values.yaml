@@ -20,7 +20,7 @@ global:
   bkDomain: "example.com"
 deploy:
   ## 部署方式。支持微服务(microservice) 和 合并部署(assemble)方式
-  mode: microservice  
+  mode: assemble  
 
 ## @section Common parameters
 
@@ -1429,3 +1429,53 @@ k8sConfigWatcherConfig:
     requests:
       cpu: 100m
       memory: 256Mi 
+
+## job-assemble 配置
+assembleConfig:
+  image:
+    registry: hub.bktencent.com
+    repository: blueking/job-assemble
+    tag: "{{APP_VERSION}}"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  hostAliases: []
+  resources:
+    limits:
+      cpu: 900m
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 50
+    targetMemory: 50
+  containerPort: 19850
+  service:
+    type: ClusterIP
+    port: 80
+  # 运行时JVM参数
+  jvmOptions: "-Xms512m -Xmx1024m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+
