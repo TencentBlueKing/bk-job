@@ -1,4 +1,4 @@
-{{- if eq .Values.deploy.mode "mocroservice" }}
+{{- if .Values.k8sConfigWatcherConfig.enabled }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
