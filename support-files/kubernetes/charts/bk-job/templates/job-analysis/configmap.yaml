@@ -1,4 +1,4 @@
-{{- if and (.Values.analysisConfig.enabled) (.Values.analysisConfig) }}
+{{- if and (.Values.analysisConfig.enabled) (.Values.analysisConfig) (eq .Values.deploy.mode "mocroservice") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -1,4 +1,4 @@
-{{- if .Values.gatewayConfig.enabled }}
+{{- if and .Values.gatewayConfig.enabled (eq .Values.deploy.mode "microservice") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

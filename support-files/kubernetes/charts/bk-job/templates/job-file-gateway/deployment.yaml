@@ -1,4 +1,4 @@
-{{- if .Values.fileGatewayConfig.enabled }}
+{{- if and .Values.fileGatewayConfig.enabled (eq .Values.deploy.mode "mocroservice") }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:

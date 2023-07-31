@@ -1,11 +1,11 @@
-{{- if and .Values.manageConfig.enabled (eq .Values.deploy.mode "mocroservice") }}
+{{- if eq .Values.deploy.mode "assemble" }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: job-manage
+  name: job-execute
   namespace: {{ .Release.Namespace }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
-    app.kubernetes.io/component: "job-manage"
+    app.kubernetes.io/component: "job-execute"
     {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
@@ -14,12 +14,12 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  type: {{ .Values.manageConfig.service.type }}
+  type: {{ .Values.executeConfig.service.type }}
   ports:
     - name: http
-      port: {{ .Values.manageConfig.service.port }}
-      targetPort: {{ .Values.manageConfig.containerPort }}
+      port: {{ .Values.executeConfig.service.port }}
+      targetPort: {{ .Values.executeConfig.containerPort }}
       protocol: TCP
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
-    app.kubernetes.io/component: "job-manage"
+    app.kubernetes.io/component: "job-execute"
 {{- end }}
