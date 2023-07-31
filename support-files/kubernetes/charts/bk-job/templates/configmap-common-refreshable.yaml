@@ -11,7 +11,11 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
   annotations:
+    {{- if eq .Values.deploy.mode "assemble" }}
+    spring.cloud.kubernetes.configmap.apps: "job-gateway,job-assemble"
+    {{- else }}
     spring.cloud.kubernetes.configmap.apps: "job-analysis,job-backup,job-crontab,job-execute,job-file-gateway,job-gateway,job-logsvr,job-manage"
+    {{- end }}
 data:
   application.yaml: |-
     job:
