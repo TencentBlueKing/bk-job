@@ -69,7 +69,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -221,7 +221,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void setAccountInfoForSourceFiles(Set<JobFile> sendFiles) {
         Map<String, AccountDTO> accounts = new HashMap<>();
         sendFiles.forEach(sendFile -> {
-            String accountKey = sendFile.getAccountId() == null ? ("id_" + sendFile.getAccountId())
+            String accountKey = sendFile.getAccountId() == null ? ("id_null")
                 : ("alias_" + sendFile.getAccountAlias());
             AccountDTO account = accounts.computeIfAbsent(accountKey,
                 k -> accountService.getAccount(sendFile.getAccountId(), AccountCategoryEnum.SYSTEM,

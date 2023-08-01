@@ -22,19 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
-
-/**
- * 非对称加密器
- */
-public interface AsymmetricEncryptor extends Encryptor {
-
-    /**
-     * 校验消息的签名是否一致 通过公钥对消息内容进行校验signature内容（由私钥加签名）
-     *
-     * @param message   原消息内容
-     * @param signature 消息的签名
-     * @return 是否签名一致
-     */
-    boolean verify(String message, String signature);
+dependencies {
+    api project(':commons:common-crypto')
+    api 'com.google.guava:guava'
+    api 'io.jsonwebtoken:jjwt'
 }

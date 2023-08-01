@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.encrypt.Encryptor;
+import com.tencent.bk.job.common.crypto.Encryptor;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -40,9 +40,7 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
-import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -109,9 +107,6 @@ public class AccountServiceImpl implements AccountService {
                     , account.getDbSystemAccountId(), dbSystemAccount.getAppId());
                 throw new NotFoundException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
             }
-            if (StringUtils.isNotEmpty(account.getDbPassword())) {
-                account.setDbPassword(encryptPassword(account.getDbPassword()));
-            }
         }
         if (account.getId() == null) {
             return accountDAO.saveAccount(account);
@@ -160,20 +155,8 @@ public class AccountServiceImpl implements AccountService {
         if (StringUtils.isNotEmpty(account.getPassword())) {
             account.setPassword(encryptor.encrypt(account.getPassword()));
         }
-        if (account.getCategory() == AccountCategoryEnum.DB && StringUtils.isNotEmpty(account.getDbPassword())) {
-            account.setDbPassword(encryptPassword(account.getDbPassword()));
-        }
         log.info("Update account, account={}", account);
         accountDAO.updateAccount(account);
-    }
-
-    private String encryptPassword(String text) throws ServiceException {
-        try {
-            return AESUtils.encryptToBase64EncodedCipherText(text, jobManageConfig.getEncryptPassword());
-        } catch (Exception e) {
-            log.error("Encrypt password error", e);
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
     }
 
     @Override

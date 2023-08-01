@@ -54,7 +54,7 @@ import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastExecuteScriptReque
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import lombok.extern.slf4j.Slf4j;

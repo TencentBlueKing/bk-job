@@ -28,9 +28,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
 import com.tencent.bk.job.backup.constant.LogEntityTypeEnum;
-import com.tencent.bk.job.backup.constant.SecretHandlerEnum;
-import com.tencent.bk.job.backup.model.dto.*;
-import com.tencent.bk.job.backup.model.tables.ExportJob;
+import com.tencent.bk.job.backup.model.dto.BackupTemplateInfoDTO;
+import com.tencent.bk.job.backup.model.dto.IdNameInfoDTO;
+import com.tencent.bk.job.backup.model.dto.ImportJobInfoDTO;
+import com.tencent.bk.job.backup.model.dto.LogEntityDTO;
 import com.tencent.bk.job.backup.model.tables.ImportJob;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import org.jooq.Record13;
@@ -45,32 +46,6 @@ import java.util.Locale;
  * @since 28/7/2020 22:38
  */
 public class DbRecordMapper {
-
-    public static ExportJobInfoDTO convertRecordToExportJobInfo(
-        Record13<String, ULong, String, ULong, ULong, UByte, String, String, UByte, ULong, String, String,
-            String> record) {
-        if (record == null) {
-            return null;
-        }
-        ExportJob table = ExportJob.EXPORT_JOB;
-        ExportJobInfoDTO exportJobInfo = new ExportJobInfoDTO();
-        exportJobInfo.setId(record.get(table.ID));
-        exportJobInfo.setAppId(record.get(table.APP_ID).longValue());
-        exportJobInfo.setCreator(record.get(table.CREATOR));
-        exportJobInfo.setCreateTime(record.get(table.CREATE_TIME).longValue());
-        exportJobInfo.setUpdateTime(record.get(table.UPDATE_TIME).longValue());
-        exportJobInfo.setStatus(BackupJobStatusEnum.valueOf(record.get(table.STATUS).intValue()));
-        exportJobInfo.setPassword(record.get(table.PASSWORD));
-        exportJobInfo.setPackageName(record.get(table.PACKAGE_NAME));
-        exportJobInfo.setSecretHandler(SecretHandlerEnum.valueOf(record.get(table.SECRET_HANDLER).intValue()));
-        exportJobInfo.setExpireTime(record.get(table.EXPIRE_TIME).longValue());
-        exportJobInfo.setTemplateInfo(JsonUtils.fromJson(record.get(table.TEMPLATE_PLAN_INFO),
-            new TypeReference<List<BackupTemplateInfoDTO>>() {
-            }));
-        exportJobInfo.setFileName(record.get(table.FILE_NAME));
-        exportJobInfo.setLocale(Locale.forLanguageTag(record.get(table.LOCALE)));
-        return exportJobInfo;
-    }
 
     public static ImportJobInfoDTO convertRecordToImportJobInfo(
         Record13<String, ULong, String, ULong, ULong, UByte,

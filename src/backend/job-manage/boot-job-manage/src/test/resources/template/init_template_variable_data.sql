@@ -25,18 +25,18 @@
 USE `job_manage`;
 TRUNCATE TABLE `task_template_variable`;
 INSERT INTO `task_template_variable` (id, template_id, name, type, default_value, description, is_changeable, is_required)
-    VALUES (1, 10000, '测试1', 1, 'test1', '这是一个测试变量1', true, true);
+VALUES (1, 10000, '测试1', 1, 'test1', '这是一个测试变量1', true, true);
 INSERT INTO `task_template_variable` (id, template_id, name, type, default_value, description, is_changeable, is_required)
-    VALUES (2, 10000, '测试2', 2, 'test2', '这是一个测试变量2', false, false);
+VALUES (2, 10000, '测试2', 2, 'test2', '这是一个测试变量2', false, false);
 INSERT INTO `task_template_variable` (id, template_id, name, type, default_value, description, is_changeable, is_required)
-    VALUES (3, 10000, '测试3', 3, 'test3', '这是一个测试变量3', true, false);
+VALUES (3, 10000, '测试3', 3, 'test3', '这是一个测试变量3', true, false);
 INSERT INTO `task_template_variable` (id, template_id, name, type, default_value, description, is_changeable, is_required)
-    VALUES (4, 10000, '测试4', 4, 'test4', '这是一个测试变量4', false, true);
+VALUES (4, 10000, '测试4', 4, 'test4', '这是一个测试变量4', false, true);
 INSERT INTO `task_template_variable` (id, template_id, name, type, default_value, description, is_changeable, is_required)
-    VALUES (5, 20000, '测试5', 1, 'test5', '这是一个测试变量5', true, true);
+VALUES (5, 20000, '测试5', 1, 'test5', '这是一个测试变量5', true, true);
 INSERT INTO `task_template_variable` (id, template_id, name, type, default_value, description, is_changeable, is_required)
-    VALUES (6, 20000, '测试6', 2, 'test6', '这是一个测试变量6', false, false);
+VALUES (6, 20000, '测试6', 2, 'test6', '这是一个测试变量6', false, false);
 INSERT INTO `task_template_variable` (id, template_id, name, type, default_value, description, is_changeable, is_required)
-    VALUES (7, 20000, '测试7', 3, 'test7', '这是一个测试变量7', true, false);
+VALUES (7, 20000, '测试7', 3, 'test7', '这是一个测试变量7', true, false);
 INSERT INTO `task_template_variable` (id, template_id, name, type, default_value, description, is_changeable, is_required)
-    VALUES (8, 20000, '测试8', 4, 'test8', '这是一个测试变量8', false, true);
+VALUES (8, 20000, '测试8', 4, 'test8', '这是一个测试变量8', false, true);

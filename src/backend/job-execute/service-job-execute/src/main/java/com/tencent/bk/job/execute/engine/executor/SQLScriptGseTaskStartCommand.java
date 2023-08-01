@@ -25,14 +25,10 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.google.common.collect.Maps;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
-import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -203,15 +199,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             sb.append(" EMPTY");
         }
         if (StringUtils.isNotBlank(stepInstance.getDbPass()) && !StringUtils.equals("null", stepInstance.getDbPass())) {
-            String dbPassword;
-            try {
-                dbPassword = AESUtils.decryptToPlainText(Base64Util.decodeContentToByte(stepInstance.getDbPass()),
-                    jobExecuteConfig.getEncryptPassword());
-            } catch (Exception e) {
-                log.error("Decrypt db password failed!", e);
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
-            }
-            sb.append(" ").append(dbPassword);
+            sb.append(" ").append(stepInstance.getDbPass());
         } else {
             sb.append(" EMPTY");
         }

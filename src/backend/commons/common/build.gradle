@@ -45,6 +45,7 @@ dependencies {
     implementation 'com.cronutils:cron-utils'
     implementation 'commons-validator:commons-validator'
     implementation 'org.springframework.cloud:spring-cloud-sleuth-instrumentation'
+    implementation 'com.tencent.bk.sdk:crypto-java-sdk'
     compileOnly 'org.springframework:spring-web'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

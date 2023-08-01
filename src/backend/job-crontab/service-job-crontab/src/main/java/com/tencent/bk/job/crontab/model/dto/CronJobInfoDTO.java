@@ -64,10 +64,10 @@ import java.util.stream.Collectors;
  * @since 23/12/2019 21:03
  */
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class CronJobInfoDTO {
+public class CronJobInfoDTO extends EncryptEnableVariables {
     /**
      * 定时任务 ID
      */
@@ -117,11 +117,6 @@ public class CronJobInfoDTO {
      * 单次执行时间
      */
     private Long executeTime;
-
-    /**
-     * 变量值列表
-     */
-    private List<CronJobVariableDTO> variableValue;
 
     /**
      * 上次执行状态

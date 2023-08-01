@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @PersistenceObject
 @ApiModel("目标服务器，四个不可同时为空")
 @Data
-public class ServerDTO {
+public class ServerDTO implements Cloneable {
     /**
      * 全局变量名
      * <p>
@@ -213,5 +213,39 @@ public class ServerDTO {
             });
             this.dynamicGroupIds = standardDynamicGroupIdList;
         }
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public ServerDTO clone() {
+        ServerDTO serverDTO = new ServerDTO();
+        serverDTO.setVariable(variable);
+        if (null != ips) {
+            List<HostDTO> cloneIps = new ArrayList<>(ips.size());
+            for (HostDTO ip : ips) {
+                if (ip != null) {
+                    cloneIps.add(ip.clone());
+                } else {
+                    cloneIps.add(null);
+                }
+            }
+            serverDTO.setIps(cloneIps);
+        }
+        if (null != dynamicGroupIds) {
+            List<String> cloneDynamicGroupIds = new ArrayList<>(dynamicGroupIds);
+            serverDTO.setDynamicGroupIds(cloneDynamicGroupIds);
+        }
+        if (null != topoNodes) {
+            List<CmdbTopoNodeDTO> cloneTopoNodes = new ArrayList<>(topoNodes.size());
+            for (CmdbTopoNodeDTO topoNode : topoNodes) {
+                if (topoNode != null) {
+                    cloneTopoNodes.add(topoNode.clone());
+                } else {
+                    cloneTopoNodes.add(null);
+                }
+            }
+            serverDTO.setTopoNodes(cloneTopoNodes);
+        }
+        return serverDTO;
     }
 }

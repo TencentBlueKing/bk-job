@@ -46,7 +46,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class CronJobVariableDTO {
+public class CronJobVariableDTO implements Cloneable {
     /**
      * 变量 ID
      */
@@ -154,5 +154,19 @@ public class CronJobVariableDTO {
         variable.setValue(value);
         variable.setServer(server);
         return variable;
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public CronJobVariableDTO clone() {
+        CronJobVariableDTO cronJobVariableDTO = new CronJobVariableDTO();
+        cronJobVariableDTO.setId(id);
+        cronJobVariableDTO.setType(type);
+        cronJobVariableDTO.setName(name);
+        cronJobVariableDTO.setValue(value);
+        if (server != null) {
+            cronJobVariableDTO.setServer(server.clone());
+        }
+        return cronJobVariableDTO;
     }
 }

@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -34,7 +35,6 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.client.AccountResourceClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -52,26 +52,26 @@ public class AccountServiceImpl implements AccountService {
 
     private final LoadingCache<String, AccountDTO> accountCache = CacheBuilder.newBuilder()
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.MINUTES).
-            build(new CacheLoader<String, AccountDTO>() {
-                      @Override
-                      public AccountDTO load(String accountKey) {
-                          String[] accountProps = accountKey.split("#");
-                          String keyType = accountProps[0];
-                          if ("account_alias".equals(keyType)) {
-                              AccountCategoryEnum accountCategory =
-                                  AccountCategoryEnum.valOf(Integer.parseInt(accountProps[1]));
-                              long appId = Long.parseLong(accountProps[2]);
-                              String accountAlias = accountProps[3];
-                              return getAccountByAlias(accountCategory, appId, accountAlias);
-                          } else if ("account_id".equals(keyType)) {
-                              long accountId = Long.parseLong(accountProps[1]);
-                              return getAccountById(accountId);
-                          } else {
-                              return null;
-                          }
+        build(new CacheLoader<String, AccountDTO>() {
+                  @Override
+                  public AccountDTO load(String accountKey) {
+                      String[] accountProps = accountKey.split("#");
+                      String keyType = accountProps[0];
+                      if ("account_alias".equals(keyType)) {
+                          AccountCategoryEnum accountCategory =
+                              AccountCategoryEnum.valOf(Integer.parseInt(accountProps[1]));
+                          long appId = Long.parseLong(accountProps[2]);
+                          String accountAlias = accountProps[3];
+                          return getAccountByAlias(accountCategory, appId, accountAlias);
+                      } else if ("account_id".equals(keyType)) {
+                          long accountId = Long.parseLong(accountProps[1]);
+                          return getAccountById(accountId);
+                      } else {
+                          return null;
                       }
                   }
-            );
+              }
+        );
 
     @Autowired
     public AccountServiceImpl(AccountResourceClient accountResourceClient) {

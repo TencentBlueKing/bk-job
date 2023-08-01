@@ -22,39 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.crypto.util;
 
-import com.tencent.bk.job.common.util.crypto.RSAUtils;
+import org.assertj.core.api.AssertionsForClassTypes;
+import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.PublicKey;
-
-public class RSAEncryptor implements AsymmetricEncryptor {
-    private PublicKey publicKey;
-
-    public RSAEncryptor(File rsaPubPermFile) throws IOException, GeneralSecurityException {
-        publicKey = RSAUtils.getPublicKey(rsaPubPermFile);
+public class AESUtilsTest {
+    @Test
+    void testEncryptToBase64EncodedCipherText() {
+        String text = "job";
+        String encryptPassword = "job#123";
+        String encryptedData = AESUtils.encryptToBase64EncodedCipherText(text, encryptPassword);
+        AssertionsForClassTypes.assertThat(encryptedData).isNotEmpty();
     }
 
-    public RSAEncryptor(String rsaPublicKeyBase64) throws IOException, GeneralSecurityException {
-        publicKey = RSAUtils.getPublicKey(rsaPublicKeyBase64);
+    @Test
+    void testDecryptBase64EncodedCipherText() {
+        String encryptedBase64EncodedData = "GQ6kLqtMevL8z/kXGVANQ+VP5o2Bt30yzXALfZbeOoY=";
+        String encryptPassword = "job#123";
+        String decodeData = AESUtils.decryptBase64EncodedDataToPlainText(encryptedBase64EncodedData, encryptPassword);
+        AssertionsForClassTypes.assertThat(decodeData).isEqualTo("job");
     }
 
-    public String encrypt(String rawText) {
-        try {
-            return RSAUtils.encrypt(rawText, publicKey);
-        } catch (IOException | GeneralSecurityException e) {
-            return null;
-        }
-    }
-
-    public boolean verify(String message, String signature) {
-        try {
-            return RSAUtils.verify(publicKey, message, signature);
-        } catch (Exception e) {
-            return false;
-        }
-    }
 }

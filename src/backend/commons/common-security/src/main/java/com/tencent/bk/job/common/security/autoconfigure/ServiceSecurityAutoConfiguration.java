@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.security.autoconfigure;
 
 import com.tencent.bk.job.common.security.jwt.AutoUpdateJwtManager;
-import com.tencent.bk.job.common.util.jwt.JwtManager;
+import com.tencent.bk.job.common.jwt.JwtManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

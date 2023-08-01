@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.config;
 
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import com.tencent.bk.job.common.encrypt.Encryptor;
-import com.tencent.bk.job.common.encrypt.RSAEncryptor;
+import com.tencent.bk.job.common.crypto.Encryptor;
+import com.tencent.bk.job.common.crypto.RSAEncryptor;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;

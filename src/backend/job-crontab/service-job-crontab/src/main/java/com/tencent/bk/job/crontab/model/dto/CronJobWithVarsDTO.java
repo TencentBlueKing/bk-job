@@ -35,10 +35,10 @@ import java.util.List;
  * 含有基本信息与变量信息的定时任务实体
  */
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class CronJobWithVarsDTO {
+public class CronJobWithVarsDTO extends EncryptEnableVariables {
     /**
      * 定时任务 ID
      */

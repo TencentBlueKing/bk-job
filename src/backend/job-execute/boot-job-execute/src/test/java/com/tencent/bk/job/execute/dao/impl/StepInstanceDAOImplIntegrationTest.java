@@ -273,7 +273,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getResolvedScriptParam()).isEqualTo("var1");
         assertThat(returnStepInstance.getScriptType()).isEqualTo(1);
         assertThat(returnStepInstance.getTimeout()).isEqualTo(1000);
-        assertThat(returnStepInstance.isSecureParam()).isEqualTo(false);
+        assertThat(returnStepInstance.isSecureParam()).isEqualTo(true);
     }
 
     @Test
@@ -365,7 +365,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers().getIpList()).isNotEmpty();
         assertThat(savedStepInstance.getFileSourceList().get(0).getServers().getIpList())
             .containsOnly(new HostDTO(1L,
-            "10.10.10.10"));
+                "10.10.10.10"));
         assertThat(savedStepInstance.getFileSourceList().get(0).getFiles()).isNotEmpty();
         assertThat(savedStepInstance.getFileSourceList().get(0).getFiles().get(0).getFilePath())
             .isEqualTo("/tmp/1.log");
@@ -427,7 +427,7 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     void testUpdateResolvedScriptParam() {
-        stepInstanceDAO.updateResolvedScriptParam(1L, "resolved_var");
+        stepInstanceDAO.updateResolvedScriptParam(1L, true, "resolved_var");
         ScriptStepInstanceDTO updatedStepInstance = stepInstanceDAO.getScriptStepInstance(1L);
 
         assertThat(updatedStepInstance).isNotNull();

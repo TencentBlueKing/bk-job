@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup;
 
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.crypto.EncryptConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
@@ -41,7 +42,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class})
+@EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
 @DependsOn("applicationContextRegister")
 public class JobBackupBootApplication {
     public static void main(String[] args) {
