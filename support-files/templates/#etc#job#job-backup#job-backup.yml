@@ -86,33 +86,30 @@ spring:
     multipart:
       max-file-size: 5GB
       max-request-size: 5GB
-
-ribbon:
-  ReadTimeout: 60000
-  ConnectTimeout: 10000
-  eureka:
-    enabled: false
-
+server:
+  port: __BK_JOB_BACKUP_SERVER_PORT__
 job:
   backup:
-    upload:
-      filesize:
-        max: 2GB
-    # 存储后端默认为本地NFS
+    # `导入导出`存储后端默认为本地NFS
     storage-backend: local
     # 存储后端为蓝鲸制品库时的配置
     # storage-backend: artifactory
     # artifactory:
     #   repo: backup
-  execute:
-    archive:
-      enabled: false
-      cron: 0 0 4 * * *
-      data:
-        keep_days: 365
-      delete:
+    # DB 归档配置
+    archive-db:
+      # job-execute db 归档配置
+      execute:
+        # 是否启用 DB 归档
         enabled: false
-server:
-  port: __BK_JOB_BACKUP_SERVER_PORT__
+        # 触发时间 CRON 表达式
+        cron: 0 0 4 * * *
+        # DB 原始数据保留天数
+        keep-days: 365
+        backup:
+          # 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
+          enabled: false
+
+
 
 

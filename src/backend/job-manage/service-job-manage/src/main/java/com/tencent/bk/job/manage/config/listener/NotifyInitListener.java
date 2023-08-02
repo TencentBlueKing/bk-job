@@ -65,7 +65,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     final AvailableEsbChannelDAO availableEsbChannelDAO;
     final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
 
-    @Value("${notify.default.channels.available:mail,weixin,rtx}")
+    @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
 
     @Autowired

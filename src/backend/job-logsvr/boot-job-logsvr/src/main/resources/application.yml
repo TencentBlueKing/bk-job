@@ -17,10 +17,6 @@ job:
     service:
       private-key-base64: ${job.security.private-key-base64}
       public-key-base64: ${job.security.public-key-base64}
-
-ribbon:
-  ServerListRefreshInterval: 3000
-
 management:
   health:
     livenessstate:

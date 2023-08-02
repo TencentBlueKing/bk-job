@@ -334,23 +334,25 @@ feign:
 ## Job 配置 ##
 job:
   backup:
-    upload:
-      filesize:
-        max: 2GB
     # 存储后端默认为本地NFS
     storage-backend: local
     # 存储后端为蓝鲸制品库时的配置
     # storage-backend: artifactory
     # artifactory:
     #   repo: backup
-  execute:
-    archive:
-      enabled: false
-      cron: 0 0 4 * * *
-      data:
-        keep_days: 365
-      delete:
+    # DB 归档配置
+    archive-db:
+      # job-execute db 归档配置
+      execute:
+        # 是否启用 DB 归档
         enabled: false
+        # 触发时间 CRON 表达式
+        cron: 0 0 4 * * *
+        # DB 原始数据保留天数
+        keep-days: 365
+        backup:
+          # 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
+          enabled: false
   logsvr:
     mongodb:
       shard:
@@ -368,19 +370,34 @@ job:
         # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
         # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
         handlerNum: 3
-
-# 执行日志导出产生的临时文件相关配置
-log-export:
-  # 存储后端：
-  # local表示存储于本地NFS
-  # artifactory表示存储于蓝鲸制品库，需要环境中部署有蓝鲸制品库
-  storage-backend: local
-  # 存储后端为蓝鲸制品库时的配置
-  # storage-backend: artifactory
-  # artifactory:
-  #   # 存储执行日志导出临时文件的仓库名称
-  #   repo: filedata
-
+    # 作业管理 - 消息通知配置
+    notify:
+      default:
+        channels:
+          available: mail
+  execute:
+    # 执行日志导出产生的临时文件相关配置
+    log-export:
+      # 存储后端：
+      # local表示存储于本地NFS
+      # artifactory表示存储于蓝鲸制品库，需要环境中部署有蓝鲸制品库
+      storage-backend: local
+      # 存储后端为蓝鲸制品库时的配置
+      # storage-backend: artifactory
+      # artifactory:
+      #   # 存储执行日志导出临时文件的仓库名称
+      #   repo: filedata
+  crontab:
+    # 定时任务连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
+    notification-policy:
+      failed:
+        start:
+          # 通知开始：默认 1 - 从第一次失败开始通知
+          begin: 1
+          # 通知频率：默认 5 - 每5次通知， 1 - 每次通知
+          frequency: 5
+          # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
+          total: -1   
 bk:
   {% if job_edition == "ce" -%}
   doc:
@@ -390,19 +407,5 @@ bk:
   feedback:
     # 首页右上角问题反馈链接
     root:
-
-# 作业管理 - 消息通知配置
-notify:
-  default:
-    channels:
-      available: mail
-# 定时任务连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
-notification-policy:
-  failed:
-    start:
-      # 通知开始：默认 1 - 从第一次失败开始通知
-      begin: 1
-      # 通知频率：默认 5 - 每5次通知， 1 - 每次通知
-      frequency: 5
-      # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
-      total: -1
+deploy:
+  mode: assemble

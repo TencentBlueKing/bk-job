@@ -16,10 +16,6 @@ spring:
           lower-case-service-id: true
 server:
   shutdown: graceful
-
-ribbon:
-  ServerListRefreshInterval: 3000
-
 management:
   health:
     livenessstate:

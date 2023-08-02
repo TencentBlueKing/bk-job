@@ -22,34 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.impl;
+package com.tencent.bk.job.common.service.deploy;
 
-import com.tencent.bk.job.backup.archive.AbstractArchivist;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceRollingTaskRecordDAO;
-import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.concurrent.CountDownLatch;
-
-/**
- * step_instance_rolling_task 表归档
- */
-public class StepInstanceRollingTaskArchivist extends AbstractArchivist<StepInstanceRollingTaskRecord> {
-
-    public StepInstanceRollingTaskArchivist(StepInstanceRollingTaskRecordDAO executeRecordDAO,
-                                            ExecuteArchiveDAO executeArchiveDAO,
-                                            ArchiveProgressService archiveProgressService,
-                                            ArchiveDBProperties archiveDBProperties,
-                                            Long maxNeedArchiveId,
-                                            CountDownLatch countDownLatch) {
-        super(executeRecordDAO,
-            executeArchiveDAO,
-            archiveProgressService,
-                archiveDBProperties,
-            maxNeedArchiveId,
-            countDownLatch);
-        this.deleteIdStepSize = 100_000;
-    }
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(DeployProperties.class)
+public class DeployAutoConfiguration {
 }

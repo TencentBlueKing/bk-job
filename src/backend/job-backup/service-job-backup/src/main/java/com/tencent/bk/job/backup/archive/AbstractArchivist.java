@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
@@ -52,7 +52,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected ExecuteRecordDAO<T> executeRecordDAO;
     protected ExecuteArchiveDAO executeArchiveDAO;
     protected ArchiveProgressService archiveProgressService;
-    private ArchiveConfig archiveConfig;
+    private ArchiveDBProperties archiveDBProperties;
     /**
      * 需要归档的记录的最大 ID (include)
      */
@@ -93,13 +93,13 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     public AbstractArchivist(ExecuteRecordDAO<T> executeRecordDAO,
                              ExecuteArchiveDAO executeArchiveDAO,
                              ArchiveProgressService archiveProgressService,
-                             ArchiveConfig archiveConfig,
+                             ArchiveDBProperties archiveDBProperties,
                              Long maxNeedArchiveId,
                              CountDownLatch countDownLatch) {
         this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
-        this.archiveConfig = archiveConfig;
+        this.archiveDBProperties = archiveDBProperties;
         this.maxNeedArchiveId = maxNeedArchiveId;
         this.countDownLatch = countDownLatch;
         this.tableName = executeRecordDAO.getTable().getName().toLowerCase();
@@ -109,6 +109,10 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     public void archive() {
         try {
             if (!acquireLock()) {
+                return;
+            }
+            if (!archiveDBProperties.isEnabled()) {
+                log.info("[{}] Archive is disabled, skip archive", tableName);
                 return;
             }
 
@@ -121,14 +125,14 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             }
 
             boolean archiveSuccess;
-            if (archiveConfig.isArchiveEnabled()) {
-                archiveSuccess = archiveTable();
+            if (archiveDBProperties.getBackup().isEnabled()) {
+                archiveSuccess = backupTable();
             } else {
-                log.info("[{}] Archive is not enabled, skip archive table!", tableName);
+                log.info("[{}] Backup is not enabled, skip backup table!", tableName);
                 archiveSuccess = true;
             }
 
-            if (archiveSuccess && archiveConfig.isDeleteEnabled()) {
+            if (archiveSuccess) {
                 delete();
             }
         } catch (Throwable e) {
@@ -138,8 +142,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             ).getMessage();
             log.error(msg, e);
         } finally {
-            archiveSummary.setArchiveEnabled(archiveConfig.isArchiveEnabled());
-            archiveSummary.setDeleteEnabled(archiveConfig.isDeleteEnabled());
+            archiveSummary.setArchiveEnabled(archiveDBProperties.isEnabled());
+            archiveSummary.setBackupEnabled(archiveDBProperties.getBackup().isEnabled());
             storeArchiveSummary();
             if (this.isAcquireLock) {
                 ArchiveTaskLock.getInstance().unlock(tableName);
@@ -158,11 +162,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     /**
-     * 归档表数据
+     * 备份表数据
      *
-     * @return true: 归档操作成功
+     * @return true: 备份操作成功
      */
-    private boolean archiveTable() {
+    private boolean backupTable() {
         // 计算本次归档的起始 ID
         computeMinNeedArchiveId();
         if (maxNeedArchiveId < this.minNeedArchiveId) {
@@ -178,7 +182,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         long start = this.minNeedArchiveId - 1;
         long stop = start;
         try {
-            log.info("[{}] Archive table start, minNeedArchiveId: {}, maxNeedArchiveId:{}",
+            log.info("[{}] Backup table start, minNeedArchiveId: {}, maxNeedArchiveId:{}",
                 tableName, minNeedArchiveId, maxNeedArchiveId);
             List<T> recordList = new ArrayList<>(readIdStepSize);
 
@@ -218,11 +222,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             }
 
             archiveCost = System.currentTimeMillis() - startTime;
-            log.info("Archive {} finished, minNeedArchiveId: {}, maxNeedArchiveId: {}, readRows: {}, " +
+            log.info("Backup {} finished, minNeedArchiveId: {}, maxNeedArchiveId: {}, readRows: {}, " +
                     "archivedRows: {}, cost: {}ms",
                 tableName, minNeedArchiveId, maxNeedArchiveId, readRows, archivedRows, archiveCost);
             if (readRows != archivedRows) {
-                log.warn("Archive row are unexpected, table: {}, expected: {}, actual: {}", tableName, readRows,
+                log.warn("Backup row are unexpected, table: {}, expected: {}, actual: {}", tableName, readRows,
                     archivedRows);
             }
             return true;

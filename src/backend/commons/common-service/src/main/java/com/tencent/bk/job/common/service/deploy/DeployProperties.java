@@ -22,34 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.impl;
+package com.tencent.bk.job.common.service.deploy;
 
-import com.tencent.bk.job.backup.archive.AbstractArchivist;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceRollingTaskRecordDAO;
-import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
-
-import java.util.concurrent.CountDownLatch;
+import com.tencent.bk.job.common.service.constants.DeployModeEnum;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * step_instance_rolling_task 表归档
+ * Job 部署配置
  */
-public class StepInstanceRollingTaskArchivist extends AbstractArchivist<StepInstanceRollingTaskRecord> {
-
-    public StepInstanceRollingTaskArchivist(StepInstanceRollingTaskRecordDAO executeRecordDAO,
-                                            ExecuteArchiveDAO executeArchiveDAO,
-                                            ArchiveProgressService archiveProgressService,
-                                            ArchiveDBProperties archiveDBProperties,
-                                            Long maxNeedArchiveId,
-                                            CountDownLatch countDownLatch) {
-        super(executeRecordDAO,
-            executeArchiveDAO,
-            archiveProgressService,
-                archiveDBProperties,
-            maxNeedArchiveId,
-            countDownLatch);
-        this.deleteIdStepSize = 100_000;
-    }
+@Getter
+@Setter
+@ToString
+@ConfigurationProperties(prefix = "deploy")
+public class DeployProperties {
+    /**
+     * 部署模式
+     */
+    private String mode = DeployModeEnum.MICRO_SERVICE.getValue();
 }

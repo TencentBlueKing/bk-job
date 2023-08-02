@@ -27,29 +27,38 @@ package com.tencent.bk.job.backup.config;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @Setter
 @ToString
-@Configuration
-public class ArchiveConfig {
-    @Value("${job.execute.archive.enabled:false}")
-    private boolean archiveEnabled;
+@ConfigurationProperties(prefix = "job.backup.archive-db.execute")
+public class ArchiveDBProperties {
+    /**
+     * 是否启用 DB 归档
+     */
+    private boolean enabled;
 
     /**
-     * 归档多少天前的 Days
+     * 触发时间 CRON 表达式
      */
-    @Value("${job.execute.archive.data.keep_days:30}")
-    private int dataKeepDays;
+    private String cron;
 
-    @Value("${job.execute.archive.db:mysql}")
-    private String archiveDB;
+    private BackupConfig backup;
 
-    @Value("${job.execute.archive.delete.enabled:false}")
-    private boolean deleteEnabled;
+    /**
+     * DB数据保留天数
+     */
+    private int keepDays = 365;
 
-    @Value("${job.execute.archive.delete.limit-row-count:5000}")
-    private Integer deleteLimitRowCount;
+    @Getter
+    @Setter
+    @ToString
+    public static class BackupConfig {
+        /**
+         * 是否启用 DB 数据备份，job.backup.archiveDB.execute.enabled=true 的时候该配置项才会生效
+         */
+        private boolean enabled;
+    }
+
 }

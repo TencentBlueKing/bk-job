@@ -100,18 +100,20 @@ data:
       port: {{ .Values.backupConfig.containerPort }}
     job:
       backup:
-        upload:
-          filesize:
-            max: 2GB
         storage-backend: {{ .Values.backupConfig.storageBackend }}
         artifactory:
           repo: {{ .Values.backupConfig.artifactory.repo }}
-      execute:
-        archive:
-          enabled: false
-          cron: 0 0 4 * * *
-          data:
-            keep_days: 365
-          delete:
+        # DB 归档配置
+        archive-db:
+          # job-execute db 归档配置
+          execute:
+            # 是否启用 DB 归档
             enabled: false
+            # 触发时间 CRON 表达式
+            cron: 0 0 4 * * *
+            # DB 原始数据保留天数
+            keep-days: 365
+            backup:
+              # 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
+              enabled: false
 {{- end }}
