@@ -47,7 +47,7 @@ import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
@@ -59,9 +59,10 @@ import java.util.concurrent.ExecutorService;
 @Configuration
 @EnableScheduling
 @Slf4j
+@ConditionalOnExpression("${job.backup.archiveDB.execute.enabled:false}")
 public class ArchivistAutoConfig {
 
-    @ConditionalOnExpression("${job.backup.archiveDB.execute.enabled:false}")
+    @Configuration
     public static class ExecuteDaoAutoConfig {
 
         @Bean(name = "taskInstanceRecordDAO")
@@ -201,32 +202,31 @@ public class ArchivistAutoConfig {
     }
 
     @Bean(name = "execute-archive-dao")
-    @ConditionalOnExpression("${job.execute.archive.enabled:false}")
+    @ConditionalOnExpression("${job.execute.archiveDB.execute.backup.enabled:false}")
     public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
         log.info("Init ExecuteArchiveDAO");
         return new ExecuteArchiveDAOImpl(context);
     }
 
     @Bean
-    @ConditionalOnExpression("${job.execute.archive.enabled:false} || ${job.execute.archive.delete.enabled:false}")
     public JobExecuteArchiveManage jobExecuteArchiveManage(
-        @Autowired(required = false) TaskInstanceRecordDAO taskInstanceRecordDAO,
-        @Autowired(required = false) StepInstanceRecordDAO stepInstanceRecordDAO,
-        @Autowired(required = false) StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
-        @Autowired(required = false) StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
-        @Autowired(required = false) StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
-        @Autowired(required = false) StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
-        @Autowired(required = false) TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
-        @Autowired(required = false) OperationLogRecordDAO operationLogRecordDAO,
-        @Autowired(required = false) GseTaskLogRecordDAO gseTaskLogRecordDAO,
-        @Autowired(required = false) GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
-        @Autowired(required = false) GseTaskRecordDAO gseTaskRecordDAO,
-        @Autowired(required = false) GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
-        @Autowired(required = false) GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
-        @Autowired(required = false) StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
-        @Autowired(required = false) RollingConfigRecordDAO rollingConfigRecordDAO,
-        @Autowired(required = false) TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
-        @Autowired(required = false) ExecuteArchiveDAO executeArchiveDAO,
+        TaskInstanceRecordDAO taskInstanceRecordDAO,
+        StepInstanceRecordDAO stepInstanceRecordDAO,
+        StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
+        StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
+        StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
+        StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
+        TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
+        OperationLogRecordDAO operationLogRecordDAO,
+        GseTaskLogRecordDAO gseTaskLogRecordDAO,
+        GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
+        GseTaskRecordDAO gseTaskRecordDAO,
+        GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
+        GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
+        StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
+        RollingConfigRecordDAO rollingConfigRecordDAO,
+        TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
+        ObjectProvider<ExecuteArchiveDAO> executeArchiveDAOObjectProvider,
         ArchiveProgressService archiveProgressService,
         @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
         ArchiveDBProperties archiveDBProperties) {
@@ -249,7 +249,7 @@ public class ArchivistAutoConfig {
             stepInstanceRollingTaskRecordDAO,
             rollingConfigRecordDAO,
             taskInstanceHostRecordDAO,
-            executeArchiveDAO,
+            executeArchiveDAOObjectProvider.getIfAvailable(),
             archiveProgressService,
             archiveDBProperties,
             archiveExecutor);
