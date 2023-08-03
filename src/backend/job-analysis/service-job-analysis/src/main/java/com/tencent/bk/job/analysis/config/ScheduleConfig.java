@@ -31,7 +31,9 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-//设定一个长度5的定时任务线程池
+/**
+ * 设定一个长度5的定时任务线程池
+ */
 @Slf4j
 @Configuration
 public class ScheduleConfig implements SchedulingConfigurer {
