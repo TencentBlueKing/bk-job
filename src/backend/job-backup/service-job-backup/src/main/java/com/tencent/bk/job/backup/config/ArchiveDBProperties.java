@@ -56,7 +56,7 @@ public class ArchiveDBProperties {
     @ToString
     public static class BackupConfig {
         /**
-         * 是否启用 DB 数据备份，job.backup.archiveDB.execute.enabled=true 的时候该配置项才会生效
+         * 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
          */
         private boolean enabled;
     }

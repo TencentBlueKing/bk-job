@@ -59,7 +59,7 @@ import java.util.concurrent.ExecutorService;
 @Configuration
 @EnableScheduling
 @Slf4j
-@ConditionalOnExpression("${job.backup.archiveDB.execute.enabled:false}")
+@ConditionalOnExpression("${job.backup.archive-db.execute.enabled:false}")
 public class ArchivistAutoConfig {
 
     @Configuration
