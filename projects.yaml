@@ -1,71 +1,80 @@
-- name: job-config
-  module: job
-  project_dir: job/job-config
-  alias: job-config
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+modules:
+  - name: job-frontend
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Web Frontend"
 
-- name: job-gateway
-  module: job
-  project_dir: job/job-gateway
-  alias: job-gateway
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+  - name: job-config
+    module: job
+    package: 
+      - binary
+    description: "Job Configuration Center"
 
-- name: job-manage
-  module: job
-  project_dir: job/job-manage
-  alias: job-manage
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+  - name: job-gateway
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Microservice Gateway"
 
-- name: job-execute
-  module: job
-  project_dir: job/job-execute
-  alias: job-execute
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+  - name: job-manage
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Management Microservice" 
 
-- name: job-crontab
-  module: job
-  project_dir: job/job-crontab
-  alias: job-crontab
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+  - name: job-execute
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Execution Microservice"
 
-- name: job-logsvr
-  module: job
-  project_dir: job/job-logsvr
-  alias: job-logsvr
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+  - name: job-crontab
+    module: job
+    package: binary,k8s
+    description: "Job Cron Task Microservice"
 
-- name: job-file-gateway
-  module: job
-  project_dir: job/job-file-gateway
-  alias: job-file-gateway
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+  - name: job-logsvr
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Execution Log Microservice" 
 
-- name: job-ticket
-  module: job
-  project_dir: job/job-ticket
-  alias: job-ticket
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+  - name: job-file-gateway
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job File Source Gateway Microservice"
 
-- name: job-analysis
-  module: job
-  project_dir: job/job-analysis
-  alias: job-analysis
-  language: java/1.8
-  version: 1.0.0
-  version_type: ee
+  - name: job-file-worker
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job File Source worker"
+
+  - name: job-analysis
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Statistical Analysis Microservice" 
+
+  - name: job-backup
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Backup Microservice" 
+
+  - name: job-migration
+    module: job
+    package: 
+      - k8s
+    description: "Job Migration Kubernetes Job"
