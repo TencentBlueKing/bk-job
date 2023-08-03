@@ -36,7 +36,9 @@ modules:
   
   - name: job-crontab
     module: job
-    package: binary,k8s
+    package: 
+      - binary
+      - k8s
     description: "Job Cron Task Microservice"
   
   - name: job-logsvr
