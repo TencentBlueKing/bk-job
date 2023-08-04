@@ -410,7 +410,7 @@
       }
 
       .content-wraper {
-        height: calc(100vh - 92px);
+        height: calc(100vh - 120px);
       }
 
       .d2h-file-wrapper {
