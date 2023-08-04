@@ -88,17 +88,19 @@
           </bk-select>
         </div>
       </div>
-      <scroll-faker class="content-wraper">
-        <jb-diff
-          ref="diff"
-          class="diff-details"
-          :context="Infinity"
-          format="side-by-side"
-          :language="language"
-          :new-content="newContent"
-          :old-content="oldContent"
-          theme="dark" />
-      </scroll-faker>
+      <div class="content-wraper">
+        <scroll-faker>
+          <jb-diff
+            ref="diff"
+            class="diff-details"
+            :context="Infinity"
+            format="side-by-side"
+            :language="language"
+            :new-content="newContent"
+            :old-content="oldContent"
+            theme="dark" />
+        </scroll-faker>
+      </div>
     </div>
     <i
       class="bk-icon icon-close"
@@ -297,10 +299,7 @@
 <style lang="postcss">
     .jb-diff-layout {
       position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
+      inset: 0;
       padding: 8px 24px;
       background-color: #fff;
 
@@ -411,7 +410,7 @@
       }
 
       .content-wraper {
-        max-height: calc(100vh - 92px);
+        height: calc(100vh - 92px);
       }
 
       .d2h-file-wrapper {
