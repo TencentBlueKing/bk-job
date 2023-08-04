@@ -58,12 +58,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 启动控制器，用于控制在K8s部署时各Service的启动顺序
  */
 @Slf4j
 public class StartupController {
+
+    public static final String POD_PHASE_PENDING = "Pending";
+    public static final String POD_PHASE_RUNNING = "Running";
 
     // K8s API
     private static final CoreV1Api api;
@@ -435,7 +439,7 @@ public class StartupController {
     }
 
     /**
-     * 判断服务对应的Pod是否准备好，依据：Pod全部处于Running状态，且拥有指定的所有标签
+     * 判断服务对应的Pod是否准备好，依据：准备/运行期Pod全部达到Running状态，且拥有指定的所有标签
      *
      * @param namespace            命名空间
      * @param serviceName          服务名称
@@ -447,6 +451,24 @@ public class StartupController {
         List<V1Pod> servicePodList = listPodByServiceName(namespace, serviceName);
         if (CollectionUtils.isEmpty(servicePodList)) {
             log.info("no pod found by service {}", serviceName);
+            return true;
+        }
+        // 启动阶段只关注Pending/Running状态的Pod，忽略其他状态的Pod（例如Evicted）
+        servicePodList = servicePodList.stream().filter(v1Pod -> {
+            if (v1Pod == null || v1Pod.getStatus() == null) {
+                return false;
+            }
+            V1PodStatus v1PodStatus = v1Pod.getStatus();
+            return POD_PHASE_PENDING.equalsIgnoreCase(v1PodStatus.getPhase()) ||
+                POD_PHASE_RUNNING.equalsIgnoreCase(v1PodStatus.getPhase());
+        }).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(servicePodList)) {
+            log.info(
+                "no {}/{} pod found by service {}",
+                POD_PHASE_PENDING,
+                POD_PHASE_RUNNING,
+                serviceName
+            );
             return true;
         }
         int readyPodNum = 0;
@@ -562,9 +584,8 @@ public class StartupController {
             }
             log.debug("phase of pod {}:{}", v1Pod.getMetadata().getName(), v1PodStatus.getPhase());
         }
-        String targetPhase = "Running";
         return v1PodStatus != null
-            && targetPhase.equalsIgnoreCase(v1PodStatus.getPhase())
+            && POD_PHASE_RUNNING.equalsIgnoreCase(v1PodStatus.getPhase())
             && isPodHasLabels(v1Pod, requiredPodLabelsMap);
     }
 
