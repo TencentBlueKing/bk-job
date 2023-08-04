@@ -51,7 +51,9 @@
                 sort: item.orderField,
               }"
               @click="handleSort(item)">
-              <span>{{ item.label }}</span>
+              <span style="display: inline-block; height: 20px; overflow: hidden; line-height: 20px; vertical-align: middle;">
+                {{ item.label }}
+              </span>
               <span
                 v-if="item.name === 'ipv4'"
                 v-bk-tooltips="$t('history.复制 IP')"
@@ -112,7 +114,7 @@
        * @returns { undefined }
        */
       handleSort(payload) {
-        if (payload.label === 'IP') {
+        if (payload.label === 'IP' || !payload.orderField) {
           return;
         }
         this.$emit('on-sort', payload);
