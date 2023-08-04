@@ -27,7 +27,11 @@
 
 <template>
   <jb-form-item :label="$t('脚本参数')">
-    <div class="muti-item">
+    <div
+      class="execute-script-params-block"
+      :class="{
+        'is-secure-field': formData[secureField]
+      }">
       <jb-input
         :maxlength="5000"
         :placeholder="$t('脚本执行时传入的参数，同脚本在终端执行时的传参格式，如：./test.sh xxxx xxx xxx')"
@@ -82,9 +86,15 @@
   };
 </script>
 <style lang='postcss'>
-  .muti-item {
+  .execute-script-params-block {
     display: flex;
     width: 100%;
+
+    &.is-secure-field{
+      .control-icon{
+        display: none;
+      }
+    }
 
     .jb-input {
       flex: 1;
