@@ -62,12 +62,12 @@ data:
           idle-timeout: 6000
           poolName: "job-execute-db"
           validationTimeout: 5000
-        {{- if .Values.archive.execute.enabled }}
+        {{- if .Values.backupConfig.archive.execute.enabled }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.archive.mariadb.host }}:{{ .Values.archive.mariadb.port }}/job_execute{{ .Values.archive.mariadb.connection.properties }}
-          username: {{ .Values.archive.mariadb.username }}
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ .Values.backupConfig.archive.mariadb.connection.properties }}
+          username: {{ .Values.backupConfig.archive.mariadb.username }}
           password: ${archive-mariadb-password}
           maximum-pool-size: 10
           minimum-idle: 2
@@ -106,5 +106,5 @@ data:
           repo: {{ .Values.backupConfig.artifactory.repo }}
       execute:
         archive:
-          {{- toYaml .Values.archive.execute | nindent 10 }}
+          {{- toYaml .Values.backupConfig.archive.execute | nindent 10 }}
 {{- end }}
