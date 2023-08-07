@@ -119,6 +119,9 @@ spec:
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
+        - name: archive-mariadb
+          secret:
+            secretName: {{ include "job.archiveMariadb.secretName" . }}
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}

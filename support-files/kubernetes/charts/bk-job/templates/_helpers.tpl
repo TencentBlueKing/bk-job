@@ -653,3 +653,11 @@ readinessProbe:
   failureThreshold: 1
   successThreshold: 1
 {{- end -}}
+
+
+{{/*
+Return the Archive MariaDB secret name
+*/}}
+{{- define "job.archiveMariadb.secretName" -}}
+{{ printf "%s-%s" (include "job.fullname" .) "archive-mariadb" }}
+{{- end -}}

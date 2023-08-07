@@ -642,6 +642,29 @@ persistence:
   ## 在删除该声明后，这个卷也会被销毁(用于单节点环境，生产环境不推荐)。
   # ref: https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/
 
+## 数据归档配置
+archive:
+  # 归档使用的MariaDB实例，若开启归档，必须配置该项内容
+  mariadb:
+    host: ""
+    port: ""
+    username: "job"
+    password: "job"
+    connection:
+      properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+  # job-execute模块的归档配置
+  execute:
+    # 是否开启数据归档，默认不开启
+    enabled: false
+    # 归档任务运行的cron表达式，默认每天凌晨04:00
+    cron: 0 0 4 * * *
+    data:
+      # 热库中的数据保留时间（天）
+      keep_days: 30
+    delete:
+      # 是否删除热库中的过期老数据，默认不删除
+      enabled: false
+
 ## 蓝鲸日志采集配置
 bkLogConfig:
   # 是否开启蓝鲸日志采集
