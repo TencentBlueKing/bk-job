@@ -62,7 +62,7 @@ data:
           idle-timeout: 6000
           poolName: "job-execute-db"
           validationTimeout: 5000
-        {{ if .Values.archive.execute.enabled }}
+        {{- if .Values.archive.execute.enabled }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
