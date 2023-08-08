@@ -43,7 +43,8 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.AbstractContinuousScheduledTask;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -78,7 +79,7 @@ import static com.tencent.bk.job.common.util.function.LambdasUtil.not;
  * @param <T>
  */
 @Slf4j
-public abstract class AbstractResultHandleTask<T> implements ContinuousScheduledTask {
+public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousScheduledTask {
     /**
      * GSE任务执行结果为空,Job最大容忍时间1min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
@@ -87,10 +88,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * GSE任务超时未结束,Job最大容忍时间。5min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
     private static final int GSE_TASK_TIMEOUT_MAX_TOLERATION_MILLS = 300_000;
-    /*
-     * 同步锁
-     */
-    private final Object stopMonitor = new Object();
+
     // ---------------- dependent service --------------------
     protected LogService logService;
     protected TaskInstanceService taskInstanceService;
@@ -98,7 +96,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
     protected TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
+    protected ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected AgentTaskService agentTaskService;
     protected StepInstanceService stepInstanceService;
@@ -172,19 +170,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected boolean isTerminatedSuccess = false;
     /**
-     * 任务是否在运行中
-     */
-    protected volatile boolean isRunning = false;
-    /**
-     * 任务是否已停止
-     */
-    protected volatile boolean isStopped = false;
-
-    /**
-     * 任务是否启用
-     */
-    protected volatile boolean isActive = true;
-    /**
      * 拉取执行结果次数
      */
     private final AtomicInteger pullLogTimes = new AtomicInteger(0);
@@ -215,32 +200,38 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected String gseTaskInfo;
 
+    /**
+     * 任务锁
+     */
+    private String lockKey;
 
-    protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
-                                       GseTaskService gseTaskService,
-                                       LogService logService,
-                                       TaskInstanceVariableService taskInstanceVariableService,
-                                       StepInstanceVariableValueService stepInstanceVariableValueService,
-                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                       AgentTaskService agentTaskService,
-                                       StepInstanceService stepInstanceService,
-                                       GseClient gseClient,
-                                       TaskInstanceDTO taskInstance,
-                                       StepInstanceDTO stepInstance,
-                                       TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                       Map<String, AgentTaskDTO> targetAgentTasks,
-                                       GseTaskDTO gseTask,
-                                       String requestId,
-                                       List<AgentTaskDTO> agentTasks) {
+
+    protected AbstractGseResultHandleTask(TaskInstanceService taskInstanceService,
+                                          GseTaskService gseTaskService,
+                                          LogService logService,
+                                          TaskInstanceVariableService taskInstanceVariableService,
+                                          StepInstanceVariableValueService stepInstanceVariableValueService,
+                                          TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                          ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
+                                          TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+                                          AgentTaskService agentTaskService,
+                                          StepInstanceService stepInstanceService,
+                                          GseClient gseClient,
+                                          TaskInstanceDTO taskInstance,
+                                          StepInstanceDTO stepInstance,
+                                          TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
+                                          Map<String, AgentTaskDTO> targetAgentTasks,
+                                          GseTaskDTO gseTask,
+                                          String requestId,
+                                          List<AgentTaskDTO> agentTasks) {
+        super(scheduledTaskKeepaliveManager);
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.agentTaskService = agentTaskService;
         this.stepInstanceService = stepInstanceService;
@@ -281,11 +272,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 检查是否应当驱逐当前任务，若应当驱逐则驱逐并更新任务状态
      *
-     * @param watch 外部传入的耗时统计watch对象
      * @return 是否应当驱逐当前任务
      */
-    private boolean checkAndEvictTaskIfNeed(StopWatch watch) {
-        watch.start("check-evict-task");
+    @Override
+    protected boolean checkEvict() {
         if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
             log.info("taskInstance {} evicted", taskInstance.getId());
             // 更新任务与步骤状态
@@ -293,10 +283,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             // 停止日志拉取调度
             this.executeResult = GseTaskExecuteResult.DISCARDED;
             finishGseTask(this.executeResult, false);
-            watch.stop();
             return true;
         }
-        watch.stop();
         return false;
     }
 
@@ -313,7 +301,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         int batch = 0;
         do {
             batch++;
-            if (checkAndEvictTaskIfNeed(watch)) {
+            if (checkEvict()) {
                 return false;
             }
 
@@ -346,25 +334,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         return true;
     }
 
-    public void execute() {
+    public void executeTask() {
         StopWatch watch = new StopWatch("Result-Handle-Task-" + stepInstanceId);
-        String lockKey = buildGseTaskLockKey(gseTask);
         try {
-            if (!checkTaskActiveAndSetRunningStatus()) {
-                return;
-            }
-            if (checkAndEvictTaskIfNeed(watch)) {
-                return;
-            }
-
-            watch.start("get-lock");
-            if (!LockUtils.tryGetReentrantLock(lockKey, requestId, 30000L)) {
-                log.error("Fail to get result handle lock, lockKey: {}", lockKey);
-                this.executeResult = GseTaskExecuteResult.DISCARDED;
-                return;
-            }
-            watch.stop();
-
             watch.start("check-skip-or-stop");
             if (shouldSkipStep()) {
                 this.executeResult = GseTaskExecuteResult.SKIPPED;
@@ -391,8 +363,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             this.executeResult = GseTaskExecuteResult.EXCEPTION;
             finishGseTask(this.executeResult, true);
         } finally {
-            this.isRunning = false;
-            LockUtils.releaseDistributedLock(lockKey, requestId);
             if (watch.isRunning()) {
                 watch.stop();
             }
@@ -405,20 +375,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private String buildGseTaskLockKey(GseTaskDTO gseTask) {
         return "job:result:handle:" + gseTask.getId();
-    }
-
-    private boolean checkTaskActiveAndSetRunningStatus() {
-        if (!isActive) {
-            log.info("Task is inactive, task: {}", gseTaskInfo);
-            return false;
-        }
-        this.isRunning = true;
-        // 二次确认，防止isActive在设置this.isRunning=true期间发生变化
-        if (!isActive) {
-            log.info("Task is inactive, task: {}", gseTaskInfo);
-            return false;
-        }
-        return true;
     }
 
     private void terminateGseTaskIfDetectTaskStatusIsStopping() {
@@ -623,32 +579,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     @Override
-    public void stop() {
-        synchronized (stopMonitor) {
-            if (!isStopped) {
-                this.isActive = false;
-                tryStopImmediately();
-            } else {
-                log.info("Task is stopped, task: {}", gseTaskInfo);
-            }
-        }
-    }
-
-    private void tryStopImmediately() {
-        if (!this.isRunning) {
-            log.info("ResultHandleTask-onStop start, task: {}", gseTaskInfo);
-            resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
-            taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
-                ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
-                    gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId(), requestId));
-
-            this.isStopped = true;
-            StopTaskCounter.getInstance().decrement(getTaskId());
-            log.info("ResultHandleTask-onStop end, task: {}", gseTaskInfo);
-        } else {
-            log.info("ResultHandleTask-onStop, task is running now, will stop when idle. stepInstanceId: {}",
-                stepInstanceId);
-        }
+    public void resumeTask() {
+        taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
+            ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
+                gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId(), requestId));
     }
 
     public long getAppId() {
@@ -706,6 +640,36 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
         return rst;
+    }
+
+    @Override
+    protected boolean acquireTaskLock() {
+        this.lockKey = buildGseTaskLockKey(gseTask);
+        if (!LockUtils.tryGetReentrantLock(lockKey, requestId, 30000L)) {
+            this.executeResult = GseTaskExecuteResult.DISCARDED;
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void onFinish() {
+        sampler.decrementScriptTask(this.appId);
+    }
+
+    @Override
+    public void onSuccess() {
+
+    }
+
+    @Override
+    public void onFail() {
+
+    }
+
+    @Override
+    protected void releaseTaskLock() {
+        LockUtils.releaseDistributedLock(lockKey, requestId);
     }
 
     /**

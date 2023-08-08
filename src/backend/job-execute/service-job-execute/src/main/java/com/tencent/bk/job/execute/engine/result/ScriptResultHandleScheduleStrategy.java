@@ -24,21 +24,36 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-/**
- * 持续性调度任务
- */
-public interface ContinuousScheduledTask extends Task, Lifecycle {
-    /**
-     * 任务是否结束
-     *
-     * @return 如果结束返回true，否则返回false
-     */
-    boolean isFinished();
+import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * 脚本任务调度延迟策略
+ */
+@Slf4j
+public class ScriptResultHandleScheduleStrategy implements ScheduleDelayStrategy {
     /**
-     * 返回任务调度策略
-     *
-     * @return 任务调度策略
+     * 任务累计执行次数
      */
-    ScheduleStrategy getScheduleStrategy();
+    private final AtomicInteger times = new AtomicInteger(0);
+
+    @Override
+    public long getNextDelay() {
+        int handleCount = times.addAndGet(1);
+        if (handleCount <= 10) {
+            // 10s以内，周期为1s
+            return 1000;
+        } else if (handleCount <= 35) {
+            // 10s-1min,周期为2s
+            return 2000;
+        } else if (handleCount <= 88) {
+            // 1min-5min,周期为5s
+            return 5000;
+        } else {
+            // 超过5min,周期为10s
+            return 10000;
+        }
+    }
 }

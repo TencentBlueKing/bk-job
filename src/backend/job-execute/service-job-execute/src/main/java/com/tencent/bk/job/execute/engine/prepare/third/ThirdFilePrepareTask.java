@@ -41,9 +41,9 @@ import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
-import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
-import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
-import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
+import com.tencent.bk.job.execute.engine.schedule.ContinuousScheduledTask;
+import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
+import com.tencent.bk.job.execute.engine.schedule.StopTaskCounter;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -156,7 +156,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     }
 
     @Override
-    public ScheduleStrategy getScheduleStrategy() {
+    public ScheduleDelayStrategy getScheduleDelayStrategy() {
         // 每秒拉取一次任务状态
         return () -> 1000;
     }

@@ -22,14 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.engine.schedule;
 
 /**
- * 任务生命周期
+ * 持续调度任务
  */
-public interface Lifecycle {
+public interface ContinuousScheduledTask extends Task, Lifecycle {
     /**
-     * 终止任务
+     * 任务是否结束
+     *
+     * @return 如果结束返回true，否则返回false
      */
-    void stop();
+    boolean isFinished();
+
+    /**
+     * 返回任务调度延迟策略
+     *
+     * @return 任务调度延迟策略
+     */
+    ScheduleDelayStrategy getScheduleDelayStrategy();
 }

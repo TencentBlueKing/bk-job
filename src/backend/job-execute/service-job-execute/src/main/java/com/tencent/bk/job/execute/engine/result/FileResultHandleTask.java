@@ -51,7 +51,8 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -89,7 +90,7 @@ import java.util.stream.Collectors;
  * 文件任务执行结果处理
  */
 @Slf4j
-public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResult> {
+public class FileResultHandleTask extends AbstractGseResultHandleTask<FileTaskResult> {
     /**
      * GSE 源 Agent 任务, Map<AgentId,AgentTask>
      */
@@ -152,7 +153,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     /**
      * 文件任务执行结果处理调度策略
      */
-    private volatile ScheduleStrategy scheduleStrategy;
+    private volatile ScheduleDelayStrategy scheduleDelayStrategy;
     /**
      * 任务基本信息，用于日志输出
      */
@@ -169,7 +170,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 TaskInstanceVariableService taskInstanceVariableService,
                                 StepInstanceVariableValueService stepInstanceVariableValueService,
                                 TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 FileAgentTaskService fileAgentTaskService,
                                 StepInstanceService stepInstanceService,
@@ -189,7 +190,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             taskInstanceVariableService,
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
+            scheduledTaskKeepaliveManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
@@ -975,11 +976,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     @Override
-    public ScheduleStrategy getScheduleStrategy() {
-        if (scheduleStrategy == null) {
-            this.scheduleStrategy = new FileTaskResultHandleScheduleStrategy();
+    public ScheduleDelayStrategy getScheduleDelayStrategy() {
+        if (scheduleDelayStrategy == null) {
+            this.scheduleDelayStrategy = new FileResultHandleScheduleStrategy();
         }
-        return this.scheduleStrategy;
+        return this.scheduleDelayStrategy;
     }
 
     @Override

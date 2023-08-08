@@ -22,16 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result.ha;
+package com.tencent.bk.job.execute.engine.schedule.ha;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.Set;
 import java.util.UUID;
@@ -40,18 +38,16 @@ import java.util.UUID;
  * 故障终止的任务发现与恢复
  */
 @Slf4j
-@Component
-@EnableScheduling
-public class NotAliveResultHandleTaskDetector {
-    private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
+public class NotAliveScheduleTaskDetector {
+    private final ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final ExecuteMonitor executeMonitor;
     private final String requestId = UUID.randomUUID().toString();
 
-    public NotAliveResultHandleTaskDetector(ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                            TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                            ExecuteMonitor executeMonitor) {
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+    public NotAliveScheduleTaskDetector(ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
+                                        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                        ExecuteMonitor executeMonitor) {
+        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.executeMonitor = executeMonitor;
     }
@@ -61,7 +57,7 @@ public class NotAliveResultHandleTaskDetector {
         try {
             if (LockUtils.tryGetDistributedLock("not:alive:task:detect:lock", requestId, 5000L)) {
                 log.info("Detect not alive tasks start ...");
-                Set<String> notAliveTaskIds = resultHandleTaskKeepaliveManager.getNotAliveTaskIds();
+                Set<String> notAliveTaskIds = scheduledTaskKeepaliveManager.getNotAliveTaskIds();
                 if (CollectionUtils.isEmpty(notAliveTaskIds)) {
                     return;
                 }
@@ -84,7 +80,7 @@ public class NotAliveResultHandleTaskDetector {
                 int executeCount = Integer.parseInt(taskInfo[2]);
                 // 暂时不转移
 //                taskExecuteControlMsgSender.resumeGseStep(stepInstanceId, executeCount, UUID.randomUUID().toString());
-                resultHandleTaskKeepaliveManager.removeTaskKeepaliveInfoFromRedis(taskId);
+                scheduledTaskKeepaliveManager.removeTaskKeepaliveInfoFromRedis(taskId);
             }
         });
         log.info("Resume not alive tasks successfully");

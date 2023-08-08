@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.monitor.metrics;
 
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +35,9 @@ public class ResultHandleWaitingScheduleTasksGauge {
 
     @Autowired
     public ResultHandleWaitingScheduleTasksGauge(MeterRegistry meterRegistry,
-                                                 ResultHandleManager resultHandleManager) {
+                                                 ScheduledTaskManager scheduledTaskManager) {
         meterRegistry.gauge(ExecuteMetricNames.RESULT_HANDLE_WAITING_SCHEDULE_TASKS,
-            resultHandleManager, ResultHandleManager::getResultHandleWaitingScheduleTasks);
+            scheduledTaskManager, ScheduledTaskManager::getResultHandleWaitingScheduleTasks);
     }
 
 }

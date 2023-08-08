@@ -36,9 +36,9 @@ import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -71,7 +71,7 @@ import java.util.UUID;
 public class ResultHandleResumeListener {
     private final TaskInstanceService taskInstanceService;
 
-    private final ResultHandleManager resultHandleManager;
+    private final ScheduledTaskManager scheduledTaskManager;
 
     private final TaskInstanceVariableService taskInstanceVariableService;
 
@@ -85,7 +85,7 @@ public class ResultHandleResumeListener {
 
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
 
-    private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
+    private final ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
 
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
@@ -98,28 +98,28 @@ public class ResultHandleResumeListener {
 
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
-                                      ResultHandleManager resultHandleManager,
+                                      ScheduledTaskManager scheduledTaskManager,
                                       TaskInstanceVariableService taskInstanceVariableService,
                                       GseTaskService gseTaskService,
                                       StorageSystemConfig storageSystemConfig,
                                       LogService logService,
                                       StepInstanceVariableValueService stepInstanceVariableValueService,
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                      ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptAgentTaskService scriptAgentTaskService,
                                       FileAgentTaskService fileAgentTaskService,
                                       StepInstanceService stepInstanceService,
                                       GseClient gseClient) {
         this.taskInstanceService = taskInstanceService;
-        this.resultHandleManager = resultHandleManager;
+        this.scheduledTaskManager = scheduledTaskManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.gseTaskService = gseTaskService;
         this.storageSystemConfig = storageSystemConfig;
         this.logService = logService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
@@ -183,7 +183,7 @@ public class ResultHandleResumeListener {
             taskInstanceVariableService,
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
+                scheduledTaskKeepaliveManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
@@ -195,7 +195,7 @@ public class ResultHandleResumeListener {
             gseTask,
             requestId,
             agentTasks);
-        resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
+        scheduledTaskManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
     private void resumeFileTask(TaskInstanceDTO taskInstance,
@@ -229,7 +229,7 @@ public class ResultHandleResumeListener {
             taskInstanceVariableService,
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
+                scheduledTaskKeepaliveManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
@@ -243,7 +243,7 @@ public class ResultHandleResumeListener {
             srcAndDestMap,
             requestId,
             agentTasks);
-        resultHandleManager.handleDeliveredTask(fileResultHandleTask);
+        scheduledTaskManager.handleDeliveredTask(fileResultHandleTask);
     }
 
     private boolean checkIsTaskResumeable(StepInstanceDTO stepInstance, GseTaskDTO gseTask) {

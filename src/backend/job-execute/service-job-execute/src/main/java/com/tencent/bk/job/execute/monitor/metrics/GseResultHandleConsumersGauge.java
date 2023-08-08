@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.monitor.metrics;
 
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -40,12 +40,12 @@ import java.util.Collections;
 public class GseResultHandleConsumersGauge {
 
     @Autowired
-    public GseResultHandleConsumersGauge(MeterRegistry meterRegistry, ResultHandleManager resultHandleManager) {
+    public GseResultHandleConsumersGauge(MeterRegistry meterRegistry, ScheduledTaskManager scheduledTaskManager) {
         meterRegistry.gauge(ExecuteMetricNames.GSE_RESULT_HANDLE_CONSUMERS, Collections.singletonList(Tag.of("status"
             , "busy")),
-            resultHandleManager, ResultHandleManager::getResultHandleBusyThreads);
+            scheduledTaskManager, ScheduledTaskManager::getResultHandleBusyThreads);
         meterRegistry.gauge(ExecuteMetricNames.GSE_RESULT_HANDLE_CONSUMERS, Collections.singletonList(Tag.of("status"
             , "idle")),
-            resultHandleManager, ResultHandleManager::getResultHandleIdleThreads);
+            scheduledTaskManager, ScheduledTaskManager::getResultHandleIdleThreads);
     }
 }

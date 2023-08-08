@@ -23,36 +23,10 @@
  */
 
 package com.tencent.bk.job.execute.engine.result;
-
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
- * 脚本任务调度策略
+ * 任务执行结果处理。
+ * 背景: 作业平台任务下发到管控平台之后，由于任务执行时间较长，且任务并发很高，所以在任务下发之后，采用异步轮询的方式查询任务执行结果。
+ * 方案：通过java DelayQueue 延迟队列 + 消费者模式实现了任务结果定时轮询逻辑
  */
-@Slf4j
-public class ScriptTaskResultHandleScheduleStrategy implements ScheduleStrategy {
-    /**
-     * 任务累计执行次数
-     */
-    private final AtomicInteger times = new AtomicInteger(0);
-
-    @Override
-    public long getDelay() {
-        int handleCount = times.addAndGet(1);
-        if (handleCount <= 10) {
-            // 10s以内，周期为1s
-            return 1000;
-        } else if (handleCount <= 35) {
-            // 10s-1min,周期为2s
-            return 2000;
-        } else if (handleCount <= 88) {
-            // 1min-5min,周期为5s
-            return 5000;
-        } else {
-            // 超过5min,周期为10s
-            return 10000;
-        }
-    }
+public class ResultHandleTaskManager {
 }

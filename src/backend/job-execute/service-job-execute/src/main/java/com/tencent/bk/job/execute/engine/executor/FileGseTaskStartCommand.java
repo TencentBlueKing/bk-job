@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.gse.GseClient;
-import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -45,8 +46,8 @@ import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispat
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -69,7 +70,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -113,7 +113,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private Map<JobFile, FileDest> allSrcDestFileMap;
 
 
-    public FileGseTaskStartCommand(ResultHandleManager resultHandleManager,
+    public FileGseTaskStartCommand(ScheduledTaskManager scheduledTaskManager,
                                    TaskInstanceService taskInstanceService,
                                    GseTaskService gseTaskService,
                                    FileAgentTaskService fileAgentTaskService,
@@ -123,7 +123,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    AgentService agentService,
                                    LogService logService,
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                   ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                   ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
                                    ExecuteMonitor executeMonitor,
                                    JobExecuteConfig jobExecuteConfig,
                                    TaskEvictPolicyExecutor taskEvictPolicyExecutor,
@@ -136,7 +136,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    StepInstanceDTO stepInstance,
                                    GseTaskDTO gseTask,
                                    String fileStorageRootPath) {
-        super(resultHandleManager,
+        super(scheduledTaskManager,
             taskInstanceService,
             gseTaskService,
             fileAgentTaskService,
@@ -146,7 +146,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             agentService,
             logService,
             taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
+                scheduledTaskKeepaliveManager,
             executeMonitor,
             jobExecuteConfig,
             taskEvictPolicyExecutor,
@@ -444,7 +444,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 taskInstanceVariableService,
                 stepInstanceVariableValueService,
                 taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
+                    scheduledTaskKeepaliveManager,
                 taskEvictPolicyExecutor,
                 fileAgentTaskService,
                 stepInstanceService,
@@ -458,7 +458,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 srcDestFileMap,
                 requestId,
                 agentTasks);
-        resultHandleManager.handleDeliveredTask(fileResultHandleTask);
+        scheduledTaskManager.handleDeliveredTask(fileResultHandleTask);
     }
 
     @Override

@@ -32,8 +32,8 @@ import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -113,7 +113,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         }
     }
 
-    public SQLScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
+    public SQLScriptGseTaskStartCommand(ScheduledTaskManager scheduledTaskManager,
                                         TaskInstanceService taskInstanceService,
                                         StepInstanceService stepInstanceService,
                                         GseTaskService gseTaskService,
@@ -124,7 +124,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         AgentService agentService,
                                         LogService logService,
                                         TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                        ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
                                         ExecuteMonitor executeMonitor,
                                         JobExecuteConfig jobExecuteConfig,
                                         TaskEvictPolicyExecutor taskEvictPolicyExecutor,
@@ -136,7 +136,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
                                         GseTaskDTO gseTask) {
-        super(resultHandleManager,
+        super(scheduledTaskManager,
             taskInstanceService,
             stepInstanceService,
             gseTaskService,
@@ -147,7 +147,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             agentService,
             logService,
             taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
+                scheduledTaskKeepaliveManager,
             executeMonitor,
             jobExecuteConfig,
             taskEvictPolicyExecutor,

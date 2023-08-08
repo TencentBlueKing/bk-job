@@ -22,29 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute;
+package com.tencent.bk.job.execute.engine.schedule.ha;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.crypto.EncryptConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.Semaphore;
 
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
-@EnableDiscoveryClient
-@EnableFeignClients
-@EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
-@EnableScheduling
-public class JobExecuteBootApplication {
+/**
+ * 任务调度引擎限流
+ */
+@Slf4j
+public class ScheduleTaskLimiter {
+    private final Semaphore semaphore;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobExecuteBootApplication.class, args);
+    public ScheduleTaskLimiter(int permits) {
+        this.semaphore = new Semaphore(permits);
     }
 
+    public boolean acquire() {
+        try {
+            semaphore.acquire();
+            return true;
+        } catch (InterruptedException e) {
+            log.error("ResultHandleLimiter -> Acquire permit caught exception", e);
+            return false;
+        }
+    }
 
+    public void release() {
+        this.semaphore.release();
+    }
+
+    /**
+     * 获取等待获取许可的线程数，用于表示饱和度
+     */
+    public int getWaitingThreads() {
+        return this.semaphore.getQueueLength();
+    }
 }

@@ -38,8 +38,8 @@ import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.RunningTaskCounter;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -79,7 +79,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 @Slf4j
 public class GseTaskManager implements SmartLifecycle {
-    private final ResultHandleManager resultHandleManager;
+    private final ScheduledTaskManager scheduledTaskManager;
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
     private final ScriptAgentTaskService scriptAgentTaskService;
@@ -90,7 +90,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
     private final AgentService agentService;
-    private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
+    private final ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
     private final Tracer tracer;
     private final ExecuteMonitor executeMonitor;
@@ -135,7 +135,7 @@ public class GseTaskManager implements SmartLifecycle {
      * GseTaskManager Constructor
      */
     @Autowired
-    public GseTaskManager(ResultHandleManager resultHandleManager,
+    public GseTaskManager(ScheduledTaskManager scheduledTaskManager,
                           TaskInstanceService taskInstanceService,
                           GseTaskService gseTaskService,
                           TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
@@ -146,7 +146,7 @@ public class GseTaskManager implements SmartLifecycle {
                           JobBuildInVariableResolver jobBuildInVariableResolver,
                           StorageSystemConfig storageSystemConfig,
                           AgentService agentService,
-                          ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                          ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
                           GseTasksExceptionCounter gseTasksExceptionCounter,
                           Tracer tracer,
                           ExecuteMonitor executeMonitor,
@@ -156,7 +156,7 @@ public class GseTaskManager implements SmartLifecycle {
                           FileAgentTaskService fileAgentTaskService,
                           StepInstanceService stepInstanceService,
                           GseClient gseClient) {
-        this.resultHandleManager = resultHandleManager;
+        this.scheduledTaskManager = scheduledTaskManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.scriptAgentTaskService = scriptAgentTaskService;
@@ -169,7 +169,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
         this.storageSystemConfig = storageSystemConfig;
         this.agentService = agentService;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.tracer = tracer;
         this.executeMonitor = executeMonitor;
@@ -316,7 +316,7 @@ public class GseTaskManager implements SmartLifecycle {
         int executeType = stepInstance.getExecuteType();
         if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue()) {
             gseTaskStartCommand = new ScriptGseTaskStartCommand(
-                resultHandleManager,
+                scheduledTaskManager,
                 taskInstanceService,
                 stepInstanceService,
                 gseTaskService,
@@ -327,7 +327,7 @@ public class GseTaskManager implements SmartLifecycle {
                 agentService,
                 logService,
                 taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
+                    scheduledTaskKeepaliveManager,
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
@@ -343,7 +343,7 @@ public class GseTaskManager implements SmartLifecycle {
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == StepExecuteTypeEnum.EXECUTE_SQL.getValue()) {
             gseTaskStartCommand = new SQLScriptGseTaskStartCommand(
-                resultHandleManager,
+                scheduledTaskManager,
                 taskInstanceService,
                 stepInstanceService,
                 gseTaskService,
@@ -354,7 +354,7 @@ public class GseTaskManager implements SmartLifecycle {
                 agentService,
                 logService,
                 taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
+                    scheduledTaskKeepaliveManager,
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,
@@ -370,7 +370,7 @@ public class GseTaskManager implements SmartLifecycle {
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == TaskStepTypeEnum.FILE.getValue()) {
             gseTaskStartCommand = new FileGseTaskStartCommand(
-                resultHandleManager,
+                scheduledTaskManager,
                 taskInstanceService,
                 gseTaskService,
                 fileAgentTaskService,
@@ -380,7 +380,7 @@ public class GseTaskManager implements SmartLifecycle {
                 agentService,
                 logService,
                 taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
+                    scheduledTaskKeepaliveManager,
                 executeMonitor,
                 jobExecuteConfig,
                 taskEvictPolicyExecutor,

@@ -24,14 +24,34 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
- * 任务调度策略
+ * 文件任务结果处理调度策略
  */
-public interface ScheduleStrategy {
+public class FileResultHandleScheduleStrategy implements ScheduleDelayStrategy {
     /**
-     * 获取调度延迟时间，单位毫秒
-     *
-     * @return 调度延迟时间，单位毫秒
+     * 任务累计执行次数
      */
-    long getDelay();
+    private final AtomicInteger times = new AtomicInteger(0);
+
+    @Override
+    public long getNextDelay() {
+        int handleCount = times.addAndGet(1);
+        if (handleCount <= 2) {
+            // 2s以内，周期为1s
+            return 1000;
+        } else if (handleCount <= 11) {
+            // 2s-20s,周期为2s
+            return 2000;
+        } else if (handleCount <= 67) {
+            // 20s-5min,周期为5s
+            return 5000;
+        } else {
+            // 超过5min,周期为10s
+            return 10000;
+        }
+    }
 }

@@ -33,7 +33,7 @@ import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 @Primary
 @Component
 public class ThirdFilePrepareService {
-    private final ResultHandleManager resultHandleManager;
+    private final ScheduledTaskManager scheduledTaskManager;
     private final FileSourceTaskResourceClient fileSourceTaskResource;
     private final TaskInstanceService taskInstanceService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
@@ -82,7 +82,7 @@ public class ThirdFilePrepareService {
     private final Map<String, ThirdFilePrepareTask> taskMap = new ConcurrentHashMap<>();
 
     @Autowired
-    public ThirdFilePrepareService(ResultHandleManager resultHandleManager,
+    public ThirdFilePrepareService(ScheduledTaskManager scheduledTaskManager,
                                    FileSourceTaskResourceClient fileSourceTaskResource,
                                    TaskInstanceService taskInstanceService,
                                    FileSourceTaskLogDAO fileSourceTaskLogDAO,
@@ -90,7 +90,7 @@ public class ThirdFilePrepareService {
                                    HostService hostService,
                                    LogService logService,
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
-        this.resultHandleManager = resultHandleManager;
+        this.scheduledTaskManager = scheduledTaskManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.taskInstanceService = taskInstanceService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
@@ -359,7 +359,7 @@ public class ThirdFilePrepareService {
             fileSourceTaskResource, taskInstanceService, accountService,
             hostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogDAO
         );
-        resultHandleManager.handleDeliveredTask(batchResultHandleTask);
+        scheduledTaskManager.handleDeliveredTask(batchResultHandleTask);
         return batchResultHandleTask;
     }
 

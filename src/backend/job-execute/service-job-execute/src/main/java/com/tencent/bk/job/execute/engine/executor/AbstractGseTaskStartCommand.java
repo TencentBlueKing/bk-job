@@ -38,8 +38,8 @@ import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -72,13 +72,13 @@ import java.util.stream.Collectors;
 public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand {
 
     protected final GseTasksExceptionCounter gseTasksExceptionCounter;
-    protected final ResultHandleManager resultHandleManager;
+    protected final ScheduledTaskManager scheduledTaskManager;
     protected final TaskInstanceService taskInstanceService;
     protected final TaskInstanceVariableService taskInstanceVariableService;
     protected final StepInstanceVariableValueService stepInstanceVariableValueService;
     protected final LogService logService;
     protected final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    protected final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
+    protected final ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
     protected final ExecuteMonitor executeMonitor;
     protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected final JobExecuteConfig jobExecuteConfig;
@@ -118,7 +118,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected List<AgentTaskDTO> agentTasks;
 
 
-    AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
+    AbstractGseTaskStartCommand(ScheduledTaskManager scheduledTaskManager,
                                 TaskInstanceService taskInstanceService,
                                 GseTaskService gseTaskService,
                                 AgentTaskService agentTaskService,
@@ -128,7 +128,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 AgentService agentService,
                                 LogService logService,
                                 TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
                                 ExecuteMonitor executeMonitor,
                                 JobExecuteConfig jobExecuteConfig,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
@@ -149,13 +149,13 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             taskInstance,
             stepInstance,
             gseTask);
-        this.resultHandleManager = resultHandleManager;
+        this.scheduledTaskManager = scheduledTaskManager;
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
+        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
         this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
