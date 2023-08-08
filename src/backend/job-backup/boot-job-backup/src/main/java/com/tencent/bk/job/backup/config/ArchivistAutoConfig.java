@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.config;
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.ExecuteArchiveDAOImpl;
-import com.tencent.bk.job.backup.dao.impl.FileSourceTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
@@ -142,12 +142,12 @@ public class ArchivistAutoConfig {
             return new GseTaskIpLogRecordDAO(context, archiveConfig);
         }
 
-        @Bean(name = "fileSourceTaskRecordDAO")
-        public FileSourceTaskRecordDAO fileSourceTaskRecordDAO(
+        @Bean(name = "fileSourceTaskLogRecordDAO")
+        public FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO(
             @Qualifier("job-execute-dsl-context") DSLContext context,
             ArchiveConfig archiveConfig) {
-            log.info("Init FileSourceTaskRecordDAO");
-            return new FileSourceTaskRecordDAO(context, archiveConfig);
+            log.info("Init FileSourceTaskLogRecordDAO");
+            return new FileSourceTaskLogRecordDAO(context, archiveConfig);
         }
 
         @Bean(name = "gseTaskRecordDAO")
@@ -218,6 +218,7 @@ public class ArchivistAutoConfig {
         @Autowired(required = false) StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
         @Autowired(required = false) TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
         @Autowired(required = false) OperationLogRecordDAO operationLogRecordDAO,
+        @Autowired(required = false) FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO,
         @Autowired(required = false) GseTaskLogRecordDAO gseTaskLogRecordDAO,
         @Autowired(required = false) GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
         @Autowired(required = false) GseTaskRecordDAO gseTaskRecordDAO,
@@ -241,6 +242,7 @@ public class ArchivistAutoConfig {
             stepInstanceVariableRecordDAO,
             taskInstanceVariableRecordDAO,
             operationLogRecordDAO,
+            fileSourceTaskLogRecordDAO,
             gseTaskLogRecordDAO,
             gseTaskIpLogRecordDAO,
             gseTaskRecordDAO,

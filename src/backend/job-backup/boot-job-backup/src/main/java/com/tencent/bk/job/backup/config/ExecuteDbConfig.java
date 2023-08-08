@@ -31,6 +31,7 @@ import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -79,6 +80,7 @@ public class ExecuteDbConfig {
     @Qualifier("job-execute-archive-source")
     @Bean(name = "job-execute-archive-source")
     @ConfigurationProperties(prefix = "spring.datasource.job-execute-archive")
+    @ConditionalOnExpression("${job.execute.archive.enabled:false}")
     @ConditionalOnProperty("spring.datasource.job-execute-archive.jdbc-url")
     public DataSource executeArchiveDataSource() {
         return DataSourceBuilder.create().build();
@@ -86,6 +88,7 @@ public class ExecuteDbConfig {
 
     @Qualifier("job-execute-archive-dsl-context")
     @Bean(name = "job-execute-archive-dsl-context")
+    @ConditionalOnExpression("${job.execute.archive.enabled:false}")
     @ConditionalOnProperty("spring.datasource.job-execute-archive.jdbc-url")
     public DSLContext executeArchiveDslContext(
         @Qualifier("job-execute-archive-jooq-conf") org.jooq.Configuration configuration) {
@@ -94,6 +97,7 @@ public class ExecuteDbConfig {
 
     @Qualifier("job-execute-archive-jooq-conf")
     @Bean(name = "job-execute-archive-jooq-conf")
+    @ConditionalOnExpression("${job.execute.archive.enabled:false}")
     @ConditionalOnProperty("spring.datasource.job-execute-archive.jdbc-url")
     public org.jooq.Configuration
     executeArchiveJooqConf(@Qualifier("job-execute-archive-conn-provider") ConnectionProvider connectionProvider) {
@@ -102,6 +106,7 @@ public class ExecuteDbConfig {
 
     @Qualifier("job-execute-archive-conn-provider")
     @Bean(name = "job-execute-archive-conn-provider")
+    @ConditionalOnExpression("${job.execute.archive.enabled:false}")
     @ConditionalOnProperty("spring.datasource.job-execute-archive.jdbc-url")
     public ConnectionProvider executeArchiveConnectionProvider(
         @Qualifier("job-execute-archive-source") DataSource dataSource) {
