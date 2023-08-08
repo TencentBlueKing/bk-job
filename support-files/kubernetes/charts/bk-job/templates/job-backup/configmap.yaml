@@ -62,21 +62,19 @@ data:
           idle-timeout: 6000
           poolName: "job-execute-db"
           validationTimeout: 5000
+        {{- if .Values.backupConfig.archive.execute.enabled }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ include "job.mariadb.connection.properties" . }}
-          username: {{ include "job.mariadb.username" . }}
-          {{ if .Values.externalMariaDB.existingPasswordSecret }}
-          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-          {{- else -}}
-          password: ${mariadb-password}
-          {{- end }}
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ .Values.backupConfig.archive.mariadb.connection.properties }}
+          username: {{ .Values.backupConfig.archive.mariadb.username }}
+          password: ${archive-mariadb-password}
           maximum-pool-size: 10
           minimum-idle: 2
           idle-timeout: 6000
           poolName: "job-execute-archive"
           validationTimeout: 5000
+        {{- end }}
       redis:
       {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -108,10 +106,5 @@ data:
           repo: {{ .Values.backupConfig.artifactory.repo }}
       execute:
         archive:
-          enabled: true
-          cron: 0 0 4 * * *
-          data:
-            keep_days: 30
-          delete:
-            enabled: true
+          {{- toYaml .Values.backupConfig.archive.execute | nindent 10 }}
 {{- end }}

@@ -8,13 +8,13 @@ import org.jooq.generated.tables.FileSourceTaskLog;
 import org.jooq.generated.tables.records.FileSourceTaskLogRecord;
 
 /**
- * file_source_task DAO
+ * file_source_task_log DAO
  */
-public class FileSourceTaskRecordDAO extends AbstractExecuteRecordDAO<FileSourceTaskLogRecord> {
+public class FileSourceTaskLogRecordDAO extends AbstractExecuteRecordDAO<FileSourceTaskLogRecord> {
 
     private static final FileSourceTaskLog TABLE = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
 
-    public FileSourceTaskRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
+    public FileSourceTaskLogRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
         super(context, archiveConfig);
     }
 
