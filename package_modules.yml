@@ -37,7 +37,9 @@ modules:
   
   - name: job-crontab
     module: job
-    package: binary,k8s
+    package: 
+      - binary
+      - k8s
     description: "Job Cron Task Microservice"
   
   - name: job-logsvr
@@ -80,16 +82,3 @@ modules:
     package: 
       - k8s
     description: "Job Migration Kubernetes Job"
-  
-  - name: startup-controller
-    module: job
-    package: 
-      - k8s
-    description: "Job Kubernetes Mocroservice startup controller" 
-  
-  - name: job-assemble
-    module: job
-    package: 
-      - binary
-      - k8s
-    description: "Job Assembled Microservice" 
