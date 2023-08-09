@@ -238,8 +238,8 @@ if [[ -d "support-files/templates" ]]; then
   fi
 
   # Copy deploy.yml/deploy_assemble.yml
-  cp "#job#deploy.yml" release/job/support-files/templates
-  cp "#job#deploy_assemble.yml" release/job/support-files/templates
+  cp "support-files/templates/#job#deploy.yml" release/job/support-files/templates
+  cp "support-files/templates/#job#deploy_assemble.yml" release/job/support-files/templates
 fi
 
 # readme.md、requirements.txt
