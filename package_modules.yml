@@ -1,0 +1,84 @@
+# Job 出包模块定义
+modules:
+  - name: job-frontend
+    module: job
+    # 打包方式：binary - 二进制部署包，k8s: 容器化部署包
+    package: 
+      - binary
+      - k8s
+    description: "Job Web Frontend"
+  
+  - name: job-config
+    module: job
+    package: 
+      - binary
+    description: "Job Configuration Center"
+  
+  - name: job-gateway
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Microservice Gateway"
+  
+  - name: job-manage
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Management Microservice" 
+  
+  - name: job-execute
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Execution Microservice"
+  
+  - name: job-crontab
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Cron Task Microservice"
+  
+  - name: job-logsvr
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Execution Log Microservice" 
+  
+  - name: job-file-gateway
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job File Source Gateway Microservice"
+  
+  - name: job-file-worker
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job File Source worker"
+  
+  - name: job-analysis
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Statistical Analysis Microservice" 
+  
+  - name: job-backup
+    module: job
+    package: 
+      - binary
+      - k8s
+    description: "Job Backup Microservice" 
+  
+  - name: job-migration
+    module: job
+    package: 
+      - k8s
+    description: "Job Migration Kubernetes Job"
