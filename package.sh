@@ -181,18 +181,18 @@ if [[ -d "support-files/templates" ]]; then
     simpleName=${m:4}
     # job-assemble 配置文件单独处理
     if [[ "${m}" == "job-assemble" ]]; then
-      moduleConfigFilePath="support-files/templates/#etc#job#job-${simpleName}#application-job-${simpleName}.yml"
+      moduleConfigFilePath="support-files/templates/#etc#job#job-${simpleName}#application-${simpleName}.yml"
       if [[ -f "${moduleConfigFilePath}" ]]; then
         cp "${moduleConfigFilePath}" release/job/support-files/templates
       else
-        echo "cannot find yml template of application-job-${simpleName}"
+        echo "cannot find yml template of #etc#job#job-assemble#application-assemble.yml"
         exit 1
       fi
-      moduleConfigFilePath="support-files/templates/#etc#job#job-assemble#application-gateway-${simpleName}.yml"
+      moduleConfigFilePath="support-files/templates/#etc#job#job-assemble#application-gateway.yml"
       if [[ -f "${moduleConfigFilePath}" ]]; then
         cp "${moduleConfigFilePath}" release/job/support-files/templates
       else
-        echo "cannot find yml template of application-gateway-${simpleName}.yml"
+        echo "cannot find yml template of #etc#job#job-assemble#application-gateway.yml"
         exit 1
       fi
       continue
@@ -236,7 +236,12 @@ if [[ -d "support-files/templates" ]]; then
   else
     echo "warn: cannot find ${jobEnvFile}, ignore"
   fi
+
+  # Copy deploy.yml/deploy_assemble.yml
+  cp "#job#deploy.yml" release/job/support-files/templates
+  cp "#job#deploy_assemble.yml" release/job/support-files/templates
 fi
+
 # readme.md、requirements.txt
 for fileName in "readme.md" "requirements.txt";
 do
