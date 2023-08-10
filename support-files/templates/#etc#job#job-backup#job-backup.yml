@@ -2,6 +2,12 @@ spring:
   application:
     name: job-backup
   cloud:
+    consul:
+      discovery:
+        service-name: 'job-backup'
+        instance-id: job-backup-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
     stream:
       defaultBinder: jobCommon
       binders:

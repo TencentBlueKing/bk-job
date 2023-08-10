@@ -2,6 +2,13 @@ spring:
   application:
     name: job-manage
   cloud:
+    consul:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-manage
+        instance-id: job-manage-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
     stream:
       defaultBinder: jobCommon
       binders:

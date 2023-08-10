@@ -2,6 +2,12 @@ spring:
   application:
     name: job-analysis
   cloud:
+    consul:
+      discovery:
+        service-name: 'job-analysis'
+        instance-id: job-analysis-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
     stream:
       defaultBinder: jobCommon
       binders:

@@ -1,5 +1,12 @@
 spring:
   cloud:
+    consul:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-gateway
+        instance-id: job-gateway-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
     stream:
       defaultBinder: jobCommon
       binders:

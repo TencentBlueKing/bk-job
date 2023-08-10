@@ -2,6 +2,12 @@ spring:
   application:
     name: job-crontab
   cloud:
+    consul:
+      discovery:
+        service-name: 'job-crontab'
+        instance-id: job-crontab-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
     stream:
       defaultBinder: jobCommon
       binders:

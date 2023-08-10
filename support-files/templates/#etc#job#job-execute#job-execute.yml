@@ -2,6 +2,13 @@ spring:
   application:
     name: job-execute
   cloud:
+    consul:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-execute
+        instance-id: job-execute-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
     stream:
       defaultBinder: jobCommon
       binders:
