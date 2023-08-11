@@ -50,6 +50,6 @@ public class TaskPlanServiceImpl implements TaskPlanService {
 
     @Override
     public ServiceTaskPlanDTO getTaskPlanById(Long appId, Long planId) {
-        return taskPlanResource.getPlanById(appId, planId, true).getData();
+        return taskPlanResource.getPlanById(appId, planId, false).getData();
     }
 }
