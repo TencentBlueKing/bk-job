@@ -22,34 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.remote;
+package com.tencent.bk.job.file_gateway.config;
 
-import com.tencent.bk.job.analysis.client.TaskPlanResourceClient;
-import com.tencent.bk.job.analysis.service.TaskPlanService;
-import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.common.web.filter.RepeatableReadWriteServletRequestResponseFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
-@Slf4j
-@Service
-public class TaskPlanServiceImpl implements TaskPlanService {
-    private final TaskPlanResourceClient taskPlanResourceClient;
-
-    @Autowired
-    public TaskPlanServiceImpl(TaskPlanResourceClient taskPlanResourceClient) {
-        this.taskPlanResourceClient = taskPlanResourceClient;
+@Configuration
+public class FilterConfig {
+    @Bean
+    public FilterRegistrationBean repeatableRSRRFilterRegister() {
+        FilterRegistrationBean<RepeatableReadWriteServletRequestResponseFilter> registration =
+            new FilterRegistrationBean<>();
+        registration.setFilter(repeatableRRRFilter());
+        registration.addUrlPatterns("/esb/api/*");
+        registration.setName("repeatableReadRequestResponseFilter");
+        registration.setOrder(0);
+        return registration;
     }
 
-    @Override
-    public List<Long> listTaskPlanIds(Long templateId) {
-        return taskPlanResourceClient.listPlanIds(templateId).getData();
-    }
-
-    @Override
-    public ServiceTaskPlanDTO getTaskPlanById(Long appId, Long planId) {
-        return taskPlanResourceClient.getPlanById(appId, planId, false).getData();
+    @Bean(name = "repeatableReadRequestResponseFilter")
+    public RepeatableReadWriteServletRequestResponseFilter repeatableRRRFilter() {
+        return new RepeatableReadWriteServletRequestResponseFilter();
     }
 }
