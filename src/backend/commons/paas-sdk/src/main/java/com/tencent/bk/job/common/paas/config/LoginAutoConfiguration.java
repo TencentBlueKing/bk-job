@@ -35,17 +35,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
-@Configuration(proxyBeanMethods = false)
-@Import(LoginConfiguration.class)
+@Configuration
 @Slf4j
 public class LoginAutoConfiguration {
-    @Bean
+
+    @Bean(name = "enLoginClient")
     @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "true")
-    public ILoginClient innerLoginClient(@Autowired LoginConfiguration loginConfiguration) {
-        log.info("Init custom login client");
+    public ILoginClient innerEnLoginClient(@Autowired LoginConfiguration loginConfiguration) {
+        log.info("Init custom en login client");
+        return new CustomLoginClient(loginConfiguration.getCustomLoginApiUrl());
+    }
+
+    @Bean(name = "cnLoginClient")
+    @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "true")
+    public ILoginClient innerCnLoginClient(@Autowired LoginConfiguration loginConfiguration) {
+        log.info("Init custom cn login client");
         return new CustomLoginClient(loginConfiguration.getCustomLoginApiUrl());
     }
 

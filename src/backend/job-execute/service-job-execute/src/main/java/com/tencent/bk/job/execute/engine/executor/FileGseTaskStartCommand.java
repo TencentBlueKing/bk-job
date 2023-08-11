@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.gse.GseClient;
-import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -69,7 +70,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -221,7 +221,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void setAccountInfoForSourceFiles(Set<JobFile> sendFiles) {
         Map<String, AccountDTO> accounts = new HashMap<>();
         sendFiles.forEach(sendFile -> {
-            String accountKey = sendFile.getAccountId() == null ? ("id_" + sendFile.getAccountId())
+            String accountKey = sendFile.getAccountId() == null ? ("id_null")
                 : ("alias_" + sendFile.getAccountAlias());
             AccountDTO account = accounts.computeIfAbsent(accountKey,
                 k -> accountService.getAccount(sendFile.getAccountId(), AccountCategoryEnum.SYSTEM,

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.common.gse.config;
 
-import com.tencent.bk.job.common.encrypt.Encryptor;
-import com.tencent.bk.job.common.encrypt.RSAEncryptor;
+import com.tencent.bk.job.common.crypto.Encryptor;
+import com.tencent.bk.job.common.crypto.RSAEncryptor;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;

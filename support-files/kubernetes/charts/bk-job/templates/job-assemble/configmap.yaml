@@ -245,6 +245,19 @@ data:
           idle-timeout: 600000
           poolName: "job-backup"
           validationTimeout: 5000
+        {{- if and .Values.backupConfig.archive.execute.enabled .Values.backupConfig.archive.execute.backup.enabled }}
+        job-execute-archive:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ .Values.backupConfig.archive.mariadb.connection.properties }}
+          username: {{ .Values.backupConfig.archive.mariadb.username }}
+          password: ${archive-mariadb-password}
+          maximum-pool-size: 10
+          minimum-idle: 2
+          idle-timeout: 6000
+          poolName: "job-execute-archive"
+          validationTimeout: 5000
+        {{- end }}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -328,15 +341,15 @@ data:
         artifactory:
           repo: {{ .Values.backupConfig.artifactory.repo }}
         # DB 归档配置
-        archive-db:
+        archive:
           # job-execute db 归档配置
           execute:
             # 是否启用 DB 归档
             enabled: false
             # 触发时间 CRON 表达式
             cron: 0 0 4 * * *
-            # DB 原始数据保留天数
-            keep-days: 365
+            # 热库中的数据保留时间（天）
+            keep-days: 30
             backup:
               # 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
               enabled: false

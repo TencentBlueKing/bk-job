@@ -357,7 +357,8 @@ public class CronJobDAOImplIntegrationTest {
 
     @Test
     void giveCronJobIdReturnDeleteSuccess() {
-        assertThat(cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isEqualTo(CRON_JOB_1);
+        CronJobInfoDTO cronJobInfoDTO = cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId());
+        assertThat(cronJobInfoDTO).isEqualTo(CRON_JOB_1);
         assertThat(cronJobDAO.deleteCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isTrue();
         assertThat(cronJobDAO.deleteCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isFalse();
         assertThat(cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isNull();
@@ -399,7 +400,8 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_1.setNotifyUser(userRoleInfo);
         CRON_JOB_1.setNotifyChannel(Arrays.asList(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
         CRON_JOB_1.setId(cronJobDAO.insertCronJob(CRON_JOB_1));
-        assertThat(cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId())).isEqualTo(CRON_JOB_1);
+        CronJobInfoDTO cronJobInfoDTO = cronJobDAO.getCronJobById(CRON_JOB_1.getAppId(), CRON_JOB_1.getId());
+        assertThat(cronJobInfoDTO).isEqualTo(CRON_JOB_1);
     }
 
     @Test

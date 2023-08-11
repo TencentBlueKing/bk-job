@@ -26,7 +26,6 @@ package com.tencent.bk.job.crontab.migration;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobWithVarsDTO;
@@ -150,16 +149,15 @@ public class AddHostIdForCronVariableMigrationTask {
                 if (!existsHostId(cronJobWithVarsDTO)) {
                     continue;
                 }
-                String variableValueStr = JsonUtils.toJson(cronJobWithVarsDTO.getVariableValue());
                 if (isDryRun) {
                     log.info(
                         "[DryRun]set variable_value={} for cronJob(id={})",
-                        variableValueStr,
+                        cronJobWithVarsDTO.getEncryptedVariableValue(),
                         cronJobWithVarsDTO.getId()
                     );
                     count += 1;
                 } else {
-                    count += cronJobDAO.updateVariableById(cronJobWithVarsDTO.getId(), variableValueStr);
+                    count += cronJobDAO.updateVariableById(cronJobWithVarsDTO.getId(), cronJobWithVarsDTO);
                 }
             }
             watch.stop();

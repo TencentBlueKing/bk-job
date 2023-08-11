@@ -24,17 +24,14 @@
 
 package com.tencent.bk.job.common.security.autoconfigure;
 
+import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.security.feign.FeignBasicAuthRequestInterceptor;
 import com.tencent.bk.job.common.security.jwt.AutoUpdateJwtManager;
-import com.tencent.bk.job.common.util.jwt.JwtManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 
 @EnableScheduling
 @Configuration(proxyBeanMethods = false)
@@ -43,8 +40,7 @@ public class ServiceSecurityAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "jwtManager")
-    JwtManager jwtManager(ServiceSecurityProperties securityProperties) throws IOException,
-        GeneralSecurityException {
+    JwtManager jwtManager(ServiceSecurityProperties securityProperties) {
         return new AutoUpdateJwtManager(
             securityProperties.getPrivateKeyBase64(),
             securityProperties.getPublicKeyBase64()

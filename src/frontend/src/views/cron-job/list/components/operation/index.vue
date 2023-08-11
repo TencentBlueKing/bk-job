@@ -190,12 +190,9 @@
   import CronJobService from '@service/time-task';
 
   import {
-    checkIllegalHostFromVariableStep,
     checkIllegalHostFromVariableTargetValue,
     findUsedVariable,
     generatorDefaultCronTime,
-    removeIllegalHostFromStep,
-    removeIllegalHostFromVariable,
   } from '@utils/assist';
   import { timeTaskNameRule } from '@utils/validator';
 

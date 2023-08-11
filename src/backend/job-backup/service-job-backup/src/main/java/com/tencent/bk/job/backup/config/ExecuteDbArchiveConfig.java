@@ -41,7 +41,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 @Configuration(value = "executeDbArchiveConfig")
-@ConditionalOnProperty(value = "job.backup.archive-db.execute.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "job.backup.archive.execute.enabled", havingValue = "true")
 public class ExecuteDbArchiveConfig {
 
     /**
@@ -82,7 +82,7 @@ public class ExecuteDbArchiveConfig {
      * 归档 DB 配置
      */
     @Configuration("executeArchiveDbConfig")
-    @ConditionalOnProperty(value = "job.backup.archive-db.execute.backup.enabled", havingValue = "true")
+    @ConditionalOnProperty(value = "job.backup.archive.execute.backup.enabled", havingValue = "true")
     static class JobExecuteArchiveDbConfig {
         @Qualifier("job-execute-archive-source")
         @Bean(name = "job-execute-archive-source")

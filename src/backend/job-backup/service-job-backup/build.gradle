@@ -33,6 +33,7 @@ dependencies {
     api project(":commons:common-security")
     api project(":commons:common-redis")
     api project(":commons:common")
+    api project(":commons:common-crypto")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")

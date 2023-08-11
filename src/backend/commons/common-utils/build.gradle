@@ -32,7 +32,6 @@ dependencies {
     api 'org.apache.commons:commons-collections4'
     api 'commons-codec:commons-codec'
     api 'com.google.guava:guava'
-    api 'io.jsonwebtoken:jjwt'
     api 'org.apache.commons:commons-lang3'
     api 'org.reflections:reflections'
     compileOnly 'org.projectlombok:lombok'

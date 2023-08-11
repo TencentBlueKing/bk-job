@@ -145,7 +145,7 @@
     {
       label: 'Agent ID',
       name: 'agentId',
-      width: 140,
+      width: 240,
       checked: true,
     },
     {

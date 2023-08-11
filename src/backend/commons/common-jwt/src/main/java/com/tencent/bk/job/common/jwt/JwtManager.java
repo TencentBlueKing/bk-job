@@ -1,4 +1,4 @@
-package com.tencent.bk.job.common.util.jwt;
+package com.tencent.bk.job.common.jwt;
 
 public interface JwtManager {
     String getToken();

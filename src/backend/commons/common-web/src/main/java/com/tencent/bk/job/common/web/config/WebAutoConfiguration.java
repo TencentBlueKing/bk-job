@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import com.tencent.bk.job.common.util.jwt.JwtManager;
+import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.web.feign.FeignConfiguration;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;

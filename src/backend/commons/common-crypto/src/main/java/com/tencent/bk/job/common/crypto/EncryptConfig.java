@@ -22,46 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.consts.account;
+package com.tencent.bk.job.common.crypto;
+
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 账号分类
- *
- * @date 2019/09/19
+ * 加密配置
  */
-public enum AccountCategoryEnum {
-    SYSTEM(1, "system"),
-    DB(2, "db");
+@ConfigurationProperties(prefix = "job.encrypt")
+@ToString
+@Getter
+@Setter
+@Slf4j
+public class EncryptConfig {
 
-    private final Integer value;
-    private final String name;
+    private CryptoTypeEnum type;
 
-    AccountCategoryEnum(Integer category, String name) {
-        this.value = category;
-        this.name = name;
-    }
+    private String password;
 
-    public static AccountCategoryEnum valOf(Integer category) {
-        if (category == null) {
-            return null;
-        }
-        for (AccountCategoryEnum categoryEnum : values()) {
-            if (categoryEnum.getValue().equals(category)) {
-                return categoryEnum;
-            }
-        }
-        return null;
-    }
+    /**
+     * 各个场景下使用的加密算法，不配置则使用默认算法
+     */
+    private Map<String, String> scenarioAlgorithms = new HashMap<>();
 
-    public Integer getValue() {
-        return value;
-    }
-
-    public String getI18nKey() {
-        return "job.account.category." + name;
-    }
-
-    public String getName() {
-        return name;
+    @PostConstruct
+    public void print() {
+        log.info("EncryptConfig init: {}", JsonUtils.toJson(this));
     }
 }

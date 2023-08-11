@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab;
 
+import com.tencent.bk.job.common.crypto.EncryptConfig;
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import com.tencent.bk.job.crontab.config.JobQuartzProperties;
@@ -37,7 +38,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         "com.tencent.bk.job.crontab"},
     exclude = {JooqAutoConfiguration.class})
 @EnableFeignClients(basePackages = {"com.tencent.bk.job.manage.api", "com.tencent.bk.job.execute.api"})
-@EnableConfigurationProperties({FeatureToggleConfig.class, JobQuartzProperties.class})
+@EnableConfigurationProperties({FeatureToggleConfig.class, JobQuartzProperties.class, EncryptConfig.class})
 public class JobCrontabBootApplication {
 
     public static void main(String[] args) {

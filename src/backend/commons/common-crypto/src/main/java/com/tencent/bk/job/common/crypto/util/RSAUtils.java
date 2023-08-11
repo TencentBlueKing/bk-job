@@ -22,17 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.crypto;
+package com.tencent.bk.job.common.crypto.util;
 
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.sdk.crypto.exception.CryptoException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import javax.crypto.Cipher;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -44,7 +49,6 @@ import java.util.List;
  */
 public class RSAUtils {
     private static final String KEY_ALGORITHM = "RSA";
-    private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
 
     private static final String BEGIN_ENCRYPTED_PRIVATE_KEY = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
     private static final String END_ENCRYPTED_PRIVATE_KEY = "-----END ENCRYPTED PRIVATE KEY-----";
@@ -59,24 +63,48 @@ public class RSAUtils {
     private static final String CHARSET_NAME = "UTF-8";
     private static final String LINE_SPLIT = "\n";
 
-    private static List<String> SKIP_STR = Lists.newArrayList(
+    private static final List<String> SKIP_STR = Lists.newArrayList(
         BEGIN_PRIVATE_KEY, END_PRIVATE_KEY, BEGIN_PUBLIC_KEY, END_PUBLIC_KEY,
         BEGIN_ENCRYPTED_PRIVATE_KEY, END_ENCRYPTED_PRIVATE_KEY, BEGIN_RSA_PRIVATE_KEY, END_RSA_PRIVATE_KEY
     );
 
-    private static String getPermKey(File permFile) throws IOException {
-        StringBuilder strKeyPEM = new StringBuilder(2048);
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(permFile),
-            StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (SKIP_STR.contains(line)) {
-                    continue;
-                }
-                strKeyPEM.append(line).append(LINE_SPLIT);
-            }
+    public static RSAPrivateKey getPrivateKey(String rsaPrivateKeyBase64) throws CryptoException {
+        try {
+            String privateKeyPEM = getPermKey(rsaPrivateKeyBase64);
+            byte[] encoded = Base64.decodeBase64(privateKeyPEM);
+            return (RSAPrivateKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePrivate(new PKCS8EncodedKeySpec(encoded));
+        } catch (Exception e) {
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to getPrivateKey using {}, rsaPrivateKeyBase64.len={}",
+                new Object[]{KEY_ALGORITHM, rsaPrivateKeyBase64.length()}
+            ).getMessage();
+            throw new CryptoException(msg, e);
         }
-        return strKeyPEM.toString();
+    }
+
+    public static RSAPublicKey getPublicKey(String rsaPublicKeyBase64) throws CryptoException {
+        try {
+            byte[] encoded = Base64.decodeBase64(getPermKey(rsaPublicKeyBase64));
+            return (RSAPublicKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(new X509EncodedKeySpec(encoded));
+        } catch (Exception e) {
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to getPublicKey using {}, rsaPublicKeyBase64={}",
+                new Object[]{KEY_ALGORITHM, rsaPublicKeyBase64}
+            ).getMessage();
+            throw new CryptoException(msg, e);
+        }
+    }
+
+    public static String encrypt(String rawText, PublicKey publicKey) throws CryptoException {
+        try {
+            return encrypt(rawText.getBytes(CHARSET_NAME), publicKey);
+        } catch (Exception e) {
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to getPublicKey using {}, rawText.len={}, publicKey={}",
+                new Object[]{KEY_ALGORITHM, rawText.length(), publicKey}
+            ).getMessage();
+            throw new CryptoException(msg, e);
+        }
     }
 
     private static String getPermKey(String permBase64) throws IOException {
@@ -97,58 +125,10 @@ public class RSAUtils {
         return strKeyPEM.toString();
     }
 
-
-    public static RSAPrivateKey getPrivateKey(File rsaPrivatePermFile) throws IOException, GeneralSecurityException {
-        String privateKeyPEM = getPermKey(rsaPrivatePermFile);
-        byte[] encoded = Base64.decodeBase64(privateKeyPEM);
-        return (RSAPrivateKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePrivate(new PKCS8EncodedKeySpec(encoded));
-    }
-
-    public static RSAPrivateKey getPrivateKey(String rsaPrivateKeyBase64) throws IOException, GeneralSecurityException {
-        String privateKeyPEM = getPermKey(rsaPrivateKeyBase64);
-        byte[] encoded = Base64.decodeBase64(privateKeyPEM);
-        return (RSAPrivateKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePrivate(new PKCS8EncodedKeySpec(encoded));
-    }
-
-    public static RSAPublicKey getPublicKey(File rsaPublicPermFile) throws IOException, GeneralSecurityException {
-        String publicKeyPEM = getPermKey(rsaPublicPermFile);
-        byte[] encoded = Base64.decodeBase64(publicKeyPEM);
-        return (RSAPublicKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(new X509EncodedKeySpec(encoded));
-    }
-
-    public static RSAPublicKey getPublicKey(String rsaPublicKeyBase64) throws IOException, GeneralSecurityException {
-        byte[] encoded = Base64.decodeBase64(getPermKey(rsaPublicKeyBase64));
-        return (RSAPublicKey) KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(new X509EncodedKeySpec(encoded));
-    }
-
-    public static String sign(PrivateKey privateKey,
-                              String message) throws NoSuchAlgorithmException, InvalidKeyException,
-        SignatureException, UnsupportedEncodingException {
-        Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
-        sign.initSign(privateKey);
-        sign.update(message.getBytes(CHARSET_NAME));
-        return new String(Base64.encodeBase64(sign.sign()), CHARSET_NAME);
-    }
-
-    public static boolean verify(PublicKey publicKey, String message,
-                                 String signature) throws SignatureException, NoSuchAlgorithmException,
-        UnsupportedEncodingException, InvalidKeyException {
-        Signature sign = Signature.getInstance(SIGNATURE_ALGORITHM);
-        sign.initVerify(publicKey);
-        sign.update(message.getBytes(CHARSET_NAME));
-        return sign.verify(Base64.decodeBase64(signature.getBytes(CHARSET_NAME)));
-    }
-
-    public static String encrypt(String rawText, PublicKey publicKey) throws IOException, GeneralSecurityException {
+    private static String encrypt(byte[] messageBytes,
+                                  PublicKey publicKey) throws GeneralSecurityException {
         Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        return Base64.encodeBase64String(cipher.doFinal(rawText.getBytes(CHARSET_NAME)));
-    }
-
-    public static String decrypt(String cipherText,
-                                 PrivateKey privateKey) throws IOException, GeneralSecurityException {
-        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        return new String(cipher.doFinal(Base64.decodeBase64(cipherText)), CHARSET_NAME);
+        return Base64.encodeBase64String(cipher.doFinal(messageBytes));
     }
 }

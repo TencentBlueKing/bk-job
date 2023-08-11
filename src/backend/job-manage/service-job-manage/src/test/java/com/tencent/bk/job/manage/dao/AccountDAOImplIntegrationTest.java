@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import org.junit.jupiter.api.DisplayName;
@@ -319,6 +319,7 @@ public class AccountDAOImplIntegrationTest {
         AccountDTO account1 = new AccountDTO();
         account1.setId(3L);
         account1.setDbPassword("ax798sdfs");
+        account1.setCategory(AccountCategoryEnum.DB);
         updateAccounts.add(account1);
         accountDAO.batchUpdateDbAccountPassword(updateAccounts);
 

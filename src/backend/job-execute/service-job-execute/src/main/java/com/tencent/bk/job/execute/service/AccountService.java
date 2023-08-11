@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 
 /**
  * 账号服务
@@ -35,8 +35,8 @@ public interface AccountService {
     /**
      * 获取账号信息
      *
-     * @param accountId
-     * @return
+     * @param accountId 账号ID
+     * @return 账号信息
      */
     AccountDTO getAccountById(Long accountId) throws ServiceException;
 
@@ -53,9 +53,9 @@ public interface AccountService {
     /**
      * 根据业务ID和账号别名获取系统账号信息
      *
-     * @param alias
-     * @param appId
-     * @return
+     * @param alias 账号别名
+     * @param appId Job业务ID
+     * @return 账号信息
      */
     AccountDTO getSystemAccountByAlias(String alias, Long appId) throws ServiceException;
 
@@ -65,7 +65,7 @@ public interface AccountService {
      * @param accountCategory 账号类型
      * @param appId           业务ID
      * @param alias           账号别名
-     * @return
+     * @return 账号信息
      */
     AccountDTO getAccountByAlias(AccountCategoryEnum accountCategory, Long appId,
                                  String alias) throws ServiceException;

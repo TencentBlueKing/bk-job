@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
+import com.tencent.bk.job.backup.archive.impl.FileSourceTaskLogArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseFileAgentTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseScriptAgentTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseTaskArchivist;
@@ -43,6 +44,7 @@ import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchivist;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
@@ -84,6 +86,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
     private final StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO;
     private final TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO;
     private final OperationLogRecordDAO operationLogRecordDAO;
+    private final FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO;
     private final GseTaskLogRecordDAO gseTaskLogRecordDAO;
     private final GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO;
     private final GseTaskRecordDAO gseTaskRecordDAO;
@@ -108,6 +111,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                                    StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
                                    TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
                                    OperationLogRecordDAO operationLogRecordDAO,
+                                   FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO,
                                    GseTaskLogRecordDAO gseTaskLogRecordDAO,
                                    GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
                                    GseTaskRecordDAO gseTaskRecordDAO,
@@ -132,6 +136,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         this.stepInstanceVariableRecordDAO = stepInstanceVariableRecordDAO;
         this.taskInstanceVariableRecordDAO = taskInstanceVariableRecordDAO;
         this.operationLogRecordDAO = operationLogRecordDAO;
+        this.fileSourceTaskLogRecordDAO = fileSourceTaskLogRecordDAO;
         this.gseTaskLogRecordDAO = gseTaskLogRecordDAO;
         this.gseTaskIpLogRecordDAO = gseTaskIpLogRecordDAO;
         this.gseTaskRecordDAO = gseTaskRecordDAO;
@@ -257,7 +262,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
         private void archive(long maxNeedArchiveTaskInstanceId, long maxNeedArchiveStepInstanceId)
             throws InterruptedException {
-            CountDownLatch countDownLatch = new CountDownLatch(16);
+            CountDownLatch countDownLatch = new CountDownLatch(17);
             log.info("Submitting archive task...");
 
             // task_instance
@@ -270,6 +275,8 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             addStepInstanceFileArchiveTask(maxNeedArchiveStepInstanceId, countDownLatch);
             // step_instance_script
             addStepInstanceScriptArchiveTask(maxNeedArchiveStepInstanceId, countDownLatch);
+            // file_source_task_log
+            addFileSourceTaskLogArchiveTask(maxNeedArchiveStepInstanceId, countDownLatch);
             // gse_task_log
             addGseTaskLogArchiveTask(maxNeedArchiveStepInstanceId, countDownLatch);
             // gse_task_ip_log
@@ -355,6 +362,18 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 executeArchiveDAO,
                 archiveProgressService,
                     archiveDBProperties,
+                maxNeedArchiveStepInstanceId,
+                countDownLatch)
+                .archive());
+    }
+
+    private void addFileSourceTaskLogArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+        archiveExecutor.execute(() ->
+            new FileSourceTaskLogArchivist(
+                fileSourceTaskLogRecordDAO,
+                executeArchiveDAO,
+                archiveProgressService,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());

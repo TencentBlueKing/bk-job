@@ -29,13 +29,17 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @ApiModel("第三方文件源文件下载任务日志")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ThirdFileSourceTaskLogDTO {
+public class ThirdFileSourceTaskLogDTO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     /**
      * 文件源下载任务ID
      */

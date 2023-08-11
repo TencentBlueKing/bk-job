@@ -60,6 +60,7 @@ import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenServic
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -83,7 +84,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final FileSourceDAO fileSourceDAO;
     private final DispatchService dispatchService;
     private final FileSourceTaskReqGenService fileSourceTaskReqGenService;
-    private final RedisTemplate<Object, Object> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final JobHttpClient jobHttpClient;
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
@@ -94,7 +95,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                                      FileSourceDAO fileSourceDAO, 
                                      DispatchService dispatchService,
                                      FileSourceTaskReqGenService fileSourceTaskReqGenService,
-                                     RedisTemplate<Object, Object> redisTemplate,
+                                     @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
                                      FileTaskStatusChangeListener fileTaskStatusChangeListener,
                                      JobHttpClient jobHttpClient) {
         this.fileSourceTaskDAO = fileSourceTaskDAO;

@@ -43,6 +43,17 @@ buildscript {
     }
     repositories {
         mavenLocal()
+        def extraMavenRepoUrls = System.getProperty("extraMavenRepoUrls")
+        if (extraMavenRepoUrls == null) {
+            extraMavenRepoUrls = System.getenv("extraMavenRepoUrls")
+        }
+        if (extraMavenRepoUrls != null) {
+            String[] repoUrls = extraMavenRepoUrls.trim().replace(" ", "").split(",")
+            for (String repoUrl : repoUrls) {
+                println("Add extra maven repo:" + repoUrl)
+                maven { url repoUrl }
+            }
+        }
         maven { url mavenRepoUrl }
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
@@ -132,6 +143,7 @@ ext {
     set('jcommanderVersion', "1.71")
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
+    set('cryptoJavaSDKVersion', "1.0.1")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersion:" + bkjobVersion
@@ -175,6 +187,17 @@ allprojects {
 
     repositories {
         mavenLocal()
+        def extraMavenRepoUrls = System.getProperty("extraMavenRepoUrls")
+        if (extraMavenRepoUrls == null) {
+            extraMavenRepoUrls = System.getenv("extraMavenRepoUrls")
+        }
+        if (extraMavenRepoUrls != null) {
+            String[] repoUrls = extraMavenRepoUrls.trim().replace(" ", "").split(",")
+            for (String repoUrl : repoUrls) {
+                println("Add extra maven repo:" + repoUrl)
+                maven { url repoUrl }
+            }
+        }
         maven { url mavenRepoUrl }
         maven { url "https://plugins.gradle.org/m2/" }
         maven {
@@ -223,6 +246,8 @@ subprojects {
         }
         include '**/*Test.class'
     }
+    build.dependsOn testAll
+
     build.dependsOn testAll
 
     dependencyManagement {
@@ -313,6 +338,7 @@ subprojects {
                 entry "hibernate-validator"
             }
             dependency "com.beust:jcommander:$jcommanderVersion"
+            dependency "com.tencent.bk.sdk:crypto-java-sdk:$cryptoJavaSDKVersion"
         }
     }
     dependencies {

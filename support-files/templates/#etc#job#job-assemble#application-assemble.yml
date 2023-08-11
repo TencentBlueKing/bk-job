@@ -341,17 +341,17 @@ job:
     # artifactory:
     #   repo: backup
     # DB 归档配置
-    archive-db:
+    archive:
       # job-execute db 归档配置
       execute:
         # 是否启用 DB 归档
         enabled: false
-        # 触发时间 CRON 表达式
+        # 归档任务运行的cron表达式，默认每天凌晨04:00
         cron: 0 0 4 * * *
-        # DB 原始数据保留天数
-        keep-days: 365
+        # 热库中的数据保留时间（天）
+        keep-days: 30
         backup:
-          # 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
+          # 是否启用 DB 数据备份，job.backup.archive.execute.enabled=true 的时候该配置项才会生效
           enabled: false
   logsvr:
     mongodb:

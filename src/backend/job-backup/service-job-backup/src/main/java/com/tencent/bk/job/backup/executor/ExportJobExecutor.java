@@ -31,6 +31,7 @@ import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
 import com.tencent.bk.job.backup.constant.LogMessage;
 import com.tencent.bk.job.backup.constant.SecretHandlerEnum;
+import com.tencent.bk.job.backup.crypto.BackupFileCryptoService;
 import com.tencent.bk.job.backup.model.dto.BackupTemplateInfoDTO;
 import com.tencent.bk.job.backup.model.dto.ExportJobInfoDTO;
 import com.tencent.bk.job.backup.model.dto.JobBackupInfoDTO;
@@ -49,7 +50,6 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.FileUtil;
-import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -111,6 +111,7 @@ public class ExportJobExecutor {
     private final ArtifactoryConfig artifactoryConfig;
     private final BackupStorageConfig backupStorageConfig;
     private final LocalFileConfigForBackup localFileConfig;
+    private final BackupFileCryptoService backupFileCryptoService;
 
     @Autowired
     public ExportJobExecutor(ExportJobService exportJobService,
@@ -124,7 +125,8 @@ public class ExportJobExecutor {
                              ArtifactoryClient artifactoryClient,
                              ArtifactoryConfig artifactoryConfig,
                              BackupStorageConfig backupStorageConfig,
-                             LocalFileConfigForBackup localFileConfig) {
+                             LocalFileConfigForBackup localFileConfig,
+                             BackupFileCryptoService backupFileCryptoService) {
         this.exportJobService = exportJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -137,6 +139,7 @@ public class ExportJobExecutor {
         this.artifactoryConfig = artifactoryConfig;
         this.backupStorageConfig = backupStorageConfig;
         this.localFileConfig = localFileConfig;
+        this.backupFileCryptoService = backupFileCryptoService;
 
         File storageDirectory = new File(storageService.getStoragePath().concat(JOB_EXPORT_FILE_PREFIX));
         checkDirectory(storageDirectory);
@@ -309,7 +312,7 @@ public class ExportJobExecutor {
                 i18nService.getI18n(LogMessage.START_ENCRYPTING));
             File finalFileTmp = new File(zipFile.getPath().concat(".enc.tmp"));
             try {
-                AESUtils.encrypt(zipFile, finalFileTmp, exportInfo.getPassword());
+                backupFileCryptoService.encryptBackupFile(exportInfo.getPassword(), zipFile, finalFileTmp);
                 FileUtils.deleteQuietly(zipFile);
             } catch (Exception e) {
                 log.error("Error while processing export job! Encrypt failed!", e);

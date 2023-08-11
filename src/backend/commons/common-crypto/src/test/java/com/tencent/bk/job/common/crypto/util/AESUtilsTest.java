@@ -22,27 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.crypto;
+package com.tencent.bk.job.common.crypto.util;
 
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class AESUtilsTest {
     @Test
-    void testEncryptToBase64EncodedCipherText() throws Exception {
+    void testEncryptToBase64EncodedCipherText() {
         String text = "job";
         String encryptPassword = "job#123";
         String encryptedData = AESUtils.encryptToBase64EncodedCipherText(text, encryptPassword);
-        assertThat(encryptedData).isNotEmpty();
+        AssertionsForClassTypes.assertThat(encryptedData).isNotEmpty();
     }
 
     @Test
-    void testDecryptBase64EncodedCipherText() throws Exception {
+    void testDecryptBase64EncodedCipherText() {
         String encryptedBase64EncodedData = "GQ6kLqtMevL8z/kXGVANQ+VP5o2Bt30yzXALfZbeOoY=";
         String encryptPassword = "job#123";
         String decodeData = AESUtils.decryptBase64EncodedDataToPlainText(encryptedBase64EncodedData, encryptPassword);
-        assertThat(decodeData).isEqualTo("job");
+        AssertionsForClassTypes.assertThat(decodeData).isEqualTo("job");
     }
 
 }

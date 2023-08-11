@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup;
 
+import com.tencent.bk.job.common.crypto.EncryptConfig;
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
@@ -44,7 +45,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     }
 )
 @EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class})
+@EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
 public class JobBackupBootApplication {
     public static void main(String[] args) {
         SpringApplication.run(JobBackupBootApplication.class, args);

@@ -1,4 +1,3 @@
-# Job 出包模块定义
 modules:
   - name: job-frontend
     module: job
@@ -37,7 +36,9 @@ modules:
   
   - name: job-crontab
     module: job
-    package: binary,k8s
+    package: 
+      - binary
+      - k8s
     description: "Job Cron Task Microservice"
   
   - name: job-logsvr
@@ -85,8 +86,8 @@ modules:
     module: job
     package: 
       - k8s
-    description: "Job Kubernetes Mocroservice startup controller" 
-  
+    description: "Job Kubernetes Mocroservice startup controller"
+
   - name: job-assemble
     module: job
     package: 

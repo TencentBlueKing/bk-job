@@ -29,6 +29,7 @@ import com.tencent.bk.job.backup.constant.Constant;
 import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
 import com.tencent.bk.job.backup.constant.LogEntityTypeEnum;
 import com.tencent.bk.job.backup.constant.LogMessage;
+import com.tencent.bk.job.backup.crypto.BackupFileCryptoService;
 import com.tencent.bk.job.backup.dao.ImportJobDAO;
 import com.tencent.bk.job.backup.executor.ImportJobExecutor;
 import com.tencent.bk.job.backup.model.dto.IdNameInfoDTO;
@@ -40,7 +41,6 @@ import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.crypto.AESUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
@@ -77,14 +77,19 @@ public class ImportJobServiceImpl implements ImportJobService {
     private final StorageService storageService;
     private final LogService logService;
     private final MessageI18nService i18nService;
+    private final BackupFileCryptoService backupFileCryptoService;
 
     @Autowired
-    public ImportJobServiceImpl(ImportJobDAO importJobDAO, StorageService storageService, LogService logService,
-                                MessageI18nService i18nService) {
+    public ImportJobServiceImpl(ImportJobDAO importJobDAO,
+                                StorageService storageService,
+                                LogService logService,
+                                MessageI18nService i18nService,
+                                BackupFileCryptoService backupFileCryptoService) {
         this.importJobDAO = importJobDAO;
         this.storageService = storageService;
         this.logService = logService;
         this.i18nService = i18nService;
+        this.backupFileCryptoService = backupFileCryptoService;
     }
 
     @Override
@@ -284,7 +289,7 @@ public class ImportJobServiceImpl implements ImportJobService {
                     new File(parentPath.concat(File.separatorChar + uploadFile.getName()
                         + Constant.JOB_IMPORT_DECRYPT_SUFFIX));
                 try {
-                    AESUtils.decrypt(uploadFile, decryptedFile, password);
+                    backupFileCryptoService.decryptBackupFile(password, uploadFile, decryptedFile);
                     logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.CORRECT_PASSWORD));
                     FileUtils.deleteQuietly(uploadFile);
                     importInfo.setFileName(importInfo.getFileName().concat(Constant.JOB_IMPORT_DECRYPT_SUFFIX));
@@ -292,6 +297,7 @@ public class ImportJobServiceImpl implements ImportJobService {
                     parseFile(username, appId, jobId);
                     return true;
                 } catch (Exception e) {
+                    log.warn("Fail to decrypt backupFile", e);
                     logService.addImportLog(appId, jobId, i18nService.getI18n(LogMessage.WRONG_PASSWORD),
                         LogEntityTypeEnum.RETRY_PASSWORD);
                     importInfo.setStatus(BackupJobStatusEnum.WRONG_PASSWORD);

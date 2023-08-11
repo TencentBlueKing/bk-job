@@ -1,4 +1,42 @@
 # chart values 更新日志
+## 0.5.0
+1.增加 加密类型 配置
+```yaml
+job:
+  encrypt:
+    # 可选值：CLASSIC（经典国际算法RSA、AES等），SHANGMI（国家商用密码算法SM2、SM4等）
+    type: "CLASSIC"
+```
+
+## 0.4.6
+1.增加备份服务中的数据归档相关配置
+```yaml
+## job-backup备份服务配置
+backupConfig:
+  ## 数据归档配置
+  archive:
+    # 归档使用的MariaDB实例，若开启归档，必须配置该项内容
+    mariadb:
+      host: ""
+      port: ""
+      username: "job"
+      password: "job"
+      connection:
+        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    # job-execute模块的归档配置
+    execute:
+      # 是否开启数据归档，默认不开启
+      enabled: false
+      # 归档任务运行的cron表达式，默认每天凌晨04:00
+      cron: 0 0 4 * * *
+      data:
+        # 热库中的数据保留时间（天）
+        keep_days: 30
+      delete:
+        # 是否删除热库中的过期老数据，默认不删除
+        enabled: false
+```
+
 ## 0.4.5
 1.增加 bkDomain 配置
 

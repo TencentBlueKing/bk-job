@@ -576,6 +576,8 @@ job:
         # 获取actuator监控数据的密码，部署时生成填入
         password: actuator_password
   encrypt:
+    # 可选值：CLASSIC（经典国际算法RSA、AES等），SHANGMI（国家商用密码算法SM2、SM4等）
+    type: "CLASSIC"
     # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
   features:
@@ -1005,6 +1007,27 @@ backupConfig:
   artifactory:
     # 存储后端使用制品库时使用的备份服务仓库代码
     repo: backup
+  ## 数据归档配置
+  archive:
+    # 归档使用的MariaDB实例，若开启归档且开启 DB 数据备份，必须配置该项内容
+    mariadb:
+      host: ""
+      port: ""
+      username: "job"
+      password: "job"
+      connection:
+        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    # job-execute模块的归档配置
+    execute:
+      # 是否启用 DB 归档
+      enabled: false
+      # 归档任务运行的cron表达式，默认每天凌晨04:00
+      cron: 0 0 4 * * *
+      # 热库中的数据保留时间（天）
+      keep_days: 30
+      backup:
+        # 是否启用 DB 数据备份
+        enabled: false
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup

@@ -39,6 +39,7 @@ dependencies {
     api project(":commons:common-api")
     api project(":commons:common-iam")
     api project(":commons:common-utils")
+    api project(":commons:common-jwt")
     api project(":commons:esb-sdk")
     api project(":commons:artifactory-sdk")
     compileOnly 'org.projectlombok:lombok'

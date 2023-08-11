@@ -25,14 +25,14 @@
 truncate table account;
 
 insert into job_manage.account (id,account,alias,category,type,app_id,grantee,remark,os,password,db_password,db_port,db_system_account_id,
-creator,create_time,last_modify_user,last_modify_time)
+                                creator,create_time,last_modify_user,last_modify_time)
 values (1,'root','root',1,1,2,'user1,user2','root-linux','Linux',NULL,NULL,NULL,NULL,'admin', 1569550210000, 'admin', 1569550210000);
 insert into job_manage.account (id,account,alias,category,type,app_id,grantee,remark,os,password,db_password,db_port,db_system_account_id,
-creator,create_time,last_modify_user,last_modify_time)
+                                creator,create_time,last_modify_user,last_modify_time)
 values (2,'system','system',1,2,2,'user1,user2','system-window','Windows','mypassword',NULL,NULL,NULL,'admin', 1569550210000, 'admin', 1569550210000);
 insert into job_manage.account (id,account,alias,category,type,app_id,grantee,remark,os,password,db_password,db_port,db_system_account_id,
-creator,create_time,last_modify_user,last_modify_time)
-values (3,'job','job',2,9,2,'user1,user2','db-mysql-job',NULL,NULL,'dbpassword',3600,1,'admin', 1569550210000, 'admin', 1569550210000);
+                                creator,create_time,last_modify_user,last_modify_time)
+values (3,'job','job',2,9,2,'user1,user2','db-mysql-job',NULL,NULL,'YXZ/qDVUEdeMAs/8aTuhNAL+RaY95fl8zGlQXko7nMg=',3600,1,'admin', 1569550210000, 'admin', 1569550210000);
 insert into job_manage.account (id,account,alias,category,type,app_id,grantee,remark,os,password,db_password,db_port,db_system_account_id,
-creator,create_time,last_modify_user,last_modify_time)
+                                creator,create_time,last_modify_user,last_modify_time)
 values (4,'root','root-v2',1,1,2,'user1,user2','root-linux','Linux',NULL,NULL,NULL,NULL,'admin', 1569550210000, 'admin', 1569636611000);

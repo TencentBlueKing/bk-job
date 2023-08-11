@@ -32,7 +32,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Getter
 @Setter
 @ToString
-@ConfigurationProperties(prefix = "job.backup.archive-db.execute")
+@ConfigurationProperties(prefix = "job.backup.archive.execute")
 public class ArchiveDBProperties {
     /**
      * 是否启用 DB 归档
@@ -49,14 +49,14 @@ public class ArchiveDBProperties {
     /**
      * DB数据保留天数
      */
-    private int keepDays = 365;
+    private int keepDays = 30;
 
     @Getter
     @Setter
     @ToString
     public static class BackupConfig {
         /**
-         * 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
+         * 是否启用 DB 数据备份，job.backup.archive.execute.enabled=true 的时候该配置项才会生效
          */
         private boolean enabled;
     }

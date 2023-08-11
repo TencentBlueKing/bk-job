@@ -37,7 +37,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @ApiModel("业务拓扑节点")
-public class CmdbTopoNodeDTO {
+public class CmdbTopoNodeDTO implements Cloneable {
     @ApiModelProperty("节点ID")
     private Long id;
     @ApiModelProperty("节点类型，module-模块，set-集群，biz-业务")
@@ -61,5 +61,14 @@ public class CmdbTopoNodeDTO {
         cmdbTopoNodeDTO.setId(targetNode.getInstanceId());
         cmdbTopoNodeDTO.setNodeType(targetNode.getObjectId());
         return cmdbTopoNodeDTO;
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public CmdbTopoNodeDTO clone() {
+        CmdbTopoNodeDTO nodeDTO = new CmdbTopoNodeDTO();
+        nodeDTO.setId(id);
+        nodeDTO.setNodeType(nodeType);
+        return nodeDTO;
     }
 }

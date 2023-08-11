@@ -102,24 +102,7 @@ spec:
             - name: http
               containerPort: {{ .Values.fileWorkerConfig.containerPort }}
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /actuator/health/liveness
-              port: http
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 30
-            successThreshold: 1
-          readinessProbe:
-            httpGet:
-              path: /actuator/health/readiness
-              port: http
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 30
-            successThreshold: 1
+          {{- include "job.service.probes" ( dict "port" "http" "context" . ) | nindent 10 }}
           resources:
             {{- toYaml .Values.fileWorkerConfig.resources | nindent 12 }}
           volumeMounts:

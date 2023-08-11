@@ -22,19 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.encrypt;
+package com.tencent.bk.job.common.crypto.config;
 
-/**
- * 非对称加密器
- */
-public interface AsymmetricEncryptor extends Encryptor {
+import com.tencent.bk.job.common.crypto.CryptoConfigService;
+import com.tencent.bk.job.common.crypto.EncryptConfig;
+import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
+import org.springframework.context.annotation.Bean;
 
-    /**
-     * 校验消息的签名是否一致 通过公钥对消息内容进行校验signature内容（由私钥加签名）
-     *
-     * @param message   原消息内容
-     * @param signature 消息的签名
-     * @return 是否签名一致
-     */
-    boolean verify(String message, String signature);
+public class CryptoAutoConfiguration {
+
+    @Bean
+    CryptoConfigService cryptoConfigService(EncryptConfig encryptConfig) {
+        return new CryptoConfigService(encryptConfig);
+    }
+
+    @Bean
+    SymmetricCryptoService symmetricCryptoService(CryptoConfigService cryptoConfigService) {
+        return new SymmetricCryptoService(cryptoConfigService);
+    }
+
+    @Bean
+    CipherVariableCryptoService cipherVariableCryptoService(SymmetricCryptoService symmetricCryptoService) {
+        return new CipherVariableCryptoService(symmetricCryptoService);
+    }
+
+    @Bean
+    DbPasswordCryptoService dbPasswordCryptoService(SymmetricCryptoService symmetricCryptoService) {
+        return new DbPasswordCryptoService(symmetricCryptoService);
+    }
+
+    @Bean
+    SensitiveParamCryptoService sensitiveParamCryptoService(SymmetricCryptoService symmetricCryptoService) {
+        return new SensitiveParamCryptoService(symmetricCryptoService);
+    }
 }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -44,7 +45,6 @@ import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.web.WebAppAccountResource;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
-import com.tencent.bk.job.manage.common.consts.account.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
@@ -130,7 +130,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
     private boolean checkUpdateAccountParam(AccountCreateUpdateReq req) {
         // 账号名称是不能更新的，所以这里不用校验
         if (req.getId() == null) {
-            log.warn("Id is invalid, id={}", req.getId());
+            log.warn("Id is invalid, id=null");
             return false;
         }
         if (req.getCategory() != null && req.getCategory().equals(AccountCategoryEnum.DB.getValue())
