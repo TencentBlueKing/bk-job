@@ -648,7 +648,7 @@ livenessProbe:
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
-  failureThreshold: 10
+  failureThreshold: 20
   successThreshold: 1
 readinessProbe:
   httpGet:
