@@ -22,23 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.cc.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * @Description
- * @Date 2020/1/13
- * @Version 1.0
+ * CMDB定义的业务角色DTO
  */
-
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
-@AllArgsConstructor
-@NoArgsConstructor
-public class HostCondition {
-    @JsonProperty("bk_obj_id")
-    private String objId = "host";
+public class AppRoleDTO {
+    /**
+     * Id
+     */
+    private String id;
+
+    /**
+     * 名称
+     */
+    private String name;
+
+    /**
+     * 创建者
+     */
+    private String creator;
 }

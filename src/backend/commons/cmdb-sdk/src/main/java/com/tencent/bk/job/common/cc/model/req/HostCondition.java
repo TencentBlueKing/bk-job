@@ -22,29 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.response;
+package com.tencent.bk.job.common.cc.model.req;
 
-import lombok.*;
-
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * CMDB 返回的通用数据结构
+ * @Description
+ * @Date 2020/1/13
+ * @Version 1.0
  */
+
 @Getter
 @Setter
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class CcCountInfo {
-    /**
-     * info count
-     */
-    private Integer count;
-
-    /**
-     * 查询返回的数据列表，Map<Sting,Object>为属性Map
-     */
-    private List<Map<String, Object>> info;
+public class HostCondition {
+    @JsonProperty("bk_obj_id")
+    private String objId = "host";
 }

@@ -29,7 +29,6 @@ apply plugin: 'com.tencent.bk.job.gradle.optional-dependencies'
 dependencies {
     api project(':commons:common')
     api project(':commons:esb-sdk')
-    api project(':commons:cmdb-sdk-model')
     api project(':commons:common-i18n')
     optional(api(project(':commons:common-redis')))
     implementation 'com.fasterxml.jackson.core:jackson-core'

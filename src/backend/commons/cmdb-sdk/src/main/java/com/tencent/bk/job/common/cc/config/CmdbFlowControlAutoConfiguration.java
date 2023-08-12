@@ -40,12 +40,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@Configuration(proxyBeanMethods = false)
 @Import({CmdbConfig.class})
 @Slf4j
 @ConditionalOnProperty(value = "cmdb.interface.flowControl.enabled", havingValue = "true", matchIfMissing = true)
 @AutoConfigureAfter({JobRedisAutoConfiguration.class})
-@Configuration(proxyBeanMethods = false)
 public class CmdbFlowControlAutoConfiguration {
     @Bean
     @ConditionalOnClass(RedisSlideWindowFlowController.class)

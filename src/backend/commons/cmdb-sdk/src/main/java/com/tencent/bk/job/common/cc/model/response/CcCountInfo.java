@@ -22,31 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.common.cc.model.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * CMDB定义的业务角色DTO
+ * CMDB 返回的通用数据结构
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString
-public class AppRoleDTO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class CcCountInfo {
     /**
-     * Id
+     * info count
      */
-    private String id;
+    private Integer count;
 
     /**
-     * 名称
+     * 查询返回的数据列表，Map<Sting,Object>为属性Map
      */
-    private String name;
-
-    /**
-     * 创建者
-     */
-    private String creator;
+    private List<Map<String, Object>> info;
 }

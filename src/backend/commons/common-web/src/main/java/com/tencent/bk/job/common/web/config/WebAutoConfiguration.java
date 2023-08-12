@@ -38,7 +38,7 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
-@Import({ActuatorSecurityConfig.class, SwaggerAdapterConfig.class, FeignConfiguration.class})
+@Import({ActuatorSecurityConfig.class, SwaggerAdapterConfig.class, FeignConfiguration.class, FilterConfig.class})
 public class WebAutoConfiguration {
 
     @Bean
