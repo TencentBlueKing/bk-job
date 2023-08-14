@@ -106,9 +106,11 @@ spec:
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
+            {{- if .Values.backupConfig.archive.execute.enabled }}
             - name: archive-mariadb
               mountPath: /etc/secrets/archive-mariadb
               readOnly: true
+            {{- end }}
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
