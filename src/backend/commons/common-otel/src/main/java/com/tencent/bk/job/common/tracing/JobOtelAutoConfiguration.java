@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
 @Configuration(proxyBeanMethods = false)
 @Profile("!test")
 @AutoConfigureBefore(OtelAutoConfiguration.class)
-class OtelConfiguration {
+class JobOtelAutoConfiguration {
 
     @Value("${spring.sleuth.otel.exporter.enabled:false}")
     private boolean exporterEnabled;

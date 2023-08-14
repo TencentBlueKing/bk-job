@@ -44,16 +44,18 @@ import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.service.TokenService;
 import com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl;
 import com.tencent.bk.sdk.iam.service.impl.TokenServiceImpl;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
-@Import({JobIamConfiguration.class, IamAspectConfiguration.class, IamInterceptorConfiguration.class})
+@Import({IamAspectConfiguration.class, IamInterceptorConfiguration.class})
+@EnableConfigurationProperties(JobIamProperties.class)
 public class IamAutoConfiguration {
 
     @Bean
-    public IamConfiguration iamConfiguration(AppProperties appProperties, JobIamConfiguration jobIamConfiguration) {
-        return new IamConfiguration(jobIamConfiguration.getSystemId(), appProperties.getCode(),
-            appProperties.getSecret(), jobIamConfiguration.getIamBaseUrl());
+    public IamConfiguration iamConfiguration(AppProperties appProperties, JobIamProperties jobIamProperties) {
+        return new IamConfiguration(jobIamProperties.getSystemId(), appProperties.getCode(),
+            appProperties.getSecret(), jobIamProperties.getBaseUrl());
     }
 
 

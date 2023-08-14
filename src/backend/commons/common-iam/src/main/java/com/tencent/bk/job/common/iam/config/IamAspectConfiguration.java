@@ -26,11 +26,15 @@ package com.tencent.bk.job.common.iam.config;
 
 import com.tencent.bk.job.common.iam.aspect.IamAppTransferAspect;
 import com.tencent.bk.job.common.iam.aspect.IamCallbackAspect;
+import com.tencent.bk.job.common.iam.aspect.IamExceptionHandleAspect;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Iam 切面配置
+ */
 @Configuration(proxyBeanMethods = false)
 public class IamAspectConfiguration {
 
@@ -43,5 +47,10 @@ public class IamAspectConfiguration {
     public IamAppTransferAspect iamAppTransferAspect(
         ObjectProvider<AppScopeMappingService> appScopeMappingServiceProvider) {
         return new IamAppTransferAspect(appScopeMappingServiceProvider.getIfAvailable());
+    }
+
+    @Bean
+    public IamExceptionHandleAspect iamExceptionHandleAspect() {
+        return new IamExceptionHandleAspect();
     }
 }

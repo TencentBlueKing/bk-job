@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnMissingClass("org.springframework.cloud.consul.discovery.ConsulDiscoveryClient")
 @ConditionalOnKubernetesEnabled
-public class K8sServiceInfoServiceAutoConfig {
+public class K8sServiceInfoServiceAutoConfiguration {
 
     @Bean
     public ServiceInfoProvider k8sServiceInfoService(DiscoveryClient discoveryClient) {

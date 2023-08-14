@@ -22,12 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.consul.config;
+package com.tencent.bk.job.common.iam.config;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Configuration(proxyBeanMethods = false)
-@Import({ConsulServiceInfoServiceConfiguration.class, JobConsulServiceRegistrationConfiguration.class})
-public class JobConsulAutoConfiguration {
+/**
+ * Job IAM 配置
+ */
+@Getter
+@Setter
+@ToString
+@ConfigurationProperties(prefix = "iam")
+public class JobIamProperties {
+
+    /**
+     * 权限中心对应的系统 ID
+     */
+    private String systemId;
+    /**
+     * 权限中心的访问地址
+     */
+    private String baseUrl;
+
 }

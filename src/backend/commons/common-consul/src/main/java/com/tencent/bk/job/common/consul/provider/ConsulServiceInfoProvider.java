@@ -36,12 +36,10 @@ import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.consul.discovery.ConsulServiceInstance;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,7 +53,6 @@ import static org.springframework.boot.actuate.health.Status.UNKNOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
 
 @Slf4j
-@Component
 public class ConsulServiceInfoProvider implements ServiceInfoProvider {
 
     public final String KEY_WORD_MAINTENANCE = "maintenance";
@@ -70,7 +67,6 @@ public class ConsulServiceInfoProvider implements ServiceInfoProvider {
 
     private final DiscoveryClient discoveryClient;
 
-    @Autowired
     public ConsulServiceInfoProvider(DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
         log.debug("ConsulServiceInfoServiceImpl inited");

@@ -31,6 +31,9 @@ import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * IAM Interceptor 配置
+ */
 @Configuration(proxyBeanMethods = false)
 public class IamInterceptorConfiguration {
 

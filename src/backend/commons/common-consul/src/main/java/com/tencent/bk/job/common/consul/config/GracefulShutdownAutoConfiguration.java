@@ -24,10 +24,28 @@
 
 package com.tencent.bk.job.common.consul.config;
 
+import com.tencent.bk.job.common.consul.listener.GracefulShutdown;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.consul.ConditionalOnConsulEnabled;
+import org.springframework.cloud.consul.discovery.ConditionalOnConsulDiscoveryEnabled;
+import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
+import org.springframework.cloud.consul.serviceregistry.ConsulServiceRegistry;
+import org.springframework.cloud.consul.serviceregistry.ConsulServiceRegistryAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 @Configuration(proxyBeanMethods = false)
-@Import({ConsulServiceInfoServiceConfiguration.class, JobConsulServiceRegistrationConfiguration.class})
-public class JobConsulAutoConfiguration {
+@ConditionalOnConsulEnabled
+@ConditionalOnConsulDiscoveryEnabled
+@AutoConfigureAfter(ConsulServiceRegistryAutoConfiguration.class)
+@EnableConfigurationProperties(JobConsulProperties.class)
+public class GracefulShutdownAutoConfiguration {
+
+    @Bean
+    public GracefulShutdown gracefulShutdown(ConsulRegistration consulRegistration,
+                                             ConsulServiceRegistry consulServiceRegistry,
+                                             JobConsulProperties jobConsulProperties) {
+        return new GracefulShutdown(consulRegistration, consulServiceRegistry, jobConsulProperties);
+    }
 }

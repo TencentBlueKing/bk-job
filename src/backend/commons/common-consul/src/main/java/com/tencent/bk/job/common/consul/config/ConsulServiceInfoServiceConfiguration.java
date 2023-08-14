@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Primary;
 
 @Configuration
 @ConditionalOnConsulDiscoveryEnabled
-public class ConsulServiceInfoServiceAutoConfig {
+public class ConsulServiceInfoServiceConfiguration {
 
     @Bean
     @Primary

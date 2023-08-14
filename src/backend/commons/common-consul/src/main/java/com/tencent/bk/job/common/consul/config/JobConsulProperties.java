@@ -22,34 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.iam.config;
+package com.tencent.bk.job.common.consul.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * Job IAM 配置
- */
-@Configuration
-@Getter
-@Setter
-@ToString
-public class JobIamConfiguration {
-
+@Data
+@ConfigurationProperties(prefix = "job.consul.service")
+public class JobConsulProperties {
     /**
-     * 权限中心对应的系统 ID
+     * 服务刷新时间，默认 3 秒
      */
-    @Value("${iam.system-id:}")
-    private String systemId;
-
-    /**
-     * 权限中心的访问地址
-     */
-    @Value("${iam.base-url:}")
-    private String iamBaseUrl;
-
+    private int refreshSeconds = 3;
 
 }

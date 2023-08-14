@@ -32,6 +32,9 @@ import com.tencent.bk.job.common.web.exception.handler.ServiceExceptionControlle
 import com.tencent.bk.job.common.web.exception.handler.WebExceptionControllerAdvice;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * 全局异常处理自动配置
+ */
 public class ExceptionAdviceAutoConfiguration {
 
     @Bean
