@@ -24,16 +24,16 @@
 
 package com.tencent.bk.job.execute.engine.schedule;
 
-import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskKeepaliveManager;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * 持续调度任务抽象实现
  */
 @Slf4j
-public abstract class AbstractContinuousScheduledTask implements ContinuousScheduledTask {
+public abstract class AbstractContinuousScheduleTask implements ContinuousScheduleTask {
 
-    private final ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
+    private final ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager;
 
     /**
      * 同步锁
@@ -52,8 +52,8 @@ public abstract class AbstractContinuousScheduledTask implements ContinuousSched
      */
     private volatile boolean isActive = true;
 
-    public AbstractContinuousScheduledTask(ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager) {
-        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
+    public AbstractContinuousScheduleTask(ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager) {
+        this.scheduleTaskKeepaliveManager = scheduleTaskKeepaliveManager;
     }
 
     @Override
@@ -95,7 +95,7 @@ public abstract class AbstractContinuousScheduledTask implements ContinuousSched
     private void tryStopImmediately() {
         if (!this.isRunning) {
             log.info("[{}] ScheduleTask-onStop start", getTaskId());
-            scheduledTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
+            scheduleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
             resumeTask();
             this.isStopped = true;
             StopTaskCounter.getInstance().decrement(getTaskId());

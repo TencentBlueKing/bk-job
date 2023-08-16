@@ -31,24 +31,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 指标-GSE任务执行异常数量
+ * 指标-调度任务执行异常数量
  */
 @Component
-public class GseTasksExceptionCounter {
+public class GseExceptionTasksCounter {
     /**
      * 任务执行异常数量Counter
      */
-    private final Counter gseTasksExceptionCounter;
+    private final Counter gseExceptionTasksCounter;
 
     @Autowired
-    public GseTasksExceptionCounter(MeterRegistry meterRegistry) {
-        this.gseTasksExceptionCounter = meterRegistry.counter(ExecuteMetricNames.GSE_TASKS_EXCEPTION_TOTAL);
+    public GseExceptionTasksCounter(MeterRegistry meterRegistry) {
+        this.gseExceptionTasksCounter = meterRegistry.counter(
+            ExecuteMetricNames.GSE_EXCEPTION_TASKS_TOTAL);
     }
 
     /**
      * 计数+1
      */
     public void increment() {
-        this.gseTasksExceptionCounter.increment();
+        this.gseExceptionTasksCounter.increment();
     }
 }

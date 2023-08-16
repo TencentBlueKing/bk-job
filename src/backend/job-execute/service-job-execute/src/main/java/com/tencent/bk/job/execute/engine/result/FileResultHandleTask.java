@@ -52,7 +52,7 @@ import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
-import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -170,11 +170,12 @@ public class FileResultHandleTask extends AbstractGseResultHandleTask<FileTaskRe
                                 TaskInstanceVariableService taskInstanceVariableService,
                                 StepInstanceVariableValueService stepInstanceVariableValueService,
                                 TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
+                                ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                 FileAgentTaskService fileAgentTaskService,
                                 StepInstanceService stepInstanceService,
                                 GseClient gseClient,
+                                ResultHandleTaskSampler resultHandleTaskSampler,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -190,11 +191,12 @@ public class FileResultHandleTask extends AbstractGseResultHandleTask<FileTaskRe
             taskInstanceVariableService,
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
-            scheduledTaskKeepaliveManager,
+            scheduleTaskKeepaliveManager,
             taskEvictPolicyExecutor,
             fileAgentTaskService,
             stepInstanceService,
             gseClient,
+            resultHandleTaskSampler,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -1027,5 +1029,15 @@ public class FileResultHandleTask extends AbstractGseResultHandleTask<FileTaskRe
             this.srcFile = srcFile;
             this.agentTask = agentTask;
         }
+    }
+
+    @Override
+    public void onFinish() {
+        resultHandleTaskSampler.decrementFileTask(this.appId);
+    }
+
+    @Override
+    public void onAccept() {
+        resultHandleTaskSampler.incrementFileTask(this.appId);
     }
 }

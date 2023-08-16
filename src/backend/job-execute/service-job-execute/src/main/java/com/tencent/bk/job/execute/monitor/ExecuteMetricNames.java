@@ -29,43 +29,25 @@ package com.tencent.bk.job.execute.monitor;
  */
 public class ExecuteMetricNames {
     /**
-     * 接收任务数
+     * 接收GSE任务数
      */
     public static final String GSE_TASKS_TOTAL = "job.gse.tasks.total";
     /**
-     * 完成任务数
+     * 完成GSE任务数
      */
     public static final String GSE_FINISHED_TASKS_TOTAL = "job.gse.finished.tasks.total";
-    /**
-     * 异常任务数
-     */
-    public static final String GSE_TASKS_EXCEPTION_TOTAL = "job.exception.gse.tasks.total";
     /**
      * 正在处理的gse任务数
      */
     public static final String GSE_RUNNING_TASKS = "job.gse.running.tasks";
     /**
-     * 任务结果处理线worker数
+     * 异常的 GSE 任务数
      */
-    public static final String GSE_RESULT_HANDLE_CONSUMERS = "job.result.handle.workers";
+    public static final String GSE_EXCEPTION_TASKS_TOTAL = "job.gse.exception.tasks.total";
+
     /**
-     * 任务结果处理调度超时的次数
-     */
-    public static final String RESULT_HANDLE_DELAYED_SCHEDULES_TOTAL = "job.result.handle.delayed.schedules.total";
-    /**
-     * 任务结果处理调度指标
-     */
-    public static final String RESULT_HANDLE_TASK_SCHEDULE_PREFIX = "job.result.handle.task.schedule";
-    /**
-     * 任务下发指标
+     * 任务下发指标前缀
      */
     public static final String EXECUTE_TASK_PREFIX = "job.execute.task";
-    /**
-     * 未被调度的任务数
-     */
-    public static final String NOT_ALIVE_TASKS_TOTAL = "job.not.alive.tasks.total";
-    /**
-     * 等待被结果处理引擎处理的任务
-     */
-    public static final String RESULT_HANDLE_WAITING_SCHEDULE_TASKS = "job.result.handle.waiting.schedule.tasks";
+
 }

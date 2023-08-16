@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.config;
 
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import com.tencent.bk.job.execute.engine.schedule.metrics.ScheduleMetricNames;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricTags;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.MeterFilter;
@@ -54,7 +54,7 @@ public class MetricsAutoConfig {
                         // [10ms,1s]
                         .minimumExpectedValue(10_000_000.0).maximumExpectedValue(1_000_000_000.0)
                         .build().merge(config);
-                } else if (metricName.startsWith(ExecuteMetricNames.RESULT_HANDLE_TASK_SCHEDULE_PREFIX)) {
+                } else if (metricName.startsWith(ScheduleMetricNames.JOB_SCHEDULE_TASKS_SECONDS)) {
                     return DistributionStatisticConfig.builder().percentilesHistogram(true)
                         // [10ms,5s]
                         .minimumExpectedValue(10_000_000.0).maximumExpectedValue(5_000_000_000.0)

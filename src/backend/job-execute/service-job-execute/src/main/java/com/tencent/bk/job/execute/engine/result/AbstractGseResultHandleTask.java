@@ -43,8 +43,8 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.schedule.AbstractContinuousScheduledTask;
-import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.AbstractContinuousScheduleTask;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -79,7 +79,7 @@ import static com.tencent.bk.job.common.util.function.LambdasUtil.not;
  * @param <T>
  */
 @Slf4j
-public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousScheduledTask {
+public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousScheduleTask {
     /**
      * GSE任务执行结果为空,Job最大容忍时间1min.用于异常情况下的任务自动终止，防止长时间占用系统资源
      */
@@ -96,11 +96,12 @@ public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousS
     protected TaskInstanceVariableService taskInstanceVariableService;
     protected StepInstanceVariableValueService stepInstanceVariableValueService;
     protected TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    protected ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
+    protected ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected AgentTaskService agentTaskService;
     protected StepInstanceService stepInstanceService;
     protected GseClient gseClient;
+    protected ResultHandleTaskSampler resultHandleTaskSampler;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -212,11 +213,12 @@ public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousS
                                           TaskInstanceVariableService taskInstanceVariableService,
                                           StepInstanceVariableValueService stepInstanceVariableValueService,
                                           TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                          ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
+                                          ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager,
                                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                           AgentTaskService agentTaskService,
                                           StepInstanceService stepInstanceService,
                                           GseClient gseClient,
+                                          ResultHandleTaskSampler resultHandleTaskSampler,
                                           TaskInstanceDTO taskInstance,
                                           StepInstanceDTO stepInstance,
                                           TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -224,18 +226,19 @@ public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousS
                                           GseTaskDTO gseTask,
                                           String requestId,
                                           List<AgentTaskDTO> agentTasks) {
-        super(scheduledTaskKeepaliveManager);
+        super(scheduleTaskKeepaliveManager);
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
+        this.scheduleTaskKeepaliveManager = scheduleTaskKeepaliveManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.agentTaskService = agentTaskService;
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
+        this.resultHandleTaskSampler = resultHandleTaskSampler;
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
@@ -654,7 +657,6 @@ public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousS
 
     @Override
     public void onFinish() {
-        sampler.decrementScriptTask(this.appId);
     }
 
     @Override

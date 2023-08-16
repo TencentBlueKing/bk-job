@@ -33,7 +33,7 @@ import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareService;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareService;
 import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareTaskResultHandler;
-import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduleTaskManager;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -61,19 +61,19 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private final ThirdFilePrepareService thirdFilePrepareService;
     private final TaskInstanceService taskInstanceService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    private final ScheduledTaskManager scheduledTaskManager;
+    private final ScheduleTaskManager scheduleTaskManager;
 
     @Autowired
     public FilePrepareServiceImpl(LocalFilePrepareService localFilePrepareService,
                                   ThirdFilePrepareService thirdFilePrepareService,
                                   TaskInstanceService taskInstanceService,
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                  ScheduledTaskManager scheduledTaskManager) {
+                                  ScheduleTaskManager scheduleTaskManager) {
         this.localFilePrepareService = localFilePrepareService;
         this.thirdFilePrepareService = thirdFilePrepareService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.scheduledTaskManager = scheduledTaskManager;
+        this.scheduleTaskManager = scheduleTaskManager;
     }
 
     @Override
@@ -226,7 +226,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
                 resultList,
                 filePrepareTaskResultHandler
             );
-        scheduledTaskManager.handleDeliveredTask(filePrepareControlTask);
+        scheduleTaskManager.handleDeliveredTask(filePrepareControlTask);
     }
 
     private boolean hasLocalFile(List<FileSourceDTO> fileSourceList) {

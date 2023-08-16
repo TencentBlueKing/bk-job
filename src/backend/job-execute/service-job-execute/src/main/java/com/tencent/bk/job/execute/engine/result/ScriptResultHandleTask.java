@@ -46,7 +46,7 @@ import com.tencent.bk.job.execute.engine.model.ScriptGseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
-import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -146,11 +146,12 @@ public class ScriptResultHandleTask extends AbstractGseResultHandleTask<ScriptTa
                                   TaskInstanceVariableService taskInstanceVariableService,
                                   StepInstanceVariableValueService stepInstanceVariableValueService,
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                  ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
+                                  ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   ScriptAgentTaskService scriptAgentTaskService,
                                   StepInstanceService stepInstanceService,
                                   GseClient gseClient,
+                                  ResultHandleTaskSampler resultHandleTaskSampler,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -164,11 +165,12 @@ public class ScriptResultHandleTask extends AbstractGseResultHandleTask<ScriptTa
             taskInstanceVariableService,
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
-            scheduledTaskKeepaliveManager,
+            scheduleTaskKeepaliveManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
             gseClient,
+            resultHandleTaskSampler,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -668,5 +670,15 @@ public class ScriptResultHandleTask extends AbstractGseResultHandleTask<ScriptTa
             this.taskInfo = "ScriptTaskResultHandle-" + stepInstance.getTaskInstanceId() + "-" + stepInstance.getId();
         }
         return this.taskInfo;
+    }
+
+    @Override
+    public void onFinish() {
+        resultHandleTaskSampler.decrementScriptTask(this.appId);
+    }
+
+    @Override
+    public void onAccept() {
+        resultHandleTaskSampler.incrementScriptTask(this.appId);
     }
 }

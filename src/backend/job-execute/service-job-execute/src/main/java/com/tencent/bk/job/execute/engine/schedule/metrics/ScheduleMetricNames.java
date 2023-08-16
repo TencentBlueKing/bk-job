@@ -22,40 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.monitor.metrics;
-
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+package com.tencent.bk.job.execute.engine.schedule.metrics;
 
 /**
- * 指标-GSE任务执行异常数量
+ * 任务调度引擎监控指标
  */
-@Component
-public class NotAliveTasksCounter {
+public interface ScheduleMetricNames {
     /**
-     * 未存活任务数量Counter
+     * 任务调度引擎 -  worker
      */
-    private final Counter notAliveTasksCounter;
+    String JOB_SCHEDULE_WORKERS = "job.schedule.workers";
+    /**
+     * 任务调度引擎 - 异常任务数
+     */
+    String JOB_SCHEDULE_EXCEPTION_TASKS_TOTAL = "job.schedule.exception.tasks.total";
+    /**
+     * 任务调度引擎 - 调度延迟的任务数
+     */
+    String JOB_SCHEDULE_DELAYED_TASKS_TOTAL = "job.schedule.delayed.tasks.total";
+    /**
+     * 任务调度引擎 - 未被调度的任务数
+     */
+    String JOB_SCHEDULE_NOT_ALIVE_TASKS_TOTAL = "job.schedule.not.alive.tasks.total";
+    /**
+     * 任务调度引擎 - 等待被调度引擎处理的任务数量
+     */
+    String JOB_SCHEDULE_WAITING_TASKS_SIZE = "job.schedule.waiting.tasks.size";
 
-    @Autowired
-    public NotAliveTasksCounter(MeterRegistry meterRegistry) {
-        this.notAliveTasksCounter = meterRegistry.counter(ExecuteMetricNames.NOT_ALIVE_TASKS_TOTAL);
-    }
 
     /**
-     * 计数+1
+     * 任务调度引擎 - 任务执行 histogram
      */
-    public void increment() {
-        this.notAliveTasksCounter.increment();
-    }
-
-    /**
-     * 计数+count
-     */
-    public void increment(int count) {
-        this.notAliveTasksCounter.increment(count);
-    }
+    String JOB_SCHEDULE_TASKS_SECONDS = "job.schedule.tasks.seconds";
 }

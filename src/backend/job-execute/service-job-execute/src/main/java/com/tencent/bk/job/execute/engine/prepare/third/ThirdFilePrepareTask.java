@@ -41,7 +41,7 @@ import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
-import com.tencent.bk.job.execute.engine.schedule.ContinuousScheduledTask;
+import com.tencent.bk.job.execute.engine.schedule.ContinuousScheduleTask;
 import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
 import com.tencent.bk.job.execute.engine.schedule.StopTaskCounter;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -86,7 +86,7 @@ import java.util.stream.Collectors;
  * 第三方文件源文件下载进度拉取任务调度
  */
 @Slf4j
-public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskContext {
+public class ThirdFilePrepareTask implements ContinuousScheduleTask, JobTaskContext {
 
     private final StepInstanceDTO stepInstance;
     private final List<FileSourceDTO> fileSourceList;

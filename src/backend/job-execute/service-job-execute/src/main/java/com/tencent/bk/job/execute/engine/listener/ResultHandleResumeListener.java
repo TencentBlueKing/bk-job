@@ -24,21 +24,15 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
-import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
-import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.result.ResultHandleTaskManager;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -46,10 +40,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
@@ -71,60 +62,33 @@ import java.util.UUID;
 public class ResultHandleResumeListener {
     private final TaskInstanceService taskInstanceService;
 
-    private final ScheduledTaskManager scheduledTaskManager;
-
     private final TaskInstanceVariableService taskInstanceVariableService;
 
     private final GseTaskService gseTaskService;
 
     private final StorageSystemConfig storageSystemConfig;
 
-    private final LogService logService;
-
-    private final StepInstanceVariableValueService stepInstanceVariableValueService;
-
-    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-
-    private final ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
-
-    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
-
     private final ScriptAgentTaskService scriptAgentTaskService;
 
     private final FileAgentTaskService fileAgentTaskService;
 
-    private final StepInstanceService stepInstanceService;
-    private final GseClient gseClient;
+    private final ResultHandleTaskManager resultHandleTaskManager;
 
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
-                                      ScheduledTaskManager scheduledTaskManager,
                                       TaskInstanceVariableService taskInstanceVariableService,
                                       GseTaskService gseTaskService,
                                       StorageSystemConfig storageSystemConfig,
-                                      LogService logService,
-                                      StepInstanceVariableValueService stepInstanceVariableValueService,
-                                      TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                      ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
-                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptAgentTaskService scriptAgentTaskService,
                                       FileAgentTaskService fileAgentTaskService,
-                                      StepInstanceService stepInstanceService,
-                                      GseClient gseClient) {
+                                      ResultHandleTaskManager resultHandleTaskManager) {
         this.taskInstanceService = taskInstanceService;
-        this.scheduledTaskManager = scheduledTaskManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.gseTaskService = gseTaskService;
         this.storageSystemConfig = storageSystemConfig;
-        this.logService = logService;
-        this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
-        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
-        this.stepInstanceService = stepInstanceService;
-        this.gseClient = gseClient;
+        this.resultHandleTaskManager = resultHandleTaskManager;
     }
 
 
@@ -176,26 +140,15 @@ public class ResultHandleResumeListener {
             .filter(agentTask -> !agentTask.isAgentIdEmpty())
             .forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
 
-        ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
-            taskInstanceService,
-            gseTaskService,
-            logService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            taskExecuteMQEventDispatcher,
-                scheduledTaskKeepaliveManager,
-            taskEvictPolicyExecutor,
-            scriptAgentTaskService,
-            stepInstanceService,
-            gseClient,
+        resultHandleTaskManager.addScriptResultHandleTask(
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
             agentTaskMap,
             gseTask,
             requestId,
-            agentTasks);
-        scheduledTaskManager.handleDeliveredTask(scriptResultHandleTask);
+            agentTasks
+        );
     }
 
     private void resumeFileTask(TaskInstanceDTO taskInstance,
@@ -222,18 +175,7 @@ public class ResultHandleResumeListener {
                 }
             });
 
-        FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(
-            taskInstanceService,
-            gseTaskService,
-            logService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            taskExecuteMQEventDispatcher,
-                scheduledTaskKeepaliveManager,
-            taskEvictPolicyExecutor,
-            fileAgentTaskService,
-            stepInstanceService,
-            gseClient,
+        resultHandleTaskManager.addFileResultHandleTask(
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -242,8 +184,8 @@ public class ResultHandleResumeListener {
             gseTask,
             srcAndDestMap,
             requestId,
-            agentTasks);
-        scheduledTaskManager.handleDeliveredTask(fileResultHandleTask);
+            agentTasks
+        );
     }
 
     private boolean checkIsTaskResumeable(StepInstanceDTO stepInstance, GseTaskDTO gseTask) {

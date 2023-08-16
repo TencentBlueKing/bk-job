@@ -22,23 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.schedule;
+package com.tencent.bk.job.execute.engine.schedule.metrics;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
- * 持续调度任务
+ * 指标-任务结果处理调度超时的次数
  */
-public interface ContinuousScheduledTask extends Task, Lifecycle {
+public class DelayedScheduleTaskCounter {
     /**
-     * 任务是否结束
-     *
-     * @return 如果结束返回true，否则返回false
+     * 任务调度引擎超时任务数量
      */
-    boolean isFinished();
+    private final Counter delayedScheduleTaskCounter;
+
+    public DelayedScheduleTaskCounter(MeterRegistry meterRegistry, String schedulerName) {
+        List<Tag> metricTags = Collections.singletonList(Tag.of("scheduler", schedulerName));
+        this.delayedScheduleTaskCounter =
+            meterRegistry.counter(ScheduleMetricNames.JOB_SCHEDULE_DELAYED_TASKS_TOTAL, metricTags);
+    }
 
     /**
-     * 返回任务调度延迟策略
-     *
-     * @return 任务调度延迟策略
+     * 计数+1
      */
-    ScheduleDelayStrategy getScheduleDelayStrategy();
+    public void increment() {
+        this.delayedScheduleTaskCounter.increment();
+    }
 }

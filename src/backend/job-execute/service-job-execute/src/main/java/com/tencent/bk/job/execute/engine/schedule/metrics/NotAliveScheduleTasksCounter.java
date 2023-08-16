@@ -22,30 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.monitor.metrics;
+package com.tencent.bk.job.execute.engine.schedule.metrics;
 
-import com.tencent.bk.job.execute.engine.schedule.ScheduledTaskManager;
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.List;
 
 /**
- * 指标-任务结果处理线程信息
+ * 指标-调度引擎未存活任务数量
  */
-@Component
-public class GseResultHandleConsumersGauge {
+public class NotAliveScheduleTasksCounter {
+    /**
+     * 未存活任务数量Counter
+     */
+    private final Counter notAliveScheduleTasksCounter;
 
-    @Autowired
-    public GseResultHandleConsumersGauge(MeterRegistry meterRegistry, ScheduledTaskManager scheduledTaskManager) {
-        meterRegistry.gauge(ExecuteMetricNames.GSE_RESULT_HANDLE_CONSUMERS, Collections.singletonList(Tag.of("status"
-            , "busy")),
-            scheduledTaskManager, ScheduledTaskManager::getResultHandleBusyThreads);
-        meterRegistry.gauge(ExecuteMetricNames.GSE_RESULT_HANDLE_CONSUMERS, Collections.singletonList(Tag.of("status"
-            , "idle")),
-            scheduledTaskManager, ScheduledTaskManager::getResultHandleIdleThreads);
+    public NotAliveScheduleTasksCounter(MeterRegistry meterRegistry, String schedulerName) {
+        List<Tag> metricTags = Collections.singletonList(Tag.of("scheduler", schedulerName));
+        this.notAliveScheduleTasksCounter = meterRegistry.counter(
+            ScheduleMetricNames.JOB_SCHEDULE_NOT_ALIVE_TASKS_TOTAL, metricTags);
+    }
+
+    /**
+     * 计数+1
+     */
+    public void increment() {
+        this.notAliveScheduleTasksCounter.increment();
+    }
+
+    /**
+     * 计数+count
+     */
+    public void increment(int count) {
+        this.notAliveScheduleTasksCounter.increment(count);
     }
 }

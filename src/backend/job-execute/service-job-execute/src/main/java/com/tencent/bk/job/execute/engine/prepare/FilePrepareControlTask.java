@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.prepare;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.schedule.ContinuousScheduledTask;
+import com.tencent.bk.job.execute.engine.schedule.ContinuousScheduleTask;
 import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
 import com.tencent.bk.job.execute.engine.schedule.StopTaskCounter;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class FilePrepareControlTask implements ContinuousScheduledTask {
+public class FilePrepareControlTask implements ContinuousScheduleTask {
 
     /**
      * 同步锁

@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.engine.schedule.ha;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
+import com.tencent.bk.job.execute.engine.schedule.metrics.NotAliveScheduleTasksCounter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,30 +39,32 @@ import java.util.UUID;
  */
 @Slf4j
 public class NotAliveScheduleTaskDetector {
-    private final ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
-    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    private final ExecuteMonitor executeMonitor;
+    private final ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager;
+    private final NotAliveScheduleTasksCounter notAliveScheduleTasksCounter;
     private final String requestId = UUID.randomUUID().toString();
+    private final String scheduleName;
+    private final String lockKey;
 
-    public NotAliveScheduleTaskDetector(ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
-                                        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                        ExecuteMonitor executeMonitor) {
-        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.executeMonitor = executeMonitor;
+    public NotAliveScheduleTaskDetector(String scheduleName,
+                                        MeterRegistry meterRegistry,
+                                        ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager) {
+        this.scheduleName = scheduleName;
+        this.lockKey = "not:alive:task:detect:lock:" + scheduleName;
+        this.scheduleTaskKeepaliveManager = scheduleTaskKeepaliveManager;
+        this.notAliveScheduleTasksCounter = new NotAliveScheduleTasksCounter(meterRegistry, scheduleName);
     }
 
     @Scheduled(cron = "0/10 * * * * ?")
     public void detectAndResumeNotAliveTasks() {
         try {
-            if (LockUtils.tryGetDistributedLock("not:alive:task:detect:lock", requestId, 5000L)) {
-                log.info("Detect not alive tasks start ...");
-                Set<String> notAliveTaskIds = scheduledTaskKeepaliveManager.getNotAliveTaskIds();
+            if (LockUtils.tryGetDistributedLock(lockKey, requestId, 5000L)) {
+                log.info("[{}] Detect not alive tasks start ...", scheduleName);
+                Set<String> notAliveTaskIds = scheduleTaskKeepaliveManager.getNotAliveTaskIds();
                 if (CollectionUtils.isEmpty(notAliveTaskIds)) {
                     return;
                 }
-                log.info("Found not alive tasks, notAliveTaskIds : {}", notAliveTaskIds);
-                executeMonitor.getNotAliveTasksCounter().increment(notAliveTaskIds.size());
+                log.info("[{}] Found not alive tasks, notAliveTaskIds : {}", scheduleName, notAliveTaskIds);
+                notAliveScheduleTasksCounter.increment(notAliveTaskIds.size());
                 resumeTasks(notAliveTaskIds);
             }
         } catch (Throwable e) {
@@ -71,7 +73,7 @@ public class NotAliveScheduleTaskDetector {
     }
 
     private void resumeTasks(Set<String> notAliveTaskIds) {
-        log.info("Resume not alive tasks start ...");
+        log.info("[{}] Resume not alive tasks start ...", scheduleName);
         notAliveTaskIds.forEach(taskId -> {
             // 暂时只支持恢复GSE任务
             if (taskId.startsWith("gse_task")) {
@@ -80,9 +82,9 @@ public class NotAliveScheduleTaskDetector {
                 int executeCount = Integer.parseInt(taskInfo[2]);
                 // 暂时不转移
 //                taskExecuteControlMsgSender.resumeGseStep(stepInstanceId, executeCount, UUID.randomUUID().toString());
-                scheduledTaskKeepaliveManager.removeTaskKeepaliveInfoFromRedis(taskId);
+                scheduleTaskKeepaliveManager.removeTaskKeepaliveInfoFromRedis(taskId);
             }
         });
-        log.info("Resume not alive tasks successfully");
+        log.info("[{}] Resume not alive tasks successfully", scheduleName);
     }
 }

@@ -26,17 +26,14 @@ package com.tencent.bk.job.execute.engine.schedule;
 
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
-import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.result.AbstractGseResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ResultHandleTaskSampler;
-import com.tencent.bk.job.execute.engine.result.ScheduledContinuousResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskLimiter;
-import com.tencent.bk.job.execute.engine.schedule.ha.ScheduledTaskKeepaliveManager;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
+import com.tencent.bk.job.execute.engine.schedule.metrics.DelayedScheduleTaskCounter;
+import com.tencent.bk.job.execute.engine.schedule.metrics.ExceptionScheduleTasksCounter;
+import com.tencent.bk.job.execute.engine.schedule.metrics.ScheduleTaskGauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.SmartLifecycle;
@@ -57,38 +54,35 @@ import java.util.concurrent.TimeUnit;
  * 方案：java DelayQueue 延迟队列 + 消费者模式实现任务的延迟周期调度
  */
 @Slf4j
-public class ScheduledTaskManager implements SmartLifecycle {
+public class ScheduleTaskManager implements SmartLifecycle {
     /**
-     * 调度管理器名称
+     * 任务调度管理器名称
      */
-    private final String scheduleName;
+    private final String schedulerName;
     /**
      * 日志调用链Tracer
      */
     private final Tracer tracer;
+    private final MeterRegistry meterRegistry;
+
     /**
      * 任务存活管理
      */
-    private final ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager;
+    private final ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager;
     private final Object workersMonitor = new Object();
     private final Object lifecycleMonitor = new Object();
     /**
-     * 任务执行计数器
+     * 任务调度引擎限流
      */
-    private final ExecuteMonitor counters;
-    /**
-     * 任务处理数据采样器
-     */
-    private final ResultHandleTaskSampler resultHandleTaskSampler;
     private final ScheduleTaskLimiter scheduleTaskLimiter;
     /**
      * 任务结果处理的任务队列
      */
-    private final DelayQueue<ScheduledContinuousResultHandleTask> tasksQueue = new DelayQueue<>();
+    private final DelayQueue<ScheduledDelayedTask> tasksQueue = new DelayQueue<>();
     /**
      * 调度的所有的任务
      */
-    private final Map<String, ScheduledContinuousResultHandleTask> scheduledTasks = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledDelayedTask> scheduledTasks = new ConcurrentHashMap<>();
     /**
      * 任务消费者
      */
@@ -96,7 +90,7 @@ public class ScheduledTaskManager implements SmartLifecycle {
     /**
      * 异步任务执行器，用于启动消费者线程
      */
-    private final Executor taskExecutor = new SimpleAsyncTaskExecutor(scheduleName);
+    private final Executor taskExecutor;
     /**
      * 最小任务处理线程
      */
@@ -139,20 +133,29 @@ public class ScheduledTaskManager implements SmartLifecycle {
     private volatile boolean running = false;
     private final ExecutorService shutdownExecutor;
 
-    public ScheduledTaskManager(String scheduleName,
-                                Tracer tracer,
-                                ExecuteMonitor counters,
-                                ScheduledTaskKeepaliveManager scheduledTaskKeepaliveManager,
-                                ResultHandleTaskSampler resultHandleTaskSampler,
-                                JobExecuteConfig jobExecuteConfig,
-                                @Qualifier("shutdownExecutor") ExecutorService shutdownExecutor) {
-        this.scheduleName = scheduleName;
+    private DelayedScheduleTaskCounter delayedScheduleTaskCounter;
+    private ExceptionScheduleTasksCounter exceptionScheduleTasksCounter;
+
+    public ScheduleTaskManager(String schedulerName,
+                               Tracer tracer,
+                               MeterRegistry meterRegistry,
+                               ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager,
+                               ExecutorService shutdownExecutor,
+                               int maxTaskSize) {
+        this.schedulerName = schedulerName;
         this.tracer = tracer;
-        this.counters = counters;
-        this.scheduledTaskKeepaliveManager = scheduledTaskKeepaliveManager;
-        this.resultHandleTaskSampler = resultHandleTaskSampler;
-        this.scheduleTaskLimiter = new ScheduleTaskLimiter(jobExecuteConfig.getResultHandleTasksLimit());
+        this.meterRegistry = meterRegistry;
+        this.scheduleTaskKeepaliveManager = scheduleTaskKeepaliveManager;
+        this.scheduleTaskLimiter = new ScheduleTaskLimiter(maxTaskSize);
         this.shutdownExecutor = shutdownExecutor;
+        this.taskExecutor = new SimpleAsyncTaskExecutor(schedulerName);
+        initMetric();
+    }
+
+    private void initMetric() {
+        new ScheduleTaskGauge(meterRegistry, this);
+        this.delayedScheduleTaskCounter = new DelayedScheduleTaskCounter(meterRegistry, schedulerName);
+        this.exceptionScheduleTasksCounter = new ExceptionScheduleTasksCounter(meterRegistry, schedulerName);
     }
 
     /**
@@ -160,12 +163,12 @@ public class ScheduledTaskManager implements SmartLifecycle {
      *
      * @param task 任务
      */
-    public void handleDeliveredTask(AbstractContinuousScheduledTask task) {
+    public void handleDeliveredTask(ContinuousScheduleTask task) {
         scheduleTaskLimiter.acquire();
         log.info("Handle delivered task: {}", task);
-        ScheduledContinuousResultHandleTask scheduleTask =
-            new ScheduledContinuousResultHandleTask(resultHandleTaskSampler, tracer, task, this,
-                scheduledTaskKeepaliveManager, scheduleTaskLimiter);
+        ScheduledDelayedTask scheduleTask =
+            new ScheduledDelayedTask(tracer, task, this,
+                scheduleTaskKeepaliveManager, scheduleTaskLimiter, meterRegistry);
         synchronized (lifecycleMonitor) {
             if (!isActive()) {
                 log.warn("ResultHandleManager is not active, reject! task: {}", task);
@@ -175,23 +178,18 @@ public class ScheduledTaskManager implements SmartLifecycle {
         }
 
         if (task instanceof AbstractGseResultHandleTask) {
-            scheduledTaskKeepaliveManager.addRunningTaskKeepaliveInfo(task.getTaskId());
+            scheduleTaskKeepaliveManager.addRunningTaskKeepaliveInfo(task.getTaskId());
         }
         this.tasksQueue.add(scheduleTask);
-        if (task instanceof ScriptResultHandleTask) {
-            ScriptResultHandleTask scriptResultHandleTask = (ScriptResultHandleTask) task;
-            resultHandleTaskSampler.incrementScriptTask(scriptResultHandleTask.getAppId());
-        } else if (task instanceof FileResultHandleTask) {
-            FileResultHandleTask fileResultHandleTask = (FileResultHandleTask) task;
-            resultHandleTaskSampler.incrementFileTask(fileResultHandleTask.getAppId());
-        }
+        // 触发任务被调度引擎接受回调
+        task.onAccept();
     }
 
-    DelayQueue<ScheduledContinuousResultHandleTask> getTasksQueue() {
+    DelayQueue<ScheduledDelayedTask> getTasksQueue() {
         return this.tasksQueue;
     }
 
-    Map<String, ScheduledContinuousResultHandleTask> getScheduledTasks() {
+    Map<String, ScheduledDelayedTask> getScheduledTasks() {
         synchronized (lifecycleMonitor) {
             return this.scheduledTasks;
         }
@@ -275,7 +273,7 @@ public class ScheduledTaskManager implements SmartLifecycle {
                 stopTaskCounter = StopTaskCounter.getInstance();
                 stopTaskCounter.initCounter(scheduledTasks.keySet());
             }
-            for (ScheduledContinuousResultHandleTask task : scheduledTasks.values()) {
+            for (ScheduledDelayedTask task : scheduledTasks.values()) {
                 shutdownExecutor.execute(new StopTask(task, tracer));
             }
         }
@@ -375,10 +373,10 @@ public class ScheduledTaskManager implements SmartLifecycle {
     }
 
     private static final class StopTask implements Runnable {
-        private final ScheduledContinuousResultHandleTask task;
+        private final ScheduledDelayedTask task;
         private final Tracer tracer;
 
-        StopTask(ScheduledContinuousResultHandleTask task, Tracer tracer) {
+        StopTask(ScheduledDelayedTask task, Tracer tracer) {
             this.task = task;
             this.tracer = tracer;
         }
@@ -441,21 +439,21 @@ public class ScheduledTaskManager implements SmartLifecycle {
 
         private void loop() {
             try {
-                ScheduledContinuousResultHandleTask task =
-                    ScheduledTaskManager.this.tasksQueue.poll(this.waitingTaskTimeout, TimeUnit.MILLISECONDS);
+                ScheduledDelayedTask task =
+                    ScheduleTaskManager.this.tasksQueue.poll(this.waitingTaskTimeout, TimeUnit.MILLISECONDS);
                 if (task != null) {
                     isBusy = true;
                     log.debug("Get task from queue, task: {}", task);
                     // 调度误差
                     long scheduleErrorInMills = System.currentTimeMillis() - task.getExpireTime();
                     if (scheduleErrorInMills > 1000) {
-                        log.warn("Inaccurate scheduling, task: {}, errorInMills:{}", task, scheduleErrorInMills);
-                        counters.getResultHandleDelayedScheduleCounter().increment();
+                        log.warn("Delay scheduling, task: {}, errorInMills:{}", task, scheduleErrorInMills);
+                        delayedScheduleTaskCounter.increment();
                     }
                     try {
                         task.execute();
                     } catch (Throwable e) {
-                        counters.getGseTasksExceptionCounter().increment();
+                        exceptionScheduleTasksCounter.increment();
                         log.warn("Task execution error", e);
                     }
                 }
@@ -478,14 +476,14 @@ public class ScheduledTaskManager implements SmartLifecycle {
             if (fetchTaskOK) {
                 if (isWorkerActive(this)) {
                     this.consecutiveIdles = 0;
-                    if (this.consecutiveTasks++ > ScheduledTaskManager.this.consecutiveActiveTrigger) {
+                    if (this.consecutiveTasks++ > ScheduleTaskManager.this.consecutiveActiveTrigger) {
                         considerAddingAConsumer();
                         this.consecutiveTasks = 0;
                     }
                 }
             } else {
                 this.consecutiveTasks = 0;
-                if (this.consecutiveIdles++ > ScheduledTaskManager.this.consecutiveIdleTrigger) {
+                if (this.consecutiveIdles++ > ScheduleTaskManager.this.consecutiveIdleTrigger) {
                     considerStoppingAConsumer(this);
                     this.consecutiveIdles = 0;
                 }
@@ -495,5 +493,9 @@ public class ScheduledTaskManager implements SmartLifecycle {
         boolean isBusy() {
             return this.isBusy;
         }
+    }
+
+    public String getSchedulerName() {
+        return schedulerName;
     }
 }

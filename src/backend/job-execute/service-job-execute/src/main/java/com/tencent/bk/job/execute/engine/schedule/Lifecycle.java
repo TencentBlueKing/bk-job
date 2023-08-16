@@ -34,9 +34,23 @@ public interface Lifecycle {
     void stop();
 
     /**
+     * 任务被调度引擎终止回调
+     */
+    default void onStop() {
+
+    }
+
+    /**
      * 任务结束回调
      */
     default void onFinish() {
+
+    }
+
+    /**
+     * 任务被调度引擎接受回调
+     */
+    default void onAccept() {
 
     }
 
