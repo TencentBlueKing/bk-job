@@ -29,6 +29,6 @@ public interface DestroyOrder {
     int GLOBAL_HANDLER = 1000;
     // GSE 任务下发
     int GSE_TASK_HANDLER = 100;
-    // GSE 任务结果处理
-    int GSE_TASK_RESULT_HANDLER = 99;
+    // 任务调度引擎
+    int JOB_TASK_SCHEDULER = 99;
 }

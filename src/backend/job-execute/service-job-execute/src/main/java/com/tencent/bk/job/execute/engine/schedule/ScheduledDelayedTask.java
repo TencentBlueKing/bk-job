@@ -156,7 +156,7 @@ public class ScheduledDelayedTask extends DelayedTask {
             }
             if (isExecutable) {
                 long end = System.nanoTime();
-                meterRegistry.timer(ScheduleMetricNames.JOB_SCHEDULE_TASKS_SECONDS,
+                meterRegistry.timer(ScheduleMetricNames.JOB_SCHEDULE_TASKS_HISTOGRAM,
                     "task_type", task.getTaskType(), "status", status)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
@@ -187,7 +187,7 @@ public class ScheduledDelayedTask extends DelayedTask {
         }
     }
 
-    public ContinuousScheduleTask getResultHandleTask() {
+    public ContinuousScheduleTask getScheduleTask() {
         return this.task;
     }
 

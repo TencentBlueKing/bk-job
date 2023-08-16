@@ -44,7 +44,7 @@ public class ScheduleTaskGauge {
                                                         ScheduleTaskManager scheduleTaskManager) {
         List<Tag> tags = Collections.singletonList(Tag.of("scheduler", scheduleTaskManager.getSchedulerName()));
         meterRegistry.gauge(ScheduleMetricNames.JOB_SCHEDULE_WAITING_TASKS_SIZE, tags,
-            scheduleTaskManager, ScheduleTaskManager::getResultHandleWaitingScheduleTasks);
+            scheduleTaskManager, ScheduleTaskManager::getWaitingScheduleTasks);
 
     }
 
@@ -57,7 +57,7 @@ public class ScheduleTaskGauge {
             ScheduleMetricNames.JOB_SCHEDULE_WORKERS,
             busyWorkerMetricsTag,
             scheduleTaskManager,
-            ScheduleTaskManager::getResultHandleBusyThreads);
+            ScheduleTaskManager::getBusyWorkers);
 
         List<Tag> idleWorkerMetricsTag = new ArrayList<>(2);
         idleWorkerMetricsTag.add(Tag.of("scheduler", scheduleTaskManager.getSchedulerName()));
@@ -66,7 +66,7 @@ public class ScheduleTaskGauge {
             ScheduleMetricNames.JOB_SCHEDULE_WORKERS,
             idleWorkerMetricsTag,
             scheduleTaskManager,
-            ScheduleTaskManager::getResultHandleIdleThreads);
+            ScheduleTaskManager::getIdleWorkers);
     }
 
 }

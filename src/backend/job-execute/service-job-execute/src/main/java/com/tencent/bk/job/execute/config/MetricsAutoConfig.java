@@ -54,7 +54,7 @@ public class MetricsAutoConfig {
                         // [10ms,1s]
                         .minimumExpectedValue(10_000_000.0).maximumExpectedValue(1_000_000_000.0)
                         .build().merge(config);
-                } else if (metricName.startsWith(ScheduleMetricNames.JOB_SCHEDULE_TASKS_SECONDS)) {
+                } else if (metricName.startsWith(ScheduleMetricNames.JOB_SCHEDULE_TASKS_HISTOGRAM)) {
                     return DistributionStatisticConfig.builder().percentilesHistogram(true)
                         // [10ms,5s]
                         .minimumExpectedValue(10_000_000.0).maximumExpectedValue(5_000_000_000.0)

@@ -53,5 +53,5 @@ public interface ScheduleMetricNames {
     /**
      * 任务调度引擎 - 任务执行 histogram
      */
-    String JOB_SCHEDULE_TASKS_SECONDS = "job.schedule.tasks.seconds";
+    String JOB_SCHEDULE_TASKS_HISTOGRAM = "job.schedule.tasks";
 }

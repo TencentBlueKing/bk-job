@@ -370,7 +370,7 @@ public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousS
                 watch.stop();
             }
             if (watch.getTotalTimeMillis() > 1000L) {
-                log.warn("AbstractResultHandleTask-> handle task result is slow, run statistics:{}",
+                log.warn("AbstractGseResultHandleTask-> handle task result is slow, run statistics:{}",
                     watch.prettyPrint());
             }
         }
@@ -583,7 +583,7 @@ public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousS
 
     @Override
     public void resumeTask() {
-        taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
+        taskExecuteMQEventDispatcher.dispatchGseResultHandleTaskResumeEvent(
             ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
                 gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId(), requestId));
     }
@@ -653,20 +653,6 @@ public abstract class AbstractGseResultHandleTask<T> extends AbstractContinuousS
             return false;
         }
         return true;
-    }
-
-    @Override
-    public void onFinish() {
-    }
-
-    @Override
-    public void onSuccess() {
-
-    }
-
-    @Override
-    public void onFail() {
-
     }
 
     @Override
