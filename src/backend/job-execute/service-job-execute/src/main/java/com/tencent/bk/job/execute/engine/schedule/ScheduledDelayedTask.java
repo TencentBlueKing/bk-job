@@ -22,11 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.engine.schedule;
 
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleLimiter;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskLimiter;
+import com.tencent.bk.job.execute.engine.schedule.metrics.ScheduleMetricNames;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
@@ -38,29 +39,25 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 通过延时队列调度的持续性任务结果处理任务
+ * 通过延时队列调度的任务
  */
 @Slf4j
-public class ScheduledContinuousResultHandleTask extends DelayedTask {
+public class ScheduledDelayedTask extends DelayedTask {
     /**
      * 日志调用链tracer
      */
     private final Tracer tracer;
-    /**
-     * 任务采样器
-     */
-    private final ResultHandleTaskSampler sampler;
-    private final ResultHandleManager resultHandleManager;
-    private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
-    private final ResultHandleLimiter resultHandleLimiter;
+    private final ScheduleTaskManager scheduleTaskManager;
+    private final ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager;
+    private final ScheduleTaskLimiter scheduleTaskLimiter;
     /**
      * 任务队列
      */
-    private final DelayQueue<ScheduledContinuousResultHandleTask> tasksQueue;
+    private final DelayQueue<ScheduledDelayedTask> tasksQueue;
     /**
      * 任务
      */
-    private final ContinuousScheduledTask task;
+    private final ContinuousScheduleTask task;
     /**
      * 延时任务
      */
@@ -70,29 +67,33 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
      */
     private final Span parent;
 
+    private final MeterRegistry meterRegistry;
+
     /**
-     * ScheduledContinuousQueuedTask Constructor
+     * Constructor
      *
-     * @param sampler             采样器
-     * @param tracer              日志调用链
-     * @param task                任务
-     * @param resultHandleManager resultHandleManager
-     * @param resultHandleLimiter 限流
+     * @param tracer                       日志调用链
+     * @param task                         任务
+     * @param scheduleTaskManager          任务调度管理
+     * @param scheduleTaskKeepaliveManager scheduleTaskKeepaliveManager
+     * @param scheduleTaskLimiter          限流
+     * @param meterRegistry                meterRegistry
      */
-    public ScheduledContinuousResultHandleTask(ResultHandleTaskSampler sampler,
-                                               Tracer tracer, ContinuousScheduledTask task,
-                                               ResultHandleManager resultHandleManager,
-                                               ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                               ResultHandleLimiter resultHandleLimiter) {
-        this.sampler = sampler;
+    public ScheduledDelayedTask(Tracer tracer,
+                                ContinuousScheduleTask task,
+                                ScheduleTaskManager scheduleTaskManager,
+                                ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager,
+                                ScheduleTaskLimiter scheduleTaskLimiter,
+                                MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
         this.tracer = tracer;
         this.parent = tracer.currentSpan();
         this.task = task;
-        this.delayedTask = new DelayedTask(this.task, this.task.getScheduleStrategy().getDelay());
-        this.resultHandleManager = resultHandleManager;
-        this.tasksQueue = resultHandleManager.getTasksQueue();
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.resultHandleLimiter = resultHandleLimiter;
+        this.delayedTask = new DelayedTask(this.task, this.task.getScheduleDelayStrategy().getNextDelay());
+        this.scheduleTaskManager = scheduleTaskManager;
+        this.tasksQueue = scheduleTaskManager.getTasksQueue();
+        this.scheduleTaskKeepaliveManager = scheduleTaskKeepaliveManager;
+        this.scheduleTaskLimiter = scheduleTaskLimiter;
     }
 
     private Span getChildSpan() {
@@ -122,7 +123,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         long start = System.nanoTime();
         String status = "ok";
         try {
-            if (!resultHandleManager.isActive()) {
+            if (!scheduleTaskManager.isActive()) {
                 task.stop();
                 return;
             }
@@ -130,7 +131,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
             isExecutable = true;
             executeTask();
 
-            if (!resultHandleManager.isActive()) {
+            if (!scheduleTaskManager.isActive()) {
                 task.stop();
                 return;
             }
@@ -148,25 +149,19 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
             throw e;
         } finally {
             if (isDone) {
-                if (task instanceof ScriptResultHandleTask) {
-                    ScriptResultHandleTask scriptTask = (ScriptResultHandleTask) task;
-                    resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(scriptTask.getTaskId());
-                    sampler.decrementScriptTask(scriptTask.getAppId());
-                } else if (task instanceof FileResultHandleTask) {
-                    FileResultHandleTask fileTask = (FileResultHandleTask) task;
-                    resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(fileTask.getTaskId());
-                    sampler.decrementFileTask(fileTask.getAppId());
-                }
-                resultHandleManager.getScheduledTasks().remove(task.getTaskId());
+                scheduleTaskKeepaliveManager.stopKeepaliveInfoTask(task.getTaskId());
+                scheduleTaskManager.getScheduledTasks().remove(task.getTaskId());
+                // 触发任务结束回调
+                task.onFinish();
             }
             if (isExecutable) {
                 long end = System.nanoTime();
-                sampler.getMeterRegistry().timer(ExecuteMetricNames.RESULT_HANDLE_TASK_SCHEDULE_PREFIX,
+                meterRegistry.timer(ScheduleMetricNames.JOB_SCHEDULE_TASKS_HISTOGRAM,
                     "task_type", task.getTaskType(), "status", status)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
             if (!isReScheduled) {
-                resultHandleLimiter.release();
+                scheduleTaskLimiter.release();
             }
         }
     }
@@ -182,7 +177,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
 
     private void reScheduleTask() {
         // 如果任务未完成，重新放入延时队列，等待重新调度
-        this.delayedTask = this.delayedTask.reScheduled(task.getScheduleStrategy().getDelay());
+        this.delayedTask = this.delayedTask.reScheduled(task.getScheduleDelayStrategy().getNextDelay());
         log.debug("Add undone task to queue, task: {}", task);
         long start = System.currentTimeMillis();
         tasksQueue.offer(this);
@@ -192,7 +187,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         }
     }
 
-    public ContinuousScheduledTask getResultHandleTask() {
+    public ContinuousScheduleTask getScheduleTask() {
         return this.task;
     }
 
@@ -217,7 +212,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", ScheduledContinuousResultHandleTask.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", ScheduledDelayedTask.class.getSimpleName() + "[", "]")
             .add("delayedTask=" + delayedTask)
             .toString();
     }
@@ -226,7 +221,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ScheduledContinuousResultHandleTask that = (ScheduledContinuousResultHandleTask) o;
+        ScheduledDelayedTask that = (ScheduledDelayedTask) o;
         return task.getTaskId().equals(that.task.getTaskId());
     }
 

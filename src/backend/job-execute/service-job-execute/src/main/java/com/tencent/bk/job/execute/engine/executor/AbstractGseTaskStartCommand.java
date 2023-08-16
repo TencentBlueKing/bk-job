@@ -38,15 +38,13 @@ import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.result.ResultHandleTaskManager;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
-import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
+import com.tencent.bk.job.execute.monitor.metrics.GseExceptionTasksCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.AgentTaskService;
@@ -71,18 +69,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand {
 
-    protected final GseTasksExceptionCounter gseTasksExceptionCounter;
-    protected final ResultHandleManager resultHandleManager;
+    protected final GseExceptionTasksCounter gseExceptionTasksCounter;
     protected final TaskInstanceService taskInstanceService;
     protected final TaskInstanceVariableService taskInstanceVariableService;
     protected final StepInstanceVariableValueService stepInstanceVariableValueService;
     protected final LogService logService;
     protected final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    protected final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
-    protected final ExecuteMonitor executeMonitor;
     protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
+    protected final ResultHandleTaskManager resultHandleTaskManager;
 
     /**
      * 任务下发请求ID,防止重复下发任务
@@ -118,8 +114,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected List<AgentTaskDTO> agentTasks;
 
 
-    AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                TaskInstanceService taskInstanceService,
+    AbstractGseTaskStartCommand(TaskInstanceService taskInstanceService,
                                 GseTaskService gseTaskService,
                                 AgentTaskService agentTaskService,
                                 AccountService accountService,
@@ -128,18 +123,17 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 AgentService agentService,
                                 LogService logService,
                                 TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                ExecuteMonitor executeMonitor,
                                 JobExecuteConfig jobExecuteConfig,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                GseTasksExceptionCounter gseTasksExceptionCounter,
+                                GseExceptionTasksCounter gseExceptionTasksCounter,
                                 Tracer tracer,
                                 GseClient gseClient,
+                                StepInstanceService stepInstanceService,
+                                ResultHandleTaskManager resultHandleTaskManager,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
-                                GseTaskDTO gseTask,
-                                StepInstanceService stepInstanceService) {
+                                GseTaskDTO gseTask) {
         super(agentService,
             accountService,
             gseTaskService,
@@ -149,19 +143,17 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             taskInstance,
             stepInstance,
             gseTask);
-        this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.executeMonitor = executeMonitor;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.gseTasksExceptionCounter = gseTasksExceptionCounter;
+        this.gseExceptionTasksCounter = gseExceptionTasksCounter;
         this.requestId = requestId;
         this.stepInstanceService = stepInstanceService;
+        this.resultHandleTaskManager = resultHandleTaskManager;
         this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getAgentId);
         this.hostIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
     }
@@ -224,7 +216,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
             if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
                 log.error("[{}] Start gse task fail, response: {}", this.gseTaskInfo, gseTaskResponse);
                 handleStartGseTaskError(gseTaskResponse);
-                gseTasksExceptionCounter.increment();
+                gseExceptionTasksCounter.increment();
                 taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
                     EventSource.buildGseTaskEventSource(stepInstanceId, executeCount, batch, gseTask.getId())));
                 watch.stop();

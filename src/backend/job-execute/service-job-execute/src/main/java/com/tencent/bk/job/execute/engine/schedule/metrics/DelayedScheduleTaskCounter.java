@@ -22,33 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.monitor.metrics;
+package com.tencent.bk.job.execute.engine.schedule.metrics;
 
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import io.micrometer.core.instrument.Tag;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
- * 指标-GSE任务执行异常数量
+ * 指标-任务结果处理调度超时的次数
  */
-@Component
-public class GseTasksExceptionCounter {
+public class DelayedScheduleTaskCounter {
     /**
-     * 任务执行异常数量Counter
+     * 任务调度引擎超时任务数量
      */
-    private final Counter gseTasksExceptionCounter;
+    private final Counter delayedScheduleTaskCounter;
 
-    @Autowired
-    public GseTasksExceptionCounter(MeterRegistry meterRegistry) {
-        this.gseTasksExceptionCounter = meterRegistry.counter(ExecuteMetricNames.GSE_TASKS_EXCEPTION_TOTAL);
+    public DelayedScheduleTaskCounter(MeterRegistry meterRegistry, String schedulerName) {
+        List<Tag> metricTags = Collections.singletonList(Tag.of("scheduler", schedulerName));
+        this.delayedScheduleTaskCounter =
+            meterRegistry.counter(ScheduleMetricNames.JOB_SCHEDULE_DELAYED_TASKS_TOTAL, metricTags);
     }
 
     /**
      * 计数+1
      */
     public void increment() {
-        this.gseTasksExceptionCounter.increment();
+        this.delayedScheduleTaskCounter.increment();
     }
 }

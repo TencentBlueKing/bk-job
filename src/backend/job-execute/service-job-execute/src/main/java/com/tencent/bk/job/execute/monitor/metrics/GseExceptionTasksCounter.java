@@ -24,28 +24,32 @@
 
 package com.tencent.bk.job.execute.monitor.metrics;
 
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-
 /**
- * 指标-任务结果处理线程信息
+ * 指标-调度任务执行异常数量
  */
 @Component
-public class GseResultHandleConsumersGauge {
+public class GseExceptionTasksCounter {
+    /**
+     * 任务执行异常数量Counter
+     */
+    private final Counter gseExceptionTasksCounter;
 
     @Autowired
-    public GseResultHandleConsumersGauge(MeterRegistry meterRegistry, ResultHandleManager resultHandleManager) {
-        meterRegistry.gauge(ExecuteMetricNames.GSE_RESULT_HANDLE_CONSUMERS, Collections.singletonList(Tag.of("status"
-            , "busy")),
-            resultHandleManager, ResultHandleManager::getResultHandleBusyThreads);
-        meterRegistry.gauge(ExecuteMetricNames.GSE_RESULT_HANDLE_CONSUMERS, Collections.singletonList(Tag.of("status"
-            , "idle")),
-            resultHandleManager, ResultHandleManager::getResultHandleIdleThreads);
+    public GseExceptionTasksCounter(MeterRegistry meterRegistry) {
+        this.gseExceptionTasksCounter = meterRegistry.counter(
+            ExecuteMetricNames.GSE_EXCEPTION_TASKS_TOTAL);
+    }
+
+    /**
+     * 计数+1
+     */
+    public void increment() {
+        this.gseExceptionTasksCounter.increment();
     }
 }

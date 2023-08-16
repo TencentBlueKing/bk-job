@@ -25,9 +25,9 @@
 package com.tencent.bk.job.execute.engine.prepare;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
-import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
-import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
+import com.tencent.bk.job.execute.engine.schedule.ContinuousScheduleTask;
+import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
+import com.tencent.bk.job.execute.engine.schedule.StopTaskCounter;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class FilePrepareControlTask implements ContinuousScheduledTask {
+public class FilePrepareControlTask implements ContinuousScheduleTask {
 
     /**
      * 同步锁
@@ -88,7 +88,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     }
 
     @Override
-    public ScheduleStrategy getScheduleStrategy() {
+    public ScheduleDelayStrategy getScheduleDelayStrategy() {
         // 每秒检查一次是否需要停止
         return () -> 1000;
     }

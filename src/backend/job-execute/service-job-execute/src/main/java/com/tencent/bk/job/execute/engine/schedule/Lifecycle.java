@@ -22,37 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
-
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.atomic.AtomicInteger;
+package com.tencent.bk.job.execute.engine.schedule;
 
 /**
- * 脚本任务调度策略
+ * 任务生命周期
  */
-@Slf4j
-public class ScriptTaskResultHandleScheduleStrategy implements ScheduleStrategy {
+public interface Lifecycle {
     /**
-     * 任务累计执行次数
+     * 终止任务
      */
-    private final AtomicInteger times = new AtomicInteger(0);
+    void stop();
 
-    @Override
-    public long getDelay() {
-        int handleCount = times.addAndGet(1);
-        if (handleCount <= 10) {
-            // 10s以内，周期为1s
-            return 1000;
-        } else if (handleCount <= 35) {
-            // 10s-1min,周期为2s
-            return 2000;
-        } else if (handleCount <= 88) {
-            // 1min-5min,周期为5s
-            return 5000;
-        } else {
-            // 超过5min,周期为10s
-            return 10000;
-        }
+    /**
+     * 任务被调度引擎终止回调
+     */
+    default void onStop() {
+
+    }
+
+    /**
+     * 任务结束回调
+     */
+    default void onFinish() {
+
+    }
+
+    /**
+     * 任务被调度引擎接受回调
+     */
+    default void onAccept() {
+
+    }
+
+    /**
+     * 任务执行成功回调
+     */
+    default void onSuccess() {
+
+    }
+
+    /**
+     * 任务执行失败回调
+     */
+    default void onFail() {
+
     }
 }

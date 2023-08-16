@@ -32,12 +32,14 @@ import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 @SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
 @EnableDiscoveryClient
 @EnableFeignClients
 @EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
+@EnableScheduling
 public class JobExecuteBootApplication {
 
     public static void main(String[] args) {

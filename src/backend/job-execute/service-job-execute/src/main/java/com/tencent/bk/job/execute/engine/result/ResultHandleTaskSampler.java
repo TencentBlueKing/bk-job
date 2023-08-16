@@ -90,22 +90,8 @@ public class ResultHandleTaskSampler {
 
         boolean runFlag = true;
 
-        private ToDoubleFunction<AtomicLong> debugFunctionByCounter(AtomicLong counter) {
-            return new ToDoubleFunction() {
-                @Override
-                public double applyAsDouble(Object value) {
-                    return counter.doubleValue();
-                }
-            };
-        }
-
         private ToDoubleFunction<AtomicLong> getFunctionByCounter(AtomicLong counter) {
-            return new ToDoubleFunction() {
-                @Override
-                public double applyAsDouble(Object value) {
-                    return counter.doubleValue();
-                }
-            };
+            return value -> counter.doubleValue();
         }
 
         private void measureHandlingFileTasksByApp() {
@@ -130,7 +116,7 @@ public class ResultHandleTaskSampler {
                 Gauge handlingScriptTasksGauge = Gauge.builder(
                     ExecuteMetricNames.GSE_RUNNING_TASKS,
                     counter,
-                    debugFunctionByCounter(counter)
+                    getFunctionByCounter(counter)
                 ).tags(Arrays.asList(
                     Tag.of("appId", appId.toString()),
                     Tag.of("stage", "result-handle"),

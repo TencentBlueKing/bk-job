@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result.ha;
+package com.tencent.bk.job.execute.engine.schedule.ha;
 
 
 import com.tencent.bk.job.common.util.ThreadUtils;
@@ -32,12 +32,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -47,26 +44,28 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 结果处理任务keepalive管理
+ * 任务keepalive管理
  */
 @Slf4j
-@Component
-@EnableScheduling
-public class ResultHandleTaskKeepaliveManager {
-    private static final String RUNNING_TASK_ZSET_KEY = "running:result:task";
+public class ScheduleTaskKeepaliveManager {
+    private static final String RUNNING_TASK_REDIS_KEY_PREFIX = "job:schedule:task:";
     private final Object lock = new Object();
-    private RedisTemplate redisTemplate;
-    private Map<String, KeepaliveInfo> runningTasks = new ConcurrentHashMap<>();
+    private final RedisTemplate<String, String> redisTemplate;
+    private final Map<String, KeepaliveInfo> runningTasks = new ConcurrentHashMap<>();
+    private final String redisKey;
+    private final String scheduleName;
 
-    @Autowired
-    public ResultHandleTaskKeepaliveManager(StringRedisTemplate redisTemplate) {
+    public ScheduleTaskKeepaliveManager(StringRedisTemplate redisTemplate,
+                                        String scheduleName) {
         this.redisTemplate = redisTemplate;
+        this.scheduleName = scheduleName;
+        this.redisKey = RUNNING_TASK_REDIS_KEY_PREFIX + scheduleName;
     }
 
     public void addRunningTaskKeepaliveInfo(String taskId) {
         KeepaliveInfo keepaliveInfo = updateTaskKeepaliveInfo(taskId);
         if (keepaliveInfo != null) {
-            log.info("Add running task keepalive info: {}", keepaliveInfo);
+            log.info("[{}] Add running task keepalive info: {}", scheduleName, keepaliveInfo);
             this.runningTasks.put(taskId, keepaliveInfo);
         }
     }
@@ -76,10 +75,11 @@ public class ResultHandleTaskKeepaliveManager {
         while (maxWaitingSeconds > 0) {
             try {
                 long timestamp = System.currentTimeMillis();
-                redisTemplate.opsForZSet().add(RUNNING_TASK_ZSET_KEY, taskId, timestamp);
+                redisTemplate.opsForZSet().add(redisKey, taskId, timestamp);
                 return new KeepaliveInfo(taskId, timestamp);
             } catch (Throwable e) {
-                log.error("Update task keepalive info error, taskId: {}! Wait for 5 seconds retry!", taskId);
+                log.error("[{}] Update task keepalive info error, taskId: {}! Wait for 5 seconds retry!",
+                    scheduleName, taskId);
                 ThreadUtils.sleep(5000L);
                 maxWaitingSeconds -= 5;
             }
@@ -88,10 +88,10 @@ public class ResultHandleTaskKeepaliveManager {
     }
 
     public void stopKeepaliveInfoTask(String taskId) {
-        log.info("Stop keepalive info task : {}", taskId);
+        log.info("[{}] Stop keepalive info task : {}", scheduleName, taskId);
         KeepaliveInfo keepaliveInfo = runningTasks.get(taskId);
         if (keepaliveInfo == null) {
-            log.warn("Keepalive info task already stopped, taskId: {}!", taskId);
+            log.warn("[{}] Keepalive info task already stopped, taskId: {}!", scheduleName, taskId);
             return;
         }
         synchronized (lock) {
@@ -104,10 +104,11 @@ public class ResultHandleTaskKeepaliveManager {
         int maxWaitingSeconds = 600;
         while (maxWaitingSeconds > 0) {
             try {
-                redisTemplate.opsForZSet().remove(RUNNING_TASK_ZSET_KEY, taskId);
+                redisTemplate.opsForZSet().remove(redisKey, taskId);
                 return;
             } catch (Throwable e) {
-                log.error("Remove task keepalive info error, taskId: {}! Wait for 5 seconds retry!", taskId);
+                log.error("[{}] Remove task keepalive info error, taskId: {}! Wait for 5 seconds retry!",
+                    scheduleName, taskId);
                 ThreadUtils.sleep(5000L);
                 maxWaitingSeconds -= 5;
             }
@@ -117,7 +118,7 @@ public class ResultHandleTaskKeepaliveManager {
     public Set<String> getNotAliveTaskIds() {
         try {
             long oneMinuteBefore = System.currentTimeMillis() - 60000L;
-            Set<String> timeoutTaskIds = redisTemplate.opsForZSet().rangeByScore(RUNNING_TASK_ZSET_KEY, -1,
+            Set<String> timeoutTaskIds = redisTemplate.opsForZSet().rangeByScore(redisKey, -1,
                 oneMinuteBefore);
             if (timeoutTaskIds == null) {
                 return Collections.emptySet();
@@ -143,7 +144,7 @@ public class ResultHandleTaskKeepaliveManager {
                         try {
                             // 二次确认，防止在运行期间任务被移除
                             if (runningTasks.get(taskId) != null) {
-                                redisTemplate.opsForZSet().add(RUNNING_TASK_ZSET_KEY, taskId, currentTimestamp);
+                                redisTemplate.opsForZSet().add(redisKey, taskId, currentTimestamp);
                                 keepaliveInfo.setTimestamp(currentTimestamp);
                                 refreshTaskIds.add(taskId);
                             }
@@ -154,14 +155,15 @@ public class ResultHandleTaskKeepaliveManager {
 
                     });
             }
-            log.info("Refresh task keepalive info done! taskSize: {},refreshTaskIds: {}", refreshTaskIds.size(),
-                refreshTaskIds);
+            log.info("[{}] Refresh task keepalive info done! taskSize: {},refreshTaskIds: {}",
+                scheduleName, refreshTaskIds.size(), refreshTaskIds);
             long cost = System.currentTimeMillis() - startInMills;
             if (cost > 1000L) {
-                log.info("Refresh task keepalive info is slow, taskSize: {}, cost: {}", refreshTaskIds.size(), cost);
+                log.info("[{}] Refresh task keepalive info is slow, taskSize: {}, cost: {}",
+                    scheduleName, refreshTaskIds.size(), cost);
             }
         } else {
-            log.info("Running tasks is empty. Skip refresh keepaliveInfo");
+            log.info("[{}] Running tasks is empty. Skip refresh keepaliveInfo", scheduleName);
         }
     }
 

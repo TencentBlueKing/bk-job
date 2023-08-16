@@ -22,43 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result.ha;
+package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 任务结果处理引擎限流
+ * 脚本任务调度延迟策略
  */
 @Slf4j
-public class ResultHandleLimiter {
-    private Semaphore semaphore;
-
-    public ResultHandleLimiter(int permits) {
-        this.semaphore = new Semaphore(permits);
-    }
-
-    public boolean acquire() {
-        try {
-            semaphore.acquire();
-            return true;
-        } catch (InterruptedException e) {
-            log.error("ResultHandleLimiter -> Acquire permit caught exception", e);
-            return false;
-        }
-    }
-
-    public void release() {
-        this.semaphore.release();
-    }
-
+public class ScriptResultHandleScheduleStrategy implements ScheduleDelayStrategy {
     /**
-     * 获取等待获取许可的线程数，用于表示饱和度
-     *
-     * @return
+     * 任务累计执行次数
      */
-    public int getWaitingThreads() {
-        return this.semaphore.getQueueLength();
+    private final AtomicInteger times = new AtomicInteger(0);
+
+    @Override
+    public long getNextDelay() {
+        int handleCount = times.addAndGet(1);
+        if (handleCount <= 10) {
+            // 10s以内，周期为1s
+            return 1000;
+        } else if (handleCount <= 35) {
+            // 10s-1min,周期为2s
+            return 2000;
+        } else if (handleCount <= 88) {
+            // 1min-5min,周期为5s
+            return 5000;
+        } else {
+            // 超过5min,周期为10s
+            return 10000;
+        }
     }
 }

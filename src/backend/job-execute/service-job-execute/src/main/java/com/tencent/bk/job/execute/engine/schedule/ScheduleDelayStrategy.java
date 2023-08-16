@@ -22,14 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.engine.schedule;
 
 /**
- * 任务生命周期
+ * 任务调度延迟策略
  */
-public interface Lifecycle {
+public interface ScheduleDelayStrategy {
     /**
-     * 终止任务
+     * 获取下一次任务调度延迟时间，单位毫秒
+     *
+     * @return 下一次任务调度延迟时间，单位毫秒
      */
-    void stop();
+    long getNextDelay();
 }

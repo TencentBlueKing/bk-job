@@ -24,19 +24,21 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 文件任务结果处理调度策略
  */
-public class FileTaskResultHandleScheduleStrategy implements ScheduleStrategy {
+public class FileResultHandleScheduleStrategy implements ScheduleDelayStrategy {
     /**
      * 任务累计执行次数
      */
     private final AtomicInteger times = new AtomicInteger(0);
 
     @Override
-    public long getDelay() {
+    public long getNextDelay() {
         int handleCount = times.addAndGet(1);
         if (handleCount <= 2) {
             // 2s以内，周期为1s

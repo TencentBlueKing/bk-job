@@ -32,16 +32,14 @@ import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.result.ResultHandleTaskManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
-import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
+import com.tencent.bk.job.execute.monitor.metrics.GseExceptionTasksCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.GseTaskService;
@@ -113,8 +111,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         }
     }
 
-    public SQLScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                        TaskInstanceService taskInstanceService,
+    public SQLScriptGseTaskStartCommand(TaskInstanceService taskInstanceService,
                                         StepInstanceService stepInstanceService,
                                         GseTaskService gseTaskService,
                                         ScriptAgentTaskService scriptAgentTaskService,
@@ -124,20 +121,18 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         AgentService agentService,
                                         LogService logService,
                                         TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                        ExecuteMonitor executeMonitor,
                                         JobExecuteConfig jobExecuteConfig,
                                         TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                        GseTasksExceptionCounter gseTasksExceptionCounter,
+                                        GseExceptionTasksCounter gseExceptionTasksCounter,
                                         JobBuildInVariableResolver jobBuildInVariableResolver,
                                         Tracer tracer,
                                         GseClient gseClient,
+                                        ResultHandleTaskManager resultHandleTaskManager,
                                         String requestId,
                                         TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
                                         GseTaskDTO gseTask) {
-        super(resultHandleManager,
-            taskInstanceService,
+        super(taskInstanceService,
             stepInstanceService,
             gseTaskService,
             scriptAgentTaskService,
@@ -147,14 +142,13 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             agentService,
             logService,
             taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            executeMonitor,
             jobExecuteConfig,
             taskEvictPolicyExecutor,
-            gseTasksExceptionCounter,
+            gseExceptionTasksCounter,
             jobBuildInVariableResolver,
             tracer,
             gseClient,
+            resultHandleTaskManager,
             requestId,
             taskInstance,
             stepInstance,

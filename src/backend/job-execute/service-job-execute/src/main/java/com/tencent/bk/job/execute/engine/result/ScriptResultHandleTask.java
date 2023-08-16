@@ -45,7 +45,8 @@ import com.tencent.bk.job.execute.engine.model.LogPullProgress;
 import com.tencent.bk.job.execute.engine.model.ScriptGseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.schedule.ScheduleDelayStrategy;
+import com.tencent.bk.job.execute.engine.schedule.ha.ScheduleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -81,7 +82,7 @@ import java.util.stream.Collectors;
  * 脚本任务执行结果处理
  */
 @Slf4j
-public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskResult> {
+public class ScriptResultHandleTask extends AbstractGseResultHandleTask<ScriptTaskResult> {
     /**
      * GSE日志查询支持的每一批次的最大Agent数目
      */
@@ -109,7 +110,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     /**
      * 脚本任务结果处理调度策略
      */
-    private volatile ScheduleStrategy scheduleStrategy;
+    private volatile ScheduleDelayStrategy scheduleDelayStrategy;
     /**
      * 目标Agent分批
      */
@@ -145,11 +146,12 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   TaskInstanceVariableService taskInstanceVariableService,
                                   StepInstanceVariableValueService stepInstanceVariableValueService,
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                  ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
+                                  ScheduleTaskKeepaliveManager scheduleTaskKeepaliveManager,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   ScriptAgentTaskService scriptAgentTaskService,
                                   StepInstanceService stepInstanceService,
                                   GseClient gseClient,
+                                  ResultHandleTaskSampler resultHandleTaskSampler,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -163,11 +165,12 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             taskInstanceVariableService,
             stepInstanceVariableValueService,
             taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
+            scheduleTaskKeepaliveManager,
             taskEvictPolicyExecutor,
             scriptAgentTaskService,
             stepInstanceService,
             gseClient,
+            resultHandleTaskSampler,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -654,11 +657,11 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     @Override
-    public ScheduleStrategy getScheduleStrategy() {
-        if (this.scheduleStrategy == null) {
-            this.scheduleStrategy = new ScriptTaskResultHandleScheduleStrategy();
+    public ScheduleDelayStrategy getScheduleDelayStrategy() {
+        if (this.scheduleDelayStrategy == null) {
+            this.scheduleDelayStrategy = new ScriptResultHandleScheduleStrategy();
         }
-        return this.scheduleStrategy;
+        return this.scheduleDelayStrategy;
     }
 
     @Override
@@ -667,5 +670,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             this.taskInfo = "ScriptTaskResultHandle-" + stepInstance.getTaskInstanceId() + "-" + stepInstance.getId();
         }
         return this.taskInfo;
+    }
+
+    @Override
+    public void onFinish() {
+        resultHandleTaskSampler.decrementScriptTask(this.appId);
+    }
+
+    @Override
+    public void onAccept() {
+        resultHandleTaskSampler.incrementScriptTask(this.appId);
     }
 }

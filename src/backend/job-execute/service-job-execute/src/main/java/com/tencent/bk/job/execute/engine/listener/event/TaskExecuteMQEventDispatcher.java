@@ -86,11 +86,11 @@ public class TaskExecuteMQEventDispatcher {
     }
 
     /**
-     * 分发结果处理任务恢复事件
+     * 分发GSE结果处理任务恢复事件
      *
      * @param event 结果处理任务恢复事件
      */
-    public void dispatchResultHandleTaskResumeEvent(ResultHandleTaskResumeEvent event) {
+    public void dispatchGseResultHandleTaskResumeEvent(ResultHandleTaskResumeEvent event) {
         log.info("Begin to dispatch gse task result handle resume event, event: {}", event);
         String resultHandleTaskResumeOutput = "resultHandleTaskResume-out-0";
         streamBridge.send(resultHandleTaskResumeOutput, event);

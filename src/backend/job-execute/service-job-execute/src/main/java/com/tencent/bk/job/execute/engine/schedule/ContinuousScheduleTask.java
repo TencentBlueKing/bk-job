@@ -22,30 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.monitor.metrics;
+package com.tencent.bk.job.execute.engine.schedule;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+/**
+ * 持续调度任务
+ */
+public interface ContinuousScheduleTask extends Task, Lifecycle {
+    /**
+     * 任务是否结束
+     *
+     * @return 如果结束返回true，否则返回false
+     */
+    boolean isFinished();
 
-@Component
-@Getter
-public class ExecuteMonitor {
-    private final MeterRegistry meterRegistry;
-    private final GseTasksExceptionCounter gseTasksExceptionCounter;
-    private final ResultHandleDelayedScheduleCounter resultHandleDelayedScheduleCounter;
-    private final NotAliveTasksCounter notAliveTasksCounter;
-
-    @Autowired
-    public ExecuteMonitor(MeterRegistry meterRegistry,
-                          GseTasksExceptionCounter gseTasksExceptionCounter,
-                          ResultHandleDelayedScheduleCounter resultHandleDelayedScheduleCounter,
-                          NotAliveTasksCounter notAliveTasksCounter) {
-        this.meterRegistry = meterRegistry;
-        this.gseTasksExceptionCounter = gseTasksExceptionCounter;
-        this.resultHandleDelayedScheduleCounter = resultHandleDelayedScheduleCounter;
-        this.notAliveTasksCounter = notAliveTasksCounter;
-    }
-
+    /**
+     * 返回任务调度延迟策略
+     *
+     * @return 任务调度延迟策略
+     */
+    ScheduleDelayStrategy getScheduleDelayStrategy();
 }

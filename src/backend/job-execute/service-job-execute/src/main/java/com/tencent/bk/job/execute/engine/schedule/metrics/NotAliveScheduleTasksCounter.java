@@ -22,25 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.engine.schedule.metrics;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
- * 任务
+ * 指标-调度引擎未存活任务数量
  */
-public interface Task {
+public class NotAliveScheduleTasksCounter {
     /**
-     * 执行任务
+     * 未存活任务数量Counter
      */
-    void execute();
+    private final Counter notAliveScheduleTasksCounter;
+
+    public NotAliveScheduleTasksCounter(MeterRegistry meterRegistry, String schedulerName) {
+        List<Tag> metricTags = Collections.singletonList(Tag.of("scheduler", schedulerName));
+        this.notAliveScheduleTasksCounter = meterRegistry.counter(
+            ScheduleMetricNames.JOB_SCHEDULE_NOT_ALIVE_TASKS_TOTAL, metricTags);
+    }
 
     /**
-     * 获取任务ID
-     *
-     * @return 任务ID
+     * 计数+1
      */
-    String getTaskId();
+    public void increment() {
+        this.notAliveScheduleTasksCounter.increment();
+    }
 
-    default String getTaskType() {
-        return "default";
+    /**
+     * 计数+count
+     */
+    public void increment(int count) {
+        this.notAliveScheduleTasksCounter.increment(count);
     }
 }

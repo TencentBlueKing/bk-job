@@ -22,22 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.monitor.metrics;
+package com.tencent.bk.job.execute.engine.schedule.ha;
 
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
-@Component
-public class ResultHandleWaitingScheduleTasksGauge {
+import java.util.concurrent.Semaphore;
 
-    @Autowired
-    public ResultHandleWaitingScheduleTasksGauge(MeterRegistry meterRegistry,
-                                                 ResultHandleManager resultHandleManager) {
-        meterRegistry.gauge(ExecuteMetricNames.RESULT_HANDLE_WAITING_SCHEDULE_TASKS,
-            resultHandleManager, ResultHandleManager::getResultHandleWaitingScheduleTasks);
+/**
+ * 任务调度引擎限流
+ */
+@Slf4j
+public class ScheduleTaskLimiter {
+    private final Semaphore semaphore;
+
+    public ScheduleTaskLimiter(int permits) {
+        this.semaphore = new Semaphore(permits);
     }
 
+    public boolean acquire() {
+        try {
+            semaphore.acquire();
+            return true;
+        } catch (InterruptedException e) {
+            log.error("ResultHandleLimiter -> Acquire permit caught exception", e);
+            return false;
+        }
+    }
+
+    public void release() {
+        this.semaphore.release();
+    }
+
+    /**
+     * 获取等待获取许可的线程数，用于表示饱和度
+     */
+    public int getWaitingThreads() {
+        return this.semaphore.getQueueLength();
+    }
 }

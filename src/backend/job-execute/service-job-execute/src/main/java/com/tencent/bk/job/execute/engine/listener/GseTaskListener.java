@@ -30,7 +30,7 @@ import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
 import com.tencent.bk.job.execute.engine.executor.GseTaskManager;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
-import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
+import com.tencent.bk.job.execute.monitor.metrics.GseExceptionTasksCounter;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,15 +44,15 @@ import org.springframework.stereotype.Component;
 public class GseTaskListener {
     private final GseTaskManager gseTaskManager;
     private final GseTaskService gseTaskService;
-    private final GseTasksExceptionCounter gseTasksExceptionCounter;
+    private final GseExceptionTasksCounter gseExceptionTasksCounter;
 
     @Autowired
     public GseTaskListener(GseTaskManager gseTaskManager,
                            GseTaskService gseTaskService,
-                           GseTasksExceptionCounter gseTasksExceptionCounter) {
+                           GseExceptionTasksCounter gseExceptionTasksCounter) {
         this.gseTaskManager = gseTaskManager;
         this.gseTaskService = gseTaskService;
-        this.gseTasksExceptionCounter = gseTasksExceptionCounter;
+        this.gseExceptionTasksCounter = gseExceptionTasksCounter;
     }
 
     /**
@@ -85,6 +85,6 @@ public class GseTaskListener {
         if (e instanceof MessageHandlerUnavailableException) {
             throw (MessageHandlerUnavailableException) e;
         }
-        gseTasksExceptionCounter.increment();
+        gseExceptionTasksCounter.increment();
     }
 }

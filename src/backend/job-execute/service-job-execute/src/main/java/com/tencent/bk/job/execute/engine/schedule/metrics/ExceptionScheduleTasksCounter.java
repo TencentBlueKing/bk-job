@@ -22,34 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.monitor.metrics;
+package com.tencent.bk.job.execute.engine.schedule.metrics;
 
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import io.micrometer.core.instrument.Tag;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
- * 指标-任务结果处理调度超时的次数
+ * 指标-调度任务执行异常数量
  */
-@Component
-public class ResultHandleDelayedScheduleCounter {
+public class ExceptionScheduleTasksCounter {
     /**
-     * 任务结果处理调度任务超时的次数
+     * 任务执行异常数量Counter
      */
-    private final Counter resultHandleDelayedSchedulesCounter;
+    private final Counter exceptionScheduleTasksCounter;
 
-    @Autowired
-    public ResultHandleDelayedScheduleCounter(MeterRegistry meterRegistry) {
-        this.resultHandleDelayedSchedulesCounter =
-            meterRegistry.counter(ExecuteMetricNames.RESULT_HANDLE_DELAYED_SCHEDULES_TOTAL);
+    public ExceptionScheduleTasksCounter(MeterRegistry meterRegistry, String schedulerName) {
+        List<Tag> metricTags = Collections.singletonList(Tag.of("scheduler", schedulerName));
+        this.exceptionScheduleTasksCounter = meterRegistry.counter(
+            ScheduleMetricNames.JOB_SCHEDULE_EXCEPTION_TASKS_TOTAL, metricTags);
     }
 
     /**
      * 计数+1
      */
     public void increment() {
-        this.resultHandleDelayedSchedulesCounter.increment();
+        this.exceptionScheduleTasksCounter.increment();
     }
 }

@@ -22,23 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.engine.schedule;
 
 /**
- * 持续性调度任务
+ * 任务
  */
-public interface ContinuousScheduledTask extends Task, Lifecycle {
+public interface Task {
     /**
-     * 任务是否结束
-     *
-     * @return 如果结束返回true，否则返回false
+     * 执行任务
      */
-    boolean isFinished();
+    void execute();
 
     /**
-     * 返回任务调度策略
+     * 获取任务ID
      *
-     * @return 任务调度策略
+     * @return 任务ID
      */
-    ScheduleStrategy getScheduleStrategy();
+    String getTaskId();
+
+    default String getTaskType() {
+        return "default";
+    }
 }
