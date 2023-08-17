@@ -27,6 +27,7 @@ package com.tencent.bk.job.backup;
 import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
@@ -37,7 +38,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * @since 21/7/2020 10:55
  */
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
+@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class,
+    ApplicationAvailabilityAutoConfiguration.class})
 @EnableCaching
 @EnableFeignClients
 @EnableScheduling
