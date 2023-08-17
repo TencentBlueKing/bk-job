@@ -14,4 +14,6 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\
 RUN yum install -y vim && \
     yum install -y less && \
     yum install -y wget && \
-    yum install -y lrzsz
+    yum install -y lrzsz && \
+    yum install -y net-tools.x86_64 && \
+    yum install -y bind-utils

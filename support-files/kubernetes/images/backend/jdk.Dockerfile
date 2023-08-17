@@ -1,4 +1,4 @@
-FROM bkjob/os:0.0.1
+FROM bkjob/os:0.0.2
 
 LABEL maintainer="Tencent BlueKing Job"
 

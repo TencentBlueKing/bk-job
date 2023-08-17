@@ -22,29 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway;
+package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+/**
+ * 计算机数据单位转换工具类
+ */
+public class DataSizeConverter {
+    public static int convertKBToMB(int value) {
+        return (int) Math.ceil(value / 1024.0);
+    }
 
-@Slf4j
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class,
-    ApplicationAvailabilityAutoConfiguration.class})
-@EnableCaching
-@EnableFeignClients
-@EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class})
-public class JobFileGatewayBootApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(JobFileGatewayBootApplication.class, args);
+    public static int convertMBToKB(int value) {
+        return value << 10;
     }
 }
