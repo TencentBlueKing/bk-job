@@ -721,6 +721,24 @@ public class ScriptServiceImpl implements ScriptService {
     }
 
     @Override
+    public void updateScriptVersion(String operator, Long appId, ScriptDTO script) throws ServiceException {
+        log.info("Begin to update scriptVersion, operator={}, appId={}, scriptVersionId={}", operator, appId, script.getScriptVersionId());
+        ScriptDTO scriptDTO = scriptDAO.getScriptByScriptId(script.getId());
+        checkScriptInApp(appId, scriptDTO);
+
+        ScriptDTO scriptVersionToBeUpdate = scriptDAO.getScriptVersionById(script.getScriptVersionId());
+        if (scriptVersionToBeUpdate == null) {
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
+        }
+        if (!scriptVersionToBeUpdate.getStatus().equals(JobResourceStatusEnum.DRAFT.getValue())) {
+            log.warn("Script status is not draft, can not update.scriptVersionId={}",
+                script.getScriptVersionId());
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
+        }
+        scriptDAO.updateScriptVersion(script.getLastModifyUser(), script.getScriptVersionId(), script);
+    }
+
+    @Override
     public List<String> listScriptNames(Long appId, String keyword) {
         return scriptDAO.listScriptNames(appId, keyword);
     }
