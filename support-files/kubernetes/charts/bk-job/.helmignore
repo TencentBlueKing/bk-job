@@ -22,3 +22,5 @@
 .idea/
 *.tmproj
 .vscode/
+templates/helm-check-configmap.yaml
+values-example.yaml

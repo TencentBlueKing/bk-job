@@ -1,4 +1,4 @@
-{{- if and .Values.logsvrConfig.enabled (eq .Values.deploy.mode "mocroservice") }}
+{{- if and .Values.logsvrConfig.enabled (eq .Values.deploy.mode "microservice") }}
 apiVersion: v1
 kind: Service
 metadata:
