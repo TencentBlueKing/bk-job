@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
@@ -43,7 +44,8 @@ import javax.annotation.PreDestroy;
 /**
  * @date 2019/09/20
  */
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job")
+@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude =
+    {ApplicationAvailabilityAutoConfiguration.class})
 @EnableDiscoveryClient
 @Slf4j
 @EnableConfigurationProperties({FeatureToggleConfig.class})

@@ -22,29 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway;
+package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.junit.jupiter.api.Test;
 
-@Slf4j
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class,
-    ApplicationAvailabilityAutoConfiguration.class})
-@EnableCaching
-@EnableFeignClients
-@EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class})
-public class JobFileGatewayBootApplication {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobFileGatewayBootApplication.class, args);
+class DataSizeConverterTest {
+
+    @Test
+    void convertKBToMB() {
+        assertEquals(DataSizeConverter.convertKBToMB(0), 0);
+        assertEquals(DataSizeConverter.convertKBToMB(1023), 1);
+        assertEquals(DataSizeConverter.convertKBToMB(1024), 1);
+        assertEquals(DataSizeConverter.convertKBToMB(1025), 2);
+        assertEquals(DataSizeConverter.convertKBToMB(2048), 2);
+    }
+
+    @Test
+    void convertMBToKB() {
+        assertEquals(DataSizeConverter.convertMBToKB(0), 0);
+        assertEquals(DataSizeConverter.convertMBToKB(1), 1024);
     }
 }

@@ -29,11 +29,13 @@ import com.tencent.bk.job.common.crypto.EncryptConfig;
 import com.tencent.bk.job.crontab.config.JobQuartzProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
+@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class,
+    ApplicationAvailabilityAutoConfiguration.class})
 @EnableFeignClients
 @EnableConfigurationProperties({FeatureToggleConfig.class, JobQuartzProperties.class, EncryptConfig.class})
 public class JobCrontabBootApplication {
