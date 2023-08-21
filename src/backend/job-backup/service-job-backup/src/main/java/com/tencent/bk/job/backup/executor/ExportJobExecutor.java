@@ -463,9 +463,18 @@ public class ExportJobExecutor {
         if (SecretHandlerEnum.SAVE_NULL == exportInfo.getSecretHandler()) {
             logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
                 i18nService.getI18n(LogMessage.PROCESS_FINISHED) + i18nService.getI18n(LogMessage.SAVE_NULL));
+            for (TaskTemplateVO taskTemplate : jobBackupInfo.getTemplateDetailInfoMap().values()) {
+                setBlankValueForCipherVariables(taskTemplate.getVariableList());
+            }
+
+            if (MapUtils.isNotEmpty(jobBackupInfo.getPlanDetailInfoMap())) {
+                for (TaskPlanVO taskPlan : jobBackupInfo.getPlanDetailInfoMap().values()) {
+                    setBlankValueForCipherVariables(taskPlan.getVariableList());
+                }
+            }
             return;
         }
-
+        // SecretHandlerEnum.SAVE_REAL，保存真实值
         for (TaskTemplateVO taskTemplate : jobBackupInfo.getTemplateDetailInfoMap().values()) {
             extractVariableRealValue(exportInfo, taskTemplate.getId(), null, taskTemplate.getVariableList());
         }
@@ -479,6 +488,22 @@ public class ExportJobExecutor {
 
         logService.addExportLog(exportInfo.getAppId(), exportInfo.getId(),
             i18nService.getI18n(LogMessage.PROCESS_FINISHED) + i18nService.getI18n(LogMessage.SAVE_REAL));
+    }
+
+    private void setBlankValueForCipherVariables(List<TaskVariableVO> variableList) {
+        if (CollectionUtils.isEmpty(variableList)) {
+            return;
+        }
+
+        List<TaskVariableVO> needProcessVariableList = variableList.stream()
+            .filter(taskVariableVO -> taskVariableVO.getType().equals(TaskVariableTypeEnum.CIPHER.getType()))
+            .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(needProcessVariableList)) {
+            return;
+        }
+
+        needProcessVariableList.forEach(cipherVariable -> cipherVariable.setDefaultValue(""));
     }
 
     private void extractVariableRealValue(ExportJobInfoDTO exportInfo, Long templateId, Long planId,
