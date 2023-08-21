@@ -6,17 +6,17 @@ package com.tencent.bk.job.common.service.constants;
 public enum DeployModeEnum {
 
     /**
-     * 微服务模式
+     * 标准模式（微服务）
      */
-    MICRO_SERVICE(Constants.MICRO_SERVICE),
+    STANDARD(Constants.STANDARD),
     /**
-     * 服务合并模式
+     * 轻量化模式(微服务合并）
      */
-    ASSEMBLE(Constants.ASSEMBLE);
+    LITE(Constants.LITE);
 
     public static class Constants {
-        public static final String MICRO_SERVICE = "microservice";
-        public static final String ASSEMBLE = "assemble";
+        public static final String STANDARD = "standard";
+        public static final String LITE = "lite";
     }
 
 

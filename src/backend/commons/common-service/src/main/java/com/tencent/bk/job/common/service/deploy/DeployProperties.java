@@ -41,5 +41,5 @@ public class DeployProperties {
     /**
      * 部署模式
      */
-    private String mode = DeployModeEnum.MICRO_SERVICE.getValue();
+    private String mode = DeployModeEnum.STANDARD.getValue();
 }

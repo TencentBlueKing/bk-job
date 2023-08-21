@@ -48,7 +48,7 @@ public class ExecuteDbArchiveConfig {
      * job-execute DB 配置
      */
     @Configuration("executeDbConfig")
-    @ConditionalOnProperty(value = "deploy.mode", havingValue = DeployModeEnum.Constants.MICRO_SERVICE,
+    @ConditionalOnProperty(value = "deploy.mode", havingValue = DeployModeEnum.Constants.STANDARD,
         matchIfMissing = true)
     static class JobExecuteDbConfig {
         @Qualifier("job-execute-source")

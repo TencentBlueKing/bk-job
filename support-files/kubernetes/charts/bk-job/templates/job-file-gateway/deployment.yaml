@@ -1,4 +1,4 @@
-{{- if and .Values.fileGatewayConfig.enabled (eq .Values.deploy.mode "microservice") }}
+{{- if and .Values.fileGatewayConfig.enabled (eq .Values.deploy.mode "standard") }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:

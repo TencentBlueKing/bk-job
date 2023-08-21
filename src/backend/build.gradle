@@ -82,12 +82,6 @@ ext {
     set("k8sMode", k8sMode)
     println("assembly mode: $assemblyMode")
 
-    // 是否轻量化(合并微服务)部署
-    def mergeMicroService = System.getProperty("mergeMicroService")
-    def isMergeMicroService = mergeMicroService == "true"
-    set("mergeMicroService", isMergeMicroService)
-    println("mergeMicroService: $isMergeMicroService")
-
     set("springVersion", "5.3.25")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
     set("springBootVersion", "2.6.13")
