@@ -64,13 +64,14 @@ public class BackupFileCryptoService {
     public void decryptBackupFile(String password, File inFile, File outFile) {
         try {
             FileInputStream in = new FileInputStream(inFile);
+            log.debug("in.available={}", in.available());
             BufferedInputStream bis = new BufferedInputStream(in);
             String algorithm = CryptorMetaUtil.getCryptorNameFromCipherStream(bis);
             if (StringUtils.isBlank(algorithm)) {
                 algorithm = JobCryptorNames.AES_CBC;
             }
             try (FileOutputStream out = new FileOutputStream(outFile)) {
-                log.debug("Use {} to decryptBackupFile", algorithm);
+                log.debug("Use {} to decryptBackupFile, bis.available={}", algorithm, bis.available());
                 symmetricCryptoService.decrypt(password, bis, out, algorithm);
             }
         } catch (Exception e) {

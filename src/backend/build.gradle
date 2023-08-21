@@ -57,6 +57,7 @@ buildscript {
         maven { url mavenRepoUrl }
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:$springDependencyManagePluginVersion"
@@ -130,7 +131,7 @@ ext {
     set('jcommanderVersion', "1.71")
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
-    set('cryptoJavaSDKVersion', "1.0.1")
+    set('cryptoJavaSDKVersion', "1.1.2-SNAPSHOT")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersion:" + bkjobVersion
@@ -193,6 +194,7 @@ allprojects {
             url "https://repo.spring.io/milestone"
         }
         mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
 }
 
