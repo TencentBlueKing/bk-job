@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
@@ -332,11 +333,25 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             request.setAutoMkdir(false);
         }
 
-        request.setDownloadSpeed(stepInstance.getFileDownloadSpeedLimit());
-        request.setUploadSpeed(stepInstance.getFileUploadSpeedLimit());
+        setSpeedLimit(request, stepInstance);
         request.setTimeout(stepInstance.getTimeout());
 
         return gseClient.asyncTransferFile(request);
+    }
+
+    private void setSpeedLimit(TransferFileRequest request, StepInstanceDTO stepInstance) {
+        if (stepInstance.getFileDownloadSpeedLimit() != null && stepInstance.getFileDownloadSpeedLimit() > 0) {
+            // KB -> MB
+            request.setDownloadSpeed(DataSizeConverter.convertKBToMB(stepInstance.getFileDownloadSpeedLimit()));
+        } else {
+            request.setDownloadSpeed(0);
+        }
+        if (stepInstance.getFileUploadSpeedLimit() != null && stepInstance.getFileUploadSpeedLimit() > 0) {
+            // KB -> MB
+            request.setUploadSpeed(DataSizeConverter.convertKBToMB(stepInstance.getFileUploadSpeedLimit()));
+        } else {
+            request.setUploadSpeed(0);
+        }
     }
 
     /**

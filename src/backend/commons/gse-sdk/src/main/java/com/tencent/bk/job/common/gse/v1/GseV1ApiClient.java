@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.gse.constants.AgentStateStatusEnum;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.constants.GseTaskTypeEnum;
-import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.util.WindowsHelper;
 import com.tencent.bk.job.common.gse.v1.model.AgentStatusDTO;
 import com.tencent.bk.job.common.gse.v1.model.CopyFileRsp;
@@ -51,6 +50,8 @@ import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.DataSizeConverter;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -646,10 +647,12 @@ public class GseV1ApiClient implements IGseClient {
         copyFileInfo.setSrc_agent(buildAgent(sourceFile.getAgent()));
         copyFileInfo.setDest_agents(buildAgents(targetFile.getAgents()));
         if (uploadSpeedLimit != null) {
-            copyFileInfo.setUpload_speed(uploadSpeedLimit);
+            // MB -> KB
+            copyFileInfo.setUpload_speed(DataSizeConverter.convertMBToKB(uploadSpeedLimit));
         }
         if (downloadSpeedLimit != null) {
-            copyFileInfo.setDownload_speed(downloadSpeedLimit);
+            // MB -> KB
+            copyFileInfo.setDownload_speed(DataSizeConverter.convertMBToKB(downloadSpeedLimit));
         }
         if (timeout != null) {
             copyFileInfo.setTimeout(timeout);

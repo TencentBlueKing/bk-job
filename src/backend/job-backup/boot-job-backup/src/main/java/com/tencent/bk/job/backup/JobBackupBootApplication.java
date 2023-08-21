@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.crypto.EncryptConfig;
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
@@ -36,7 +37,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.backup",
-    exclude = {JooqAutoConfiguration.class})
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
 @EnableCaching
 @EnableFeignClients(
     basePackages = {

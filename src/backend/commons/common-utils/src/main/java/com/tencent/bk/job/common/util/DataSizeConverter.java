@@ -22,30 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage;
+package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.crypto.EncryptConfig;
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.manage",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
-@EnableCaching
-@EnableFeignClients(basePackages = "com.tencent.bk.job")
-@EnableScheduling
-public class JobManageBootApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(JobManageBootApplication.class, args);
+/**
+ * 计算机数据单位转换工具类
+ */
+public class DataSizeConverter {
+    public static int convertKBToMB(int value) {
+        return (int) Math.ceil(value / 1024.0);
     }
 
+    public static int convertMBToKB(int value) {
+        return value << 10;
+    }
 }

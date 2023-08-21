@@ -43,6 +43,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
+import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContextBuilder;
@@ -1882,11 +1883,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         if (fileStepInfo.getDownloadSpeedLimit() != null) {
             // MB->KB
-            stepInstance.setFileDownloadSpeedLimit(fileStepInfo.getDownloadSpeedLimit() << 10);
+            stepInstance.setFileDownloadSpeedLimit(
+                DataSizeConverter.convertMBToKB(fileStepInfo.getDownloadSpeedLimit()));
         }
         if (fileStepInfo.getUploadSpeedLimit() != null) {
             // MB->KB
-            stepInstance.setFileUploadSpeedLimit(fileStepInfo.getUploadSpeedLimit() << 10);
+            stepInstance.setFileUploadSpeedLimit(
+                DataSizeConverter.convertMBToKB(fileStepInfo.getUploadSpeedLimit()));
         }
         stepInstance.setTimeout(fileStepInfo.getTimeout());
 

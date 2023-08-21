@@ -30,11 +30,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.http.server.reactive.HttpHandler;
 
 import javax.annotation.PostConstruct;
@@ -43,9 +44,10 @@ import javax.annotation.PreDestroy;
 /**
  * Job Gateway Spring Boot Application
  */
-@JobBootApplication(scanBasePackages = "com.tencent.bk.job.gateway")
-@EnableDiscoveryClient
+@JobBootApplication(scanBasePackages = "com.tencent.bk.job.gateway",
+    exclude = {ApplicationAvailabilityAutoConfiguration.class})
 @Slf4j
+@EnableFeignClients
 @EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobGatewayBootApplication {
     private final HttpHandler httpHandler;

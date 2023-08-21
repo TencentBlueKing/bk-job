@@ -22,30 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage;
+package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.crypto.EncryptConfig;
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.junit.jupiter.api.Test;
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.manage",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
-@EnableCaching
-@EnableFeignClients(basePackages = "com.tencent.bk.job")
-@EnableScheduling
-public class JobManageBootApplication {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobManageBootApplication.class, args);
+class DataSizeConverterTest {
+
+    @Test
+    void convertKBToMB() {
+        assertEquals(DataSizeConverter.convertKBToMB(0), 0);
+        assertEquals(DataSizeConverter.convertKBToMB(1023), 1);
+        assertEquals(DataSizeConverter.convertKBToMB(1024), 1);
+        assertEquals(DataSizeConverter.convertKBToMB(1025), 2);
+        assertEquals(DataSizeConverter.convertKBToMB(2048), 2);
     }
 
+    @Test
+    void convertMBToKB() {
+        assertEquals(DataSizeConverter.convertMBToKB(0), 0);
+        assertEquals(DataSizeConverter.convertMBToKB(1), 1024);
+    }
 }

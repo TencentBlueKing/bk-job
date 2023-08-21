@@ -26,9 +26,11 @@ package com.tencent.bk.job.config;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.cloud.config.server.EnableConfigServer;
 
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job.config")
+@SpringBootApplication(scanBasePackages = "com.tencent.bk.job.config",
+    exclude = {ApplicationAvailabilityAutoConfiguration.class})
 @EnableConfigServer
 public class JobConfigBootApplication {
 
