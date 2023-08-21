@@ -1,4 +1,5 @@
-{{- if and .Values.helmCheck .Values.helmCheck.enabled }}
+{{- if .Values.helmCheck }}
+{{- if .Values.helmCheck.enabled }}
 ##  仅出包使用。声明 chart 包含的镜像，用于 chart 交付时通过 helm template 渲染并解析镜像。通过在 .helmignore 中配置忽略，实际出包之后不包含该 ConfigMap
 apiVersion: v1
 kind: ConfigMap
@@ -38,5 +39,6 @@ data:
     image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForMigration.image "global" .Values.global) }}
   job-tools-k8s-startup-controller:
     image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForDependServices.image "global" .Values.global) }}
+{{- end }}
 {{- end }}
 
