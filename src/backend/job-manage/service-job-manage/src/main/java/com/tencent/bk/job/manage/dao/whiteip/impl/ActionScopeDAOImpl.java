@@ -47,7 +47,8 @@ public class ActionScopeDAOImpl implements ActionScopeDAO {
     private final MessageI18nService i18nService;
 
     @Autowired
-    public ActionScopeDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext, MessageI18nService i18nService) {
+    public ActionScopeDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
+                              MessageI18nService i18nService) {
         this.defaultDslContext = dslContext;
         this.i18nService = i18nService;
     }

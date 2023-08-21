@@ -177,8 +177,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED);
         if (globalSettingDTO == null) {
             globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED,
-                "true", "whether " +
-                "avaliable notify channels are configed");
+                "true", "whether available notify channels are configed");
             return 1 == globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         } else if (!globalSettingDTO.getValue().toLowerCase().equals("true")) {
             globalSettingDTO.setValue("true");

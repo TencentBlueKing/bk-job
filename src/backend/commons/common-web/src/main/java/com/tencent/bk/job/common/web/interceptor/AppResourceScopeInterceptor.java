@@ -100,6 +100,10 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
             case ESB:
                 appResourceScope = parseAppResourceScopeFromQueryStringOrBody(request);
                 log.debug("Scope from query/body:{}", appResourceScope);
+                break;
+            default:
+                log.debug("Ignore invalid scope: {}", requestSource);
+                break;
         }
         if (appResourceScope != null) {
             request.setAttribute("appResourceScope", appResourceScope);

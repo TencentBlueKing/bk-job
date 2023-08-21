@@ -44,9 +44,9 @@ public interface DangerousRuleDAO {
 
     List<DangerousRuleDTO> listDangerousRules(DangerousRuleDTO dangerousRuleQuery);
 
+    List<DangerousRuleDTO> listDangerousRules(DangerousRuleQuery query);
+
     int getMaxPriority();
 
     int getMinPriority();
-
-    List<DangerousRuleDTO> listDangerousRules(DangerousRuleQuery query);
 }

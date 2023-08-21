@@ -285,7 +285,6 @@ public abstract class AbstractEsbSdkClient {
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
         }
-        String responseBody;
         String url;
         if (!esbHostUrl.endsWith("/") && !uri.startsWith("/")) {
             url = esbHostUrl + "/" + uri;
@@ -296,8 +295,7 @@ public abstract class AbstractEsbSdkClient {
         header[0] = new BasicHeader(HDR_BK_LANG, lang);
         header[1] = new BasicHeader(HDR_CONTENT_TYPE, "application/json");
 
-        responseBody = httpHelper.post(url, "UTF-8", buildPostBody(params), header);
-        return responseBody;
+        return httpHelper.post(url, "UTF-8", buildPostBody(params), header);
     }
 
     protected <T extends EsbReq> String buildPostBody(T params) {

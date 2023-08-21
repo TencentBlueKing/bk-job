@@ -183,8 +183,44 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
                 return dangerousRuleList;
             }
             int typeFlag = 1 << scriptType - 1;
-            return dangerousRuleList.stream().filter(rule -> (rule.getScriptType() & (typeFlag)) == typeFlag).collect(Collectors.toList());
+            return dangerousRuleList.stream()
+                .filter(rule -> (rule.getScriptType() & (typeFlag)) == typeFlag)
+                .collect(Collectors.toList());
         }
+    }
+
+    @Override
+    public List<DangerousRuleDTO> listDangerousRules(DangerousRuleQuery query) {
+        List<Condition> conditions = buildConditionList(query);
+        Result<DangerousRuleRecord> records = dslContext.selectFrom(T)
+            .where(conditions)
+            .orderBy(T.PRIORITY)
+            .fetch();
+        return records.map(this::convertRecordToDto);
+    }
+
+    private List<Condition> buildConditionList(DangerousRuleQuery query) {
+        List<Condition> conditions = new ArrayList<>();
+        if (StringUtils.isNotBlank(query.getExpression())) {
+            conditions.add(T.EXPRESSION.like("%" + query.getExpression() + "%"));
+        }
+        if (StringUtils.isNotBlank(query.getDescription())) {
+            conditions.add(T.DESCRIPTION.like("%" + query.getDescription() + "%"));
+        }
+        if (query.getScriptTypeList() != null) {
+            List<Byte> typeList = query.getScriptTypeList();
+            int scriptType = 0;
+            for (Byte type : typeList) {
+                if (type > 0 && type <= 8) {
+                    scriptType |= 1 << (type - 1);
+                }
+            }
+            conditions.add(DSL.bitAnd(T.SCRIPT_TYPE, scriptType).greaterThan(0));
+        }
+        if (query.getAction() != null) {
+            conditions.add(T.ACTION.in(query.getAction()));
+        }
+        return conditions;
     }
 
     @Override
@@ -222,37 +258,4 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             record.get(T.STATUS).intValue());
     }
 
-    @Override
-    public List<DangerousRuleDTO> listDangerousRules(DangerousRuleQuery query) {
-        List<Condition> conditions = buildConditionList(query);
-        Result<DangerousRuleRecord> records = dslContext.selectFrom(T)
-            .where(conditions)
-            .orderBy(T.PRIORITY)
-            .fetch();
-        return records.map(this::convertRecordToDto);
-    }
-
-    private List<Condition> buildConditionList(DangerousRuleQuery query) {
-        List<Condition> conditions = new ArrayList<>();
-        if (StringUtils.isNotBlank(query.getExpression())) {
-            conditions.add(T.EXPRESSION.like("%" + query.getExpression() + "%"));
-        }
-        if (StringUtils.isNotBlank(query.getDescription())) {
-            conditions.add(T.DESCRIPTION.like("%" + query.getDescription() + "%"));
-        }
-        if (query.getScriptTypeList() != null) {
-            List<Byte> typeList = query.getScriptTypeList();
-            int scriptType = 0;
-            for (Byte type : typeList) {
-                if (type > 0 && type <= 8) {
-                    scriptType |= 1 << (type - 1);
-                }
-            }
-            conditions.add(DSL.bitAnd(T.SCRIPT_TYPE, scriptType).greaterThan(0));
-        }
-        if (query.getAction() != null) {
-            conditions.add(T.ACTION.in(query.getAction()));
-        }
-        return conditions;
-    }
 }
