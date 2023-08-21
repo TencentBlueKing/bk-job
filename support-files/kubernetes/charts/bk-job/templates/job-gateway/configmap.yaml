@@ -37,7 +37,7 @@ data:
               enabled: false
               lower-case-service-id: true
           routes:
-            {{- if eq .Values.deploy.mode "microservice" }}
+            {{- if eq .Values.deploy.mode "standard" }}
             - id: job-logout
               uri: lb://job-gateway
               predicates:

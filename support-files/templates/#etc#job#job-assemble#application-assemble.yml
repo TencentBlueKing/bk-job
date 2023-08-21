@@ -408,4 +408,4 @@ bk:
     # 首页右上角问题反馈链接
     root:
 deploy:
-  mode: assemble
+  mode: lite
