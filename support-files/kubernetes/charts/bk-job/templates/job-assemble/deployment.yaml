@@ -1,4 +1,4 @@
-{{- if eq .Values.deploy.mode "assemble" }}
+{{- if eq .Values.deploy.mode "lite" }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:

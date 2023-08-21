@@ -233,7 +233,7 @@ data:
               filters:
                 - RecordIamAccessLog
                 - AddEsbLangHeader
-            {{- else if eq .Values.deploy.mode "assemble" }}
+            {{- else if eq .Values.deploy.mode "lite" }}
             - id: job-logout
               uri: lb://job-gateway
               predicates:

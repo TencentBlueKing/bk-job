@@ -1,4 +1,4 @@
-{{- if and (.Values.assembleConfig.enabled) (.Values.assembleConfig.autoscaling.enabled) (eq .Values.deploy.mode "assemble") }}
+{{- if and (.Values.assembleConfig.enabled) (.Values.assembleConfig.autoscaling.enabled) (eq .Values.deploy.mode "lite") }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
