@@ -455,8 +455,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         AuthResult authResult;
         if (planId > 0) {
             if (planService.isDebugPlan(appResourceScope.getAppId(), templateId, planId)) {
-                authResult = planAuthService.authEditJobPlan(username, appResourceScope, templateId,
-                    planId, null);
+                authResult = templateAuthService.authDebugJobTemplate(username, appResourceScope, templateId);
             } else {
                 authResult = planAuthService.authEditJobPlan(username, appResourceScope, templateId,
                     planId, null);
@@ -484,6 +483,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         }
         return Response.buildSuccessResp(savedPlanId);
     }
+
 
     @Override
     public Response<Boolean> deletePlan(String username,
