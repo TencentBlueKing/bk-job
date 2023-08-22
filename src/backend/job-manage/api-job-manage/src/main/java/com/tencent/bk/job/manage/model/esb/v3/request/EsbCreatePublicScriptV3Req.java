@@ -25,8 +25,8 @@ public class EsbCreatePublicScriptV3Req extends EsbJobReq {
      * 脚本名称
      */
     @NotBlankField(fieldName = "name", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}")
-    @NotContainSpecialChar(fieldName = "name")
+    @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}", groups = Create.class)
+    @NotContainSpecialChar(fieldName = "name", groups = Create.class)
     private String name;
 
     /**
@@ -39,7 +39,8 @@ public class EsbCreatePublicScriptV3Req extends EsbJobReq {
      * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
      */
     @JsonProperty("script_language")
-    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid")
+    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
+        message = "{validation.constraints.ScriptType_illegal.message}", groups = Create.class)
     private Integer type;
 
     /**
@@ -52,8 +53,9 @@ public class EsbCreatePublicScriptV3Req extends EsbJobReq {
      * 脚本版本
      */
     @NotBlankField(fieldName = "version", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}")
-    @Pattern(regexp = "^[A-Za-z0-9_\\-#@\\.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}")
+    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}", groups = Create.class)
+    @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}",
+        groups = Create.class)
     private String version;
 
     /**

@@ -32,6 +32,8 @@ import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * 管理公共脚本版本请求
  */
@@ -43,14 +45,14 @@ public class EsbManagePublicScriptVersionV3Req extends EsbJobReq {
     /**
      * 脚本ID
      */
-    @NotBlankField(fieldName = "name", groups = Update.class)
+    @NotBlankField(fieldName = "script_id", groups = Update.class)
     @JsonProperty("script_id")
     private String scriptId;
 
     /**
      * 脚本版本ID
      */
-    @NotBlankField(fieldName = "script_version_id", groups = Update.class)
+    @NotNull(message = "{validation.constraints.ScriptVersion_notNull.message}", groups = Update.class)
     @JsonProperty("script_version_id")
-    private long scriptVersionId;
+    private Long scriptVersionId;
 }

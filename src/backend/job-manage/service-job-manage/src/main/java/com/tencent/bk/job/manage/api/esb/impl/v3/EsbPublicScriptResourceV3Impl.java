@@ -47,8 +47,8 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptListV3Re
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionDetailV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbManagePublicScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptBasicV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptVersionV3Req;
-import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptBasicV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCreatePublicScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCreateScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbManageScriptV3DTO;
@@ -245,6 +245,10 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         script.setPublicScript(true);
         script.setCreator(userName);
         script.setLastModifyUser(userName);
+        ScriptDTO exitScriptDTO = scriptService.getScriptByScriptId(script.getId());
+        if(exitScriptDTO != null){
+            script.setName(exitScriptDTO.getName());
+        }
         ScriptDTO savedScript = scriptService.saveScript(userName, PUBLIC_APP_ID, script);
         EsbCreatePublicScriptV3DTO result = null;
         if (savedScript != null) {
@@ -315,13 +319,13 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     }
 
     @Override
-    public EsbResp<EsbUpdatePublicScriptV3DTO> updatePublicScriptBasic(EsbUpdateScriptBasicV3Req request) {
+    public EsbResp<EsbUpdatePublicScriptV3DTO> updatePublicScriptBasic(EsbUpdatePublicScriptBasicV3Req request) {
         String userName = request.getUserName();
         String scriptId = request.getScriptId();
         authManagePublicScript(userName, scriptId);
         scriptService.updateScriptName(PUBLIC_APP_ID, userName, scriptId, request.getName());
         if (StringUtils.isNotEmpty(request.getDescription())) {
-            scriptService.updateScriptDesc(PUBLIC_APP_ID, userName, scriptId, request.getName());
+            scriptService.updateScriptDesc(PUBLIC_APP_ID, userName, scriptId, request.getDescription());
         }
 
         ScriptDTO scriptDTO = scriptService.getScript(userName, PUBLIC_APP_ID, scriptId);

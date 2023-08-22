@@ -338,6 +338,10 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         script.setPublicScript(appResourceScope == null);
         script.setCreator(userName);
         script.setLastModifyUser(userName);
+        ScriptDTO exitScriptDTO = scriptService.getScriptByScriptId(script.getId());
+        if(exitScriptDTO != null){
+            script.setName(exitScriptDTO.getName());
+        }
         ScriptDTO savedScript = scriptService.saveScript(userName, request.getAppId(), script);
 
         EsbCreateScriptV3DTO result = null;
@@ -380,8 +384,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         if (checkScriptReferenced(scriptId, versionId)) {
             return EsbResp.buildCommonFailResp(ErrorCode.DELETE_REF_SCRIPT_FAIL);
         }
-
-        scriptService.deleteScript(userName, appResourceScope.getAppId(), scriptId);
+        scriptService.deleteScriptVersion(userName, appResourceScope.getAppId(), versionId);
         return EsbResp.buildSuccessResp(null);
     }
 
@@ -423,7 +426,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         authManageScript(userName, appResourceScope, scriptId, null);
         scriptService.updateScriptName(appResourceScope.getAppId(), userName, scriptId, request.getName());
         if (StringUtils.isNotEmpty(request.getDescription())) {
-            scriptService.updateScriptDesc(appResourceScope.getAppId(), userName, scriptId, request.getName());
+            scriptService.updateScriptDesc(appResourceScope.getAppId(), userName, scriptId, request.getDescription());
         }
 
         ScriptDTO scriptDTO = scriptService.getScript(userName, appResourceScope.getAppId(), scriptId);

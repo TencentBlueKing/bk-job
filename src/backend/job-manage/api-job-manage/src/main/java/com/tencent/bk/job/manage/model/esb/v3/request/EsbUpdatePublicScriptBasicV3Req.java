@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbJobReq;
-import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.NotContainSpecialChar;
 import com.tencent.bk.job.common.validation.Update;
@@ -53,9 +52,9 @@ public class EsbUpdatePublicScriptBasicV3Req extends EsbJobReq {
     /**
      * 脚本名称
      */
-    @NotBlankField(fieldName = "name", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}")
-    @NotContainSpecialChar(fieldName = "name")
+    @NotBlankField(fieldName = "name", groups = Update.class)
+    @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}", groups = Update.class)
+    @NotContainSpecialChar(fieldName = "name", groups = Update.class)
     private String name;
 
     /**

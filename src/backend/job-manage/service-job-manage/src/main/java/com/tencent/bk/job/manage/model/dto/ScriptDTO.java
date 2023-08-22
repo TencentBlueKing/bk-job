@@ -210,6 +210,7 @@ public class ScriptDTO {
         updateScriptV3DTO.setId(id);
         updateScriptV3DTO.setName(name);
         updateScriptV3DTO.setType(type);
+        updateScriptV3DTO.setPublicScript(publicScript);
         if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
             EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, updateScriptV3DTO);
         }
@@ -226,6 +227,7 @@ public class ScriptDTO {
         updateScriptV3DTO.setId(id);
         updateScriptV3DTO.setName(name);
         updateScriptV3DTO.setType(type);
+        updateScriptV3DTO.setPublicScript(publicScript);
         updateScriptV3DTO.setCreator(creator);
         updateScriptV3DTO.setCreateTime(createTime);
         updateScriptV3DTO.setLastModifyUser(lastModifyUser);

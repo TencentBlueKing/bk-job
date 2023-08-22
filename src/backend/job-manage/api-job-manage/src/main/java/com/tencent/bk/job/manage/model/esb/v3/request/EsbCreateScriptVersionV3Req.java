@@ -60,8 +60,9 @@ public class EsbCreateScriptVersionV3Req extends EsbAppScopeReq {
      * 脚本版本
      */
     @NotBlankField(fieldName = "version", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}")
-    @Pattern(regexp = "^[A-Za-z0-9_\\-#@\\.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}")
+    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}", groups = Create.class)
+    @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}",
+        groups = Create.class)
     private String version;
 
     /**

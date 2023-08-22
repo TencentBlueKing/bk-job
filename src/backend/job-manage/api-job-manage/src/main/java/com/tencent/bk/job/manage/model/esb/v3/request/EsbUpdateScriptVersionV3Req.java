@@ -26,15 +26,13 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.Update;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.NotNull;
 
 /**
  * 更新脚本版本请求
@@ -54,23 +52,15 @@ public class EsbUpdateScriptVersionV3Req extends EsbAppScopeReq {
     /**
      * 脚本版本ID
      */
-    @NotBlankField(fieldName = "script_version_id", groups = Update.class)
+    @NotNull(message = "{validation.constraints.ScriptVersion_notNull.message}", groups = Update.class)
     @JsonProperty("script_version_id")
-    private long scriptVersionId;
+    private Long scriptVersionId;
 
     /**
      * 脚本内容，需Base64编码
      */
-    @NotBlankField(fieldName = "content", groups = Create.class)
+    @NotBlankField(fieldName = "content", groups = Update.class)
     private String content;
-
-    /**
-     * 脚本版本
-     */
-    @NotBlankField(fieldName = "version", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}")
-    @Pattern(regexp = "^[A-Za-z0-9_\\-#@\\.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}")
-    private String version;
 
     /**
      * 版本描述
