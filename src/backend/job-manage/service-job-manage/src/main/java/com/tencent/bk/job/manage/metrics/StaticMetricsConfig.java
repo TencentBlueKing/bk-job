@@ -78,7 +78,9 @@ public class StaticMetricsConfig {
                         cmdbGlobalFlowController,
                         cmdbGlobalFlowController1 -> {
                             Long value = cmdbGlobalFlowController1.getCurrentConfig(key);
-                            if (value == null) return -1;
+                            if (value == null) {
+                                return -1;
+                            }
                             return value;
                         }
                     );

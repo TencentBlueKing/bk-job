@@ -42,12 +42,7 @@ import com.tencent.bk.job.manage.model.tables.Script;
 import com.tencent.bk.job.manage.model.tables.ScriptVersion;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.Record;
-import org.jooq.Record6;
-import org.jooq.Result;
-import org.jooq.SortField;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
@@ -55,13 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -779,8 +768,12 @@ public class ScriptDAOImpl implements ScriptDAO {
         Script tbScript = Script.SCRIPT;
         ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION;
         List<Condition> conditions = buildScriptVersionConditionList(scriptQuery, baseSearchCondition);
-        return dslContext.selectCount().from(tbScriptVersion).join(tbScript).on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
-            .where(conditions).fetchOne(0, Long.class);
+        return dslContext.selectCount()
+            .from(tbScriptVersion)
+            .join(tbScript)
+            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
+            .where(conditions)
+            .fetchOne(0, Long.class);
     }
 
     @Override

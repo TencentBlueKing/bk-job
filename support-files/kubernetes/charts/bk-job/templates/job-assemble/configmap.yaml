@@ -391,6 +391,6 @@ data:
       feedback:
         root: {{ .Values.bkFeedBackUrl }}
     deploy:
-      mode: assemble    
+      mode: lite    
 
 {{- end }}
