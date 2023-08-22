@@ -75,7 +75,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
             .collect(Collectors.toList());
 
 
-        TerminateGseTaskRequest request = new TerminateGseTaskRequest(gseTask.getGseTaskId(), agentIds);
+        TerminateGseTaskRequest request = new TerminateGseTaskRequest(gseTask.getGseTaskId(), agentIds, gseV2Task);
         GseTaskResponse gseTaskResponse = gseClient.terminateGseFileTask(request);
         if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
             log.error("Terminate gse task failed! gseTask: {}", gseTaskInfo);
