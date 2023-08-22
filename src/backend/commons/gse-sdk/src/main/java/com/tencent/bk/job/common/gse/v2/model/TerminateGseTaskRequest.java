@@ -34,8 +34,11 @@ public class TerminateGseTaskRequest extends GseReq {
     @JsonIgnore
     private boolean gseV2Task;
 
-    public TerminateGseTaskRequest(String taskId, List<String> agentIds) {
+    public TerminateGseTaskRequest(String taskId,
+                                   List<String> agentIds,
+                                   boolean gseV2Task) {
         this.taskId = taskId;
         this.agentIds = agentIds;
+        this.gseV2Task = gseV2Task;
     }
 }

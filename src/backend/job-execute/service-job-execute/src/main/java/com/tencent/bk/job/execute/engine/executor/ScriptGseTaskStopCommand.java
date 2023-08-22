@@ -75,8 +75,8 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
             .collect(Collectors.toList());
 
 
-        TerminateGseTaskRequest request = new TerminateGseTaskRequest(gseTask.getGseTaskId(), terminateAgentIds);
-        request.setGseV2Task(gseV2Task);
+        TerminateGseTaskRequest request = new TerminateGseTaskRequest(gseTask.getGseTaskId(),
+            terminateAgentIds, gseV2Task);
         GseTaskResponse gseTaskResponse = gseClient.terminateGseScriptTask(request);
         if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
             log.error("Terminate gse task failed! gseTask: {}", gseTaskInfo);
