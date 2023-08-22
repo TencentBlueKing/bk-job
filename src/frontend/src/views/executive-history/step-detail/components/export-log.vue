@@ -164,6 +164,15 @@
         return !this.isPopoverShowFlag && !this.isLogDownloaded && this.isPackageing;
       },
     },
+    watch: {
+      isFile() {
+        if (this.isFile) {
+          this.popperInstance.disable();
+        } else {
+          this.popperInstance.enable();
+        }
+      },
+    },
     created() {
       this.isPackageing = false;
       // api 标记重新打包
