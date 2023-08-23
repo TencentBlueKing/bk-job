@@ -34,10 +34,13 @@
     <jb-form
       ref="titleForm"
       slot="title"
+      fixed
+      form-type="vertical"
       :model="formData"
       style="width: 100%;">
       <jb-form-item
         error-display-type="tooltips"
+        label=""
         property="name"
         :rules="rules.name"
         style="margin-bottom: 0;">
