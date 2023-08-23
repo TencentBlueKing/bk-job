@@ -103,7 +103,7 @@
           trigger: 'click mouseenter',
           placement: 'left',
           hideOnClick: false,
-          content: this.data.description,
+          content: `<div style="max-width: 340px">${this.data.description}</div>`,
           disabled: !this.data.description,
         };
       },
