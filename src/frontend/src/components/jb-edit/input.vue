@@ -61,6 +61,7 @@
         @click.stop="">
         <bk-input
           ref="input"
+          :maxlength="maxlength"
           :value="newVal"
           @blur="handleInputBlur"
           @change="handleInputChange"
@@ -89,6 +90,7 @@
         type: String,
         default: '',
       },
+      maxlength: Number,
       /**
        * @desc 编辑操作对应的字段名称
        */
