@@ -20,7 +20,7 @@
     "@vue/composition-api": "1.5.0",
     "ace-builds": "1.23.4",
     "axios": "1.4.0",
-    "bk-magic-vue": "2.5.4-beta.6",
+    "bk-magic-vue": "2.5.7",
     "core-js": "3.31.1",
     "cron-parser-custom": "2.13.0",
     "diff": "5.0.0",
