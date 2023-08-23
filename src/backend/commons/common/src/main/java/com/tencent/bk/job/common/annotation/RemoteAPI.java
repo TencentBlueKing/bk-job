@@ -21,42 +21,16 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+package com.tencent.bk.job.common.annotation;
 
-package com.tencent.bk.job.file.worker.api;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import com.tencent.bk.job.common.annotation.WorkerAPI;
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.file.worker.model.req.WorkerOffLineReq;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-
-@Api(tags = {"job-file-worker:api:OP"})
-@RequestMapping("/worker/api/op")
-@RestController
-@WorkerAPI
-public interface OpResource {
-
-    @ApiOperation(value = "Worker下线", produces = "application/json")
-    @PostMapping("/offline")
-    Response<List<String>> offLine(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam(value = "文件下线参数", required = true) @RequestBody WorkerOffLineReq req
-    );
-
-    @ApiOperation(value = "查询Worker当前正在跑的任务", produces = "application/json")
-    @PostMapping("/taskList")
-    Response<List<String>> taskList(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username
-    );
-
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface RemoteAPI {
 }

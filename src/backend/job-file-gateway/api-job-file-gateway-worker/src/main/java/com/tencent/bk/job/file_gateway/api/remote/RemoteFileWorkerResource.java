@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.api.remote;
 
+import com.tencent.bk.job.common.annotation.RemoteAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
@@ -41,6 +42,7 @@ import java.util.List;
 @Api(tags = {"job-file-gateway:remote:FileWorker"})
 @RequestMapping("/remote/fileWorker")
 @RestController
+@RemoteAPI
 public interface RemoteFileWorkerResource {
 
     @ApiOperation(value = "Worker心跳", produces = "application/json")
