@@ -65,7 +65,7 @@ public class RemoteFileWorkerResourceImpl implements RemoteFileWorkerResource {
 
     @Override
     public Response<String> updateFileSourceTask(UpdateFileSourceTaskReq updateFileSourceTaskReq) {
-        log.debug("Input=({})", updateFileSourceTaskReq);
+        log.info("updateFileSourceTaskReq=({})", updateFileSourceTaskReq);
         String taskId = updateFileSourceTaskReq.getFileSourceTaskId();
         String filePath = updateFileSourceTaskReq.getFilePath();
         String downloadPath = updateFileSourceTaskReq.getDownloadPath();
