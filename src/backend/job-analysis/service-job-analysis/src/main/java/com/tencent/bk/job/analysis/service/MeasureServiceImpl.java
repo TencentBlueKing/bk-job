@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.analysis.service;
 
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.task.statistics.StatisticsTaskScheduler;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;

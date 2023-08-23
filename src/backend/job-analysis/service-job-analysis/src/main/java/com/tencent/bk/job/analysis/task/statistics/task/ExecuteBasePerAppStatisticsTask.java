@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task;
 
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;

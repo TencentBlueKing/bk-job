@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.dao;
 
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import org.jooq.DSLContext;
 
 import java.util.List;

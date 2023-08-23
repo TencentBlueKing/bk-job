@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.api.web.impl;
 
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.web.WebStatisticsResource;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.consts.DimensionEnum;
@@ -48,7 +49,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;

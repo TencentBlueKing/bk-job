@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.Wrapper;
 import com.tencent.bk.job.execute.dao.StatisticsDAO;
 import com.tencent.bk.job.execute.model.tables.Statistics;

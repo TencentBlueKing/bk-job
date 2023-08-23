@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.analysis.dao.impl;
 
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.tables.Statistics;
 import com.tencent.bk.job.analysis.model.tables.records.StatisticsRecord;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.Wrapper;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

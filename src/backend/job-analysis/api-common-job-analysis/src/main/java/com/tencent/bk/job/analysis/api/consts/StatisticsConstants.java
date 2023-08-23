@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.statistics.consts;
+package com.tencent.bk.job.analysis.api.consts;
 
 import java.util.Collections;
 import java.util.List;

@@ -22,9 +22,70 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    implementation project(':commons:common')
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.analysis.api.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 通用统计数据模型
+ */
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class StatisticsDTO implements Cloneable {
+    /**
+     * id
+     */
+    private Long id;
+    /**
+     * id
+     */
+    private Long appId;
+    /**
+     * 资源
+     */
+    private String resource;
+    /**
+     * 维度
+     */
+    private String dimension;
+    /**
+     * 维度取值
+     */
+    private String dimensionValue;
+    /**
+     * 统计单位日期
+     */
+    private String date;
+    /**
+     * 统计值
+     */
+    private String value;
+    /**
+     * 创建时间
+     */
+    private Long createTime;
+    /**
+     * 更新时间
+     */
+    private Long lastModifyTime;
+
+    @Override
+    public StatisticsDTO clone() {
+        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        statisticsDTO.setId(id);
+        statisticsDTO.setAppId(appId);
+        statisticsDTO.setResource(resource);
+        statisticsDTO.setDimension(dimension);
+        statisticsDTO.setDimensionValue(dimensionValue);
+        statisticsDTO.setDate(date);
+        statisticsDTO.setValue(value);
+        statisticsDTO.setCreateTime(createTime);
+        statisticsDTO.setLastModifyTime(lastModifyTime);
+        return statisticsDTO;
+    }
 }
