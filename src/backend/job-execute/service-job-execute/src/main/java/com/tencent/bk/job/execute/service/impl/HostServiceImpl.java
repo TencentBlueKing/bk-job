@@ -39,11 +39,10 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.client.ServiceHostResourceClient;
-import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
@@ -70,11 +69,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-@Service
+@Service("jobExecuteHostService")
 @Slf4j
 public class HostServiceImpl implements HostService {
-    private final WhiteIpResourceClient whiteIpResourceClient;
-    private final ServiceHostResourceClient hostResourceClient;
+    private final ServiceHostResource hostResource;
     private final AppScopeMappingService appScopeMappingService;
     private final ExecutorService getHostsByTopoExecutor;
 
@@ -102,19 +100,17 @@ public class HostServiceImpl implements HostService {
             );
 
     @Autowired
-    public HostServiceImpl(WhiteIpResourceClient whiteIpResourceClient,
-                           ServiceHostResourceClient hostResourceClient,
+    public HostServiceImpl(ServiceHostResource hostResource,
                            AppScopeMappingService appScopeMappingService,
                            @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor) {
-        this.hostResourceClient = hostResourceClient;
-        this.whiteIpResourceClient = whiteIpResourceClient;
+        this.hostResource = hostResource;
         this.appScopeMappingService = appScopeMappingService;
         this.getHostsByTopoExecutor = getHostsByTopoExecutor;
     }
 
     @Override
     public Map<HostDTO, ServiceHostDTO> batchGetHosts(List<HostDTO> hostIps) {
-        List<ServiceHostDTO> hosts = hostResourceClient.batchGetHosts(
+        List<ServiceHostDTO> hosts = hostResource.batchGetHosts(
             new ServiceBatchGetHostsReq(hostIps)).getData();
         Map<HostDTO, ServiceHostDTO> hostMap = new HashMap<>();
         hosts.forEach(host -> hostMap.put(new HostDTO(host.getCloudAreaId(), host.getIp()), host));
@@ -123,7 +119,7 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public ServiceHostDTO getHost(HostDTO host) {
-        List<ServiceHostDTO> hosts = hostResourceClient.batchGetHosts(
+        List<ServiceHostDTO> hosts = hostResource.batchGetHosts(
             new ServiceBatchGetHostsReq(Collections.singletonList(host))).getData();
         if (CollectionUtils.isEmpty(hosts)) {
             return null;
@@ -133,7 +129,7 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public ServiceHostDTO getHostByCloudIpv6(long cloudAreaId, String ipv6) {
-        List<ServiceHostDTO> hosts = hostResourceClient.getHostsByCloudIpv6(
+        List<ServiceHostDTO> hosts = hostResource.getHostsByCloudIpv6(
             new ServiceGetHostsByCloudIpv6Req(cloudAreaId, ipv6)
         ).getData();
         if (CollectionUtils.isEmpty(hosts)) {
@@ -156,7 +152,7 @@ public class HostServiceImpl implements HostService {
                                                         Collection<HostDTO> hosts,
                                                         boolean refreshAgentId) {
         InternalResponse<ServiceListAppHostResultDTO> response =
-            hostResourceClient.batchGetAppHosts(appId,
+            hostResource.batchGetAppHosts(appId,
                 new ServiceBatchGetAppHostsReq(new ArrayList<>(hosts), refreshAgentId));
         return response.getData();
     }

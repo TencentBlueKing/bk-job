@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
+import com.tencent.bk.job.manage.model.tables.Application;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,7 +44,6 @@ import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.Application;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.slf4j.helpers.MessageFormatter;
@@ -75,16 +75,16 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         T_APP.ATTRS
     };
 
-    private final DSLContext context;
+    private final DSLContext dslContext;
 
     @Autowired
-    public ApplicationDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context) {
-        this.context = context;
+    public ApplicationDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Override
     public boolean existBiz(long bizId) {
-        val records = context.selectZero()
+        val records = dslContext.selectZero()
             .from(T_APP)
             .where(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.byteValue())))
             .and(T_APP.BK_SCOPE_TYPE.eq(ResourceScopeTypeEnum.BIZ.getValue()))
@@ -96,7 +96,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public ApplicationDTO getAppById(long appId) {
-        Record record = context.select(ALL_FIELDS)
+        Record record = dslContext.select(ALL_FIELDS)
             .from(T_APP)
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)))
             .and(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.byteValue())))
@@ -135,7 +135,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }
-        Result<Record> result = context
+        Result<Record> result = dslContext
             .select(ALL_FIELDS)
             .from(T_APP)
             .where(conditions)
@@ -175,7 +175,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public List<Long> listAllBizAppBizIds() {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
-        Result<Record1<String>> records = context
+        Result<Record1<String>> records = dslContext
             .select(T_APP.BK_SCOPE_ID)
             .from(T_APP)
             .where(conditions)
@@ -212,7 +212,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
+    public Long insertApp(ApplicationDTO applicationDTO) {
         ResourceScope scope = applicationDTO.getScope();
         val query = dslContext.insertInto(T_APP,
             T_APP.APP_NAME,
@@ -254,7 +254,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO) {
+    public int updateApp(ApplicationDTO applicationDTO) {
         val query = dslContext.update(T_APP)
             .set(T_APP.APP_NAME, applicationDTO.getName())
             .set(T_APP.BK_SUPPLIER_ACCOUNT, applicationDTO.getBkSupplierAccount())
@@ -266,7 +266,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public int restoreDeletedApp(DSLContext dslContext, long appId) {
+    public int restoreDeletedApp(long appId) {
         val query = dslContext.update(T_APP)
             .set(T_APP.IS_DELETED, UByte.valueOf(Bool.FALSE.byteValue()))
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)));
@@ -278,7 +278,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public int deleteAppByIdSoftly(DSLContext dslContext, long appId) {
+    public int deleteAppByIdSoftly(long appId) {
         val query = dslContext.update(T_APP)
             .set(T_APP.IS_DELETED, UByte.valueOf(1))
             .where(T_APP.APP_ID.eq(ULong.valueOf(appId)));
@@ -291,7 +291,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public Integer countApps() {
-        return context.selectCount()
+        return dslContext.selectCount()
             .from(T_APP)
             .where(T_APP.IS_DELETED.eq(UByte.valueOf(Bool.FALSE.byteValue())))
             .fetchOne(0, Integer.class);
@@ -299,7 +299,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public Integer countBizSetAppsWithDeleted() {
-        return context.selectCount()
+        return dslContext.selectCount()
             .from(T_APP)
             .where(T_APP.BK_SCOPE_TYPE.eq(ResourceScopeTypeEnum.BIZ_SET.getValue()))
             .fetchOne(0, Integer.class);
@@ -307,7 +307,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public ApplicationDTO getAppByScope(ResourceScope scope) {
-        Record record = context.select(ALL_FIELDS)
+        Record record = dslContext.select(ALL_FIELDS)
             .from(T_APP)
             .where(T_APP.BK_SCOPE_TYPE.eq(scope.getType().getValue()))
             .and(T_APP.BK_SCOPE_ID.eq(scope.getId()))
@@ -321,7 +321,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
 
     @Override
     public ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope) {
-        Record record = context.select(ALL_FIELDS)
+        Record record = dslContext.select(ALL_FIELDS)
             .from(T_APP)
             .where(T_APP.BK_SCOPE_TYPE.eq(scope.getType().getValue()))
             .and(T_APP.BK_SCOPE_ID.eq(scope.getId()))

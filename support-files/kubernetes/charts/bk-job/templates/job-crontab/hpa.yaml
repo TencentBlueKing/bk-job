@@ -1,4 +1,4 @@
-{{- if and (.Values.crontabConfig.enabled) (.Values.crontabConfig.autoscaling.enabled) }}
+{{- if and (.Values.crontabConfig.enabled) (.Values.crontabConfig.autoscaling.enabled) (eq .Values.deploy.mode "standard") }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:

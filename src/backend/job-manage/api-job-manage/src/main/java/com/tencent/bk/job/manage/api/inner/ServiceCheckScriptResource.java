@@ -28,10 +28,10 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckScriptRequest;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ import java.util.List;
  * 脚本检查服务
  */
 @Api(tags = {"job-manage:service:Script_Check"})
-@RestController
+@SmartFeignClient(value = "job-manage", contextId = "checkScriptResource")
 @InternalAPI
 public interface ServiceCheckScriptResource {
 

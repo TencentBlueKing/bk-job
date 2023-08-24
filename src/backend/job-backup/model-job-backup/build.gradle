@@ -27,4 +27,4 @@ dependencies {
     implementation "org.jooq:jooq-codegen"
     implementation "org.jooq:jooq-meta"
 }
-apply from: "task_gen_jooq.gradle"
+apply from: "$rootDir/task_gen_jooq.gradle"

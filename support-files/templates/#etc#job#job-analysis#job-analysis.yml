@@ -2,6 +2,12 @@ spring:
   application:
     name: job-analysis
   cloud:
+    consul:
+      discovery:
+        service-name: 'job-analysis'
+        instance-id: job-analysis-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
     stream:
       defaultBinder: jobCommon
       binders:
@@ -71,4 +77,7 @@ feign:
       default:
         connectTimeout: 5000
         readTimeout: 300000
+
+server:
+  port: __BK_JOB_ANALYSIS_SERVER_PORT__
 

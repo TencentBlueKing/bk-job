@@ -76,11 +76,9 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
@@ -104,7 +102,6 @@ public class NotifyServiceImpl implements NotifyService {
     private static final String REDIS_KEY_SAVE_APP_DEFAULT_NOTIFY_POLICIES = "NotifyServiceImpl" +
         ".saveAppDefaultNotifyPolicies";
 
-    private final DSLContext dslContext;
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
     private final NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
     private final NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO;
@@ -122,8 +119,6 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Autowired
     public NotifyServiceImpl(
-        @Qualifier("job-manage-dsl-context")
-            DSLContext dslContext,
         NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
         NotifyPolicyRoleTargetDAO notifyPolicyRoleTargetDAO,
         NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO,
@@ -138,7 +133,6 @@ public class NotifyServiceImpl implements NotifyService {
         ScriptDAO scriptDAO,
         TaskPlanDAO taskPlanDAO,
         NotifyUserService notifyUserService) {
-        this.dslContext = dslContext;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
         this.notifyPolicyRoleTargetDAO = notifyPolicyRoleTargetDAO;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
@@ -263,7 +257,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     public Long saveAppDefaultNotifyPoliciesToLocal(String operator, Long appId, String triggerUser,
                                                     NotifyPoliciesCreateUpdateReq createUpdateReq) {
         val policyList = createUpdateReq.getTriggerPoliciesList();
@@ -309,7 +303,7 @@ public class NotifyServiceImpl implements NotifyService {
     ) {
         //0.1配置记录
         if (!notifyConfigStatusDAO.exist(getDefaultTriggerUser(), appId)) {
-            notifyConfigStatusDAO.insertNotifyConfigStatus(dslContext, getDefaultTriggerUser(), appId);
+            notifyConfigStatusDAO.insertNotifyConfigStatus(getDefaultTriggerUser(), appId);
         }
         return tryToSavePoliciesToLocal(username, appId, createUpdateReq);
     }
@@ -327,7 +321,7 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public List<RoleVO> listRole(String username) {
         //Job系统角色+CMDB业务角色
-        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole(dslContext);
+        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole();
         if (CollectionUtils.isEmpty(appRoles)) {
             return Collections.emptyList();
         }
@@ -342,7 +336,7 @@ public class NotifyServiceImpl implements NotifyService {
     public List<AppRoleDTO> listRoles() {
         //Job系统角色+CMDB业务角色
         List<AppRoleDTO> resultList = new ArrayList<>();
-        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole(dslContext);
+        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole();
         if (appRoleDTOList != null) {
             resultList.addAll(appRoleDTOList);
         }
@@ -364,7 +358,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public List<NotifyEsbChannelDTO> listAllNotifyChannel() {
-        return notifyEsbChannelDAO.listNotifyEsbChannel(dslContext).stream()
+        return notifyEsbChannelDAO.listNotifyEsbChannel().stream()
             .filter(NotifyEsbChannelDTO::isActive).map(it -> {
                     NotifyEsbChannelDTO channel = new NotifyEsbChannelDTO();
                     channel.setType(it.getType());
@@ -376,29 +370,27 @@ public class NotifyServiceImpl implements NotifyService {
 
     private List<String> getAvailableChannelTypeList() {
         List<AvailableEsbChannelDTO> availableEsbChannelDTOList =
-            availableEsbChannelDAO.listAvailableEsbChannel(dslContext);
+            availableEsbChannelDAO.listAvailableEsbChannel();
         return availableEsbChannelDTOList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toList());
     }
 
     @Override
     public List<NotifyChannelVO> listAvailableNotifyChannel(String username) {
         List<String> availableChannelTypeList = getAvailableChannelTypeList();
-        return notifyEsbChannelDAO.listNotifyEsbChannel(dslContext).stream().map(it -> new NotifyChannelVO(
+        return notifyEsbChannelDAO.listNotifyEsbChannel().stream().map(it -> new NotifyChannelVO(
             it.getType(),
             it.getLabel()
         )).filter(it -> availableChannelTypeList.contains(it.getCode())).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
         List<String> channelCodeList =
             Arrays.asList(req.getChannelCodeStr().trim().split(NotifyConsts.SEPERATOR_COMMA));
-        dslContext.transaction(configuration -> {
-            availableEsbChannelDAO.deleteAll(dslContext);
-            channelCodeList.forEach(it -> availableEsbChannelDAO.insertAvailableEsbChannel(dslContext,
-                new AvailableEsbChannelDTO(it, true, username, LocalDateTime.now())));
-
-        });
+        availableEsbChannelDAO.deleteAll();
+        channelCodeList.forEach(it -> availableEsbChannelDAO.insertAvailableEsbChannel(
+            new AvailableEsbChannelDTO(it, true, username, LocalDateTime.now())));
         return channelCodeList.size();
     }
 
@@ -597,11 +589,11 @@ public class NotifyServiceImpl implements NotifyService {
         Map<String, Set<String>> channelUsersMap = new HashMap<>();
         for (NotifyTriggerPolicyDTO policy : triggerPolicyList) {
             List<NotifyPolicyRoleTargetDTO> roleTargetList =
-                notifyPolicyRoleTargetDAO.listByPolicyId(dslContext, policy.getId());
+                notifyPolicyRoleTargetDAO.listByPolicyId(policy.getId());
             for (NotifyPolicyRoleTargetDTO roleTarget : roleTargetList) {
                 String role = roleTarget.getRole();
                 List<NotifyRoleTargetChannelDTO> roleTargetChannelList =
-                    notifyRoleTargetChannelDAO.listByRoleTargetId(dslContext, roleTarget.getId());
+                    notifyRoleTargetChannelDAO.listByRoleTargetId(roleTarget.getId());
                 Set<String> channels =
                     roleTargetChannelList.stream()
                         .map(NotifyRoleTargetChannelDTO::getChannel).collect(Collectors.toSet());

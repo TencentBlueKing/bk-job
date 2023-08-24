@@ -160,6 +160,23 @@ public class StringUtil {
     }
 
     /**
+     * 将集合拼接为字符串
+     *
+     * @param array     原始数组
+     * @param separator 分隔符
+     * @param T         原始数据
+     * @return 拼接后的字符串
+     */
+    public static <T> String concatArray(T[] array, String separator) {
+        String str;
+        if (array == null || array.length == 0) {
+            return "";
+        }
+        str = Arrays.stream(array).map(Object::toString).collect(Collectors.joining(separator));
+        return str;
+    }
+
+    /**
      * 从字符串提取List
      *
      * @param str       字符串

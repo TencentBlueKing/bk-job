@@ -25,12 +25,12 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.execute.model.tables.GseTaskIpLog;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.generated.tables.GseTaskIpLog;
 
 import java.util.HashMap;
 import java.util.Map;

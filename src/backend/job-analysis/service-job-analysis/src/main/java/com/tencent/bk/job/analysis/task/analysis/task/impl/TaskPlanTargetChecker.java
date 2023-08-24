@@ -63,7 +63,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.DSLContext;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +90,6 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
 
     @Autowired
     public TaskPlanTargetChecker(
-        DSLContext dslContext,
         AnalysisTaskDAO analysisTaskDAO,
         AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
         TaskTemplateService templateService,
@@ -99,7 +97,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         ApplicationService applicationService,
         HostService hostService
     ) {
-        super(dslContext, analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
+        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
         this.templateService = templateService;
         this.taskPlanService = taskPlanService;
         this.hostService = hostService;

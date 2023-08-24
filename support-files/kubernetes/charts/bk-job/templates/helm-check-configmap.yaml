@@ -1,0 +1,44 @@
+{{- if .Values.helmCheck }}
+{{- if .Values.helmCheck.enabled }}
+##  仅出包使用。声明 chart 包含的镜像，用于 chart 交付时通过 helm template 渲染并解析镜像。通过在 .helmignore 中配置忽略，实际出包之后不包含该 ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-helm-check
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-helm-check"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+data:
+  job-frontend:
+    image: {{ include "job-frontend.image" . }}
+  job-analysis:
+    image: {{ include "job-analysis.image" . }}
+  job-backup:
+    image: {{ include "job-backup.image" . }}
+  job-crontab:
+    image: {{ include "job-crontab.image" . }}
+  job-execute:
+    image: {{ include "job-execute.image" . }}
+  job-file-gateway:
+    image: {{ include "job-file-gateway.image" . }}
+  job-file-worker:
+    image: {{ include "job-file-worker.image" . }}
+  job-gateway:
+    image: {{ include "job-gateway.image" . }}
+  job-logsvr:
+    image: {{ include "job-logsvr.image" . }}
+  job-manage:
+    image: {{ include "job-manage.image" . }}
+  job-assemble:
+    image: {{ include "job-assemble.image" . }}
+  k8s-wait-for:
+    image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForMigration.image "global" .Values.global) }}
+  job-tools-k8s-startup-controller:
+    image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForDependServices.image "global" .Values.global) }}
+{{- end }}
+{{- end }}
+

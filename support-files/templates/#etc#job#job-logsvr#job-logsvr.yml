@@ -7,6 +7,12 @@ spring:
     mongodb:
       uri: __BK_JOB_LOGSVR_MONGODB_URI__
   cloud:
+    consul:
+      discovery:
+        service-name: 'job-logsvr'
+        instance-id: job-logsvr-${machine.ip}-${server.port}
+        enabled: true
+        prefer-ip-address: true
     stream:
       defaultBinder: jobCommon
       binders:
@@ -25,3 +31,6 @@ job:
     mongodb:
       shard:
         enabled: false
+        
+server:
+  port: __BK_JOB_LOGSVR_SERVER_PORT__

@@ -26,18 +26,19 @@ package com.tencent.bk.job.manage.dao.notify.impl;
 
 import com.tencent.bk.job.manage.dao.notify.NotifyBlackUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
+import com.tencent.bk.job.manage.model.tables.NotifyBlackUserInfo;
+import com.tencent.bk.job.manage.model.tables.records.NotifyBlackUserInfoRecord;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.NotifyBlackUserInfo;
-import org.jooq.generated.tables.records.NotifyBlackUserInfoRecord;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     private final DSLContext dslContext;
 
     @Autowired
-    public NotifyBlackUserInfoDAOImpl(DSLContext dslContext) {
+    public NotifyBlackUserInfoDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

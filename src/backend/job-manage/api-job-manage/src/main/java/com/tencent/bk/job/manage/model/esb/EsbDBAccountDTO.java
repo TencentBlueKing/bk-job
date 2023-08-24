@@ -27,8 +27,10 @@ package com.tencent.bk.job.manage.model.esb;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class EsbDBAccountDTO extends EsbAppScopeDTO {
 
     @JsonProperty("db_account_id")

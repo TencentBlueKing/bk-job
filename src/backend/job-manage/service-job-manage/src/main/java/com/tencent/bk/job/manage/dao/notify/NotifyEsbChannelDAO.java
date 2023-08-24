@@ -25,12 +25,11 @@
 package com.tencent.bk.job.manage.dao.notify;
 
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface NotifyEsbChannelDAO {
 
-    List<NotifyEsbChannelDTO> listNotifyEsbChannel(DSLContext dslContext);
+    List<NotifyEsbChannelDTO> listNotifyEsbChannel();
 
 }

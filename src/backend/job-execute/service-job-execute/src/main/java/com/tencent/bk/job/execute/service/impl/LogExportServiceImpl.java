@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -32,7 +33,6 @@ import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LogExportConfig;
 import com.tencent.bk.job.execute.constants.LogExportStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDTO;
@@ -86,7 +86,7 @@ public class LogExportServiceImpl implements LogExportService {
     public LogExportServiceImpl(LogService logService,
                                 StringRedisTemplate redisTemplate,
                                 TaskInstanceService taskInstanceService,
-                                ArtifactoryClient artifactoryClient,
+                                @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                 ArtifactoryConfig artifactoryConfig,
                                 LogExportConfig logExportConfig,
                                 ScriptAgentTaskService scriptAgentTaskService,

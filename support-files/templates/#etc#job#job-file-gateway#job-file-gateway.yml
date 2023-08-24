@@ -2,6 +2,13 @@ spring:
   application:
     name: job-file-gateway
   cloud:
+    consul:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-file-gateway
+        instance-id: job-file-gateway-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
     stream:
       defaultBinder: jobCommon
       binders:
@@ -63,4 +70,7 @@ spring:
     multipart:
       max-file-size: 5GB
       max-request-size: 5GB
+      
+server:
+  port: __BK_JOB_FILE_GATEWAY_SERVER_PORT__
 

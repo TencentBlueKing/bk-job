@@ -1,0 +1,411 @@
+## Spring 配置 ##
+spring:
+  application:
+    name: job-assemble
+  profiles:
+    active: prod
+  servlet:
+    multipart:
+      max-file-size: 5GB
+      max-request-size: 5GB
+  cloud:
+    consul:
+      host: 127.0.0.1
+      port: __CONSUL_HTTP_PORT__
+      scheme: __CONSUL_SCHEME__
+      enabled: true
+      discovery:
+        prefer-ip-address: true
+        service-name: job-assemble
+        instance-id: job-assemble-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
+    config:
+      enabled: false
+    stream:
+      defaultBinder: jobCommon
+      binders:
+        jobCommon:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: __BK_JOB_RABBITMQ_HOST__
+                port: __BK_JOB_RABBITMQ_PORT__
+                username: __BK_JOB_RABBITMQ_USERNAME__
+                password: __BK_JOB_RABBITMQ_PASSWORD__
+                virtual-host: __BK_JOB_RABBITMQ_VHOST__
+      source: task;step;gseTask;resultHandleResume;notifyMsg;callback
+      bindings:
+        handleJobEvent-in-0:
+          destination: task
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        task-out-0:
+          destination: task
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        handleStepEvent-in-0:
+          destination: step
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        step-out-0:
+          destination: step
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        handleGseTaskEvent-in-0:
+          destination: gse.task
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 10
+        gseTask-out-0:
+          destination: gse.task
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 10
+        handleResultHandleResumeEvent-in-0:
+          destination: result.handle.task.resume
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        resultHandleTaskResume-out-0:
+          destination: result.handle.task.resume
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        handleNotifyMsg-in-0:
+          destination: notify.msg
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        notifyMsg-out-0:
+          destination: notify.msg
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        handleCallbackMsg-in-0:
+          destination: task.callback
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        callback-out-0:
+          destination: task.callback
+          group: service.job.execute
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+      rabbit:
+        bindings:
+          handleJobEvent-in-0:
+            consumer:
+              maxConcurrency: 10
+          task-out-0:
+            consumer:
+              maxConcurrency: 10
+          handleStepEvent-in-0:
+            consumer:
+              maxConcurrency: 10
+          step-out-0:
+            consumer:
+              maxConcurrency: 10
+          handleGseTaskEvent-in-0:
+            consumer:
+              maxConcurrency: 20
+          gseTask-out-0:
+            consumer:
+              maxConcurrency: 20
+          handleResultHandleResumeEvent-in-0:
+            consumer:
+              maxConcurrency: 10
+          taskResultHandleResume-out-0:
+            consumer:
+              maxConcurrency: 10
+          handleNotifyMsg-in-0:
+            consumer:
+              maxConcurrency: 10
+          notifyMsg-out-0:
+            consumer:
+              maxConcurrency: 10
+          handleCallbackMsg-in-0:
+            consumer:
+              maxConcurrency: 10
+          callback-out-0:
+            consumer:
+              maxConcurrency: 10
+    function:
+      definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
+  datasource:
+    job-manage:
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_MYSQL_HOST__:__BK_JOB_MYSQL_PORT__/job_manage?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_MYSQL_USERNAME__
+      password: __BK_JOB_MYSQL_PASSWORD__
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      poolName: "job-manage"
+      validationTimeout: 5000
+    job-execute:
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_MYSQL_HOST__:__BK_JOB_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_MYSQL_USERNAME__
+      password: __BK_JOB_MYSQL_PASSWORD__
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      poolName: "job-execute"
+      validationTimeout: 5000
+    job-crontab:
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_MYSQL_HOST__:__BK_JOB_MYSQL_PORT__/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_MYSQL_USERNAME__
+      password: __BK_JOB_MYSQL_PASSWORD__
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      poolName: "job-crontab"
+      validationTimeout: 5000
+    job-file-gateway:
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_MYSQL_HOST__:__BK_JOB_MYSQL_PORT__/job_file_gateway?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_MYSQL_USERNAME__
+      password: __BK_JOB_MYSQL_PASSWORD__
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      poolName: "job-file-gateway"
+      validationTimeout: 5000
+    job-analysis:
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_MYSQL_HOST__:__BK_JOB_MYSQL_PORT__/job_analysis?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_MYSQL_USERNAME__
+      password: __BK_JOB_MYSQL_PASSWORD__
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      poolName: "job-analysis"
+      validationTimeout: 5000
+    job-backup:
+      driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
+      type: com.zaxxer.hikari.HikariDataSource
+      jdbc-url: jdbc:otel:mysql://__BK_JOB_MYSQL_HOST__:__BK_JOB_MYSQL_PORT__/job_backup?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      username: __BK_JOB_MYSQL_USERNAME__
+      password: __BK_JOB_MYSQL_PASSWORD__
+      maximum-pool-size: 100
+      minimum-idle: 20
+      idle-timeout: 600000
+      poolName: "job-backup"
+      validationTimeout: 5000
+    # 执行数据归档DB配置，若需开启数据归档请去除注释并添加相应环境变量进行配置
+    #job-execute-archive:
+      #driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
+      #type: com.zaxxer.hikari.HikariDataSource
+      #jdbc-url: jdbc:otel:mysql://__BK_JOB_EXECUTE_ARCHIVE_MYSQL_HOST__:__BK_JOB_EXECUTE_ARCHIVE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      #username: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_USERNAME__
+      #password: __BK_JOB_EXECUTE_ARCHIVE_MYSQL_PASSWORD__
+      #maximum-pool-size: 10
+      #minimum-idle: 2
+      #idle-timeout: 6000
+      #poolName: "job-execute-archive"
+      #validationTimeout: 5000
+  redis:
+    {# 社区版默认配置 -#}
+    {% if job_edition != "ee" -%}
+    # 使用单机Redis时的配置项
+    host: __BK_JOB_REDIS_HOST__
+    port: __BK_JOB_REDIS_PORT__
+    # 使用Redis Sentinel时的配置项
+    #sentinel:
+      #password: __BK_JOB_REDIS_SENTINEL_PASSWORD__
+      #master: __BK_JOB_REDIS_SENTINEL_MASTER__
+      #nodes: __BK_JOB_REDIS_SENTINEL_NODES__
+    {% endif -%}
+    {# 企业版默认配置 -#}
+    {% if job_edition == "ee" -%}
+    # 使用单机Redis时的配置项
+    #host: __BK_JOB_REDIS_HOST__
+    #port: __BK_JOB_REDIS_PORT__
+    # 使用Redis Sentinel时的配置项
+    sentinel:
+      password: __BK_JOB_REDIS_SENTINEL_PASSWORD__
+      master: __BK_JOB_REDIS_SENTINEL_MASTER__
+      nodes: __BK_JOB_REDIS_SENTINEL_NODES__
+    {% endif -%}
+    password: __BK_JOB_REDIS_PASSWORD__
+    database: 0
+    lettuce:
+      pool:
+        min-idle: 5
+        max-idle: 10
+        max-active: 8
+        max-wait: 1ms
+      shutdown-timeout: 100ms
+  data:
+    mongodb:
+      uri: __BK_JOB_MONGODB_URI__
+  quartz:
+    # 使用数据库存储
+    job-store-type: jdbc
+    jdbc:
+      # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
+      initialize-schema: never
+    thread-pool:
+      thread-name-prefix: QuartzThreadPoolTaskExecutor-
+      thread-priority: 5
+      daemon: false
+      thread-group-name: QuartzThreadPoolTaskExecutorGroup
+      core-pool-size: 150
+      max-pool-size: 300
+      keep-alive-seconds: 60
+      queue-capacity: 150
+      allow-core-thread-timeout: false
+      waitfor-tasks-tocomplete-onshutdown: true
+      await-termination-seconds: 900
+    scheduler:
+      scheduler-name: quartz-scheduler
+      application-context-scheduler-contextkey: applicationContext
+      overwrite-existing-jobs: true
+      auto-startup: true
+      startup-delay: 10
+    properties:
+      org:
+        quartz:
+          jobStore:
+            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+            clusterCheckinInterval: 20000
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: true
+            selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
+            tablePrefix: QRTZ_
+            useProperties: true
+          plugin:
+            shutdownhook:
+              class: org.quartz.plugins.management.ShutdownHookPlugin
+              cleanShutdown: true
+            triggHistory:
+              class: org.quartz.plugins.history.LoggingJobHistoryPlugin
+          scheduler:
+            # 调度器实例名称
+            instanceName: quartz-scheduler
+            # 调度器实例编号自动生成
+            instanceId: AUTO
+            skipUpdateCheck: true
+            batchTriggerAcquisitionMaxCount: 50
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 300
+
+## 其他框架组件配置 ##
+server:
+  port: __BK_JOB_ASSEMBLE_SERVER_PORT__
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 20000
+      sync:
+        connectTimeout: 5000
+        readTimeout: 30000
+      log:
+        connectTimeout: 5000
+        readTimeout: 30000
+
+## Job 配置 ##
+job:
+  backup:
+    # 存储后端默认为本地NFS
+    storage-backend: local
+    # 存储后端为蓝鲸制品库时的配置
+    # storage-backend: artifactory
+    # artifactory:
+    #   repo: backup
+    # DB 归档配置
+    archive:
+      # job-execute db 归档配置
+      execute:
+        # 是否启用 DB 归档
+        enabled: false
+        # 归档任务运行的cron表达式，默认每天凌晨04:00
+        cron: 0 0 4 * * *
+        # 热库中的数据保留时间（天）
+        keep-days: 30
+        backup:
+          # 是否启用 DB 数据备份，job.backup.archive.execute.enabled=true 的时候该配置项才会生效
+          enabled: false
+  logsvr:
+    mongodb:
+      shard:
+        enabled: false
+  manage:
+    sync:
+      app:
+        enabled: true
+      host:
+        enabled: true
+      resource:
+        watch:
+          enabled: true
+      hostEvent:
+        # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
+        # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
+        handlerNum: 3
+    # 作业管理 - 消息通知配置
+    notify:
+      default:
+        channels:
+          available: mail
+  execute:
+    # 执行日志导出产生的临时文件相关配置
+    log-export:
+      # 存储后端：
+      # local表示存储于本地NFS
+      # artifactory表示存储于蓝鲸制品库，需要环境中部署有蓝鲸制品库
+      storage-backend: local
+      # 存储后端为蓝鲸制品库时的配置
+      # storage-backend: artifactory
+      # artifactory:
+      #   # 存储执行日志导出临时文件的仓库名称
+      #   repo: filedata
+  crontab:
+    # 定时任务连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
+    notification-policy:
+      failed:
+        start:
+          # 通知开始：默认 1 - 从第一次失败开始通知
+          begin: 1
+          # 通知频率：默认 5 - 每5次通知， 1 - 每次通知
+          frequency: 5
+          # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
+          total: -1   
+bk:
+  {% if job_edition == "ce" -%}
+  doc:
+    # 首页右上角产品文档根地址
+    root: https://bk.tencent.com/docs
+  {% endif -%}
+  feedback:
+    # 首页右上角问题反馈链接
+    root:
+deploy:
+  mode: lite

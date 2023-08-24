@@ -24,11 +24,13 @@
 
 dependencies {
     api project(':commons:common')
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    api 'io.springfox:springfox-boot-starter'
     api 'org.hibernate.validator:hibernate-validator'
     api 'jakarta.validation:jakarta.validation-api'
     api 'ch.qos.logback:logback-core'
     api 'ch.qos.logback:logback-classic'
-    api 'io.springfox:springfox-boot-starter'
     api 'com.fasterxml.jackson.core:jackson-core'
     api 'com.fasterxml.jackson.core:jackson-databind'
     api 'com.fasterxml.jackson.core:jackson-annotations'

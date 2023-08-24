@@ -26,8 +26,6 @@ package com.tencent.bk.job.common.crypto;
 
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,13 +35,12 @@ import java.util.Map;
  */
 @SuppressWarnings("unused")
 @Slf4j
-@Service
 public class CryptoConfigService {
 
     private final EncryptConfig encryptConfig;
     private final Map<String, String> scenarioAlgorithms;
 
-    public CryptoConfigService(@Autowired(required = false) EncryptConfig encryptConfig) {
+    public CryptoConfigService(EncryptConfig encryptConfig) {
         this.encryptConfig = encryptConfig;
         if (encryptConfig != null) {
             this.scenarioAlgorithms = trimKeyValues(encryptConfig.getScenarioAlgorithms());

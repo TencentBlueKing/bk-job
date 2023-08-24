@@ -25,12 +25,12 @@
 package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.manage.dao.TaskFavoriteDAO;
+import com.tencent.bk.job.manage.model.tables.TaskFavoriteTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.Result;
-import org.jooq.generated.tables.TaskFavoriteTemplate;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;

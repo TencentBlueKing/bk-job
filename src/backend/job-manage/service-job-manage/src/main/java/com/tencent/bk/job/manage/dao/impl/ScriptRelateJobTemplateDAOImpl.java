@@ -26,14 +26,14 @@ package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.manage.dao.ScriptRelateJobTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
+import com.tencent.bk.job.manage.model.tables.TaskTemplate;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStep;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStepScript;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.Table;
-import org.jooq.generated.tables.TaskTemplate;
-import org.jooq.generated.tables.TaskTemplateStep;
-import org.jooq.generated.tables.TaskTemplateStepScript;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ import java.util.List;
 @Slf4j
 @Repository
 public class ScriptRelateJobTemplateDAOImpl implements ScriptRelateJobTemplateDAO {
-    private DSLContext ctx;
+    private final DSLContext ctx;
 
     @Autowired
     public ScriptRelateJobTemplateDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext ctx) {

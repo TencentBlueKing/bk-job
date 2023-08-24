@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.cc.service.CloudAreaService;
+import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -60,17 +60,17 @@ public class ScopeHostServiceImpl implements ScopeHostService {
 
     private final ApplicationService applicationService;
     private final BizHostService bizHostService;
-    private final CloudAreaService cloudAreaService;
+    private final BkNetClient bkNetClient;
     private final BizTopoService bizTopoService;
 
     @Autowired
     public ScopeHostServiceImpl(ApplicationService applicationService,
                                 BizHostService bizHostService,
-                                CloudAreaService cloudAreaService,
+                                BkNetClient bkNetClient,
                                 BizTopoService bizTopoService) {
         this.applicationService = applicationService;
         this.bizHostService = bizHostService;
-        this.cloudAreaService = cloudAreaService;
+        this.bkNetClient = bkNetClient;
         this.bizTopoService = bizTopoService;
     }
 
@@ -270,7 +270,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         }
 
         //获取所有云区域，找出名称符合条件的所有CloudAreaId
-        List<Long> cloudAreaIds = cloudAreaService.getAnyNameMatchedCloudAreaIds(searchContents);
+        List<Long> cloudAreaIds = bkNetClient.getAnyNameMatchedCloudAreaIds(searchContents);
         return new BasicParsedSearchConditions(bizIds, moduleIds, cloudAreaIds, searchContents);
     }
 

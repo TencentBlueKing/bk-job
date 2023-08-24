@@ -1,7 +1,8 @@
 package com.tencent.bk.job.common.gse.v2;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.esb.config.BkApiConfig;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.esb.sdk.BkApiContext;
@@ -24,12 +25,9 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component("GseV2ApiClient")
 @Slf4j
 public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
 
@@ -39,11 +37,10 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     private static final String URI_ASYNC_TRANSFER_FILE = "/api/v2/task/async_transfer_file";
     private static final String URI_GET_TRANSFER_FILE_RESULT = "/api/v2/task/async/get_transfer_file_result";
 
-    @Autowired
-    public GseV2ApiClient(BkApiConfig bkApiConfig) {
-        super(bkApiConfig.getBkGseApiGatewayUrl(), bkApiConfig.getAppCode(), bkApiConfig.getAppSecret());
+    public GseV2ApiClient(AppProperties appProperties, BkApiGatewayProperties bkApiGatewayProperties) {
+        super(bkApiGatewayProperties.getGse().getUrl(), appProperties.getCode(), appProperties.getSecret());
         log.info("Init GseV2ApiClient, bkGseApiGatewayUrl: {}, appCode: {}",
-            bkApiConfig.getBkGseApiGatewayUrl(), bkApiConfig.getAppCode());
+            bkApiGatewayProperties.getGse().getUrl(), appProperties.getCode());
     }
 
     @Override

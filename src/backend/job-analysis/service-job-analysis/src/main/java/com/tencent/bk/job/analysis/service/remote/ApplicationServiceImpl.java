@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.analysis.service.remote;
 
-import com.tencent.bk.job.analysis.client.ApplicationResourceClient;
 import com.tencent.bk.job.analysis.service.ApplicationService;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -35,18 +35,18 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Slf4j
-@Service
+@Service("jobAnalysisApplicationService")
 public class ApplicationServiceImpl implements ApplicationService {
-    private final ApplicationResourceClient applicationResourceClient;
+    private final ServiceApplicationResource applicationResource;
 
     @Autowired
-    public ApplicationServiceImpl(ApplicationResourceClient applicationResourceClient) {
-        this.applicationResourceClient = applicationResourceClient;
+    public ApplicationServiceImpl(ServiceApplicationResource applicationResource) {
+        this.applicationResource = applicationResource;
     }
 
     @Override
     public List<ServiceApplicationDTO> listLocalDBApps() {
-        val result = applicationResourceClient.listApps(null);
+        val result = applicationResource.listApps(null);
         if (result == null) {
             throw new RuntimeException("Job-manage unavailable, please check");
         } else {

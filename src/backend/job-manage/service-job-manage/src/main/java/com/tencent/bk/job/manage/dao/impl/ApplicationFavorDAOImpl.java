@@ -26,14 +26,14 @@ package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.manage.dao.ApplicationFavorDAO;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
+import com.tencent.bk.job.manage.model.tables.ApplicationFavor;
+import com.tencent.bk.job.manage.model.tables.records.ApplicationFavorRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.ApplicationFavor;
-import org.jooq.generated.tables.records.ApplicationFavorRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;

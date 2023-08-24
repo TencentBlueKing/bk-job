@@ -24,15 +24,50 @@
 
 package com.tencent.bk.job.common.gse.config;
 
+import com.tencent.bk.job.common.crypto.Encryptor;
+import com.tencent.bk.job.common.crypto.RSAEncryptor;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.constants.GseConstants;
+import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.service.AgentStateClientImpl;
+import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
 import com.tencent.bk.job.common.gse.v1.config.GseV1AutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
+import com.tencent.bk.job.common.gse.v2.GseV2AutoConfiguration;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(GseProperties.class)
-@Import({GseV1AutoConfiguration.class})
+@Import(
+    {
+        AgentStateQueryConfig.class,
+        GseV1AutoConfiguration.class,
+        GseV2AutoConfiguration.class
+    }
+)
 public class GseAutoConfiguration {
 
+    @Bean("GseApiClient")
+    public GseClient gseClient(ObjectProvider<GseV1ApiClient> gseV1ApiClient,
+                               ObjectProvider<GseV2ApiClient> gseV2ApiClient) {
+        return new GseClient(gseV1ApiClient.getIfAvailable(),
+            gseV2ApiClient.getIfAvailable());
+    }
+
+    @Bean("AgentStateClient")
+    public AgentStateClient agentStateClient(AgentStateQueryConfig agentStateQueryConfig,
+                                             GseClient gseClient) {
+        return new AgentStateClientImpl(agentStateQueryConfig, gseClient);
+    }
+
+    @Bean("gseRsaEncryptor")
+    public Encryptor rsaEncryptor() throws IOException, GeneralSecurityException {
+        return new RSAEncryptor(GseConstants.publicKeyPermBase64);
+    }
 }

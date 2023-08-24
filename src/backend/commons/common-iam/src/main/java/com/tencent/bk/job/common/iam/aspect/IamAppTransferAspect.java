@@ -8,8 +8,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * 鉴权执行前对Job业务与CMDB业务（集）进行转换的切面
@@ -17,13 +15,12 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Aspect
-@Component
 public class IamAppTransferAspect {
 
     private final AppScopeMappingService appScopeMappingService;
 
 
-    public IamAppTransferAspect(@Autowired(required = false) AppScopeMappingService appScopeMappingService) {
+    public IamAppTransferAspect(AppScopeMappingService appScopeMappingService) {
         this.appScopeMappingService = appScopeMappingService;
     }
 

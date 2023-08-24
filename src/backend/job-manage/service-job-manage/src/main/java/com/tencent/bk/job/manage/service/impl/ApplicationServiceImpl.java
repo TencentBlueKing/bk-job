@@ -37,7 +37,6 @@ import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -54,17 +53,14 @@ import java.util.stream.Collectors;
 @Service
 public class ApplicationServiceImpl implements ApplicationService {
 
-    private final DSLContext dslContext;
     private final ApplicationDAO applicationDAO;
     private final ApplicationCache applicationCache;
     private final AccountService accountService;
 
     @Autowired
-    public ApplicationServiceImpl(DSLContext dslContext,
-                                  ApplicationDAO applicationDAO,
+    public ApplicationServiceImpl(ApplicationDAO applicationDAO,
                                   ApplicationCache applicationCache,
                                   AccountService accountService) {
-        this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationCache = applicationCache;
         this.accountService = accountService;
@@ -224,7 +220,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public Long createApp(ApplicationDTO application) {
-        Long appId = applicationDAO.insertApp(dslContext, application);
+        Long appId = applicationDAO.insertApp(application);
         application.setId(appId);
         applicationCache.addOrUpdateApp(application);
         try {
@@ -249,21 +245,21 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public void updateApp(ApplicationDTO application) {
         log.info("Update app: {}", JsonUtils.toJson(application));
-        applicationDAO.updateApp(dslContext, application);
+        applicationDAO.updateApp(application);
         applicationCache.addOrUpdateApp(application);
     }
 
     @Override
     public void deleteApp(Long appId) {
         log.info("Delete app[{}]", appId);
-        applicationDAO.deleteAppByIdSoftly(dslContext, appId);
+        applicationDAO.deleteAppByIdSoftly(appId);
         applicationCache.deleteApp(appId);
     }
 
     @Override
     public void restoreDeletedApp(long appId) {
         log.info("Restore deleted app[{}]", appId);
-        applicationDAO.restoreDeletedApp(dslContext, appId);
+        applicationDAO.restoreDeletedApp(appId);
         ApplicationDTO restoredApplication = applicationDAO.getAppById(appId);
         applicationCache.addOrUpdateApp(restoredApplication);
     }

@@ -1,4 +1,4 @@
-{{- if .Values.analysisConfig.enabled }}
+{{- if and .Values.analysisConfig.enabled (eq .Values.deploy.mode "standard") }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:

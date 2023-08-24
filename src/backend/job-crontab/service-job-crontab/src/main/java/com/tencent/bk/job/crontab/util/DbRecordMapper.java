@@ -27,10 +27,10 @@ package com.tencent.bk.job.crontab.util;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
 import com.tencent.bk.job.crontab.model.dto.InnerCronJobHistoryDTO;
+import com.tencent.bk.job.crontab.model.tables.CronJobHistory;
+import com.tencent.bk.job.crontab.model.tables.InnerCronJobHistory;
 import org.jooq.Record10;
 import org.jooq.Record7;
-import org.jooq.generated.tables.CronJobHistory;
-import org.jooq.generated.tables.InnerCronJobHistory;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 

@@ -1,0 +1,396 @@
+{{- if eq .Values.deploy.mode "lite" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-assemble
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-assemble"
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+data:
+  application.yaml: |-
+    ## Spring 配置 ##
+    spring:
+      application:
+        name: job-assemble
+      profiles:
+        active: prod
+      servlet:
+        multipart:
+          max-file-size: 5GB
+          max-request-size: 5GB
+      cloud:
+        stream:
+          defaultBinder: jobCommon
+          binders:
+            jobCommon:
+              type: rabbit
+              environment:
+                spring:
+                  rabbitmq:
+                    host: {{ include "job.rabbitmq.host" . }}
+                    port: {{ include "job.rabbitmq.port" . }}
+                    username: {{ include "job.rabbitmq.username" . }}
+                    {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+                    password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+                    {{- else -}}
+                    password: ${rabbitmq-password}
+                    {{- end }}
+                    virtual-host: {{ include "job.rabbitmq.vhost" . }}
+          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback
+          bindings:
+            handleJobEvent-in-0:
+              destination: task
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            task-out-0:
+              destination: task
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            handleStepEvent-in-0:
+              destination: step
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            step-out-0:
+              destination: step
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            handleGseTaskEvent-in-0:
+              destination: gse.task
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 10
+            gseTask-out-0:
+              destination: gse.task
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 10
+            handleResultHandleResumeEvent-in-0:
+              destination: result.handle.task.resume
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            resultHandleTaskResume-out-0:
+              destination: result.handle.task.resume
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            handleNotifyMsg-in-0:
+              destination: notify.msg
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            notifyMsg-out-0:
+              destination: notify.msg
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            handleCallbackMsg-in-0:
+              destination: task.callback
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            callback-out-0:
+              destination: task.callback
+              group: service.job.execute
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+          rabbit:
+            bindings:
+              handleJobEvent-in-0:
+                consumer:
+                  maxConcurrency: 10
+              task-out-0:
+                consumer:
+                  maxConcurrency: 10
+              handleStepEvent-in-0:
+                consumer:
+                  maxConcurrency: 10
+              step-out-0:
+                consumer:
+                  maxConcurrency: 10
+              handleGseTaskEvent-in-0:
+                consumer:
+                  maxConcurrency: 20
+              gseTask-out-0:
+                consumer:
+                  maxConcurrency: 20
+              handleResultHandleResumeEvent-in-0:
+                consumer:
+                  maxConcurrency: 10
+              resultHandleTaskResume-out-0:
+                consumer:
+                  maxConcurrency: 10
+              handleNotifyMsg-in-0:
+                consumer:
+                  maxConcurrency: 10
+              notifyMsg-out-0:
+                consumer:
+                  maxConcurrency: 10
+              handleCallbackMsg-in-0:
+                consumer:
+                  maxConcurrency: 10
+              callback-out-0:
+                consumer:
+                  maxConcurrency: 10
+        function:
+          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
+      datasource:
+        job-manage:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_manage{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 100
+          minimum-idle: 20
+          idle-timeout: 600000
+          poolName: "job-manage"
+          validationTimeout: 5000
+        job-execute:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 100
+          minimum-idle: 20
+          idle-timeout: 600000
+          poolName: "job-execute"
+          validationTimeout: 5000
+        job-crontab:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 100
+          minimum-idle: 20
+          idle-timeout: 600000
+          poolName: "job-crontab"
+          validationTimeout: 5000
+        job-file-gateway:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_file_gateway{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 100
+          minimum-idle: 20
+          idle-timeout: 600000
+          poolName: "job-file-gateway"
+          validationTimeout: 5000
+        job-analysis:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_analysis{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 100
+          minimum-idle: 20
+          idle-timeout: 600000
+          poolName: "job-analysis"
+          validationTimeout: 5000
+        job-backup:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_backup{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 100
+          minimum-idle: 20
+          idle-timeout: 600000
+          poolName: "job-backup"
+          validationTimeout: 5000
+        {{- if and .Values.backupConfig.archive.execute.enabled .Values.backupConfig.archive.execute.backup.enabled }}
+        job-execute-archive:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ .Values.backupConfig.archive.mariadb.connection.properties }}
+          username: {{ .Values.backupConfig.archive.mariadb.username }}
+          password: ${archive-mariadb-password}
+          maximum-pool-size: 10
+          minimum-idle: 2
+          idle-timeout: 6000
+          poolName: "job-execute-archive"
+          validationTimeout: 5000
+        {{- end }}
+      redis:
+        {{- include "job.redis.config" . | indent 8 }}
+        database: 0
+        lettuce:
+          pool:
+            min-idle: 5
+            max-idle: 10
+            max-active: 8
+            max-wait: 1ms
+          shutdown-timeout: 100ms
+      data:
+        mongodb:
+          uri: {{ include "job.mongodb.connect.uri" . | quote }}
+          database: "joblog"
+      quartz:
+        # 使用数据库存储
+        job-store-type: jdbc
+        jdbc:
+          # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
+          initialize-schema: never
+        thread-pool:
+          thread-name-prefix: QuartzThreadPoolTaskExecutor-
+          thread-priority: 5
+          daemon: false
+          thread-group-name: QuartzThreadPoolTaskExecutorGroup
+          core-pool-size: 150
+          max-pool-size: 300
+          keep-alive-seconds: 60
+          queue-capacity: 150
+          allow-core-thread-timeout: false
+          waitfor-tasks-tocomplete-onshutdown: true
+          await-termination-seconds: 900
+        scheduler:
+          scheduler-name: quartz-scheduler
+          application-context-scheduler-contextkey: applicationContext
+          overwrite-existing-jobs: true
+          auto-startup: true
+          startup-delay: 10
+        properties:
+          org:
+            quartz:
+              jobStore:
+                class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+                clusterCheckinInterval: 20000
+                driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+                isClustered: true
+                selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
+                tablePrefix: QRTZ_
+                useProperties: true
+              plugin:
+                shutdownhook:
+                  class: org.quartz.plugins.management.ShutdownHookPlugin
+                  cleanShutdown: true
+                triggHistory:
+                  class: org.quartz.plugins.history.LoggingJobHistoryPlugin
+              scheduler:
+                # 调度器实例名称
+                instanceName: quartz-scheduler
+                # 调度器实例编号自动生成
+                instanceId: AUTO
+                skipUpdateCheck: true
+                batchTriggerAcquisitionMaxCount: 50
+              threadPool:
+                class: org.quartz.simpl.SimpleThreadPool
+                threadCount: 300
+
+    ## 其他框架组件配置 ##
+    server:
+      port: {{ .Values.assembleConfig.containerPort }}
+    feign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 20000
+
+    ## Job 配置 ##
+    job:
+      backup:
+        storage-backend: {{ .Values.backupConfig.storageBackend }}
+        artifactory:
+          repo: {{ .Values.backupConfig.artifactory.repo }}
+        # DB 归档配置
+        archive:
+          # job-execute db 归档配置
+          execute:
+            # 是否启用 DB 归档
+            enabled: false
+            # 触发时间 CRON 表达式
+            cron: 0 0 4 * * *
+            # 热库中的数据保留时间（天）
+            keep-days: 30
+            backup:
+              # 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
+              enabled: false
+      logsvr:
+        mongodb:
+          shard:
+            enabled: {{ include "job.mongodb.useShardingCluster" . }}
+      manage:
+        sync:
+          app:
+            enabled: {{ .Values.manageConfig.sync.app.enabled }}
+          host:
+            enabled: {{ .Values.manageConfig.sync.host.enabled }}
+          resource:
+            watch:
+              enabled: {{ .Values.manageConfig.sync.resource.watch.enabled }}
+          hostEvent:
+            handlerNum: {{ .Values.manageConfig.sync.hostEvent.handlerNum }}
+        notify:
+          default:
+            channels:
+              available: mail
+      execute:
+        # 执行日志导出产生的临时文件相关配置        
+        log-export:
+          storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
+          artifactory:
+            repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
+      crontab:
+        notification-policy:
+          failed:
+            start:
+              begin: {{ .Values.crontabConfig.notificationPolicy.failed.start.begin | default 1 }}
+              frequency: {{ .Values.crontabConfig.notificationPolicy.failed.start.frequency | default 5 }}
+              total: {{ .Values.crontabConfig.notificationPolicy.failed.start.total | default -1 }}     
+    bk:
+      doc:
+        root: {{ .Values.bkDocsCenterUrl }}
+      feedback:
+        root: {{ .Values.bkFeedBackUrl }}
+    deploy:
+      mode: lite    
+
+{{- end }}

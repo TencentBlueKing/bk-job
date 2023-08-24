@@ -1,4 +1,4 @@
-{{- if .Values.logsvrConfig.enabled }}
+{{- if and .Values.logsvrConfig.enabled (eq .Values.deploy.mode "standard") }}
 apiVersion: v1
 kind: Service
 metadata:

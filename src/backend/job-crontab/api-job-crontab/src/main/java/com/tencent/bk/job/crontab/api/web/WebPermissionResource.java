@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-crontab:web:Permission"})
-@RequestMapping("/web/permission/")
+@RequestMapping("/web/permission/crontab")
 @RestController
 @WebAPI
 public interface WebPermissionResource {

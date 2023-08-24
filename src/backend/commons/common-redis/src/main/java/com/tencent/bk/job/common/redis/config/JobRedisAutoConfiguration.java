@@ -39,7 +39,7 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 @AutoConfigureAfter(RedisAutoConfiguration.class)
-@Import({RedisAutoConfiguration.class})
+@Import({RedisLockConfig.class, RedisAutoConfiguration.class})
 public class JobRedisAutoConfiguration {
 
     @Bean("jsonRedisTemplate")

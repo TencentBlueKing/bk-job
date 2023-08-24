@@ -27,25 +27,25 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.execute.client.ScriptResourceClient;
 import com.tencent.bk.job.execute.service.ScriptService;
+import com.tencent.bk.job.manage.api.inner.ServiceScriptResource;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("jobExecuteScriptService")
 @Slf4j
 public class ScriptServiceImpl implements ScriptService {
-    private final ScriptResourceClient scriptResourceClient;
+    private final ServiceScriptResource scriptResource;
 
-    public ScriptServiceImpl(ScriptResourceClient scriptResourceClient) {
-        this.scriptResourceClient = scriptResourceClient;
+    public ScriptServiceImpl(ServiceScriptResource scriptResource) {
+        this.scriptResource = scriptResource;
     }
 
     @Override
     public ServiceScriptDTO getScriptByScriptVersionId(String username, long appId, long scriptVersionId)
         throws ServiceException {
-        InternalResponse<ServiceScriptDTO> resp = scriptResourceClient.getScriptByAppIdAndScriptVersionId(username,
+        InternalResponse<ServiceScriptDTO> resp = scriptResource.getScriptByAppIdAndScriptVersionId(username,
             appId, scriptVersionId);
 //        if (!resp.isSuccess()) {
 //            throw new ServiceException(resp.getCode(), resp.getErrorMsg());
@@ -55,7 +55,7 @@ public class ScriptServiceImpl implements ScriptService {
 
     @Override
     public ServiceScriptDTO getScriptByScriptVersionId(long scriptVersionId) throws ServiceException {
-        InternalResponse<ServiceScriptDTO> resp = scriptResourceClient.getScriptByScriptVersionId(scriptVersionId);
+        InternalResponse<ServiceScriptDTO> resp = scriptResource.getScriptByScriptVersionId(scriptVersionId);
         if (!resp.isSuccess()) {
             throw new InternalException(resp.getCode());
         }
@@ -69,7 +69,7 @@ public class ScriptServiceImpl implements ScriptService {
 
     @Override
     public ServiceScriptDTO getOnlineScriptVersion(String scriptId) {
-        InternalResponse<ServiceScriptDTO> resp = scriptResourceClient.getOnlineScriptVersion(scriptId);
+        InternalResponse<ServiceScriptDTO> resp = scriptResource.getOnlineScriptVersion(scriptId);
         if (!resp.isSuccess()) {
             throw new InternalException(resp.getCode());
         }

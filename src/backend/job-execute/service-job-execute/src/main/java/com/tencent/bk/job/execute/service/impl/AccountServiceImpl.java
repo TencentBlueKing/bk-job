@@ -32,9 +32,9 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.execute.client.AccountResourceClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.manage.api.inner.ServiceAccountResource;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -45,42 +45,42 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-@Service
+@Service("jobExecuteAccountService")
 @Slf4j
 public class AccountServiceImpl implements AccountService {
-    private final AccountResourceClient accountResourceClient;
+    private final ServiceAccountResource accountResource;
 
     private final LoadingCache<String, AccountDTO> accountCache = CacheBuilder.newBuilder()
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.MINUTES).
-        build(new CacheLoader<String, AccountDTO>() {
-                  @Override
-                  public AccountDTO load(String accountKey) {
-                      String[] accountProps = accountKey.split("#");
-                      String keyType = accountProps[0];
-                      if ("account_alias".equals(keyType)) {
-                          AccountCategoryEnum accountCategory =
-                              AccountCategoryEnum.valOf(Integer.parseInt(accountProps[1]));
-                          long appId = Long.parseLong(accountProps[2]);
-                          String accountAlias = accountProps[3];
-                          return getAccountByAlias(accountCategory, appId, accountAlias);
-                      } else if ("account_id".equals(keyType)) {
-                          long accountId = Long.parseLong(accountProps[1]);
-                          return getAccountById(accountId);
-                      } else {
-                          return null;
+            build(new CacheLoader<String, AccountDTO>() {
+                      @Override
+                      public AccountDTO load(String accountKey) {
+                          String[] accountProps = accountKey.split("#");
+                          String keyType = accountProps[0];
+                          if ("account_alias".equals(keyType)) {
+                              AccountCategoryEnum accountCategory =
+                                  AccountCategoryEnum.valOf(Integer.parseInt(accountProps[1]));
+                              long appId = Long.parseLong(accountProps[2]);
+                              String accountAlias = accountProps[3];
+                              return getAccountByAlias(accountCategory, appId, accountAlias);
+                          } else if ("account_id".equals(keyType)) {
+                              long accountId = Long.parseLong(accountProps[1]);
+                              return getAccountById(accountId);
+                          } else {
+                              return null;
+                          }
                       }
                   }
-              }
-        );
+            );
 
     @Autowired
-    public AccountServiceImpl(AccountResourceClient accountResourceClient) {
-        this.accountResourceClient = accountResourceClient;
+    public AccountServiceImpl(ServiceAccountResource accountResource) {
+        this.accountResource = accountResource;
     }
 
     @Override
     public AccountDTO getAccountById(Long accountId) throws ServiceException {
-        InternalResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByAccountId(accountId);
+        InternalResponse<ServiceAccountDTO> resp = accountResource.getAccountByAccountId(accountId);
         if (!resp.isSuccess()) {
             log.warn("Get account by accountId:{} return fail resp", accountId);
             throw new InternalException(resp.getCode());
@@ -94,7 +94,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDTO getAccountByAccountName(Long appId, String accountName) throws ServiceException {
-        InternalResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByAccountName(appId,
+        InternalResponse<ServiceAccountDTO> resp = accountResource.getAccountByAccountName(appId,
             accountName);
         if (!resp.isSuccess()) {
             log.warn("Get accountName by appId:{}, accountName:{} return fail resp", appId, accountName);
@@ -137,7 +137,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountDTO getAccountByAlias(AccountCategoryEnum accountCategory, Long appId,
                                         String alias) throws ServiceException {
-        InternalResponse<ServiceAccountDTO> resp = accountResourceClient.getAccountByCategoryAndAliasInApp(appId,
+        InternalResponse<ServiceAccountDTO> resp = accountResource.getAccountByCategoryAndAliasInApp(appId,
             accountCategory.getValue(), alias);
         if (!resp.isSuccess()) {
             log.warn("Get account by category: {}, alias:{}, appId:{} return fail resp", accountCategory, alias, appId);

@@ -24,28 +24,29 @@
 
 package com.tencent.bk.job.backup;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.crypto.EncryptConfig;
+import com.tencent.bk.job.common.service.boot.JobBootApplication;
+import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-/**
- * @since 21/7/2020 10:55
- */
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class,
-    ApplicationAvailabilityAutoConfiguration.class})
+@JobBootApplication(
+    scanBasePackages = "com.tencent.bk.job.backup",
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
 @EnableCaching
-@EnableFeignClients
+@EnableFeignClients(
+    basePackages = {
+        "com.tencent.bk.job.manage.api",
+        "com.tencent.bk.job.execute.api"
+    }
+)
 @EnableScheduling
 @EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
-@DependsOn("applicationContextRegister")
 public class JobBackupBootApplication {
     public static void main(String[] args) {
         SpringApplication.run(JobBackupBootApplication.class, args);

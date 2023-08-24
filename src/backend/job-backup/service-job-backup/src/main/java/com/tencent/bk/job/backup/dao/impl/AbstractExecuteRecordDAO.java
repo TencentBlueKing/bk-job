@@ -1,6 +1,6 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -17,11 +17,11 @@ import static org.jooq.impl.DSL.min;
 public abstract class AbstractExecuteRecordDAO<T extends Record> implements ExecuteRecordDAO<T> {
 
     protected final DSLContext context;
-    protected final ArchiveConfig archiveConfig;
+    protected final ArchiveDBProperties archiveDBProperties;
 
-    public AbstractExecuteRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
+    public AbstractExecuteRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
         this.context = context;
-        this.archiveConfig = archiveConfig;
+        this.archiveDBProperties = archiveDBProperties;
     }
 
     @Override
@@ -44,7 +44,7 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
 
     private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions) {
         int totalDeleteRows = 0;
-        int maxLimitedDeleteRows = archiveConfig.getDeleteLimitRowCount();
+        int maxLimitedDeleteRows = 5000;
         while (true) {
             int deletedRows = context.delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
             totalDeleteRows += deletedRows;

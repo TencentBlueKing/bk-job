@@ -24,18 +24,17 @@
 
 package com.tencent.bk.job.logsvr;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.boot.JobBootApplication;
+import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-/**
- * @date 2019/09/20
- */
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude =
-    {ApplicationAvailabilityAutoConfiguration.class})
+@JobBootApplication(
+    scanBasePackages = "com.tencent.bk.job.logsvr",
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
 @EnableFeignClients
 @EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobLogBootApplication {

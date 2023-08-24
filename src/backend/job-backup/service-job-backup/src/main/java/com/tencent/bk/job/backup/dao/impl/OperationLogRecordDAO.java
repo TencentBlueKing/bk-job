@@ -1,11 +1,11 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.execute.model.tables.OperationLog;
+import com.tencent.bk.job.execute.model.tables.records.OperationLogRecord;
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.OperationLog;
-import org.jooq.generated.tables.records.OperationLogRecord;
 
 /**
  * operation_log DAO
@@ -14,8 +14,8 @@ public class OperationLogRecordDAO extends AbstractExecuteRecordDAO<OperationLog
 
     private static final OperationLog TABLE = OperationLog.OPERATION_LOG;
 
-    public OperationLogRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
-        super(context, archiveConfig);
+    public OperationLogRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
+        super(context, archiveDBProperties);
     }
 
     @Override

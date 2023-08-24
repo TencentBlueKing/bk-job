@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.analysis.service.remote;
 
-import com.tencent.bk.job.analysis.client.TaskPlanResourceClient;
 import com.tencent.bk.job.analysis.service.TaskPlanService;
+import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,22 +34,22 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Slf4j
-@Service
+@Service("jobAnalysisTaskPlanService")
 public class TaskPlanServiceImpl implements TaskPlanService {
-    private final TaskPlanResourceClient taskPlanResourceClient;
+    private final ServiceTaskPlanResource taskPlanResource;
 
     @Autowired
-    public TaskPlanServiceImpl(TaskPlanResourceClient taskPlanResourceClient) {
-        this.taskPlanResourceClient = taskPlanResourceClient;
+    public TaskPlanServiceImpl(ServiceTaskPlanResource taskPlanResource) {
+        this.taskPlanResource = taskPlanResource;
     }
 
     @Override
     public List<Long> listTaskPlanIds(Long templateId) {
-        return taskPlanResourceClient.listPlanIds(templateId).getData();
+        return taskPlanResource.listPlanIds(templateId).getData();
     }
 
     @Override
     public ServiceTaskPlanDTO getTaskPlanById(Long appId, Long planId) {
-        return taskPlanResourceClient.getPlanById(appId, planId, false).getData();
+        return taskPlanResource.getPlanById(appId, planId, false).getData();
     }
 }

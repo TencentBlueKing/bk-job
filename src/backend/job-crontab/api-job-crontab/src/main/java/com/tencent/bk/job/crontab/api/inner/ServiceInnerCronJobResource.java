@@ -28,13 +28,13 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.model.inner.ServiceInnerCronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequestDTO;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ import java.util.List;
  * @since 18/2/2020 15:11
  */
 @Api(tags = {"Inner_Cron_Job"})
-@RestController
+@SmartFeignClient(value = "job-crontab", contextId = "innerCronJobResource")
 @EsbAPI
 public interface ServiceInnerCronJobResource {
 

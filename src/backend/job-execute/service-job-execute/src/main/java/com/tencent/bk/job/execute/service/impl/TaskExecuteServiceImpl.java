@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
@@ -50,7 +51,6 @@ import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
-import com.tencent.bk.job.execute.client.ServiceUserResourceClient;
 import com.tencent.bk.job.execute.common.cache.WhiteHostCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -94,8 +94,8 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.execute.util.LoggerFactory;
+import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
@@ -155,7 +155,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskInstanceService taskInstanceService;
     private final StepInstanceService stepInstanceService;
     private final HostService hostService;
-    private final ServiceUserResourceClient userResource;
+    private final ServiceUserResource userResource;
     private final ExecuteAuthService executeAuthService;
     private final DangerousScriptCheckService dangerousScriptCheckService;
     private final RollingConfigService rollingConfigService;
@@ -177,7 +177,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   ScriptService scriptService,
                                   StepInstanceService stepInstanceService,
                                   HostService hostService,
-                                  ServiceUserResourceClient userResource,
+                                  ServiceUserResource userResource,
                                   ExecuteAuthService executeAuthService,
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,

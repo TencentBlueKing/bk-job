@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.api.inner;
 
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRequest;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
@@ -39,7 +39,7 @@ import static com.tencent.bk.job.execute.monitor.ExecuteMetricTags.BOOLEAN_TRUE_
 import static com.tencent.bk.job.execute.monitor.ExecuteMetricTags.IGNORE_TAG;
 
 @Slf4j
-@RestController
+@RestController("executeMetricsResource")
 public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     private final TaskInstanceService taskInstanceService;
     private final StatisticsService statisticsService;

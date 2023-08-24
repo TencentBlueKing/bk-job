@@ -26,48 +26,42 @@ package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
+import com.tencent.bk.job.manage.model.tables.GlobalSetting;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.GlobalSetting;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * @Description
- * @Date 2020/2/28
- * @Version 1.0
- */
 @Repository
 @Slf4j
 public class GlobalSettingDAOImpl implements GlobalSettingDAO {
 
-    private final DSLContext defaultDSLContext;
+    private final DSLContext dslContext;
 
     private static final GlobalSetting defaultTable = GlobalSetting.GLOBAL_SETTING;
 
     @Autowired
-    public GlobalSettingDAOImpl(DSLContext dslContext) {
-        this.defaultDSLContext = dslContext;
+    public GlobalSettingDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Override
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public int upsertGlobalSetting(GlobalSettingDTO globalSettingDTO) {
         AtomicInteger affectedNum = new AtomicInteger(0);
-        defaultDSLContext.transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            deleteGlobalSetting(context, globalSettingDTO.getKey());
-            affectedNum.set(insertGlobalSetting(context, globalSettingDTO));
-        });
+        deleteGlobalSetting(globalSettingDTO.getKey());
+        affectedNum.set(insertGlobalSetting(globalSettingDTO));
         return affectedNum.get();
     }
 
     @Override
-    public int insertGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO) {
+    public int insertGlobalSetting(GlobalSettingDTO globalSettingDTO) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.KEY,
             defaultTable.VALUE,
@@ -87,7 +81,7 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
     }
 
     @Override
-    public int updateGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO) {
+    public int updateGlobalSetting(GlobalSettingDTO globalSettingDTO) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.VALUE, globalSettingDTO.getValue())
             .set(defaultTable.DECRIPTION, globalSettingDTO.getDescription())
@@ -102,7 +96,7 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
     }
 
     @Override
-    public int deleteGlobalSetting(DSLContext dslContext, String key) {
+    public int deleteGlobalSetting(String key) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.KEY.eq(key)
         ).execute();
@@ -110,11 +104,6 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
 
     @Override
     public GlobalSettingDTO getGlobalSetting(String key) {
-        return getGlobalSetting(defaultDSLContext, key);
-    }
-
-    @Override
-    public GlobalSettingDTO getGlobalSetting(DSLContext dslContext, String key) {
         val record = dslContext.selectFrom(defaultTable).where(
             defaultTable.KEY.eq(key)
         ).fetchOne();

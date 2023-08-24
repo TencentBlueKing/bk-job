@@ -25,12 +25,11 @@
 package com.tencent.bk.job.manage.dao.notify;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface EsbAppRoleDAO {
 
-    List<AppRoleDTO> listEsbAppRole(DSLContext dslContext);
+    List<AppRoleDTO> listEsbAppRole();
 
 }

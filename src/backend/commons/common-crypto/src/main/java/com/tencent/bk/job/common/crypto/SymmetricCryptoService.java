@@ -28,8 +28,6 @@ import com.tencent.bk.sdk.crypto.cryptor.SymmetricCryptor;
 import com.tencent.bk.sdk.crypto.cryptor.SymmetricCryptorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -42,13 +40,11 @@ import java.util.Map;
  */
 @SuppressWarnings("unused")
 @Slf4j
-@Service
 public class SymmetricCryptoService {
 
     private final CryptoConfigService cryptoConfigService;
     private final Map<String, SymmetricCryptor> cryptorMap = new HashMap<>();
 
-    @Autowired
     public SymmetricCryptoService(CryptoConfigService cryptoConfigService) {
         this.cryptoConfigService = cryptoConfigService;
     }

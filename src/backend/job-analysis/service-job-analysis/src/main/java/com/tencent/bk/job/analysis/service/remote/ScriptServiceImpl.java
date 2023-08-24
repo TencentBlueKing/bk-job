@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.analysis.service.remote;
 
-import com.tencent.bk.job.analysis.client.ScriptResourceClient;
 import com.tencent.bk.job.analysis.service.ScriptService;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.manage.api.inner.ServiceScriptResource;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -34,13 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
+@Service("jobAnalysisScriptService")
 public class ScriptServiceImpl implements ScriptService {
-    private final ScriptResourceClient scriptResourceClient;
+    private final ServiceScriptResource scriptResource;
 
     @Autowired
-    public ScriptServiceImpl(ScriptResourceClient scriptResourceClient) {
-        this.scriptResourceClient = scriptResourceClient;
+    public ScriptServiceImpl(ServiceScriptResource scriptResource) {
+        this.scriptResource = scriptResource;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ScriptServiceImpl implements ScriptService {
         Long appId,
         Long scriptVersionId
     ) throws ServiceException {
-        val result = scriptResourceClient.getScriptByScriptVersionId(scriptVersionId);
+        val result = scriptResource.getScriptByScriptVersionId(scriptVersionId);
         if (result != null) {
             return result.getData();
         } else {

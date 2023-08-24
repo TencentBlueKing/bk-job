@@ -53,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -75,7 +76,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     @Autowired
     public ExecuteAuthServiceImpl(AuthHelper authHelper,
-                                  ResourceNameQueryService resourceNameQueryService,
+                                  @Qualifier("jobExecuteResourceNameQueryService")
+                                      ResourceNameQueryService resourceNameQueryService,
                                   AuthService authService,
                                   AppAuthService appAuthService,
                                   TaskInstanceService taskInstanceService,

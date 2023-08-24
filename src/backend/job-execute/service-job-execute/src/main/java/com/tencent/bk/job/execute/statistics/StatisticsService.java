@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.statistics;
 
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
 import java.util.List;

@@ -26,10 +26,12 @@ package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPActionScopeDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
+import com.tencent.bk.job.manage.model.tables.WhiteIpActionScope;
 import lombok.val;
 import org.jooq.DSLContext;
-import org.jooq.generated.tables.WhiteIpActionScope;
 import org.jooq.types.ULong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -39,8 +41,15 @@ import java.util.stream.Collectors;
 public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
     private static final WhiteIpActionScope T_WHITE_IP_ACTION_SCOPE = WhiteIpActionScope.WHITE_IP_ACTION_SCOPE;
 
+    private final DSLContext dslContext;
+
+    @Autowired
+    public WhiteIPActionScopeDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
+
     @Override
-    public void insertWhiteIPActionScope(DSLContext dslContext, WhiteIPActionScopeDTO whiteIPActionScopeDTO) {
+    public void insertWhiteIPActionScope(WhiteIPActionScopeDTO whiteIPActionScopeDTO) {
         dslContext.insertInto(T_WHITE_IP_ACTION_SCOPE,
             T_WHITE_IP_ACTION_SCOPE.RECORD_ID,
             T_WHITE_IP_ACTION_SCOPE.ACTION_SCOPE_ID,
@@ -60,14 +69,14 @@ public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
     }
 
     @Override
-    public int deleteWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId) {
+    public int deleteWhiteIPActionScopeByRecordId(Long recordId) {
         return dslContext.deleteFrom(T_WHITE_IP_ACTION_SCOPE).where(
             T_WHITE_IP_ACTION_SCOPE.RECORD_ID.eq(recordId)
         ).execute();
     }
 
     @Override
-    public List<WhiteIPActionScopeDTO> getWhiteIPActionScopeByRecordId(DSLContext dslContext, Long recordId) {
+    public List<WhiteIPActionScopeDTO> getWhiteIPActionScopeByRecordId(Long recordId) {
         val records = dslContext.selectFrom(T_WHITE_IP_ACTION_SCOPE).where(
             T_WHITE_IP_ACTION_SCOPE.RECORD_ID.eq(recordId)
         ).fetch();
@@ -85,8 +94,7 @@ public class WhiteIPActionScopeDAOImpl implements WhiteIPActionScopeDAO {
     }
 
     @Override
-    public List<WhiteIPActionScopeDTO> listWhiteIPActionScopeByRecordIds(DSLContext dslContext,
-                                                                         List<Long> recordIdList) {
+    public List<WhiteIPActionScopeDTO> listWhiteIPActionScopeByRecordIds(List<Long> recordIdList) {
         val records =
             dslContext.selectFrom(T_WHITE_IP_ACTION_SCOPE).where(
                 T_WHITE_IP_ACTION_SCOPE.RECORD_ID.in(recordIdList)

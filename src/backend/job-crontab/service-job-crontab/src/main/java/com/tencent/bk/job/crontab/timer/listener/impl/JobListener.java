@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Slf4j
-@Component
+@Component("cronJobListener")
 public class JobListener extends AbstractJobListener {
 
     @Override

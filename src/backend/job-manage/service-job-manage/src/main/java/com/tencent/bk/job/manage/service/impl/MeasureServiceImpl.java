@@ -45,7 +45,7 @@ import java.util.Collections;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
-@Service
+@Service("jobManageMeasureService")
 public class MeasureServiceImpl implements MeasureService {
 
     private final MeterRegistry meterRegistry;

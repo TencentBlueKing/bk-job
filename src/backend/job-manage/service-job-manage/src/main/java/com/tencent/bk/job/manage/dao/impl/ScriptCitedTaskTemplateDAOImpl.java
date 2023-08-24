@@ -28,6 +28,9 @@ import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ScriptCitedTaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskTemplateDTO;
+import com.tencent.bk.job.manage.model.tables.ScriptVersion;
+import com.tencent.bk.job.manage.model.tables.TaskTemplate;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStepScript;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
@@ -35,9 +38,6 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.ScriptVersion;
-import org.jooq.generated.tables.TaskTemplate;
-import org.jooq.generated.tables.TaskTemplateStepScript;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,18 +53,19 @@ import java.util.Set;
 @Repository
 public class ScriptCitedTaskTemplateDAOImpl implements ScriptCitedTaskTemplateDAO {
 
-    private DSLContext ctx;
+    private final DSLContext ctx;
 
-    private TaskTemplateStepScript T_TASK_TEMPLATE_STEP_SCRIPT = TaskTemplateStepScript.TASK_TEMPLATE_STEP_SCRIPT;
-    private ScriptVersion T_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
-    private TaskTemplate T_TASK_TEMPLATE = TaskTemplate.TASK_TEMPLATE;
+    private final TaskTemplateStepScript T_TASK_TEMPLATE_STEP_SCRIPT = TaskTemplateStepScript.TASK_TEMPLATE_STEP_SCRIPT;
+    private final ScriptVersion T_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
+    private final TaskTemplate T_TASK_TEMPLATE = TaskTemplate.TASK_TEMPLATE;
 
     @Autowired
     public ScriptCitedTaskTemplateDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext ctx) {
         this.ctx = ctx;
     }
 
-    private List<ScriptCitedTaskTemplateDTO> getDistinctRelatedTemplates(List<ScriptCitedTaskTemplateDTO> srcScriptCitedTaskTemplates) {
+    private List<ScriptCitedTaskTemplateDTO> getDistinctRelatedTemplates(
+        List<ScriptCitedTaskTemplateDTO> srcScriptCitedTaskTemplates) {
         List<ScriptCitedTaskTemplateDTO> resultRelatedTemplates = new ArrayList<>();
         Set<String> keySet = new HashSet<>();
         for (ScriptCitedTaskTemplateDTO citedTaskTemplateDTO : srcScriptCitedTaskTemplates) {

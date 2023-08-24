@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.gateway.filter.remote;
 
-import com.tencent.bk.job.gateway.config.BkConfig;
+import com.tencent.bk.job.gateway.config.LicenseConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -40,10 +40,10 @@ import org.springframework.stereotype.Component;
 public class AuthorizeRemoteGatewayFilterFactory
     extends AbstractGatewayFilterFactory<AuthorizeRemoteGatewayFilterFactory.Config> {
 
-    private final BkConfig bkConfig;
+    private final LicenseConfig bkConfig;
 
     @Autowired
-    public AuthorizeRemoteGatewayFilterFactory(BkConfig bkConfig) {
+    public AuthorizeRemoteGatewayFilterFactory(LicenseConfig bkConfig) {
         super(Config.class);
         this.bkConfig = bkConfig;
     }
