@@ -24,26 +24,21 @@
 
 package com.tencent.bk.job.common.web.config;
 
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import com.tencent.bk.job.common.web.feign.FeignConfiguration;
-import com.tencent.bk.job.common.web.util.ProfileUtil;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Configuration;
 
-@Import({ActuatorSecurityConfig.class, SwaggerAdapterConfig.class, FeignConfiguration.class, FilterConfig.class})
-public class WebAutoConfiguration {
-    
+
+/**
+ * 拦截器注册 AutoConfiguration
+ */
+@Configuration(proxyBeanMethods = false)
+@AutoConfigureAfter(WebInterceptorAutoConfiguration.class)
+public class WebInterceptorRegisterAutoConfiguration {
+
     @Bean
-    public ProfileUtil profileUtil() {
-        return new ProfileUtil();
+    WebInterceptorAutoRegister webInterceptorAutoRegister(ApplicationContext applicationContext) {
+        return new WebInterceptorAutoRegister(applicationContext);
     }
-
-    @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
-    }
-
-
 }

@@ -22,28 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.config;
+package com.tencent.bk.job.common.annotation;
 
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import com.tencent.bk.job.common.web.feign.FeignConfiguration;
-import com.tencent.bk.job.common.web.util.ProfileUtil;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Import({ActuatorSecurityConfig.class, SwaggerAdapterConfig.class, FeignConfiguration.class, FilterConfig.class})
-public class WebAutoConfiguration {
-    
-    @Bean
-    public ProfileUtil profileUtil() {
-        return new ProfileUtil();
-    }
+/**
+ * 注解 Job 自定义的 Interceptor
+ */
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface JobInterceptor {
+    /**
+     * 拦截器注册 ORDER
+     */
+    int order() default 0;
 
-    @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
-    }
-
-
+    /**
+     * 拦截路径正则
+     */
+    String[] pathPatterns() default {};
 }

@@ -22,28 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.config;
+package com.tencent.bk.job.common.web.config;
 
+import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
+import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
+import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tencent.bk.job.common.web.util.ProfileUtil;
+import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Configuration
-public class InterceptorConfiguration implements WebMvcConfigurer {
-    private final ServiceSecurityInterceptor serviceSecurityInterceptor;
 
-    @Autowired
-    public InterceptorConfiguration(ServiceSecurityInterceptor serviceSecurityInterceptor) {
-        this.serviceSecurityInterceptor = serviceSecurityInterceptor;
+/**
+ * 拦截器 AutoConfiguration
+ */
+@Configuration(proxyBeanMethods = false)
+public class WebInterceptorAutoConfiguration {
+    @Bean
+    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer) {
+        return new JobCommonInterceptor(tracer);
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        // 注册拦截器
-        // 0-50 Job 通用拦截器
-        registry.addInterceptor(serviceSecurityInterceptor).addPathPatterns("/**").order(20);
+    @Bean
+    public EsbApiLogInterceptor esbApiLogInterceptor() {
+        return new EsbApiLogInterceptor();
     }
 
+    @Bean
+    public EsbReqRewriteInterceptor esbReqRewriteInterceptor() {
+        return new EsbReqRewriteInterceptor();
+    }
+
+    @Bean
+    public ServiceSecurityInterceptor serviceSecurityInterceptor(JwtManager jwtManager, ProfileUtil profileUtil) {
+        return new ServiceSecurityInterceptor(jwtManager, profileUtil);
+    }
 }

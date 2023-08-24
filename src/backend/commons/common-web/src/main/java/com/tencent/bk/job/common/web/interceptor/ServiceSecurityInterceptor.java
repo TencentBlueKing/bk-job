@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.web.interceptor;
 
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.web.exception.ServiceNoAuthException;
 import com.tencent.bk.job.common.web.util.ProfileUtil;
@@ -39,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
  * 服务认证拦截器
  */
 @Slf4j
+@JobInterceptor(pathPatterns = "/**", order = InterceptorOrder.Init.CHECK_VALID)
 public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
     private final JwtManager jwtManager;
     private final ProfileUtil profileUtil;

@@ -26,7 +26,9 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -58,6 +60,8 @@ import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_S
  * Job AppResourceScope 处理
  */
 @Slf4j
+@JobInterceptor(pathPatterns = {"/web/**", "/service/**", "/esb/api/**"},
+    order = InterceptorOrder.Init.REWRITE_REQUEST)
 public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
     private static final Pattern SCOPE_PATTERN = Pattern.compile("/scope/(\\w+)/(\\d+)");
 

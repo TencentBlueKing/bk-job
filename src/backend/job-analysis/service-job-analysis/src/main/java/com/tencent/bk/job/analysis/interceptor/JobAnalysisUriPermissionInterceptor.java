@@ -25,6 +25,8 @@
 package com.tencent.bk.job.analysis.interceptor;
 
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -40,18 +42,18 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Uri权限控制拦截
  */
 @Slf4j
 @Component
+@JobInterceptor(pathPatterns = {"/web/statistics/**"},
+    order = InterceptorOrder.AUTH.AUTH_COMMON)
 public class JobAnalysisUriPermissionInterceptor extends HandlerInterceptorAdapter {
     private final String URI_PATTERN_WEB_STATISTICS = "/web/statistics/**";
-    private AuthService authService;
-    private PathMatcher pathMatcher;
+    private final AuthService authService;
+    private final PathMatcher pathMatcher;
 
     @Autowired
     public JobAnalysisUriPermissionInterceptor(AuthService authService) {
@@ -59,29 +61,10 @@ public class JobAnalysisUriPermissionInterceptor extends HandlerInterceptorAdapt
         this.pathMatcher = new AntPathMatcher();
     }
 
-    public String[] getControlUriPatterns() {
-        Object[] rawArr = getControlUriPatternsList().toArray();
-        String[] arr = new String[rawArr.length];
-        for (int i = 0; i < rawArr.length; i++) {
-            arr[i] = (String) rawArr[i];
-        }
-        return arr;
-    }
-
-    private List<String> getControlUriPatternsList() {
-        return Arrays.asList(
-            // 运营视图所有接口
-            URI_PATTERN_WEB_STATISTICS
-        );
-    }
-
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-        throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String username = JobContextUtil.getUsername();
         String uri = request.getRequestURI();
-        log.info("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
-            "controlUriPatterns=" + getControlUriPatternsList());
         if (pathMatcher.match(URI_PATTERN_WEB_STATISTICS, uri)) {
             AuthResult authResult = authService.auth(
                 username,
@@ -98,8 +81,10 @@ public class JobAnalysisUriPermissionInterceptor extends HandlerInterceptorAdapt
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-        throws Exception {
+    public void afterCompletion(HttpServletRequest request,
+                                HttpServletResponse response,
+                                Object handler,
+                                Exception ex) {
 
     }
 }

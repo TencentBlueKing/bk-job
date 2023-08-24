@@ -57,7 +57,7 @@ public class SmartFeignClientCondition implements Condition {
         Set<?> subTypes = JobReflections.getSubTypesOf(interfaceClass);
 
         if (subTypes == null || subTypes.isEmpty()) {
-            log.info("No subType found for interface: {}. FeignClient condition match", interfaceClassName);
+            log.info("No rpc implementation found for api: {}. FeignClient condition match", interfaceClassName);
             return true;
         }
         // 遍历bean
@@ -66,7 +66,7 @@ public class SmartFeignClientCondition implements Condition {
             boolean isRpcImplementClass = isRpcImplementClass(subTypeClass);
             if (isRpcImplementClass) {
                 // 如果已经有 RPC 请求的实现(RestController), 那么 FeignClient 注解的 bean 无需生效，服务调用走本地进程内调用
-                log.info("Found rpc implementation for interface: {}. FeignClient condition not match",
+                log.info("Found rpc implementation for api: {}. FeignClient condition not match",
                     interfaceClassName);
                 return false;
             }

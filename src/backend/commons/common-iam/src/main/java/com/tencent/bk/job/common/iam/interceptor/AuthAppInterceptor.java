@@ -27,6 +27,8 @@
 
 package com.tencent.bk.job.common.iam.interceptor;
 
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -41,6 +43,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
+@JobInterceptor(pathPatterns = {"/web/**", "/esb/api/**"},
+    order = InterceptorOrder.AUTH.AUTH_GLOBAL)
 public class AuthAppInterceptor extends HandlerInterceptorAdapter {
 
     private final BusinessAuthService businessAuthService;

@@ -22,28 +22,74 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.config;
+package com.tencent.bk.job.common.constant;
 
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import com.tencent.bk.job.common.web.feign.FeignConfiguration;
-import com.tencent.bk.job.common.web.util.ProfileUtil;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+/**
+ * Job 拦截器 ORDER 定义
+ */
+public interface InterceptorOrder {
 
-@Import({ActuatorSecurityConfig.class, SwaggerAdapterConfig.class, FeignConfiguration.class, FilterConfig.class})
-public class WebAutoConfiguration {
-    
-    @Bean
-    public ProfileUtil profileUtil() {
-        return new ProfileUtil();
+    /**
+     * 对请求进行预处理（检查、限流、记录、修改请求等）
+     */
+    interface Init {
+        int HIGHEST = 1;
+        int LOWEST = 100;
+        /**
+         * 检查请求合法性
+         */
+        int CHECK_VALID = HIGHEST;
+        /**
+         * 日志记录
+         */
+        int LOG = HIGHEST + 1;
+        /**
+         * 请求统计
+         */
+        int METRICS = HIGHEST + 2;
+        /**
+         * 请求处理
+         */
+        int REWRITE_REQUEST = HIGHEST + 2;
     }
 
-    @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
+    /**
+     * 用户认证
+     */
+    interface Identification {
+        int HIGHEST = 101;
+        int LOWEST = 200;
     }
 
+    /**
+     * 用户鉴权
+     */
+    interface AUTH {
+        int HIGHEST = 201;
+        int LOWEST = 300;
+        /**
+         * 全局鉴权
+         */
+        int AUTH_GLOBAL = HIGHEST;
+        /**
+         * 普通鉴权
+         */
+        int AUTH_COMMON = HIGHEST + 50;
+    }
 
+    /**
+     * 业务逻辑
+     */
+    interface Business {
+        int HIGHEST = 301;
+        int LOWEST = 400;
+    }
+
+    /**
+     * 请求处理完成
+     */
+    interface Completion {
+        int HIGHEST = 401;
+        int LOWEST = 500;
+    }
 }

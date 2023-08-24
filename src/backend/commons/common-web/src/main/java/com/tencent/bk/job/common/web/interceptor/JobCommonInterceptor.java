@@ -26,7 +26,9 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -52,6 +54,7 @@ import javax.servlet.http.HttpServletResponse;
  * Job通用拦截器
  */
 @Slf4j
+@JobInterceptor(order = InterceptorOrder.Init.HIGHEST, pathPatterns = "/**")
 public class JobCommonInterceptor implements AsyncHandlerInterceptor {
 
     private final Tracer tracer;

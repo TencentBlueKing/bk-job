@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.common.interceptor;
 
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -38,14 +40,21 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Uri权限控制拦截
  */
 @Slf4j
 @Component
+@JobInterceptor(pathPatterns = {
+    "/web/whiteIP/**",
+    "/web/notify/users/blacklist",
+    "/web/globalSettings/**",
+    "/web/public_script/**",
+    "/web/public_tag/**",
+    "/web/serviceInfo/**",
+    "/web/dangerousRule/**"},
+    order = InterceptorOrder.AUTH.AUTH_COMMON)
 public class JobManageUriPermissionInterceptor extends HandlerInterceptorAdapter {
     private final String URI_PATTERN_WHITE_IP = "/web/whiteIP/**";
     private final String URI_PATTERN_NOTIFY_BLACKLIST = "/web/notify/users/blacklist";
@@ -63,40 +72,11 @@ public class JobManageUriPermissionInterceptor extends HandlerInterceptorAdapter
         this.pathMatcher = new AntPathMatcher();
     }
 
-    public String[] getControlUriPatterns() {
-        Object[] rawArr = getControlUriPatternsList().toArray();
-        String[] arr = new String[rawArr.length];
-        for (int i = 0; i < rawArr.length; i++) {
-            arr[i] = (String) rawArr[i];
-        }
-        return arr;
-    }
-
-    private List<String> getControlUriPatternsList() {
-        return Arrays.asList(
-            //IP白名单
-            URI_PATTERN_WHITE_IP,
-            //通知黑名单
-            URI_PATTERN_NOTIFY_BLACKLIST,
-            //全局设置
-            URI_PATTERN_GLOBAL_SETTINGS,
-            // 公共脚本
-            URI_PATTERN_PUBLIC_SCRIPT,
-            // 公共标签
-            URI_PATTERN_PUBLIC_TAG,
-            // 服务状态
-            URI_PATTERN_SERVICE_INFO,
-            // 高危语句规则
-            URI_PATTERN_DANGEROUS_RULE
-        );
-    }
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String username = JobContextUtil.getUsername();
         String uri = request.getRequestURI();
-        log.info("PermissionControlInterceptor.preHandle:username=" + username + ", uri=" + uri + ", " +
-            "controlUriPatterns=" + getControlUriPatternsList());
+
         //仅超级管理员可使用管理相关接口
         if (pathMatcher.match(URI_PATTERN_NOTIFY_BLACKLIST, uri)) {
             AuthResult authResult = authService.auth(username, ActionId.GLOBAL_SETTINGS);
