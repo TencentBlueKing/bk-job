@@ -61,7 +61,8 @@ public class ResourceTagDAOIntegrationTest {
         List<ResourceTagDTO> scriptResourceTags =
             resourceTagDAO.listResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), scriptResourceIdList);
         assertThat(scriptResourceTags).hasSize(2);
-        assertThat(scriptResourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
+        assertThat(scriptResourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
         assertThat(scriptResourceTags).extracting("resourceId").containsOnly("1");
         assertThat(scriptResourceTags).extracting("tagId").containsOnly(1L, 2L);
 
@@ -71,7 +72,8 @@ public class ResourceTagDAOIntegrationTest {
         List<ResourceTagDTO> templateResourceTags =
             resourceTagDAO.listResourceTags(JobResourceTypeEnum.TEMPLATE.getValue(), templateResourceIdList);
         assertThat(templateResourceTags).hasSize(3);
-        assertThat(templateResourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.TEMPLATE.getValue());
+        assertThat(templateResourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.TEMPLATE.getValue());
         assertThat(templateResourceTags).extracting("resourceId").containsOnly("1", "2");
         assertThat(templateResourceTags).extracting("tagId").containsOnly(1L, 2L);
     }
@@ -81,7 +83,8 @@ public class ResourceTagDAOIntegrationTest {
         List<ResourceTagDTO> scriptResourceTags =
             resourceTagDAO.listResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), String.valueOf(1));
         assertThat(scriptResourceTags).hasSize(2);
-        assertThat(scriptResourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
+        assertThat(scriptResourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
         assertThat(scriptResourceTags).extracting("resourceId").containsOnly("1");
         assertThat(scriptResourceTags).extracting("tagId").containsOnly(1L, 2L);
     }
@@ -90,16 +93,20 @@ public class ResourceTagDAOIntegrationTest {
     public void listResourceTagsByTagId() {
         List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(1L);
         assertThat(resourceTags).hasSize(4);
-        assertThat(resourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue(), JobResourceTypeEnum.TEMPLATE.getValue());
+        assertThat(resourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue(),
+                JobResourceTypeEnum.TEMPLATE.getValue());
         assertThat(resourceTags).extracting("resourceId").containsOnly("1", "2");
         assertThat(resourceTags).extracting("tagId").containsOnly(1L);
     }
 
     @Test
     public void listResourceTagsByTagIdAndResourceType() {
-        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(1L, JobResourceTypeEnum.APP_SCRIPT.getValue());
+        List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(1L,
+            JobResourceTypeEnum.APP_SCRIPT.getValue());
         assertThat(resourceTags).hasSize(2);
-        assertThat(resourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
+        assertThat(resourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
         assertThat(resourceTags).extracting("resourceId").containsOnly("1", "2");
         assertThat(resourceTags).extracting("tagId").containsOnly(1L);
     }
@@ -108,7 +115,9 @@ public class ResourceTagDAOIntegrationTest {
     public void listResourceTagsByTagIdS() {
         List<ResourceTagDTO> resourceTags = resourceTagDAO.listResourceTags(Arrays.asList(1L, 2L));
         assertThat(resourceTags).hasSize(6);
-        assertThat(resourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue(), JobResourceTypeEnum.TEMPLATE.getValue());
+        assertThat(resourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue(),
+                JobResourceTypeEnum.TEMPLATE.getValue());
         assertThat(resourceTags).extracting("resourceId").containsOnly("1", "2");
         assertThat(resourceTags).extracting("tagId").containsOnly(1L, 2L);
     }
@@ -116,12 +125,18 @@ public class ResourceTagDAOIntegrationTest {
     @Test
     public void batchSaveResourceTags() {
         List<ResourceTagDTO> resourceTags = new ArrayList<>();
-        ResourceTagDTO resourceTag1 = new ResourceTagDTO(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1000", 1L);
-        ResourceTagDTO resourceTag2 = new ResourceTagDTO(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1000", 2L);
-        ResourceTagDTO resourceTag3 = new ResourceTagDTO(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1001", 1L);
-        ResourceTagDTO resourceTag4 = new ResourceTagDTO(JobResourceTypeEnum.TEMPLATE.getValue(), "1000", 1L);
-        ResourceTagDTO resourceTag5 = new ResourceTagDTO(JobResourceTypeEnum.TEMPLATE.getValue(), "1000", 2L);
-        ResourceTagDTO resourceTag6 = new ResourceTagDTO(JobResourceTypeEnum.TEMPLATE.getValue(), "1001", 1L);
+        ResourceTagDTO resourceTag1 = new ResourceTagDTO(
+            JobResourceTypeEnum.APP_SCRIPT.getValue(), "1000", 1L);
+        ResourceTagDTO resourceTag2 = new ResourceTagDTO(
+            JobResourceTypeEnum.APP_SCRIPT.getValue(), "1000", 2L);
+        ResourceTagDTO resourceTag3 = new ResourceTagDTO(
+            JobResourceTypeEnum.APP_SCRIPT.getValue(), "1001", 1L);
+        ResourceTagDTO resourceTag4 = new ResourceTagDTO(
+            JobResourceTypeEnum.TEMPLATE.getValue(), "1000", 1L);
+        ResourceTagDTO resourceTag5 = new ResourceTagDTO(
+            JobResourceTypeEnum.TEMPLATE.getValue(), "1000", 2L);
+        ResourceTagDTO resourceTag6 = new ResourceTagDTO(
+            JobResourceTypeEnum.TEMPLATE.getValue(), "1001", 1L);
         resourceTags.add(resourceTag1);
         resourceTags.add(resourceTag2);
         resourceTags.add(resourceTag3);
@@ -137,7 +152,8 @@ public class ResourceTagDAOIntegrationTest {
         List<ResourceTagDTO> scriptResourceTags =
             resourceTagDAO.listResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), scriptResourceIdList);
         assertThat(scriptResourceTags).hasSize(3);
-        assertThat(scriptResourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
+        assertThat(scriptResourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
         assertThat(scriptResourceTags).extracting("resourceId").containsOnly("1000", "1001");
         assertThat(scriptResourceTags).extracting("tagId").containsOnly(1L, 2L);
 
@@ -147,7 +163,8 @@ public class ResourceTagDAOIntegrationTest {
         List<ResourceTagDTO> templateResourceTags =
             resourceTagDAO.listResourceTags(JobResourceTypeEnum.TEMPLATE.getValue(), templateResourceIdList);
         assertThat(templateResourceTags).hasSize(3);
-        assertThat(templateResourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.TEMPLATE.getValue());
+        assertThat(templateResourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.TEMPLATE.getValue());
         assertThat(templateResourceTags).extracting("resourceId").containsOnly("1000", "1001");
         assertThat(templateResourceTags).extracting("tagId").containsOnly(1L, 2L);
 
@@ -156,8 +173,10 @@ public class ResourceTagDAOIntegrationTest {
     @Test
     public void givenDuplicateKeyWhenBatchSaveResourceTagsThenSuccess() {
         List<ResourceTagDTO> resourceTags = new ArrayList<>();
-        ResourceTagDTO resourceTag1 = new ResourceTagDTO(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1000", 1L);
-        ResourceTagDTO resourceTag2 = new ResourceTagDTO(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1000", 1L);
+        ResourceTagDTO resourceTag1 = new ResourceTagDTO(
+            JobResourceTypeEnum.APP_SCRIPT.getValue(), "1000", 1L);
+        ResourceTagDTO resourceTag2 = new ResourceTagDTO(
+            JobResourceTypeEnum.APP_SCRIPT.getValue(), "1000", 1L);
         resourceTags.add(resourceTag1);
         resourceTags.add(resourceTag2);
 
@@ -168,7 +187,8 @@ public class ResourceTagDAOIntegrationTest {
         List<ResourceTagDTO> scriptResourceTags =
             resourceTagDAO.listResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), scriptResourceIdList);
         assertThat(scriptResourceTags).hasSize(1);
-        assertThat(scriptResourceTags).extracting("resourceType").containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
+        assertThat(scriptResourceTags).extracting("resourceType")
+            .containsOnly(JobResourceTypeEnum.APP_SCRIPT.getValue());
         assertThat(scriptResourceTags).extracting("resourceId").containsOnly("1000");
         assertThat(scriptResourceTags).extracting("tagId").containsOnly(1L);
     }
@@ -178,22 +198,26 @@ public class ResourceTagDAOIntegrationTest {
         boolean result = resourceTagDAO.deleteResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1");
         assertThat(result).isEqualTo(true);
 
-        List<ResourceTagDTO> tags = resourceTagDAO.listResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), Collections.singletonList("1"));
+        List<ResourceTagDTO> tags = resourceTagDAO.listResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(),
+            Collections.singletonList("1"));
         assertThat(tags).hasSize(0);
     }
 
     @Test
     public void deleteResourceTagByResourceAndTagId() {
-        boolean result = resourceTagDAO.deleteResourceTag(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1", 1L);
+        boolean result = resourceTagDAO.deleteResourceTag(
+            JobResourceTypeEnum.APP_SCRIPT.getValue(), "1", 1L);
         assertThat(result).isEqualTo(true);
     }
 
     @Test
     public void deleteResourceTagsByResourceAndTagIds() {
-        boolean result = resourceTagDAO.deleteResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1", Collections.singletonList(1L));
+        boolean result = resourceTagDAO.deleteResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), "1",
+            Collections.singletonList(1L));
         assertThat(result).isEqualTo(true);
 
-        List<ResourceTagDTO> tags = resourceTagDAO.listResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(), Collections.singletonList("1"));
+        List<ResourceTagDTO> tags = resourceTagDAO.listResourceTags(JobResourceTypeEnum.APP_SCRIPT.getValue(),
+            Collections.singletonList("1"));
         assertThat(tags).hasSize(1);
         assertThat(tags.get(0).getTagId()).isEqualTo(2L);
     }
