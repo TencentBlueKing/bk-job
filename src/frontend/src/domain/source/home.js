@@ -30,7 +30,7 @@ import ModuleBase from './module-base';
 class Home extends ModuleBase {
   constructor() {
     super();
-    this.module = '/manage/web/index';
+    this.module = '/job-manage/web/index';
   }
 
   // 获取问候语列表

@@ -30,7 +30,7 @@ import ModuleBase from './module-base';
 class TaskManage extends ModuleBase {
   constructor() {
     super();
-    this.module = '/manage/web';
+    this.module = '/job-manage/web';
   }
 
   // 获取模板列表

@@ -27,7 +27,7 @@ import Request from '@utils/request';
 
 class DangerousRule {
   constructor() {
-    this.module = '/manage/web/dangerousRule';
+    this.module = '/job-manage/web/dangerousRule';
   }
 
   // 获取高危语句规则列表
