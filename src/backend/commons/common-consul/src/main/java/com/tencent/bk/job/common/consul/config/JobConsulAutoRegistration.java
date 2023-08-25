@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.consul.config;
 
 import com.ecwid.consul.v1.agent.model.NewService;
 import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.cloud.client.serviceregistry.AutoServiceRegistrationProperties;
 import org.springframework.cloud.consul.discovery.ConsulDiscoveryProperties;
@@ -37,30 +38,51 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
+@Slf4j
 public class JobConsulAutoRegistration extends ConsulAutoRegistration {
     public JobConsulAutoRegistration(NewService service,
                                      AutoServiceRegistrationProperties autoServiceRegistrationProperties,
-                                     ConsulDiscoveryProperties properties, ApplicationContext context,
+                                     ConsulDiscoveryProperties properties,
+                                     ApplicationContext context,
                                      HeartbeatProperties heartbeatProperties,
                                      List<ConsulManagementRegistrationCustomizer> managementRegistrationCustomizers) {
-        super(service, autoServiceRegistrationProperties, properties, context, heartbeatProperties,
+        super(service,
+            autoServiceRegistrationProperties,
+            properties,
+            context,
+            heartbeatProperties,
             managementRegistrationCustomizers);
     }
 
 
     public static ConsulAutoRegistration registration(
         AutoServiceRegistrationProperties autoServiceRegistrationProperties,
-        ConsulDiscoveryProperties properties, ApplicationContext context,
+        ConsulDiscoveryProperties properties,
+        ApplicationContext context,
         List<ConsulRegistrationCustomizer> registrationCustomizers,
         List<ConsulManagementRegistrationCustomizer> managementRegistrationCustomizers,
-        HeartbeatProperties heartbeatProperties, BuildProperties buildProperties) {
-        ConsulAutoRegistration registration = ConsulAutoRegistration.registration(autoServiceRegistrationProperties,
-            properties, context, registrationCustomizers, managementRegistrationCustomizers, heartbeatProperties);
+        HeartbeatProperties heartbeatProperties,
+        BuildProperties buildProperties) {
+        log.info("Init Job ConsulAutoRegistration start");
+        if (log.isDebugEnabled()) {
+            log.debug("ConsulDiscoveryProperties: {}", properties);
+        }
+        ConsulAutoRegistration registration = ConsulAutoRegistration.registration(
+            autoServiceRegistrationProperties,
+            properties,
+            context,
+            registrationCustomizers,
+            managementRegistrationCustomizers,
+            heartbeatProperties
+        );
         // 将版本号写入Tag中
         registration.getService().getTags().add(JobDiscoveryConsts.TAG_KEY_VERSION + "=" + buildProperties.getVersion());
         // 区分Job后台服务与组件（Redis、MQ等）
         registration.getService().getTags()
             .add(JobDiscoveryConsts.TAG_KEY_TYPE + "=" + JobDiscoveryConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE);
+
+        log.info("Init Job ConsulAutoRegistration done");
+
         return registration;
     }
 }
