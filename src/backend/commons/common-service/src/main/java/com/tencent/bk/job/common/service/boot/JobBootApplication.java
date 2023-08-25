@@ -29,7 +29,6 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.TypeExcludeFilter;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.core.annotation.AliasFor;
@@ -55,7 +54,6 @@ import java.lang.annotation.Target;
         @ComponentScan.Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
         @ComponentScan.Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class)}
 )
-@ConfigurationPropertiesScan("com.tencent.bk.job")
 public @interface JobBootApplication {
     @AliasFor(annotation = ComponentScan.class, attribute = "basePackages")
     String[] scanBasePackages() default {};

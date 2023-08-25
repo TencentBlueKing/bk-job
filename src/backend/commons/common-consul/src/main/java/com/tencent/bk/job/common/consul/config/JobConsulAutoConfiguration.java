@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.consul.config;
 
 import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.cloud.consul.ConditionalOnConsulEnabled;
+import org.springframework.cloud.consul.discovery.ConditionalOnConsulDiscoveryEnabled;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistrationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,9 +35,11 @@ import org.springframework.context.annotation.Import;
 
 @Configuration(proxyBeanMethods = false)
 @Import({ConsulServiceInfoServiceConfiguration.class})
+@ConditionalOnConsulEnabled
+@ConditionalOnConsulDiscoveryEnabled
 public class JobConsulAutoConfiguration {
     @Bean
-    ConsulRegistrationCustomizer jobConsulRegistrationCustomizer(BuildProperties buildProperties) {
+    public ConsulRegistrationCustomizer jobConsulRegistrationCustomizer(BuildProperties buildProperties) {
         return registration -> {
             // 将版本号写入Tag中
             registration.getService().getTags().add(
