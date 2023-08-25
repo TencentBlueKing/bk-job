@@ -31,7 +31,7 @@ import ModuleBase from './module-base';
 class TaskPlan extends ModuleBase {
   constructor() {
     super();
-    this.module = '/manage/web';
+    this.module = '/job-manage/web';
   }
 
   // 获取执行方案基本信息列表

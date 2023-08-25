@@ -27,7 +27,7 @@ import Request from '@utils/request';
 
 class WhiteIp {
   constructor() {
-    this.module = '/manage/web/whiteIP';
+    this.module = '/job-manage/web/whiteIP';
   }
 
   // 新增/更新IP白名单

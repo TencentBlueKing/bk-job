@@ -30,7 +30,7 @@ import ModuleBase from './module-base';
 class TagManage extends ModuleBase {
   constructor() {
     super();
-    this.module = '/manage/web/tag';
+    this.module = '/job-manage/web/tag';
   }
 
   // 获取所有tag
