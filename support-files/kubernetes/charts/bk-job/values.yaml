@@ -20,7 +20,7 @@ global:
   bkDomain: "example.com"
 deploy:
   ## 部署方式。支持标准(standard) 和 轻量化部署(lite)方式
-  mode: lite
+  mode: standard
 
 ## @section Common parameters
 
