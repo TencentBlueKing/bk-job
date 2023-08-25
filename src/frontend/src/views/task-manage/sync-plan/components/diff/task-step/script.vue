@@ -43,7 +43,7 @@
       class="row"
       :class="diff.scriptParam">
       <span class="label">{{ $t('template.脚本参数：') }}</span>
-      <span class="value">{{ data.scriptParam || '-' }}</span>
+      <span class="value">{{ data.scriptParamText || '-' }}</span>
     </div>
     <div
       class="row"

@@ -30,7 +30,9 @@
     <div
       v-if="props.data.name"
       class="title">
-      （<div class="title-text">
+      （<div
+        v-bk-overflow-tips="props.data.name"
+        class="title-text">
         {{ props.data.name }}
       </div>）
     </div>

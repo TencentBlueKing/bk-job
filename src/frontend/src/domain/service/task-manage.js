@@ -46,7 +46,7 @@ export default {
   taskClone(params, config) {
     return TaskManageSource.getDataById(params, config)
       .then(({ data }) => {
-        data.name = `${data.name}_copy`;
+        data.name = `${data.name.slice(0, 55)}_copy`;
         return Object.freeze(new TaskModel(data, true));
       });
   },
