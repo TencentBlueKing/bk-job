@@ -24,10 +24,25 @@
 
 package com.tencent.bk.job.common.consul.config;
 
+import com.tencent.bk.job.common.constant.JobDiscoveryConsts;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.cloud.consul.serviceregistry.ConsulRegistrationCustomizer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration(proxyBeanMethods = false)
-@Import({ConsulServiceInfoServiceConfiguration.class, JobConsulServiceRegistrationConfiguration.class})
+@Import({ConsulServiceInfoServiceConfiguration.class})
 public class JobConsulAutoConfiguration {
+    @Bean
+    ConsulRegistrationCustomizer jobConsulRegistrationCustomizer(BuildProperties buildProperties) {
+        return registration -> {
+            // 将版本号写入Tag中
+            registration.getService().getTags().add(
+                JobDiscoveryConsts.TAG_KEY_VERSION + "=" + buildProperties.getVersion());
+            // 区分Job后台服务与组件（Redis、MQ等）
+            registration.getService().getTags()
+                .add(JobDiscoveryConsts.TAG_KEY_TYPE + "=" + JobDiscoveryConsts.TAG_VALUE_TYPE_JOB_BACKEND_SERVICE);
+        };
+    }
 }
