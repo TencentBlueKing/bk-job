@@ -30,7 +30,7 @@ import ModuleBase from './module-base';
 class NotifyManage extends ModuleBase {
   constructor() {
     super();
-    this.module = '/job-manage/web/notify';
+    this.module = '/manage/web/notify';
   }
 
   // 获取现有通知黑名单用户列表

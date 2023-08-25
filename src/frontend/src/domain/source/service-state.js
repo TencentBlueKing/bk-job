@@ -30,7 +30,7 @@ import ModuleBase from './module-base';
 class ServiceState extends ModuleBase {
   constructor() {
     super();
-    this.module = '/job-manage/web/serviceInfo';
+    this.module = '/manage/web/serviceInfo';
   }
 
   // 获取所有服务信息
