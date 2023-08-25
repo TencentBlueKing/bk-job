@@ -27,7 +27,7 @@ import Request from '@utils/request';
 
 class PubliceTagManage {
   constructor() {
-    this.module = '/manage/web/public_tag';
+    this.module = '/job-manage/web/public_tag';
   }
 
   // 获取所有tag

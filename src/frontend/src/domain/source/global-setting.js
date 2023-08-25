@@ -27,7 +27,7 @@ import Request from '@utils/request';
 
 class GlobalSetting {
   constructor() {
-    this.module = '/manage/web/globalSettings';
+    this.module = '/job-manage/web/globalSettings';
   }
 
   // 获取账号命名规则
