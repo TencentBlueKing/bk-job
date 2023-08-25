@@ -30,7 +30,7 @@ import ModuleBase from './module-base';
 class QueryGlobalSetting extends ModuleBase {
   constructor() {
     super();
-    this.module = '/job-manage/web/queryGlobalSettings';
+    this.module = '/manage/web/queryGlobalSettings';
   }
 
   // 获取账号命名规则

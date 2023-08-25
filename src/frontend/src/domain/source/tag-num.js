@@ -30,7 +30,7 @@ import ModuleBase from './module-base';
 class TagNum extends ModuleBase {
   constructor() {
     super();
-    this.module = '/job-manage/web';
+    this.module = '/manage/web';
   }
 
   // 获取标签关联模板数量
