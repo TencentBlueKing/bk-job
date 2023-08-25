@@ -27,7 +27,7 @@ import Request from '@utils/request';
 
 class Permission {
   jobManage(params = {}) {
-    return Request.get('/job-manage/web/permission/manage/check', {
+    return Request.get('/manage/web/permission/manage/check', {
       params,
       cache: 2000,
     });

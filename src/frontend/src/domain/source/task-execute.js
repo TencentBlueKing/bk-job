@@ -181,7 +181,7 @@ class TaskExecute extends ModuleBase {
 
   // 上传文件获取内容
   uploadFileGetContent(params = {}, payload = {}) {
-    return Request.post('/job-manage/web/upload/localFile', {
+    return Request.post('/manage/web/upload/localFile', {
       params,
       payload: {
         ...payload,

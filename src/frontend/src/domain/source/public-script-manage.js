@@ -141,14 +141,14 @@ class PublicScriptManage {
 
   // 检查脚本内容
   getValidation(params) {
-    return Request.put('/job-manage/web/script/check', {
+    return Request.put('/manage/web/script/check', {
       params,
     });
   }
 
   // 上传脚本获取内容
   uploadGetContent(params) {
-    return Request.post('/job-manage/web/script/upload', {
+    return Request.post('/manage/web/script/upload', {
       params,
     });
   }
