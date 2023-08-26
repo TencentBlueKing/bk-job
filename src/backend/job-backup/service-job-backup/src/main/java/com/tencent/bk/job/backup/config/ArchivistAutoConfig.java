@@ -50,6 +50,7 @@ import org.jooq.DSLContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -59,10 +60,11 @@ import java.util.concurrent.ExecutorService;
 @Configuration
 @EnableScheduling
 @Slf4j
-@ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
+@EnableConfigurationProperties(ArchiveDBProperties.class)
 public class ArchivistAutoConfig {
 
     @Configuration
+    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
     public static class ExecuteDaoAutoConfig {
 
         @Bean(name = "taskInstanceRecordDAO")
@@ -202,7 +204,7 @@ public class ArchivistAutoConfig {
     }
 
     @Bean(name = "execute-archive-dao")
-    @ConditionalOnExpression("${job.execute.archiveDB.execute.backup.enabled:false}")
+    @ConditionalOnExpression("${job.execute.archive.execute.backup.enabled:false}")
     public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
         log.info("Init ExecuteArchiveDAO");
         return new ExecuteArchiveDAOImpl(context);
@@ -210,23 +212,23 @@ public class ArchivistAutoConfig {
 
     @Bean
     public JobExecuteArchiveManage jobExecuteArchiveManage(
-        TaskInstanceRecordDAO taskInstanceRecordDAO,
-        StepInstanceRecordDAO stepInstanceRecordDAO,
-        StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
-        StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
-        StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
-        StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
-        TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
-        OperationLogRecordDAO operationLogRecordDAO,
-        FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO,
-        GseTaskLogRecordDAO gseTaskLogRecordDAO,
-        GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO,
-        GseTaskRecordDAO gseTaskRecordDAO,
-        GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
-        GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
-        StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
-        RollingConfigRecordDAO rollingConfigRecordDAO,
-        TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
+        ObjectProvider<TaskInstanceRecordDAO> taskInstanceRecordDAOObjectProvider,
+        ObjectProvider<StepInstanceRecordDAO> stepInstanceRecordDAOObjectProvider,
+        ObjectProvider<StepInstanceScriptRecordDAO> stepInstanceScriptRecordDAOObjectProvider,
+        ObjectProvider<StepInstanceFileRecordDAO> stepInstanceFileRecordDAOObjectProvider,
+        ObjectProvider<StepInstanceConfirmRecordDAO> stepInstanceConfirmRecordDAOObjectProvider,
+        ObjectProvider<StepInstanceVariableRecordDAO> stepInstanceVariableRecordDAOObjectProvider,
+        ObjectProvider<TaskInstanceVariableRecordDAO> taskInstanceVariableRecordDAOObjectProvider,
+        ObjectProvider<OperationLogRecordDAO> operationLogRecordDAOObjectProvider,
+        ObjectProvider<FileSourceTaskLogRecordDAO> fileSourceTaskLogRecordDAOObjectProvider,
+        ObjectProvider<GseTaskLogRecordDAO> gseTaskLogRecordDAOObjectProvider,
+        ObjectProvider<GseTaskIpLogRecordDAO> gseTaskIpLogRecordDAOObjectProvider,
+        ObjectProvider<GseTaskRecordDAO> gseTaskRecordDAOObjectProvider,
+        ObjectProvider<GseScriptAgentTaskRecordDAO> gseScriptAgentTaskRecordDAOObjectProvider,
+        ObjectProvider<GseFileAgentTaskRecordDAO> gseFileAgentTaskRecordDAOObjectProvider,
+        ObjectProvider<StepInstanceRollingTaskRecordDAO> stepInstanceRollingTaskRecordDAOObjectProvider,
+        ObjectProvider<RollingConfigRecordDAO> rollingConfigRecordDAOObjectProvider,
+        ObjectProvider<TaskInstanceHostRecordDAO> taskInstanceHostRecordDAOObjectProvider,
         ObjectProvider<ExecuteArchiveDAO> executeArchiveDAOObjectProvider,
         ArchiveProgressService archiveProgressService,
         @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
@@ -234,23 +236,23 @@ public class ArchivistAutoConfig {
 
         log.info("Init JobExecuteArchiveManage");
         return new JobExecuteArchiveManage(
-            taskInstanceRecordDAO,
-            stepInstanceRecordDAO,
-            stepInstanceScriptRecordDAO,
-            stepInstanceFileRecordDAO,
-            stepInstanceConfirmRecordDAO,
-            stepInstanceVariableRecordDAO,
-            taskInstanceVariableRecordDAO,
-            operationLogRecordDAO,
-            fileSourceTaskLogRecordDAO,
-            gseTaskLogRecordDAO,
-            gseTaskIpLogRecordDAO,
-            gseTaskRecordDAO,
-            gseScriptAgentTaskRecordDAO,
-            gseFileAgentTaskRecordDAO,
-            stepInstanceRollingTaskRecordDAO,
-            rollingConfigRecordDAO,
-            taskInstanceHostRecordDAO,
+            taskInstanceRecordDAOObjectProvider.getIfAvailable(),
+            stepInstanceRecordDAOObjectProvider.getIfAvailable(),
+            stepInstanceScriptRecordDAOObjectProvider.getIfAvailable(),
+            stepInstanceFileRecordDAOObjectProvider.getIfAvailable(),
+            stepInstanceConfirmRecordDAOObjectProvider.getIfAvailable(),
+            stepInstanceVariableRecordDAOObjectProvider.getIfAvailable(),
+            taskInstanceVariableRecordDAOObjectProvider.getIfAvailable(),
+            operationLogRecordDAOObjectProvider.getIfAvailable(),
+            fileSourceTaskLogRecordDAOObjectProvider.getIfAvailable(),
+            gseTaskLogRecordDAOObjectProvider.getIfAvailable(),
+            gseTaskIpLogRecordDAOObjectProvider.getIfAvailable(),
+            gseTaskRecordDAOObjectProvider.getIfAvailable(),
+            gseScriptAgentTaskRecordDAOObjectProvider.getIfAvailable(),
+            gseFileAgentTaskRecordDAOObjectProvider.getIfAvailable(),
+            stepInstanceRollingTaskRecordDAOObjectProvider.getIfAvailable(),
+            rollingConfigRecordDAOObjectProvider.getIfAvailable(),
+            taskInstanceHostRecordDAOObjectProvider.getIfAvailable(),
             executeArchiveDAOObjectProvider.getIfAvailable(),
             archiveProgressService,
             archiveDBProperties,

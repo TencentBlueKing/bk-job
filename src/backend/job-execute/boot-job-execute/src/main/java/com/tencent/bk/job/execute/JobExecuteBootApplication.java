@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute;
 
-import com.tencent.bk.job.common.crypto.EncryptConfig;
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
@@ -43,7 +42,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         "com.tencent.bk.job.file_gateway.api"
     }
 )
-@EnableConfigurationProperties({FeatureToggleConfig.class, EncryptConfig.class})
+@EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobExecuteBootApplication {
 
     public static void main(String[] args) {

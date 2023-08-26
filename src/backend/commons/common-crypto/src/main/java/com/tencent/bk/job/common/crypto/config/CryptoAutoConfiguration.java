@@ -30,8 +30,12 @@ import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(EncryptConfig.class)
 public class CryptoAutoConfiguration {
 
     @Bean
