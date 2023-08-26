@@ -2,13 +2,6 @@ spring:
   application:
     name: job-execute
   cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-execute
-        instance-id: job-execute-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
     stream:
       defaultBinder: jobCommon
       binders:
@@ -217,6 +210,3 @@ job:
       # artifactory:
       #   # 存储执行日志导出临时文件的仓库名称
       #   repo: filedata
-  
-server:
-  port: __BK_JOB_EXECUTE_SERVER_PORT__

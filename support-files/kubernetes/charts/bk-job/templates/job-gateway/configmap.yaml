@@ -282,7 +282,7 @@ data:
             - id: job-iam
               uri: lb://job-assemble
               predicates:
-                - Path=/iam/api/v1/resources/*
+                - Path=/iam/api/v1/resources/**
               filters:
                 - RecordIamAccessLog
                 - AddEsbLangHeader

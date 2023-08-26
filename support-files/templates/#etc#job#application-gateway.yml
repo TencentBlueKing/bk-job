@@ -5,12 +5,12 @@ spring:
       port: __CONSUL_HTTP_PORT__
       scheme: __CONSUL_SCHEME__
       enabled: true
-      #tls:
-        #key-store-instance-type:
-        #key-store-path:
-        #key-store-password:
-        #certificate-path:
-        #certificate-password:
+      discovery:
+        prefer-ip-address: true
+        service-name: job-gateway
+        instance-id: job-gateway-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
     config:
       discovery:
         enabled: true
@@ -19,3 +19,5 @@ spring:
       password: __BK_JOB_SECURITY_PASSWORD__
       enabled: true
       fail-fast: true
+server:
+  port: __BK_JOB_GATEWAY_SERVER_HTTPS_PORT__

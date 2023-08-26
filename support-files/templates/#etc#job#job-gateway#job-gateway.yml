@@ -1,12 +1,5 @@
 spring:
   cloud:
-    consul:
-      discovery:
-        prefer-ip-address: true
-        service-name: job-gateway
-        instance-id: job-gateway-${machine.ip}-${server.port}
-        scheme: http
-        enabled: true
     stream:
       defaultBinder: jobCommon
       binders:
@@ -218,7 +211,6 @@ spring:
             - RecordIamAccessLog
             - AddEsbLangHeader
 server:
-  port: __BK_JOB_GATEWAY_SERVER_HTTPS_PORT__
   http:
     enabled: __BK_JOB_GATEWAY_SERVER_HTTP_ENABLED__
     port: __BK_JOB_GATEWAY_SERVER_HTTP_PORT__
