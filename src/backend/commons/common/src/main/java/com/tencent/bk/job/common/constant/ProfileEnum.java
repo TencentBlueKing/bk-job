@@ -22,34 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.web.impl;
+package com.tencent.bk.job.common.constant;
 
-import com.tencent.bk.job.common.constant.ProfileEnum;
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.api.web.WebServiceInfoResource;
-import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
-import com.tencent.bk.job.manage.service.impl.ServiceInfoService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.web.bind.annotation.RestController;
+/**
+ * Job 使用的 Spring profile 定义
+ */
+public enum ProfileEnum {
+    /**
+     * 本地
+     */
+    LOCAL(Constants.LOCAL),
+    /**
+     * 开发
+     */
+    DEV(Constants.DEV),
+    /**
+     * 正式
+     */
+    PROD(Constants.PROD),
+    /**
+     * 单元/继承测试
+     */
+    TEST(Constants.TEST);
 
-import java.util.List;
-
-@RestController
-@Slf4j
-@Profile("!" + ProfileEnum.Constants.TEST)
-public class WebServiceInfoResourceImpl implements WebServiceInfoResource {
-
-    private final ServiceInfoService serviceInfoService;
-
-    @Autowired
-    public WebServiceInfoResourceImpl(ServiceInfoService serviceInfoService) {
-        this.serviceInfoService = serviceInfoService;
+    public interface Constants {
+        String LOCAL = "local";
+        String DEV = "dev";
+        String PROD = "prod";
+        String TEST = "test";
     }
 
-    @Override
-    public Response<List<ServiceInfoVO>> listServiceInfo(String username) {
-        return Response.buildSuccessResp(serviceInfoService.listServiceInfo());
+    private final String value;
+
+    ProfileEnum(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
     }
 }
