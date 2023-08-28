@@ -461,4 +461,11 @@ public interface ScriptService {
      */
     TagCountVO getTagScriptCount(Long appId);
 
+    /**
+     * 脚本是否被引用
+     * @param scriptId 脚本 ID
+     * @param scriptVersionId 脚本版本 ID
+     */
+    boolean isScriptReferenced(String scriptId, Long scriptVersionId);
+
 }

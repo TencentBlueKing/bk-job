@@ -40,11 +40,8 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3R
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbManageScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptBasicV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Req;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbCreateScriptV3DTO;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbManageScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbUpdateScriptV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -122,14 +119,14 @@ public interface EsbScriptV3Resource {
     );
 
     @PostMapping("/create_script")
-    EsbResp<EsbCreateScriptV3DTO> createScript(
+    EsbResp<EsbScriptVersionDetailV3DTO> createScript(
         @RequestBody
         @Validated(Create.class)
             EsbCreateScriptV3Req request
     );
 
     @PostMapping("/create_script_version")
-    EsbResp<EsbCreateScriptV3DTO> createScriptVersion(
+    EsbResp<EsbScriptVersionDetailV3DTO> createScriptVersion(
         @RequestBody
         @Validated(Create.class)
             EsbCreateScriptVersionV3Req request
@@ -150,28 +147,28 @@ public interface EsbScriptV3Resource {
     );
 
     @PutMapping("/disable_script_version")
-    EsbResp<EsbManageScriptV3DTO> disableScriptVersion(
+    EsbResp<EsbScriptVersionDetailV3DTO> disableScriptVersion(
         @RequestBody
         @Validated(Update.class)
             EsbManageScriptVersionV3Req request
     );
 
     @PutMapping("/publish_script_version")
-    EsbResp<EsbManageScriptV3DTO> publishScriptVersion(
+    EsbResp<EsbScriptVersionDetailV3DTO> publishScriptVersion(
         @RequestBody
         @Validated(Update.class)
             EsbManageScriptVersionV3Req request
     );
 
     @PutMapping("/update_script_basic")
-    EsbResp<EsbUpdateScriptV3DTO> updateScriptBasic(
+    EsbResp<EsbScriptVersionDetailV3DTO> updateScriptBasic(
         @RequestBody
         @Validated(Update.class)
             EsbUpdateScriptBasicV3Req request
     );
 
     @PutMapping("/update_script_version")
-    EsbResp<EsbCreateScriptV3DTO> updateScriptVersion(
+    EsbResp<EsbScriptVersionDetailV3DTO> updateScriptVersion(
         @RequestBody
         @Validated(Update.class)
             EsbUpdateScriptVersionV3Req request

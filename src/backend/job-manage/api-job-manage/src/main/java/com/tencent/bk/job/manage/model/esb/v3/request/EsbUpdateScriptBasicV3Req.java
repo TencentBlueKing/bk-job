@@ -26,13 +26,14 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.NotContainSpecialChar;
 import com.tencent.bk.job.common.validation.Update;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotEmpty;
 
 /**
  * 更新脚本基础信息请求
@@ -45,14 +46,14 @@ public class EsbUpdateScriptBasicV3Req extends EsbAppScopeReq {
     /**
      * 脚本ID
      */
-    @NotBlankField(fieldName = "scriptId", groups = Update.class)
+    @NotEmpty(message = "{validation.constraints.ScriptId_notNull.message}", groups = Update.class)
     @JsonProperty("script_id")
     private String scriptId;
 
     /**
      * 脚本名称
      */
-    @NotBlankField(fieldName = "name", groups = Update.class)
+    @NotEmpty(message = "{validation.constraints.ScriptName_notNull.message}", groups = Update.class)
     @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}", groups = Update.class)
     @NotContainSpecialChar(fieldName = "name", groups = Update.class)
     private String name;

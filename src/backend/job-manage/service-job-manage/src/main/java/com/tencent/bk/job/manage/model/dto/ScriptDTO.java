@@ -26,12 +26,8 @@ package com.tencent.bk.job.manage.model.dto;
 
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbCreatePublicScriptV3DTO;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbCreateScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbUpdatePublicScriptV3DTO;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbUpdateScriptV3DTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -164,70 +160,45 @@ public class ScriptDTO {
         return esbScriptVersion;
     }
 
-    public EsbCreateScriptV3DTO toEsbCreateScriptV3DTO() {
-        EsbCreateScriptV3DTO esbScript = new EsbCreateScriptV3DTO();
-        esbScript.setScriptVersionId(scriptVersionId);
-        esbScript.setId(id);
-        esbScript.setName(name);
-        esbScript.setType(type);
-        esbScript.setPublicScript(publicScript);
-        esbScript.setContent(content);
-        esbScript.setCreator(creator);
-        esbScript.setCreateTime(createTime);
-        esbScript.setLastModifyUser(lastModifyUser);
-        esbScript.setLastModifyTime(lastModifyTime);
-        esbScript.setVersion(version);
-        esbScript.setStatus(status);
-        esbScript.setDescription(description);
-        esbScript.setVersionDesc(versionDesc);
+    public EsbScriptVersionDetailV3DTO toEsbCreateScriptV3DTO() {
+        EsbScriptVersionDetailV3DTO scriptDetail = new EsbScriptVersionDetailV3DTO();
+        scriptDetail.setScriptVersionId(scriptVersionId);
+        scriptDetail.setScriptId(id);
+        scriptDetail.setName(name);
+        scriptDetail.setType(type);
+        scriptDetail.setPublicScript(publicScript);
+        scriptDetail.setContent(content);
+        scriptDetail.setCreator(creator);
+        scriptDetail.setCreateTime(createTime);
+        scriptDetail.setLastModifyUser(lastModifyUser);
+        scriptDetail.setLastModifyTime(lastModifyTime);
+        scriptDetail.setVersion(version);
+        scriptDetail.setStatus(status);
+        scriptDetail.setDescription(description);
+        scriptDetail.setVersionDesc(versionDesc);
         if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
-            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, esbScript);
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, scriptDetail);
         }
-        return esbScript;
+        return scriptDetail;
     }
 
-    public EsbCreatePublicScriptV3DTO toEsbCreatePublicScriptV3DTO() {
-        EsbCreatePublicScriptV3DTO esbPublicScript = new EsbCreatePublicScriptV3DTO();
-        esbPublicScript.setScriptVersionId(scriptVersionId);
-        esbPublicScript.setId(id);
-        esbPublicScript.setName(name);
-        esbPublicScript.setType(type);
-        esbPublicScript.setPublicScript(publicScript);
-        esbPublicScript.setContent(content);
-        esbPublicScript.setCreator(creator);
-        esbPublicScript.setCreateTime(createTime);
-        esbPublicScript.setLastModifyUser(lastModifyUser);
-        esbPublicScript.setLastModifyTime(lastModifyTime);
-        esbPublicScript.setVersion(version);
-        esbPublicScript.setVersionDesc(versionDesc);
-        esbPublicScript.setStatus(status);
-        esbPublicScript.setDescription(description);
-        return esbPublicScript;
+    public EsbScriptVersionDetailV3DTO toEsbManageScriptV3DTO() {
+        EsbScriptVersionDetailV3DTO managetDetail = new EsbScriptVersionDetailV3DTO();
+        managetDetail.setScriptVersionId(scriptVersionId);
+        managetDetail.setScriptId(id);
+        managetDetail.setStatus(status);
+        return managetDetail;
     }
 
-    public EsbUpdateScriptV3DTO toEsbUpdateScriptV3DTO() {
-        EsbUpdateScriptV3DTO updateScriptV3DTO = new EsbUpdateScriptV3DTO();
-        updateScriptV3DTO.setId(id);
+    public EsbScriptVersionDetailV3DTO toEsbUpdateScriptV3DTO() {
+        EsbScriptVersionDetailV3DTO updateScriptV3DTO = new EsbScriptVersionDetailV3DTO();
+        updateScriptV3DTO.setScriptId(id);
         updateScriptV3DTO.setName(name);
         updateScriptV3DTO.setType(type);
         updateScriptV3DTO.setPublicScript(publicScript);
         if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
             EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, updateScriptV3DTO);
         }
-        updateScriptV3DTO.setCreator(creator);
-        updateScriptV3DTO.setCreateTime(createTime);
-        updateScriptV3DTO.setLastModifyUser(lastModifyUser);
-        updateScriptV3DTO.setLastModifyTime(lastModifyTime);
-        updateScriptV3DTO.setDescription(description);
-        return updateScriptV3DTO;
-    }
-
-    public EsbUpdatePublicScriptV3DTO toEsbUpdatePublicScriptV3DTO() {
-        EsbUpdatePublicScriptV3DTO updateScriptV3DTO = new EsbUpdatePublicScriptV3DTO();
-        updateScriptV3DTO.setId(id);
-        updateScriptV3DTO.setName(name);
-        updateScriptV3DTO.setType(type);
-        updateScriptV3DTO.setPublicScript(publicScript);
         updateScriptV3DTO.setCreator(creator);
         updateScriptV3DTO.setCreateTime(createTime);
         updateScriptV3DTO.setLastModifyUser(lastModifyUser);

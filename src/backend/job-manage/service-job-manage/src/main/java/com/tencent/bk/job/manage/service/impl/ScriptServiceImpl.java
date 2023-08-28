@@ -1072,4 +1072,21 @@ public class ScriptServiceImpl implements ScriptService {
         tagCount.setUnclassified(appScriptIds.size() - taggedScriptCount);
         return tagCount;
     }
+
+    @Override
+    public boolean isScriptReferenced(String scriptId, Long scriptVersionId) {
+        int citeCount = getScriptTemplateCiteCount(null, null, scriptId, scriptVersionId);
+        if (citeCount == 0) {
+            citeCount = getScriptTaskPlanCiteCount(null, null, scriptId, scriptVersionId);
+        }
+        if (citeCount > 0 && scriptVersionId != null) {
+            ScriptDTO scriptVersion = getScriptVersion(scriptVersionId);
+            if (scriptVersion != null && scriptVersion.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return citeCount > 0;
+    }
 }

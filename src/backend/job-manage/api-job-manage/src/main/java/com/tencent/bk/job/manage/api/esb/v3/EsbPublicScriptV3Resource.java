@@ -40,12 +40,8 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionL
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbManagePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptBasicV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptVersionV3Req;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbCreatePublicScriptV3DTO;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbCreateScriptV3DTO;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbManageScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbUpdatePublicScriptV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -114,14 +110,14 @@ public interface EsbPublicScriptV3Resource {
     );
 
     @PostMapping("/create_public_script")
-    EsbResp<EsbCreatePublicScriptV3DTO> createPublicScript(
+    EsbResp<EsbScriptVersionDetailV3DTO> createPublicScript(
         @RequestBody
         @Validated(Create.class)
             EsbCreatePublicScriptV3Req request
     );
 
     @PostMapping("/create_public_script_version")
-    EsbResp<EsbCreatePublicScriptV3DTO> createPublicScriptVersion(
+    EsbResp<EsbScriptVersionDetailV3DTO> createPublicScriptVersion(
         @RequestBody
         @Validated(Create.class)
             EsbCreatePublicScriptVersionV3Req request
@@ -142,28 +138,28 @@ public interface EsbPublicScriptV3Resource {
     );
 
     @PutMapping("/disable_public_script_version")
-    EsbResp<EsbManageScriptV3DTO> disablePublicScriptVersion(
+    EsbResp<EsbScriptVersionDetailV3DTO> disablePublicScriptVersion(
         @RequestBody
         @Validated(Update.class)
             EsbManagePublicScriptVersionV3Req request
     );
 
     @PutMapping("/publish_public_script_version")
-    EsbResp<EsbManageScriptV3DTO> publishPublicScriptVersion(
+    EsbResp<EsbScriptVersionDetailV3DTO> publishPublicScriptVersion(
         @RequestBody
         @Validated(Update.class)
             EsbManagePublicScriptVersionV3Req request
     );
 
     @PutMapping("/update_public_script_basic")
-    EsbResp<EsbUpdatePublicScriptV3DTO> updatePublicScriptBasic(
+    EsbResp<EsbScriptVersionDetailV3DTO> updatePublicScriptBasic(
         @RequestBody
         @Validated(Update.class)
             EsbUpdatePublicScriptBasicV3Req request
     );
 
     @PutMapping("/update_public_script_version")
-    EsbResp<EsbCreateScriptV3DTO> updatePublicScriptVersion(
+    EsbResp<EsbScriptVersionDetailV3DTO> updatePublicScriptVersion(
         @RequestBody
         @Validated(Update.class)
             EsbUpdatePublicScriptVersionV3Req request
