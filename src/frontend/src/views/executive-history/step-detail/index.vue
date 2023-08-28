@@ -200,7 +200,7 @@
   import ExecutionInfo from './components/execution-info';
   import ExportLog from './components/export-log';
   import GroupTab from './components/group-tab';
-  import IpList from './components/ip-list';
+  import IpList from './components/ip-list/index-new.vue';
   import mixins from './components/mixins';
   import RollingBatch from './components/rolling-batch';
   import TaskStatus from './components/task-status';
