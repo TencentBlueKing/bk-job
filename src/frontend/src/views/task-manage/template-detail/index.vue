@@ -39,6 +39,7 @@
           <jb-edit-input
             class="input"
             field="name"
+            :maxlength="60"
             :remote-hander="handleUpdateTemplate"
             :rules="rules.name"
             :value="formData.name" />
