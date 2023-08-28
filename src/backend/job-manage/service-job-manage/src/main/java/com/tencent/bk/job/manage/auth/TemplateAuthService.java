@@ -81,18 +81,6 @@ public interface TemplateAuthService {
                                      Long jobTemplateId);
 
     /**
-     * 资源范围下调试作业模板鉴权
-     *
-     * @param username      用户名
-     * @param appResourceScope 资源范围
-     * @param jobTemplateId 作业模板ID
-     * @return 鉴权结果
-     */
-    AuthResult authDebugJobTemplate(String username,
-                                    AppResourceScope appResourceScope,
-                                    Long jobTemplateId);
-
-    /**
      * 资源范围下查看作业模板批量鉴权
      *
      * @param username          用户名

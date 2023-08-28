@@ -108,19 +108,6 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
     }
 
     @Override
-    public AuthResult authDebugJobTemplate(String username,
-                                           AppResourceScope appResourceScope,
-                                           Long jobTemplateId) {
-        return authService.auth(
-            username,
-            ActionId.DEBUG_JOB_TEMPLATE,
-            ResourceTypeEnum.TEMPLATE,
-            jobTemplateId.toString(),
-            buildAppScopePath(appResourceScope)
-        );
-    }
-
-    @Override
     public List<Long> batchAuthViewJobTemplate(String username,
                                                AppResourceScope appResourceScope,
                                                List<Long> jobTemplateIdList) {
