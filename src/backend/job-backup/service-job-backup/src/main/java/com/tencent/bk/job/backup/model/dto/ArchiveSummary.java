@@ -36,8 +36,7 @@ public class ArchiveSummary {
     private String archiveEndDate;
     private boolean skip;
 
-    private boolean archiveEnabled;
-    private boolean backupEnabled;
+    private String archiveMode;
 
     private Long archiveIdStart;
     private Long archiveIdEnd;

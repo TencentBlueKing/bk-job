@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -40,25 +41,20 @@ public class ArchiveDBProperties {
     private boolean enabled;
 
     /**
+     * 归档模式
+     *
+     * @see ArchiveModeEnum
+     */
+    private String mode;
+
+    /**
      * 触发时间 CRON 表达式
      */
     private String cron;
-
-    private BackupConfig backup;
 
     /**
      * DB数据保留天数
      */
     private int keepDays = 30;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class BackupConfig {
-        /**
-         * 是否启用 DB 数据备份，job.backup.archive.execute.enabled=true 的时候该配置项才会生效
-         */
-        private boolean enabled;
-    }
 
 }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
+import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.ExecuteArchiveDAOImpl;
 import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
@@ -50,6 +51,7 @@ import org.jooq.DSLContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,12 +59,18 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.ExecutorService;
 
+/**
+ * job-execute 模块数据归档配置
+ */
 @Configuration
 @EnableScheduling
 @Slf4j
 @EnableConfigurationProperties(ArchiveDBProperties.class)
 public class ArchivistAutoConfig {
 
+    /**
+     * job-execute DB 配置
+     */
     @Configuration
     @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
     public static class ExecuteDaoAutoConfig {
@@ -203,12 +211,20 @@ public class ArchivistAutoConfig {
 
     }
 
-    @Bean(name = "execute-archive-dao")
-    @ConditionalOnExpression("${job.execute.archive.execute.backup.enabled:false}")
-    public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
-        log.info("Init ExecuteArchiveDAO");
-        return new ExecuteArchiveDAOImpl(context);
+    /**
+     * job-execute 归档数据备份 DB 配置
+     */
+    @Configuration
+    @ConditionalOnProperty(value = "job.execute.archive.execute.mode",
+        havingValue = ArchiveModeEnum.Constants.BACKUP_THEN_DELETE)
+    public static class ExecuteArchiveDbConfig {
+        @Bean(name = "execute-archive-dao")
+        public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
+            log.info("Init ExecuteArchiveDAO");
+            return new ExecuteArchiveDAOImpl(context);
+        }
     }
+
 
     @Bean
     public JobExecuteArchiveManage jobExecuteArchiveManage(

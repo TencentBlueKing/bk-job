@@ -31,18 +31,21 @@ buildscript {
         set("gradleJooqVersion", "3.0.0")
     }
 
-    def mavenRepoUrl = System.getProperty("mavenRepoUrl")
-
-    if (mavenRepoUrl == null) {
-        mavenRepoUrl = System.getenv("mavenRepoUrl")
-    }
-
-    if (mavenRepoUrl == null) {
-        println "use default maven repo url."
-        mavenRepoUrl = MAVEN_REPO_URL
-    }
     repositories {
         mavenLocal()
+
+        def mavenRepoUrl = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrl == null) {
+            mavenRepoUrl = System.getenv("mavenRepoUrl")
+        }
+        if (mavenRepoUrl == null) {
+            mavenRepoUrl = MAVEN_REPO_URL
+        }
+        if (mavenRepoUrl != null) {
+            println("Add default maven repo :" + mavenRepoUrl)
+            maven { url mavenRepoUrl }
+        }
+
         def extraMavenRepoUrls = System.getProperty("extraMavenRepoUrls")
         if (extraMavenRepoUrls == null) {
             extraMavenRepoUrls = System.getenv("extraMavenRepoUrls")
@@ -54,7 +57,7 @@ buildscript {
                 maven { url repoUrl }
             }
         }
-        maven { url mavenRepoUrl }
+
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
@@ -169,19 +172,21 @@ allprojects {
         options.compilerArgs.add '-parameters'
     }
 
-    def mavenRepoUrl = System.getProperty("mavenRepoUrl")
-
-    if (mavenRepoUrl == null) {
-        mavenRepoUrl = System.getenv("mavenRepoUrl")
-    }
-
-    if (mavenRepoUrl == null) {
-        println "use default maven repo url."
-        mavenRepoUrl = MAVEN_REPO_URL
-    }
-
     repositories {
         mavenLocal()
+
+        def mavenRepoUrl = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrl == null) {
+            mavenRepoUrl = System.getenv("mavenRepoUrl")
+        }
+        if (mavenRepoUrl == null) {
+            mavenRepoUrl = MAVEN_REPO_URL
+        }
+        if (mavenRepoUrl != null) {
+            println("Add default maven repo :" + mavenRepoUrl)
+            maven { url mavenRepoUrl }
+        }
+
         def extraMavenRepoUrls = System.getProperty("extraMavenRepoUrls")
         if (extraMavenRepoUrls == null) {
             extraMavenRepoUrls = System.getenv("extraMavenRepoUrls")
@@ -193,7 +198,7 @@ allprojects {
                 maven { url repoUrl }
             }
         }
-        maven { url mavenRepoUrl }
+
         maven { url "https://plugins.gradle.org/m2/" }
         maven {
             url "https://repo.spring.io/snapshot"

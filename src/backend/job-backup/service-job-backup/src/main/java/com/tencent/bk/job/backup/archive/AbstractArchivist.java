@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
@@ -125,7 +126,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             }
 
             boolean archiveSuccess;
-            if (archiveDBProperties.getBackup().isEnabled()) {
+            if (isBackupEnable(archiveDBProperties)) {
                 archiveSuccess = backupTable();
             } else {
                 log.info("[{}] Backup is not enabled, skip backup table!", tableName);
@@ -142,14 +143,18 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             ).getMessage();
             log.error(msg, e);
         } finally {
-            archiveSummary.setArchiveEnabled(archiveDBProperties.isEnabled());
-            archiveSummary.setBackupEnabled(archiveDBProperties.getBackup().isEnabled());
+            archiveSummary.setArchiveMode(archiveDBProperties.getMode());
             storeArchiveSummary();
             if (this.isAcquireLock) {
                 ArchiveTaskLock.getInstance().unlock(tableName);
             }
             countDownLatch.countDown();
         }
+    }
+
+    private boolean isBackupEnable(ArchiveDBProperties archiveDBProperties) {
+        return archiveDBProperties.isEnabled()
+            && ArchiveModeEnum.BACKUP_THEN_DELETE == ArchiveModeEnum.valOf(archiveDBProperties.getMode());
     }
 
     private boolean acquireLock() {

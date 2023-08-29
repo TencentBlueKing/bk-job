@@ -22,16 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.inner;
+package com.tencent.bk.job.backup.constant;
 
-import lombok.Data;
+/**
+ * 归档模式
+ */
+public enum ArchiveModeEnum {
+    /**
+     * 仅删除原始数据
+     */
+    DELETE_ONLY(Constants.DELETE_ONLY),
+    /**
+     * 备份数据后再删除
+     */
+    BACKUP_THEN_DELETE(Constants.BACKUP_THEN_DELETE);
 
-@Data
-public class ServiceArchiveDBRequest {
+    ArchiveModeEnum(String mode) {
+        this.mode = mode;
+    }
 
-    private boolean archiveEnabled;
+    public interface Constants {
+        String DELETE_ONLY = "deleteOnly";
+        String BACKUP_THEN_DELETE = "backupThenDelete";
+    }
 
-    private String mode;
+    private final String mode;
 
-    private int dataKeepDays;
+    public static ArchiveModeEnum valOf(String mode) {
+        for (ArchiveModeEnum value : values()) {
+            if (value.mode.equalsIgnoreCase(mode)) {
+                return value;
+            }
+        }
+        return null;
+    }
 }

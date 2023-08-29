@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.common.service.constants.DeployModeEnum;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
@@ -82,7 +83,8 @@ public class ExecuteDbArchiveConfig {
      * 归档 DB 配置
      */
     @Configuration("executeArchiveDbConfig")
-    @ConditionalOnProperty(value = "job.backup.archive.execute.backup.enabled", havingValue = "true")
+    @ConditionalOnProperty(value = "job.execute.archive.execute.mode",
+        havingValue = ArchiveModeEnum.Constants.BACKUP_THEN_DELETE)
     static class JobExecuteArchiveDbConfig {
         @Qualifier("job-execute-archive-source")
         @Bean(name = "job-execute-archive-source")

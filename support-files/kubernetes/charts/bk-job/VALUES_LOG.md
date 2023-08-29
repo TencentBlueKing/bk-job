@@ -13,17 +13,24 @@ deploy:
 backupConfig:
   ## 数据归档配置
   archive:
+    # 归档使用的MariaDB实例，若开启归档且开启 DB 数据备份，必须配置该项内容
+    mariadb:
+      host: ""
+      port: ""
+      username: "job"
+      password: "job"
+      connection:
+        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
     # job-execute模块的归档配置
     execute:
       # 是否启用 DB 归档
       enabled: false
+      # 归档模式。deleteDirect: 直接删除；backupThenDelete: 先备份数据再删除。默认直接删除
+      mode: deleteDirect
       # 归档任务运行的cron表达式，默认每天凌晨04:00
       cron: 0 0 4 * * *
       # 热库中的数据保留时间（天）
       keep_days: 30
-      backup:
-        # 是否启用 DB 数据备份
-        enabled: false
 ```
 
 ## 0.5.0

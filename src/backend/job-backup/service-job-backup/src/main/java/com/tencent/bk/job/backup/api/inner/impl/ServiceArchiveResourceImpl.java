@@ -49,10 +49,7 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
         ArchiveDBProperties archiveDBProperties = new ArchiveDBProperties();
         archiveDBProperties.setEnabled(request.isArchiveEnabled());
         archiveDBProperties.setKeepDays(request.getDataKeepDays());
-
-        ArchiveDBProperties.BackupConfig backupConfig = new ArchiveDBProperties.BackupConfig();
-        backupConfig.setEnabled(request.isBackupEnabled());
-        archiveDBProperties.setBackup(backupConfig);
+        archiveDBProperties.setMode(request.getMode());
 
         jobExecuteArchiveManage.archive(archiveDBProperties);
         return InternalResponse.buildSuccessResp(null);
