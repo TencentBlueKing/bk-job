@@ -156,6 +156,9 @@
 
       .title-text {
         height: 21px;
+        max-width: 280px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
 
