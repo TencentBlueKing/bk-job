@@ -455,7 +455,8 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         AuthResult authResult;
         if (planId > 0) {
             if (planService.isDebugPlan(appResourceScope.getAppId(), templateId, planId)) {
-                authResult = templateAuthService.authDebugJobTemplate(username, appResourceScope, templateId);
+                // 调试作业模版会保存一份内置的执行方案；从用户角度来说仍然还是在处理跟模版相关的操作，所以使用模版查看鉴权
+                authResult = templateAuthService.authViewJobTemplate(username, appResourceScope, templateId);
             } else {
                 authResult = planAuthService.authEditJobPlan(username, appResourceScope, templateId,
                     planId, null);
