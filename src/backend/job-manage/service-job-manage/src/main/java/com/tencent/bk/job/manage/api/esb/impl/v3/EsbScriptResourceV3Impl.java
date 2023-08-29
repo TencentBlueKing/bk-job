@@ -355,11 +355,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         String scriptId = request.getScriptId();
         AppResourceScope appResourceScope = request.getAppResourceScope();
         authManageScript(userName, appResourceScope, scriptId, null);
-
-        if (scriptService.isScriptReferenced(scriptId, null)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.DELETE_REF_SCRIPT_FAIL);
-        }
-
         scriptService.deleteScript(userName, appResourceScope.getAppId(), scriptId);
         return EsbResp.buildSuccessResp(null);
     }
@@ -376,10 +371,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         if (versionId == 0l) {
             return EsbResp.buildCommonFailResp(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
                 new String[]{"script_version_id"}, null);
-        }
-
-        if (scriptService.isScriptReferenced(scriptId, versionId)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.DELETE_REF_SCRIPT_FAIL);
         }
         scriptService.deleteScriptVersion(userName, appResourceScope.getAppId(), versionId);
         return EsbResp.buildSuccessResp(null);

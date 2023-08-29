@@ -44,21 +44,21 @@ public class EsbUpdateScriptVersionV3Req extends EsbAppScopeReq {
     /**
      * 脚本ID
      */
-    @NotEmpty(message = "{validation.constraints.ScriptId_notNull.message}", groups = Update.class)
+    @NotEmpty(message = "{validation.constraints.ScriptId_empty.message}", groups = Update.class)
     @JsonProperty("script_id")
     private String scriptId;
 
     /**
      * 脚本版本ID
      */
-    @NotEmpty(message = "{validation.constraints.ScriptVersion_notNull.message}", groups = Update.class)
+    @NotEmpty(message = "{validation.constraints.ScriptVersionId_empty.message}", groups = Update.class)
     @JsonProperty("script_version_id")
     private Long scriptVersionId;
 
     /**
      * 脚本内容，需Base64编码
      */
-    @NotEmpty(message = "{validation.constraints.ScriptContent_notNull.message}", groups = Update.class)
+    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}", groups = Update.class)
     private String content;
 
     /**

@@ -21,20 +21,20 @@ public class EsbCreatePublicScriptVersionV3Req extends EsbJobReq {
     /**
      * 脚本ID
      */
-    @NotEmpty(message = "{validation.constraints.ScriptName_notNull.message}", groups = Create.class)
+    @NotEmpty(message = "{validation.constraints.ScriptName_empty.message}", groups = Create.class)
     @JsonProperty("script_id")
     private String scriptId;
 
     /**
      * 脚本内容，需Base64编码
      */
-    @NotEmpty(message = "{validation.constraints.ScriptContent_notNull.message}", groups = Create.class)
+    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}", groups = Create.class)
     private String content;
 
     /**
      * 脚本版本
      */
-    @NotEmpty(message = "{validation.constraints.ScriptVersion_notNull.message}", groups = Create.class)
+    @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}", groups = Create.class)
     @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}", groups = Create.class)
     @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}",
         groups = Create.class)

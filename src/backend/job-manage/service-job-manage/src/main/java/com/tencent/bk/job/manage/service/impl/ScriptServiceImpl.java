@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -490,6 +491,7 @@ public class ScriptServiceImpl implements ScriptService {
     public void deleteScriptVersion(String operator, Long appId, Long scriptVersionId) throws ServiceException {
         ScriptDTO existScript = scriptDAO.getScriptVersionById(scriptVersionId);
         checkDeleteScriptPermission(appId, existScript);
+        checkScriptReferenced(existScript);
         if (existScript.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
             log.warn("Fail to delete script version because script is online. scriptVersionId={}", scriptVersionId);
             throw new FailedPreconditionException(ErrorCode.DELETE_ONLINE_SCRIPT_FAIL);
@@ -509,9 +511,16 @@ public class ScriptServiceImpl implements ScriptService {
     public void deleteScript(String operator, Long appId, String scriptId) throws ServiceException {
         ScriptDTO existScript = getScript(operator, appId, scriptId);
         checkDeleteScriptPermission(appId, existScript);
+        checkScriptReferenced(existScript);
         scriptDAO.deleteScript(scriptId);
         scriptDAO.deleteScriptVersionByScriptId(scriptId);
         deleteScriptRelatedTags(appId, scriptId);
+    }
+
+    private void checkScriptReferenced(ScriptDTO scriptDTO) {
+        if (isScriptReferenced(scriptDTO.getId(), scriptDTO.getScriptVersionId())) {
+            throw new InternalException(ErrorCode.DELETE_REF_SCRIPT_FAIL);
+        }
     }
 
     private void deleteScriptRelatedTags(Long appId, String scriptId) {

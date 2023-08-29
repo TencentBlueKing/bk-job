@@ -44,7 +44,7 @@ public class EsbDeleteScriptV3Req extends EsbAppScopeReq {
     /**
      * 脚本ID
      */
-    @NotEmpty(message = "{validation.constraints.ScriptId_notNull.message}", groups = Delete.class)
+    @NotEmpty(message = "{validation.constraints.ScriptId_empty.message}", groups = Delete.class)
     @JsonProperty("script_id")
     private String scriptId;
 

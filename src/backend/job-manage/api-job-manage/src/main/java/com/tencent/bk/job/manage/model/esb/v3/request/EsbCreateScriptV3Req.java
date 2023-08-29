@@ -28,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Create;
-import com.tencent.bk.job.common.validation.NotContainSpecialChar;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -49,11 +48,11 @@ public class EsbCreateScriptV3Req extends EsbAppScopeReq {
     /**
      * 脚本名称
      */
-    @NotEmpty(message = "{validation.constraints.ScriptName_notNull.message}", groups = Create.class)
+    @NotEmpty(message = "{validation.constraints.ScriptName_empty.message}", groups = Create.class)
     @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}", groups = Create.class)
-    @NotContainSpecialChar(fieldName = "name", groups = Create.class)
+    @Pattern(regexp = "^[^\\\\|/:*<>\"?]+$", message = "{validation.constraints.ScriptName_illegal.message}",
+        groups = Create.class)
     private String name;
-
     /**
      * 脚本描述
      */
@@ -71,13 +70,13 @@ public class EsbCreateScriptV3Req extends EsbAppScopeReq {
     /**
      * 脚本内容，需Base64编码
      */
-    @NotEmpty(message = "{validation.constraints.ScriptContent_notNull.message}", groups = Create.class)
+    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}", groups = Create.class)
     private String content;
 
     /**
      * 脚本版本
      */
-    @NotEmpty(message = "{validation.constraints.ScriptVersion_notNull.message}", groups = Create.class)
+    @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}", groups = Create.class)
     @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}", groups = Create.class)
     @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}",
         groups = Create.class)

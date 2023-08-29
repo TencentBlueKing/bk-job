@@ -259,9 +259,6 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         String userName = request.getUserName();
         String scriptId = request.getScriptId();
         authManagePublicScript(userName, scriptId);
-        if (scriptService.isScriptReferenced(scriptId, null)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.DELETE_REF_SCRIPT_FAIL);
-        }
         scriptService.deleteScript(userName, PUBLIC_APP_ID, scriptId);
         return EsbResp.buildSuccessResp(null);
     }
@@ -277,10 +274,6 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         if (versionId == 0l) {
             return EsbResp.buildCommonFailResp(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
                 new String[]{"script_version_id"}, null);
-        }
-
-        if (scriptService.isScriptReferenced(scriptId, versionId)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.DELETE_REF_SCRIPT_FAIL);
         }
         scriptService.deleteScriptVersion(userName, PUBLIC_APP_ID, versionId);
         return EsbResp.buildSuccessResp(null);
