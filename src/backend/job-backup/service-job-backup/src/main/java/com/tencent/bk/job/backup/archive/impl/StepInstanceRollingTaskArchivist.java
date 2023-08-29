@@ -47,7 +47,7 @@ public class StepInstanceRollingTaskArchivist extends AbstractArchivist<StepInst
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
-                archiveDBProperties,
+            archiveDBProperties,
             maxNeedArchiveId,
             countDownLatch);
         this.deleteIdStepSize = 100_000;

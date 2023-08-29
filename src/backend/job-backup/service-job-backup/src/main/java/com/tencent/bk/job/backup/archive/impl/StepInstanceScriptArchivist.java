@@ -47,7 +47,7 @@ public class StepInstanceScriptArchivist extends AbstractArchivist<StepInstanceS
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
-                archiveDBProperties,
+            archiveDBProperties,
             maxNeedArchiveId,
             countDownLatch);
         this.deleteIdStepSize = 10_000;

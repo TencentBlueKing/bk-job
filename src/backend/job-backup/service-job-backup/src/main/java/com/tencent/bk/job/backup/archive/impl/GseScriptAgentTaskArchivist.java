@@ -47,7 +47,7 @@ public class GseScriptAgentTaskArchivist extends AbstractArchivist<GseScriptAgen
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
-                archiveDBProperties,
+            archiveDBProperties,
             maxNeedArchiveId,
             countDownLatch);
         this.deleteIdStepSize = 1_000;

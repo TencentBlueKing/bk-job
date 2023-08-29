@@ -47,7 +47,7 @@ public class TaskInstanceHostArchivist extends AbstractArchivist<TaskInstanceHos
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
-                archiveDBProperties,
+            archiveDBProperties,
             maxNeedArchiveId,
             countDownLatch);
         this.deleteIdStepSize = 10_000;

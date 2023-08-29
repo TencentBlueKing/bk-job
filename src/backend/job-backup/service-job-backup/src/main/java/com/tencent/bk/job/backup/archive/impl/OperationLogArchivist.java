@@ -47,7 +47,7 @@ public class OperationLogArchivist extends AbstractArchivist<OperationLogRecord>
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
-                archiveDBProperties,
+            archiveDBProperties,
             maxNeedArchiveId,
             countDownLatch);
         this.deleteIdStepSize = 10_000;

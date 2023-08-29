@@ -46,7 +46,7 @@ import java.util.Map;
 /**
  * 微服务升级
  */
-@RequestMapping("/migration/crontab")
+@RequestMapping("/crontab/migration")
 @Slf4j
 @RestController("jobCrontabMigrationResource")
 public class MigrationResource {

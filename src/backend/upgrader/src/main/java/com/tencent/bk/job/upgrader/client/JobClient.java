@@ -58,7 +58,7 @@ public class JobClient extends AbstractJobClient {
 
     private static final String URL_LIST_BIZ_SET_APPS = "/service/app/list/bizSet";
 
-    private static final String URL_SET_BIZ_SET_MIGRATION_STATUS = "/migration/manage/action/setBizSetMigrationStatus";
+    private static final String URL_SET_BIZ_SET_MIGRATION_STATUS = "/manage/migration/action/setBizSetMigrationStatus";
 
     private static final JsonMapper JSON_MAPPER = JsonMapper.nonDefaultMapper();
 
