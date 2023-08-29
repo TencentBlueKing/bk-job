@@ -308,6 +308,7 @@
     list.value = Object.freeze(props.data);
     if (props.data.length > 0 && !selectRowKey.value) {
       selectRowKey.value = props.data[0].key;
+      handleRowClick(props.data[0]);
     }
   }, {
     immediate: true,
