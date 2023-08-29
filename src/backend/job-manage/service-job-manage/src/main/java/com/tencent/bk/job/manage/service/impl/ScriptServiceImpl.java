@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -519,7 +518,7 @@ public class ScriptServiceImpl implements ScriptService {
 
     private void checkScriptReferenced(ScriptDTO scriptDTO) {
         if (isScriptReferenced(scriptDTO.getId(), scriptDTO.getScriptVersionId())) {
-            throw new InternalException(ErrorCode.DELETE_REF_SCRIPT_FAIL);
+            throw new FailedPreconditionException(ErrorCode.DELETE_REF_SCRIPT_FAIL);
         }
     }
 

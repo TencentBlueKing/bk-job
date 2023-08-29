@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbJobReq;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.Delete;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -34,12 +34,12 @@ import lombok.EqualsAndHashCode;
 import javax.validation.constraints.NotEmpty;
 
 /**
- * 删除公共脚本请求
+ * 删除脚本版本请求
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel("删除公共脚本请求报文")
-public class EsbDeletePublicScriptV3Req extends EsbJobReq {
+@ApiModel("删除业务脚本版本请求报文")
+public class EsbDeleteScriptVersionV3Req extends EsbAppScopeReq {
 
     /**
      * 脚本ID
@@ -47,4 +47,11 @@ public class EsbDeletePublicScriptV3Req extends EsbJobReq {
     @NotEmpty(message = "{validation.constraints.ScriptId_empty.message}", groups = Delete.class)
     @JsonProperty("script_id")
     private String scriptId;
+
+    /**
+     * 脚本版本ID
+     */
+    @NotEmpty(message = "{validation.constraints.ScriptVersionId_empty.message}", groups = Delete.class)
+    @JsonProperty("script_version_id")
+    private long scriptVersionId;
 }

@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.validation.Update;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeletePublicScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeletePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionDetailV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionListV3Request;
@@ -134,7 +135,7 @@ public interface EsbPublicScriptV3Resource {
     EsbResp deletePublicScriptVersion(
         @RequestBody
         @Validated(Delete.class)
-            EsbDeletePublicScriptV3Req request
+            EsbDeletePublicScriptVersionV3Req request
     );
 
     @PutMapping("/disable_public_script_version")

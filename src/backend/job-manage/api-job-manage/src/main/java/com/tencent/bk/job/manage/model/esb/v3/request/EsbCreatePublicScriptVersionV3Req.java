@@ -21,7 +21,7 @@ public class EsbCreatePublicScriptVersionV3Req extends EsbJobReq {
     /**
      * 脚本ID
      */
-    @NotEmpty(message = "{validation.constraints.ScriptName_empty.message}", groups = Create.class)
+    @NotEmpty(message = "{validation.constraints.ScriptId_empty.message}", groups = Create.class)
     @JsonProperty("script_id")
     private String scriptId;
 

@@ -34,12 +34,12 @@ import lombok.EqualsAndHashCode;
 import javax.validation.constraints.NotEmpty;
 
 /**
- * 删除公共脚本请求
+ * 删除公共脚本版本请求
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel("删除公共脚本请求报文")
-public class EsbDeletePublicScriptV3Req extends EsbJobReq {
+@ApiModel("删除公共脚本版本请求报文")
+public class EsbDeletePublicScriptVersionV3Req extends EsbJobReq {
 
     /**
      * 脚本ID
@@ -47,4 +47,11 @@ public class EsbDeletePublicScriptV3Req extends EsbJobReq {
     @NotEmpty(message = "{validation.constraints.ScriptId_empty.message}", groups = Delete.class)
     @JsonProperty("script_id")
     private String scriptId;
+
+    /**
+     * 脚本版本ID
+     */
+    @NotEmpty(message = "{validation.constraints.ScriptVersionId_empty.message}", groups = Delete.class)
+    @JsonProperty("script_version_id")
+    private long scriptVersionId;
 }

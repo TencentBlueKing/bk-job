@@ -43,6 +43,7 @@ import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeletePublicScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeletePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionDetailV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionListV3Request;
@@ -265,17 +266,11 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_public_script_version"})
-    public EsbResp deletePublicScriptVersion(EsbDeletePublicScriptV3Req request) {
+    public EsbResp deletePublicScriptVersion(EsbDeletePublicScriptVersionV3Req request) {
         String userName = request.getUserName();
         String scriptId = request.getScriptId();
-
         authManagePublicScript(userName, scriptId);
-        long versionId = request.getScriptVersionId();
-        if (versionId == 0l) {
-            return EsbResp.buildCommonFailResp(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
-                new String[]{"script_version_id"}, null);
-        }
-        scriptService.deleteScriptVersion(userName, PUBLIC_APP_ID, versionId);
+        scriptService.deleteScriptVersion(userName, PUBLIC_APP_ID, request.getScriptVersionId());
         return EsbResp.buildSuccessResp(null);
     }
 

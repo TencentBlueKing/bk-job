@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3Req;
@@ -308,7 +309,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
         ScriptDTO script = scriptDTOBuilder.buildFromEsbCreateReq(request);
         script.setAppId(appResourceScope.getAppId());
-        script.setPublicScript(appResourceScope == null);
+        script.setPublicScript(false);
         script.setCreator(userName);
         script.setLastModifyUser(userName);
         ScriptDTO savedScript = scriptService.saveScript(userName, request.getAppId(), script);
@@ -332,7 +333,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
         ScriptDTO script = scriptDTOBuilder.buildFromEsbCreateReq(request);
         script.setAppId(appResourceScope.getAppId());
-        script.setPublicScript(appResourceScope == null);
+        script.setPublicScript(false);
         script.setCreator(userName);
         script.setLastModifyUser(userName);
         ScriptDTO exitScriptDTO = scriptService.getScriptByScriptId(script.getId());
@@ -361,18 +362,12 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_script_version"})
-    public EsbResp deleteScriptVersion(EsbDeleteScriptV3Req request) {
+    public EsbResp deleteScriptVersion(EsbDeleteScriptVersionV3Req request) {
         String userName = request.getUserName();
         String scriptId = request.getScriptId();
         AppResourceScope appResourceScope = request.getAppResourceScope();
         authManageScript(userName, appResourceScope, scriptId, null);
-
-        long versionId = request.getScriptVersionId();
-        if (versionId == 0l) {
-            return EsbResp.buildCommonFailResp(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
-                new String[]{"script_version_id"}, null);
-        }
-        scriptService.deleteScriptVersion(userName, appResourceScope.getAppId(), versionId);
+        scriptService.deleteScriptVersion(userName, appResourceScope.getAppId(), request.getScriptVersionId());
         return EsbResp.buildSuccessResp(null);
     }
 
@@ -424,7 +419,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         authManageScript(userName, appResourceScope, scriptId, null);
         ScriptDTO scriptVersionDTO = scriptDTOBuilder.buildFromCreateUpdateReq(request);
         scriptVersionDTO.setAppId(appResourceScope.getAppId());
-        scriptVersionDTO.setPublicScript(appResourceScope == null);
+        scriptVersionDTO.setPublicScript(false);
         scriptVersionDTO.setCreator(userName);
         scriptVersionDTO.setLastModifyUser(userName);
         scriptService.updateScriptVersion(userName, appResourceScope.getAppId(), scriptVersionDTO);
