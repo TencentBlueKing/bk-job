@@ -32,6 +32,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 /**
  * 更新公共脚本版本请求
@@ -51,7 +52,7 @@ public class EsbUpdatePublicScriptVersionV3Req extends EsbJobReq {
     /**
      * 脚本版本ID
      */
-    @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}", groups = Update.class)
+    @NotNull(message = "{validation.constraints.ScriptVersion_empty.message}", groups = Update.class)
     @JsonProperty("script_version_id")
     private Long scriptVersionId;
 

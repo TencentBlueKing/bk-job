@@ -32,6 +32,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 /**
  * 删除脚本版本请求
@@ -51,7 +52,7 @@ public class EsbDeleteScriptVersionV3Req extends EsbAppScopeReq {
     /**
      * 脚本版本ID
      */
-    @NotEmpty(message = "{validation.constraints.ScriptVersionId_empty.message}", groups = Delete.class)
+    @NotNull(message = "{validation.constraints.ScriptVersionId_empty.message}", groups = Delete.class)
     @JsonProperty("script_version_id")
-    private long scriptVersionId;
+    private Long scriptVersionId;
 }

@@ -11,6 +11,7 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 /**
@@ -39,6 +40,7 @@ public class EsbCreatePublicScriptV3Req extends EsbJobReq {
      * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
      */
     @JsonProperty("script_language")
+    @NotNull(message = "{validation.constraints.ScriptType_empty.message}",groups = Create.class)
     @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
         message = "{validation.constraints.ScriptType_illegal.message}", groups = Create.class)
     private Integer type;
