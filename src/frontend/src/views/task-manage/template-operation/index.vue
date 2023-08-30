@@ -488,14 +488,6 @@
         this.$refs.templateOperateRef.clearError();
       },
       /**
-       * @desc
-       * @param { Boolean } name
-       * @returns { Boolean }
-       */
-      handleClearIllegalHost() {
-        console.log('handleClearIllegalHost');
-      },
-      /**
        * @desc 保存作业模板
        *
        * 需要对作模板数据做逻辑验证处理

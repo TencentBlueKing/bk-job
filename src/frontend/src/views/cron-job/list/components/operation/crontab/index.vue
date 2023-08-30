@@ -115,8 +115,6 @@
     4: 'dayOfWeek',
   };
 
-  console.log('I18nI18nI18nv = ', I18n);
-
   export default {
     name: '',
     props: {
@@ -256,7 +254,6 @@
 </script>
 <style lang='postcss'>
     .cron-job {
-
       &.is-error {
         .time-input {
           .input {

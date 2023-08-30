@@ -313,12 +313,13 @@
     if (!props.listLoading) {
       return;
     }
-    list.value = Object.freeze(props.data);
-    if (props.data.length > 0 && !selectRowKey.value) {
+    list.value = props.data;
+
+    if (props.data.length < 1) {
+      handleRowClick({});
+    } else if (!selectRowKey.value) {
       selectRowKey.value = props.data[0].key;
       handleRowClick(props.data[0]);
-    } else {
-      handleRowClick({});
     }
   }, {
     immediate: true,
