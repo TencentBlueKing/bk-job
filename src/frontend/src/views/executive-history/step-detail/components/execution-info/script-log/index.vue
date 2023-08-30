@@ -127,6 +127,7 @@
         handler() {
           // 日志自动滚动
           this.isLoading = true;
+          this.isWillAutoScroll = true;
           this.autoScrollTimeout();
           this.fetchLogContent();
         },
