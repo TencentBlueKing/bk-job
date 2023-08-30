@@ -340,19 +340,9 @@ data:
         storage-backend: {{ .Values.backupConfig.storageBackend }}
         artifactory:
           repo: {{ .Values.backupConfig.artifactory.repo }}
-        # DB 归档配置
-        archive:
-          # job-execute db 归档配置
+        archive:  
           execute:
-            # 是否启用 DB 归档
-            enabled: false
-            # 触发时间 CRON 表达式
-            cron: 0 0 4 * * *
-            # 热库中的数据保留时间（天）
-            keep-days: 30
-            backup:
-              # 是否启用 DB 数据备份，job.backup.archive-db.execute.enabled=true 的时候该配置项才会生效
-              enabled: false
+            {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
       logsvr:
         mongodb:
           shard:
