@@ -55,6 +55,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.ExecutorService;
@@ -66,7 +67,8 @@ import java.util.concurrent.ExecutorService;
 @EnableScheduling
 @Slf4j
 @EnableConfigurationProperties(ArchiveDBProperties.class)
-public class ArchivistAutoConfig {
+@Import({ExecuteDbConfiguration.class, ExecuteBackupDbConfiguration.class})
+public class ArchiveConfiguration {
 
     /**
      * job-execute DB 配置
@@ -215,9 +217,9 @@ public class ArchivistAutoConfig {
      * job-execute 归档数据备份 DB 配置
      */
     @Configuration
-    @ConditionalOnProperty(value = "job.execute.archive.execute.mode",
+    @ConditionalOnProperty(value = "job.backup.archive.execute.mode",
         havingValue = ArchiveModeEnum.Constants.BACKUP_THEN_DELETE)
-    public static class ExecuteArchiveDbConfig {
+    public static class ExecuteBackupDAOConfig {
         @Bean(name = "execute-archive-dao")
         public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
             log.info("Init ExecuteArchiveDAO");
@@ -227,6 +229,7 @@ public class ArchivistAutoConfig {
 
 
     @Bean
+    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
     public JobExecuteArchiveManage jobExecuteArchiveManage(
         ObjectProvider<TaskInstanceRecordDAO> taskInstanceRecordDAOObjectProvider,
         ObjectProvider<StepInstanceRecordDAO> stepInstanceRecordDAOObjectProvider,

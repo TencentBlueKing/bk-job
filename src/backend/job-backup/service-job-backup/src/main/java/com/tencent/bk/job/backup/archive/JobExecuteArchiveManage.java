@@ -148,7 +148,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         this.executeArchiveDAO = executeArchiveDAO;
     }
 
-    @Scheduled(cron = "${job.execute.archive.cron:0 0 4 * * *}")
+    @Scheduled(cron = "${job.backup.archive.cron:0 0 4 * * *}")
     public void cronArchive() {
         archive(archiveDBProperties);
     }
