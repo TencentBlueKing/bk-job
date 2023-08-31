@@ -51,12 +51,12 @@ public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient 
 
     private static final String API_GET_USER_INFO = "/api/c/compapi/v2/bk_login/get_user/";
 
-    public EELoginClient(String esbHostUrl, String appCode, String appSecret, String lang, boolean useEsbTestEnv) {
-        super(esbHostUrl, appCode, appSecret, lang, useEsbTestEnv);
+    public EELoginClient(String esbHostUrl, String appCode, String appSecret, String lang) {
+        super(esbHostUrl, appCode, appSecret, lang);
     }
 
-    public EELoginClient(String esbHostUrl, String appCode, String appSecret, boolean useEsbTestEnv) {
-        super(esbHostUrl, appCode, appSecret, "en", useEsbTestEnv);
+    public EELoginClient(String esbHostUrl, String appCode, String appSecret) {
+        super(esbHostUrl, appCode, appSecret, "en");
     }
 
     /**

@@ -26,45 +26,44 @@ package com.tencent.bk.job.file_gateway.dao.filesource;
 
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
-import org.jooq.DSLContext;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface FileSourceDAO {
-    Integer insertFileSource(DSLContext dslContext, FileSourceDTO fileSourceDTO);
+    Integer insertFileSource(FileSourceDTO fileSourceDTO);
 
-    int updateFileSource(DSLContext dslContext, FileSourceDTO fileSourceDTO);
+    int updateFileSource(FileSourceDTO fileSourceDTO);
 
-    int updateFileSourceStatus(DSLContext dslContext, Integer fileSourceId, Integer status);
+    int updateFileSourceStatus(Integer fileSourceId, Integer status);
 
-    int deleteFileSourceById(DSLContext dslContext, Integer id);
+    int deleteFileSourceById(Integer id);
 
-    int enableFileSourceById(DSLContext dslContext, String username, Long appId, Integer id, Boolean enableFlag);
+    int enableFileSourceById(String username, Long appId, Integer id, Boolean enableFlag);
 
-    FileSourceDTO getFileSourceById(DSLContext dslContext, Integer id);
+    FileSourceDTO getFileSourceById(Integer id);
 
-    List<FileSourceBasicInfoDTO> listFileSourceByIds(DSLContext dslContext, Collection<Integer> ids);
+    List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids);
 
-    FileSourceDTO getFileSourceByCode(DSLContext dslContext, String code);
+    FileSourceDTO getFileSourceByCode(String code);
 
-    Integer countAvailableLikeFileSource(DSLContext dslContext, Long appId, String credentialId, String alias);
+    Integer countAvailableLikeFileSource(Long appId, String credentialId, String alias);
 
-    Integer countFileSource(DSLContext dslContext, Long appId, String credentialId, String alias);
+    Integer countFileSource(Long appId, String credentialId, String alias);
 
-    Integer countWorkTableFileSource(DSLContext dslContext, Long appId, String credentialId, String alias);
+    Integer countWorkTableFileSource(Long appId, String credentialId, String alias);
 
-    Integer countWorkTableFileSource(DSLContext dslContext, List<Long> appIdList, List<Integer> idList);
+    Integer countWorkTableFileSource(List<Long> appIdList, List<Integer> idList);
 
-    Boolean checkFileSourceExists(DSLContext dslContext, Long appId, String alias);
+    Boolean checkFileSourceExists(Long appId, String alias);
 
-    List<FileSourceDTO> listAvailableFileSource(DSLContext dslContext, Long appId, String credentialId, String alias,
+    List<FileSourceDTO> listAvailableFileSource(Long appId, String credentialId, String alias,
                                                 Integer start, Integer pageSize);
 
-    List<FileSourceDTO> listWorkTableFileSource(DSLContext dslContext, Long appId, String credentialId, String alias,
+    List<FileSourceDTO> listWorkTableFileSource(Long appId, String credentialId, String alias,
                                                 Integer start, Integer pageSize);
 
-    List<FileSourceDTO> listWorkTableFileSource(DSLContext dslContext, List<Long> appIdList, List<Integer> idList,
+    List<FileSourceDTO> listWorkTableFileSource(List<Long> appIdList, List<Integer> idList,
                                                 Integer start, Integer pageSize);
 
     boolean existsCode(Long appId, String code);

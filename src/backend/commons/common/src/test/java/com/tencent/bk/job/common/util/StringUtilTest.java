@@ -96,4 +96,8 @@ public class StringUtilTest {
         assertNull(StringUtil.substring(null, 3));
 
     }
+
+    @Test
+    void concatArray() {
+    }
 }

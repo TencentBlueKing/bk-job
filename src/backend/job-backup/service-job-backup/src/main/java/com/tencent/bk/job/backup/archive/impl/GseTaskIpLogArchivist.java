@@ -25,11 +25,11 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
-import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import org.jooq.generated.tables.records.GseTaskIpLogRecord;
+import com.tencent.bk.job.execute.model.tables.records.GseTaskIpLogRecord;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -41,13 +41,13 @@ public class GseTaskIpLogArchivist extends AbstractArchivist<GseTaskIpLogRecord>
     public GseTaskIpLogArchivist(GseTaskIpLogRecordDAO executeRecordDAO,
                                  ExecuteArchiveDAO executeArchiveDAO,
                                  ArchiveProgressService archiveProgressService,
-                                 ArchiveConfig archiveConfig,
+                                 ArchiveDBProperties archiveDBProperties,
                                  Long maxNeedArchiveId,
                                  CountDownLatch countDownLatch) {
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
-            archiveConfig,
+            archiveDBProperties,
             maxNeedArchiveId,
             countDownLatch);
         this.deleteIdStepSize = 1_000;

@@ -271,7 +271,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Response<Boolean> deleteTemplate(String username,
                                             AppResourceScope appResourceScope,
                                             String scopeType,

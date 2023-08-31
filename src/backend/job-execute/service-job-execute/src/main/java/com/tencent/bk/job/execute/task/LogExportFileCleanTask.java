@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.execute.task;
 
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LogExportConfig;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.constants.Consts;
@@ -41,6 +41,7 @@ import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -64,7 +65,7 @@ public class LogExportFileCleanTask {
     public LogExportFileCleanTask(LogExportConfig logExportConfig,
                                   ArtifactoryConfig artifactoryConfig,
                                   StorageSystemConfig storageSystemConfig,
-                                  ArtifactoryClient artifactoryClient) {
+                                  @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient) {
         this.logExportConfig = logExportConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.storageSystemConfig = storageSystemConfig;

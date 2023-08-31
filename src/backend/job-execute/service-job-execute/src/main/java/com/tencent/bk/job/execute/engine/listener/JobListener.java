@@ -54,7 +54,7 @@ import java.util.List;
 /**
  * 执行引擎事件处理-作业
  */
-@Component
+@Component("jobEventListener")
 @Slf4j
 public class JobListener {
 

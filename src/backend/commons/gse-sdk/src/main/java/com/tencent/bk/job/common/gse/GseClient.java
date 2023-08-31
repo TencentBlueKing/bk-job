@@ -18,12 +18,10 @@ import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component("GseApiClient")
+
 @Slf4j
 public class GseClient implements IGseClient {
 
@@ -31,8 +29,8 @@ public class GseClient implements IGseClient {
     private final GseV2ApiClient gseV2ApiClient;
 
 
-    public GseClient(@Autowired(required = false) GseV1ApiClient gseV1ApiClient,
-                     @Autowired(required = false) GseV2ApiClient gseV2ApiClient) {
+    public GseClient(GseV1ApiClient gseV1ApiClient,
+                     GseV2ApiClient gseV2ApiClient) {
         this.gseV1ApiClient = gseV1ApiClient;
         this.gseV2ApiClient = gseV2ApiClient;
         log.info("Init gseClient, gseV1ApiClient: {}, gseV2ApiClient: {}", gseV1ApiClient, gseV2ApiClient);

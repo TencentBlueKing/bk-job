@@ -11,12 +11,6 @@ spring:
         instance-id: job-gateway-${machine.ip}-${server.port}
         scheme: http
         enabled: true
-      #tls:
-        #key-store-instance-type:
-        #key-store-path:
-        #key-store-password:
-        #certificate-path:
-        #certificate-password:
     config:
       discovery:
         enabled: true

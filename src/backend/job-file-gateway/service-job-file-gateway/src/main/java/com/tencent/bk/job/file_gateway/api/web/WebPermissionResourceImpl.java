@@ -37,7 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@RestController
+@RestController("jobFileGatewayWebPermissionResourceImpl")
 public class WebPermissionResourceImpl implements WebPermissionResource {
 
     private final WebAuthService webAuthService;

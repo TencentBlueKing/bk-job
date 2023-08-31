@@ -28,13 +28,13 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ import java.util.List;
  * 临时提供给job-backup的API
  */
 @Api(tags = {"job-manage:service:tmp_for_backup"})
-@RestController
+@SmartFeignClient(value = "job-manage", contextId = "backupResource")
 @InternalAPI
 public interface ServiceBackupTmpResource {
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")

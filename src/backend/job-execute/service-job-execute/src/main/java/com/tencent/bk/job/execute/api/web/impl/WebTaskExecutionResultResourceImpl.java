@@ -51,7 +51,6 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskExecutionResultResource;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
-import com.tencent.bk.job.execute.client.ServiceNotificationResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -97,6 +96,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
+import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
@@ -130,9 +130,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
     private final TaskInstanceService taskInstanceService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final ServiceNotificationResourceClient notifyResource;
+    private final ServiceNotificationResource notifyResource;
     private final ExecuteAuthService executeAuthService;
-    private final WebAuthService webAuthService;
 
 
     private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
@@ -183,7 +182,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                               StepInstanceVariableValueService stepInstanceVariableValueService,
                                               TaskInstanceService taskInstanceService,
                                               TaskInstanceVariableService taskInstanceVariableService,
-                                              ServiceNotificationResourceClient notifyResource,
+                                              ServiceNotificationResource notifyResource,
                                               ExecuteAuthService executeAuthService,
                                               WebAuthService webAuthService) {
         this.taskResultService = taskResultService;
@@ -194,7 +193,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.notifyResource = notifyResource;
         this.executeAuthService = executeAuthService;
-        this.webAuthService = webAuthService;
     }
 
     @Override

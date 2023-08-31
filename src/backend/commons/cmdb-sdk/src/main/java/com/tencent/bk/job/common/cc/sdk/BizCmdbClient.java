@@ -82,7 +82,8 @@ import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.esb.config.BkApiConfig;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
@@ -201,7 +202,8 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                   }
             );
 
-    public BizCmdbClient(BkApiConfig bkApiConfig,
+    public BizCmdbClient(AppProperties appProperties,
+                         EsbProperties esbProperties,
                          CmdbConfig cmdbConfig,
                          String lang,
                          ThreadPoolExecutor threadPoolExecutor,
@@ -209,11 +211,10 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                          FlowController flowController,
                          MeterRegistry meterRegistry) {
         super(
-            bkApiConfig.getEsbUrl(),
-            bkApiConfig.getAppCode(),
-            bkApiConfig.getAppSecret(),
-            lang,
-            bkApiConfig.isUseEsbTestEnv()
+            esbProperties.getService().getUrl(),
+            appProperties.getCode(),
+            appProperties.getSecret(),
+            lang
         );
         this.cmdbConfig = cmdbConfig;
         this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();

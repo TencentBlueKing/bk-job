@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.web.interceptor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -34,7 +36,6 @@ import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,7 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.StringJoiner;
 
 @Slf4j
-@Component
+@JobInterceptor(order = InterceptorOrder.Init.LOG, pathPatterns = "/esb/api/**")
 public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
 
     private static final String ATTR_REQUEST_START = "request-start";

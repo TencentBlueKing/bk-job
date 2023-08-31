@@ -31,18 +31,21 @@ buildscript {
         set("gradleJooqVersion", "3.0.0")
     }
 
-    def mavenRepoUrl = System.getProperty("mavenRepoUrl")
-
-    if (mavenRepoUrl == null) {
-        mavenRepoUrl = System.getenv("mavenRepoUrl")
-    }
-
-    if (mavenRepoUrl == null) {
-        println "use default maven repo url."
-        mavenRepoUrl = MAVEN_REPO_URL
-    }
     repositories {
         mavenLocal()
+
+        def mavenRepoUrl = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrl == null) {
+            mavenRepoUrl = System.getenv("mavenRepoUrl")
+        }
+        if (mavenRepoUrl == null) {
+            mavenRepoUrl = MAVEN_REPO_URL
+        }
+        if (mavenRepoUrl != null) {
+            println("Add default maven repo :" + mavenRepoUrl)
+            maven { url mavenRepoUrl }
+        }
+
         def extraMavenRepoUrls = System.getProperty("extraMavenRepoUrls")
         if (extraMavenRepoUrls == null) {
             extraMavenRepoUrls = System.getenv("extraMavenRepoUrls")
@@ -54,7 +57,7 @@ buildscript {
                 maven { url repoUrl }
             }
         }
-        maven { url mavenRepoUrl }
+
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
@@ -64,6 +67,7 @@ buildscript {
         classpath "nu.studer:gradle-jooq-plugin:$gradleJooqVersion"
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
         classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.5"
+        classpath "com.vanniktech:gradle-dependency-graph-generator-plugin:0.8.0"
     }
 }
 
@@ -76,6 +80,12 @@ plugins {
 }
 
 ext {
+    // 是否容器化部署
+    def assemblyMode = System.getProperty("assemblyMode")
+    def k8sMode = assemblyMode == "k8s"
+    set("k8sMode", k8sMode)
+    println("assembly mode: $assemblyMode")
+
     set("springVersion", "5.3.25")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
     set("springBootVersion", "2.6.13")
@@ -123,7 +133,7 @@ ext {
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.64")
-    set('reflectionsVersion', "0.9.12")
+    set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
     set('commonsValidatorVersion', "1.6")
@@ -152,6 +162,7 @@ allprojects {
     apply plugin: "eclipse"
     apply plugin: "java-library"
     apply plugin: "io.spring.dependency-management"
+    apply plugin: "com.vanniktech.dependency.graph.generator"
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -161,19 +172,21 @@ allprojects {
         options.compilerArgs.add '-parameters'
     }
 
-    def mavenRepoUrl = System.getProperty("mavenRepoUrl")
-
-    if (mavenRepoUrl == null) {
-        mavenRepoUrl = System.getenv("mavenRepoUrl")
-    }
-
-    if (mavenRepoUrl == null) {
-        println "use default maven repo url."
-        mavenRepoUrl = MAVEN_REPO_URL
-    }
-
     repositories {
         mavenLocal()
+
+        def mavenRepoUrl = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrl == null) {
+            mavenRepoUrl = System.getenv("mavenRepoUrl")
+        }
+        if (mavenRepoUrl == null) {
+            mavenRepoUrl = MAVEN_REPO_URL
+        }
+        if (mavenRepoUrl != null) {
+            println("Add default maven repo :" + mavenRepoUrl)
+            maven { url mavenRepoUrl }
+        }
+
         def extraMavenRepoUrls = System.getProperty("extraMavenRepoUrls")
         if (extraMavenRepoUrls == null) {
             extraMavenRepoUrls = System.getenv("extraMavenRepoUrls")
@@ -185,7 +198,7 @@ allprojects {
                 maven { url repoUrl }
             }
         }
-        maven { url mavenRepoUrl }
+
         maven { url "https://plugins.gradle.org/m2/" }
         maven {
             url "https://repo.spring.io/snapshot"
@@ -219,7 +232,7 @@ subprojects {
         include '**/*Test.class'
         exclude '**/*IntegrationTest.class'
     }
-    task integrationTest(type: Test, dependsOn: test) {
+    task integrationTest(type: Test) {
         useJUnitPlatform()
         testLogging {
             events 'PASSED', 'FAILED', 'SKIPPED'
@@ -234,6 +247,7 @@ subprojects {
         }
         include '**/*Test.class'
     }
+    build.dependsOn testAll
 
     build.dependsOn testAll
 

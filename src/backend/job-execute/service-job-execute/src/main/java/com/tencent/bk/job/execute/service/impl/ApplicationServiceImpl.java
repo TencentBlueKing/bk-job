@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.execute.client.ApplicationResourceClient;
-import com.tencent.bk.job.execute.client.SyncResourceClient;
 import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,32 +36,32 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
+@Service("jobExecuteApplicationService")
 @Slf4j
 public class ApplicationServiceImpl implements ApplicationService {
-    private final ApplicationResourceClient applicationResourceClient;
-    private final SyncResourceClient syncResourceClient;
+    private final ServiceApplicationResource applicationResource;
+    private final ServiceSyncResource syncResource;
 
     @Autowired
-    public ApplicationServiceImpl(ApplicationResourceClient applicationResourceClient,
-                                  SyncResourceClient syncResourceClient) {
-        this.applicationResourceClient = applicationResourceClient;
-        this.syncResourceClient = syncResourceClient;
+    public ApplicationServiceImpl(ServiceApplicationResource applicationResource,
+                                  ServiceSyncResource syncResource) {
+        this.applicationResource = applicationResource;
+        this.syncResource = syncResource;
     }
 
     @Override
     public ServiceApplicationDTO getAppById(long appId) {
-        return applicationResourceClient.queryAppById(appId);
+        return applicationResource.queryAppById(appId);
     }
 
     @Override
     public ServiceApplicationDTO getAppByScope(String scopeType, String scopeId) {
-        return applicationResourceClient.queryAppByScope(scopeType, scopeId);
+        return applicationResource.queryAppByScope(scopeType, scopeId);
     }
 
     @Override
     public List<Long> listAllAppIds() {
-        List<ServiceApplicationDTO> apps = syncResourceClient.listAllApps();
+        List<ServiceApplicationDTO> apps = syncResource.listAllApps();
         if (apps == null) {
             return Collections.emptyList();
         }

@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task;
 
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,8 @@ public class ClearExpiredStatisticsTask extends Thread {
     private final StatisticConfig statisticConfig;
 
     @Autowired
-    public ClearExpiredStatisticsTask(StatisticsDAO statisticsDAO, StatisticConfig statisticConfig) {
+    public ClearExpiredStatisticsTask(StatisticsDAO statisticsDAO,
+                                      StatisticConfig statisticConfig) {
         this.statisticsDAO = statisticsDAO;
         this.statisticConfig = statisticConfig;
     }

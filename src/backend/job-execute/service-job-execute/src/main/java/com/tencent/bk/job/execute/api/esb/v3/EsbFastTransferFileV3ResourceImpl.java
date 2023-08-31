@@ -44,7 +44,6 @@ import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
-import com.tencent.bk.job.execute.client.FileSourceResourceClient;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -61,6 +60,7 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastTransferFileV3Request;
 import com.tencent.bk.job.execute.service.ArtifactoryLocalFileService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
+import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceResource;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +79,7 @@ public class EsbFastTransferFileV3ResourceImpl
     implements EsbFastTransferFileV3Resource {
     private final TaskExecuteService taskExecuteService;
 
-    private final FileSourceResourceClient fileSourceService;
+    private final ServiceFileSourceResource fileSourceResource;
 
     private final MessageI18nService i18nService;
 
@@ -90,12 +90,12 @@ public class EsbFastTransferFileV3ResourceImpl
 
     @Autowired
     public EsbFastTransferFileV3ResourceImpl(TaskExecuteService taskExecuteService,
-                                             FileSourceResourceClient fileSourceService,
+                                             ServiceFileSourceResource fileSourceResource,
                                              MessageI18nService i18nService,
                                              ArtifactoryLocalFileService artifactoryLocalFileService,
                                              AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
-        this.fileSourceService = fileSourceService;
+        this.fileSourceResource = fileSourceResource;
         this.i18nService = i18nService;
         this.artifactoryLocalFileService = artifactoryLocalFileService;
         this.appScopeMappingService = appScopeMappingService;
@@ -317,7 +317,7 @@ public class EsbFastTransferFileV3ResourceImpl
                 fileSourceDTO.setFileSourceId(fileSource.getFileSourceId());
             } else if (StringUtils.isNotBlank(fileSourceCode)) {
                 try {
-                    InternalResponse<Integer> resp = fileSourceService.getFileSourceIdByCode(fileSourceCode);
+                    InternalResponse<Integer> resp = fileSourceResource.getFileSourceIdByCode(fileSourceCode);
                     if (resp != null && resp.isSuccess()) {
                         if (resp.getData() != null) {
                             fileSourceDTO.setFileSourceId(resp.getData());

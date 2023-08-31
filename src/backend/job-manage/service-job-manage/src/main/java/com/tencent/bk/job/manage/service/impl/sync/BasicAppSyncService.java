@@ -33,7 +33,6 @@ import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -46,19 +45,16 @@ import java.util.Map;
 @Slf4j
 public class BasicAppSyncService {
 
-    private final DSLContext dslContext;
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
     protected final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public BasicAppSyncService(DSLContext dslContext,
-                               ApplicationDAO applicationDAO,
+    public BasicAppSyncService(ApplicationDAO applicationDAO,
                                ApplicationHostDAO applicationHostDAO,
                                ApplicationService applicationService,
                                IBizCmdbClient bizCmdbClient) {
-        this.dslContext = dslContext;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
@@ -111,7 +107,7 @@ public class BasicAppSyncService {
             try {
                 log.info("Update app: {}", JsonUtils.toJson(applicationInfoDTO));
                 applicationService.updateApp(applicationInfoDTO);
-                applicationDAO.restoreDeletedApp(dslContext, applicationInfoDTO.getId());
+                applicationDAO.restoreDeletedApp(applicationInfoDTO.getId());
             } catch (Throwable t) {
                 log.error("FATAL: updateApp fail:appId=" + applicationInfoDTO.getId(), t);
             }

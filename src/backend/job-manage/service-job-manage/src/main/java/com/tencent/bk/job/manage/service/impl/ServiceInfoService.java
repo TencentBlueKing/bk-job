@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.job.common.constant.ProfileEnum;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.common.util.CompareUtil;
@@ -31,6 +32,7 @@ import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInstanceInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -40,9 +42,10 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@Profile("!" + ProfileEnum.Constants.TEST)
 public class ServiceInfoService {
 
-    ServiceInfoProvider serviceInfoProvider;
+    private final ServiceInfoProvider serviceInfoProvider;
 
     @Autowired
     public ServiceInfoService(ServiceInfoProvider serviceInfoProvider) {

@@ -1,0 +1,172 @@
+{{- if eq .Values.deploy.mode "lite" }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-assemble
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-assemble"
+    {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+    {{ include "job.labelKeys.imageTag" . }}: {{ .Values.assembleConfig.image.tag | quote }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  annotations:
+  {{- if .Values.commonAnnotations }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.assembleConfig.autoscaling.enabled }}
+  replicas: {{ .Values.assembleConfig.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels: 
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: job-assemble
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: "job-assemble"
+        {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+        {{ include "job.labelKeys.imageTag" . }}: {{ .Values.assembleConfig.image.tag | quote }}
+      annotations:
+        {{- include "annotations.sha256sum.configmap" ( dict "service" "job-assemble" "context" . ) | nindent 8 }}
+    spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- if .Values.assembleConfig.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.assembleConfig.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.assembleConfig.podAffinityPreset "component" "job-assemble" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.assembleConfig.podAntiAffinityPreset "component" "job-assemble" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.assembleConfig.nodeAffinityPreset.type "key" .Values.assembleConfig.nodeAffinityPreset.key "values" .Values.assembleConfig.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.assembleConfig.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.assembleConfig.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.assembleConfig.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.assembleConfig.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.assembleConfig.priorityClassName }}
+      priorityClassName: {{ .Values.assembleConfig.priorityClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "job.serviceAccountName" . | quote }}
+      {{- if .Values.assembleConfig.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.assembleConfig.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      initContainers:
+      {{- include "job.initContainer.waitForMigration" . | nindent 8 }}
+      {{- include "job.initContainer.waitForDependServices"   ( dict "currentServiceName" "job-assemble" "context" $) | nindent 8 }}
+      containers:
+        - name: "job-assemble"
+          {{- if .Values.assembleConfig.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.assembleConfig.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          image: {{ include "job-assemble.image" . }}
+          imagePullPolicy: {{ .Values.assembleConfig.image.pullPolicy }}
+          env:
+            {{- include "job.common.env" . | nindent 12 }}
+            - name: BK_JOB_APP_NAME
+              value: "job-assemble"
+            - name: BK_JOB_JVM_OPTION
+              value: {{ .Values.assembleConfig.jvmOptions | quote }}
+            - name: BK_JOB_PROFILE
+              value: {{ include "job.profile" . }}
+            - name: BK_JOB_JAR
+              value: job-assemble.jar
+            - name: BK_JOB_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: JOB_APPLICATION_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-assemble
+            - name: JOB_COMMON_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common
+            - name: JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common-refreshable
+            - name: spring_cloud_kubernetes_secrets_paths
+              value: /etc/secrets
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: BK_JOB_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - name: http
+              containerPort: {{ .Values.assembleConfig.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+            successThreshold: 1
+          resources:
+            {{- toYaml .Values.assembleConfig.resources | nindent 12 }}
+          volumeMounts:
+            - name: job-storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
+            - name: mariadb
+              mountPath: /etc/secrets/mariadb
+              readOnly: true
+            - name: rabbitmq
+              mountPath: /etc/secrets/rabbitmq
+              readOnly: true
+            - name: redis
+              mountPath: /etc/secrets/redis
+              readOnly: true
+            - name: job-gse-tls-certs
+              mountPath: /data/job/cert
+              readOnly: true
+            - name: job-gse-tls-password
+              mountPath: /etc/secrets
+              readOnly: true
+      terminationGracePeriodSeconds: 120
+      volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "common.names.fullname" . }}-pv-claim
+        - name: mariadb
+          secret:
+            secretName: {{ include "job.mariadb.secretName" . }}
+        - name: rabbitmq
+          secret:
+            secretName: {{ include "job.rabbitmq.secretName" . }}
+        - name: redis
+          secret:
+            secretName: {{ include "job.redis.secretName" . }}
+        - name: job-gse-tls-certs
+          secret:
+            secretName: {{ include "gse.secretName" . | quote }}
+            items:
+              - key: gse.keystore
+                path: gse_job_api_client.keystore
+              - key: gse.truststore
+                path: gse_job_api_client.truststore
+        - name: job-gse-tls-password
+          secret:
+            secretName: {{ include "gse.secretName" . | quote }}
+            items:
+              - key: gse.keystore.password
+                path: gse.keystore.password
+              - key: gse.truststore.password
+                path: gse.truststore.password
+{{- end }}

@@ -1,15 +1,16 @@
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -22,8 +23,9 @@ public class ArtifactoryLocalFileService {
 
     @Autowired
     public ArtifactoryLocalFileService(
-        ArtifactoryConfig artifactoryConfig, LocalFileConfigForExecute localFileConfigForExecute,
-        ArtifactoryClient artifactoryClient
+        ArtifactoryConfig artifactoryConfig,
+        LocalFileConfigForExecute localFileConfigForExecute,
+        @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient
     ) {
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
@@ -37,7 +39,7 @@ public class ArtifactoryLocalFileService {
             filePath
         );
         NodeDTO nodeDTO = artifactoryClient.getFileNode(fullPath);
-        log.debug("nodeDTO={}", nodeDTO);
+        log.debug("nodeDTpwO={}", nodeDTO);
         if (nodeDTO == null) {
             throw new InternalException(
                 ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,

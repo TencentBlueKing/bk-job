@@ -34,21 +34,21 @@ class Permission {
   }
 
   jobCrontab(params = {}) {
-    return Request.get('/job-manage/web/permission/crontab/check', {
+    return Request.get('/job-crontab/web/permission/crontab/check', {
       params,
       cache: 2000,
     });
   }
 
   jobExecute(params = {}) {
-    return Request.get('/job-manage/web/permission/execute/check', {
+    return Request.get('/job-execute/web/permission/execute/check', {
       params,
       cache: 2000,
     });
   }
 
   jobFileSource(params = {}) {
-    return Request.get('/job-manage/web/permission/fileGateway/check', {
+    return Request.get('/job-file-gateway/web/permission/fileGateway/check', {
       params,
       cache: 2000,
     });

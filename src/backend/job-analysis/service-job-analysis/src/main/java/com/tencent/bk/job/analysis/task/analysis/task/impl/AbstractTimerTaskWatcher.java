@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.analysis.task.analysis.task.impl;
 
-import com.tencent.bk.job.analysis.client.CronJobResourceClient;
-import com.tencent.bk.job.analysis.client.TaskExecuteResultResourceClient;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
@@ -37,13 +35,14 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
+import com.tencent.bk.job.execute.api.inner.ServiceTaskExecuteResultResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -59,15 +58,15 @@ import java.util.List;
 @Slf4j
 public abstract class AbstractTimerTaskWatcher extends BaseAnalysisTask {
 
-    private final CronJobResourceClient cronJobResourceClient;
+    private final ServiceCronJobResource cronJobResource;
 
     @Autowired
-    public AbstractTimerTaskWatcher(DSLContext dslContext, AnalysisTaskDAO analysisTaskDAO,
+    public AbstractTimerTaskWatcher(AnalysisTaskDAO analysisTaskDAO,
                                     AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
                                     ApplicationService applicationService,
-                                    CronJobResourceClient cronJobResourceClient) {
-        super(dslContext, analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
-        this.cronJobResourceClient = cronJobResourceClient;
+                                    ServiceCronJobResource cronJobResource) {
+        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
+        this.cronJobResource = cronJobResource;
     }
 
     abstract void analyseAppCrons(
@@ -76,10 +75,10 @@ public abstract class AbstractTimerTaskWatcher extends BaseAnalysisTask {
     );
 
     PageData<ServiceTaskInstanceDTO> getFailResults(
-        TaskExecuteResultResourceClient serviceTaskExecuteResultResourceClient,
+        ServiceTaskExecuteResultResource taskExecuteResultResource,
         ServiceCronJobDTO cronJobDTO
     ) {
-        PageData<ServiceTaskInstanceDTO> failResults = serviceTaskExecuteResultResourceClient.getTaskExecuteResult(
+        PageData<ServiceTaskInstanceDTO> failResults = taskExecuteResultResource.getTaskExecuteResult(
             cronJobDTO.getAppId(),
             null,
             null,
@@ -139,7 +138,7 @@ public abstract class AbstractTimerTaskWatcher extends BaseAnalysisTask {
                     log.info("taskId:" + id);
                     analysisTaskInstanceDTO.setId(id);
                     //1.拿到业务下所有开启的定时任务
-                    val resp = cronJobResourceClient.listCronJobs(appId, true);
+                    val resp = cronJobResource.listCronJobs(appId, true);
                     log.info("listAllCronJobs resp:" + JsonUtils.toJson(resp));
                     List<ServiceCronJobDTO> cronJobVOList = resp.getData();
                     log.info("" + cronJobVOList.size() + " cronJobs found");

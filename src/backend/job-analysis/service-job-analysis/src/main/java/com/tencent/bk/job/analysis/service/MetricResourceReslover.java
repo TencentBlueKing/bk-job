@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.analysis.service;
 
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import org.springframework.stereotype.Service;
 
 @Service

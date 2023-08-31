@@ -44,6 +44,8 @@ import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import com.tencent.bk.job.manage.model.tables.Host;
+import com.tencent.bk.job.manage.model.tables.HostTopo;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
@@ -61,8 +63,6 @@ import org.jooq.Result;
 import org.jooq.SelectSeekStep2;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.Host;
-import org.jooq.generated.tables.HostTopo;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
@@ -982,7 +982,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum;
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int deleteHostBeforeLastTime(Long bizId, Long hostId, Long lastTime) {
         int affectedNum;
@@ -1003,7 +1003,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum;
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int batchDeleteHostById(List<Long> hostIdList) {
         if (CollectionUtils.isEmpty(hostIdList)) {
@@ -1020,7 +1020,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .execute();
     }
 
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     @Override
     public int batchDeleteBizHostInfoById(Long bizId, List<Long> hostIdList) {
         int affectedNum = 0;

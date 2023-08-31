@@ -30,7 +30,6 @@ import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceInnerCronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequestDTO;
-import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 
 import java.util.List;
 import java.util.Map;
@@ -190,15 +189,6 @@ public interface CronJobService {
      * @return 是否删除成功
      */
     Boolean deleteInnerCronJob(String systemId, String jobKey);
-
-    /**
-     * 根据定时任务 ID 批量执行历史
-     *
-     * @param appId      业务 ID
-     * @param cronIdList 定时任务 ID 列表
-     * @return 定时任务 ID 与执行历史对应表
-     */
-    Map<Long, ServiceCronTaskExecuteResultStatistics> getCronJobExecuteHistory(Long appId, List<Long> cronIdList);
 
     /**
      * 批量更新定时任务信息

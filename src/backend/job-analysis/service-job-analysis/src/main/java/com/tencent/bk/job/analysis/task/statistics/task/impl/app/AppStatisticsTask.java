@@ -25,21 +25,22 @@
 package com.tencent.bk.job.analysis.task.statistics.task.impl.app;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.analysis.client.ExecuteMetricsClient;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -56,19 +57,21 @@ import java.util.Set;
 @Service
 public class AppStatisticsTask extends BaseStatisticsTask {
 
-    private final ExecuteMetricsClient executeMetricsClient;
+    private final ServiceMetricsResource executeMetricsResource;
     private final StatisticConfig statisticConfig;
 
-    protected AppStatisticsTask(BasicServiceManager basicServiceManager, StatisticsDAO statisticsDAO,
-                                DSLContext dslContext, ExecuteMetricsClient executeMetricsClient,
+    protected AppStatisticsTask(BasicServiceManager basicServiceManager,
+                                StatisticsDAO statisticsDAO,
+                                @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                ServiceMetricsResource executeMetricsResource,
                                 StatisticConfig statisticConfig) {
         super(basicServiceManager, statisticsDAO, dslContext);
-        this.executeMetricsClient = executeMetricsClient;
+        this.executeMetricsResource = executeMetricsResource;
         this.statisticConfig = statisticConfig;
     }
 
     public void calcJoinedApps(LocalDateTime dateTime) {
-        val resp = executeMetricsClient.getJoinedAppIdList();
+        val resp = executeMetricsResource.getJoinedAppIdList();
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote getJoinedAppIdList, resp:{}", resp);
             return;
@@ -118,7 +121,7 @@ public class AppStatisticsTask extends BaseStatisticsTask {
         List<Long> activeAppIdList = new ArrayList<>();
         for (ServiceApplicationDTO serviceApplicationDTO : appDTOList) {
             Long appId = serviceApplicationDTO.getId();
-            val resp = executeMetricsClient.hasExecuteHistory(appId, -1L, TimeUtil.localDateTime2Long(fromTime),
+            val resp = executeMetricsResource.hasExecuteHistory(appId, -1L, TimeUtil.localDateTime2Long(fromTime),
                 TimeUtil.localDateTime2Long(dateTime));
             if (resp == null || !resp.isSuccess()) {
                 log.warn("Fail to call remote hasExecuteHistory, resp:{}", resp);

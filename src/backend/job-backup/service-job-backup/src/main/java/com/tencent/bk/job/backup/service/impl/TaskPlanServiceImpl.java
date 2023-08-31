@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
-import com.tencent.bk.job.backup.client.ServiceBackupTmpResourceClient;
-import com.tencent.bk.job.backup.client.ServicePlanResourceClient;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.api.inner.ServiceBackupTmpResource;
+import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
@@ -43,20 +43,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @since 29/7/2020 17:46
- */
 @Slf4j
-@Service
+@Service("jobBackupTaskPlanService")
 public class TaskPlanServiceImpl implements TaskPlanService {
-    private final ServiceBackupTmpResourceClient serviceBackupTmpResourceClient;
-    private final ServicePlanResourceClient servicePlanResourceClient;
+    private final ServiceBackupTmpResource backupTmpResource;
+    private final ServiceTaskPlanResource taskPlanResource;
 
     @Autowired
-    public TaskPlanServiceImpl(ServiceBackupTmpResourceClient serviceBackupTmpResourceClient,
-                               ServicePlanResourceClient servicePlanResourceClient) {
-        this.serviceBackupTmpResourceClient = serviceBackupTmpResourceClient;
-        this.servicePlanResourceClient = servicePlanResourceClient;
+    public TaskPlanServiceImpl(ServiceBackupTmpResource backupTmpResource,
+                               ServiceTaskPlanResource taskPlanResource) {
+        this.backupTmpResource = backupTmpResource;
+        this.taskPlanResource = taskPlanResource;
     }
 
     @Override
@@ -73,7 +70,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 }
                 log.debug("Fetching plan {}/{}/{} using {}", appId, templateId, planId, username);
                 Response<TaskPlanVO> planByIdResponse =
-                    serviceBackupTmpResourceClient.getPlanById(username, appId, templateId, planId);
+                    backupTmpResource.getPlanById(username, appId, templateId, planId);
                 if (planByIdResponse != null) {
                     if (0 == planByIdResponse.getCode()) {
                         taskPlanList.add(planByIdResponse.getData());
@@ -104,7 +101,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     public List<TaskPlanVO> listPlans(String username, Long appId, Long templateId) {
         try {
             Response<List<TaskPlanVO>> planListResponse =
-                serviceBackupTmpResourceClient.listPlans(username, appId, templateId);
+                backupTmpResource.listPlans(username, appId, templateId);
             if (planListResponse != null) {
                 if (0 == planListResponse.getCode()) {
                     log.debug("Fetching plan list of {}/{} finished.", appId, templateId);
@@ -132,7 +129,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     public ServiceIdNameCheckDTO checkIdAndName(Long appId, Long templateId, Long planId, String name) {
         try {
             InternalResponse<ServiceIdNameCheckDTO> idNameCheckResponse =
-                servicePlanResourceClient.checkIdAndName(appId, templateId, planId, name);
+                taskPlanResource.checkIdAndName(appId, templateId, planId, name);
             if (idNameCheckResponse != null) {
                 if (0 == idNameCheckResponse.getCode()) {
                     return idNameCheckResponse.getData();
@@ -161,7 +158,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             planInfo.setVariableList(planInfo.getVariableList());
 
             InternalResponse<Long> savePlanResult =
-                servicePlanResourceClient.savePlanForImport(username, appId, templateId, null, planInfo);
+                taskPlanResource.savePlanForImport(username, appId, templateId, null, planInfo);
 
             if (savePlanResult != null) {
                 if (0 == savePlanResult.getCode()) {
@@ -191,7 +188,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     public List<ServiceTaskVariableDTO> getPlanVariable(String username, Long appId, Long templateId, Long planId) {
         try {
             InternalResponse<List<ServiceTaskVariableDTO>> planVariableResponse =
-                servicePlanResourceClient.getPlanVariable(username, appId, templateId, planId);
+                taskPlanResource.getPlanVariable(username, appId, templateId, planId);
             if (planVariableResponse != null) {
                 if (0 == planVariableResponse.getCode()) {
                     return planVariableResponse.getData();

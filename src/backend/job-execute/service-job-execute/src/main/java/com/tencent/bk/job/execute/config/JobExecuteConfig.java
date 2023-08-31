@@ -32,9 +32,6 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class JobExecuteConfig {
 
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
-
     /**
      * 功能开关 - 启用账号鉴权
      */
@@ -49,12 +46,6 @@ public class JobExecuteConfig {
 
     @Value("${job.execute.result.handle.tasks.limit: 2000}")
     private int resultHandleTasksLimit;
-
-    /**
-     * 作业平台web访问地址
-     */
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
 
     /**
      * Symmetric encryption password

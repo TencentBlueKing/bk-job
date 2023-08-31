@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.analysis.dao.impl;
 
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.analysis.model.tables.Statistics;
+import com.tencent.bk.job.analysis.model.tables.records.StatisticsRecord;
 import com.tencent.bk.job.common.util.Wrapper;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -38,11 +40,10 @@ import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.TransactionalRunnable;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.Statistics;
-import org.jooq.generated.tables.records.StatisticsRecord;
 import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -51,11 +52,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
- */
 @Repository
 @Slf4j
 public class StatisticsDAOImpl implements StatisticsDAO {
@@ -64,12 +60,13 @@ public class StatisticsDAOImpl implements StatisticsDAO {
     private final DSLContext defaultDSLContext;
 
     @Autowired
-    public StatisticsDAOImpl(DSLContext dslContext) {
+    public StatisticsDAOImpl(@Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
         this.defaultDSLContext = dslContext;
     }
 
     @Override
-    public Long insertStatistics(DSLContext dslContext, StatisticsDTO statisticsDTO) {
+    public Long insertStatistics(DSLContext dslContext,
+                                 StatisticsDTO statisticsDTO) {
         if (statisticsDTO == null) {
             return -1L;
         }

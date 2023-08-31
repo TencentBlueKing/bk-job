@@ -24,18 +24,19 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
-import com.tencent.bk.job.analysis.client.ManageMetricsClient;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -50,16 +51,16 @@ import java.util.List;
 @Service
 public class TaskTemplatePerAppStatisticsTask extends BasePerAppStatisticsTask {
 
-    private final ManageMetricsClient manageMetricsClient;
+    private final ServiceMetricsResource manageMetricsResource;
 
     protected TaskTemplatePerAppStatisticsTask(
         BasicServiceManager basicServiceManager,
         StatisticsDAO statisticsDAO,
-        DSLContext dslContext,
-        ManageMetricsClient manageMetricsClient
+        @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+        ServiceMetricsResource manageMetricsResource
     ) {
         super(basicServiceManager, statisticsDAO, dslContext);
-        this.manageMetricsClient = manageMetricsClient;
+        this.manageMetricsResource = manageMetricsResource;
     }
 
     private StatisticsDTO genTaskTemplateTotalStatisticsDTO(String dateStr, Long appId, String value) {
@@ -76,7 +77,7 @@ public class TaskTemplatePerAppStatisticsTask extends BasePerAppStatisticsTask {
 
     public List<StatisticsDTO> calcAppTaskTemplateTotalStatistics(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
-        InternalResponse<Integer> resp = manageMetricsClient.countTemplates(appId);
+        InternalResponse<Integer> resp = manageMetricsResource.countTemplates(appId);
         if (resp == null || !resp.isSuccess()) {
             log.error("Fail to call remote countTemplates, resp:{}", resp);
             return Collections.emptyList();

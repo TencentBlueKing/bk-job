@@ -30,6 +30,7 @@ import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.crontab.model.inner.request.InternalUpdateCronStatusRequest;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,16 +40,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * @since 20/2/2020 19:54
+ * 定时任务 Resource API
  */
 @Api(tags = {"Cron_Job"})
-@RestController
+@SmartFeignClient(value = "job-crontab", contextId = "cronJobResource")
 @InternalAPI
 public interface ServiceCronJobResource {
 

@@ -1,0 +1,63 @@
+spring:
+  profiles:
+    active: prod
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+management:
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+    # 使用spring cloud stream rabbitmq, 禁用掉springboot的rabbitmq health检查
+    rabbit:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,configprops,env,beans,conditions,loggers,metrics,mappings,prometheus,scheduledtasks,info,refresh,busrefresh,bindings
+      base-path: /actuator
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      show-details: when_authorized
+      probes:
+        enabled: true
+    configprops:
+      enabled: true
+    env:
+      enabled: true
+    beans:
+      enabled: true
+    conditions:
+      enabled: true
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    mappings:
+      enabled: true
+    prometheus:
+      enabled: true
+    scheduledtasks:
+      enabled: true
+    info:
+      enabled: true
+    refresh:
+      enabled: true
+    busrefresh:
+      enabled: true
+    bindings:
+      enabled: true
+
+server:
+  port: 19800
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  shutdown: graceful

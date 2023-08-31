@@ -30,19 +30,15 @@ import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * 账号相关操作鉴权接口
  */
 @Slf4j
-@Service
 public class BusinessAuthServiceImpl implements BusinessAuthService {
 
     private final AppAuthService appAuthService;
 
-    @Autowired
     public BusinessAuthServiceImpl(AppAuthService appAuthService) {
         this.appAuthService = appAuthService;
     }

@@ -28,11 +28,11 @@ import com.tencent.bk.job.common.cc.constants.CmdbConstants;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TypeUtil;
-import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
@@ -56,15 +56,15 @@ import java.util.Map;
 public class NotifyTemplateService {
 
     private final ApplicationDAO applicationDAO;
-    private final JobManageConfig jobManageConfig;
+    private final JobCommonConfig jobCommonConfig;
     private final NotifyTemplateDAO notifyTemplateDAO;
 
     @Autowired
     public NotifyTemplateService(ApplicationDAO applicationDAO,
-                                 JobManageConfig jobManageConfig,
+                                 JobCommonConfig jobCommonConfig,
                                  NotifyTemplateDAO notifyTemplateDAO) {
         this.applicationDAO = applicationDAO;
-        this.jobManageConfig = jobManageConfig;
+        this.jobCommonConfig = jobCommonConfig;
         this.notifyTemplateDAO = notifyTemplateDAO;
     }
 
@@ -140,7 +140,7 @@ public class NotifyTemplateService {
         String content = titleAndContent.getRight();
         //添加默认变量
         ResourceScope scope = applicationDTO.getScope();
-        variablesMap.putIfAbsent("BASE_HOST", jobManageConfig.getJobWebUrl());
+        variablesMap.putIfAbsent("BASE_HOST", jobCommonConfig.getJobWebUrl());
         variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
         variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
         variablesMap.putIfAbsent("APP_NAME", appName);

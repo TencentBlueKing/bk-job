@@ -26,33 +26,30 @@ package com.tencent.bk.job.analysis.dao;
 
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceWithTpl;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface AnalysisTaskInstanceDAO {
-    Long insertAnalysisTaskInstance(DSLContext dslContext, AnalysisTaskInstanceDTO analysisTaskInstanceDTO);
+    Long insertAnalysisTaskInstance(AnalysisTaskInstanceDTO analysisTaskInstanceDTO);
 
-    int updateAnalysisTaskInstanceById(DSLContext dslContext, AnalysisTaskInstanceDTO analysisTaskInstanceDTO);
+    int updateAnalysisTaskInstanceById(AnalysisTaskInstanceDTO analysisTaskInstanceDTO);
 
-    int deleteHistoryAnalysisTaskInstance(DSLContext dslContext, Long appId, Long taskId);
+    int deleteHistoryAnalysisTaskInstance(Long appId, Long taskId);
 
-    int deleteAnalysisTaskInstanceById(DSLContext dslContext, Long id);
+    int deleteAnalysisTaskInstanceById(Long id);
 
-    AnalysisTaskInstanceDTO getAnalysisTaskInstanceById(DSLContext dslContext, Long id);
+    AnalysisTaskInstanceDTO getAnalysisTaskInstanceById(Long id);
 
-    List<AnalysisTaskInstanceWithTpl> listAllAnalysisTaskInstance(DSLContext dslContext);
+    List<AnalysisTaskInstanceWithTpl> listAllAnalysisTaskInstance();
 
-    List<AnalysisTaskInstanceWithTpl> listActiveAnalysisTaskInstance(DSLContext dslContext, Long appId, Long limit);
+    List<AnalysisTaskInstanceWithTpl> listActiveAnalysisTaskInstance(Long appId, Long limit);
 
     /**
      * 查询最新的分析结果，每个任务一条
      *
-     * @param dslContext
      * @param appId
      * @param limit
      * @return 任务分析结果列表
      */
-    List<AnalysisTaskInstanceWithTpl> listNewestActiveInstance(DSLContext dslContext, Long appId,
-                                                               Long limit);
+    List<AnalysisTaskInstanceWithTpl> listNewestActiveInstance(Long appId, Long limit);
 }

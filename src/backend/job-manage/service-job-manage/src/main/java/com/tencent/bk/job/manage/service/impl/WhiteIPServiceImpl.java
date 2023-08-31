@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.google.common.collect.Lists;
-import com.tencent.bk.job.common.RequestIdLogger;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
@@ -45,7 +44,6 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.LogUtil;
-import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -72,10 +70,7 @@ import lombok.val;
 import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -92,13 +87,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class WhiteIPServiceImpl implements WhiteIPService {
-
-    private static final RequestIdLogger LOG =
-        new SimpleRequestIdLogger(LoggerFactory.getLogger(WhiteIPServiceImpl.class));
     private static final String SEPERATOR_COMMA = ",";
     private static final String SEPERATOR_ENTER = "\n";
     private final MessageI18nService i18nService;
-    private final DSLContext dslContext;
     private final ActionScopeDAO actionScopeDAO;
     private final WhiteIPRecordDAO whiteIPRecordDAO;
     private final ApplicationDAO applicationDAO;
@@ -109,7 +100,6 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Autowired
     public WhiteIPServiceImpl(
-        @Qualifier("job-manage-dsl-context") DSLContext dslContext,
         ActionScopeDAO actionScopeDAO,
         WhiteIPRecordDAO whiteIPRecordDAO,
         ApplicationDAO applicationDAO,
@@ -118,7 +108,6 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         AppScopeMappingService appScopeMappingService,
         ApplicationHostDAO applicationHostDAO,
         IBizCmdbClient bizCmdbClient) {
-        this.dslContext = dslContext;
         this.actionScopeDAO = actionScopeDAO;
         this.whiteIPRecordDAO = whiteIPRecordDAO;
         this.applicationDAO = applicationDAO;
@@ -161,7 +150,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         String orderField,
         Integer order
     ) {
-        LOG.infoWithRequestId(
+        log.info(
             LogUtil.getInputLog(
                 username, ipStr, appIdStr,
                 actionScopeIdStr, lastModifyUser, start,
@@ -189,7 +178,6 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         baseSearchCondition.setOrder(order);
 
         val whiteIPRecordList = whiteIPRecordDAO.listWhiteIPRecord(
-            dslContext,
             ipList,
             appIdList,
             appNameList,
@@ -199,7 +187,6 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             baseSearchCondition
         );
         val total = whiteIPRecordDAO.countWhiteIPRecord(
-            dslContext,
             ipList,
             appIdList,
             appNameList,
@@ -215,7 +202,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             total,
             whiteIPRecordList
         );
-        LOG.infoWithRequestId(
+        log.info(
             "Output:whiteIPRecordPageData("
                 + start
                 + "," + pageSize
@@ -275,7 +262,6 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     public List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope) {
         List<Long> effectiveAppIds = getEffectiveAppIdList(appId);
         return whiteIPRecordDAO.listWhiteIPByAppIds(
-            dslContext,
             effectiveAppIds,
             getActionScopeId(actionScope)
         );
@@ -454,7 +440,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public Long saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
-        LOG.infoWithRequestId("Input(" + username + "," + createUpdateReq.toString() + ")");
+        log.info("Input(" + username + "," + createUpdateReq.toString() + ")");
         // 1.参数校验、预处理
         List<String> ipv4List = checkReqAndGetIpList(createUpdateReq);
         List<HostIdWithMeta> hostList = createUpdateReq.getHostList();
@@ -477,7 +463,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             Long finalRecordId = recordId;
             ipDtoList.forEach(it -> it.setRecordId(finalRecordId));
             actionScopeDtoList.forEach(it -> it.setRecordId(finalRecordId));
-            WhiteIPRecordDTO whiteIPRecordDTO = whiteIPRecordDAO.getWhiteIPRecordById(dslContext, recordId);
+            WhiteIPRecordDTO whiteIPRecordDTO = whiteIPRecordDAO.getWhiteIPRecordById(recordId);
             whiteIPRecordDTO.setAppIdList(appIdList);
             whiteIPRecordDTO.setRemark(createUpdateReq.getRemark());
             whiteIPRecordDTO.setIpList(ipDtoList);
@@ -485,11 +471,11 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             whiteIPRecordDTO.setLastModifier(username);
             whiteIPRecordDTO.setLastModifyTime(System.currentTimeMillis());
             //修改
-            int affectedRows = whiteIPRecordDAO.updateWhiteIPRecordById(dslContext, whiteIPRecordDTO);
+            int affectedRows = whiteIPRecordDAO.updateWhiteIPRecordById(whiteIPRecordDTO);
             log.info("{} white ip records updated", affectedRows);
         } else {
             //新增
-            recordId = whiteIPRecordDAO.insertWhiteIPRecord(dslContext, new WhiteIPRecordDTO(
+            recordId = whiteIPRecordDAO.insertWhiteIPRecord(new WhiteIPRecordDTO(
                 null,
                 appIdList,
                 createUpdateReq.getRemark(),
@@ -500,7 +486,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
                 username,
                 System.currentTimeMillis()
             ));
-            LOG.infoWithRequestId("insert success,recordId=" + recordId);
+            log.info("insert success,recordId=" + recordId);
         }
         return recordId;
     }
@@ -513,8 +499,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public WhiteIPRecordVO getWhiteIPDetailById(String username, Long id) {
-        LOG.infoWithRequestId("Input(" + username + "," + id + ")");
-        val record = whiteIPRecordDAO.getWhiteIPRecordById(dslContext, id);
+        log.info("Input(" + username + "," + id + ")");
+        val record = whiteIPRecordDAO.getWhiteIPRecordById(id);
         Long cloudAreaId = null;
         if (record.getIpList().size() > 0) {
             cloudAreaId = record.getIpList().get(0).getCloudAreaId();
@@ -550,7 +536,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public List<CloudAreaInfoVO> listCloudAreas(String username) {
-        LOG.infoWithRequestId("Input(" + username + ")");
+        log.info("Input(" + username + ")");
         List<CcCloudAreaInfoDTO> cloudAreaInfoList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
             .getCloudAreaList();
         return cloudAreaInfoList.stream().map(it ->
@@ -573,7 +559,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     @Override
     public Long deleteWhiteIPById(String username, Long id) {
-        return (long) whiteIPRecordDAO.deleteWhiteIPRecordById(dslContext, id);
+        return (long) whiteIPRecordDAO.deleteWhiteIPRecordById(id);
     }
 
     @Override
@@ -584,14 +570,14 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         // 2.再查对应的白名单
         List<String> actionScopes;
         if (hostId != null) {
-            actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, hostId);
+            actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(effectiveAppIds, hostId);
             // TMP: 兼容老版本（未执行白名单ip迁移工具，无法根据hostId找到白名单配置。发布完成后删除
             if (CollectionUtils.isEmpty(actionScopes) && StringUtils.isNotEmpty(ip) && cloudAreaId != null) {
-                actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, ip, cloudAreaId);
+                actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(effectiveAppIds, ip, cloudAreaId);
             }
         } else {
             // TMP: IPv6兼容代码，发布完成后删除
-            actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(dslContext, effectiveAppIds, ip, cloudAreaId);
+            actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(effectiveAppIds, ip, cloudAreaId);
         }
         return actionScopes;
     }
@@ -600,7 +586,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     public List<ServiceWhiteIPInfo> listWhiteIPInfos() {
         List<ServiceWhiteIPInfo> resultList = new ArrayList<>();
         //查出所有Record
-        List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord(dslContext);
+        List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord();
         if (CollectionUtils.isEmpty(recordList)) {
             return resultList;
         }

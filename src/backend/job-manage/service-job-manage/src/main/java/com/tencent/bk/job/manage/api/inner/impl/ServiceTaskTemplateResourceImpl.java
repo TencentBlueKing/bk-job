@@ -132,7 +132,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     }
 
     @Override
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
     public InternalResponse<Long> saveTemplateForMigration(
         String username,
         Long appId,

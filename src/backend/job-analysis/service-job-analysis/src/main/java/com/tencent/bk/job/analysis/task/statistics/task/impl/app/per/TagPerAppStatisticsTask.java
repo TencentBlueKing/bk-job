@@ -24,20 +24,21 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
-import com.tencent.bk.job.analysis.client.ManageMetricsClient;
-import com.tencent.bk.job.analysis.client.TagClient;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
+import com.tencent.bk.job.manage.api.inner.ServiceTagResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -54,15 +55,17 @@ import java.util.Map;
 @Service
 public class TagPerAppStatisticsTask extends BasePerAppStatisticsTask {
 
-    private final ManageMetricsClient manageMetricsClient;
-    private final TagClient tagClient;
+    private final ServiceMetricsResource manageMetricsResource;
+    private final ServiceTagResource tagResource;
 
-    protected TagPerAppStatisticsTask(BasicServiceManager basicServiceManager, StatisticsDAO statisticsDAO,
-                                      DSLContext dslContext, ManageMetricsClient manageMetricsClient,
-                                      TagClient tagClient) {
+    protected TagPerAppStatisticsTask(BasicServiceManager basicServiceManager,
+                                      StatisticsDAO statisticsDAO,
+                                      @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                      ServiceMetricsResource manageMetricsResource,
+                                      ServiceTagResource tagResource) {
         super(basicServiceManager, statisticsDAO, dslContext);
-        this.manageMetricsClient = manageMetricsClient;
-        this.tagClient = tagClient;
+        this.manageMetricsResource = manageMetricsResource;
+        this.tagResource = tagResource;
     }
 
     private StatisticsDTO genTagDistributionStatisticsDTO(String dateStr, Long appId, String value) {
@@ -83,7 +86,7 @@ public class TagPerAppStatisticsTask extends BasePerAppStatisticsTask {
         Map<String, Long> tagCitedCountMap = new HashMap<>();
         for (ServiceTagDTO serviceTagDTO : tagList) {
             Long tagId = serviceTagDTO.getId();
-            InternalResponse<Long> resp = manageMetricsClient.tagCitedCount(appId, tagId);
+            InternalResponse<Long> resp = manageMetricsResource.tagCitedCount(appId, tagId);
             if (resp == null || !resp.isSuccess()) {
                 log.warn("Fail to call remote tagCitedCount, resp:{}", resp);
                 continue;
@@ -106,7 +109,7 @@ public class TagPerAppStatisticsTask extends BasePerAppStatisticsTask {
     public List<StatisticsDTO> getStatisticsFrom(ServiceApplicationDTO app, Long fromTime, Long toTime,
                                                  String timeTag) {
         // 获取公共标签
-        InternalResponse<List<ServiceTagDTO>> resp = tagClient.listPublicTags();
+        InternalResponse<List<ServiceTagDTO>> resp = tagResource.listPublicTags();
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote listPublicTags, resp:{}", resp);
             return Collections.emptyList();
@@ -114,7 +117,7 @@ public class TagPerAppStatisticsTask extends BasePerAppStatisticsTask {
         List<ServiceTagDTO> publicTagList = resp.getData();
         log.debug("publicTagList={}", publicTagList);
         Long appId = app.getId();
-        resp = tagClient.listTags(appId);
+        resp = tagResource.listTags(appId);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote listTags, resp:{}", resp);
             return Collections.emptyList();

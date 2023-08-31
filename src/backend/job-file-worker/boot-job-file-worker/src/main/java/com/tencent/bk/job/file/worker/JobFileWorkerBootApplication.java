@@ -26,11 +26,13 @@ package com.tencent.bk.job.file.worker;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class})
+@SpringBootApplication(
+    scanBasePackages = "com.tencent.bk.job.file.worker",
+    exclude = {JooqAutoConfiguration.class})
 @EnableCaching
 @EnableScheduling
 public class JobFileWorkerBootApplication {

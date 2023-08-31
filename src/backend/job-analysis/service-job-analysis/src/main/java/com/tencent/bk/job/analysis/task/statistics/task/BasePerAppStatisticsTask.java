@@ -24,13 +24,14 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task;
 
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
@@ -40,8 +41,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
 
-    protected BasePerAppStatisticsTask(BasicServiceManager basicServiceManager, StatisticsDAO statisticsDAO,
-                                       DSLContext dslContext) {
+    protected BasePerAppStatisticsTask(BasicServiceManager basicServiceManager,
+                                       StatisticsDAO statisticsDAO,
+                                       @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
         super(basicServiceManager, statisticsDAO, dslContext);
     }
 

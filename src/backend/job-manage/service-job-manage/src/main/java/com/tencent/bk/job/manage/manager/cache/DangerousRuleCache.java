@@ -7,7 +7,6 @@ import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,15 +22,12 @@ import java.util.List;
 @Slf4j
 public class DangerousRuleCache {
     public static final String DANGEROUS_RULE_HASH_KEY = "job:manage:dangerousRules";
-    private final DSLContext dslContext;
     private final DangerousRuleDAO dangerousRuleDAO;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    public DangerousRuleCache(DSLContext dslContext,
-                              DangerousRuleDAO dangerousRuleDAO,
+    public DangerousRuleCache(DangerousRuleDAO dangerousRuleDAO,
                               @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate) {
-        this.dslContext = dslContext;
         this.dangerousRuleDAO = dangerousRuleDAO;
         this.redisTemplate = redisTemplate;
     }
@@ -50,8 +46,7 @@ public class DangerousRuleCache {
             DangerousRuleDTO dangerousRuleQuery = new DangerousRuleDTO();
             dangerousRuleQuery.setScriptType(scriptType);
             dangerousRuleQuery.setStatus(HighRiskGrammarRuleStatusEnum.ENABLED.getCode());
-            List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRules(dslContext,
-                dangerousRuleQuery);
+            List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRules(dangerousRuleQuery);
             if (CollectionUtils.isEmpty(dangerousRuleDTOList)) {
                 redisTemplate.opsForHash().put(DANGEROUS_RULE_HASH_KEY, String.valueOf(scriptType),
                     new ArrayList<DangerousRuleDO>());

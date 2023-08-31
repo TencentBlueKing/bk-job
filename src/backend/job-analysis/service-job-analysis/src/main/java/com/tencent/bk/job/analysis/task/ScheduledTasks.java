@@ -33,12 +33,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/**
- * @Description 增加调度需要注意到ScheduleConfig中更新线程池配置
- * @Date 2020/1/3
- * @Version 1.0
- */
-@Component
+@Component("jobAnalysisScheduledTasks")
 @EnableScheduling
 public class ScheduledTasks {
 

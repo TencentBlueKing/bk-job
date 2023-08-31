@@ -27,7 +27,7 @@ dependencies {
     api project(':commons:common-iam')
     api project(':commons:common-i18n')
     api project(':commons:esb-sdk')
-    api project(':commons:common-statistics')
+    api project(':job-analysis:api-common-job-analysis')
     api(project(":commons:common-api"))
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'

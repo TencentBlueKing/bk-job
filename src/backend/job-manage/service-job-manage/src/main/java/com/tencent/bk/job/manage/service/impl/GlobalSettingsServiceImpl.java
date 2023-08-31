@@ -86,7 +86,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
@@ -105,11 +104,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * @Description
- * @Date 2020/2/28
- * @Version 1.0
- */
 @Slf4j
 @Service
 public class GlobalSettingsServiceImpl implements GlobalSettingsService {
@@ -117,7 +111,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private static final Pattern PATTERN = Pattern.compile("^([.0-9]+)([a-zA-Z]{0,2})$");
     private static final String STRING_TPL_KEY_CURRENT_VERSION = "current_ver";
     private static final String STRING_TPL_KEY_CURRENT_YEAR = "current_year";
-    private final DSLContext dslContext;
     private final NotifyEsbChannelDAO notifyEsbChannelDAO;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyService notifyService;
@@ -133,22 +126,20 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
 
-    @Autowired
+
     public GlobalSettingsServiceImpl(
-        DSLContext dslContext
-        , NotifyEsbChannelDAO notifyEsbChannelDAO
-        , AvailableEsbChannelDAO availableEsbChannelDAO
-        , NotifyService notifyService
-        , NotifySendService notifySendService,
-        NotifyUserService notifyUserService,
-        GlobalSettingDAO globalSettingDAO
-        , NotifyTemplateDAO notifyTemplateDAO,
-        MessageI18nService i18nService,
-        JobManageConfig jobManageConfig,
-        LocalFileConfigForManage localFileConfigForManage,
-        NotifyTemplateConverter notifyTemplateConverter,
-        BuildProperties buildProperties) {
-        this.dslContext = dslContext;
+        @Autowired NotifyEsbChannelDAO notifyEsbChannelDAO,
+        @Autowired AvailableEsbChannelDAO availableEsbChannelDAO,
+        @Autowired NotifyService notifyService,
+        @Autowired NotifySendService notifySendService,
+        @Autowired NotifyUserService notifyUserService,
+        @Autowired GlobalSettingDAO globalSettingDAO,
+        @Autowired NotifyTemplateDAO notifyTemplateDAO,
+        @Autowired MessageI18nService i18nService,
+        @Autowired JobManageConfig jobManageConfig,
+        @Autowired LocalFileConfigForManage localFileConfigForManage,
+        @Autowired NotifyTemplateConverter notifyTemplateConverter,
+        @Autowired(required = false) BuildProperties buildProperties) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
@@ -174,24 +165,23 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
-    public Boolean isNotifyChannelConfiged(DSLContext dslContext) {
-        GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
+    public Boolean isNotifyChannelConfiged() {
+        GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(
             GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED);
         return globalSettingDTO != null && globalSettingDTO.getValue().toLowerCase().equals("true");
     }
 
     @Override
-    public Boolean setNotifyChannelConfiged(DSLContext dslContext) {
-        GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
+    public Boolean setNotifyChannelConfiged() {
+        GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(
             GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED);
         if (globalSettingDTO == null) {
             globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED,
-                "true", "whether " +
-                "avaliable notify channels are configed");
-            return 1 == globalSettingDAO.insertGlobalSetting(dslContext, globalSettingDTO);
+                "true", "whether available notify channels are configed");
+            return 1 == globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         } else if (!globalSettingDTO.getValue().toLowerCase().equals("true")) {
             globalSettingDTO.setValue("true");
-            return 1 == globalSettingDAO.updateGlobalSetting(dslContext, globalSettingDTO);
+            return 1 == globalSettingDAO.updateGlobalSetting(globalSettingDTO);
         } else {
             return true;
         }
@@ -200,10 +190,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public List<NotifyChannelWithIconVO> listNotifyChannel(String username) {
         List<NotifyEsbChannelDTO> allNotifyChannelList =
-            notifyEsbChannelDAO.listNotifyEsbChannel(dslContext).stream()
+            notifyEsbChannelDAO.listNotifyEsbChannel().stream()
                 .filter(NotifyEsbChannelDTO::isActive).collect(Collectors.toList());
         List<AvailableEsbChannelDTO> availableNotifyChannelList =
-            availableEsbChannelDAO.listAvailableEsbChannel(dslContext);
+            availableEsbChannelDAO.listAvailableEsbChannel();
         Set<String> availableNotifyChannelTypeSet =
             availableNotifyChannelList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toSet());
         return allNotifyChannelList.stream().map(it -> {
@@ -244,13 +234,13 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public Long getHistoryExpireTime(String username) {
-        GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
+        GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(
             GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS);
         if (globalSettingDTO == null) {
             globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS,
                 "60", "执行记录默认保存天数" +
                 "(default history expire days)");
-            globalSettingDAO.insertGlobalSetting(dslContext, globalSettingDTO);
+            globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         }
         return Long.parseLong(globalSettingDTO.getValue());
     }
@@ -265,7 +255,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         GlobalSettingDTO globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS,
             days.toString(), String.format("执行记录保存天数(history expire days):%s,%s", username,
             DateUtils.defaultLocalDateTime(LocalDateTime.now())));
-        return globalSettingDAO.updateGlobalSetting(dslContext, globalSettingDTO);
+        return globalSettingDAO.updateGlobalSetting(globalSettingDTO);
     }
 
     @Override
@@ -281,7 +271,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             globalSettingKey = GlobalSettingKeys.KEY_CURRENT_NAME_RULES;
         }
         List<AccountNameRule> currentNameRules;
-        currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext, globalSettingKey);
+        currentNameRulesDTO = globalSettingDAO.getGlobalSetting(globalSettingKey);
         if (currentNameRulesDTO != null) {
             currentNameRules = JsonUtils.fromJson(currentNameRulesDTO.getValue(),
                 new TypeReference<List<AccountNameRule>>() {
@@ -327,12 +317,12 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
             //英文环境
             defaultNameRules = getDefaultNameRules(Locale.ENGLISH);
-            currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
+            currentNameRulesDTO = globalSettingDAO.getGlobalSetting(
                 GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN);
         } else {
             //中文环境
             defaultNameRules = getDefaultNameRules(Locale.CHINA);
-            currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext,
+            currentNameRulesDTO = globalSettingDAO.getGlobalSetting(
                 GlobalSettingKeys.KEY_CURRENT_NAME_RULES);
         }
         List<AccountNameRule> currentNameRules;
@@ -360,14 +350,14 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             //英文环境
             currentNameRulesKey = GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN;
         }
-        GlobalSettingDTO currentNameRulesDTO = globalSettingDAO.getGlobalSetting(dslContext, currentNameRulesKey);
+        GlobalSettingDTO currentNameRulesDTO = globalSettingDAO.getGlobalSetting(currentNameRulesKey);
         GlobalSettingDTO inputNameRulesDTO = new GlobalSettingDTO(currentNameRulesKey,
             JsonUtils.toJson(req.getRules()), String.format("Updated by %s at %s", username,
             DateUtils.defaultLocalDateTime(LocalDateTime.now())));
         if (currentNameRulesDTO == null) {
-            return globalSettingDAO.insertGlobalSetting(dslContext, inputNameRulesDTO) == 1;
+            return globalSettingDAO.insertGlobalSetting(inputNameRulesDTO) == 1;
         } else {
-            return globalSettingDAO.updateGlobalSetting(dslContext, inputNameRulesDTO) == 1;
+            return globalSettingDAO.updateGlobalSetting(inputNameRulesDTO) == 1;
         }
     }
 
@@ -413,7 +403,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             // 去重
             suffixList = suffixList.stream().distinct().collect(Collectors.toList());
         }
-        GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
+        GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(
             GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
         if (fileUploadSettingDTO == null) {
             fileUploadSettingDTO = new GlobalSettingDTO();
@@ -431,7 +421,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public FileUploadSettingVO getFileUploadSettings() {
-        GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
+        GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(
             GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
         FileUploadSettingVO fileUploadSettingVO;
         if (fileUploadSettingDTO == null) {
@@ -467,7 +457,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         if (req.getFooterCopyRight() == null) {
             req.setFooterCopyRight("");
         }
-        GlobalSettingDTO titleFooterDTO = globalSettingDAO.getGlobalSetting(dslContext,
+        GlobalSettingDTO titleFooterDTO = globalSettingDAO.getGlobalSetting(
             GlobalSettingKeys.KEY_TITLE_FOOTER);
         if (titleFooterDTO == null) {
             Map<String, TitleFooter> titleFooterLanguageMap = new HashMap<>();
@@ -486,7 +476,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                     , username
                     , TimeUtil.getCurrentTimeStr()))
                 , String.format("Updated by %s at %s", username, DateUtils.defaultLocalDateTime(LocalDateTime.now())));
-            return globalSettingDAO.insertGlobalSetting(dslContext, titleFooterDTO) == 1;
+            return globalSettingDAO.insertGlobalSetting(titleFooterDTO) == 1;
         } else {
             Map<String, TitleFooter> titleFooterLanguageMap = JsonUtils.fromJson(titleFooterDTO.getValue(),
                 new TypeReference<TitleFooterDTO>() {
@@ -501,7 +491,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             titleFooterDTO.setValue(JsonUtils.toJson(new TitleFooterDTO(titleFooterLanguageMap
                 , username
                 , TimeUtil.getCurrentTimeStr())));
-            return globalSettingDAO.updateGlobalSetting(dslContext, titleFooterDTO) == 1;
+            return globalSettingDAO.updateGlobalSetting(titleFooterDTO) == 1;
         }
     }
 
@@ -534,7 +524,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         // 渲染版本号
         Map<String, String> valuesMap = new HashMap<>();
         String pattern = "(\\{\\{(.*?)\\}\\})";
-        valuesMap.put(STRING_TPL_KEY_CURRENT_VERSION, "V" + buildProperties.getVersion());
+        if (buildProperties != null) {
+            valuesMap.put(STRING_TPL_KEY_CURRENT_VERSION, "V" + buildProperties.getVersion());
+        }
         valuesMap.put(STRING_TPL_KEY_CURRENT_YEAR, DateUtils.getCurrentDateStr("yyyy"));
         titleFooterVO.setFooterCopyRight(
             StringUtil.replaceByRegex(titleFooterVO.getFooterCopyRight(), pattern, valuesMap)
@@ -546,7 +538,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     public TitleFooterVO getTitleFooterWithoutVersion() {
-        GlobalSettingDTO titleFooterSettingDTO = globalSettingDAO.getGlobalSetting(dslContext,
+        GlobalSettingDTO titleFooterSettingDTO = globalSettingDAO.getGlobalSetting(
             GlobalSettingKeys.KEY_TITLE_FOOTER);
         if (titleFooterSettingDTO == null) {
             log.warn("Default titleFooter not configured, use system default, plz contact admin to set");

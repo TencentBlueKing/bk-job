@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController
+@RestController("jobManageWebIndexResource")
 @Slf4j
 public class WebIndexResourceImpl implements WebIndexResource {
 

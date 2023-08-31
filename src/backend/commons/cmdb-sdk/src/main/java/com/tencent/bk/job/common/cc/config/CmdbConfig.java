@@ -26,10 +26,10 @@ package com.tencent.bk.job.common.cc.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 @Data
-@Component
+@Configuration
 public class CmdbConfig {
 
     @Value("${cmdb.default.supplier.account:0}")

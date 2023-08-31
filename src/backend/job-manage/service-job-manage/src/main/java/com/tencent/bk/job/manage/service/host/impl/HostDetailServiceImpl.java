@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.cc.service.CloudAreaService;
+import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
@@ -73,7 +73,7 @@ public class HostDetailServiceImpl implements HostDetailService {
     @Override
     public void fillDetailForHosts(List<ApplicationHostDTO> hostList) {
         for (ApplicationHostDTO host : hostList) {
-            host.setCloudAreaName(CloudAreaService.getCloudAreaNameFromCache(host.getCloudAreaId()));
+            host.setCloudAreaName(BkNetClient.getCloudAreaNameFromCache(host.getCloudAreaId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
                 cloudVendorId,

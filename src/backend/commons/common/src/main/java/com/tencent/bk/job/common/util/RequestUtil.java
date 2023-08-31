@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.util;
 
+import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +32,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -102,5 +104,23 @@ public class RequestUtil {
             }
         }
         return cookieValueList;
+    }
+
+    /**
+     * 解析 http 请求来源
+     *
+     * @param request http 请求
+     * @return 请求来源
+     */
+    public static HttpRequestSourceEnum parseHttpRequestSource(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/web/")) {
+            return HttpRequestSourceEnum.WEB;
+        } else if (uri.startsWith("/esb/")) {
+            return HttpRequestSourceEnum.ESB;
+        } else if (uri.startsWith("/service/")) {
+            return HttpRequestSourceEnum.INTERNAL;
+        }
+        return HttpRequestSourceEnum.UNKNOWN;
     }
 }

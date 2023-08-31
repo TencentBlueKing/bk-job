@@ -1,4 +1,4 @@
-{{- if .Values.fileGatewayConfig.enabled }}
+{{- if and .Values.fileGatewayConfig.enabled (eq .Values.deploy.mode "standard") }}
 apiVersion: v1
 kind: Service
 metadata:

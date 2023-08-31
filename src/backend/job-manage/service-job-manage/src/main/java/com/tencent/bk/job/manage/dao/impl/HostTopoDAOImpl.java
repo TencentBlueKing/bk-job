@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import com.tencent.bk.job.manage.model.tables.HostTopo;
+import com.tencent.bk.job.manage.model.tables.records.HostTopoRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,10 +42,9 @@ import org.jooq.Query;
 import org.jooq.Result;
 import org.jooq.UpdateConditionStep;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.HostTopo;
-import org.jooq.generated.tables.records.HostTopoRecord;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     private final DSLContext defaultContext;
 
     @Autowired
-    public HostTopoDAOImpl(DSLContext dslContext) {
+    public HostTopoDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.defaultContext = dslContext;
     }
 

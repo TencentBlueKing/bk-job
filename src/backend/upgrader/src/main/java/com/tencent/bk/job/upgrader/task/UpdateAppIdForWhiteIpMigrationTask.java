@@ -61,7 +61,7 @@ public class UpdateAppIdForWhiteIpMigrationTask extends BaseUpgradeTask {
             // 1.迁移IP白名单数据的appId
             log.info("job.manage.updateAppIdForWhiteIpMigrationTask start ...");
             Response<String> manageResp = post(buildMigrationTaskUrl(getJobManageUrl(),
-                "/migration/action/updateAppIdForWhiteIpMigrationTask"),
+                "/manage/migration/action/updateAppIdForWhiteIpMigrationTask"),
                 JsonUtils.toJson(new UpdateAppIdForWhiteIpMigrationReq(false)));
             log.info("job.manage.updateAppIdForWhiteIpMigrationTask done, result: {}", manageResp);
             return manageResp.isSuccess();

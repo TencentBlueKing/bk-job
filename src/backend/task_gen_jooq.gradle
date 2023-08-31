@@ -44,7 +44,7 @@ simpleModuleName = simpleModuleName.substring(0, simpleModuleName.length() - 1)
 println("moduleName=" + moduleName)
 println("simpleModuleName=" + simpleModuleName)
 def databaseName = moduleName
-def packageName = "com.tencent.bk.job." + simpleModuleName + ".model"
+def targetPackageName = "com.tencent.bk.job." + simpleModuleName + ".model"
 
 jooq {
     genenrate(sourceSets.main) {
@@ -91,7 +91,8 @@ jooq {
             }
 
             target {
-                packageName = "${packageName}"
+                packageName = "${targetPackageName}"
+                encoding = 'UTF-8'
             }
         }
     }

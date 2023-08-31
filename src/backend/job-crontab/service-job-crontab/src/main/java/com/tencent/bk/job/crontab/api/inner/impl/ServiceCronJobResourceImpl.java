@@ -116,7 +116,7 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
     }
 
     @Override
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Throwable.class})
     public InternalResponse<Long> saveCronJobWithId(String username, Long appId, Long cronJobId, Long createTime,
                                                     Long lastModifyTime, String lastModifyUser,
                                                     CronJobCreateUpdateReq cronJobCreateUpdateReq) {

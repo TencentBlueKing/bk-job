@@ -33,7 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@Configuration
+@Configuration(value = "jobFileWorkerExecutorConfig")
 public class ExecutorConfiguration {
 
     @Bean("fileTaskExecutor")

@@ -96,20 +96,35 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final TaskTemplateDAO taskTemplateDAO;
     private final TemplateStatusUpdateService templateStatusUpdateService;
     private final TaskFavoriteService taskFavoriteService;
-    private final CronJobService cronJobService;
     private TaskPlanService taskPlanService;
     private ScriptService scriptService;
+    private CronJobService cronJobService;
 
+    /**
+     * 通过 Set 方式注入，避免循环依赖问题
+     */
     @Autowired
     @Lazy
     public void setTaskPlanService(TaskPlanService taskPlanService) {
         this.taskPlanService = taskPlanService;
     }
 
+    /**
+     * 通过 Set 方式注入，避免循环依赖问题
+     */
     @Autowired
     @Lazy
     public void setScriptService(ScriptService scriptService) {
         this.scriptService = scriptService;
+    }
+
+    /**
+     * 通过 Set 方式注入，避免循环依赖问题
+     */
+    @Autowired
+    @Lazy
+    public void setCronJobService(CronJobService cronJobService) {
+        this.cronJobService = cronJobService;
     }
 
 
@@ -121,15 +136,13 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TaskTemplateDAO taskTemplateDAO,
         TagService tagService,
         TemplateStatusUpdateService templateStatusUpdateService,
-        @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
-        CronJobService cronJobService) {
+        @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService) {
         this.taskStepService = taskStepService;
         this.taskVariableService = taskVariableService;
         this.taskTemplateDAO = taskTemplateDAO;
         this.tagService = tagService;
         this.templateStatusUpdateService = templateStatusUpdateService;
         this.taskFavoriteService = taskFavoriteService;
-        this.cronJobService = cronJobService;
     }
 
     private void setUpdateFlag(TaskTemplateInfoDTO templateInfo) {
@@ -290,7 +303,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(rollbackFor = ServiceException.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = ServiceException.class)
     public Long saveTaskTemplate(TaskTemplateInfoDTO taskTemplateInfo) {
         String lockKey = null;
         try {
@@ -471,7 +484,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     public Boolean deleteTaskTemplate(Long appId, Long templateId) {
         List<TaskPlanInfoDTO> taskPlanInfoList = taskPlanService.listTaskPlansBasicInfo(appId, templateId);
         if (CollectionUtils.isNotEmpty(taskPlanInfoList)) {
@@ -593,7 +606,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public Long saveTaskTemplateForMigration(
         TaskTemplateInfoDTO taskTemplateInfo,
         Long createTime,

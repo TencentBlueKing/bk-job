@@ -1,2 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.tencent.bk.job.common.web.config.CustomTimedMetricsAutoConfiguration
+com.tencent.bk.job.common.web.config.CustomTimedMetricsAutoConfiguration,\
+com.tencent.bk.job.common.web.config.WebAutoConfiguration,\
+com.tencent.bk.job.common.web.config.ExceptionAdviceAutoConfiguration,\
+com.tencent.bk.job.common.web.config.WebInterceptorAutoConfiguration,\
+com.tencent.bk.job.common.web.config.WebInterceptorRegisterAutoConfiguration

@@ -24,39 +24,27 @@
 
 package com.tencent.bk.job.common.consul.listener;
 
+import com.tencent.bk.job.common.consul.config.JobConsulProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.cloud.consul.ConditionalOnConsulEnabled;
-import org.springframework.cloud.consul.discovery.ConditionalOnConsulDiscoveryEnabled;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
 import org.springframework.cloud.consul.serviceregistry.ConsulServiceRegistry;
-import org.springframework.cloud.consul.serviceregistry.ConsulServiceRegistryAutoConfiguration;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.stereotype.Component;
 
 import static org.springframework.boot.actuate.health.Status.OUT_OF_SERVICE;
 
 @Slf4j
-@Component
-@ConditionalOnConsulEnabled
-@ConditionalOnConsulDiscoveryEnabled
-@AutoConfigureAfter(ConsulServiceRegistryAutoConfiguration.class)
 public class GracefulShutdown implements ApplicationListener<ContextClosedEvent> {
 
     private final ConsulRegistration consulRegistration;
     private final ConsulServiceRegistry consulServiceRegistry;
+    private final JobConsulProperties jobConsulProperties;
 
-    @Value("${job.consul.gateway.refresh.waitSeconds:3}")
-    int waitGatewayToRefreshConsulSeconds = 3;
-
-    @Autowired
-    public GracefulShutdown(ConsulRegistration consulRegistration, ConsulServiceRegistry consulServiceRegistry) {
+    public GracefulShutdown(ConsulRegistration consulRegistration, ConsulServiceRegistry consulServiceRegistry,
+                            JobConsulProperties jobConsulProperties) {
         this.consulRegistration = consulRegistration;
         this.consulServiceRegistry = consulServiceRegistry;
-        log.debug("consulRegistration={},consulServiceRegistry={}", consulRegistration, consulServiceRegistry);
+        this.jobConsulProperties = jobConsulProperties;
     }
 
     @Override
@@ -70,7 +58,7 @@ public class GracefulShutdown implements ApplicationListener<ContextClosedEvent>
         }
         // 2.等待网关刷新consul服务状态
         try {
-            Thread.sleep(waitGatewayToRefreshConsulSeconds * 1000L);
+            Thread.sleep(jobConsulProperties.getRefreshSeconds() * 1000L);
         } catch (InterruptedException e) {
             log.error("Error when offline", e);
         }

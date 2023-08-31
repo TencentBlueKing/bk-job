@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.prepare.local;
 
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.execute.config.ArtifactoryConfig;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
@@ -66,7 +66,7 @@ public class LocalFilePrepareService {
                                    LocalFileConfigForExecute localFileConfigForExecute,
                                    AgentService agentService,
                                    TaskInstanceService taskInstanceService,
-                                   ArtifactoryClient artifactoryClient,
+                                   @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                    @Qualifier("localFilePrepareExecutor") ThreadPoolExecutor localFilePrepareExecutor) {
         this.storageSystemConfig = storageSystemConfig;
         this.artifactoryConfig = artifactoryConfig;

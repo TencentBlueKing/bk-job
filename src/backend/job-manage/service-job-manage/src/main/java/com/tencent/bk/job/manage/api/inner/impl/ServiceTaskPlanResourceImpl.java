@@ -202,7 +202,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     }
 
     @Override
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
     public InternalResponse<Long> createPlanWithIdForMigration(
         String username,
         Long appId,

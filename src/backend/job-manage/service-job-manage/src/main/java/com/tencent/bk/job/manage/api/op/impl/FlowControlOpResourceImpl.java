@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.manage.api.op.FlowControlOpResource;
 import com.tencent.bk.job.manage.model.op.req.ConfigFlowControlReq;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,8 +42,8 @@ public class FlowControlOpResourceImpl implements FlowControlOpResource {
     private final FlowController globalFlowController;
 
     @Autowired
-    public FlowControlOpResourceImpl(FlowController flowController) {
-        globalFlowController = flowController;
+    public FlowControlOpResourceImpl(ObjectProvider<FlowController> flowControllerObjectProvider) {
+        globalFlowController = flowControllerObjectProvider.getIfAvailable();
     }
 
     protected void logInput(Object... args) {

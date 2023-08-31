@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.analysis.task.analysis;
 
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.task.IAnalysisTask;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -85,7 +85,6 @@ public class AnalysisTaskScheduler {
         List<String> beanNames = Arrays.asList(context.getBeanDefinitionNames());
         beanNames.forEach(beanName -> {
             Object bean = context.getBean(beanName);
-            log.info("check " + beanName);
             if (bean instanceof IAnalysisTask) {
                 log.info("add " + beanName);
                 IAnalysisTask taskBean = (IAnalysisTask) bean;

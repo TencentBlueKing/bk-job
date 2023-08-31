@@ -60,7 +60,7 @@ public class ResourceTagMigrationTask extends BaseUpgradeTask {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         try {
             Response<List<ResourceTagDTO>> response = post(buildMigrationTaskUrl(getJobManageUrl(),
-                "/migration/action/migrationResourceTags"), null);
+                "/manage/migration/action/migrationResourceTags"), null);
             log.info("MigrationResourceTags done, result: {}", response);
             return response.isSuccess();
         } catch (Throwable e) {

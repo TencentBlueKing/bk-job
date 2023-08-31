@@ -31,7 +31,6 @@ import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,9 +47,10 @@ import java.util.Collections;
 public class DefaultTipsProvider extends BaseAnalysisTask {
 
     @Autowired
-    public DefaultTipsProvider(DSLContext dslContext, AnalysisTaskDAO analysisTaskDAO,
-                               AnalysisTaskInstanceDAO analysisTaskInstanceDAO, ApplicationService applicationService) {
-        super(dslContext, analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
+    public DefaultTipsProvider(AnalysisTaskDAO analysisTaskDAO,
+                               AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
+                               ApplicationService applicationService) {
+        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
     }
 
     @Override

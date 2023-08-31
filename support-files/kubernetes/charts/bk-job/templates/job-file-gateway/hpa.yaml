@@ -1,4 +1,4 @@
-{{- if and (.Values.fileGatewayConfig.enabled) (.Values.fileGatewayConfig.autoscaling.enabled) }}
+{{- if and (.Values.fileGatewayConfig.enabled) (.Values.fileGatewayConfig.autoscaling.enabled) (eq .Values.deploy.mode "standard") }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:

@@ -28,15 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 /**
  * Spring容器
  */
 @Slf4j
-@Component
-@Lazy(false)
 public class ApplicationContextRegister implements ApplicationContextAware {
     /**
      * Spring应用上下文环境

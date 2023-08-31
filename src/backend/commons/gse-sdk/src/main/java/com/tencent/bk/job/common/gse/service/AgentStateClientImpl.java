@@ -37,8 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,13 +47,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class AgentStateClientImpl implements AgentStateClient {
 
     private final AgentStateQueryConfig agentStateQueryConfig;
     private final GseClient gseClient;
 
-    @Autowired
     public AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig, GseClient gseClient) {
         this.agentStateQueryConfig = agentStateQueryConfig;
         this.gseClient = gseClient;

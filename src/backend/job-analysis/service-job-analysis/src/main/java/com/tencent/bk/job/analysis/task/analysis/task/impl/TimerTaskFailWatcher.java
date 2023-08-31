@@ -25,8 +25,6 @@
 package com.tencent.bk.job.analysis.task.analysis.task.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.analysis.client.CronJobResourceClient;
-import com.tencent.bk.job.analysis.client.TaskExecuteResultResourceClient;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
@@ -40,13 +38,14 @@ import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultIte
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
+import com.tencent.bk.job.execute.api.inner.ServiceTaskExecuteResultResource;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,17 +62,18 @@ import java.util.List;
 @Slf4j
 public class TimerTaskFailWatcher extends AbstractTimerTaskWatcher {
 
-    private final TaskExecuteResultResourceClient serviceTaskExecuteResultResourceClient;
+    private final ServiceTaskExecuteResultResource taskExecuteResultResource;
 
     @Autowired
     public TimerTaskFailWatcher(
-        DSLContext dslContext, AnalysisTaskDAO analysisTaskDAO,
+        AnalysisTaskDAO analysisTaskDAO,
         AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
-        ApplicationService applicationService, CronJobResourceClient cronJobResourceClient,
-        TaskExecuteResultResourceClient serviceTaskExecuteResultResourceClient
+        ApplicationService applicationService,
+        ServiceCronJobResource cronJobResource,
+        ServiceTaskExecuteResultResource taskExecuteResultResource
     ) {
-        super(dslContext, analysisTaskDAO, analysisTaskInstanceDAO, applicationService, cronJobResourceClient);
-        this.serviceTaskExecuteResultResourceClient = serviceTaskExecuteResultResourceClient;
+        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService, cronJobResource);
+        this.taskExecuteResultResource = taskExecuteResultResource;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class TimerTaskFailWatcher extends AbstractTimerTaskWatcher {
         cronJobVOList.forEach(it -> {
             //3.拿到每一个定时任务在指定时间段内的执行结果并找出失败的
             log.info("begin to find fail result of task:" + it.getId() + "," + it.getName());
-            PageData<ServiceTaskInstanceDTO> failResults = getFailResults(serviceTaskExecuteResultResourceClient, it);
+            PageData<ServiceTaskInstanceDTO> failResults = getFailResults(taskExecuteResultResource, it);
             if (failResults.getTotal() > 0) {
                 failCronJobBaseInfoList.add(
                     new FailCronJobBaseInfo(

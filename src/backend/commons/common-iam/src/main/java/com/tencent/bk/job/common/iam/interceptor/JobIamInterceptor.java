@@ -27,10 +27,10 @@
 
 package com.tencent.bk.job.common.iam.interceptor;
 
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -38,12 +38,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
-@Component
+@JobInterceptor(pathPatterns = {"/iam/api/v1/resources/**"},
+    order = InterceptorOrder.Init.CHECK_VALID)
 public class JobIamInterceptor extends HandlerInterceptorAdapter {
 
-    private AuthHelper authHelper;
+    private final AuthHelper authHelper;
 
-    @Autowired
     public JobIamInterceptor(AuthHelper authHelper) {
         this.authHelper = authHelper;
     }

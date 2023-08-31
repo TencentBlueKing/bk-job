@@ -24,21 +24,22 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
-import com.tencent.bk.job.analysis.client.ManageMetricsClient;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.consts.StepTypeEnum;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -52,13 +53,14 @@ import java.util.List;
 @Service
 public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTask {
 
-    private final ManageMetricsClient manageMetricsClient;
+    private final ServiceMetricsResource manageMetricsResource;
 
     protected TaskTemplateStepPerAppStatisticsTask(BasicServiceManager basicServiceManager,
-                                                   StatisticsDAO statisticsDAO, DSLContext dslContext,
-                                                   ManageMetricsClient manageMetricsClient) {
+                                                   StatisticsDAO statisticsDAO,
+                                                   @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                                   ServiceMetricsResource manageMetricsResource) {
         super(basicServiceManager, statisticsDAO, dslContext);
-        this.manageMetricsClient = manageMetricsClient;
+        this.manageMetricsResource = manageMetricsResource;
     }
 
     private StatisticsDTO genTaskTplStepTypeStatistics(String dateStr, Long appId, String value,
@@ -76,7 +78,7 @@ public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTa
     public List<StatisticsDTO> calcAppTaskTemplateStepTypeStatistics(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
         // 1.手工录入脚本的步骤统计
-        InternalResponse<Integer> resp = manageMetricsClient.countTemplateSteps(appId, TaskStepTypeEnum.SCRIPT,
+        InternalResponse<Integer> resp = manageMetricsResource.countTemplateSteps(appId, TaskStepTypeEnum.SCRIPT,
             TaskScriptSourceEnum.LOCAL, null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countTemplateSteps, resp:{}", resp);
@@ -86,14 +88,14 @@ public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTa
         statisticsDTOList.add(genTaskTplStepTypeStatistics(dateStr, appId, localScriptStepCount.toString(),
             StatisticsConstants.DIMENSION_VALUE_STEP_TYPE_PREFIX + StepTypeEnum.SCRIPT_MANUAL.name()));
         // 2.引用脚本的步骤统计
-        resp = manageMetricsClient.countTemplateSteps(appId, TaskStepTypeEnum.SCRIPT, TaskScriptSourceEnum.CITING,
+        resp = manageMetricsResource.countTemplateSteps(appId, TaskStepTypeEnum.SCRIPT, TaskScriptSourceEnum.CITING,
             null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countTemplateSteps, resp:{}", resp);
             return statisticsDTOList;
         }
         Integer citedAppScriptStepCount = resp.getData();
-        resp = manageMetricsClient.countTemplateSteps(appId, TaskStepTypeEnum.SCRIPT, TaskScriptSourceEnum.PUBLIC,
+        resp = manageMetricsResource.countTemplateSteps(appId, TaskStepTypeEnum.SCRIPT, TaskScriptSourceEnum.PUBLIC,
             null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countTemplateSteps, resp:{}", resp);
@@ -105,7 +107,7 @@ public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTa
             Integer.toString(citedScriptStepCount),
             StatisticsConstants.DIMENSION_VALUE_STEP_TYPE_PREFIX + StepTypeEnum.SCRIPT_REF.name()));
         // 3.分发本地文件的步骤统计
-        resp = manageMetricsClient.countTemplateSteps(
+        resp = manageMetricsResource.countTemplateSteps(
             appId,
             TaskStepTypeEnum.FILE,
             null,
@@ -119,7 +121,7 @@ public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTa
         statisticsDTOList.add(genTaskTplStepTypeStatistics(dateStr, appId, localFileStepCount.toString(),
             StatisticsConstants.DIMENSION_VALUE_STEP_TYPE_PREFIX + StepTypeEnum.FILE_LOCAL.name()));
         // 4.分发服务器文件的步骤统计
-        resp = manageMetricsClient.countTemplateSteps(
+        resp = manageMetricsResource.countTemplateSteps(
             appId,
             TaskStepTypeEnum.FILE,
             null,
@@ -133,7 +135,7 @@ public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTa
         statisticsDTOList.add(genTaskTplStepTypeStatistics(dateStr, appId, serverFileStepCount.toString(),
             StatisticsConstants.DIMENSION_VALUE_STEP_TYPE_PREFIX + StepTypeEnum.FILE_SERVER.name()));
         // 5.人工审核的步骤统计
-        resp = manageMetricsClient.countTemplateSteps(appId, TaskStepTypeEnum.APPROVAL, null, null);
+        resp = manageMetricsResource.countTemplateSteps(appId, TaskStepTypeEnum.APPROVAL, null, null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countTemplateSteps, resp:{}", resp);
             return statisticsDTOList;

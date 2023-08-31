@@ -65,8 +65,8 @@ public class CustomTimedMetricsAutoConfiguration {
     @Bean
     public CustomTimedMetricsInterceptor customTimedMetricsInterceptor(
         MeterRegistry meterRegistry,
-        CustomTimedTagsProvider customTimedTagsProvider
-    ) {
+        CustomTimedTagsProvider customTimedTagsProvider) {
         return new CustomTimedMetricsInterceptor(customTimedTagsProvider, meterRegistry);
     }
+
 }

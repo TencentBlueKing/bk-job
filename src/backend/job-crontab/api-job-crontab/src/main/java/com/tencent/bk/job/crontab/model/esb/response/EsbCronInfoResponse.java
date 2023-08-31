@@ -27,11 +27,13 @@ package com.tencent.bk.job.crontab.model.esb.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * @since 26/2/2020 20:58
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class EsbCronInfoResponse extends EsbAppScopeDTO {
 
     /**

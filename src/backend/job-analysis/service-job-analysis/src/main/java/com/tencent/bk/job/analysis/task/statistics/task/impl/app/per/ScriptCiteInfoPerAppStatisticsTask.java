@@ -24,17 +24,18 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
-import com.tencent.bk.job.analysis.client.ManageMetricsClient;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -49,12 +50,14 @@ import java.util.List;
 @Service
 public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask {
 
-    private final ManageMetricsClient manageMetricsClient;
+    private final ServiceMetricsResource manageMetricsResource;
 
-    protected ScriptCiteInfoPerAppStatisticsTask(BasicServiceManager basicServiceManager, StatisticsDAO statisticsDAO
-        , DSLContext dslContext, ManageMetricsClient manageMetricsClient) {
+    protected ScriptCiteInfoPerAppStatisticsTask(BasicServiceManager basicServiceManager,
+                                                 StatisticsDAO statisticsDAO,
+                                                 @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                                 ServiceMetricsResource manageMetricsResource) {
         super(basicServiceManager, statisticsDAO, dslContext);
-        this.manageMetricsClient = manageMetricsClient;
+        this.manageMetricsResource = manageMetricsResource;
     }
 
     private StatisticsDTO genScriptCountStatisticsDTO(String dateStr, Long appId, String value) {
@@ -98,7 +101,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
     public List<StatisticsDTO> calcAppScriptCiteInfo(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
         // 1.统计脚本总数
-        InternalResponse<Integer> resp = manageMetricsClient.countScripts(
+        InternalResponse<Integer> resp = manageMetricsResource.countScripts(
             appId,
             null,
             null
@@ -110,7 +113,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
         Integer scriptCount = resp.getData();
         statisticsDTOList.add(genScriptCountStatisticsDTO(dateStr, appId, scriptCount.toString()));
         // 2.统计被引用的脚本总数
-        resp = manageMetricsClient.countCiteScripts(appId);
+        resp = manageMetricsResource.countCiteScripts(appId);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countCiteScripts, resp:{}", resp);
             return statisticsDTOList;
@@ -118,7 +121,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
         Integer citedScriptCount = resp.getData();
         statisticsDTOList.add(genCitedScriptCountDTO(dateStr, appId, citedScriptCount.toString()));
         // 3.统计引用脚本的步骤总数
-        resp = manageMetricsClient.countCiteScriptSteps(appId);
+        resp = manageMetricsResource.countCiteScriptSteps(appId);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countCiteScriptSteps, resp:{}", resp);
             return statisticsDTOList;

@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 
 @Slf4j
-@Service
+@Service("jobCrontabMeasureService")
 public class MeasureServiceImpl {
 
     @Autowired

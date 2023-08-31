@@ -25,8 +25,8 @@
 package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
-import com.tencent.bk.job.common.iam.config.EsbConfiguration;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
@@ -52,8 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,7 +60,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class AppAuthServiceImpl extends BasicAuthService implements AppAuthService {
     private final AuthHelper authHelper;
     private final BusinessAuthHelper businessAuthHelper;
@@ -70,16 +67,16 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     private final EsbIamClient iamClient;
     private ResourceNameQueryService resourceNameQueryService;
 
-    public AppAuthServiceImpl(@Autowired AuthHelper authHelper,
-                              @Autowired BusinessAuthHelper businessAuthHelper,
-                              @Autowired IamConfiguration iamConfiguration,
-                              @Autowired PolicyService policyService,
-                              @Autowired EsbConfiguration esbConfiguration) {
+    public AppAuthServiceImpl(AuthHelper authHelper,
+                              BusinessAuthHelper businessAuthHelper,
+                              IamConfiguration iamConfiguration,
+                              PolicyService policyService,
+                              EsbProperties esbProperties) {
         this.authHelper = authHelper;
         this.businessAuthHelper = businessAuthHelper;
         this.policyService = policyService;
-        this.iamClient = new EsbIamClient(esbConfiguration.getEsbUrl(), iamConfiguration.getAppCode(),
-            iamConfiguration.getAppSecret(), esbConfiguration.isUseEsbTestEnv());
+        this.iamClient = new EsbIamClient(esbProperties.getService().getUrl(), iamConfiguration.getAppCode(),
+            iamConfiguration.getAppSecret());
     }
 
     @Override
