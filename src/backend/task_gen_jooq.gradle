@@ -56,16 +56,10 @@ jooq {
             def mysqlPasswd = System.getProperty("mysqlPasswd")
 
             if (mysqlURL == null) {
-                mysqlURL = System.getenv("mysqlURL")
-                mysqlUser = System.getenv("mysqlUser")
-                mysqlPasswd = System.getenv("mysqlPasswd")
-            }
-
-            if (mysqlURL == null) {
-                println "use default mysql database."
-                mysqlURL = DB_HOST
-                mysqlUser = DB_USERNAME
-                mysqlPasswd = DB_PASSWORD
+                // gradle.properties 中的 Jooq DB 配置
+                mysqlURL = project.findProperty("DB_HOST")
+                mysqlUser = project.findProperty("DB_USERNAME")
+                mysqlPasswd = project.findProperty("DB_PASSWORD")
             }
 
             println("mysqlURL=" + mysqlURL)
