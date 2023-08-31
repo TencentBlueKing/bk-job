@@ -28,6 +28,8 @@
             "helpers": true,
             "useESModules": false
         }],
+        "@vue/transform-vue-jsx",
+        "module:@vue/babel-sugar-inject-h",
         "lodash"
     ]
 }

@@ -229,7 +229,6 @@
       fetchEnv() {
         EnvService.fetchProperties()
           .then((data) => {
-            console.log(data);
             this.envConfig = data;
           });
       },

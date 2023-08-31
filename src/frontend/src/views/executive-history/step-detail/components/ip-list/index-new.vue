@@ -299,15 +299,27 @@
     selectRowKey.value = '';
   });
 
+  /**
+   * @desc 点击行选择改行的主机
+   */
+  const handleRowClick = (row) => {
+    selectRowKey.value = row.key;
+    emits('on-change', row);
+  };
+
   watch(() => props.data, () => {
     // 切换分组时最新的分组数据一定来自API返回数据
     // listLoading为false说明是本地切换不更新列表
     if (!props.listLoading) {
       return;
     }
-    list.value = Object.freeze(props.data);
-    if (props.data.length > 0 && !selectRowKey.value) {
+    list.value = props.data;
+
+    if (props.data.length < 1) {
+      handleRowClick({});
+    } else if (!selectRowKey.value) {
       selectRowKey.value = props.data[0].key;
+      handleRowClick(props.data[0]);
     }
   }, {
     immediate: true,
@@ -376,13 +388,7 @@
     pagination.page = pagination.page + 1;
     emits('on-pagination-change', pagination.page * pagination.pageSize);
   };
-  /**
-   * @desc 点击行选择改行的主机
-   */
-  const handleRowClick = (row) => {
-    selectRowKey.value = row.key;
-    emits('on-change', row);
-  };
+
   /**
    * @desc 列表数据排序
    */
