@@ -1467,6 +1467,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             && taskInstance.getTaskId() > 0) {
             // 作业鉴权
             ServiceTaskPlanDTO serviceTaskPlanDTO = taskPlanService.getPlanById(appId, taskInstance.getTaskId());
+            if (serviceTaskPlanDTO == null) {
+                log.warn("auth redo task instance for task, task plan is not exist.appId={}, planId={}", appId,
+                    taskInstance.getTaskId());
+                throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
+            }
             authExecuteJobPlan(username, appId, serviceTaskPlanDTO, taskInstance.getStepInstances(),
                 whiteHostAllowActions);
         } else if (taskType.equals(TaskTypeEnum.SCRIPT.getValue())) {
