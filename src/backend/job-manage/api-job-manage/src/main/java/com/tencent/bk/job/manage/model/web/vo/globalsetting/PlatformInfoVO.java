@@ -27,15 +27,25 @@ package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-/**
- * 全局设置-平台信息-助手信息
- */
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Data
-@ApiModel("全局设置-平台信息-助手信息")
-public class HelperVO {
+@ApiModel("全局设置-平台设置")
+public class PlatformInfoVO extends TitleFooterVO {
     @ApiModelProperty("助手链接")
-    private String contactLink;
+    private String helperContactLink;
+
+    public PlatformInfoVO(TitleFooterVO titleFooterVO) {
+        this(titleFooterVO, null);
+    }
+
+    public PlatformInfoVO(TitleFooterVO titleFooterVO,
+                          String helperContactLink) {
+        super(titleFooterVO.getTitleHead(), titleFooterVO.getTitleSeparator(),
+            titleFooterVO.getFooterLink(), titleFooterVO.getFooterCopyRight());
+        this.helperContactLink = helperContactLink;
+    }
 }

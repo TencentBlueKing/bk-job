@@ -34,16 +34,15 @@ import com.tencent.bk.job.manage.api.web.WebGlobalSettingsResource;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.HelperVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
@@ -200,34 +199,19 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
 
     @Override
     @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
-    public Response<Boolean> setTitleFooter(String username,
-                                            @AuditRequestBody SetTitleFooterReq req) {
-        return Response.buildSuccessResp(globalSettingsService.setTitleFooter(username, req));
-    }
-
-    @Override
-    public Response<TitleFooterWithDefaultVO> getTitleFooterWithDefault(String username) {
-        return Response.buildSuccessResp(globalSettingsService.getTitleFooterWithDefault(username));
+    public Response<PlatformInfoVO> savePlatformInfo(String username,
+                                                     @AuditRequestBody PlatformInfoVO platformInfoVO) {
+        PlatformInfoVO updatedPlatformInfo = globalSettingsService.savePlatformInfo(username, platformInfoVO);
+        return Response.buildSuccessResp(updatedPlatformInfo);
     }
 
     @Override
     @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
     @ActionAuditRecord(
         actionId = ActionId.GLOBAL_SETTINGS,
-        content = "Update global settings"
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
     )
-    public Response<HelperVO> setHelper(String username,
-                                        @AuditRequestBody HelperVO helperVO) {
-        return Response.buildSuccessResp(globalSettingsService.updateHelper(username, helperVO));
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
-    @ActionAuditRecord(
-        actionId = ActionId.GLOBAL_SETTINGS,
-        content = "View global settings"
-    )
-    public Response<HelperVO> getHelper(String username) {
-        return Response.buildSuccessResp(globalSettingsService.getHelper(username));
+    public Response<PlatformInfoWithDefaultVO> getPlatformInfoWithDefault(String username) {
+        return Response.buildSuccessResp(globalSettingsService.getPlatformInfoWithDefault(username));
     }
 }

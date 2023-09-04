@@ -29,16 +29,15 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.HelperVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
@@ -234,39 +233,20 @@ public interface WebGlobalSettingsResource {
             String username
     );
 
-    @ApiOperation(value = "设置Title与Footer", produces = "application/json")
-    @PostMapping("/titleFooter")
-    Response<Boolean> setTitleFooter(
+    @ApiOperation(value = "设置平台信息", produces = "application/json")
+    @PutMapping("/platformInfo")
+    Response<PlatformInfoVO> savePlatformInfo(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "设置Title与Footer请求体", required = true)
+        @ApiParam(value = "设置平台信息请求体", required = true)
         @RequestBody
-            SetTitleFooterReq req
+            PlatformInfoVO platformInfoVO
     );
 
-    @ApiOperation(value = "获取Title与Footer", produces = "application/json")
-    @GetMapping("/titleFooterWithDefault")
-    Response<TitleFooterWithDefaultVO> getTitleFooterWithDefault(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
-        @RequestHeader("username")
-            String username
-    );
-
-    @ApiOperation(value = "设置助手链接", produces = "application/json")
-    @PutMapping("/helper")
-    Response<HelperVO> setHelper(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
-        @RequestHeader("username")
-            String username,
-        @ApiParam(value = "设置助手信息请求体", required = true)
-        @RequestBody
-            HelperVO helperVO
-    );
-
-    @ApiOperation(value = "获取助手信息", produces = "application/json")
-    @GetMapping("/helper")
-    Response<HelperVO> getHelper(
+    @ApiOperation(value = "获取平台信息-包含默认配置", produces = "application/json")
+    @GetMapping("/platformInfoWithDefault")
+    Response<PlatformInfoWithDefaultVO> getPlatformInfoWithDefault(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username

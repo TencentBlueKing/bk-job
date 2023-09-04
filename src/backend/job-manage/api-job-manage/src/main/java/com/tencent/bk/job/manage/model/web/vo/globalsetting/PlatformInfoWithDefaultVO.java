@@ -31,15 +31,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 平台TitleFooter配置VO
+ * 平台信息VO(含默认配置)
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("平台TitleFooter配置（含默认配置）")
+@ApiModel("平台信息VO(含默认配置)")
 @Data
-public class TitleFooterWithDefaultVO {
-    @ApiModelProperty("当前已设置的TitleFooter信息")
-    private TitleFooterVO currentTitleFooter;
-    @ApiModelProperty("默认TitleFooter信息")
-    private TitleFooterVO defaultTitleFooter;
+public class PlatformInfoWithDefaultVO {
+    @ApiModelProperty("当前已设置的平台信息")
+    private PlatformInfoVO currentPlatformInfo;
+    @ApiModelProperty("默认的平台信息")
+    private PlatformInfoVO defaultPlatformInfo;
 }

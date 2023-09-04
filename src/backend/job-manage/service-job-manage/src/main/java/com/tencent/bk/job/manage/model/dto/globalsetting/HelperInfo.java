@@ -22,30 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.globalsetting;
+package com.tencent.bk.job.manage.model.dto.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
+/**
+ * 全局设置-平台信息-助手信息
+ */
+@PersistenceObject
 @Data
-@ApiModel("全局设置-平台设置-title/footer")
-public class TitleFooterVO {
-    @ApiModelProperty("Title固定头文字")
-    private String titleHead;
-    @ApiModelProperty("Title分隔符")
-    private String titleSeparator;
-    @ApiModelProperty("Footer第一行联系方式等内容，Markdown格式")
-    private String footerLink;
-    @ApiModelProperty("Footer第二行copyright内容，Markdown格式")
-    private String footerCopyRight;
+@NoArgsConstructor
+public class HelperInfo {
+    /**
+     * 助手链接
+     */
+    @JsonProperty("contactLink")
+    private String contactLink;
 
-    public TitleFooterVO(String titleHead, String titleSeparator, String footerLink, String footerCopyRight) {
-        this.titleHead = titleHead;
-        this.titleSeparator = titleSeparator;
-        this.footerLink = footerLink;
-        this.footerCopyRight = footerCopyRight;
+    public HelperInfo(String contactLink) {
+        this.contactLink = contactLink;
     }
 }
