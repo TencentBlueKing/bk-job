@@ -72,6 +72,7 @@ import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChan
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRuleVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.HelperVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
@@ -803,5 +804,30 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         addEnableFeatureFileManageConfig(configMap);
         addEnableUploadToArtifactoryConfig(configMap);
         return configMap;
+    }
+
+    @Override
+    public HelperVO updateHelper(String username,
+                                 HelperVO helperVO) {
+        GlobalSettingDTO globalSetting = globalSettingDAO.getGlobalSetting(
+            GlobalSettingKeys.KEY_BK_HELPER);
+        if (globalSetting == null) {
+            globalSetting = new GlobalSettingDTO(GlobalSettingKeys.KEY_BK_HELPER,
+                JsonUtils.toJson(helperVO), "helper info");
+            globalSettingDAO.insertGlobalSetting(globalSetting);
+        } else {
+            globalSettingDAO.updateGlobalSetting(globalSetting);
+        }
+        return getHelper(username);
+    }
+
+    @Override
+    public HelperVO getHelper(String username) {
+        GlobalSettingDTO globalSetting = globalSettingDAO.getGlobalSetting(
+            GlobalSettingKeys.KEY_BK_HELPER);
+        if (globalSetting == null || StringUtils.isEmpty(globalSetting.getValue())) {
+            return null;
+        }
+        return JsonUtils.fromJson(globalSetting.getValue(), HelperVO.class);
     }
 }

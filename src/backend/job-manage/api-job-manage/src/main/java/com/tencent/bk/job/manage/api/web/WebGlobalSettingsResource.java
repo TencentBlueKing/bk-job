@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.HelperVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
@@ -48,6 +49,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -246,6 +248,25 @@ public interface WebGlobalSettingsResource {
     @ApiOperation(value = "获取Title与Footer", produces = "application/json")
     @GetMapping("/titleFooterWithDefault")
     Response<TitleFooterWithDefaultVO> getTitleFooterWithDefault(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username
+    );
+
+    @ApiOperation(value = "设置助手链接", produces = "application/json")
+    @PutMapping("/helper")
+    Response<HelperVO> setHelper(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username,
+        @ApiParam(value = "设置助手信息请求体", required = true)
+        @RequestBody
+            HelperVO helperVO
+    );
+
+    @ApiOperation(value = "获取助手信息", produces = "application/json")
+    @GetMapping("/helper")
+    Response<HelperVO> getHelper(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username

@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.HelperVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
@@ -96,4 +97,21 @@ public interface GlobalSettingsService {
     Map<String, String> getRelatedSystemUrls(String username);
 
     Map<String, Object> getJobConfig(String username);
+
+    /**
+     * 设置助手信息
+     *
+     * @param username 操作人
+     * @param helperVO 助手信息
+     * @return 助手信息
+     */
+    HelperVO updateHelper(String username, HelperVO helperVO);
+
+    /**
+     * 获取助手信息
+     *
+     * @param username 操作人
+     * @return 助手信息
+     */
+    HelperVO getHelper(String username);
 }
