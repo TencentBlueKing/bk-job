@@ -44,6 +44,18 @@ public class ArchiveConfig {
     @Value("${job.execute.archive.data.keep_days:30}")
     private int dataKeepDays;
 
+    /**
+     * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+     */
+    @Value("${job.execute.archive.data.read_id_step_size:1000}")
+    private int readIdStepSize;
+
+    /**
+     * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+     */
+    @Value("${job.execute.archive.data.batch_insert_row_size:1000}")
+    private int batchInsertRowSize;
+
     @Value("${job.execute.archive.db:mysql}")
     private String archiveDB;
 

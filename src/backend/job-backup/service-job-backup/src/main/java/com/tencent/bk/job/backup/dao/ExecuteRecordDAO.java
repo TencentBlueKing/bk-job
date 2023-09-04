@@ -30,11 +30,13 @@ public interface ExecuteRecordDAO<T extends Record> {
     /**
      * 根据起始/结束ID获取表记录
      *
-     * @param start 起始ID(exclude)
-     * @param end   结束ID(include)
+     * @param start  起始ID(exclude)
+     * @param end    结束ID(include)
+     * @param offset 记录偏移数
+     * @param limit  获取的记录数量
      * @return 表记录
      */
-    List<T> listRecords(Long start, Long end);
+    List<T> listRecords(Long start, Long end, Long offset, Long limit);
 
     /**
      * 根据起始/结束ID删除表记录
