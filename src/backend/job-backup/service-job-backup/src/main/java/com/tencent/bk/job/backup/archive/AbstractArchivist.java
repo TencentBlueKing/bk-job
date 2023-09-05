@@ -34,6 +34,7 @@ import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.TableRecord;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -78,11 +79,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     /**
      * 读取DB 步长
      */
-    protected int readIdStepSize = 1_000;
+    protected int readIdStepSize;
     /**
      * 写入归档数据，单批次最小行数
      */
-    protected int batchInsertRow = 1_000;
+    protected int batchInsertRowSize;
     /**
      * 删除数据ID增加步长
      */
@@ -101,6 +102,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
         this.archiveDBProperties = archiveDBProperties;
+        this.readIdStepSize = archiveDBProperties.getReadIdStepSize();
+        this.batchInsertRowSize = archiveDBProperties.getBatchInsertRowSize();
         this.maxNeedArchiveId = maxNeedArchiveId;
         this.countDownLatch = countDownLatch;
         this.tableName = executeRecordDAO.getTable().getName().toLowerCase();
@@ -193,25 +196,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
             while (maxNeedArchiveId > start) {
                 stop = Math.min(maxNeedArchiveId, start + readIdStepSize);
-                // 选取start<recordId<=stop的数据
-                List<T> records = listRecord(start, stop);
-                readRows += records.size();
-                log.info("Read {} rows from {}", records.size(), tableName);
-
-                if (CollectionUtils.isNotEmpty(records)) {
-                    recordList.addAll(records);
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Fetching {} found data hole at {} {}", tableName, start, readIdStepSize);
-                    }
-                }
-
+                Pair<Long, Long> stepResult = archiveOneStepRecords(start, stop);
+                readRows += stepResult.getLeft();
+                archivedRows += stepResult.getRight();
+                updateArchiveProgress(stop);
                 start = stop;
-                if (recordList.size() >= batchInsertRow) {
-                    int insertRows = insertAndReset(stop, recordList);
-                    archivedRows += insertRows;
-                    updateArchiveProgress(stop);
-                }
             }
 
             if (CollectionUtils.isNotEmpty(recordList)) {
@@ -243,13 +232,62 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             log.error(msg, e);
             return false;
         } finally {
-            archiveSummary.setArchiveIdStart(minNeedArchiveId);
-            archiveSummary.setArchiveIdEnd(maxNeedArchiveId);
-            archiveSummary.setNeedArchiveRecordSize(readRows);
-            archiveSummary.setArchivedRecordSize(archivedRows);
-            archiveSummary.setLastArchivedId(stop);
-            archiveSummary.setArchiveCost(archiveCost);
+            setArchiveSummary(minNeedArchiveId, maxNeedArchiveId, readRows, archivedRows, stop, archiveCost);
         }
+    }
+
+    /**
+     * 对一个批次数据进行归档
+     *
+     * @param start 数据起始记录ID
+     * @param stop  数据终止记录ID
+     * @return Pair<读取的记录数量 ， 归档成功的记录数量>
+     */
+    private Pair<Long, Long> archiveOneStepRecords(long start, long stop) throws IOException {
+        List<T> recordList = new ArrayList<>(readIdStepSize);
+        long archivedRows = 0;
+        long readRows = 0;
+        long offset = 0L;
+        int limit = readIdStepSize;
+        List<T> records;
+        do {
+            // 选取start<recordId<=stop的数据
+            records = listRecord(start, stop, offset, (long) limit);
+            readRows += records.size();
+            log.info(
+                "Read {}({}-{}) rows from {}, start={}, stop={}",
+                records.size(), offset, offset + limit, tableName, start, stop
+            );
+
+            if (CollectionUtils.isNotEmpty(records)) {
+                recordList.addAll(records);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Fetching {} found data hole at {} {}", tableName, start, readIdStepSize);
+                }
+            }
+
+            if (recordList.size() >= batchInsertRowSize) {
+                int insertRows = insertAndReset(stop, recordList);
+                archivedRows += insertRows;
+            }
+            offset += limit;
+        } while (records.size() == limit);
+        return Pair.of(readRows, archivedRows);
+    }
+
+    private void setArchiveSummary(Long minNeedArchiveId,
+                                   Long maxNeedArchiveId,
+                                   long readRows,
+                                   long archivedRows,
+                                   long stop,
+                                   long archiveCost) {
+        archiveSummary.setArchiveIdStart(minNeedArchiveId);
+        archiveSummary.setArchiveIdEnd(maxNeedArchiveId);
+        archiveSummary.setNeedArchiveRecordSize(readRows);
+        archiveSummary.setArchivedRecordSize(archivedRows);
+        archiveSummary.setLastArchivedId(stop);
+        archiveSummary.setArchiveCost(archiveCost);
     }
 
     /**
@@ -357,7 +395,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         }
         log.info("Batch insert {}, lastArchivedInstanceId: {}, maxBatchSize: {}, insertError: {}, expected insert " +
                 "rows: {}, actual insert rows: {}",
-            tableName, lastArchivedInstanceId, batchInsertRow, insertError, recordSize, insertRows);
+            tableName, lastArchivedInstanceId, batchInsertRowSize, insertError, recordSize, insertRows);
         return insertRows;
     }
 
@@ -365,8 +403,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         ArchiveSummaryHolder.getInstance().addArchiveSummary(this.archiveSummary);
     }
 
-    private List<T> listRecord(Long start, Long stop) {
-        return executeRecordDAO.listRecords(start, stop);
+    private List<T> listRecord(Long start, Long stop, Long offset, Long limit) {
+        return executeRecordDAO.listRecords(start, stop, offset, limit);
     }
 
     private int batchInsert(List<T> recordList) throws IOException {

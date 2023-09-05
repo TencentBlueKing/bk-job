@@ -25,8 +25,8 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
     }
 
     @Override
-    public List<T> listRecords(Long start, Long end) {
-        Result<Record> result = query(getTable(), buildConditions(start, end));
+    public List<T> listRecords(Long start, Long end, Long offset, Long limit) {
+        Result<Record> result = query(getTable(), buildConditions(start, end), offset, limit);
         return result.into(getTable());
     }
 
@@ -55,10 +55,11 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
         return totalDeleteRows;
     }
 
-    private Result<Record> query(Table<?> table, List<Condition> conditions) {
+    private Result<Record> query(Table<?> table, List<Condition> conditions, Long offset, Long limit) {
         return context.select()
             .from(table)
             .where(conditions)
+            .limit(offset, limit)
             .fetch();
     }
 

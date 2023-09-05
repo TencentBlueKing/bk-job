@@ -28,6 +28,7 @@ import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
@@ -56,5 +57,15 @@ public class ArchiveDBProperties {
      * DB数据保留天数
      */
     private int keepDays = 30;
+
+    /**
+     * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+     */
+    private int readIdStepSize = 1000;
+
+    /**
+     * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+     */
+    private int batchInsertRowSize = 1000;
 
 }

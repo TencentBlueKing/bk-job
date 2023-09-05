@@ -31,6 +31,10 @@ backupConfig:
       cron: 0 0 4 * * *
       # 热库中的数据保留时间（天）
       keep_days: 30
+      # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+      read_id_step_size: 1000
+      # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+      batch_insert_row_size: 1000
 ```
 
 ## 0.5.0
@@ -67,6 +71,10 @@ backupConfig:
       data:
         # 热库中的数据保留时间（天）
         keep_days: 30
+        # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+        read_id_step_size: 1000
+        # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+        batch_insert_row_size: 1000
       delete:
         # 是否删除热库中的过期老数据，默认不删除
         enabled: false
