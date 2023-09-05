@@ -32,6 +32,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum HttpRequestSourceEnum {
     /**
+     * 未知
+     */
+    UNKNOWN(0),
+    /**
      * WEB 请求
      */
     WEB(1),
@@ -45,7 +49,7 @@ public enum HttpRequestSourceEnum {
     INTERNAL(3);
 
     @JsonValue
-    private int value;
+    private final int value;
 
     HttpRequestSourceEnum(int value) {
         this.value = value;
@@ -58,7 +62,7 @@ public enum HttpRequestSourceEnum {
                 return httpRequestSource;
             }
         }
-        return null;
+        return UNKNOWN;
     }
 
     public int getValue() {

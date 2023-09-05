@@ -26,15 +26,15 @@ package com.tencent.bk.job.file_gateway.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-file-gateway:service:FileSource"})
-@RestController
+@SmartFeignClient(value = "job-file-gateway", contextId = "fileSourceResource")
 @InternalAPI
 public interface ServiceFileSourceResource {
 

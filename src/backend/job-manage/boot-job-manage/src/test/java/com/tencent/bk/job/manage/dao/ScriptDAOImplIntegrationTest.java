@@ -31,7 +31,7 @@ import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
-import org.jooq.generated.tables.Script;
+import com.tencent.bk.job.manage.model.tables.Script;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -242,18 +242,17 @@ class ScriptDAOImplIntegrationTest {
     }
 
     @Test
-    public void whenUpdateScriptThenStore() {
-        ScriptDTO script = new ScriptDTO();
-        script.setLastModifyUser("user2");
-        script.setId("dc65a20cd91811e993a2309c2357fc12");
-        script.setName("new_name");
+    public void updateScriptLastModify() {
+        String lastModifyUser = "user2";
+        String scriptId = "dc65a20cd91811e993a2309c2357fc12";
+        long time = System.currentTimeMillis();
 
-        scriptDAO.updateScript(script);
+        scriptDAO.updateScriptLastModify(scriptId, lastModifyUser, time);
 
-        ScriptDTO updatedScript = getScriptById("dc65a20cd91811e993a2309c2357fc12");
+        ScriptDTO updatedScript = getScriptById(scriptId);
         assertThat(updatedScript).isNotNull();
-        assertThat(updatedScript.getLastModifyUser()).isEqualTo(script.getLastModifyUser());
-        assertThat(updatedScript.getName()).isEqualTo("new_name");
+        assertThat(updatedScript.getLastModifyUser()).isEqualTo(lastModifyUser);
+        assertThat(updatedScript.getLastModifyTime()).isEqualTo(time);
     }
 
     private ScriptDTO getScriptById(String scriptId) {

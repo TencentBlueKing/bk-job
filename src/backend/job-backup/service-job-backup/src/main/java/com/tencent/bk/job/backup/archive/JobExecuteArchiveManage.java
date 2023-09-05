@@ -41,7 +41,7 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchivist;
-import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
@@ -75,7 +75,7 @@ import java.util.concurrent.ExecutorService;
 @Slf4j
 public class JobExecuteArchiveManage implements SmartLifecycle {
 
-    private final ArchiveConfig archiveConfig;
+    private final ArchiveDBProperties archiveDBProperties;
     private final ExecutorService archiveExecutor;
     private final ArchiveProgressService archiveProgressService;
     private final TaskInstanceRecordDAO taskInstanceRecordDAO;
@@ -122,10 +122,10 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                                    TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
                                    ExecuteArchiveDAO executeArchiveDAO,
                                    ArchiveProgressService archiveProgressService,
-                                   ArchiveConfig archiveConfig,
+                                   ArchiveDBProperties archiveDBProperties,
                                    ExecutorService archiveExecutor) {
-        log.info("Init JobExecuteArchiveManage! archiveConfig: {}", archiveConfig);
-        this.archiveConfig = archiveConfig;
+        log.info("Init JobExecuteArchiveManage! archiveConfig: {}", archiveDBProperties);
+        this.archiveDBProperties = archiveDBProperties;
         this.archiveProgressService = archiveProgressService;
         this.archiveExecutor = archiveExecutor;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
@@ -148,14 +148,14 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         this.executeArchiveDAO = executeArchiveDAO;
     }
 
-    @Scheduled(cron = "${job.execute.archive.cron:0 0 4 * * *}")
+    @Scheduled(cron = "${job.backup.archive.execute.cron:0 0 4 * * *}")
     public void cronArchive() {
-        archive(archiveConfig);
+        archive(archiveDBProperties);
     }
 
-    public void archive(ArchiveConfig archiveConfig) {
+    public void archive(ArchiveDBProperties archiveDBProperties) {
         try {
-            new ArchiveThread(archiveConfig).start();
+            new ArchiveThread(archiveDBProperties).start();
         } catch (Throwable e) {
             log.error("Error while archive job_execute data", e);
         }
@@ -181,22 +181,22 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
 
     class ArchiveThread extends Thread {
-        private final ArchiveConfig archiveConfig;
+        private final ArchiveDBProperties archiveDBProperties;
 
 
-        ArchiveThread(ArchiveConfig archiveConfig) {
-            this.archiveConfig = archiveConfig;
+        ArchiveThread(ArchiveDBProperties archiveDBProperties) {
+            this.archiveDBProperties = archiveDBProperties;
             this.setName("Data-Archive-Thread");
         }
 
         @Override
         public void run() {
             try {
-                log.info("Job Execute archive task begin, archiveConfig: {}", archiveConfig);
-                if (archiveConfig.isArchiveEnabled() || archiveConfig.isDeleteEnabled()) {
-                    doArchive(getEndTime(archiveConfig.getDataKeepDays()));
+                log.info("Job Execute archive task begin, archiveConfig: {}", archiveDBProperties);
+                if (archiveDBProperties.isEnabled()) {
+                    doArchive(getEndTime(archiveDBProperties.getKeepDays()));
                 } else {
-                    log.info("Archive and delete tasks are disabled, skip archive");
+                    log.info("Archive tasks are disabled, skip archive");
                 }
                 log.info("Job Execute archive task finished");
             } catch (InterruptedException e) {
@@ -313,7 +313,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 taskInstanceRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveTaskInstanceId,
                 countDownLatch
             ).archive());
@@ -325,7 +325,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 stepInstanceRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -337,7 +337,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 stepInstanceConfirmRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -349,7 +349,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 stepInstanceFileRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -361,7 +361,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 stepInstanceScriptRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -373,7 +373,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 fileSourceTaskLogRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -385,7 +385,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 gseTaskLogRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -397,7 +397,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 gseTaskIpLogRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -409,7 +409,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 taskInstanceVariableRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveTaskInstanceId,
                 countDownLatch
             ).archive());
@@ -421,7 +421,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 stepInstanceVariableRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -433,7 +433,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 operationLogRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveTaskInstanceId,
                 countDownLatch
             ).archive());
@@ -445,7 +445,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 gseTaskRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -457,7 +457,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 gseScriptAgentTaskRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -469,7 +469,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 gseFileAgentTaskRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -482,7 +482,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 stepInstanceRollingTaskRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveStepInstanceId,
                 countDownLatch)
                 .archive());
@@ -494,7 +494,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 rollingConfigRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveTaskInstanceId,
                 countDownLatch
             ).archive());
@@ -506,7 +506,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                 taskInstanceHostRecordDAO,
                 executeArchiveDAO,
                 archiveProgressService,
-                archiveConfig,
+                archiveDBProperties,
                 maxNeedArchiveTaskInstanceId,
                 countDownLatch
             ).archive());

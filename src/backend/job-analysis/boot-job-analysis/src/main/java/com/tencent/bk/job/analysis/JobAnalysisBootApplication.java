@@ -24,24 +24,29 @@
 
 package com.tencent.bk.job.analysis;
 
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.boot.JobBootApplication;
+import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(scanBasePackages = "com.tencent.bk.job", exclude = {RedisAutoConfiguration.class,
-    ApplicationAvailabilityAutoConfiguration.class})
+@JobBootApplication(
+    scanBasePackages = "com.tencent.bk.job.analysis",
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
 @EnableCaching
-@EnableFeignClients
+@EnableFeignClients(
+    basePackages = {
+        "com.tencent.bk.job.manage.api",
+        "com.tencent.bk.job.execute.api",
+        "com.tencent.bk.job.crontab.api"
+    }
+)
 @EnableScheduling
 @EnableConfigurationProperties({FeatureToggleConfig.class})
-@DependsOn("applicationContextRegister")
 public class JobAnalysisBootApplication {
 
     public static void main(String[] args) {

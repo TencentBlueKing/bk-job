@@ -26,8 +26,8 @@ package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.crontab.client.ServiceTaskExecuteResultResourceClient;
 import com.tencent.bk.job.crontab.service.TaskExecuteResultService;
+import com.tencent.bk.job.execute.api.inner.ServiceTaskExecuteResultResource;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.model.inner.request.ServiceGetCronTaskExecuteStatisticsRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -40,19 +40,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @since 2/3/2020 22:24
+ * 作业执行结果 Service
  */
 @Slf4j
 @Service
 public class TaskExecuteResultServiceImpl implements TaskExecuteResultService {
 
-    private ServiceTaskExecuteResultResourceClient serviceTaskExecuteResultResourceClient;
+    private final ServiceTaskExecuteResultResource serviceTaskExecuteResultResource;
 
     @Autowired
     public TaskExecuteResultServiceImpl(
-        ServiceTaskExecuteResultResourceClient serviceTaskExecuteResultResourceClient
+        ServiceTaskExecuteResultResource serviceTaskExecuteResultResource
     ) {
-        this.serviceTaskExecuteResultResourceClient = serviceTaskExecuteResultResourceClient;
+        this.serviceTaskExecuteResultResource = serviceTaskExecuteResultResource;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class TaskExecuteResultServiceImpl implements TaskExecuteResultService {
             }
 
             InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> cronTaskExecuteResultStatResp =
-                serviceTaskExecuteResultResourceClient.getCronTaskExecuteResultStatistics(
+                serviceTaskExecuteResultResource.getCronTaskExecuteResultStatistics(
                     getCronTaskExecuteStatisticsRequest
                 );
 

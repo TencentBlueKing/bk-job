@@ -24,34 +24,27 @@
 
 package com.tencent.bk.job.manage.dao.notify.impl;
 
-import com.tencent.bk.job.common.RequestIdLogger;
-import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.manage.dao.notify.NotifyPolicyRoleTargetDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyRoleTargetChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
+import com.tencent.bk.job.manage.model.tables.NotifyPolicyRoleTarget;
+import com.tencent.bk.job.manage.model.tables.records.NotifyPolicyRoleTargetRecord;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.NotifyPolicyRoleTarget;
-import org.jooq.generated.tables.records.NotifyPolicyRoleTargetRecord;
 import org.jooq.types.ULong;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Repository
+@Slf4j
 public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO {
-    private static final RequestIdLogger logger =
-        new SimpleRequestIdLogger(LoggerFactory.getLogger(NotifyPolicyRoleTargetDAOImpl.class));
     private static final NotifyPolicyRoleTarget T_NOTIFY_POLICY_ROLE_TARGET =
         NotifyPolicyRoleTarget.NOTIFY_POLICY_ROLE_TARGET;
     private static final NotifyPolicyRoleTarget defaultTable = T_NOTIFY_POLICY_ROLE_TARGET;
@@ -60,7 +53,7 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
     private final NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO;
 
     @Autowired
-    public NotifyPolicyRoleTargetDAOImpl(DSLContext dslContext,
+    public NotifyPolicyRoleTargetDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
                                          NotifyRoleTargetChannelDAO notifyRoleTargetChannelDAO) {
         this.dslContext = dslContext;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
@@ -93,13 +86,13 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
             assert record != null;
             return record.get(T_NOTIFY_POLICY_ROLE_TARGET.ID);
         } catch (Exception e) {
-            logger.errorWithRequestId(sql);
+            log.error(sql);
             throw e;
         }
     }
 
     @Override
-    public int deleteByPolicyId(DSLContext dslContext, Long policyId) {
+    public int deleteByPolicyId(Long policyId) {
         //1.查记录
         val records = dslContext.selectFrom(defaultTable).where(
             defaultTable.POLICY_ID.eq(policyId)
@@ -108,7 +101,7 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
             return 0;
         }
         //2.删从表
-        records.forEach(record -> notifyRoleTargetChannelDAO.deleteByRoleTargetId(dslContext, record.getId()));
+        records.forEach(record -> notifyRoleTargetChannelDAO.deleteByRoleTargetId(record.getId()));
         //3.删主表
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.in(records.map(NotifyPolicyRoleTargetRecord::getId))
@@ -116,7 +109,7 @@ public class NotifyPolicyRoleTargetDAOImpl implements NotifyPolicyRoleTargetDAO 
     }
 
     @Override
-    public List<NotifyPolicyRoleTargetDTO> listByPolicyId(DSLContext dslContext, Long policyId) {
+    public List<NotifyPolicyRoleTargetDTO> listByPolicyId(Long policyId) {
         val records = dslContext.selectFrom(T_NOTIFY_POLICY_ROLE_TARGET).where(
             T_NOTIFY_POLICY_ROLE_TARGET.POLICY_ID.eq(policyId)
         ).fetch();

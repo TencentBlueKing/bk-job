@@ -24,6 +24,15 @@
 
 plugins {
     id 'groovy'
+    id "java-gradle-plugin"
+}
+
+sourceSets {
+    main {
+        java{
+            srcDir('src/main/java')
+        }
+    }
 }
 
 dependencies {
@@ -32,4 +41,16 @@ dependencies {
 }
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
+}
+
+gradlePlugin {
+    plugins {
+        optionalPlugin {
+            id = 'com.tencent.bk.job.gradle.optional-dependencies'
+            displayName = "optional-dependencies"
+            implementationClass = 'com.tencent.bk.gradle.optional.OptionalDependenciesPlugin'
+            description = 'Added support for Maven-style optional dependencies.'
+//            tags.set (['dependencies', 'optional', 'OptionalDependencies'])
+        }
+    }
 }

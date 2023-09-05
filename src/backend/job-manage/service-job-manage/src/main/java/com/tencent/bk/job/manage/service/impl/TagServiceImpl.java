@@ -196,7 +196,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional
+    @Transactional(value = "jobManageTransactionManager")
     public void deleteTag(Long tagId) {
         tagDAO.deleteTagById(tagId);
         resourceTagDAO.deleteResourceTags(tagId);
@@ -287,7 +287,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public void batchPatchResourceTags(List<ResourceTagDTO> addResourceTags,
                                        List<ResourceTagDTO> deleteResourceTags) {
         StopWatch watch = new StopWatch("batchPatchResourceTags");

@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.api.inner.impl;
 
 import com.tencent.bk.job.backup.api.inner.ServiceArchiveResource;
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
-import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
 import com.tencent.bk.job.common.model.InternalResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -46,11 +46,12 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
     @Override
     public InternalResponse archive(ServiceArchiveDBRequest request) {
         log.info("Begin archive db, request: {}", request);
-        ArchiveConfig archiveConfig = new ArchiveConfig();
-        archiveConfig.setDataKeepDays(request.getDataKeepDays());
-        archiveConfig.setDeleteEnabled(request.isDeleteEnabled());
-        archiveConfig.setArchiveEnabled(request.isArchiveEnabled());
-        jobExecuteArchiveManage.archive(archiveConfig);
+        ArchiveDBProperties archiveDBProperties = new ArchiveDBProperties();
+        archiveDBProperties.setEnabled(request.isArchiveEnabled());
+        archiveDBProperties.setKeepDays(request.getDataKeepDays());
+        archiveDBProperties.setMode(request.getMode());
+
+        jobExecuteArchiveManage.archive(archiveDBProperties);
         return InternalResponse.buildSuccessResp(null);
     }
 }

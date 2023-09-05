@@ -43,20 +43,14 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDe
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * @Description
- * @Date 2020/2/28
- * @Version 1.0
- */
 public interface GlobalSettingsService {
-    Boolean isNotifyChannelConfiged(DSLContext dslContext);
+    Boolean isNotifyChannelConfiged();
 
-    Boolean setNotifyChannelConfiged(DSLContext dslContext);
+    Boolean setNotifyChannelConfiged();
 
     List<NotifyChannelWithIconVO> listNotifyChannel(String username);
 

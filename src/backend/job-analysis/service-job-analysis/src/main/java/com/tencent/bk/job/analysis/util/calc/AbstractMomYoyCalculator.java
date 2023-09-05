@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.analysis.util.calc;
 
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

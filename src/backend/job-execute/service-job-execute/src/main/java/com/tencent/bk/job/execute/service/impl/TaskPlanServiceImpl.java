@@ -26,27 +26,27 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.client.TaskPlanResourceClient;
 import com.tencent.bk.job.execute.service.TaskPlanService;
+import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("jobExecuteTaskPlanService")
 @Slf4j
 public class TaskPlanServiceImpl implements TaskPlanService {
-    private final TaskPlanResourceClient taskPlanResourceClient;
+    private final ServiceTaskPlanResource taskPlanResource;
 
     @Autowired
-    public TaskPlanServiceImpl(TaskPlanResourceClient taskPlanResourceClient) {
-        this.taskPlanResourceClient = taskPlanResourceClient;
+    public TaskPlanServiceImpl(ServiceTaskPlanResource taskPlanResource) {
+        this.taskPlanResource = taskPlanResource;
     }
 
     @Override
     public ServiceTaskPlanDTO getPlanById(Long appId, Long planId) {
         try {
-            InternalResponse<ServiceTaskPlanDTO> resp = taskPlanResourceClient.getPlanById(appId, planId, false);
+            InternalResponse<ServiceTaskPlanDTO> resp = taskPlanResource.getPlanById(appId, planId, false);
             log.info("Get plan by id, appId={}, planId={}, result={}", appId, planId, JsonUtils.toJson(resp));
             return resp.getData();
         } catch (Throwable e) {
@@ -59,7 +59,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public String getPlanName(Long planId) {
         try {
-            InternalResponse<String> resp = taskPlanResourceClient.getPlanName(planId);
+            InternalResponse<String> resp = taskPlanResource.getPlanName(planId);
             return resp.getData();
         } catch (Throwable e) {
             String errorMsg = "Get plan name by id caught exception, planId=" + planId;
@@ -71,7 +71,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public Long getPlanAppId(Long planId) {
         try {
-            InternalResponse<Long> resp = taskPlanResourceClient.getPlanAppId(planId);
+            InternalResponse<Long> resp = taskPlanResource.getPlanAppId(planId);
             log.info("Get planAppId by id, planId={}, result={}", planId, JsonUtils.toJson(resp));
             return resp.getData();
         } catch (Throwable e) {

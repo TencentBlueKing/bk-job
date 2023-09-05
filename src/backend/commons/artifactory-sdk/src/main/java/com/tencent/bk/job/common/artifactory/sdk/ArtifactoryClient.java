@@ -111,8 +111,8 @@ public class ArtifactoryClient {
     private final String password;
     private final MeterRegistry meterRegistry;
 
-    ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
-    ExtHttpHelper longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelper();
+    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final ExtHttpHelper longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelper();
 
     public ArtifactoryClient(String baseUrl, String username, String password, MeterRegistry meterRegistry) {
         this.baseUrl = StringUtil.removeSuffix(baseUrl, "/");

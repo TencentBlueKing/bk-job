@@ -29,6 +29,9 @@ import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ScriptRelateTaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptRelatedTaskPlanDTO;
+import com.tencent.bk.job.manage.model.tables.ScriptVersion;
+import com.tencent.bk.job.manage.model.tables.TaskPlan;
+import com.tencent.bk.job.manage.model.tables.TaskPlanStepScript;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
@@ -36,9 +39,6 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.ScriptVersion;
-import org.jooq.generated.tables.TaskPlan;
-import org.jooq.generated.tables.TaskPlanStepScript;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
@@ -55,11 +55,11 @@ import java.util.Set;
 @Repository
 public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
 
-    private DSLContext ctx;
+    private final DSLContext ctx;
 
-    private TaskPlanStepScript T_TASK_PLAN_STEP_SCRIPT = TaskPlanStepScript.TASK_PLAN_STEP_SCRIPT;
-    private ScriptVersion T_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
-    private TaskPlan T_TASK_PLAN = TaskPlan.TASK_PLAN;
+    private final TaskPlanStepScript T_TASK_PLAN_STEP_SCRIPT = TaskPlanStepScript.TASK_PLAN_STEP_SCRIPT;
+    private final ScriptVersion T_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
+    private final TaskPlan T_TASK_PLAN = TaskPlan.TASK_PLAN;
 
     @Autowired
     public ScriptRelateTaskPlanDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext ctx) {

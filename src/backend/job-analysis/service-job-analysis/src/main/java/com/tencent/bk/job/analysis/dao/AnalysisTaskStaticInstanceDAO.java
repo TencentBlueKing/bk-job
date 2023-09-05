@@ -25,20 +25,17 @@
 package com.tencent.bk.job.analysis.dao;
 
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskStaticInstanceDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface AnalysisTaskStaticInstanceDAO {
-    Long insert(DSLContext dslContext, AnalysisTaskStaticInstanceDTO analysisTaskInstanceDTO);
+    Long insert(AnalysisTaskStaticInstanceDTO analysisTaskInstanceDTO);
 
-    int updateById(DSLContext dslContext,
-                   AnalysisTaskStaticInstanceDTO analysisTaskInstanceDTO);
+    int updateById(AnalysisTaskStaticInstanceDTO analysisTaskInstanceDTO);
 
-    int deleteById(DSLContext dslContext, Long id);
+    int deleteById(Long id);
 
-    AnalysisTaskStaticInstanceDTO getById(DSLContext dslContext, Long id);
+    AnalysisTaskStaticInstanceDTO getById(Long id);
 
-    List<AnalysisTaskStaticInstanceDTO> listActiveInstance(DSLContext dslContext, Long offset,
-                                                           Long limit);
+    List<AnalysisTaskStaticInstanceDTO> listActiveInstance(Long offset, Long limit);
 }

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.upgrader.iam;
 
-import com.tencent.bk.job.common.iam.config.EsbConfiguration;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -67,10 +66,6 @@ public class JobIamHelper {
 
     public IamConfiguration iamConfiguration() {
         return new IamConfiguration(SystemId.JOB, appCode, appSecret, iamBaseUrl);
-    }
-
-    public EsbConfiguration esbConfiguration() {
-        return new EsbConfiguration(esbUrl, false);
     }
 
     public HttpClientService httpClientService() {

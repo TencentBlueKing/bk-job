@@ -1,8 +1,8 @@
 package com.tencent.bk.job.manage.runner;
 
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.manage.config.ArtifactoryConfig;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+@Component("jobManageInitArtifactoryDataRunner")
 public class InitArtifactoryDataRunner implements CommandLineRunner {
 
     private final ArtifactoryConfig artifactoryConfig;

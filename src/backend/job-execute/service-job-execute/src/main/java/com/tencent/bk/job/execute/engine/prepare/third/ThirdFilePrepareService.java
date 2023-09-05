@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.file.PathUtil;
-import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -43,6 +42,7 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.ClearTaskFilesReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.FileSourceBatchDownloadTaskReq;
@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
 @Component
 public class ThirdFilePrepareService {
     private final ResultHandleManager resultHandleManager;
-    private final FileSourceTaskResourceClient fileSourceTaskResource;
+    private final ServiceFileSourceTaskResource fileSourceTaskResource;
     private final TaskInstanceService taskInstanceService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final AccountService accountService;
@@ -83,7 +83,7 @@ public class ThirdFilePrepareService {
 
     @Autowired
     public ThirdFilePrepareService(ResultHandleManager resultHandleManager,
-                                   FileSourceTaskResourceClient fileSourceTaskResource,
+                                   ServiceFileSourceTaskResource fileSourceTaskResource,
                                    TaskInstanceService taskInstanceService,
                                    FileSourceTaskLogDAO fileSourceTaskLogDAO,
                                    AccountService accountService,

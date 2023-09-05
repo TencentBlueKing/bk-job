@@ -29,12 +29,12 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.execute.client.TaskTemplateResourceClient;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
+import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +43,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
+@Service("jobExecuteResourceNameQueryService")
 public class ExecuteResourceNameQueryService implements ResourceNameQueryService {
     private final ApplicationService applicationService;
     private final ScriptService scriptService;
     private final TaskPlanService taskPlanService;
-    private final TaskTemplateResourceClient taskTemplateService;
+    private final ServiceTaskTemplateResource taskTemplateResource;
     private final AccountService accountService;
     private final AppScopeMappingService appScopeMappingService;
 
@@ -57,13 +57,13 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
     public ExecuteResourceNameQueryService(ApplicationService applicationService,
                                            ScriptService scriptService,
                                            TaskPlanService taskPlanService,
-                                           TaskTemplateResourceClient taskTemplateService,
+                                           ServiceTaskTemplateResource taskTemplateResource,
                                            AccountService accountService,
                                            AppScopeMappingService appScopeMappingService) {
         this.applicationService = applicationService;
         this.scriptService = scriptService;
         this.taskPlanService = taskPlanService;
-        this.taskTemplateService = taskTemplateService;
+        this.taskTemplateResource = taskTemplateResource;
         this.accountService = accountService;
         this.appScopeMappingService = appScopeMappingService;
     }
@@ -85,7 +85,7 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
             case TEMPLATE:
                 long templateId = Long.parseLong(resourceId);
                 if (templateId > 0) {
-                    return taskTemplateService.getTemplateNameById(templateId).getData();
+                    return taskTemplateResource.getTemplateNameById(templateId).getData();
                 }
                 break;
             case PLAN:

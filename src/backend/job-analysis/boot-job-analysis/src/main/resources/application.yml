@@ -4,10 +4,6 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
-
-ribbon:
-  ServerListRefreshInterval: 3000
-
 management:
   health:
     livenessstate:

@@ -1,3 +1,4 @@
+{{- if .Values.k8sConfigWatcherConfig.enabled }}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -87,4 +88,5 @@ spec:
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}
+{{- end }}
 

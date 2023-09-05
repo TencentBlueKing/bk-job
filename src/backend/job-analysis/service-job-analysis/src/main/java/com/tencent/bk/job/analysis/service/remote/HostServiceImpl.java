@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.analysis.service.remote;
 
-import com.tencent.bk.job.analysis.client.HostResourceClient;
 import com.tencent.bk.job.analysis.service.HostService;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
@@ -39,30 +39,30 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Slf4j
-@Service
+@Service("jobAnalysisHostService")
 public class HostServiceImpl implements HostService {
-    private final HostResourceClient hostResourceClient;
+    private final ServiceHostResource hostResource;
 
     @Autowired
-    public HostServiceImpl(HostResourceClient hostResourceClient) {
-        this.hostResourceClient = hostResourceClient;
+    public HostServiceImpl(ServiceHostResource hostResource) {
+        this.hostResource = hostResource;
     }
 
     @Override
     public List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<BizTopoNode> treeNodeList) {
-        return hostResourceClient.getHostStatusByNode(appId, new ServiceGetHostStatusByNodeReq(treeNodeList)).getData();
+        return hostResource.getHostStatusByNode(appId, new ServiceGetHostStatusByNodeReq(treeNodeList)).getData();
     }
 
     @Override
     public List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(Long appId, List<String> dynamicGroupIdList) {
-        return hostResourceClient.getHostStatusByDynamicGroup(appId,
+        return hostResource.getHostStatusByDynamicGroup(appId,
             new ServiceGetHostStatusByDynamicGroupReq(dynamicGroupIdList)).getData();
     }
 
     @Override
     public List<ServiceHostStatusDTO> getHostStatusByHost(Long appId,
                                                           List<HostDTO> hostList) {
-        return hostResourceClient.getHostStatusByHost(appId,
+        return hostResource.getHostStatusByHost(appId,
             new ServiceGetHostStatusByHostReq(hostList)).getData();
     }
 }

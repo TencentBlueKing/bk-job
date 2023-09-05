@@ -25,15 +25,13 @@
 package com.tencent.bk.job.manage.dao.notify;
 
 import com.tencent.bk.job.manage.model.dto.notify.NotifyRoleTargetChannelDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface NotifyRoleTargetChannelDAO {
     Long insert(NotifyRoleTargetChannelDTO notifyRoleTargetChannelDTO);
 
-    int deleteByRoleTargetId(DSLContext dslContext, Long roleTargetId);
+    int deleteByRoleTargetId(Long roleTargetId);
 
-    List<NotifyRoleTargetChannelDTO> listByRoleTargetId(DSLContext dslContext,
-                                                        Long roleTargetId);
+    List<NotifyRoleTargetChannelDTO> listByRoleTargetId(Long roleTargetId);
 }

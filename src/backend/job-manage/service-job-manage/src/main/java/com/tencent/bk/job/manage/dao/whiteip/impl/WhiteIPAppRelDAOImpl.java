@@ -26,10 +26,10 @@ package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPAppRelDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPAppRelDTO;
+import com.tencent.bk.job.manage.model.tables.WhiteIpAppRel;
+import com.tencent.bk.job.manage.model.tables.records.WhiteIpAppRelRecord;
 import lombok.val;
 import org.jooq.DSLContext;
-import org.jooq.generated.tables.WhiteIpAppRel;
-import org.jooq.generated.tables.records.WhiteIpAppRelRecord;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,15 +43,15 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
 
     private static final WhiteIpAppRel T_WHITE_IP_APP_REL = WhiteIpAppRel.WHITE_IP_APP_REL;
 
-    private final DSLContext defaultContext;
+    private final DSLContext dslContext;
 
     @Autowired
-    public WhiteIPAppRelDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext defaultContext) {
-        this.defaultContext = defaultContext;
+    public WhiteIPAppRelDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Override
-    public void insertWhiteIPAppRel(DSLContext dslContext, String username, Long recordId, Long appId) {
+    public void insertWhiteIPAppRel(String username, Long recordId, Long appId) {
         dslContext.insertInto(T_WHITE_IP_APP_REL,
             T_WHITE_IP_APP_REL.RECORD_ID,
             T_WHITE_IP_APP_REL.APP_ID,
@@ -67,21 +67,21 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
 
     @Override
     public int updateAppId(Long srcAppId, Long targetAppId) {
-        return defaultContext.update(T_WHITE_IP_APP_REL)
+        return dslContext.update(T_WHITE_IP_APP_REL)
             .set(T_WHITE_IP_APP_REL.APP_ID, targetAppId)
             .where(T_WHITE_IP_APP_REL.APP_ID.eq(srcAppId))
             .execute();
     }
 
     @Override
-    public int deleteWhiteIPAppRelByRecordId(DSLContext dslContext, Long recordId) {
+    public int deleteWhiteIPAppRelByRecordId(Long recordId) {
         return dslContext.deleteFrom(T_WHITE_IP_APP_REL).where(
             T_WHITE_IP_APP_REL.RECORD_ID.eq(recordId)
         ).execute();
     }
 
     @Override
-    public List<Long> listAppIdByRecordId(DSLContext dslContext, Long recordId) {
+    public List<Long> listAppIdByRecordId(Long recordId) {
         val records = dslContext.selectFrom(T_WHITE_IP_APP_REL).where(
             T_WHITE_IP_APP_REL.RECORD_ID.eq(recordId)
         ).fetch();
@@ -89,7 +89,7 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
     }
 
     @Override
-    public List<WhiteIPAppRelDTO> listAppRelByRecordIds(DSLContext dslContext, List<Long> recordIdList) {
+    public List<WhiteIPAppRelDTO> listAppRelByRecordIds(List<Long> recordIdList) {
         val records =
             dslContext.select(T_WHITE_IP_APP_REL.APP_ID, T_WHITE_IP_APP_REL.RECORD_ID).from(T_WHITE_IP_APP_REL).where(
                 T_WHITE_IP_APP_REL.RECORD_ID.in(recordIdList)
@@ -107,7 +107,7 @@ public class WhiteIPAppRelDAOImpl implements WhiteIPAppRelDAO {
     @Override
     public List<WhiteIPAppRelDTO> listAppRelByAppId(Long appId) {
         val records =
-            defaultContext.select(
+            dslContext.select(
                 T_WHITE_IP_APP_REL.APP_ID,
                 T_WHITE_IP_APP_REL.RECORD_ID,
                 T_WHITE_IP_APP_REL.CREATOR,

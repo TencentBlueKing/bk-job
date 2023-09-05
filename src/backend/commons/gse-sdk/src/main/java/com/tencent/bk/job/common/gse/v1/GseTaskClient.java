@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.gse.v1;
 
 import com.tencent.bk.gse.taskapi.doSomeCmdV3;
-import com.tencent.bk.job.common.gse.config.GseProperties;
+import com.tencent.bk.job.common.gse.config.GseV1Properties;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
@@ -49,13 +49,13 @@ public class GseTaskClient implements Closeable {
     private static final String TRUST_STORE_TYPE;
 
     static {
-        GseProperties gseProperties = ApplicationContextRegister.getBean(GseProperties.class);
-        KEY_STORE = gseProperties.getSsl().getKeyStore().getPath();
-        KEY_STORE_PASS = gseProperties.getSsl().getKeyStore().getPassword();
-        TRUST_STORE = gseProperties.getSsl().getTrustStore().getPath();
-        TRUST_STORE_PASS = gseProperties.getSsl().getTrustStore().getPassword();
-        TRUST_MANAGER_TYPE = gseProperties.getSsl().getTrustStore().getManagerType();
-        TRUST_STORE_TYPE = gseProperties.getSsl().getTrustStore().getStoreType();
+        GseV1Properties gseV1Properties = ApplicationContextRegister.getBean(GseV1Properties.class);
+        KEY_STORE = gseV1Properties.getSsl().getKeyStore().getPath();
+        KEY_STORE_PASS = gseV1Properties.getSsl().getKeyStore().getPassword();
+        TRUST_STORE = gseV1Properties.getSsl().getTrustStore().getPath();
+        TRUST_STORE_PASS = gseV1Properties.getSsl().getTrustStore().getPassword();
+        TRUST_MANAGER_TYPE = gseV1Properties.getSsl().getTrustStore().getManagerType();
+        TRUST_STORE_TYPE = gseV1Properties.getSsl().getTrustStore().getStoreType();
     }
 
     /**

@@ -25,8 +25,9 @@
 package com.tencent.bk.job.gateway.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.gateway.config.BkConfig;
 import com.tencent.bk.job.gateway.model.esb.EsbPublicKeyDTO;
 import com.tencent.bk.job.gateway.service.EsbJwtPublicKeyService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,13 +45,17 @@ import java.util.Map;
 @Slf4j
 public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
 
-    private BkConfig bkConfig;
-    private RestTemplate restTemplate;
+    private final AppProperties appProperties;
+    private final EsbProperties esbProperties;
+    private final RestTemplate restTemplate;
     private volatile String publicKey;
 
     @Autowired
-    public EsbJwtPublicKeyServiceImpl(BkConfig bkConfig, RestTemplate restTemplate) {
-        this.bkConfig = bkConfig;
+    public EsbJwtPublicKeyServiceImpl(AppProperties appProperties,
+                                      EsbProperties esbProperties,
+                                      RestTemplate restTemplate) {
+        this.appProperties = appProperties;
+        this.esbProperties = esbProperties;
         this.restTemplate = restTemplate;
     }
 
@@ -62,8 +67,8 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
         String url = getEsbUrl() + "api/c/compapi/v2/esb/get_api_public_key?bk_app_code={bk_app_code}&bk_app_secret" +
             "={bk_app_secret}&bk_username=admin";
         Map<String, Object> variables = new HashMap<>();
-        variables.put("bk_app_code", bkConfig.getAppCode());
-        variables.put("bk_app_secret", bkConfig.getAppSecret());
+        variables.put("bk_app_code", appProperties.getCode());
+        variables.put("bk_app_secret", appProperties.getSecret());
         EsbResp<EsbPublicKeyDTO> resp = restTemplate.exchange(url, HttpMethod.GET, null,
             new ParameterizedTypeReference<EsbResp<EsbPublicKeyDTO>>() {
             }, variables).getBody();
@@ -79,7 +84,7 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
     }
 
     private String getEsbUrl() {
-        String esbUrl = bkConfig.getEsbUrl();
+        String esbUrl = esbProperties.getService().getUrl();
         if (StringUtils.isEmpty(esbUrl)) {
             throw new RuntimeException("Illegal esb url!");
         }

@@ -37,6 +37,7 @@ data:
               enabled: false
               lower-case-service-id: true
           routes:
+            {{- if eq .Values.deploy.mode "standard" }}
             - id: job-logout
               uri: lb://job-gateway
               predicates:
@@ -232,6 +233,60 @@ data:
               filters:
                 - RecordIamAccessLog
                 - AddEsbLangHeader
+            {{- else if eq .Values.deploy.mode "lite" }}
+            - id: job-logout
+              uri: lb://job-gateway
+              predicates:
+                - Path= /logout
+              filters:
+                - Logout
+    
+            - id: job-web
+              uri: lb://job-assemble
+              predicates:
+                - Path= /job-manage/web/**,/job-crontab/web/**,/job-execute/web/**,/job-analysis/web/**,/job-backup/web/**,/job-logsvr/web/**,/job-file-gateway/web/**,/job-ticket/web/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+                - AddWebLangHeader
+    
+            - id: job-file-gateway-remote
+              uri: lb://job-assemble
+              predicates:
+                - Path= /job-file-gateway/remote/**
+              filters:
+                - AuthorizeRemote
+                - StripPrefix=1
+    
+            - id: job-esb
+              uri: lb://job-assemble
+              predicates:
+                - JobEsbV2Path=/api/job/v2/{module}/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v2/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+    
+            - id: job-esb-v3
+              uri: lb://job-assemble
+              predicates:
+                - Path=/api/job/v3/{module}/{api_name}
+              filters:
+                - CheckEsbJwt
+                - SetPath=/esb/api/v3/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+    
+            - id: job-iam
+              uri: lb://job-assemble
+              predicates:
+                - Path=/iam/api/v1/resources/**
+              filters:
+                - RecordIamAccessLog
+                - AddEsbLangHeader
+            {{- end }}      
     job:
       gateway:
         login-exemption:

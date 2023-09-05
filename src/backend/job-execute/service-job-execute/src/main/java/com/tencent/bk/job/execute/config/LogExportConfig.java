@@ -32,13 +32,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LogExportConfig {
 
-    @Value("${log-export.storage-backend:local}")
+    @Value("${job.execute.log-export.storage-backend:local}")
     private String storageBackend;
 
-    @Value("${log-export.artifactory.repo:filedata}")
+    @Value("${job.execute.log-export.artifactory.repo:filedata}")
     private String logExportRepo;
 
-    @Value("${log-export.artifactory.file-expire-days:7}")
+    @Value("${job.execute.log-export.artifactory.file-expire-days:7}")
     private Integer artifactoryFileExpireDays;
 
 }

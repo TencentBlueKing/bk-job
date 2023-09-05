@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
-import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;

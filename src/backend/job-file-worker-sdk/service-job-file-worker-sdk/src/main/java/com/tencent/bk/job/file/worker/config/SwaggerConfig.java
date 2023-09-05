@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.config;
 
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,17 +46,17 @@ import java.util.HashSet;
 @Profile({"dev", "local"})
 public class SwaggerConfig {
 
-    private final WorkerConfig workerConfig;
+    private final JobCommonConfig jobCommonConfig;
 
     @Autowired
-    public SwaggerConfig(WorkerConfig workerConfig) {
-        this.workerConfig = workerConfig;
+    public SwaggerConfig(JobCommonConfig jobCommonConfig) {
+        this.jobCommonConfig = jobCommonConfig;
     }
 
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
-            .host(workerConfig.getSwaggerUrl())
+            .host(jobCommonConfig.getSwaggerUrl())
             .pathMapping("job-file-worker")
             .protocols(new HashSet<>(Arrays.asList("http", "https")))
             .select()

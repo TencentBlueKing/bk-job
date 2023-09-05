@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@RestController("jobExecuteWebPermissionResourceImpl")
 @Slf4j
 public class WebPermissionResourceImpl implements WebPermissionResource {
     private final WebAuthService webAuthService;

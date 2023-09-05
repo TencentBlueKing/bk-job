@@ -57,7 +57,7 @@ public class ManageEncryptDbAccountPasswordMigrationTask extends BaseUpgradeTask
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         try {
             Response<List<Long>> response = post(buildMigrationTaskUrl(getJobManageUrl(),
-                "/migration/action/encryptDbAccountPassword"), null);
+                "/manage/migration/action/encryptDbAccountPassword"), null);
             log.info("EncryptDbAccountPassword done, result: {}", response);
             return response.isSuccess();
         } catch (Throwable e) {

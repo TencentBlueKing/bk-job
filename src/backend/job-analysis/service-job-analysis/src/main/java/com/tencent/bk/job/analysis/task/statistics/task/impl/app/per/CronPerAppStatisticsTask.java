@@ -24,17 +24,18 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
-import com.tencent.bk.job.analysis.client.CronMetricsResourceClient;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.crontab.api.inner.ServiceCronMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -49,12 +50,14 @@ import java.util.List;
 @Service
 public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
 
-    private final CronMetricsResourceClient cronMetricsResourceClient;
+    private final ServiceCronMetricsResource cronMetricsResource;
 
-    protected CronPerAppStatisticsTask(BasicServiceManager applicationResourceClient, StatisticsDAO statisticsDAO,
-                                       DSLContext dslContext, CronMetricsResourceClient cronMetricsResourceClient) {
-        super(applicationResourceClient, statisticsDAO, dslContext);
-        this.cronMetricsResourceClient = cronMetricsResourceClient;
+    protected CronPerAppStatisticsTask(BasicServiceManager basicServiceManager,
+                                       StatisticsDAO statisticsDAO,
+                                       @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                       ServiceCronMetricsResource cronMetricsResource) {
+        super(basicServiceManager, statisticsDAO, dslContext);
+        this.cronMetricsResource = cronMetricsResource;
     }
 
     private StatisticsDTO genCronStatusStatisticsDTO(String dateStr, Long appId, String value, String dimensionValue) {
@@ -99,7 +102,7 @@ public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
     public List<StatisticsDTO> calcAppCronStatistics(String dateStr, Long appId) {
         List<StatisticsDTO> statisticsDTOList = new ArrayList<>();
         // 开启的
-        InternalResponse<Integer> resp = cronMetricsResourceClient.countCronJob(appId, true, null);
+        InternalResponse<Integer> resp = cronMetricsResource.countCronJob(appId, true, null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countCronJob, resp:{}", resp);
             return Collections.emptyList();
@@ -107,7 +110,7 @@ public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
         Integer activeCronCount = resp.getData();
         statisticsDTOList.add(genActiveCronStatisticsDTO(dateStr, appId, activeCronCount.toString()));
         // 关闭的
-        resp = cronMetricsResourceClient.countCronJob(appId, false, null);
+        resp = cronMetricsResource.countCronJob(appId, false, null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countCronJob, resp:{}", resp);
             return statisticsDTOList;
@@ -115,7 +118,7 @@ public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
         Integer inActiveCronCount = resp.getData();
         statisticsDTOList.add(genInActiveCronStatisticsDTO(dateStr, appId, inActiveCronCount.toString()));
         // 简单的
-        resp = cronMetricsResourceClient.countCronJob(appId, null, false);
+        resp = cronMetricsResource.countCronJob(appId, null, false);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countCronJob, resp:{}", resp);
             return statisticsDTOList;
@@ -123,7 +126,7 @@ public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
         Integer simpleCronCount = resp.getData();
         statisticsDTOList.add(genSimpleCronStatisticsDTO(dateStr, appId, simpleCronCount.toString()));
         // 周期的
-        resp = cronMetricsResourceClient.countCronJob(appId, null, true);
+        resp = cronMetricsResource.countCronJob(appId, null, true);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countCronJob, resp:{}", resp);
             return statisticsDTOList;

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.statistics;
 
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.execute.config.StatisticConfig;
 import com.tencent.bk.job.execute.dao.StatisticsDAO;

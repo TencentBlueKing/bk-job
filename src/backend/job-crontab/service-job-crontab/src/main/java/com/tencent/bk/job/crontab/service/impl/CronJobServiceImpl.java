@@ -54,7 +54,6 @@ import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequ
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.HostService;
-import com.tencent.bk.job.crontab.service.TaskExecuteResultService;
 import com.tencent.bk.job.crontab.service.TaskPlanService;
 import com.tencent.bk.job.crontab.timer.AbstractQuartzTaskHandler;
 import com.tencent.bk.job.crontab.timer.QuartzJob;
@@ -64,7 +63,6 @@ import com.tencent.bk.job.crontab.timer.QuartzTriggerBuilder;
 import com.tencent.bk.job.crontab.timer.executor.InnerJobExecutor;
 import com.tencent.bk.job.crontab.timer.executor.NotifyJobExecutor;
 import com.tencent.bk.job.crontab.timer.executor.SimpleJobExecutor;
-import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -76,7 +74,7 @@ import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
@@ -89,15 +87,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * @since 2/1/2020 12:18
- */
+
 @Slf4j
-@Component
+@Service
 public class CronJobServiceImpl implements CronJobService {
 
     private final CronJobDAO cronJobDAO;
-    private final TaskExecuteResultService taskExecuteResultService;
 
     private final AbstractQuartzTaskHandler quartzTaskHandler;
     private final TaskPlanService taskPlanService;
@@ -107,14 +102,12 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Autowired
     public CronJobServiceImpl(CronJobDAO cronJobDAO,
-                              TaskExecuteResultService taskExecuteResultService,
                               AbstractQuartzTaskHandler quartzTaskHandler,
                               TaskPlanService taskPlanService,
                               CronAuthService cronAuthService,
                               ExecuteTaskService executeTaskService,
                               HostService hostService) {
         this.cronJobDAO = cronJobDAO;
-        this.taskExecuteResultService = taskExecuteResultService;
         this.quartzTaskHandler = quartzTaskHandler;
         this.taskPlanService = taskPlanService;
         this.cronAuthService = cronAuthService;
@@ -184,7 +177,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Long saveCronJobInfo(CronJobInfoDTO cronJobInfo) {
         checkCronJobPlanOrScript(cronJobInfo);
         saveSnapShotForHostVaiableValue(cronJobInfo);
@@ -314,7 +307,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Boolean changeCronJobEnableStatus(String username, Long appId, Long cronJobId, Boolean enable) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         cronJobInfo.setAppId(appId);
@@ -353,7 +346,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Boolean disableExpiredCronJob(Long appId, Long cronJobId, String lastModifyUser, Long lastModifyTime) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         cronJobInfo.setAppId(appId);
@@ -409,7 +402,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Error.class, Exception.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Error.class, Exception.class})
     public Boolean addInnerJob(ServiceAddInnerCronJobRequestDTO request) {
         if (!request.validate()) {
             return false;
@@ -501,13 +494,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    public Map<Long, ServiceCronTaskExecuteResultStatistics> getCronJobExecuteHistory(Long appId,
-                                                                                      List<Long> cronIdList) {
-        return taskExecuteResultService.getCronTaskExecuteResultStatistics(appId, cronIdList);
-    }
-
-    @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Boolean batchUpdateCronJob(Long appId, BatchUpdateCronJobReq batchUpdateCronJobReq) {
         if (batchUpdateCronJobReq != null) {
             if (CollectionUtils.isNotEmpty(batchUpdateCronJobReq.getCronJobInfoList())) {

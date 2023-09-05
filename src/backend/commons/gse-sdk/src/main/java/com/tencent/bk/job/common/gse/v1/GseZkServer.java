@@ -26,7 +26,7 @@ package com.tencent.bk.job.common.gse.v1;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.tencent.bk.job.common.gse.config.GseProperties;
+import com.tencent.bk.job.common.gse.config.GseV1Properties;
 import com.tencent.bk.job.common.gse.v1.model.AccessServerInfoDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +48,9 @@ public class GseZkServer extends GseServer {
     private PathChildrenCache cache;
     private List<Map.Entry<String, Integer>> servers;
 
-    public GseZkServer(GseProperties gseProperties, CuratorFramework client) {
-        super(gseProperties);
-        String gseServerPath = gseProperties.getServer().getZooKeeper().getPath();
+    public GseZkServer(GseV1Properties gseV1Properties, CuratorFramework client) {
+        super(gseV1Properties);
+        String gseServerPath = gseV1Properties.getServer().getZooKeeper().getPath();
         if (client != null) {
             try {
                 gseServerPath = PathUtils.validatePath(gseServerPath);

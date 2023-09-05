@@ -41,7 +41,6 @@ import com.tencent.bk.job.manage.model.web.vo.script.ScriptRelatedTemplateStepVO
 import com.tencent.bk.job.manage.model.web.vo.script.ScriptSyncResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -56,7 +55,7 @@ public class WebPublicScriptResourceImpl implements WebPublicScriptResource {
     private final WebScriptResource scriptResourceProxy;
 
     @Autowired
-    public WebPublicScriptResourceImpl(@Qualifier("webScriptResourceImpl") WebScriptResource scriptResourceProxy) {
+    public WebPublicScriptResourceImpl(WebScriptResource scriptResourceProxy) {
         this.scriptResourceProxy = scriptResourceProxy;
     }
 

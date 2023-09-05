@@ -1,0 +1,98 @@
+spring:
+  cloud:
+    consul:
+      host: 127.0.0.1
+      port: __CONSUL_HTTP_PORT__
+      scheme: __CONSUL_SCHEME__
+      enabled: true
+      discovery:
+        prefer-ip-address: true
+        service-name: job-gateway
+        instance-id: job-gateway-${machine.ip}-${server.port}
+        scheme: http
+        enabled: true
+    config:
+      enabled: false
+    stream:
+      defaultBinder: jobCommon
+      binders:
+        jobCommon:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: __BK_JOB_RABBITMQ_HOST__
+                port: __BK_JOB_RABBITMQ_PORT__
+                username: __BK_JOB_RABBITMQ_USERNAME__
+                password: __BK_JOB_RABBITMQ_PASSWORD__
+                virtual-host: __BK_JOB_RABBITMQ_VHOST__
+    gateway:
+      routes:
+        - id: job-logout
+          uri: lb://job-gateway
+          predicates:
+            - Path= /logout
+          filters:
+            - Logout
+
+        - id: job-web
+          uri: lb://job-assemble
+          predicates:
+            - Path= /job-manage/web/**,/job-crontab/web/**,/job-execute/web/**,/job-analysis/web/**,/job-backup/web/**,/job-logsvr/web/**,/job-file-gateway/web/**,/job-ticket/web/**
+          filters:
+            - Authorize
+            - CsrfCheck
+            - StripPrefix=1
+            - AddWebLangHeader
+
+        - id: job-file-gateway-remote
+          uri: lb://job-assemble
+          predicates:
+            - Path= /job-file-gateway/remote/**
+          filters:
+            - AuthorizeRemote
+            - StripPrefix=1
+
+        - id: job-esb
+          uri: lb://job-assemble
+          predicates:
+            - JobEsbV2Path=/api/job/v2/{module}/{api_name}
+          filters:
+            - CheckEsbJwt
+            - SetPath=/esb/api/v2/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
+        - id: job-esb-v3
+          uri: lb://job-assemble
+          predicates:
+            - Path=/api/job/v3/{module}/{api_name}
+          filters:
+            - CheckEsbJwt
+            - SetPath=/esb/api/v3/{api_name}
+            - RecordEsbAccessLog
+            - AddEsbLangHeader
+
+        - id: job-iam
+          uri: lb://job-assemble
+          predicates:
+            - Path=/iam/api/v1/resources/*
+          filters:
+            - RecordIamAccessLog
+            - AddEsbLangHeader
+server:
+  port: __BK_JOB_GATEWAY_SERVER_HTTPS_PORT__
+  http:
+    enabled: __BK_JOB_GATEWAY_SERVER_HTTP_ENABLED__
+    port: __BK_JOB_GATEWAY_SERVER_HTTP_PORT__
+  ssl:
+    enabled: true
+    key-store-type: __BK_JOB_GATEWAY_SERVER_SSL_KEYSTORE_TYPE__
+    key-store: file:__BK_CERT_PATH__/job_server.p12
+    key-store-password: __BK_JOB_GATEWAY_SERVER_SSL_KEYSTORE_PASSWORD__
+    key-alias: __BK_JOB_GATEWAY_SERVER_SSL_KEY_ALIAS__
+    trust-store: file:__BK_CERT_PATH__/job_server.truststore
+    trust-store-password: __BK_JOB_GATEWAY_SERVER_SSL_TRUSTSTORE_PASSWORD__
+management:
+  server:
+    port: __BK_JOB_GATEWAY_SERVER_MANAGEMENT_PORT__

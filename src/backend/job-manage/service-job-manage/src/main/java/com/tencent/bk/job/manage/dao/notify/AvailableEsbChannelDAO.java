@@ -25,14 +25,13 @@
 package com.tencent.bk.job.manage.dao.notify;
 
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface AvailableEsbChannelDAO {
-    int insertAvailableEsbChannel(DSLContext dslContext, AvailableEsbChannelDTO availableEsbChannelDTO);
+    int insertAvailableEsbChannel(AvailableEsbChannelDTO availableEsbChannelDTO);
 
-    int deleteAll(DSLContext dslContext);
+    int deleteAll();
 
-    List<AvailableEsbChannelDTO> listAvailableEsbChannel(DSLContext dslContext);
+    List<AvailableEsbChannelDTO> listAvailableEsbChannel();
 }

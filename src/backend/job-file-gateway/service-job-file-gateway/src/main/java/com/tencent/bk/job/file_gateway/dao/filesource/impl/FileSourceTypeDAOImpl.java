@@ -26,6 +26,8 @@ package com.tencent.bk.job.file_gateway.dao.filesource.impl;
 
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
+import com.tencent.bk.job.file_gateway.model.tables.FileSourceType;
+import com.tencent.bk.job.file_gateway.model.tables.FileWorker;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
@@ -35,9 +37,8 @@ import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.TableField;
-import org.jooq.generated.tables.FileSourceType;
-import org.jooq.generated.tables.FileWorker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public class FileSourceTypeDAOImpl implements FileSourceTypeDAO {
     };
 
     @Autowired
-    public FileSourceTypeDAOImpl(DSLContext dslContext) {
+    public FileSourceTypeDAOImpl(@Qualifier("job-file-gateway-dsl-context") DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

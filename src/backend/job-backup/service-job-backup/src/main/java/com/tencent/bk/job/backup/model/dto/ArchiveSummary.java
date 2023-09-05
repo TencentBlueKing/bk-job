@@ -36,7 +36,8 @@ public class ArchiveSummary {
     private String archiveEndDate;
     private boolean skip;
 
-    private boolean archiveEnabled;
+    private String archiveMode;
+
     private Long archiveIdStart;
     private Long archiveIdEnd;
     private Long lastArchivedId;
@@ -44,7 +45,6 @@ public class ArchiveSummary {
     private Long archivedRecordSize;
     private Long archiveCost;
 
-    private boolean deleteEnabled;
     private Long deleteIdStart;
     private Long deleteIdEnd;
     private Long lastDeletedId;

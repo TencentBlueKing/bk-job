@@ -1,4 +1,4 @@
-{{- if .Values.manageConfig.enabled }}
+{{- if and .Values.manageConfig.enabled (eq .Values.deploy.mode "standard") }}
 apiVersion: v1
 kind: Service
 metadata:

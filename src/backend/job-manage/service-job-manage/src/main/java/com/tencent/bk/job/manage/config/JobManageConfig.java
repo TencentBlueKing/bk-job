@@ -50,9 +50,6 @@ public class JobManageConfig {
     @Value("${job.edition:ee}")
     private String jobEdition;
 
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
-
     @Value("${bk.doc.root:}")
     private String bkDocRoot;
 
@@ -76,9 +73,6 @@ public class JobManageConfig {
 
     @Value("${job.manage.sync.hostEvent.handlerNum:3}")
     private int hostEventHandlerNum;
-
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
 
     //---------------------------- Cmdb Config ---------------------------------
     @Value("${cmdb.default.supplier.account:0}")

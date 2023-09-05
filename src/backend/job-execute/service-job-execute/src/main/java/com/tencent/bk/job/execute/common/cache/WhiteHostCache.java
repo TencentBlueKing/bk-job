@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.common.cache;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.client.WhiteIpResourceClient;
+import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Component
 @Slf4j
 public class WhiteHostCache {
-    private final WhiteIpResourceClient whiteIpResourceClient;
+    private final ServiceWhiteIPResource whiteIpResource;
 
     private volatile boolean isWhiteIpConfigLoaded = false;
     /**
@@ -59,8 +59,8 @@ public class WhiteHostCache {
     private static final Lock wLock = rwLock.writeLock();
 
     @Autowired
-    public WhiteHostCache(WhiteIpResourceClient whiteIpResourceClient) {
-        this.whiteIpResourceClient = whiteIpResourceClient;
+    public WhiteHostCache(ServiceWhiteIPResource whiteIpResource) {
+        this.whiteIpResource = whiteIpResource;
     }
 
     @Scheduled(cron = "0 * * * * ?")
@@ -68,7 +68,7 @@ public class WhiteHostCache {
         log.info("Sync white host config!");
         isWhiteIpConfigLoaded = true;
         long start = System.currentTimeMillis();
-        InternalResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResourceClient.listWhiteIPInfos();
+        InternalResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResource.listWhiteIPInfos();
         if (resp == null || !resp.isSuccess()) {
             log.warn("Get all white host config return fail resp! resp: {}", JsonUtils.toJson(resp));
             return;

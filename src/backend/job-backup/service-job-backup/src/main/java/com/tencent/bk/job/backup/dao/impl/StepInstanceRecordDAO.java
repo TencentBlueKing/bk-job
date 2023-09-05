@@ -1,12 +1,12 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveConfig;
+import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.execute.model.tables.StepInstance;
+import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.generated.tables.StepInstance;
-import org.jooq.generated.tables.records.StepInstanceRecord;
 
 import static org.jooq.impl.DSL.max;
 
@@ -17,8 +17,8 @@ public class StepInstanceRecordDAO extends AbstractExecuteRecordDAO<StepInstance
 
     private static final StepInstance TABLE = StepInstance.STEP_INSTANCE;
 
-    public StepInstanceRecordDAO(DSLContext context, ArchiveConfig archiveConfig) {
-        super(context, archiveConfig);
+    public StepInstanceRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
+        super(context, archiveDBProperties);
     }
 
     @Override

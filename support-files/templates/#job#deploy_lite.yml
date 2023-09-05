@@ -1,0 +1,25 @@
+# Job 轻量化部署配置文件
+services:
+    # 服务名称
+  - name: job-gateway
+    # 启动jar 包路径
+    binary_jar: job/backend/job-gateway/job-gateway.jar
+    # 启动命令参数
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dreactor.netty.http.server.accessLogEnabled=true -Dspring.config.additional-location=file://__BK_HOME__/etc/job/job-assemble/application-gateway.yml,file://__BK_HOME__/etc/job/job-common/application.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-gateway/job-gateway.jar"
+    # 启动副本数量
+    replica: 2
+    # 服务包含的组件
+    components:
+      - job-gateway
+
+  - name: job-assemble
+    binary_jar: job/backend/job-assemble/job-assemble.jar
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dspring.config.additional-location=file://__BK_HOME__/etc/job/job-assemble/application-assemble.yml,file://__BK_HOME__/etc/job/job-common/application.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-assemble/job-assemble.jar"
+    replica: 2
+    components:
+      - job-manage
+      - job-execute
+      - job-crontab
+      - job-logsvr
+      - job-analysis
+      - job-backup

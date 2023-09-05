@@ -25,23 +25,22 @@
 package com.tencent.bk.job.file_gateway.dao.filesource;
 
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBatchTaskDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface FileSourceBatchTaskDAO {
-    String insertFileSourceBatchTask(DSLContext dslContext, FileSourceBatchTaskDTO fileSourceBatchTaskDTO);
+    String insertFileSourceBatchTask(FileSourceBatchTaskDTO fileSourceBatchTaskDTO);
 
-    int updateFileSourceBatchTask(DSLContext dslContext, FileSourceBatchTaskDTO fileSourceBatchTaskDTO);
+    int updateFileSourceBatchTask(FileSourceBatchTaskDTO fileSourceBatchTaskDTO);
 
-    int updateFileClearStatus(DSLContext dslContext, List<String> taskIdList, boolean fileCleared);
+    int updateFileClearStatus(List<String> taskIdList, boolean fileCleared);
 
-    int deleteFileSourceBatchTaskById(DSLContext dslContext, String id);
+    int deleteFileSourceBatchTaskById(String id);
 
-    FileSourceBatchTaskDTO getFileSourceBatchTaskById(DSLContext dslContext, String id);
+    FileSourceBatchTaskDTO getFileSourceBatchTaskById(String id);
 
-    Long countFileSourceBatchTasks(DSLContext dslContext, Long appId);
+    Long countFileSourceBatchTasks(Long appId);
 
-    List<FileSourceBatchTaskDTO> listFileSourceBatchTasks(DSLContext dslContext, Long appId, Integer start,
+    List<FileSourceBatchTaskDTO> listFileSourceBatchTasks(Long appId, Integer start,
                                                           Integer pageSize);
 }

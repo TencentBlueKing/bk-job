@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.dao.customsetting.impl.UserCustomSettingDAO;
+import com.tencent.bk.job.manage.dao.customsetting.UserCustomSettingDAO;
 import com.tencent.bk.job.manage.model.dto.customsetting.UserCustomSettingDTO;
 import com.tencent.bk.job.manage.model.web.request.customsetting.BatchGetCustomSettingsReq;
 import com.tencent.bk.job.manage.model.web.request.customsetting.DeleteCustomSettingsReq;

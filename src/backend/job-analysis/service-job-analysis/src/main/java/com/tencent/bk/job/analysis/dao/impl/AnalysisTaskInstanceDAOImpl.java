@@ -27,6 +27,9 @@ package com.tencent.bk.job.analysis.dao.impl;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceWithTpl;
+import com.tencent.bk.job.analysis.model.tables.AnalysisTask;
+import com.tencent.bk.job.analysis.model.tables.AnalysisTaskInstance;
+import com.tencent.bk.job.analysis.model.tables.records.AnalysisTaskInstanceRecord;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -36,11 +39,10 @@ import org.jooq.DSLContext;
 import org.jooq.Record8;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.AnalysisTask;
-import org.jooq.generated.tables.AnalysisTaskInstance;
-import org.jooq.generated.tables.records.AnalysisTaskInstanceRecord;
 import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -48,11 +50,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
- */
+
 @Repository
 @Slf4j
 public class AnalysisTaskInstanceDAOImpl implements AnalysisTaskInstanceDAO {
@@ -60,8 +58,16 @@ public class AnalysisTaskInstanceDAOImpl implements AnalysisTaskInstanceDAO {
     private static final AnalysisTaskInstance defaultTable = AnalysisTaskInstance.ANALYSIS_TASK_INSTANCE;
     private static final AnalysisTask tableAnalysisTask = AnalysisTask.ANALYSIS_TASK;
 
+    private final DSLContext dslContext;
+
+    @Autowired
+    public AnalysisTaskInstanceDAOImpl(@Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
+
+
     @Override
-    public Long insertAnalysisTaskInstance(DSLContext dslContext, AnalysisTaskInstanceDTO analysisTaskInstanceDTO) {
+    public Long insertAnalysisTaskInstance(AnalysisTaskInstanceDTO analysisTaskInstanceDTO) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.ID,
             defaultTable.APP_ID,
@@ -97,7 +103,7 @@ public class AnalysisTaskInstanceDAOImpl implements AnalysisTaskInstanceDAO {
     }
 
     @Override
-    public int updateAnalysisTaskInstanceById(DSLContext dslContext, AnalysisTaskInstanceDTO analysisTaskInstanceDTO) {
+    public int updateAnalysisTaskInstanceById(AnalysisTaskInstanceDTO analysisTaskInstanceDTO) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.APP_ID, analysisTaskInstanceDTO.getAppId())
             .set(defaultTable.TASK_ID, analysisTaskInstanceDTO.getTaskId())
@@ -118,7 +124,7 @@ public class AnalysisTaskInstanceDAOImpl implements AnalysisTaskInstanceDAO {
     }
 
     @Override
-    public int deleteHistoryAnalysisTaskInstance(DSLContext dslContext, Long appId, Long taskId) {
+    public int deleteHistoryAnalysisTaskInstance(Long appId, Long taskId) {
         // 状态不为Running的全部删除
         int notRunningCount = dslContext.deleteFrom(defaultTable).where(
             defaultTable.APP_ID.eq(appId)
@@ -145,14 +151,14 @@ public class AnalysisTaskInstanceDAOImpl implements AnalysisTaskInstanceDAO {
     }
 
     @Override
-    public int deleteAnalysisTaskInstanceById(DSLContext dslContext, Long id) {
+    public int deleteAnalysisTaskInstanceById(Long id) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).execute();
     }
 
     @Override
-    public AnalysisTaskInstanceDTO getAnalysisTaskInstanceById(DSLContext dslContext, Long id) {
+    public AnalysisTaskInstanceDTO getAnalysisTaskInstanceById(Long id) {
         val record = dslContext.selectFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).fetchOne();
@@ -164,12 +170,12 @@ public class AnalysisTaskInstanceDAOImpl implements AnalysisTaskInstanceDAO {
     }
 
     @Override
-    public List<AnalysisTaskInstanceWithTpl> listAllAnalysisTaskInstance(DSLContext dslContext) {
+    public List<AnalysisTaskInstanceWithTpl> listAllAnalysisTaskInstance() {
         return listAnalysisTaskInstanceWithConditions(dslContext, Collections.emptyList(), null, null);
     }
 
     @Override
-    public List<AnalysisTaskInstanceWithTpl> listActiveAnalysisTaskInstance(DSLContext dslContext, Long appId,
+    public List<AnalysisTaskInstanceWithTpl> listActiveAnalysisTaskInstance(Long appId,
                                                                             Long limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.STATUS.eq(AnalysisTaskStatusEnum.SUCCESS.getValue()));
@@ -179,7 +185,7 @@ public class AnalysisTaskInstanceDAOImpl implements AnalysisTaskInstanceDAO {
     }
 
     @Override
-    public List<AnalysisTaskInstanceWithTpl> listNewestActiveInstance(DSLContext dslContext, Long appId,
+    public List<AnalysisTaskInstanceWithTpl> listNewestActiveInstance(Long appId,
                                                                       Long limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.STATUS.eq(AnalysisTaskStatusEnum.SUCCESS.getValue()));

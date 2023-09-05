@@ -9,14 +9,12 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.stereotype.Component;
 
 /**
  * 调用IAM-SDK鉴权过程中对SDK抛出的异常进行处理
  */
 @Slf4j
 @Aspect
-@Component
 public class IamExceptionHandleAspect {
 
     @Pointcut("execution (* com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl.*(..))")

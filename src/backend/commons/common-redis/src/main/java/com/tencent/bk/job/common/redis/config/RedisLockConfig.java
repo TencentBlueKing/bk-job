@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RedisLockConfig {
 
     private static final String UNLOCK_SCRIPT =

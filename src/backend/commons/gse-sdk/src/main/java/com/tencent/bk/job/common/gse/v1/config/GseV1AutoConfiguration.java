@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.gse.v1.config;
 
-import com.tencent.bk.job.common.gse.config.GseProperties;
+import com.tencent.bk.job.common.gse.config.GseV1Properties;
 import com.tencent.bk.job.common.gse.v1.CuratorFrameworkFactoryBean;
 import com.tencent.bk.job.common.gse.v1.GseCacheClientFactory;
 import com.tencent.bk.job.common.gse.v1.GseServer;
@@ -35,6 +35,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,14 +44,15 @@ import java.util.Objects;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "gse.enabled", havingValue = "true")
+@EnableConfigurationProperties(GseV1Properties.class)
 public class GseV1AutoConfiguration {
 
     private static final String ZOOKEEPER_SERVER_TYPE = "zookeeper";
 
     @Bean("gseServer")
     @ConditionalOnMissingBean(name = "gseServer")
-    public GseServer gseServer(GseProperties gseProperties) {
-        return new GseServer(gseProperties);
+    public GseServer gseServer(GseV1Properties gseV1Properties) {
+        return new GseServer(gseV1Properties);
     }
 
     /**
@@ -60,8 +62,8 @@ public class GseV1AutoConfiguration {
      */
     @Bean("gseServer")
     @ConditionalOnProperty(name = "gse.server.discovery.type", havingValue = ZOOKEEPER_SERVER_TYPE)
-    public GseServer gseServer(GseProperties gseProperties, CuratorFramework curatorFramework) {
-        return new GseZkServer(gseProperties, curatorFramework);
+    public GseServer gseServer(GseV1Properties gseV1Properties, CuratorFramework curatorFramework) {
+        return new GseZkServer(gseV1Properties, curatorFramework);
     }
 
     /**
@@ -69,19 +71,21 @@ public class GseV1AutoConfiguration {
      */
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnProperty(name = "gse.server.discovery.type", havingValue = ZOOKEEPER_SERVER_TYPE)
-    public CuratorFrameworkFactoryBean curatorFrameworkFactoryBean(GseProperties gseProperties) {
-        Objects.requireNonNull(gseProperties.getServer().getZooKeeper());
-        return new CuratorFrameworkFactoryBean(gseProperties.getServer().getZooKeeper(),
+    public CuratorFrameworkFactoryBean curatorFrameworkFactoryBean(GseV1Properties gseV1Properties) {
+        Objects.requireNonNull(gseV1Properties.getServer().getZooKeeper());
+        return new CuratorFrameworkFactoryBean(gseV1Properties.getServer().getZooKeeper(),
             new IntervalIncrementForeverRetry(60000));
     }
 
     @Bean("gseCacheClientFactory")
-    public GseCacheClientFactory gseCacheClientFactory(GseProperties gseProperties) {
-        return new GseCacheClientFactory(gseProperties);
+    public GseCacheClientFactory gseCacheClientFactory(GseV1Properties gseV1Properties) {
+        return new GseCacheClientFactory(gseV1Properties);
     }
 
     @Bean("gseV1ApiClient")
-    public GseV1ApiClient gseV1ApiClient(MeterRegistry meterRegistry, GseCacheClientFactory gseCacheClientFactory) {
+    public GseV1ApiClient gseV1ApiClient(MeterRegistry meterRegistry,
+                                         GseCacheClientFactory gseCacheClientFactory) {
         return new GseV1ApiClient(meterRegistry, gseCacheClientFactory);
     }
+
 }

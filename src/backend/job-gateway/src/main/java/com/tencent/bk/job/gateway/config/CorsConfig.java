@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.gateway.config;
 
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -67,11 +67,11 @@ public class CorsConfig {
     }
 
     @Bean
-    public CorsWebFilter corsFilter(@Autowired BkConfig bkConfig) {
+    public CorsWebFilter corsFilter(JobCommonConfig jobCommonConfig) {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource(new PathPatternParser());
         List<String> allowOrigins = new ArrayList<>();
-        if (StringUtils.isNotBlank(bkConfig.getJobWebUrl())) {
-            for (String webUrl : bkConfig.getJobWebUrl().split(",")) {
+        if (StringUtils.isNotBlank(jobCommonConfig.getJobWebUrl())) {
+            for (String webUrl : jobCommonConfig.getJobWebUrl().split(",")) {
                 if (StringUtils.isNotBlank(webUrl)) {
                     String allowOrigin = buildAllowOriginFromUrl(webUrl.trim());
                     if (StringUtils.isNotBlank(allowOrigin)) {

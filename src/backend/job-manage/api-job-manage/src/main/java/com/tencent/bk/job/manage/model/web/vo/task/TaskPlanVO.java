@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.model.web.vo.task;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;

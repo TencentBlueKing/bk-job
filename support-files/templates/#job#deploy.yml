@@ -1,0 +1,62 @@
+# Job 微服务方式模式部署配置文件
+services:
+    # 服务名称
+  - name: job-gateway
+    # 启动jar 包路径
+    binary_jar: job/backend/job-gateway/job-gateway.jar
+    # 启动命令参数
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dreactor.netty.http.server.accessLogEnabled=true -Dspring.config.additional-location=file://__BK_HOME__/etc/job/application-gateway.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-gateway/job-gateway.jar"
+    # 启动副本数量
+    replica: 2
+    # 服务包含的组件
+    components:
+      - job-gateway
+
+  - name: job-config
+    binary_jar: job/backend/job-config/job-config.jar
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=native,prod -Dspring.config.additional-location=file://__BK_HOME__/etc/job/application-config.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms256m -Xmx512m -jar __BK_HOME__/job/backend/job-config/job-config.jar"
+    replica: 1
+    components:
+      - job-config
+
+  - name: job-manage
+    binary_jar: job/backend/job-manage/job-manage.jar
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dspring.config.additional-location=file://__BK_HOME__/etc/job/application-manage.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-manage/job-manage.jar"
+    replica: 2
+    components:
+      - job-manage
+
+  - name: job-execute
+    binary_jar: job/backend/job-execute/job-execute.jar
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dspring.config.additional-location=file://__BK_HOME__/etc/job/application-execute.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-execute/job-execute.jar"
+    replica: 2
+    components:
+      - job-execute
+
+  - name: job-crontab
+    binary_jar: job/backend/job-crontab/job-crontab.jar
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dspring.config.additional-location=file://__BK_HOME__/etc/job/application-crontab.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-crontab/job-crontab.jar"
+    replica: 2
+    components:
+      - job-crontab
+
+  - name: job-logsvr
+    binary_jar: job/backend/job-logsvr/job-logsvr.jar
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dspring.config.additional-location=file://__BK_HOME__/etc/job/application-logsvr.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-logsvr/job-logsvr.jar"
+    replica: 2
+    components:
+      - job-logsvr
+
+  - name: job-analysis
+    binary_jar: job/backend/job-analysis/job-analysis.jar
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dspring.config.additional-location=file://__BK_HOME__/etc/job/application-analysis.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-analysis/job-analysis.jar"
+    replica: 1
+    components:
+      - job-analysis
+
+  - name: job-backup
+    binary_jar: job/backend/job-backup/job-backup.jar
+    args: "-Dfile.encoding=UTF-8 -Dspring.profiles.active=prod -Dspring.config.additional-location=file://__BK_HOME__/etc/job/application-backup.yml -Djob.log.dir=__BK_HOME__/logs/job -DBK_JOB_CONFIG_DIR=__BK_HOME__/etc/job -Xms512m -Xmx1g -jar __BK_HOME__/job/backend/job-backup/job-backup.jar"
+    replica: 1
+    components:
+      - job-backup

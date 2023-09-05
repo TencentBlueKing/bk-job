@@ -1,4 +1,4 @@
-{{- if .Values.backupConfig.enabled }}
+{{- if and .Values.backupConfig.enabled (eq .Values.deploy.mode "standard") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -47,7 +47,8 @@ data:
           idle-timeout: 600000
           poolName: "job-backup"
           validationTimeout: 5000
-        job-execute-db:
+        {{- if and .Values.backupConfig.archive.execute.enabled }}
+        job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
           jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ include "job.mariadb.connection.properties" . }}
@@ -60,9 +61,10 @@ data:
           maximum-pool-size: 10
           minimum-idle: 2
           idle-timeout: 6000
-          poolName: "job-execute-db"
+          poolName: "job-execute"
           validationTimeout: 5000
-        {{- if .Values.backupConfig.archive.execute.enabled }}
+        {{- end }}  
+        {{- if and .Values.backupConfig.archive.execute.enabled (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
@@ -98,13 +100,10 @@ data:
       port: {{ .Values.backupConfig.containerPort }}
     job:
       backup:
-        upload:
-          filesize:
-            max: 2GB
         storage-backend: {{ .Values.backupConfig.storageBackend }}
         artifactory:
           repo: {{ .Values.backupConfig.artifactory.repo }}
-      execute:
-        archive:
-          {{- toYaml .Values.backupConfig.archive.execute | nindent 10 }}
+        archive:  
+          execute:
+            {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
 {{- end }}

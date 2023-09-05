@@ -30,9 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-/**
- * @since 17/7/2020 13:45
- */
 @RestController
 @RequestMapping("/web")
 public interface WebVersionResource {

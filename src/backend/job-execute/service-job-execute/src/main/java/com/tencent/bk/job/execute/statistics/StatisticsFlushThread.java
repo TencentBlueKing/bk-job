@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.statistics;
 
 import com.tencent.bk.job.common.util.ObjectWrapper;
+import com.tencent.bk.job.execute.model.tables.Statistics;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.Condition;
@@ -33,7 +34,6 @@ import org.jooq.Record2;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
 import org.jooq.exception.DataAccessException;
-import org.jooq.generated.tables.Statistics;
 import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
 
@@ -50,8 +50,8 @@ public class StatisticsFlushThread extends Thread {
     private final DSLContext dslContext;
     private volatile LinkedBlockingQueue<Map<String, Map<StatisticsKey, AtomicInteger>>> flushQueue;
 
-    public StatisticsFlushThread(DSLContext dslContext, LinkedBlockingQueue<Map<String,
-        Map<StatisticsKey, AtomicInteger>>> flushQueue) {
+    public StatisticsFlushThread(DSLContext dslContext,
+                                 LinkedBlockingQueue<Map<String, Map<StatisticsKey, AtomicInteger>>> flushQueue) {
         this.dslContext = dslContext;
         this.flushQueue = flushQueue;
     }

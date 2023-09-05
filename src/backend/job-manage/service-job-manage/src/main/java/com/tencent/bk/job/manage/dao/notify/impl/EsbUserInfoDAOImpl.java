@@ -26,43 +26,39 @@ package com.tencent.bk.job.manage.dao.notify.impl;
 
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
+import com.tencent.bk.job.manage.model.tables.EsbUserInfo;
+import com.tencent.bk.job.manage.model.tables.records.EsbUserInfoRecord;
 import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.EsbUserInfo;
-import org.jooq.generated.tables.records.EsbUserInfoRecord;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Repository
 public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
 
-    private final DSLContext defaultDslContext;
+    private final DSLContext dslContext;
     private static final Logger logger = LoggerFactory.getLogger(EsbUserInfoDAOImpl.class);
     private static final EsbUserInfo T_ESB_USER_INFO = EsbUserInfo.ESB_USER_INFO;
     private static final EsbUserInfo defaultTable = T_ESB_USER_INFO;
 
     @Autowired
-    public EsbUserInfoDAOImpl(DSLContext dslContext) {
-        this.defaultDslContext = dslContext;
+    public EsbUserInfoDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Override
-    public int insertEsbUserInfo(DSLContext dslContext, EsbUserInfoDTO esbUserInfoDTO) {
+    public int insertEsbUserInfo(EsbUserInfoDTO esbUserInfoDTO) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.ID,
             defaultTable.USERNAME,
@@ -86,7 +82,7 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
     }
 
     @Override
-    public int deleteEsbUserInfoById(DSLContext dslContext, Long id) {
+    public int deleteEsbUserInfoById(Long id) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).execute();
@@ -94,7 +90,7 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
 
     @Override
     public List<EsbUserInfoDTO> listEsbUserInfo() {
-        val records = defaultDslContext.selectFrom(defaultTable).fetch();
+        val records = dslContext.selectFrom(defaultTable).fetch();
         if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
@@ -112,14 +108,14 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
     public List<EsbUserInfoDTO> listEsbUserInfo(String prefixStr, Long limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.startsWith(prefixStr));
-        return listEsbUserInfoByConditions(defaultDslContext, conditions, limit);
+        return listEsbUserInfoByConditions(dslContext, conditions, limit);
     }
 
     @Override
     public List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.in(userNames));
-        return listEsbUserInfoByConditions(defaultDslContext, conditions, null);
+        return listEsbUserInfoByConditions(dslContext, conditions, null);
     }
 
     private List<EsbUserInfoDTO> listEsbUserInfoByConditions(DSLContext dslContext, List<Condition> conditions,

@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.web.interceptor;
 
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.common.web.metrics.CustomTimedTagsProvider;
@@ -45,6 +47,7 @@ import java.util.concurrent.TimeUnit;
  * Job自定义Timer指标数据拦截处理器
  */
 @Slf4j
+@JobInterceptor(pathPatterns = "/**", order = InterceptorOrder.Init.METRICS)
 public class CustomTimedMetricsInterceptor implements HandlerInterceptor {
 
     private final MeterRegistry registry;

@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptStatusUpdateMessageDTO;
+import com.tencent.bk.job.manage.model.tables.ScriptVersion;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStepScript;
 import com.tencent.bk.job.manage.service.AbstractTaskStepService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,8 +41,6 @@ import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.Record2;
 import org.jooq.Result;
-import org.jooq.generated.tables.ScriptVersion;
-import org.jooq.generated.tables.TaskTemplateStepScript;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.slf4j.helpers.MessageFormatter;
@@ -150,7 +150,7 @@ public class TemplateStatusUpdateService {
         }
     }
 
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public void processTemplateStatus(ULong templateId) {
         Result<Record2<ULong, ULong>> records =
             context.select(STEP_SCRIPT_TABLE.ID, STEP_SCRIPT_TABLE.SCRIPT_VERSION_ID).from(STEP_SCRIPT_TABLE)
@@ -226,7 +226,7 @@ public class TemplateStatusUpdateService {
         }
     }
 
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public void updateTemplateStatus(ULong templateId, int scriptStatus) {
         taskTemplateDAO.updateTemplateStatus(templateId, scriptStatus);
     }

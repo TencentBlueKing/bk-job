@@ -44,7 +44,7 @@ simpleModuleName = simpleModuleName.substring(0, simpleModuleName.length() - 1)
 println("moduleName=" + moduleName)
 println("simpleModuleName=" + simpleModuleName)
 def databaseName = moduleName
-def packageName = "com.tencent.bk.job." + simpleModuleName + ".model"
+def targetPackageName = "com.tencent.bk.job." + simpleModuleName + ".model"
 
 jooq {
     genenrate(sourceSets.main) {
@@ -56,16 +56,10 @@ jooq {
             def mysqlPasswd = System.getProperty("mysqlPasswd")
 
             if (mysqlURL == null) {
-                mysqlURL = System.getenv("mysqlURL")
-                mysqlUser = System.getenv("mysqlUser")
-                mysqlPasswd = System.getenv("mysqlPasswd")
-            }
-
-            if (mysqlURL == null) {
-                println "use default mysql database."
-                mysqlURL = DB_HOST
-                mysqlUser = DB_USERNAME
-                mysqlPasswd = DB_PASSWORD
+                // gradle.properties 中的 Jooq DB 配置
+                mysqlURL = project.findProperty("DB_HOST")
+                mysqlUser = project.findProperty("DB_USERNAME")
+                mysqlPasswd = project.findProperty("DB_PASSWORD")
             }
 
             println("mysqlURL=" + mysqlURL)
@@ -91,7 +85,8 @@ jooq {
             }
 
             target {
-                packageName = "${packageName}"
+                packageName = "${targetPackageName}"
+                encoding = 'UTF-8'
             }
         }
     }

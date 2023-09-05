@@ -27,6 +27,8 @@
 
 package com.tencent.bk.job.common.iam.interceptor;
 
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -34,8 +36,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -43,12 +43,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
-@Component
+@JobInterceptor(pathPatterns = {"/web/**", "/esb/api/**"},
+    order = InterceptorOrder.AUTH.AUTH_GLOBAL)
 public class AuthAppInterceptor extends HandlerInterceptorAdapter {
 
     private final BusinessAuthService businessAuthService;
 
-    @Autowired
     public AuthAppInterceptor(BusinessAuthService businessAuthService) {
         this.businessAuthService = businessAuthService;
     }

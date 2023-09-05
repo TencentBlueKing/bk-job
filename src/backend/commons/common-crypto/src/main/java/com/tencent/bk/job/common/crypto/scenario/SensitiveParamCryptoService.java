@@ -30,19 +30,15 @@ import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import com.tencent.bk.sdk.crypto.util.CryptorMetaUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
  * 脚本敏感参数相关加解密服务
  */
 @Slf4j
-@Service
 public class SensitiveParamCryptoService {
 
     private final SymmetricCryptoService symmetricCryptoService;
 
-    @Autowired
     public SensitiveParamCryptoService(SymmetricCryptoService symmetricCryptoService) {
         this.symmetricCryptoService = symmetricCryptoService;
     }

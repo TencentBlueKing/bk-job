@@ -33,7 +33,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("jobFileWorkerScheduledTasks")
 @EnableScheduling
 public class ScheduledTasks {
 

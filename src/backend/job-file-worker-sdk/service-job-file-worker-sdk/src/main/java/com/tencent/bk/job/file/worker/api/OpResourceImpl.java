@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @Slf4j
-@RestController
+@RestController("jobFileWorkerOpResourceImpl")
 public class OpResourceImpl implements OpResource {
 
     private final OpService opService;

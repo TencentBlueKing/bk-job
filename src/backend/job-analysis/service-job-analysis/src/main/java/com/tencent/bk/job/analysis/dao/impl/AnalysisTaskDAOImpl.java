@@ -26,6 +26,8 @@ package com.tencent.bk.job.analysis.dao.impl;
 
 import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
+import com.tencent.bk.job.analysis.model.tables.AnalysisTask;
+import com.tencent.bk.job.analysis.model.tables.records.AnalysisTaskRecord;
 import com.tencent.bk.job.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -34,9 +36,9 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.AnalysisTask;
-import org.jooq.generated.tables.records.AnalysisTaskRecord;
 import org.jooq.types.ULong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -44,19 +46,21 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
- */
 @Repository
 @Slf4j
 public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
 
     private static final AnalysisTask defaultTable = AnalysisTask.ANALYSIS_TASK;
 
+    private final DSLContext dslContext;
+
+    @Autowired
+    public AnalysisTaskDAOImpl(@Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
+
     @Override
-    public Long insertAnalysisTask(DSLContext dslContext, AnalysisTaskDTO analysisTaskDTO) {
+    public Long insertAnalysisTask(AnalysisTaskDTO analysisTaskDTO) {
         String appIdsStr = StringUtil.concatCollection(analysisTaskDTO.getAppIdList(), ",");
         val query = dslContext.insertInto(defaultTable,
             defaultTable.ID,
@@ -99,7 +103,7 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
     }
 
     @Override
-    public int updateAnalysisTaskById(DSLContext dslContext, AnalysisTaskDTO analysisTaskDTO) {
+    public int updateAnalysisTaskById(AnalysisTaskDTO analysisTaskDTO) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.CODE, analysisTaskDTO.getCode())
             .set(defaultTable.APP_IDS, StringUtil.concatCollection(analysisTaskDTO.getAppIdList(), ","))
@@ -123,14 +127,14 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
     }
 
     @Override
-    public int deleteAnalysisTaskById(DSLContext dslContext, Long id) {
+    public int deleteAnalysisTaskById(Long id) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).execute();
     }
 
     @Override
-    public AnalysisTaskDTO getAnalysisTaskById(DSLContext dslContext, Long id) {
+    public AnalysisTaskDTO getAnalysisTaskById(Long id) {
         val record = dslContext.selectFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).fetchOne();
@@ -142,7 +146,7 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
     }
 
     @Override
-    public AnalysisTaskDTO getAnalysisTaskByCode(DSLContext dslContext, String code) {
+    public AnalysisTaskDTO getAnalysisTaskByCode(String code) {
         val record = dslContext.selectFrom(defaultTable).where(
             defaultTable.CODE.eq(code)
         ).fetchOne();
@@ -154,19 +158,18 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
     }
 
     @Override
-    public List<AnalysisTaskDTO> listAllAnalysisTask(DSLContext dslContext) {
-        return listAnalysisTaskWithConditions(dslContext, Collections.emptyList());
+    public List<AnalysisTaskDTO> listAllAnalysisTask() {
+        return listAnalysisTaskWithConditions(Collections.emptyList());
     }
 
     @Override
-    public List<AnalysisTaskDTO> listActiveAnalysisTask(DSLContext dslContext) {
+    public List<AnalysisTaskDTO> listActiveAnalysisTask() {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ACTIVE.eq(true));
-        return listAnalysisTaskWithConditions(dslContext, conditions);
+        return listAnalysisTaskWithConditions(conditions);
     }
 
-    private List<AnalysisTaskDTO> listAnalysisTaskWithConditions(DSLContext dslContext,
-                                                                 Collection<Condition> conditions) {
+    private List<AnalysisTaskDTO> listAnalysisTaskWithConditions(Collection<Condition> conditions) {
         var query = dslContext.selectFrom(defaultTable).where(
             conditions
             //默认按照优先级排序
@@ -179,7 +182,7 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
             log.error(sql);
             throw e;
         }
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::convert);

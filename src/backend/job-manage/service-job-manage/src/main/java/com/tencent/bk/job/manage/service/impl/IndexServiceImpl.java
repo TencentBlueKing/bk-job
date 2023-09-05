@@ -55,7 +55,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,7 +67,6 @@ import java.util.stream.Collectors;
 @Service
 public class IndexServiceImpl implements IndexService {
 
-    private final DSLContext dslContext;
     private final IndexGreetingDAO indexGreetingDAO;
     private final ApplicationDAO applicationDAO;
     private final ApplicationHostDAO applicationHostDAO;
@@ -78,15 +76,13 @@ public class IndexServiceImpl implements IndexService {
     private final ScriptDAO scriptDAO;
 
     @Autowired
-    public IndexServiceImpl(DSLContext dslContext,
-                            IndexGreetingDAO indexGreetingDAO,
+    public IndexServiceImpl(IndexGreetingDAO indexGreetingDAO,
                             ApplicationDAO applicationDAO,
                             ApplicationHostDAO applicationHostDAO,
                             TopologyHelper topologyHelper,
                             TaskTemplateService taskTemplateService,
                             TaskTemplateDAO taskTemplateDAO,
                             ScriptDAO scriptDAO) {
-        this.dslContext = dslContext;
         this.indexGreetingDAO = indexGreetingDAO;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -100,7 +96,7 @@ public class IndexServiceImpl implements IndexService {
     public List<GreetingVO> listGreeting(String username) {
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
         int currentSeconds = TimeUtil.getCurrentSeconds();
-        return indexGreetingDAO.listActiveIndexGreeting(dslContext, currentSeconds).stream().map(it -> {
+        return indexGreetingDAO.listActiveIndexGreeting(currentSeconds).stream().map(it -> {
             String content;
             if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
                 content = it.getContentEn();

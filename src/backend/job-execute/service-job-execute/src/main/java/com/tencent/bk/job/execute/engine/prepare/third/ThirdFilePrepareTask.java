@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.client.FileSourceTaskResourceClient;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
@@ -54,6 +53,7 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
@@ -98,7 +98,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private final Object stopMonitor = new Object();
     volatile AtomicBoolean isDoneWrapper = new AtomicBoolean(false);
     volatile AtomicBoolean isReadyForNextStepWrapper = new AtomicBoolean(false);
-    private FileSourceTaskResourceClient fileSourceTaskResource;
+    private ServiceFileSourceTaskResource fileSourceTaskResource;
     private TaskInstanceService taskInstanceService;
     private AccountService accountService;
     private HostService hostService;
@@ -129,7 +129,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     }
 
     public void initDependentService(
-        FileSourceTaskResourceClient fileSourceTaskResource,
+        ServiceFileSourceTaskResource fileSourceTaskResource,
         TaskInstanceService taskInstanceService,
         AccountService accountService,
         HostService hostService,

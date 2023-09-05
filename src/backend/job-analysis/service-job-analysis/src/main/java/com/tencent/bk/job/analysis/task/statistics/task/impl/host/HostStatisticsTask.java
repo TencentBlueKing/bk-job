@@ -24,16 +24,17 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task.impl.host;
 
-import com.tencent.bk.job.analysis.client.ManageMetricsClient;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -46,12 +47,14 @@ import java.time.LocalDateTime;
 @Service
 public class HostStatisticsTask extends BaseStatisticsTask {
 
-    private final ManageMetricsClient manageMetricsClient;
+    private final ServiceMetricsResource manageMetricsResource;
 
-    protected HostStatisticsTask(BasicServiceManager basicServiceManager, StatisticsDAO statisticsDAO,
-                                 DSLContext dslContext, ManageMetricsClient manageMetricsClient) {
+    protected HostStatisticsTask(BasicServiceManager basicServiceManager,
+                                 StatisticsDAO statisticsDAO,
+                                 @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                 ServiceMetricsResource manageMetricsResource) {
         super(basicServiceManager, statisticsDAO, dslContext);
-        this.manageMetricsClient = manageMetricsClient;
+        this.manageMetricsResource = manageMetricsResource;
     }
 
     private StatisticsDTO genStatisticsDTO(String dateStr, String value, String dimensionValue) {
@@ -83,7 +86,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
 
     public void calcAndSaveHostStatistics(String dateStr) {
         // Linux
-        InternalResponse<Long> resp = manageMetricsClient.countHostsByOsType("1");
+        InternalResponse<Long> resp = manageMetricsResource.countHostsByOsType("1");
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
             return;
@@ -91,7 +94,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
         Long linuxCount = resp.getData();
         statisticsDAO.upsertStatistics(dslContext, genLinuxStatisticsDTO(dateStr, linuxCount.toString()));
         // Windows
-        resp = manageMetricsClient.countHostsByOsType("2");
+        resp = manageMetricsResource.countHostsByOsType("2");
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
             return;
@@ -99,7 +102,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
         Long windowsCount = resp.getData();
         statisticsDAO.upsertStatistics(dslContext, genWindowsStatisticsDTO(dateStr, windowsCount.toString()));
         // Aix
-        resp = manageMetricsClient.countHostsByOsType("3");
+        resp = manageMetricsResource.countHostsByOsType("3");
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
             return;
@@ -107,7 +110,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
         Long aixCount = resp.getData();
         statisticsDAO.upsertStatistics(dslContext, genAixStatisticsDTO(dateStr, aixCount.toString()));
         // Others
-        resp = manageMetricsClient.countHostsByOsType(null);
+        resp = manageMetricsResource.countHostsByOsType(null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
             return;

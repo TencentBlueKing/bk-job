@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.api.web.impl;
 
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.web.WebStatisticsResource;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.consts.DimensionEnum;
@@ -48,13 +49,13 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -81,13 +82,13 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public WebStatisticsResourceImpl(AppStatisticService appStatisticService,
+    public WebStatisticsResourceImpl(@Qualifier("appStatisticService") AppStatisticService appStatisticService,
                                      ExecutedTaskStatisticService executedTaskStatisticService,
                                      RollingTaskStatisticService rollingTaskStatisticService,
                                      FastScriptStatisticService fastScriptStatisticService,
                                      FastFileStatisticService fastFileStatisticService,
                                      TagStatisticService tagStatisticService,
-                                     CommonStatisticService commonStatisticService,
+                                     @Qualifier("commonStatisticService") CommonStatisticService commonStatisticService,
                                      StatisticConfig statisticConfig,
                                      RedisTemplate<String, String> redisTemplate,
                                      AppScopeMappingService appScopeMappingService) {

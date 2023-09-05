@@ -24,7 +24,6 @@
 
 package com.tencent.bk.gradle.tasks;
 
-import kotlin.text.Charsets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
@@ -44,6 +43,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 class GenCompleteDependJarListAndRemoveInfectedJarsTask extends DefaultTask {
 
     @InputFiles
@@ -170,7 +171,7 @@ class GenCompleteDependJarListAndRemoveInfectedJarsTask extends DefaultTask {
     private void writeListToFile(List<String> list, File file) {
         BufferedWriter bw = null;
         try {
-            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
+            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8));
             for (int i = 0; i < list.size(); i++) {
                 String line = list.get(i);
                 if (i == 0) {
@@ -339,7 +340,7 @@ class GenCompleteDependJarListAndRemoveInfectedJarsTask extends DefaultTask {
                 System.out.println("exec command:\n" + command);
                 Process process = Runtime.getRuntime().exec(command, null, bootJarFile.getParentFile());
                 ins = process.getInputStream();
-                BufferedReader br = new BufferedReader(new InputStreamReader(ins, Charsets.UTF_8));
+                BufferedReader br = new BufferedReader(new InputStreamReader(ins, StandardCharsets.UTF_8));
                 String line = "";
                 while ((line = br.readLine()) != null) {
                     System.out.println(line);
