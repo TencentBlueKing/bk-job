@@ -513,14 +513,17 @@
         // 提交作业模板
         // 再主动拉取作业模板对应的执行方案列表，判断执行方案是否为空和是否需要同步
         this.isSubmiting = true;
+
+        const requestHandler = this.isEdit ? TaskManageService.taskUpdate : TaskManageService.create;
+
         this.$refs.templateOperateRef.validate()
-          .then(() => TaskManageService.taskUpdate({
+          .then(() => requestHandler({
             ...this.formData,
             id: this.isEdit ? this.taskId : 0,
-          }).then((taskId) => {
+          }).then((data) => {
             window.changeFlag = false;
             return TaskPlanService.fetchTaskPlan({
-              id: taskId,
+              id: data.id,
             }).then((planList) => {
               let planSync = false;
               // eslint-disable-next-line no-plusplus
@@ -532,9 +535,9 @@
               }
               this.planList = Object.freeze(planList);
               if (this.isEdit) {
-                this.editSuccessCallback(taskId, planSync);
+                this.editSuccessCallback(data.id, planSync);
               } else {
-                this.createSuccessCallback(taskId);
+                this.createSuccessCallback(data.id);
               }
             });
           }))

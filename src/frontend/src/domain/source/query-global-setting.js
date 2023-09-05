@@ -77,8 +77,8 @@ class QueryGlobalSetting extends ModuleBase {
   }
 
   // 获取Title与Footer
-  getTitleAndFooter(params, payload) {
-    return Request.get(`${this.module}/titleFooter`, {
+  getPlatformInfo(params, payload) {
+    return Request.get(`${this.module}/platformInfo`, {
       cache: true,
       ...payload,
     });

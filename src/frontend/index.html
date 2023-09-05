@@ -41,8 +41,6 @@
     <div id="app"></div>
     <script>
       window.PROJECT_CONFIG = (function() {
-        const SITE_URL = "/";
-        const BK_STATIC_URL = "/";
         const REMOTE_STATIC_URL = "";
         const AJAX_URL_PREFIX = "{{JOB_API_GATEWAY_URL}}";
         const EXTERNAL_THEME = "{{JOB_EXTERNAL_THEME}}";
@@ -52,10 +50,11 @@
           SCOPE_TYPE: "",
           SCOPE_ID: "",
           AJAX_URL_PREFIX: AJAX_URL_PREFIX,
-          SITE_URL: SITE_URL,
-          BK_STATIC_URL: BK_STATIC_URL,
-          REMOTE_STATIC_URL: REMOTE_STATIC_URL,
+          SITE_URL: "/",
+          BK_STATIC_URL: "/",
+          REMOTE_STATIC_URL: '',
           EXTERNAL_THEME: EXTERNAL_THEME,
+          HELPER_CONTACT_LINK: ''
         };
       })();
     </script>

@@ -69,7 +69,7 @@ export default {
       .then(({ data }) => data);
   },
   fetchFooterConfig() {
-    return QueryGlobalSettingSource.getTitleAndFooter()
+    return QueryGlobalSettingSource.getPlatformInfo()
       .then(({ data }) => {
         const { footerLink, footerCopyRight } = data;
         return {
@@ -78,15 +78,9 @@ export default {
         };
       });
   },
-  fetchTitleConfig() {
-    return QueryGlobalSettingSource.getTitleAndFooter()
-      .then(({ data }) => {
-        const { titleHead, titleSeparator } = data;
-        return {
-          titleHead,
-          titleSeparator,
-        };
-      });
+  fetchPlatformInfo() {
+    return QueryGlobalSettingSource.getPlatformInfo()
+      .then(({ data }) => data);
   },
   fetchRelatedSystemUrls() {
     return QueryGlobalSettingSource.getRelatedSystemUrls()

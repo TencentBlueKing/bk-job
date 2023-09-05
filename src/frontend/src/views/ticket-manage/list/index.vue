@@ -221,7 +221,7 @@
 </template>
 <script>
   import NotifyService from '@service/notify';
-  import TicketService from '@service/ticket-manage';
+  import TicketManageService from '@service/ticket-manage';
 
   import { listColumnsCache } from '@utils/cache-helper';
 
@@ -285,7 +285,7 @@
       },
     },
     created() {
-      this.getTicketList = TicketService.fetchListWithRelate;
+      this.getTicketList = TicketManageService.fetchListWithRelate;
       this.sourceFilters = [
         {
           value: 'APP_ID_SECRET_KEY',
@@ -458,7 +458,6 @@
       handleChange() {
         this.fetchData();
         this.relatedNum = [];
-        this.fetchCitedNum();
       },
 
       handelFilterType(value, row, column) {
@@ -484,13 +483,12 @@
        * 删除成功重新拉取列表数据
        */
       handleDelete(id) {
-        TicketService.remove({
+        TicketManageService.remove({
           id,
         }).then(() => {
           this.messageSuccess(I18n.t('ticket.删除成功'));
           this.fetchData();
           this.relatedNum = [];
-          this.fetchCitedNum();
         });
       },
     },

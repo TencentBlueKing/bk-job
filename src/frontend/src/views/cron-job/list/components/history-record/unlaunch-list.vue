@@ -54,7 +54,7 @@
   </render-list>
 </template>
 <script>
-  import TimeTaskService from '@service/time-task';
+  import CronJobService from '@service/cron-job';
 
   import RenderList from '@components/render-list';
 
@@ -76,7 +76,7 @@
     },
     created() {
       this.searchParams.cronTaskId = this.data.id;
-      this.fetchUnlaunchHistory = TimeTaskService.fetchUnlaunchHistory;
+      this.fetchUnlaunchHistory = CronJobService.fetchUnlaunchHistory;
     },
     mounted() {
       this.fetchData();
