@@ -99,7 +99,7 @@
   import WorkStatistics from './components/work-statistics';
 
   const xssHTML = (html) => {
-    const attrs = ['class', 'title', 'target', 'style'];
+    const attrs = ['class', 'title', 'target', 'style', 'href'];
     return xss(html, {
       onTagAttr: (tag, name, value, isWhiteAttr) => {
         if (attrs.includes(name)) {

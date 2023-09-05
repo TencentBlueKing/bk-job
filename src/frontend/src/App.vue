@@ -175,7 +175,7 @@
      */
     created() {
       this.fetchUserInfo();
-      this.fetchTitleConfig();
+      this.fetchPlatformInfo();
       this.fetchRelatedSystemUrls();
       this.fetchEnv();
     },
@@ -202,10 +202,11 @@
       /**
        * @desc 获取系统title自定义配置
        */
-      fetchTitleConfig() {
-        QueryGlobalSettingService.fetchTitleConfig()
+      fetchPlatformInfo() {
+        QueryGlobalSettingService.fetchPlatformInfo()
           .then((data) => {
             this.titleConfig = data;
+            window.PROJECT_CONFIG.HELPER_CONTACT_LINK = data.helperContactLink;
           })
           .catch(() => {
             this.titleConfig = {

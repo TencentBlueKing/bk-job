@@ -128,7 +128,14 @@ export default (interceptors) => {
         messageError('请求超时');
         break;
       default:
-        messageError(error.message);
+        messageError({
+          code: error.code,
+          overview: error.message,
+          suggestion: '',
+          details: JSON.stringify(error.response.data),
+          assistant: window.PROJECT_CONFIG.HELPER_CONTACT_LINK,
+
+        });
     }
     return Promise.reject(error);
   });
