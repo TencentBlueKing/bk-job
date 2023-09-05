@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -176,6 +177,11 @@ public class TagServiceImpl implements TagService {
             if (tagIdList.contains(tag.getId())) {
                 tagIterator.remove();
             } else {
+                TagDTO existTag = getTagInfoById(appId, tag.getId());
+                if (existTag == null) {
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                        new String[]{"tagId", String.format("tag (id=%s, app_id=%s) not exist", tag.getId(), appId)});
+                }
                 tagIdList.add(tag.getId());
             }
         }
@@ -227,11 +233,14 @@ public class TagServiceImpl implements TagService {
     }
 
     private void checkTags(Long appId, List<TagDTO> tags) {
-        tags.forEach(tag -> {
+        Iterator<TagDTO> iterator = tags.iterator();
+        while (iterator.hasNext()) {
+            TagDTO tag = iterator.next();
             if (!tag.getAppId().equals(appId) && !tag.getAppId().equals(JobConstants.PUBLIC_APP_ID)) {
-                throw new InternalException("Tag is not exist", ErrorCode.INTERNAL_ERROR);
+                log.warn(String.format("Tag is not exist, appId=%s, tagId=%s", appId, tag.getId()));
+                iterator.remove();
             }
-        });
+        }
     }
 
     @Override
