@@ -730,7 +730,8 @@ public class ScriptServiceImpl implements ScriptService {
 
     @Override
     public void updateScriptVersion(String operator, Long appId, ScriptDTO script) throws ServiceException {
-        log.info("Begin to update scriptVersion, operator={}, appId={}, scriptVersionId={}", operator, appId, script.getScriptVersionId());
+        log.info("Begin to update scriptVersion, operator={}, appId={}, scriptVersionId={}", operator, appId,
+            script.getScriptVersionId());
         ScriptDTO scriptDTO = scriptDAO.getScriptByScriptId(script.getId());
         checkScriptInApp(appId, scriptDTO);
 
