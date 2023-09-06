@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
@@ -79,7 +79,7 @@ public class HostServiceImpl implements HostService {
     private final ExecutorService getHostsByTopoExecutor;
     private static final String UNKNOWN_CLOUD_AREA_NAME = "Unknown";
 
-    private final Cache<Long, String> cloudAreaNameCache = Caffeine.newBuilder()
+    private final LoadingCache<Long, String> cloudAreaNameCache = Caffeine.newBuilder()
         .maximumSize(10000)
         .expireAfterWrite(1, TimeUnit.HOURS)
         .recordStats()
@@ -100,18 +100,16 @@ public class HostServiceImpl implements HostService {
                 IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
                 List<CcCloudAreaInfoDTO> cloudAreaList = bizCmdbClient.getCloudAreaList();
                 Map<Long, String> result = new HashMap<>();
+                // 默认设置为"Unknown",避免本地缓存穿透
+                bkCloudIds.forEach(bkCloudId -> result.put(bkCloudId, UNKNOWN_CLOUD_AREA_NAME));
+
                 if (CollectionUtils.isEmpty(cloudAreaList)) {
                     log.warn("Get all cloud area return empty!");
-                    bkCloudIds.forEach(bkCloudId -> result.put(bkCloudId, UNKNOWN_CLOUD_AREA_NAME));
                     return result;
                 }
 
-                Map<Long, CcCloudAreaInfoDTO> cloudAreaMap = new HashMap<>();
-                cloudAreaList.forEach(cloudArea -> cloudAreaMap.put(cloudArea.getId(), cloudArea));
-                bkCloudIds.forEach(bkCloudId -> {
-                    CcCloudAreaInfoDTO cloudArea = cloudAreaMap.get(bkCloudId);
-                    result.put(bkCloudId, cloudArea != null ? cloudArea.getName() : UNKNOWN_CLOUD_AREA_NAME);
-                });
+                cloudAreaList.forEach(cloudArea -> result.put(cloudArea.getId(), cloudArea.getName()));
+
                 if (log.isDebugEnabled()) {
                     log.debug("Load keys: {}, values: {}", bkCloudIds, result);
                 }
@@ -311,7 +309,7 @@ public class HostServiceImpl implements HostService {
         }
         try {
             long start = System.currentTimeMillis();
-            Map<Long, String> cloudAreaIdNames = cloudAreaNameCache.getAllPresent(bkCloudIds);
+            Map<Long, String> cloudAreaIdNames = cloudAreaNameCache.getAll(bkCloudIds);
             long cost = System.currentTimeMillis() - start;
             if (cost > 1000) {
                 log.warn("Batch get cloud area names slow, cost: {}", cost);
