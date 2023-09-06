@@ -29,16 +29,27 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPublicScriptV3Resource;
+import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeletePublicScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeletePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionDetailV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionListV3Request;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbManagePublicScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptBasicV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
@@ -60,10 +71,16 @@ import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
 public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource {
 
     private final ScriptService scriptService;
+    private final NoResourceScopeAuthService noResourceScopeAuthService;
+    private final ScriptDTOBuilder scriptDTOBuilder;
 
     @Autowired
-    public EsbPublicScriptResourceV3Impl(ScriptService scriptService) {
+    public EsbPublicScriptResourceV3Impl(ScriptService scriptService,
+                                         NoResourceScopeAuthService noResourceScopeAuthService,
+                                         ScriptDTOBuilder scriptDTOBuilder) {
         this.scriptService = scriptService;
+        this.noResourceScopeAuthService = noResourceScopeAuthService;
+        this.scriptDTOBuilder = scriptDTOBuilder;
     }
 
     @Override
@@ -188,6 +205,132 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         }
 
         return EsbResp.buildSuccessResp(result);
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_create_public_script"})
+    public EsbResp<EsbScriptVersionDetailV3DTO> createPublicScript(EsbCreatePublicScriptV3Req request) {
+        String userName = request.getUserName();
+        AuthResult authResult = noResourceScopeAuthService.authCreatePublicScript(userName);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
+
+        ScriptDTO script = scriptDTOBuilder.buildFromEsbCreateReq(request);
+        script.setAppId(PUBLIC_APP_ID);
+        script.setPublicScript(true);
+        script.setCreator(userName);
+        script.setLastModifyUser(userName);
+        ScriptDTO savedScript = scriptService.saveScript(userName, PUBLIC_APP_ID, script);
+
+        EsbScriptVersionDetailV3DTO result = null;
+        if (savedScript != null) {
+            result = savedScript.toEsbCreateScriptV3DTO();
+        }
+        return EsbResp.buildSuccessResp(result);
+    }
+
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_create_public_script_version"})
+    public EsbResp<EsbScriptVersionDetailV3DTO> createPublicScriptVersion(EsbCreatePublicScriptVersionV3Req request) {
+        String userName = request.getUserName();
+        authManagePublicScript(userName, request.getScriptId());
+
+        ScriptDTO script = scriptDTOBuilder.buildFromEsbCreateReq(request);
+        script.setAppId(PUBLIC_APP_ID);
+        script.setPublicScript(true);
+        script.setCreator(userName);
+        script.setLastModifyUser(userName);
+        ScriptDTO exitScriptDTO = scriptService.getScriptByScriptId(script.getId());
+        if(exitScriptDTO != null){
+            script.setName(exitScriptDTO.getName());
+        }
+        ScriptDTO savedScript = scriptService.saveScript(userName, PUBLIC_APP_ID, script);
+        EsbScriptVersionDetailV3DTO result = null;
+        if (savedScript != null) {
+            result = savedScript.toEsbCreateScriptV3DTO();
+        }
+        return EsbResp.buildSuccessResp(result);
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_public_script"})
+    public EsbResp deletePublicScript(EsbDeletePublicScriptV3Req request) {
+        String userName = request.getUserName();
+        String scriptId = request.getScriptId();
+        authManagePublicScript(userName, scriptId);
+        scriptService.deleteScript(userName, PUBLIC_APP_ID, scriptId);
+        return EsbResp.buildSuccessResp(null);
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_public_script_version"})
+    public EsbResp deletePublicScriptVersion(EsbDeletePublicScriptVersionV3Req request) {
+        String userName = request.getUserName();
+        String scriptId = request.getScriptId();
+        authManagePublicScript(userName, scriptId);
+        scriptService.deleteScriptVersion(userName, PUBLIC_APP_ID, request.getScriptVersionId());
+        return EsbResp.buildSuccessResp(null);
+    }
+
+    @Override
+    public EsbResp<EsbScriptVersionDetailV3DTO> disablePublicScriptVersion(EsbManagePublicScriptVersionV3Req request) {
+        String userName = request.getUserName();
+        String scriptId = request.getScriptId();
+        long scriptVersionId = request.getScriptVersionId();
+        authManagePublicScript(userName, scriptId);
+        scriptService.disableScript(PUBLIC_APP_ID, userName, scriptId, scriptVersionId);
+        ScriptDTO scriptVersion = scriptService.getScriptVersion(scriptVersionId);
+        return EsbResp.buildSuccessResp(scriptVersion.toEsbManageScriptV3DTO());
+    }
+
+    @Override
+    public EsbResp<EsbScriptVersionDetailV3DTO> publishPublicScriptVersion(EsbManagePublicScriptVersionV3Req request) {
+        String userName = request.getUserName();
+        String scriptId = request.getScriptId();
+        long scriptVersionId = request.getScriptVersionId();
+        authManagePublicScript(userName, scriptId);
+        scriptService.publishScript(PUBLIC_APP_ID, userName, scriptId, scriptVersionId);
+        ScriptDTO scriptVersion = scriptService.getScriptVersion(scriptVersionId);
+        return EsbResp.buildSuccessResp(scriptVersion.toEsbManageScriptV3DTO());
+    }
+
+    @Override
+    public EsbResp<EsbScriptVersionDetailV3DTO> updatePublicScriptBasic(EsbUpdatePublicScriptBasicV3Req request) {
+        String userName = request.getUserName();
+        String scriptId = request.getScriptId();
+        authManagePublicScript(userName, scriptId);
+        scriptService.updateScriptName(PUBLIC_APP_ID, userName, scriptId, request.getName());
+        if (StringUtils.isNotEmpty(request.getDescription())) {
+            scriptService.updateScriptDesc(PUBLIC_APP_ID, userName, scriptId, request.getDescription());
+        }
+
+        ScriptDTO scriptDTO = scriptService.getScript(userName, PUBLIC_APP_ID, scriptId);
+        EsbScriptVersionDetailV3DTO updatePublicScriptV3DTO = scriptDTO.toEsbUpdateScriptV3DTO();
+        return EsbResp.buildSuccessResp(updatePublicScriptV3DTO);
+    }
+
+    @Override
+    public EsbResp<EsbScriptVersionDetailV3DTO> updatePublicScriptVersion(EsbUpdatePublicScriptVersionV3Req request) {
+        String userName = request.getUserName();
+        String scriptId = request.getScriptId();
+        authManagePublicScript(userName, scriptId);
+        ScriptDTO scriptVersionDTO = scriptDTOBuilder.buildFromCreateUpdateReq(request);
+        scriptVersionDTO.setAppId(PUBLIC_APP_ID);
+        scriptVersionDTO.setPublicScript(true);
+        scriptVersionDTO.setCreator(userName);
+        scriptVersionDTO.setLastModifyUser(userName);
+        scriptService.updateScriptVersion(userName, PUBLIC_APP_ID, scriptVersionDTO);
+        ScriptDTO scriptDTO = scriptService.getScriptVersion(request.getScriptVersionId());
+        return EsbResp.buildSuccessResp(scriptDTO.toEsbCreateScriptV3DTO());
+    }
+
+    private void authManagePublicScript(String userName, String scriptId) {
+        AuthResult authResult = noResourceScopeAuthService.authManagePublicScript(userName, scriptId);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
     }
 
     private void checkEsbGetPublicScriptListV3Req(EsbGetPublicScriptListV3Request request) {

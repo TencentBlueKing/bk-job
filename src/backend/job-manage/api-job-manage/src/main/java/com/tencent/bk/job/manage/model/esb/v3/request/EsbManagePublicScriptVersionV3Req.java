@@ -22,72 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.esb.model.EsbJobReq;
+import com.tencent.bk.job.common.validation.Update;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Getter
-@Setter
-@ToString
-public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
+/**
+ * 管理公共脚本版本请求
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+@ApiModel("管理公共脚本版本请求报文")
+public class EsbManagePublicScriptVersionV3Req extends EsbJobReq {
+
     /**
-     * 脚本版本ID
+     * 脚本ID
      */
-    private Long id;
-
+    @NotEmpty(message = "{validation.constraints.ScriptId_empty.message}", groups = Update.class)
     @JsonProperty("script_id")
     private String scriptId;
 
     /**
-     * 脚本名称
-     */
-    private String name;
-
-    private String version;
-
-    private String content;
-
-    // 脚本版本状态（0：未上线，1：已上线，2：已下线，3：已禁用）
-    private Integer status;
-
-    @JsonProperty("version_desc")
-    private String versionDesc;
-
-    private String creator;
-
-    @JsonProperty("create_time")
-    private Long createTime;
-
-    @JsonProperty("last_modify_user")
-    private String lastModifyUser;
-
-    @JsonProperty("last_modify_time")
-    private Long lastModifyTime;
-
-    /**
      * 脚本版本ID
      */
+    @NotNull(message = "{validation.constraints.ScriptVersionId_empty.message}", groups = Update.class)
     @JsonProperty("script_version_id")
     private Long scriptVersionId;
-
-    /**
-     * 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell
-     */
-    @JsonProperty("script_language")
-    private Integer type;
-
-    /**
-     * 是否公共脚本
-     */
-    @JsonProperty("public_script")
-    private Boolean publicScript;
-
-    /**
-     * 脚本描述
-     */
-    private String description;
 }

@@ -159,4 +159,51 @@ public class ScriptDTO {
         esbScriptVersion.setLastModifyTime(lastModifyTime);
         return esbScriptVersion;
     }
+
+    public EsbScriptVersionDetailV3DTO toEsbCreateScriptV3DTO() {
+        EsbScriptVersionDetailV3DTO scriptDetail = new EsbScriptVersionDetailV3DTO();
+        scriptDetail.setScriptVersionId(scriptVersionId);
+        scriptDetail.setScriptId(id);
+        scriptDetail.setName(name);
+        scriptDetail.setType(type);
+        scriptDetail.setPublicScript(publicScript);
+        scriptDetail.setContent(content);
+        scriptDetail.setCreator(creator);
+        scriptDetail.setCreateTime(createTime);
+        scriptDetail.setLastModifyUser(lastModifyUser);
+        scriptDetail.setLastModifyTime(lastModifyTime);
+        scriptDetail.setVersion(version);
+        scriptDetail.setStatus(status);
+        scriptDetail.setDescription(description);
+        scriptDetail.setVersionDesc(versionDesc);
+        if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, scriptDetail);
+        }
+        return scriptDetail;
+    }
+
+    public EsbScriptVersionDetailV3DTO toEsbManageScriptV3DTO() {
+        EsbScriptVersionDetailV3DTO managetDetail = new EsbScriptVersionDetailV3DTO();
+        managetDetail.setScriptVersionId(scriptVersionId);
+        managetDetail.setScriptId(id);
+        managetDetail.setStatus(status);
+        return managetDetail;
+    }
+
+    public EsbScriptVersionDetailV3DTO toEsbUpdateScriptV3DTO() {
+        EsbScriptVersionDetailV3DTO updateScriptV3DTO = new EsbScriptVersionDetailV3DTO();
+        updateScriptV3DTO.setScriptId(id);
+        updateScriptV3DTO.setName(name);
+        updateScriptV3DTO.setType(type);
+        updateScriptV3DTO.setPublicScript(publicScript);
+        if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, updateScriptV3DTO);
+        }
+        updateScriptV3DTO.setCreator(creator);
+        updateScriptV3DTO.setCreateTime(createTime);
+        updateScriptV3DTO.setLastModifyUser(lastModifyUser);
+        updateScriptV3DTO.setLastModifyTime(lastModifyTime);
+        updateScriptV3DTO.setDescription(description);
+        return updateScriptV3DTO;
+    }
 }

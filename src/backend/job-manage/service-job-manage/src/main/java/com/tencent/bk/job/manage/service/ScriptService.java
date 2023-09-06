@@ -294,6 +294,16 @@ public interface ScriptService {
     void updateScriptTags(Long appId, String operator, String scriptId, List<TagDTO> tags) throws ServiceException;
 
     /**
+     * 更新脚本版本
+     *
+     * @param operator 操作者
+     * @param appId    业务ID
+     * @param script   脚本信息
+     * @throws ServiceException 业务异常
+     */
+    void updateScriptVersion(String operator, Long appId, ScriptDTO script) throws ServiceException;
+
+    /**
      * 根据脚本名称模糊查询业务下的脚本名
      *
      * @param appId   业务ID
@@ -450,5 +460,12 @@ public interface ScriptService {
      * @return 标签模版数量
      */
     TagCountVO getTagScriptCount(Long appId);
+
+    /**
+     * 脚本是否被引用
+     * @param scriptId 脚本 ID
+     * @param scriptVersionId 脚本版本 ID
+     */
+    boolean isScriptReferenced(String scriptId, Long scriptVersionId);
 
 }

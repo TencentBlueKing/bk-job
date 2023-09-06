@@ -481,6 +481,7 @@ public class ScriptServiceImpl implements ScriptService {
     public void deleteScriptVersion(String operator, Long appId, Long scriptVersionId) throws ServiceException {
         ScriptDTO existScript = scriptDAO.getScriptVersionById(scriptVersionId);
         checkDeleteScriptPermission(appId, existScript);
+        checkScriptReferenced(existScript);
         if (existScript.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
             log.warn("Fail to delete script version because script is online. scriptVersionId={}", scriptVersionId);
             throw new FailedPreconditionException(ErrorCode.DELETE_ONLINE_SCRIPT_FAIL);
@@ -500,9 +501,16 @@ public class ScriptServiceImpl implements ScriptService {
     public void deleteScript(String operator, Long appId, String scriptId) throws ServiceException {
         ScriptDTO existScript = getScript(operator, appId, scriptId);
         checkDeleteScriptPermission(appId, existScript);
+        checkScriptReferenced(existScript);
         scriptDAO.deleteScript(scriptId);
         scriptDAO.deleteScriptVersionByScriptId(scriptId);
         deleteScriptRelatedTags(appId, scriptId);
+    }
+
+    private void checkScriptReferenced(ScriptDTO scriptDTO) {
+        if (isScriptReferenced(scriptDTO.getId(), scriptDTO.getScriptVersionId())) {
+            throw new FailedPreconditionException(ErrorCode.DELETE_REF_SCRIPT_FAIL);
+        }
     }
 
     private void deleteScriptRelatedTags(Long appId, String scriptId) {
@@ -709,6 +717,25 @@ public class ScriptServiceImpl implements ScriptService {
             targetAppId = JobConstants.PUBLIC_APP_ID;
         }
         saveScriptTags(operator, targetAppId, scriptId, tags);
+    }
+
+    @Override
+    public void updateScriptVersion(String operator, Long appId, ScriptDTO script) throws ServiceException {
+        log.info("Begin to update scriptVersion, operator={}, appId={}, scriptVersionId={}", operator, appId,
+            script.getScriptVersionId());
+        ScriptDTO scriptDTO = scriptDAO.getScriptByScriptId(script.getId());
+        checkScriptInApp(appId, scriptDTO);
+
+        ScriptDTO scriptVersionToBeUpdate = scriptDAO.getScriptVersionById(script.getScriptVersionId());
+        if (scriptVersionToBeUpdate == null) {
+            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
+        }
+        if (!scriptVersionToBeUpdate.getStatus().equals(JobResourceStatusEnum.DRAFT.getValue())) {
+            log.warn("Script status is not draft, can not update.scriptVersionId={}",
+                script.getScriptVersionId());
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
+        }
+        scriptDAO.updateScriptVersion(script.getLastModifyUser(), script.getScriptVersionId(), script);
     }
 
     @Override
@@ -1044,5 +1071,22 @@ public class ScriptServiceImpl implements ScriptService {
             .map(ResourceTagDTO::getResourceId).distinct().count();
         tagCount.setUnclassified(appScriptIds.size() - taggedScriptCount);
         return tagCount;
+    }
+
+    @Override
+    public boolean isScriptReferenced(String scriptId, Long scriptVersionId) {
+        int citeCount = getScriptTemplateCiteCount(null, null, scriptId, scriptVersionId);
+        if (citeCount == 0) {
+            citeCount = getScriptTaskPlanCiteCount(null, null, scriptId, scriptVersionId);
+        }
+        if (citeCount > 0 && scriptVersionId != null) {
+            ScriptDTO scriptVersion = getScriptVersion(scriptVersionId);
+            if (scriptVersion != null && scriptVersion.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return citeCount > 0;
     }
 }
