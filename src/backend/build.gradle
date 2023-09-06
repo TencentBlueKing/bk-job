@@ -121,6 +121,7 @@ ext {
     set('commonsIOVersion', "2.6")
     set('javaxServletVersion', "4.0.1")
     set('guavaVersion', "28.2-jre")
+    set('caffeineVersion', "2.9.3")
     set('jjwtVersion', "0.9.1")
     set('hibernateValidatorVersion', "6.1.4.Final")
     set('micrometerPrometheusVersion', "1.5.1")
@@ -293,6 +294,7 @@ subprojects {
             // https://mvnrepository.com/artifact/org.apache.thrift/libthrift
             dependency group: 'org.apache.thrift', name: 'libthrift', version: "$apacheThriftVersion"
             dependency group: 'com.google.guava', name: 'guava', version: "$guavaVersion"
+            dependency "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
             dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
             dependency "net.sourceforge.jchardet:jchardet:1.0"
             dependency "io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion"
