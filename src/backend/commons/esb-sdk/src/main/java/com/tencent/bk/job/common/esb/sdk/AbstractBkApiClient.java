@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
@@ -39,26 +40,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * 蓝鲸API调用客户端 - for BK API Gateway
  */
 public abstract class AbstractBkApiClient {
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String bkApiGatewayUrl;
     private final String appSecret;
     private final String appCode;
     private final ExtHttpHelper defaultHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final MeterRegistry meterRegistry;
+    /**
+     * API调用度量指标名称
+     */
+    private final String metricName;
 
-    public AbstractBkApiClient(String bkApiGatewayUrl,
+    public AbstractBkApiClient(MeterRegistry meterRegistry,
+                               String metricName,
+                               String bkApiGatewayUrl,
                                String appCode,
                                String appSecret) {
+        this.meterRegistry = meterRegistry;
+        this.metricName = metricName;
         this.bkApiGatewayUrl = bkApiGatewayUrl;
         this.appCode = appCode;
         this.appSecret = appSecret;
     }
 
     private <T> String postForString(String uri, T body, ExtHttpHelper httpHelper) {
-
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
         }
@@ -141,6 +153,8 @@ public abstract class AbstractBkApiClient {
         String reqStr = JsonUtils.toJsonWithoutSkippedFields(apiContext.getReq());
         EsbResp<R> esbResp;
         String respStr = null;
+        String status = "ok";
+        long start = System.currentTimeMillis();
         try {
             respStr = requestApi(httpMethod, uri, reqBody, httpHelper);
             apiContext.setOriginResp(respStr);
@@ -149,6 +163,7 @@ public abstract class AbstractBkApiClient {
                 String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
                     + uri + ", error: " + "Response is blank";
                 log.error(errorMsg);
+                status = "error";
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
 
@@ -166,6 +181,7 @@ public abstract class AbstractBkApiClient {
                     reqStr,
                     respStr
                 );
+                status = "error";
             }
             if (esbResp.getData() == null) {
                 log.warn(
@@ -189,7 +205,12 @@ public abstract class AbstractBkApiClient {
                 + "|respStr=" + respStr;
             log.error(errorMsg, e);
             apiContext.setSuccess(false);
+            status = "error";
             throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
+        } finally {
+            long end = System.currentTimeMillis();
+            meterRegistry.timer(metricName, "api_name", uri,
+                "status", status).record(end - start, TimeUnit.MILLISECONDS);
         }
     }
 
