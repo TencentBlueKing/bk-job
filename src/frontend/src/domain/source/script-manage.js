@@ -41,9 +41,20 @@ class ScriptManage extends ModuleBase {
     });
   }
 
-  // 更新脚本
-  update(params = {}) {
+  // 新建脚本
+  create(params = {}) {
     return Request.post(`${this.path}/script`, {
+      params,
+    });
+  }
+
+  //  更新脚本元数据（脚本描述，名称，标签）
+  updateMeta(payload = {}) {
+    const params = {
+      ...payload,
+    };
+    delete params.id;
+    return Request.put(`${this.path}/script/${payload.id}/info`, {
       params,
     });
   }
@@ -62,21 +73,28 @@ class ScriptManage extends ModuleBase {
     });
   }
 
-  //  更新脚本元数据（脚本描述，名称，标签）
-  updateMeta(payload = {}) {
-    const params = {
-      ...payload,
-    };
-    delete params.id;
-    return Request.put(`${this.path}/script/${payload.id}/info`, {
-      params,
-    });
-  }
-
   // 获取脚本的所有版本
   getAllVersion(params = {}, payload = {}) {
     return Request.get(`${this.path}/script/${params.id}/scriptVersion/list`, {
       payload,
+    });
+  }
+
+  // 新增脚本版本
+  createVersion(params = {}) {
+    return Request.post(`${this.path}/script/${params.id}/scriptVersion`, {
+      params,
+    });
+  }
+
+  // 更新脚本版本
+  versionUpdate(params = {}) {
+    const realParams = { ...params  };
+    delete realParams.id;
+    delete realParams.scriptVersionId;
+
+    return Request.put(`${this.path}/script/${params.id}/scriptVersion/${params.scriptVersionId}`, {
+      params: realParams,
     });
   }
 

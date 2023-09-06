@@ -69,6 +69,7 @@ window.changeFlag = false;
  * - FILE_DISTRIBUTION 生效范围文件分发
  */
 window.IPInputScope = '';
+
 /**
  * @desc 开启路由回溯
  */

@@ -346,8 +346,8 @@
   </div>
 </template>
 <script>
+  import CronJobService from '@service/cron-job';
   import NotifyService from '@service/notify';
-  import TimeTaskService from '@service/time-task';
 
   import { listColumnsCache } from '@utils/cache-helper';
 
@@ -422,7 +422,7 @@
       },
     },
     created() {
-      this.getCronJobList = TimeTaskService.timeTaskList;
+      this.getCronJobList = CronJobService.fetchList;
       this.searchSelect = [
         {
           name: 'ID',
@@ -680,7 +680,7 @@
       handleStatusChange(enable, crontabData) {
         const enableMemo = crontabData.enable;
         crontabData.enable = enable;
-        TimeTaskService.timeTaskStatusUpdate({
+        CronJobService.updateStatus({
           id: crontabData.id,
           enable,
         }).then(() => {
@@ -697,7 +697,7 @@
        * 删除成功后刷新列表数据
        */
       handleDelete(crontabData) {
-        return TimeTaskService.timeTaskDelete({
+        return CronJobService.remove({
           id: crontabData.id,
         }).then(() => {
           this.messageSuccess(I18n.t('cron.删除定时任务成功'));

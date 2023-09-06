@@ -30,10 +30,19 @@ class WhiteIp {
     this.module = '/job-manage/web/whiteIP';
   }
 
-  // 新增/更新IP白名单
-  update(params) {
-    return Request.post(`${this.module}/`, {
+  // 新增
+  create(params = {}) {
+    return Request.post(`${this.module}`, {
       params,
+    });
+  }
+  // 更新IP白名单
+  update(params = {}) {
+    const realParams = { ...params };
+    delete realParams.id;
+
+    return Request.put(`${this.module}/${params.id}`, {
+      params: realParams,
     });
   }
 

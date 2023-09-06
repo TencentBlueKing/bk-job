@@ -95,15 +95,15 @@ class GlobalSetting {
   }
 
   // 修改平台信息
-  updateTitleAndFooterConfig(params = {}) {
-    return Request.post(`${this.module}/titleFooter`, {
+  updatePlatformInfo(params = {}) {
+    return Request.put(`${this.module}/platformInfo`, {
       params,
     });
   }
 
   // 获取带默认值的Title与Footer
-  getTitleAndFooterWithDefault(params, payload = {}) {
-    return Request.get(`${this.module}/titleFooterWithDefault`, {
+  getPlatformInfoWithDefault(params, payload = {}) {
+    return Request.get(`${this.module}/platformInfoWithDefault`, {
       payload,
     });
   }
