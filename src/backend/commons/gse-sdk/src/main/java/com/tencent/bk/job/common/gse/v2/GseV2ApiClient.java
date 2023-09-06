@@ -21,6 +21,7 @@ import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -40,8 +41,13 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     private static final String URI_GET_TRANSFER_FILE_RESULT = "/api/v2/task/async/get_transfer_file_result";
 
     @Autowired
-    public GseV2ApiClient(BkApiConfig bkApiConfig) {
-        super(bkApiConfig.getBkGseApiGatewayUrl(), bkApiConfig.getAppCode(), bkApiConfig.getAppSecret());
+    public GseV2ApiClient(MeterRegistry meterRegistry,
+                          BkApiConfig bkApiConfig) {
+        super(meterRegistry,
+            GseConstants.GSE_V2_API_METRICS_NAME_PREFIX,
+            bkApiConfig.getBkGseApiGatewayUrl(),
+            bkApiConfig.getAppCode(),
+            bkApiConfig.getAppSecret());
         log.info("Init GseV2ApiClient, bkGseApiGatewayUrl: {}, appCode: {}",
             bkApiConfig.getBkGseApiGatewayUrl(), bkApiConfig.getAppCode());
     }
