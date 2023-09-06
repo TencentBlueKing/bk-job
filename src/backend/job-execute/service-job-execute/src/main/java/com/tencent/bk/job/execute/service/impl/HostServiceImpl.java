@@ -38,7 +38,6 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.service.HostService;
@@ -75,29 +74,38 @@ public class HostServiceImpl implements HostService {
     private final ServiceHostResource hostResource;
     private final AppScopeMappingService appScopeMappingService;
     private final ExecutorService getHostsByTopoExecutor;
+    private static final String UNKNOWN_CLOUD_AREA_NAME = "Unknown";
 
     private final LoadingCache<Long, String> cloudAreaNameCache = CacheBuilder.newBuilder()
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.HOURS).
             build(new CacheLoader<Long, String>() {
-                      @Override
-                      public String load(Long cloudAreaId) {
-                          IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-                          List<CcCloudAreaInfoDTO> cloudAreaList = bizCmdbClient.getCloudAreaList();
-                          if (cloudAreaList == null || cloudAreaList.isEmpty()) {
-                              log.warn("Get all cloud area return empty!");
-                              return "Unknown";
-                          }
-                          log.info("Get all cloud area, result={}", JsonUtils.toJson(cloudAreaList));
-                          for (CcCloudAreaInfoDTO cloudArea : cloudAreaList) {
-                              if (cloudArea.getId().equals(cloudAreaId)) {
-                                  return cloudArea.getName();
-                              }
-                          }
-                          log.info("No found cloud area for cloudAreaId:{}", cloudAreaId);
-                          return "Unknown";
-                      }
-                  }
-            );
+                @Override
+                public String load(Long bkCloudId) {
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+                    CcCloudAreaInfoDTO cloudArea = bizCmdbClient.getCloudAreaByBkCloudId(bkCloudId);
+                    return cloudArea == null ? UNKNOWN_CLOUD_AREA_NAME : cloudArea.getName();
+                }
+
+                @Override
+                public Map<Long, String> loadAll(Iterable<? extends Long> bkCloudIds) {
+                    IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+                    List<CcCloudAreaInfoDTO> cloudAreaList = bizCmdbClient.getCloudAreaList();
+                    Map<Long, String> result = new HashMap<>();
+                    if (CollectionUtils.isEmpty(cloudAreaList)) {
+                        log.warn("Get all cloud area return empty!");
+                        bkCloudIds.forEach(bkCloudId -> result.put(bkCloudId, UNKNOWN_CLOUD_AREA_NAME));
+                        return result;
+                    }
+
+                    Map<Long, CcCloudAreaInfoDTO> cloudAreaMap = new HashMap<>();
+                    cloudAreaList.forEach(cloudArea -> cloudAreaMap.put(cloudArea.getId(), cloudArea));
+                    bkCloudIds.forEach(bkCloudId -> {
+                        CcCloudAreaInfoDTO cloudArea = cloudAreaMap.get(bkCloudId);
+                        result.put(bkCloudId, cloudArea != null ? cloudArea.getName() : UNKNOWN_CLOUD_AREA_NAME);
+                    });
+                    return result;
+                }
+            });
 
     @Autowired
     public HostServiceImpl(ServiceHostResource hostResource,
@@ -170,13 +178,15 @@ public class HostServiceImpl implements HostService {
         for (DynamicGroupHostPropDTO hostProp : cmdbGroupHostList) {
             List<CcCloudIdDTO> hostCloudIdList = hostProp.getCloudIdList();
             if (hostCloudIdList == null || hostCloudIdList.isEmpty()) {
-                log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
+                log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, " +
+                    "groupId={}, " +
                     "hostIp={}", appId, groupId, hostProp.getInnerIp());
                 continue;
             }
             CcCloudIdDTO hostCloudId = hostCloudIdList.get(0);
             if (hostCloudId == null) {
-                log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, groupId={}, " +
+                log.warn("Get ip by dynamic group id, cmdb return illegal host, skip it!appId={}, " +
+                    "groupId={}, " +
                     "hostIp={}", appId, groupId, hostProp.getInnerIp());
                 continue;
             }
@@ -236,7 +246,8 @@ public class HostServiceImpl implements HostService {
             result = new HashMap<>();
             for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
                 List<HostDTO> topoHosts = getHostsByTopoNodes(appId,
-                    Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(), topoNode.getTopoNodeId())));
+                    Collections.singletonList(new CcInstanceDTO(topoNode.getNodeType(),
+                        topoNode.getTopoNodeId())));
                 topoNode.setIpList(topoHosts);
                 result.put(topoNode, topoHosts);
             }
@@ -253,7 +264,8 @@ public class HostServiceImpl implements HostService {
         Map<DynamicServerTopoNodeDTO, List<HostDTO>> result = new HashMap<>();
 
         CountDownLatch latch = new CountDownLatch(topoNodes.size());
-        List<Future<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>>> futures = new ArrayList<>(topoNodes.size());
+        List<Future<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>>> futures =
+            new ArrayList<>(topoNodes.size());
         for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
             futures.add(getHostsByTopoExecutor.submit(new GetTopoHostTask(appId, topoNode, latch)));
         }
@@ -279,12 +291,24 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public String getCloudAreaName(long cloudAreaId) {
+    public Map<Long, String> batchGetCloudAreaNames(Collection<Long> bkCloudIds) {
+        if (CollectionUtils.isEmpty(bkCloudIds)) {
+            return Collections.emptyMap();
+        }
         try {
-            return cloudAreaNameCache.get(cloudAreaId);
+            long start = System.currentTimeMillis();
+            Map<Long, String> cloudAreaIdNames = cloudAreaNameCache.getAll(bkCloudIds);
+            long cost = System.currentTimeMillis() - start;
+            if (cost > 1000) {
+                log.warn("Batch get cloud area names slow, cost: {}", cost);
+            }
+            return cloudAreaIdNames;
         } catch (Exception e) {
             log.warn("Fail to get cloud area name", e);
-            return "Unknown";
+            // 降级实现
+            Map<Long, String> failResult = new HashMap<>();
+            bkCloudIds.forEach(bkCloudId -> failResult.put(bkCloudId, UNKNOWN_CLOUD_AREA_NAME));
+            return failResult;
         }
     }
 

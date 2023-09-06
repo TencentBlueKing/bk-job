@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +43,10 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
         if (!hasIpInfo) {
             // 从当前版本开始AgentTask不会包含ip信息，需要从StepInstance反查
             Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
-            agentTaskDetailList = agentTasks.stream()
+            Set<Long> bkCloudIds = hosts.values().stream().map(HostDTO::getBkCloudId).collect(Collectors.toSet());
+            Map<Long, String> cloudAreaNames = hostService.batchGetCloudAreaNames(bkCloudIds);
+            agentTaskDetailList = agentTasks
+                .stream()
                 .map(agentTask -> {
                     AgentTaskDetailDTO agentTaskDetail = new AgentTaskDetailDTO(agentTask);
                     HostDTO host = hosts.get(agentTask.getHostId());
@@ -50,17 +54,22 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
                     agentTaskDetail.setBkCloudId(host.getBkCloudId());
                     agentTaskDetail.setIp(host.getIp());
                     agentTaskDetail.setIpv6(host.getIpv6());
-                    agentTaskDetail.setBkCloudName(hostService.getCloudAreaName(host.getBkCloudId()));
+                    agentTaskDetail.setBkCloudName(cloudAreaNames.get(host.getBkCloudId()));
                     return agentTaskDetail;
                 }).collect(Collectors.toList());
         } else {
             // 历史版本AgentTask会包含ipv4信息
-            agentTaskDetailList = agentTasks.stream()
-                .map(agentTask -> {
-                    AgentTaskDetailDTO agentTaskDetail = new AgentTaskDetailDTO(agentTask);
-                    agentTaskDetail.setBkCloudName(hostService.getCloudAreaName(agentTaskDetail.getBkCloudId()));
-                    return agentTaskDetail;
-                }).collect(Collectors.toList());
+            agentTaskDetailList = agentTasks
+                .stream()
+                .map(AgentTaskDetailDTO::new)
+                .collect(Collectors.toList());
+            Set<Long> bkCloudIds = agentTaskDetailList
+                .stream()
+                .map(AgentTaskDetailDTO::getBkCloudId)
+                .collect(Collectors.toSet());
+            Map<Long, String> cloudAreaNames = hostService.batchGetCloudAreaNames(bkCloudIds);
+            agentTaskDetailList.forEach(
+                agentTaskDetail -> agentTaskDetail.setBkCloudName(cloudAreaNames.get(agentTaskDetail.getBkCloudId())));
         }
         return agentTaskDetailList;
     }
