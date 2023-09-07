@@ -438,7 +438,6 @@ public class TaskResultServiceImpl implements TaskResultService {
                     agentTask.setCloudIp(targetHost.toCloudIp());
                     agentTask.setIpv6(targetHost.getIpv6());
                     agentTask.setBkCloudId(targetHost.getBkCloudId());
-                    agentTask.setBkCloudName(hostService.getCloudAreaName(targetHost.getBkCloudId()));
                     agentTask.setStatus(AgentTaskStatusEnum.WAITING);
                     agentTask.setTag(null);
                     agentTask.setErrorCode(0);
@@ -447,6 +446,13 @@ public class TaskResultServiceImpl implements TaskResultService {
                     agentTasks.add(agentTask);
                 }
             }
+        }
+        // 批量添加云区域名称
+        if (CollectionUtils.isNotEmpty(agentTasks)) {
+            Set<Long> bkCloudIds = agentTasks.stream().map(AgentTaskDetailDTO::getBkCloudId)
+                .collect(Collectors.toSet());
+            Map<Long, String> cloudAreaNames = hostService.batchGetCloudAreaNames(bkCloudIds);
+            agentTasks.forEach(agentTask -> agentTask.setBkCloudName(cloudAreaNames.get(agentTask.getBkCloudId())));
         }
         resultGroup.setAgentTasks(agentTasks);
         resultGroups.add(resultGroup);

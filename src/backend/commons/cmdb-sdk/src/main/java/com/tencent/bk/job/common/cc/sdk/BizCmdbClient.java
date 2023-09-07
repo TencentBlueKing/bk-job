@@ -885,6 +885,21 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<CcCloudAreaInfoDTO> getCloudAreaList() {
+        return getCloudAreaByCondition(null);
+    }
+
+    @Override
+    public CcCloudAreaInfoDTO getCloudAreaByBkCloudId(Long bkCloudId) {
+        Map<String, Object> fieldConditions = new HashMap<>();
+        fieldConditions.put("bk_cloud_id", bkCloudId);
+        List<CcCloudAreaInfoDTO> cloudAreas = getCloudAreaByCondition(fieldConditions);
+        if (CollectionUtils.isEmpty(cloudAreas)) {
+            return null;
+        }
+        return cloudAreas.get(0);
+    }
+
+    private List<CcCloudAreaInfoDTO> getCloudAreaByCondition(Map<String, Object> fieldConditions) {
         List<CcCloudAreaInfoDTO> appCloudAreaList = new ArrayList<>();
         boolean isLastPage = false;
         int limit = 200;
@@ -893,7 +908,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             GetCloudAreaInfoReq req = makeBaseReq(GetCloudAreaInfoReq.class, defaultUin, defaultSupplierAccount);
             PageDTO page = new PageDTO(start, limit, null);
             req.setPage(page);
-            req.setCondition(Collections.emptyMap());
+            if (fieldConditions != null && !fieldConditions.isEmpty()) {
+                req.setCondition(fieldConditions);
+            } else {
+                req.setCondition(Collections.emptyMap());
+            }
             EsbResp<SearchCloudAreaResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_CLOUD_AREAS, req,
                 new TypeReference<EsbResp<SearchCloudAreaResult>>() {
                 });
