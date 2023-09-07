@@ -88,9 +88,7 @@ public class HostServiceImpl implements HostService {
             public String load(@NotNull Long bkCloudId) {
                 IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
                 CcCloudAreaInfoDTO cloudArea = bizCmdbClient.getCloudAreaByBkCloudId(bkCloudId);
-                if (log.isDebugEnabled()) {
-                    log.debug("Load key: {}, value: {}", bkCloudId, cloudArea);
-                }
+                // 默认设置为"Unknown",避免本地缓存穿透
                 return cloudArea == null ? UNKNOWN_CLOUD_AREA_NAME : cloudArea.getName();
             }
 
@@ -109,10 +107,6 @@ public class HostServiceImpl implements HostService {
                 }
 
                 cloudAreaList.forEach(cloudArea -> result.put(cloudArea.getId(), cloudArea.getName()));
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Load keys: {}, values: {}", bkCloudIds, result);
-                }
                 return result;
             }
         });
