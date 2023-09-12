@@ -349,6 +349,10 @@
 </script>
 <style lang='postcss'>
   .script-manage-copy-create-box {
+    .bk-label{
+      height: 16px !important;
+    }
+
     .script-version {
       position: relative;
 
