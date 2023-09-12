@@ -36,6 +36,7 @@ dependencies {
     api project(':commons:common')
     api project(":commons:common-i18n")
     api project(":commons:common-security")
+    api project(":commons:esb-sdk")
     api project(":commons:paas-sdk")
     api project(":commons:common-service")
     implementation("org.springframework.boot:spring-boot-autoconfigure")

@@ -25,15 +25,17 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.manage.crypto.CredentialCryptoService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.crypto.CredentialCryptoService;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
+import com.tencent.bk.job.manage.model.tables.Credential;
+import com.tencent.bk.job.manage.model.tables.records.CredentialRecord;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -43,9 +45,8 @@ import org.jooq.Record;
 import org.jooq.SortField;
 import org.jooq.UpdateConditionStep;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.Credential;
-import org.jooq.generated.tables.records.CredentialRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -57,18 +58,18 @@ import java.util.List;
 public class CredentialDAOImpl implements CredentialDAO {
 
     private static final Credential defaultTable = Credential.CREDENTIAL;
-    private final DSLContext defaultDSLContext;
     private final CredentialCryptoService credentialCryptoService;
+    private final DSLContext dslContext;
 
     @Autowired
-    public CredentialDAOImpl(DSLContext dslContext,
+    public CredentialDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
                              CredentialCryptoService credentialCryptoService) {
-        this.defaultDSLContext = dslContext;
         this.credentialCryptoService = credentialCryptoService;
+        this.dslContext = dslContext;
     }
 
     @Override
-    public String insertCredential(DSLContext dslContext, CredentialDTO credentialDTO) {
+    public String insertCredential(CredentialDTO credentialDTO) {
         String id = JobUUID.getUUID();
         String sql = null;
         String credentialStr = JsonUtils.toJson(credentialDTO.getCredential());
@@ -109,7 +110,7 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     @Override
-    public String updateCredentialById(DSLContext dslContext, CredentialDTO credentialDTO) {
+    public String updateCredentialById(CredentialDTO credentialDTO) {
         String sql = null;
         String credentialStr = JsonUtils.toJson(credentialDTO.getCredential());
         log.debug("Update credentialStr={}", credentialStr);
@@ -135,14 +136,14 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     @Override
-    public int deleteCredentialById(DSLContext dslContext, String id) {
+    public int deleteCredentialById(String id) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).execute();
     }
 
     @Override
-    public CredentialDTO getCredentialById(DSLContext dslContext, String id) {
+    public CredentialDTO getCredentialById(String id) {
         val record = dslContext.select(
             defaultTable.ID,
             defaultTable.APP_ID,
@@ -165,8 +166,7 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     @Override
-    public List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(DSLContext dslContext,
-                                                                            Collection<String> ids) {
+    public List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids) {
         val records = dslContext.select(
             defaultTable.ID,
             defaultTable.APP_ID,
@@ -208,7 +208,7 @@ public class CredentialDAOImpl implements CredentialDAO {
      */
     private long getPageCredentialCount(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildConditionList(credentialQuery, baseSearchCondition);
-        Long count = defaultDSLContext
+        Long count = dslContext
             .selectCount()
             .from(defaultTable)
             .where(conditions)
@@ -265,7 +265,7 @@ public class CredentialDAOImpl implements CredentialDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         val records =
-            defaultDSLContext.select(
+            dslContext.select(
                 defaultTable.ID,
                 defaultTable.APP_ID,
                 defaultTable.NAME,

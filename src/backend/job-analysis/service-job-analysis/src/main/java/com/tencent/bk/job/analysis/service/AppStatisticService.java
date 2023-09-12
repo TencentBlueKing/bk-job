@@ -25,6 +25,8 @@
 package com.tencent.bk.job.analysis.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
@@ -32,8 +34,6 @@ import com.tencent.bk.job.analysis.model.inner.PerAppStatisticDTO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
 import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
 import com.tencent.bk.job.analysis.util.calc.AppMomYoyCalculator;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
+@Service("appStatisticService")
 public class AppStatisticService extends CommonStatisticService {
 
     @Autowired

@@ -92,7 +92,7 @@ public class ResourceTagsMigrationTask {
         return Response.buildSuccessResp(resourceTags);
     }
 
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
     public void saveResourceTags(List<ResourceTagDTO> resourceTags) {
         resourceTagDAO.batchSaveResourceTags(resourceTags);
     }

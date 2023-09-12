@@ -67,12 +67,12 @@ public class EsbIamClient extends AbstractEsbSdkClient implements IIamClient {
     private static final String API_BATCH_AUTH_BY_PATH_URL =
         "/api/c/compapi/v2/iam/authorization/batch_path/";
 
-    public EsbIamClient(String esbHostUrl, String appCode, String appSecret, boolean useEsbTestEnv) {
-        super(esbHostUrl, appCode, appSecret, null, useEsbTestEnv);
+    public EsbIamClient(String esbHostUrl, String appCode, String appSecret) {
+        super(esbHostUrl, appCode, appSecret, null);
     }
 
-    public EsbIamClient(String esbHostUrl, String appCode, String appSecret, String lang, boolean useEsbTestEnv) {
-        super(esbHostUrl, appCode, appSecret, lang, useEsbTestEnv);
+    public EsbIamClient(String esbHostUrl, String appCode, String appSecret, String lang) {
+        super(esbHostUrl, appCode, appSecret, lang);
     }
 
     @Override

@@ -27,7 +27,7 @@ spring:
       idle-timeout: 600000
       poolName: "job-backup"
       validationTimeout: 5000
-    job-execute-db:
+    job-execute:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
       type: com.zaxxer.hikari.HikariDataSource
       jdbc-url: jdbc:otel:mysql://__BK_JOB_EXECUTE_MYSQL_HOST__:__BK_JOB_EXECUTE_MYSQL_PORT__/job_execute?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
@@ -36,7 +36,7 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 2
       idle-timeout: 6000
-      poolName: "job-execute-db"
+      poolName: "job-execute"
       validationTimeout: 5000
     # 执行数据归档DB配置，若需开启数据归档请去除注释并添加相应环境变量进行配置
     #job-execute-archive:
@@ -87,35 +87,31 @@ spring:
       max-file-size: 5GB
       max-request-size: 5GB
 
-ribbon:
-  ReadTimeout: 60000
-  ConnectTimeout: 10000
-  eureka:
-    enabled: false
-
 job:
   backup:
-    upload:
-      filesize:
-        max: 2GB
-    # 存储后端默认为本地NFS
+    # `导入导出`存储后端默认为本地NFS
     storage-backend: local
     # 存储后端为蓝鲸制品库时的配置
     # storage-backend: artifactory
     # artifactory:
     #   repo: backup
-  execute:
+    # DB 归档配置
     archive:
-      enabled: false
-      cron: 0 0 4 * * *
-      data:
+      # job-execute db 归档配置
+      execute:
+        # 是否启用 DB 归档
+        enabled: false
+        # 归档模式。deleteOnly: 仅删除；backupThenDelete: 先备份数据再删除。默认 deleteOnly
+        mode: deleteOnly
+        # 归档任务运行的cron表达式，默认每天凌晨04:00
+        cron: 0 0 4 * * *
         # 热库中的数据保留时间（天）
-        keep_days: 365
+        keep-days: 30
         # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
         read_id_step_size: 1000
         # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
         batch_insert_row_size: 1000
-      delete:
-        enabled: false
+
+
 
 

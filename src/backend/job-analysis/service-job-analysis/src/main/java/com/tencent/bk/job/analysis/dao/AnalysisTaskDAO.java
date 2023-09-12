@@ -25,22 +25,21 @@
 package com.tencent.bk.job.analysis.dao;
 
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface AnalysisTaskDAO {
-    Long insertAnalysisTask(DSLContext dslContext, AnalysisTaskDTO analysisTaskDTO);
+    Long insertAnalysisTask(AnalysisTaskDTO analysisTaskDTO);
 
-    int updateAnalysisTaskById(DSLContext dslContext, AnalysisTaskDTO analysisTaskDTO);
+    int updateAnalysisTaskById(AnalysisTaskDTO analysisTaskDTO);
 
-    int deleteAnalysisTaskById(DSLContext dslContext, Long id);
+    int deleteAnalysisTaskById(Long id);
 
-    AnalysisTaskDTO getAnalysisTaskById(DSLContext dslContext, Long id);
+    AnalysisTaskDTO getAnalysisTaskById(Long id);
 
-    AnalysisTaskDTO getAnalysisTaskByCode(DSLContext dslContext, String code);
+    AnalysisTaskDTO getAnalysisTaskByCode(String code);
 
-    List<AnalysisTaskDTO> listAllAnalysisTask(DSLContext dslContext);
+    List<AnalysisTaskDTO> listAllAnalysisTask();
 
-    List<AnalysisTaskDTO> listActiveAnalysisTask(DSLContext dslContext);
+    List<AnalysisTaskDTO> listActiveAnalysisTask();
 }

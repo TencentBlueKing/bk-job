@@ -32,6 +32,18 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.migration.AddHostIdResult;
+import com.tencent.bk.job.manage.model.tables.TaskPlan;
+import com.tencent.bk.job.manage.model.tables.TaskPlanStep;
+import com.tencent.bk.job.manage.model.tables.TaskPlanStepFile;
+import com.tencent.bk.job.manage.model.tables.TaskPlanStepFileList;
+import com.tencent.bk.job.manage.model.tables.TaskPlanStepScript;
+import com.tencent.bk.job.manage.model.tables.TaskPlanVariable;
+import com.tencent.bk.job.manage.model.tables.TaskTemplate;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStep;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFile;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFileList;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStepScript;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateVariable;
 import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,18 +53,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
-import org.jooq.generated.tables.TaskPlan;
-import org.jooq.generated.tables.TaskPlanStep;
-import org.jooq.generated.tables.TaskPlanStepFile;
-import org.jooq.generated.tables.TaskPlanStepFileList;
-import org.jooq.generated.tables.TaskPlanStepScript;
-import org.jooq.generated.tables.TaskPlanVariable;
-import org.jooq.generated.tables.TaskTemplate;
-import org.jooq.generated.tables.TaskTemplateStep;
-import org.jooq.generated.tables.TaskTemplateStepFile;
-import org.jooq.generated.tables.TaskTemplateStepFileList;
-import org.jooq.generated.tables.TaskTemplateStepScript;
-import org.jooq.generated.tables.TaskTemplateVariable;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -442,7 +442,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        @Transactional(rollbackFor = {Throwable.class})
+        @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
         public void updateTaskTargets(List<TaskTargetRecord> records) {
             if (CollectionUtils.isEmpty(records)) {
                 return;
@@ -648,7 +648,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        @Transactional(rollbackFor = {Throwable.class})
+        @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
         public void updateTaskTargets(List<TaskTargetRecord> records) {
             if (CollectionUtils.isEmpty(records)) {
                 return;

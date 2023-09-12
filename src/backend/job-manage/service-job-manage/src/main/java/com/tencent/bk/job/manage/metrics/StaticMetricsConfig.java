@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.redis.util.RedisSlideWindowFlowController;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +36,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.ToDoubleFunction;
 
 @Slf4j
 @Component
@@ -45,7 +45,7 @@ public class StaticMetricsConfig {
     public StaticMetricsConfig(
         ThreadPoolExecutor cmdbThreadPoolExecutor,
         MeterRegistry meterRegistry,
-        RedisSlideWindowFlowController cmdbGlobalFlowController
+        ObjectProvider<RedisSlideWindowFlowController> cmdbGlobalFlowControllerProvider
     ) {
         // CMDB请求线程池大小
         meterRegistry.gauge(
@@ -62,44 +62,46 @@ public class StaticMetricsConfig {
             threadPoolExecutor -> threadPoolExecutor.getQueue().size()
         );
         try {
-            Map<String, Long> configMap = cmdbGlobalFlowController.getCurrentConfig();
-            for (String key : configMap.keySet()) {
-                // CMDB流控：配置
-                meterRegistry.gauge(
-                    MetricsConstants.NAME_CMDB_RESOURCE_LIMIT,
-                    Arrays.asList(
-                        Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB),
-                        Tag.of(MetricsConstants.TAG_KEY_ASPECT, MetricsConstants.TAG_VALUE_ASPECT_FLOW_CONTROL),
-                        Tag.of(MetricsConstants.TAG_KEY_RESOURCE_ID, key)
-                    ),
-                    cmdbGlobalFlowController,
-                    new ToDoubleFunction<RedisSlideWindowFlowController>() {
-                        @Override
-                        public double applyAsDouble(RedisSlideWindowFlowController cmdbGlobalFlowController) {
-                            Long value = cmdbGlobalFlowController.getCurrentConfig(key);
-                            if (value == null) return -1;
+            RedisSlideWindowFlowController cmdbGlobalFlowController =
+                cmdbGlobalFlowControllerProvider.getIfAvailable();
+            if (cmdbGlobalFlowController != null) {
+                Map<String, Long> configMap = cmdbGlobalFlowController.getCurrentConfig();
+                for (String key : configMap.keySet()) {
+                    // CMDB流控：配置
+                    meterRegistry.gauge(
+                        MetricsConstants.NAME_CMDB_RESOURCE_LIMIT,
+                        Arrays.asList(
+                            Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB),
+                            Tag.of(MetricsConstants.TAG_KEY_ASPECT, MetricsConstants.TAG_VALUE_ASPECT_FLOW_CONTROL),
+                            Tag.of(MetricsConstants.TAG_KEY_RESOURCE_ID, key)
+                        ),
+                        cmdbGlobalFlowController,
+                        cmdbGlobalFlowController1 -> {
+                            Long value = cmdbGlobalFlowController1.getCurrentConfig(key);
+                            if (value == null) {
+                                return -1;
+                            }
                             return value;
                         }
-                    }
-                );
-                // CMDB流控：当前速率
-                meterRegistry.gauge(
-                    MetricsConstants.NAME_CMDB_RESOURCE_RATE,
-                    Arrays.asList(
-                        Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB),
-                        Tag.of(MetricsConstants.TAG_KEY_ASPECT, MetricsConstants.TAG_VALUE_ASPECT_FLOW_CONTROL),
-                        Tag.of(MetricsConstants.TAG_KEY_RESOURCE_ID, key)
-                    ),
-                    cmdbGlobalFlowController,
-                    new ToDoubleFunction<RedisSlideWindowFlowController>() {
-                        @Override
-                        public double applyAsDouble(RedisSlideWindowFlowController cmdbGlobalFlowController) {
-                            Long value = cmdbGlobalFlowController.getCurrentRate(key);
-                            if (value == null) return 0;
+                    );
+                    // CMDB流控：当前速率
+                    meterRegistry.gauge(
+                        MetricsConstants.NAME_CMDB_RESOURCE_RATE,
+                        Arrays.asList(
+                            Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_CMDB),
+                            Tag.of(MetricsConstants.TAG_KEY_ASPECT, MetricsConstants.TAG_VALUE_ASPECT_FLOW_CONTROL),
+                            Tag.of(MetricsConstants.TAG_KEY_RESOURCE_ID, key)
+                        ),
+                        cmdbGlobalFlowController,
+                        cmdbGlobalFlowController12 -> {
+                            Long value = cmdbGlobalFlowController12.getCurrentRate(key);
+                            if (value == null) {
+                                return 0;
+                            }
                             return value;
                         }
-                    }
-                );
+                    );
+                }
             }
         } catch (Exception e) {
             log.error("Fail to init cmdbGlobalFlowController gauge", e);

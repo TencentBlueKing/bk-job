@@ -25,22 +25,18 @@
 package com.tencent.bk.job.manage.dao.notify.impl;
 
 import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
+import com.tencent.bk.job.manage.model.tables.NotifyConfigStatus;
 import lombok.val;
 import org.joda.time.DateTimeUtils;
 import org.jooq.DSLContext;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.NotifyConfigStatus;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Repository
 public class NotifyConfigStatusDAOImpl implements NotifyConfigStatusDAO {
 
@@ -51,12 +47,12 @@ public class NotifyConfigStatusDAOImpl implements NotifyConfigStatusDAO {
     private final DSLContext dslContext;
 
     @Autowired
-    public NotifyConfigStatusDAOImpl(DSLContext dslContext) {
+    public NotifyConfigStatusDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
     @Override
-    public int insertNotifyConfigStatus(DSLContext dslContext, String userName, Long appId) {
+    public int insertNotifyConfigStatus(String userName, Long appId) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.USERNAME,
             defaultTable.APP_ID,

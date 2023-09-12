@@ -10,12 +10,7 @@ spring:
         instance-id: job-crontab-${machine.ip}-${server.port}
         enabled: true
         prefer-ip-address: true
-      #tls:
-        #key-store-instance-type:
-        #key-store-path:
-        #key-store-password:
-        #certificate-path:
-        #certificate-password:
+        scheme: http
     config:
       discovery:
         enabled: true

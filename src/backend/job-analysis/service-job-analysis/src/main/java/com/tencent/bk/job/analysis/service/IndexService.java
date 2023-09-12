@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.analysis.service;
 
-import com.tencent.bk.job.analysis.client.GlobalSettingsResourceClient;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskStaticInstanceDAO;
 import com.tencent.bk.job.analysis.model.inner.AnalysisTaskResultItemLocation;
@@ -39,9 +38,9 @@ import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,26 +55,25 @@ import java.util.stream.Stream;
 @Service
 public class IndexService {
 
-    private final DSLContext dslContext;
     private final AnalysisTaskInstanceDAO analysisTaskInstanceDAO;
     private final AnalysisTaskStaticInstanceDAO analysisTaskStaticInstanceDAO;
-    private final GlobalSettingsResourceClient globalSettingsService;
+    private final ServiceGlobalSettingsResource globalSettingsResource;
     private final MessageI18nService i18nService;
 
     @Autowired
-    public IndexService(DSLContext dslContext, AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
+    public IndexService(AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
                         AnalysisTaskStaticInstanceDAO analysisTaskStaticInstanceDAO,
-                        GlobalSettingsResourceClient globalSettingsService, MessageI18nService i18nService) {
-        this.dslContext = dslContext;
+                        ServiceGlobalSettingsResource globalSettingsResource,
+                        MessageI18nService i18nService) {
         this.analysisTaskInstanceDAO = analysisTaskInstanceDAO;
         this.analysisTaskStaticInstanceDAO = analysisTaskStaticInstanceDAO;
-        this.globalSettingsService = globalSettingsService;
+        this.globalSettingsResource = globalSettingsResource;
         this.i18nService = i18nService;
     }
 
     private Map<String, String> getVariablesMap() {
         Map<String, String> variablesMap = new HashMap<>();
-        variablesMap.put("BK_DOCS_CENTER", globalSettingsService.getDocCenterBaseUrl().getData());
+        variablesMap.put("BK_DOCS_CENTER", globalSettingsResource.getDocCenterBaseUrl().getData());
         return variablesMap;
     }
 
@@ -88,7 +86,7 @@ public class IndexService {
     public List<AnalysisResultVO> listAnalysisResult(String username, Long appId, Long limit) {
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
         //业务专属分析结果
-        List<AnalysisResultVO> resultList = analysisTaskInstanceDAO.listNewestActiveInstance(dslContext,
+        List<AnalysisResultVO> resultList = analysisTaskInstanceDAO.listNewestActiveInstance(
             appId, limit).stream().map(it -> {
             //根据任务代码找到对应的任务类组装结果
             IAnalysisTask analysisTask = AnalysisTaskScheduler.analysisTaskMap.get(it.getTaskCode());
@@ -141,7 +139,7 @@ public class IndexService {
         }).filter(Objects::nonNull).collect(Collectors.toList());
         // 静态文案类分析结果
         List<AnalysisResultVO> tipsResultList =
-            analysisTaskStaticInstanceDAO.listActiveInstance(dslContext, 0L, limit).stream().map(it -> {
+            analysisTaskStaticInstanceDAO.listActiveInstance(0L, limit).stream().map(it -> {
                 String resultData;
                 // 国际化处理
                 if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {

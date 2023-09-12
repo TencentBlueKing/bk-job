@@ -37,20 +37,16 @@ import com.tencent.bk.job.common.model.permission.PermissionResourceVO;
 import com.tencent.bk.job.common.model.permission.RequiredPermissionVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
 @Slf4j
-@Service
 public class WebAuthServiceImpl implements WebAuthService {
     private final MessageI18nService i18nService;
     private final AuthService authService;
-
-    @Autowired
+    
     public WebAuthServiceImpl(MessageI18nService i18nService, AuthService authService) {
         this.i18nService = i18nService;
         this.authService = authService;

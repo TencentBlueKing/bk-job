@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task;
 
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

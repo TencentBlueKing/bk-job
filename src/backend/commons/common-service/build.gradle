@@ -21,10 +21,6 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-def assemblyMode = System.getProperty("assemblyMode")
-def k8s = assemblyMode == "k8s"
-println("assembly mode: $assemblyMode")
-
 dependencies {
     api project(':commons:common')
     api project(':commons:common-security')
@@ -38,11 +34,12 @@ dependencies {
     api 'org.springframework.cloud:spring-cloud-loadbalancer'
     api 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
     api 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
-    if (k8s) {
-        println("Compile with kubernetes mode")
+    if (rootProject.ext.k8sMode) {
+        println("Compile module[common-service] with kubernetes mode")
         api project(":commons:common-k8s")
         api 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
     } else {
+        println("Compile module[common-service] with binary mode")
         api project(":commons:common-consul")
         api 'org.springframework.cloud:spring-cloud-starter-config'
         api 'org.springframework.cloud:spring-cloud-starter-consul-discovery'

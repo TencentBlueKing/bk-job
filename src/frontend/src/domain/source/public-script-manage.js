@@ -71,6 +71,24 @@ class PublicScriptManage {
     });
   }
 
+  // 新增脚本版本
+  createVersion(params = {}) {
+    return Request.post(`${this.path}/script/${params.id}/scriptVersion`, {
+      params,
+    });
+  }
+
+  // 更新脚本版本
+  versionUpdate(params = {}) {
+    const realParams = { ...params  };
+    delete realParams.id;
+    delete realParams.scriptVersionId;
+
+    return Request.post(`${this.module}/script/${params.id}/scriptVersion/${params.scriptVersionId}`, {
+      params: realParams,
+    });
+  }
+
   // 获取脚本列表
   getAll(params = {}) {
     return Request.get(`${this.module}/script/list`, {

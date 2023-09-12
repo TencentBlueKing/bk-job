@@ -25,19 +25,16 @@
 package com.tencent.bk.job.manage.dao.globalsetting;
 
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
-import org.jooq.DSLContext;
 
 public interface GlobalSettingDAO {
 
     int upsertGlobalSetting(GlobalSettingDTO globalSettingDTO);
 
-    int insertGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO);
+    int insertGlobalSetting(GlobalSettingDTO globalSettingDTO);
 
-    int updateGlobalSetting(DSLContext dslContext, GlobalSettingDTO globalSettingDTO);
+    int updateGlobalSetting(GlobalSettingDTO globalSettingDTO);
 
-    int deleteGlobalSetting(DSLContext dslContext, String key);
-
-    GlobalSettingDTO getGlobalSetting(DSLContext dslContext, String key);
+    int deleteGlobalSetting(String key);
 
     GlobalSettingDTO getGlobalSetting(String key);
 }

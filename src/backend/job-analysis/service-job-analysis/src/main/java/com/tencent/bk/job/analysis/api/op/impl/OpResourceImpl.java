@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController
+@RestController("jobAnalysisOpResourceImpl")
 public class OpResourceImpl implements OpResource {
 
     private final StatisticsTaskScheduler statisticsTaskScheduler;

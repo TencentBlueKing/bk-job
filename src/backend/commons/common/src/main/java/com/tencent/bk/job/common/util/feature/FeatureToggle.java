@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.common.util.feature;
 
-import com.tencent.bk.job.common.config.FeatureConfig;
-import com.tencent.bk.job.common.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.config.ToggleStrategyConfig;
+import com.tencent.bk.job.common.service.config.FeatureConfig;
+import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.feature.strategy.FeatureConfigParseException;
 import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeBlackListToggleStrategy;

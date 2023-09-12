@@ -26,31 +26,34 @@ package com.tencent.bk.job.manage.dao.notify.impl;
 
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
+import com.tencent.bk.job.manage.model.tables.AvailableEsbChannel;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.AvailableEsbChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Repository
 public class AvailableEsbChannelDAOImpl implements AvailableEsbChannelDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(AvailableEsbChannelDAOImpl.class);
     private static final AvailableEsbChannel T_AVAILABLE_ESB_CHANNEL = AvailableEsbChannel.AVAILABLE_ESB_CHANNEL;
     private static final AvailableEsbChannel defaultTable = T_AVAILABLE_ESB_CHANNEL;
+    private final DSLContext dslContext;
+
+    @Autowired
+    public AvailableEsbChannelDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
 
     @Override
-    public int insertAvailableEsbChannel(DSLContext dslContext, AvailableEsbChannelDTO availableEsbChannelDTO) {
+    public int insertAvailableEsbChannel(AvailableEsbChannelDTO availableEsbChannelDTO) {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.TYPE,
             defaultTable.ENABLE,
@@ -72,12 +75,12 @@ public class AvailableEsbChannelDAOImpl implements AvailableEsbChannelDAO {
     }
 
     @Override
-    public int deleteAll(DSLContext dslContext) {
+    public int deleteAll() {
         return dslContext.deleteFrom(defaultTable).execute();
     }
 
     @Override
-    public List<AvailableEsbChannelDTO> listAvailableEsbChannel(DSLContext dslContext) {
+    public List<AvailableEsbChannelDTO> listAvailableEsbChannel() {
         val records = dslContext.selectFrom(defaultTable).fetch();
         if (records.isEmpty()) {
             return new ArrayList<>();

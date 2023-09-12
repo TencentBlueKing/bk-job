@@ -96,13 +96,13 @@ public class AddHostIdMigrationTask extends BaseUpgradeTask {
             // 1.迁移作业模板、执行方案、IP白名单数据
             log.info("job.manage.addHostIdMigrationTask start ...");
             Response<String> manageResp = post(buildMigrationTaskUrl(getJobManageUrl(),
-                "/migration/action/addHostIdMigrationTask"),
+                "/manage/migration/action/addHostIdMigrationTask"),
                 JsonUtils.toJson(new AddHostIdMigrationReq(scopeList, dryRun)));
             log.info("job.manage.addHostIdMigrationTask done, result: {}", manageResp);
             // 2.迁移定时任务数据
             log.info("job.crontab.addHostIdMigrationTask start ...");
             Response<String> crontabResp = post(buildMigrationTaskUrl(getJobCrontabUrl(),
-                "/migration/action/addHostIdMigrationTask"),
+                "/crontab/migration/action/addHostIdMigrationTask"),
                 JsonUtils.toJson(new AddHostIdMigrationReq(scopeList, dryRun)));
             log.info("job.crontab.addHostIdMigrationTask done, result: {}", crontabResp);
             return manageResp.isSuccess() && crontabResp.isSuccess();

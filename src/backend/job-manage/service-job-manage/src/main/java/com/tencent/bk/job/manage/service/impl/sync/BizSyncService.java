@@ -30,7 +30,6 @@ import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,12 +47,11 @@ public class BizSyncService extends BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
 
     @Autowired
-    public BizSyncService(DSLContext dslContext,
-                          ApplicationDAO applicationDAO,
+    public BizSyncService(ApplicationDAO applicationDAO,
                           ApplicationHostDAO applicationHostDAO,
                           ApplicationService applicationService,
                           IBizCmdbClient bizCmdbClient) {
-        super(dslContext, applicationDAO, applicationHostDAO, applicationService, bizCmdbClient);
+        super(applicationDAO, applicationHostDAO, applicationService, bizCmdbClient);
         this.applicationDAO = applicationDAO;
     }
 

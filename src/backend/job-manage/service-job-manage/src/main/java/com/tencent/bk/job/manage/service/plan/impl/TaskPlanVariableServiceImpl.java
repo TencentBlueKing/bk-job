@@ -54,7 +54,7 @@ public class TaskPlanVariableServiceImpl extends AbstractTaskVariableService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public boolean batchUpdateVariableByName(List<TaskVariableDTO> variableList) {
         if (CollectionUtils.isEmpty(variableList)) {
             return false;

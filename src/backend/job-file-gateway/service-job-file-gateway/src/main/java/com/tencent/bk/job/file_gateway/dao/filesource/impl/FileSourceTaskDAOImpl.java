@@ -32,16 +32,17 @@ import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
+import com.tencent.bk.job.file_gateway.model.tables.FileSourceTask;
+import com.tencent.bk.job.file_gateway.model.tables.records.FileSourceTaskRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.FileSourceTask;
-import org.jooq.generated.tables.records.FileSourceTaskRecord;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -54,12 +55,13 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
 
     private static final FileSourceTask defaultTable = FileSourceTask.FILE_SOURCE_TASK;
     private final FileTaskDAO fileTaskDAO;
-    private final DSLContext defaultContext;
+    private final DSLContext dslContext;
 
     @Autowired
-    public FileSourceTaskDAOImpl(FileTaskDAO fileTaskDAO, DSLContext dslContext) {
+    public FileSourceTaskDAOImpl(FileTaskDAO fileTaskDAO,
+                                 @Qualifier("job-file-gateway-dsl-context") DSLContext dslContext) {
         this.fileTaskDAO = fileTaskDAO;
-        this.defaultContext = dslContext;
+        this.dslContext = dslContext;
     }
 
     private void setDefaultValue(FileSourceTaskDTO fileSourceTaskDTO) {
@@ -69,7 +71,7 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public String insertFileSourceTask(DSLContext dslContext, FileSourceTaskDTO fileSourceTaskDTO) {
+    public String insertFileSourceTask(FileSourceTaskDTO fileSourceTaskDTO) {
         setDefaultValue(fileSourceTaskDTO);
         String id = fileSourceTaskDTO.getId();
         if (id == null) {
@@ -111,7 +113,7 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
             for (FileTaskDTO fileTaskDTO : fileTaskDTOList) {
                 fileTaskDTO.setFileSourceTaskId(id);
                 // 插入FileTask
-                fileTaskDAO.insertFileTask(dslContext, fileTaskDTO);
+                fileTaskDAO.insertFileTask(fileTaskDTO);
             }
             fileSourceTaskDTO.setFileTaskList(fileTaskDTOList);
             return id;
@@ -122,7 +124,7 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public int updateFileSourceTask(DSLContext dslContext, FileSourceTaskDTO fileSourceTaskDTO) {
+    public int updateFileSourceTask(FileSourceTaskDTO fileSourceTaskDTO) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.BATCH_TASK_ID, fileSourceTaskDTO.getBatchTaskId())
             .set(defaultTable.APP_ID, fileSourceTaskDTO.getAppId())
@@ -141,7 +143,7 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public int updateFileClearStatus(DSLContext dslContext, List<String> taskIdList, boolean fileCleared) {
+    public int updateFileClearStatus(List<String> taskIdList, boolean fileCleared) {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.FILE_CLEARED, fileCleared)
             .set(defaultTable.LAST_MODIFY_TIME, System.currentTimeMillis())
@@ -156,14 +158,14 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public int deleteById(DSLContext dslContext, String id) {
+    public int deleteById(String id) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).execute();
     }
 
     @Override
-    public FileSourceTaskDTO getFileSourceTaskById(DSLContext dslContext, String id) {
+    public FileSourceTaskDTO getFileSourceTaskById(String id) {
         val record = dslContext.selectFrom(defaultTable).where(
             defaultTable.ID.eq(id)
         ).fetchOne();
@@ -175,16 +177,16 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public Long countFileSourceTasks(DSLContext dslContext, Long appId) {
+    public Long countFileSourceTasks(Long appId) {
         List<Condition> conditions = new ArrayList<>();
         if (appId != null) {
             conditions.add(defaultTable.APP_ID.eq(appId));
         }
-        return countFileSourceTasksByConditions(dslContext, conditions);
+        return countFileSourceTasksByConditions(conditions);
     }
 
     @Override
-    public Long countFileSourceTasksByBatchTaskId(DSLContext dslContext, String batchTaskId, Byte status) {
+    public Long countFileSourceTasksByBatchTaskId(String batchTaskId, Byte status) {
         List<Condition> conditions = new ArrayList<>();
         if (batchTaskId != null) {
             conditions.add(defaultTable.BATCH_TASK_ID.eq(batchTaskId));
@@ -192,10 +194,10 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
         if (status != null) {
             conditions.add(defaultTable.STATUS.eq(status));
         }
-        return countFileSourceTasksByConditions(dslContext, conditions);
+        return countFileSourceTasksByConditions(conditions);
     }
 
-    public Long countFileSourceTasksByConditions(DSLContext dslContext, Collection<Condition> conditions) {
+    public Long countFileSourceTasksByConditions(Collection<Condition> conditions) {
         val query = dslContext.select(
             DSL.countDistinct(defaultTable.ID)
         ).from(defaultTable)
@@ -203,7 +205,7 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
         return query.fetchOne(0, Long.class);
     }
 
-    public List<FileSourceTaskDTO> listByConditions(DSLContext dslContext, Collection<Condition> conditions,
+    public List<FileSourceTaskDTO> listByConditions(Collection<Condition> conditions,
                                                     Integer start, Integer pageSize) {
         val query = dslContext.selectFrom(defaultTable)
             .where(conditions)
@@ -212,17 +214,17 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public List<FileSourceTaskDTO> listFileSourceTasks(DSLContext dslContext, Long appId, Integer start,
+    public List<FileSourceTaskDTO> listFileSourceTasks(Long appId, Integer start,
                                                        Integer pageSize) {
         List<Condition> conditions = new ArrayList<>();
         if (appId != null) {
             conditions.add(defaultTable.APP_ID.eq(appId));
         }
-        return listByConditions(dslContext, conditions, start, pageSize);
+        return listByConditions(conditions, start, pageSize);
     }
 
     @Override
-    public List<FileSourceTaskDTO> listTimeoutTasks(DSLContext dslContext, Long expireTimeMills,
+    public List<FileSourceTaskDTO> listTimeoutTasks(Long expireTimeMills,
                                                     Collection<Byte> statusSet, Integer start, Integer pageSize) {
         List<Condition> conditions = new ArrayList<>();
         if (expireTimeMills != null && expireTimeMills > 0) {
@@ -231,7 +233,7 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
         if (statusSet != null && !statusSet.isEmpty()) {
             conditions.add(defaultTable.STATUS.in(statusSet));
         }
-        return listByConditions(defaultContext, conditions, start, pageSize);
+        return listByConditions(conditions, start, pageSize);
     }
 
     @Override
@@ -240,11 +242,11 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
         if (StringUtils.isNotBlank(batchTaskId)) {
             conditions.add(defaultTable.BATCH_TASK_ID.eq(batchTaskId));
         }
-        return listByConditions(defaultContext, conditions, null, null);
+        return listByConditions(conditions, null, null);
     }
 
     @Override
-    public int deleteByBatchTaskId(DSLContext dslContext, String batchTaskId) {
+    public int deleteByBatchTaskId(String batchTaskId) {
         return dslContext.deleteFrom(defaultTable).where(
             defaultTable.BATCH_TASK_ID.eq(batchTaskId)
         ).execute();

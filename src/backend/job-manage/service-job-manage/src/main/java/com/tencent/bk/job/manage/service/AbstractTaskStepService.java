@@ -160,7 +160,7 @@ public abstract class AbstractTaskStepService {
      * @return 新增的步骤 ID
      * @throws ServiceException 新增步骤异常
      */
-    @Transactional(rollbackFor = ServiceException.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = ServiceException.class)
     public long insertStep(TaskStepDTO taskStep) throws ServiceException {
         try {
             Long stepId = taskStepDAO.insertStep(taskStep);
@@ -240,7 +240,7 @@ public abstract class AbstractTaskStepService {
      * @return 是否更新成功
      * @throws ServiceException 更新异常
      */
-    @Transactional(rollbackFor = ServiceException.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = ServiceException.class)
     public boolean updateStepById(TaskStepDTO taskStep) throws ServiceException {
         try {
             if (taskStepDAO.updateStepById(taskStep)) {
@@ -328,7 +328,7 @@ public abstract class AbstractTaskStepService {
      * @return 是否删除成功
      * @throws ServiceException 删除异常
      */
-    @Transactional(rollbackFor = ServiceException.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = ServiceException.class)
     public boolean deleteStepById(Long parentId, Long id) throws ServiceException {
         try {
             TaskStepDTO taskStep = taskStepDAO.getStepById(parentId, id);

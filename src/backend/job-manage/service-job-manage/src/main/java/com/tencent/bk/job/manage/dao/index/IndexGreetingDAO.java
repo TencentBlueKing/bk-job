@@ -25,20 +25,10 @@
 package com.tencent.bk.job.manage.dao.index;
 
 import com.tencent.bk.job.manage.model.dto.index.IndexGreetingDTO;
-import org.jooq.DSLContext;
 
 import java.util.List;
 
 public interface IndexGreetingDAO {
-    int insertIndexGreeting(DSLContext dslContext, IndexGreetingDTO indexGreetingDTO);
 
-    int updateIndexGreetingById(DSLContext dslContext, IndexGreetingDTO indexGreetingDTO);
-
-    int deleteIndexGreetingById(DSLContext dslContext, Long id);
-
-    IndexGreetingDTO getIndexGreetingById(DSLContext dslContext, Long id);
-
-    List<IndexGreetingDTO> listAllIndexGreeting(DSLContext dslContext);
-
-    List<IndexGreetingDTO> listActiveIndexGreeting(DSLContext dslContext, int currentTimeSeconds);
+    List<IndexGreetingDTO> listActiveIndexGreeting(int currentTimeSeconds);
 }

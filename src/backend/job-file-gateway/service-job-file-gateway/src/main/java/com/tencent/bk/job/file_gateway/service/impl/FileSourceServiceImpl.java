@@ -40,7 +40,6 @@ import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,15 +52,14 @@ import java.util.Set;
 @Service
 public class FileSourceServiceImpl implements FileSourceService {
 
-    private final DSLContext dslContext;
     private final FileSourceTypeDAO fileSourceTypeDAO;
     private final FileSourceDAO fileSourceDAO;
     private final FileWorkerDAO fileWorkerDAO;
 
     @Autowired
-    public FileSourceServiceImpl(DSLContext dslContext, FileSourceTypeDAO fileSourceTypeDAO,
-                                 FileSourceDAO fileSourceDAO, FileWorkerDAO fileWorkerDAO) {
-        this.dslContext = dslContext;
+    public FileSourceServiceImpl(FileSourceTypeDAO fileSourceTypeDAO,
+                                 FileSourceDAO fileSourceDAO,
+                                 FileWorkerDAO fileWorkerDAO) {
         this.fileSourceTypeDAO = fileSourceTypeDAO;
         this.fileSourceDAO = fileSourceDAO;
         this.fileWorkerDAO = fileWorkerDAO;
@@ -84,54 +82,54 @@ public class FileSourceServiceImpl implements FileSourceService {
 
     @Override
     public Integer countAvailableFileSource(Long appId, String credentialId, String alias) {
-        return fileSourceDAO.countAvailableLikeFileSource(dslContext, appId, credentialId, alias);
+        return fileSourceDAO.countAvailableLikeFileSource(appId, credentialId, alias);
     }
 
     @Override
     public Integer countWorkTableFileSource(Long appId, String credentialId, String alias) {
-        return fileSourceDAO.countWorkTableFileSource(dslContext, appId, credentialId, alias);
+        return fileSourceDAO.countWorkTableFileSource(appId, credentialId, alias);
     }
 
     @Override
     public Integer countWorkTableFileSource(List<Long> appIdList, List<Integer> idList) {
-        return fileSourceDAO.countWorkTableFileSource(dslContext, appIdList, idList);
+        return fileSourceDAO.countWorkTableFileSource(appIdList, idList);
     }
 
     @Override
     public List<FileSourceDTO> listAvailableFileSource(Long appId, String credentialId, String alias, Integer start,
                                                        Integer pageSize) {
-        return fileSourceDAO.listAvailableFileSource(dslContext, appId, credentialId, alias, start, pageSize);
+        return fileSourceDAO.listAvailableFileSource(appId, credentialId, alias, start, pageSize);
     }
 
     @Override
     public List<FileSourceDTO> listWorkTableFileSource(Long appId, String credentialId, String alias, Integer start,
                                                        Integer pageSize) {
-        return fileSourceDAO.listWorkTableFileSource(dslContext, appId, credentialId, alias, start, pageSize);
+        return fileSourceDAO.listWorkTableFileSource(appId, credentialId, alias, start, pageSize);
     }
 
     @Override
     public List<FileSourceDTO> listWorkTableFileSource(List<Long> appIdList, List<Integer> idList, Integer start,
                                                        Integer pageSize) {
-        return fileSourceDAO.listWorkTableFileSource(dslContext, appIdList, idList, start, pageSize);
+        return fileSourceDAO.listWorkTableFileSource(appIdList, idList, start, pageSize);
     }
 
     @Override
     public Integer saveFileSource(Long appId, FileSourceDTO fileSourceDTO) {
-        if (fileSourceDAO.checkFileSourceExists(dslContext, fileSourceDTO.getAppId(), fileSourceDTO.getAlias())) {
+        if (fileSourceDAO.checkFileSourceExists(fileSourceDTO.getAppId(), fileSourceDTO.getAlias())) {
             throw new AlreadyExistsException(ErrorCode.FILE_SOURCE_ALIAS_ALREADY_EXISTS,
                 new String[]{fileSourceDTO.getAlias()});
         }
-        return fileSourceDAO.insertFileSource(dslContext, fileSourceDTO);
+        return fileSourceDAO.insertFileSource(fileSourceDTO);
     }
 
     @Override
     public int updateFileSourceById(Long appId, FileSourceDTO fileSourceDTO) {
-        return fileSourceDAO.updateFileSource(dslContext, fileSourceDTO);
+        return fileSourceDAO.updateFileSource(fileSourceDTO);
     }
 
     @Override
     public int updateFileSourceStatus(Integer fileSourceId, Integer status) {
-        return fileSourceDAO.updateFileSourceStatus(dslContext, fileSourceId, status);
+        return fileSourceDAO.updateFileSourceStatus(fileSourceId, status);
     }
 
     @Override
@@ -146,32 +144,32 @@ public class FileSourceServiceImpl implements FileSourceService {
 
     @Override
     public Integer deleteFileSourceById(Long appId, Integer id) {
-        return fileSourceDAO.deleteFileSourceById(dslContext, id);
+        return fileSourceDAO.deleteFileSourceById(id);
     }
 
     @Override
     public Boolean enableFileSourceById(String username, Long appId, Integer id, Boolean enableFlag) {
-        return fileSourceDAO.enableFileSourceById(dslContext, username, appId, id, enableFlag) == 1;
+        return fileSourceDAO.enableFileSourceById(username, appId, id, enableFlag) == 1;
     }
 
     @Override
     public FileSourceDTO getFileSourceById(Long appId, Integer id) {
-        return fileSourceDAO.getFileSourceById(dslContext, id);
+        return fileSourceDAO.getFileSourceById(id);
     }
 
     @Override
     public FileSourceDTO getFileSourceById(Integer id) {
-        return fileSourceDAO.getFileSourceById(dslContext, id);
+        return fileSourceDAO.getFileSourceById(id);
     }
 
     @Override
     public List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids) {
-        return fileSourceDAO.listFileSourceByIds(dslContext, ids);
+        return fileSourceDAO.listFileSourceByIds(ids);
     }
 
     @Override
     public FileSourceDTO getFileSourceByCode(String code) {
-        return fileSourceDAO.getFileSourceByCode(dslContext, code);
+        return fileSourceDAO.getFileSourceByCode(code);
     }
 
     private Long chooseAvailableWorker(String fileSourceTypeCode) {
@@ -202,7 +200,7 @@ public class FileSourceServiceImpl implements FileSourceService {
 
     @Override
     public Boolean checkFileSourceAlias(Long appId, String alias, Integer fileSourceId) {
-        int count = fileSourceDAO.countFileSource(dslContext, appId, null, alias);
+        int count = fileSourceDAO.countFileSource(appId, null, alias);
         if (count == 0) {
             return true;
         } else {

@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.request.ServiceGetCronTaskExecuteStatisticsRequest;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -38,7 +39,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
@@ -46,7 +46,7 @@ import java.util.Map;
  * 作业执行结果API-服务内部调用
  */
 @Api(tags = {"job-execute:service:Task_Execution_Result"})
-@RestController
+@SmartFeignClient(value = "job-execute", contextId = "taskExecuteResultResource")
 @InternalAPI
 public interface ServiceTaskExecuteResultResource {
     /**

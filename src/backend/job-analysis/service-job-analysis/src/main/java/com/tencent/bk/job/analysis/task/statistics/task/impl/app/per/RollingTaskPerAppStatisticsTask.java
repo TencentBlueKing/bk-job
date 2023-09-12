@@ -24,16 +24,17 @@
 
 package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
-import com.tencent.bk.job.analysis.client.ExecuteMetricsClient;
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -46,10 +47,11 @@ import java.util.List;
 public class RollingTaskPerAppStatisticsTask extends ExecuteBasePerAppStatisticsTask {
 
     @Autowired
-    public RollingTaskPerAppStatisticsTask(ExecuteMetricsClient executeMetricsClient,
-                                           BasicServiceManager basicServiceManager, StatisticsDAO statisticsDAO,
-                                           DSLContext dslContext) {
-        super(executeMetricsClient, basicServiceManager, statisticsDAO, dslContext);
+    public RollingTaskPerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
+                                           BasicServiceManager basicServiceManager,
+                                           StatisticsDAO statisticsDAO,
+                                           @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
+        super(executeMetricsResource, basicServiceManager, statisticsDAO, dslContext);
     }
 
     private StatisticsDTO getTaskTypeBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {

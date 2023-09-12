@@ -60,7 +60,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -83,14 +82,14 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
 
     @Autowired
     public ForbiddenScriptFinder(
-        DSLContext dslContext, AnalysisTaskDAO analysisTaskDAO,
+        AnalysisTaskDAO analysisTaskDAO,
         AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
         ApplicationService applicationService,
         TaskPlanService taskPlanService,
         TaskTemplateService templateService,
         ScriptService scriptService
     ) {
-        super(dslContext, analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
+        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
         this.taskPlanService = taskPlanService;
         this.templateService = templateService;
         this.scriptService = scriptService;

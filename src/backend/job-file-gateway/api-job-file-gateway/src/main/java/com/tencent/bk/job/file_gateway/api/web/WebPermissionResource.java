@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-file-gateway:web:Permission"})
-@RequestMapping("/web/permission/")
+@RequestMapping("/web/permission/fileGateway")
 @RestController
 @WebAPI
 public interface WebPermissionResource {

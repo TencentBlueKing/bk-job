@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service("ResourceNameQueryService")
+@Service("jobAnalysisResourceNameQueryService")
 public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
     @Autowired

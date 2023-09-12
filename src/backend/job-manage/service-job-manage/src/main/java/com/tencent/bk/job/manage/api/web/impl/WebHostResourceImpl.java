@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.service.CloudAreaService;
+import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotImplementedException;
@@ -528,7 +528,7 @@ public class WebHostResourceImpl implements WebHostResource {
             if (cloudAreaInfo != null
                 && cloudAreaInfo.getId() != null
                 && StringUtils.isBlank(cloudAreaInfo.getName())) {
-                cloudAreaInfo.setName(CloudAreaService.getCloudAreaNameFromCache(cloudAreaInfo.getId()));
+                cloudAreaInfo.setName(BkNetClient.getCloudAreaNameFromCache(cloudAreaInfo.getId()));
             }
         });
         return Response.buildSuccessResp(hostList);

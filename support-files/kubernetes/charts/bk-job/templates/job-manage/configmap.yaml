@@ -1,4 +1,4 @@
-{{- if .Values.manageConfig.enabled }}
+{{- if and .Values.manageConfig.enabled (eq .Values.deploy.mode "standard") }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -84,10 +84,10 @@ data:
               enabled: {{ .Values.manageConfig.sync.resource.watch.enabled }}
           hostEvent:
             handlerNum: {{ .Values.manageConfig.sync.hostEvent.handlerNum }}
-    notify:
-      default:
-        channels:
-          available: mail
+        notify:
+          default:
+            channels:
+              available: mail
     server:
       port: {{ .Values.manageConfig.containerPort }}
 {{- end }}

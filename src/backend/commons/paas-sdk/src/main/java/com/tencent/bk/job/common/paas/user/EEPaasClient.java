@@ -82,10 +82,9 @@ public class EEPaasClient extends AbstractEsbSdkClient implements IPaasClient {
         String appCode,
         String appSecret,
         String lang,
-        boolean useEsbTestEnv,
         MeterRegistry meterRegistry
     ) {
-        super(esbHostUrl, appCode, appSecret, lang, useEsbTestEnv);
+        super(esbHostUrl, appCode, appSecret, lang);
         this.meterRegistry = meterRegistry;
     }
 

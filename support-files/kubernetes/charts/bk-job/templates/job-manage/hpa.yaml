@@ -1,4 +1,4 @@
-{{- if and (.Values.manageConfig.enabled) (.Values.manageConfig.autoscaling.enabled) }}
+{{- if and (.Values.manageConfig.enabled) (.Values.manageConfig.autoscaling.enabled) (eq .Values.deploy.mode "standard") }}
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:

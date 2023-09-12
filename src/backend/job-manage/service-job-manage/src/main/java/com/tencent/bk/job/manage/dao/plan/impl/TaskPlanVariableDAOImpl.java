@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
+import com.tencent.bk.job.manage.model.tables.TaskPlanVariable;
+import com.tencent.bk.job.manage.model.tables.records.TaskPlanVariableRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,8 +43,6 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
-import org.jooq.generated.tables.TaskPlanVariable;
-import org.jooq.generated.tables.records.TaskPlanVariableRecord;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -249,7 +249,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public boolean updateVariableByName(TaskVariableDTO variable) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.PLAN_ID.equal(ULong.valueOf(variable.getPlanId())));

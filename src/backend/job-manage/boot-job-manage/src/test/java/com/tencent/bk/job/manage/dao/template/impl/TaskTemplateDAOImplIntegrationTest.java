@@ -81,10 +81,12 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_1.setDescription("这是一个测试模版。这段描述是随便写的，没什么意义。1");
         TEMPLATE_INFO_1.setCreator("userC");
         TEMPLATE_INFO_1.setStatus(TaskTemplateStatusEnum.NEW);
-        TEMPLATE_INFO_1.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        TEMPLATE_INFO_1.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+            .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_1.setLastModifyUser("userC");
         TEMPLATE_INFO_1
-            .setLastModifyTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+            .setLastModifyTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+                .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_1.setTags(Stream.of(1L, 2L, 3L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
@@ -101,10 +103,12 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_2.setDescription("这是一个测试模版。这段描述是随便写的，没什么意义。2");
         TEMPLATE_INFO_2.setCreator("userC");
         TEMPLATE_INFO_2.setStatus(TaskTemplateStatusEnum.IN_REVIEW);
-        TEMPLATE_INFO_2.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        TEMPLATE_INFO_2.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+            .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_2.setLastModifyUser("userT");
         TEMPLATE_INFO_2
-            .setLastModifyTime(LocalDateTime.of(2019, 10, 2, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+            .setLastModifyTime(LocalDateTime.of(2019, 10, 2, 0, 0, 0, 0)
+                .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_2.setTags(Stream.of(2L, 3L, 4L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
@@ -121,10 +125,12 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_3.setDescription("这是一个测试模版。这段描述是随便写的，没什么意义。3");
         TEMPLATE_INFO_3.setCreator("userC");
         TEMPLATE_INFO_3.setStatus(TaskTemplateStatusEnum.PUBLISHED);
-        TEMPLATE_INFO_3.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        TEMPLATE_INFO_3.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+            .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_3.setLastModifyUser("userC");
         TEMPLATE_INFO_3
-            .setLastModifyTime(LocalDateTime.of(2019, 10, 8, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+            .setLastModifyTime(LocalDateTime.of(2019, 10, 8, 0, 0, 0, 0)
+                .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_3.setTags(Stream.of(3L, 4L, 5L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
@@ -141,10 +147,12 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_4.setDescription("这是一个测试模版。这段描述是随便写的，没什么意义。4");
         TEMPLATE_INFO_4.setCreator("userT");
         TEMPLATE_INFO_4.setStatus(TaskTemplateStatusEnum.REJECTED);
-        TEMPLATE_INFO_4.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        TEMPLATE_INFO_4.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+            .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_4.setLastModifyUser("userT");
         TEMPLATE_INFO_4
-            .setLastModifyTime(LocalDateTime.of(2019, 10, 4, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+            .setLastModifyTime(LocalDateTime.of(2019, 10, 4, 0, 0, 0, 0)
+                .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_4.setTags(Stream.of(1L, 3L, 5L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
@@ -161,10 +169,12 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_5.setDescription("这是一个测试模版。这段描述是随便写的，没什么意义。5");
         TEMPLATE_INFO_5.setCreator("userT");
         TEMPLATE_INFO_5.setStatus(TaskTemplateStatusEnum.PUBLISHED);
-        TEMPLATE_INFO_5.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        TEMPLATE_INFO_5.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+            .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_5.setLastModifyUser("userC");
         TEMPLATE_INFO_5
-            .setLastModifyTime(LocalDateTime.of(2019, 10, 5, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+            .setLastModifyTime(LocalDateTime.of(2019, 10, 5, 0, 0, 0, 0)
+                .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_5.setTags(Stream.of(2L, 4L, 6L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
@@ -181,10 +191,12 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_6.setDescription("这是一个测试模版。这段描述是随便写的，没什么意义。6");
         TEMPLATE_INFO_6.setCreator("userT");
         TEMPLATE_INFO_6.setStatus(TaskTemplateStatusEnum.IN_REVIEW);
-        TEMPLATE_INFO_6.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        TEMPLATE_INFO_6.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+            .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_6.setLastModifyUser("userT");
         TEMPLATE_INFO_6
-            .setLastModifyTime(LocalDateTime.of(2019, 10, 3, 1, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+            .setLastModifyTime(LocalDateTime.of(2019, 10, 3, 1, 0, 0, 0)
+                .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_6.setTags(Stream.of(1L, 4L, 7L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
@@ -201,10 +213,12 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_7.setDescription("这是一个测试模版。这段描述是随便写的，没什么意义。7");
         TEMPLATE_INFO_7.setCreator("userT");
         TEMPLATE_INFO_7.setStatus(TaskTemplateStatusEnum.NEW);
-        TEMPLATE_INFO_7.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        TEMPLATE_INFO_7.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+            .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_7.setLastModifyUser("userC");
         TEMPLATE_INFO_7
-            .setLastModifyTime(LocalDateTime.of(2019, 10, 2, 1, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+            .setLastModifyTime(LocalDateTime.of(2019, 10, 2, 1, 0, 0, 0)
+                .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_7.setTags(Stream.of(2L, 5L, 8L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
@@ -221,10 +235,12 @@ class TaskTemplateDAOImplIntegrationTest {
         TEMPLATE_INFO_8.setDescription("这是一个测试模版。这段描述是随便写的，没什么意义。8");
         TEMPLATE_INFO_8.setCreator("userC");
         TEMPLATE_INFO_8.setStatus(TaskTemplateStatusEnum.PUBLISHED);
-        TEMPLATE_INFO_8.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        TEMPLATE_INFO_8.setCreateTime(LocalDateTime.of(2019, 10, 1, 0, 0, 0, 0)
+            .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_8.setLastModifyUser("userT");
         TEMPLATE_INFO_8
-            .setLastModifyTime(LocalDateTime.of(2019, 10, 6, 0, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+            .setLastModifyTime(LocalDateTime.of(2019, 10, 6, 0, 0, 0, 0)
+                .toEpochSecond(ZoneOffset.ofHours(8)));
         TEMPLATE_INFO_8.setTags(Stream.of(3L, 6L, 9L).map(tagId -> {
             TagDTO tagInfo = new TagDTO();
             tagInfo.setId(tagId);
@@ -238,7 +254,8 @@ class TaskTemplateDAOImplIntegrationTest {
 
     @Test
     void giveNormalTemplateIdReturnTemplateInfo() {
-        TaskTemplateInfoDTO template = taskTemplateDAO.getTaskTemplateById(TEMPLATE_INFO_1.getAppId(), TEMPLATE_INFO_1.getId());
+        TaskTemplateInfoDTO template = taskTemplateDAO.getTaskTemplateById(
+            TEMPLATE_INFO_1.getAppId(), TEMPLATE_INFO_1.getId());
         assertThat(template).isNotNull();
         assertThat(template.getId()).isEqualTo(TEMPLATE_INFO_1.getId());
         assertThat(template.getAppId()).isEqualTo(TEMPLATE_INFO_1.getAppId());

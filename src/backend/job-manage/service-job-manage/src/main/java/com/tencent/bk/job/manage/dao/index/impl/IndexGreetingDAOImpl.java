@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.dao.index.impl;
 
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.model.dto.index.IndexGreetingDTO;
+import com.tencent.bk.job.manage.model.tables.IndexGreeting;
+import com.tencent.bk.job.manage.model.tables.records.IndexGreetingRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
@@ -33,9 +35,8 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.IndexGreeting;
-import org.jooq.generated.tables.records.IndexGreetingRecord;
-import org.jooq.types.ULong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -43,106 +44,29 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/3/6
- * @Version 1.0
- */
 @Repository
 @Slf4j
 public class IndexGreetingDAOImpl implements IndexGreetingDAO {
 
     private static final IndexGreeting defaultTable = IndexGreeting.INDEX_GREETING;
 
-    @Override
-    public int insertIndexGreeting(DSLContext dslContext, IndexGreetingDTO indexGreetingDTO) {
-        val query = dslContext.insertInto(defaultTable,
-            defaultTable.ID,
-            defaultTable.START_SECONDS,
-            defaultTable.END_SECONDS,
-            defaultTable.CONTENT,
-            defaultTable.PRIORITY,
-            defaultTable.ACTIVE,
-            defaultTable.CREATOR,
-            defaultTable.CREATE_TIME,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        ).values(
-            null,
-            indexGreetingDTO.getStartSeconds(),
-            indexGreetingDTO.getEndSeconds(),
-            indexGreetingDTO.getContent(),
-            indexGreetingDTO.getPriority(),
-            indexGreetingDTO.isActive(),
-            indexGreetingDTO.getCreator(),
-            ULong.valueOf(indexGreetingDTO.getCreateTime()),
-            indexGreetingDTO.getLastModifier(),
-            ULong.valueOf(indexGreetingDTO.getLastModifyTime())
-        );
-        val sql = query.getSQL(ParamType.INLINED);
-        try {
-            return query.execute();
-        } catch (Exception e) {
-            log.error(sql);
-            throw e;
-        }
+    private final DSLContext dslContext;
+
+    @Autowired
+    public IndexGreetingDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Override
-    public int updateIndexGreetingById(DSLContext dslContext, IndexGreetingDTO indexGreetingDTO) {
-        val query = dslContext.update(defaultTable)
-            .set(defaultTable.START_SECONDS, indexGreetingDTO.getStartSeconds())
-            .set(defaultTable.END_SECONDS, indexGreetingDTO.getEndSeconds())
-            .set(defaultTable.CONTENT, indexGreetingDTO.getContent())
-            .set(defaultTable.PRIORITY, indexGreetingDTO.getEndSeconds())
-            .set(defaultTable.ACTIVE, indexGreetingDTO.isActive())
-            .set(defaultTable.LAST_MODIFY_USER, indexGreetingDTO.getLastModifier())
-            .set(defaultTable.LAST_MODIFY_TIME, ULong.valueOf(indexGreetingDTO.getLastModifyTime()))
-            .where(defaultTable.ID.eq(indexGreetingDTO.getId()));
-        val sql = query.getSQL(ParamType.INLINED);
-        try {
-            return query.execute();
-        } catch (Exception e) {
-            log.error(sql);
-            throw e;
-        }
-    }
-
-    @Override
-    public int deleteIndexGreetingById(DSLContext dslContext, Long id) {
-        return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).execute();
-    }
-
-    @Override
-    public IndexGreetingDTO getIndexGreetingById(DSLContext dslContext, Long id) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return convert(record);
-        }
-    }
-
-    @Override
-    public List<IndexGreetingDTO> listAllIndexGreeting(DSLContext dslContext) {
-        return listIndexGreetingWithConditions(dslContext, Collections.emptyList());
-    }
-
-    @Override
-    public List<IndexGreetingDTO> listActiveIndexGreeting(DSLContext dslContext, int currentTimeSeconds) {
+    public List<IndexGreetingDTO> listActiveIndexGreeting(int currentTimeSeconds) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ACTIVE.eq(true));
         conditions.add(defaultTable.START_SECONDS.lessOrEqual(currentTimeSeconds));
         conditions.add(defaultTable.END_SECONDS.greaterOrEqual(currentTimeSeconds));
-        return listIndexGreetingWithConditions(dslContext, conditions);
+        return listIndexGreetingWithConditions(conditions);
     }
 
-    private List<IndexGreetingDTO> listIndexGreetingWithConditions(DSLContext dslContext,
-                                                                   Collection<Condition> conditions) {
+    private List<IndexGreetingDTO> listIndexGreetingWithConditions(Collection<Condition> conditions) {
         var query = dslContext.selectFrom(defaultTable).where(
             conditions
             //默认按照优先级排序
@@ -155,7 +79,7 @@ public class IndexGreetingDAOImpl implements IndexGreetingDAO {
             log.error(sql);
             throw e;
         }
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::convert);

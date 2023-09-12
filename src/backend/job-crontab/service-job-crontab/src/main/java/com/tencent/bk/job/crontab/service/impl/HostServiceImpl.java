@@ -26,8 +26,8 @@ package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.crontab.client.ServiceHostResourceClient;
 import com.tencent.bk.job.crontab.service.HostService;
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import lombok.extern.slf4j.Slf4j;
@@ -44,14 +44,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
+@Service("jobCrontabHostService")
 public class HostServiceImpl implements HostService {
 
-    private final ServiceHostResourceClient serviceHostResourceClient;
+    private final ServiceHostResource hostResource;
 
     @Autowired
-    public HostServiceImpl(ServiceHostResourceClient serviceHostResourceClient) {
-        this.serviceHostResourceClient = serviceHostResourceClient;
+    public HostServiceImpl(ServiceHostResource hostResource) {
+        this.hostResource = hostResource;
     }
 
     private void fillHostInfo(HostDTO hostDTO, ServiceHostDTO serviceHostDTO) {
@@ -82,7 +82,7 @@ public class HostServiceImpl implements HostService {
             return 0;
         }
         InternalResponse<List<ServiceHostDTO>> resp =
-            serviceHostResourceClient.batchGetHosts(new ServiceBatchGetHostsReq(hostList));
+            hostResource.batchGetHosts(new ServiceBatchGetHostsReq(hostList));
         List<ServiceHostDTO> serviceHostDTOList = resp.getData();
         if (CollectionUtils.isEmpty(serviceHostDTOList)) {
             log.info(

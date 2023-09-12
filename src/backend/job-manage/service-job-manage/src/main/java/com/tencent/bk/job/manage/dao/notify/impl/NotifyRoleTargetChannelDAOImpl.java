@@ -24,38 +24,31 @@
 
 package com.tencent.bk.job.manage.dao.notify.impl;
 
-import com.tencent.bk.job.common.RequestIdLogger;
-import com.tencent.bk.job.common.util.SimpleRequestIdLogger;
 import com.tencent.bk.job.manage.dao.notify.NotifyRoleTargetChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyRoleTargetChannelDTO;
+import com.tencent.bk.job.manage.model.tables.NotifyRoleTargetChannel;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.conf.ParamType;
-import org.jooq.generated.tables.NotifyRoleTargetChannel;
 import org.jooq.types.ULong;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Repository
+@Slf4j
 public class NotifyRoleTargetChannelDAOImpl implements NotifyRoleTargetChannelDAO {
-    private static final RequestIdLogger logger =
-        new SimpleRequestIdLogger(LoggerFactory.getLogger(NotifyRoleTargetChannelDAOImpl.class));
     private static final NotifyRoleTargetChannel T_NOTIFY_ROLE_TARGET_CHANNEL =
         NotifyRoleTargetChannel.NOTIFY_ROLE_TARGET_CHANNEL;
 
     private final DSLContext dslContext;
 
     @Autowired
-    public NotifyRoleTargetChannelDAOImpl(DSLContext dslContext) {
+    public NotifyRoleTargetChannelDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
@@ -82,13 +75,13 @@ public class NotifyRoleTargetChannelDAOImpl implements NotifyRoleTargetChannelDA
             assert record != null;
             return record.get(T_NOTIFY_ROLE_TARGET_CHANNEL.ID);
         } catch (Exception e) {
-            logger.errorWithRequestId(sql);
+            log.error(sql);
             throw e;
         }
     }
 
     @Override
-    public int deleteByRoleTargetId(DSLContext dslContext, Long roleTargetId) {
+    public int deleteByRoleTargetId(Long roleTargetId) {
         //1.无从表
         //2.直接删主表
         return dslContext.deleteFrom(T_NOTIFY_ROLE_TARGET_CHANNEL).where(
@@ -97,8 +90,7 @@ public class NotifyRoleTargetChannelDAOImpl implements NotifyRoleTargetChannelDA
     }
 
     @Override
-    public List<NotifyRoleTargetChannelDTO> listByRoleTargetId(DSLContext dslContext,
-                                                               Long roleTargetId) {
+    public List<NotifyRoleTargetChannelDTO> listByRoleTargetId(Long roleTargetId) {
         val records = dslContext.selectFrom(T_NOTIFY_ROLE_TARGET_CHANNEL).where(
             T_NOTIFY_ROLE_TARGET_CHANNEL.ROLE_TARGET_ID.eq(roleTargetId)
         ).fetch();

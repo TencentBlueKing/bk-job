@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.analysis.service;
 
+import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.model.web.DayDistributionElementVO;
-import com.tencent.bk.job.common.statistics.consts.StatisticsConstants;
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

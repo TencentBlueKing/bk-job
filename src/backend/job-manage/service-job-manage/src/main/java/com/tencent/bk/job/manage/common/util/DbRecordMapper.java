@@ -45,15 +45,15 @@ import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+import com.tencent.bk.job.manage.model.tables.TaskPlan;
+import com.tencent.bk.job.manage.model.tables.TaskTemplate;
+import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFileList;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Record11;
 import org.jooq.Record13;
 import org.jooq.Record15;
 import org.jooq.Record6;
 import org.jooq.Record9;
-import org.jooq.generated.tables.TaskPlan;
-import org.jooq.generated.tables.TaskTemplate;
-import org.jooq.generated.tables.TaskTemplateStepFileList;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 

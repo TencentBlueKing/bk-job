@@ -32,8 +32,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.paas.config.LoginConfiguration;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
-import com.tencent.bk.job.gateway.config.BkConfig;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class LoginServiceImpl implements LoginService {
-    private final BkConfig bkConfig;
+    private final LoginConfiguration loginConfig;
     private final String tokenName;
     private final String loginUrl;
     private final ILoginClient enLoginClient;
@@ -75,24 +75,24 @@ public class LoginServiceImpl implements LoginService {
         );
 
     @Autowired
-    public LoginServiceImpl(BkConfig bkConfig,
+    public LoginServiceImpl(LoginConfiguration loginConfig,
                             @Qualifier("enLoginClient") ILoginClient enLoginClient,
                             @Qualifier("cnLoginClient") ILoginClient cnLoginClient) {
-        this.bkConfig = bkConfig;
+        this.loginConfig = loginConfig;
         this.enLoginClient = enLoginClient;
         this.cnLoginClient = cnLoginClient;
         this.loginUrl = getLoginUrlProp();
-        this.tokenName = bkConfig.isCustomPaasLoginEnabled() ? bkConfig.getCustomLoginToken() : "bk_token";
+        this.tokenName = loginConfig.isCustomPaasLoginEnabled() ? loginConfig.getCustomLoginToken() : "bk_token";
         log.info("Init login service, customLoginEnabled:{}, loginClient:{}, loginUrl:{}, tokenName:{}",
-            bkConfig.isCustomPaasLoginEnabled(), enLoginClient.getClass(), loginUrl, tokenName);
+            loginConfig.isCustomPaasLoginEnabled(), enLoginClient.getClass(), loginUrl, tokenName);
     }
 
     private String getLoginUrlProp() {
         String loginUrl;
-        if (bkConfig.isCustomPaasLoginEnabled()) {
-            loginUrl = bkConfig.getCustomLoginUrl();
+        if (loginConfig.isCustomPaasLoginEnabled()) {
+            loginUrl = loginConfig.getCustomLoginUrl();
         } else {
-            loginUrl = bkConfig.getLoginUrl();
+            loginUrl = loginConfig.getLoginUrl();
         }
         if (!loginUrl.endsWith("?")) {
             loginUrl = loginUrl + "?";

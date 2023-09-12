@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
@@ -70,7 +71,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

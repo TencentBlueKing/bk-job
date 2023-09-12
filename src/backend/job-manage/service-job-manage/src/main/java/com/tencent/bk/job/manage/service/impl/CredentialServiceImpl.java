@@ -35,7 +35,6 @@ import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,12 +44,10 @@ import java.util.List;
 @Service
 public class CredentialServiceImpl implements CredentialService {
 
-    private final DSLContext dslContext;
     private final CredentialDAO credentialDAO;
 
     @Autowired
-    public CredentialServiceImpl(DSLContext dslContext, CredentialDAO credentialDAO) {
-        this.dslContext = dslContext;
+    public CredentialServiceImpl(CredentialDAO credentialDAO) {
         this.credentialDAO = credentialDAO;
     }
 
@@ -67,7 +64,7 @@ public class CredentialServiceImpl implements CredentialService {
         String id = createUpdateReq.getId();
         CredentialDTO credentialDTO = buildCredentialDTO(username, appId, createUpdateReq);
         if (StringUtils.isNotBlank(id)) {
-            CredentialDTO oldCredentialDTO = credentialDAO.getCredentialById(dslContext, id);
+            CredentialDTO oldCredentialDTO = credentialDAO.getCredentialById(id);
             if (oldCredentialDTO == null) {
                 throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
             }
@@ -83,22 +80,22 @@ public class CredentialServiceImpl implements CredentialService {
             } else {
                 credentialDTO.setSecondValue(value2);
             }
-            return credentialDAO.updateCredentialById(dslContext, credentialDTO);
+            return credentialDAO.updateCredentialById(credentialDTO);
         } else {
             credentialDTO.setCreator(username);
             credentialDTO.setCreateTime(credentialDTO.getLastModifyTime());
-            return credentialDAO.insertCredential(dslContext, credentialDTO);
+            return credentialDAO.insertCredential(credentialDTO);
         }
     }
 
     @Override
     public Integer deleteCredentialById(String username, Long appId, String id) {
-        return credentialDAO.deleteCredentialById(dslContext, id);
+        return credentialDAO.deleteCredentialById(id);
     }
 
     @Override
     public ServiceCredentialDTO getServiceCredentialById(Long appId, String id) {
-        CredentialDTO credentialDTO = credentialDAO.getCredentialById(dslContext, id);
+        CredentialDTO credentialDTO = credentialDAO.getCredentialById(id);
         if (credentialDTO == null || !credentialDTO.getAppId().equals(appId)) {
             return null;
         } else {
@@ -108,7 +105,7 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Override
     public ServiceCredentialDTO getServiceCredentialById(String id) {
-        CredentialDTO credentialDTO = credentialDAO.getCredentialById(dslContext, id);
+        CredentialDTO credentialDTO = credentialDAO.getCredentialById(id);
         if (credentialDTO == null) {
             return null;
         } else {
@@ -118,7 +115,7 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Override
     public List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids) {
-        return credentialDAO.listCredentialDisplayInfoByIds(dslContext, ids);
+        return credentialDAO.listCredentialDisplayInfoByIds(ids);
     }
 
     private CredentialDTO buildCredentialDTO(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {

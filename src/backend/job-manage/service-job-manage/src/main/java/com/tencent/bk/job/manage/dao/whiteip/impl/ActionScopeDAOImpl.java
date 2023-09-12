@@ -28,12 +28,13 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
+import com.tencent.bk.job.manage.model.tables.ActionScope;
+import com.tencent.bk.job.manage.model.tables.records.ActionScopeRecord;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
 import lombok.val;
 import org.jooq.DSLContext;
-import org.jooq.generated.tables.ActionScope;
-import org.jooq.generated.tables.records.ActionScopeRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -46,7 +47,8 @@ public class ActionScopeDAOImpl implements ActionScopeDAO {
     private final MessageI18nService i18nService;
 
     @Autowired
-    public ActionScopeDAOImpl(DSLContext dslContext, MessageI18nService i18nService) {
+    public ActionScopeDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext,
+                              MessageI18nService i18nService) {
         this.defaultDslContext = dslContext;
         this.i18nService = i18nService;
     }

@@ -44,7 +44,6 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
-import com.tencent.bk.job.crontab.client.ServiceTaskPlanResourceClient;
 import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
@@ -57,6 +56,7 @@ import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
 import com.tencent.bk.job.crontab.model.inner.ServerDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
+import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -76,13 +76,13 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
     private final CronJobService cronJobService;
     private final CronAuthService cronAuthService;
-    private final ServiceTaskPlanResourceClient taskPlanResource;
+    private final ServiceTaskPlanResource taskPlanResource;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbCronJobV3ResourceImpl(CronJobService cronJobService,
                                     CronAuthService cronAuthService,
-                                    ServiceTaskPlanResourceClient taskPlanResource,
+                                    ServiceTaskPlanResource taskPlanResource,
                                     AppScopeMappingService appScopeMappingService) {
         this.cronJobService = cronJobService;
         this.cronAuthService = cronAuthService;

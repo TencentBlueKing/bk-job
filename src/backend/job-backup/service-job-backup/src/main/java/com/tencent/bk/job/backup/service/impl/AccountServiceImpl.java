@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
-import com.tencent.bk.job.backup.client.ServiceAccountResourceClient;
 import com.tencent.bk.job.backup.service.AccountService;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.api.inner.ServiceAccountResource;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import lombok.extern.slf4j.Slf4j;
@@ -41,22 +41,19 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @since 24/11/2020 21:08
- */
 @Slf4j
-@Service
+@Service("jobBackupAccountService")
 public class AccountServiceImpl implements AccountService {
-    private final ServiceAccountResourceClient serviceAccountResourceClient;
+    private final ServiceAccountResource accountResource;
 
     @Autowired
-    public AccountServiceImpl(ServiceAccountResourceClient serviceAccountResourceClient) {
-        this.serviceAccountResourceClient = serviceAccountResourceClient;
+    public AccountServiceImpl(ServiceAccountResource accountResource) {
+        this.accountResource = accountResource;
     }
 
     @Override
     public ServiceAccountDTO getAccountAliasById(Long id) {
-        InternalResponse<ServiceAccountDTO> accountResp = serviceAccountResourceClient.getAccountByAccountId(id);
+        InternalResponse<ServiceAccountDTO> accountResp = accountResource.getAccountByAccountId(id);
         if (accountResp != null) {
             if (0 == accountResp.getCode()) {
                 ServiceAccountDTO account = accountResp.getData();
@@ -81,7 +78,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public List<ServiceAccountDTO> listAccountByAppId(String username, Long appId) {
-        Response<List<ServiceAccountDTO>> appAccountListResp = serviceAccountResourceClient.listAccounts(appId, null);
+        Response<List<ServiceAccountDTO>> appAccountListResp = accountResource.listAccounts(appId, null);
         if (appAccountListResp != null) {
             if (0 == appAccountListResp.getCode()) {
                 List<ServiceAccountDTO> accountList = appAccountListResp.getData();
@@ -117,7 +114,7 @@ public class AccountServiceImpl implements AccountService {
         accountCreateUpdateReq.setDbPassword(account.getDbPassword());
         accountCreateUpdateReq.setDbPort(account.getDbPort());
 
-        Response<Long> saveAccountResp = serviceAccountResourceClient.saveAccount(username,
+        Response<Long> saveAccountResp = accountResource.saveAccount(username,
             appId, accountCreateUpdateReq);
 
         Integer errorCode = -1;

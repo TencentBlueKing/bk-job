@@ -1,0 +1,25 @@
+{{- if eq .Values.deploy.mode "lite" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: job-assemble
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-assemble"
+    {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.assembleConfig.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.assembleConfig.service.port }}
+      targetPort: {{ .Values.assembleConfig.containerPort }}
+      protocol: TCP
+  selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
+    app.kubernetes.io/component: "job-assemble"
+{{- end }}

@@ -1,3 +1,4 @@
 # AutoConfiguration
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.tencent.bk.job.common.config.JobLoadBalancerClientAutoConfiguration
+com.tencent.bk.job.common.service.lb.JobLoadBalancerClientAutoConfiguration, \
+com.tencent.bk.job.common.service.deploy.DeployAutoConfiguration

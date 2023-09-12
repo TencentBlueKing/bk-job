@@ -31,30 +31,27 @@ buildscript {
         set("gradleJooqVersion", "3.0.0")
     }
 
-    def mavenRepoUrl = System.getProperty("mavenRepoUrl")
-
-    if (mavenRepoUrl == null) {
-        mavenRepoUrl = System.getenv("mavenRepoUrl")
-    }
-
-    if (mavenRepoUrl == null) {
-        println "use default maven repo url."
-        mavenRepoUrl = MAVEN_REPO_URL
-    }
     repositories {
         mavenLocal()
-        def extraMavenRepoUrls = System.getProperty("extraMavenRepoUrls")
-        if (extraMavenRepoUrls == null) {
-            extraMavenRepoUrls = System.getenv("extraMavenRepoUrls")
+
+        // 用户通过命令行方式指定的 maven repo
+        def mavenRepoUrls = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrls == null || mavenRepoUrls.trim().length() == 0) {
+            // gradle.properties 中的 maven repo。优先级从高到低:
+            // 1. command line, as set using -D.
+            // 2. gradle.properties in GRADLE_USER_HOME directory (<home directory of the current user>/.gradle by default)
+            // 3. gradle.properties in the project’s directory, then its parent project’s directory up to the build’s root directory.
+            // 4. gradle.properties in Gradle installation directory.
+            mavenRepoUrls = project.findProperty("MAVEN_REPO_URL")
         }
-        if (extraMavenRepoUrls != null) {
-            String[] repoUrls = extraMavenRepoUrls.trim().replace(" ", "").split(",")
+        if (mavenRepoUrls != null && mavenRepoUrls.trim().length() > 0) {
+            String[] repoUrls = mavenRepoUrls.trim().replace(" ", "").split(",")
             for (String repoUrl : repoUrls) {
-                println("Add extra maven repo:" + repoUrl)
+                println("Add maven repo:" + repoUrl)
                 maven { url repoUrl }
             }
         }
-        maven { url mavenRepoUrl }
+
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
@@ -64,6 +61,7 @@ buildscript {
         classpath "nu.studer:gradle-jooq-plugin:$gradleJooqVersion"
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
         classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.5"
+        classpath "com.vanniktech:gradle-dependency-graph-generator-plugin:0.8.0"
     }
 }
 
@@ -76,6 +74,12 @@ plugins {
 }
 
 ext {
+    // 是否容器化部署
+    def assemblyMode = System.getProperty("assemblyMode")
+    def k8sMode = assemblyMode == "k8s"
+    set("k8sMode", k8sMode)
+    println("assembly mode: $assemblyMode")
+
     set("springVersion", "5.3.25")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
     set("springBootVersion", "2.6.13")
@@ -123,7 +127,7 @@ ext {
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.64")
-    set('reflectionsVersion', "0.9.12")
+    set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
     set('commonsValidatorVersion', "1.6")
@@ -152,6 +156,7 @@ allprojects {
     apply plugin: "eclipse"
     apply plugin: "java-library"
     apply plugin: "io.spring.dependency-management"
+    apply plugin: "com.vanniktech.dependency.graph.generator"
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -161,31 +166,27 @@ allprojects {
         options.compilerArgs.add '-parameters'
     }
 
-    def mavenRepoUrl = System.getProperty("mavenRepoUrl")
-
-    if (mavenRepoUrl == null) {
-        mavenRepoUrl = System.getenv("mavenRepoUrl")
-    }
-
-    if (mavenRepoUrl == null) {
-        println "use default maven repo url."
-        mavenRepoUrl = MAVEN_REPO_URL
-    }
-
     repositories {
         mavenLocal()
-        def extraMavenRepoUrls = System.getProperty("extraMavenRepoUrls")
-        if (extraMavenRepoUrls == null) {
-            extraMavenRepoUrls = System.getenv("extraMavenRepoUrls")
+
+        // 用户通过命令行方式指定的 maven repo
+        def mavenRepoUrls = System.getProperty("mavenRepoUrl")
+        if (mavenRepoUrls == null || mavenRepoUrls.trim().length() == 0) {
+            // gradle.properties 中的 maven repo。优先级从高到低:
+            // 1. command line, as set using -D.
+            // 2. gradle.properties in GRADLE_USER_HOME directory. (<home directory of the current user>/.gradle by default)
+            // 3. gradle.properties in the project’s directory, then its parent project’s directory up to the build’s root directory.
+            // 4. gradle.properties in Gradle installation directory.
+            mavenRepoUrls = project.findProperty("MAVEN_REPO_URL")
         }
-        if (extraMavenRepoUrls != null) {
-            String[] repoUrls = extraMavenRepoUrls.trim().replace(" ", "").split(",")
+        if (mavenRepoUrls != null && mavenRepoUrls.trim().length() > 0) {
+            String[] repoUrls = mavenRepoUrls.trim().replace(" ", "").split(",")
             for (String repoUrl : repoUrls) {
-                println("Add extra maven repo:" + repoUrl)
+                println("Add maven repo:" + repoUrl)
                 maven { url repoUrl }
             }
         }
-        maven { url mavenRepoUrl }
+
         maven { url "https://plugins.gradle.org/m2/" }
         maven {
             url "https://repo.spring.io/snapshot"
@@ -219,7 +220,7 @@ subprojects {
         include '**/*Test.class'
         exclude '**/*IntegrationTest.class'
     }
-    task integrationTest(type: Test, dependsOn: test) {
+    task integrationTest(type: Test) {
         useJUnitPlatform()
         testLogging {
             events 'PASSED', 'FAILED', 'SKIPPED'
@@ -234,6 +235,7 @@ subprojects {
         }
         include '**/*Test.class'
     }
+    build.dependsOn testAll
 
     build.dependsOn testAll
 

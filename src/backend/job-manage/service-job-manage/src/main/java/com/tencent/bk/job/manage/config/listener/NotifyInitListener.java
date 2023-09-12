@@ -41,14 +41,13 @@ import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.PaaSService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -65,9 +64,8 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     final NotifyService notifyService;
     final AvailableEsbChannelDAO availableEsbChannelDAO;
     final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
-    final DSLContext dslContext;
 
-    @Value("${notify.default.channels.available:mail,weixin,rtx}")
+    @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
 
     @Autowired
@@ -75,14 +73,12 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
                               GlobalSettingsService globalSettingsService,
                               NotifyService notifyService,
                               AvailableEsbChannelDAO availableEsbChannelDAO,
-                              NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
-                              DSLContext dslContext) {
+                              NotifyTriggerPolicyDAO notifyTriggerPolicyDAO) {
         this.paaSService = paaSService;
         this.globalSettingsService = globalSettingsService;
         this.notifyService = notifyService;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
-        this.dslContext = dslContext;
     }
 
     @Override
@@ -135,31 +131,32 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
                 log.error("Fail to get notify channels from esb, null");
                 return;
             }
-            dslContext.transaction(configuration -> {
-                DSLContext context = DSL.using(configuration);
-                if (!globalSettingsService.isNotifyChannelConfiged(context)) {
-                    globalSettingsService.setNotifyChannelConfiged(context);
-                    availableEsbChannelDAO.deleteAll(context);
-                    for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
-                        if (!esbNotifyChannelDTO.isActive()) {
-                            continue;
-                        }
-                        availableEsbChannelDAO.insertAvailableEsbChannel(
-                            context,
-                            new AvailableEsbChannelDTO(
-                                esbNotifyChannelDTO.getType(),
-                                true,
-                                "admin",
-                                LocalDateTime.now()
-                            )
-                        );
-                    }
-                }
-            });
+            saveDefaultNotifyChannelsToDb(esbNotifyChannelDTOList);
         } catch (IOException e) {
             log.error("Fail to get notify channels from esb", e);
         } catch (Exception e) {
             log.error("Fail to init default notify channels", e);
+        }
+    }
+
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    public void saveDefaultNotifyChannelsToDb(List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
+        if (!globalSettingsService.isNotifyChannelConfiged()) {
+            globalSettingsService.setNotifyChannelConfiged();
+            availableEsbChannelDAO.deleteAll();
+            for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
+                if (!esbNotifyChannelDTO.isActive()) {
+                    continue;
+                }
+                availableEsbChannelDAO.insertAvailableEsbChannel(
+                    new AvailableEsbChannelDTO(
+                        esbNotifyChannelDTO.getType(),
+                        true,
+                        "admin",
+                        LocalDateTime.now()
+                    )
+                );
+            }
         }
     }
 

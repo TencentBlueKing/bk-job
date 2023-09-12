@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.service.PaaSService;
-import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -47,11 +46,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * @Description
- * @Date 2020/1/2
- * @Version 1.0
- */
 @Repository
 public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
 
@@ -90,7 +84,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
     }
 
     @Override
-    public List<NotifyEsbChannelDTO> listNotifyEsbChannel(DSLContext dslContext) {
+    public List<NotifyEsbChannelDTO> listNotifyEsbChannel() {
         try {
             String lang = JobContextUtil.getUserLang();
             return esbChannelCache.get(lang);

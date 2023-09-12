@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -37,7 +38,6 @@ import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceAccountResource;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
@@ -135,7 +135,7 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     }
 
     @Override
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
     public InternalResponse<ServiceAccountDTO> saveOrGetAccount(String username, Long createTime, Long lastModifyTime,
                                                                 String lastModifyUser, Long appId,
                                                                 AccountCreateUpdateReq accountCreateUpdateReq) {

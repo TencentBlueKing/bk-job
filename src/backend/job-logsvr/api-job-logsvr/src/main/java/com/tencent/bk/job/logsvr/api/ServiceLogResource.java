@@ -35,6 +35,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -43,7 +44,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -51,7 +51,7 @@ import java.util.List;
  * 执行日志服务
  */
 @Api(tags = {"Log"})
-@RestController
+@SmartFeignClient(value = "job-logsvr", contextId = "logResource")
 @InternalAPI
 public interface ServiceLogResource {
 

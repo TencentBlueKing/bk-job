@@ -81,8 +81,7 @@ public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
             esbIamClient = new EsbIamClient(
                 (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL),
                 (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE),
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET),
-                false
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET)
             );
         }
         return esbIamClient;

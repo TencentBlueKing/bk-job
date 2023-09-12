@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.dao;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import org.jooq.DSLContext;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,27 +56,25 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 
-    Long insertApp(DSLContext dslContext, ApplicationDTO applicationDTO);
+    Long insertApp(ApplicationDTO applicationDTO);
 
-    int updateApp(DSLContext dslContext, ApplicationDTO applicationDTO);
+    int updateApp(ApplicationDTO applicationDTO);
 
     /**
      * 恢复已删除的Job业务
      *
-     * @param dslContext DB操作删上下文
-     * @param appId      Job业务ID
+     * @param appId Job业务ID
      * @return 受影响数据行数
      */
-    int restoreDeletedApp(DSLContext dslContext, long appId);
+    int restoreDeletedApp(long appId);
 
     /**
      * 对Job业务进行软删除
      *
-     * @param dslContext DB操作删上下文
-     * @param appId      Job业务ID
+     * @param appId Job业务ID
      * @return 受影响数据行数
      */
-    int deleteAppByIdSoftly(DSLContext dslContext, long appId);
+    int deleteAppByIdSoftly(long appId);
 
     Integer countApps();
 

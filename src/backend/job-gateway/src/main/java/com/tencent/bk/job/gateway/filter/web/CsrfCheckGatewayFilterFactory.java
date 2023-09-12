@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.gateway.filter.web;
 
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.common.util.UrlUtil;
-import com.tencent.bk.job.gateway.config.BkConfig;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,14 +56,14 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
 
     private static final String COOKIE_CSRF_KEY_NAME = "job_csrf_key";
     private static final String HEADER_CSRF_TOKEN_NAME = "X-CSRF-Token";
-    private final BkConfig bkConfig;
+    private final JobCommonConfig jobCommonConfig;
     private final LoginService loginService;
     private String domain = "";
 
     @Autowired
-    public CsrfCheckGatewayFilterFactory(BkConfig bkConfig, LoginService loginService) {
+    public CsrfCheckGatewayFilterFactory(JobCommonConfig jobCommonConfig, LoginService loginService) {
         super(Config.class);
-        this.bkConfig = bkConfig;
+        this.jobCommonConfig = jobCommonConfig;
         this.loginService = loginService;
     }
 
@@ -121,7 +121,7 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
         String cookieValue = createCsrfKey();
         ResponseCookie responseCookie =
             ResponseCookie.from(COOKIE_CSRF_KEY_NAME, cookieValue).path("/").domain(getDomain())
-            .httpOnly(false).maxAge(Duration.ofDays(7)).build();
+                .httpOnly(false).maxAge(Duration.ofDays(7)).build();
         response.addCookie(responseCookie);
     }
 
@@ -129,7 +129,7 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
         if (StringUtils.isNotBlank(this.domain)) {
             return this.domain;
         }
-        String webUrl = bkConfig.getJobWebUrl();
+        String webUrl = jobCommonConfig.getJobWebUrl();
         if (StringUtils.isEmpty(webUrl)) {
             throw new IllegalArgumentException("job.web.url");
         }

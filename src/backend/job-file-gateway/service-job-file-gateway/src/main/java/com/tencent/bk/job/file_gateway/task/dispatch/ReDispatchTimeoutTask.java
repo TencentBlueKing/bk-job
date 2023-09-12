@@ -28,7 +28,6 @@ import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
 import com.tencent.bk.job.file_gateway.service.ReDispatchService;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -39,7 +38,6 @@ import java.util.List;
 @Service
 public class ReDispatchTimeoutTask {
 
-    private final DSLContext dslContext;
     private final FileTaskDAO fileTaskDAO;
     private final ReDispatchService reDispatchService;
 
@@ -47,10 +45,8 @@ public class ReDispatchTimeoutTask {
     private final boolean enableTimeoutRedispatch = true;
 
     @Autowired
-    public ReDispatchTimeoutTask(DSLContext dslContext,
-                                 FileTaskDAO fileTaskDAO,
+    public ReDispatchTimeoutTask(FileTaskDAO fileTaskDAO,
                                  ReDispatchService reDispatchService) {
-        this.dslContext = dslContext;
         this.fileTaskDAO = fileTaskDAO;
         this.reDispatchService = reDispatchService;
     }
@@ -63,7 +59,6 @@ public class ReDispatchTimeoutTask {
         // 找出未结束且长时间无响应的任务，10s无响应且未结束的任务就应当被重调度了
         long fileSourceTaskStatusExpireTimeMills = 10 * 1000L;
         List<String> timeoutFileSourceTaskIdList = fileTaskDAO.listTimeoutFileSourceTaskIds(
-            dslContext,
             fileSourceTaskStatusExpireTimeMills,
             TaskStatusEnum.getRunningStatusSet(),
             0,

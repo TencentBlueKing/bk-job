@@ -72,25 +72,34 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-/**
- * @since 19/11/2019 16:43
- */
 @Slf4j
-@Service("TaskPlanServiceImpl")
+@Service("TaskPlanService")
 public class TaskPlanServiceImpl implements TaskPlanService {
 
     private final TaskPlanDAO taskPlanDAO;
     private final MessageI18nService i18nService;
-    private final CronJobService cronJobService;
     private final AbstractTaskStepService taskPlanStepService;
     private final AbstractTaskVariableService taskTemplateVariableService;
     private final AbstractTaskVariableService taskPlanVariableService;
+    private CronJobService cronJobService;
     private TaskTemplateService taskTemplateService;
 
+    /**
+     * 通过 Set 方式注入，避免循环依赖问题
+     */
     @Autowired
     @Lazy
     public void setTaskTemplateService(TaskTemplateService taskTemplateService) {
         this.taskTemplateService = taskTemplateService;
+    }
+
+    /**
+     * 通过 Set 方式注入，避免循环依赖问题
+     */
+    @Autowired
+    @Lazy
+    public void setCronJobService(CronJobService cronJobService) {
+        this.cronJobService = cronJobService;
     }
 
     @Autowired
@@ -99,13 +108,12 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         @Qualifier("TaskPlanStepServiceImpl") AbstractTaskStepService taskPlanStepService,
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskTemplateVariableService,
         @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService,
-        MessageI18nService i18nService, CronJobService cronJobService) {
+        MessageI18nService i18nService) {
         this.taskPlanDAO = taskPlanDAO;
         this.taskPlanStepService = taskPlanStepService;
         this.taskTemplateVariableService = taskTemplateVariableService;
         this.taskPlanVariableService = taskPlanVariableService;
         this.i18nService = i18nService;
-        this.cronJobService = cronJobService;
     }
 
     /**
@@ -212,7 +220,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public Long saveTaskPlan(TaskPlanInfoDTO taskPlanInfo) {
         boolean insert = false;
         if (taskPlanInfo.getId() == null || taskPlanInfo.getId() <= 0) {
@@ -293,7 +301,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
     public TaskPlanInfoDTO getDebugTaskPlan(String username, Long appId, Long templateId) {
         TaskPlanInfoDTO taskPlan = taskPlanDAO.getDebugTaskPlan(appId, templateId);
         TaskTemplateInfoDTO taskTemplateInfo = taskTemplateService.getTaskTemplateBasicInfoById(appId, templateId);
@@ -401,7 +409,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Boolean sync(Long appId, Long templateId, Long planId, String templateVersion) {
         TaskTemplateInfoDTO taskTemplate = taskTemplateService.getTaskTemplateById(appId, templateId);
         if (taskTemplate == null) {
@@ -469,7 +477,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public void syncPlan(TaskPlanInfoDTO taskPlanInfo) {
         try {
             // process plan id
@@ -621,7 +629,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public Long saveTaskPlanForBackup(TaskPlanInfoDTO taskPlanInfo) {
         try {
             TaskPlanInfoDTO taskPlanByName = taskPlanDAO.getTaskPlanByName(taskPlanInfo.getAppId(),
@@ -713,7 +721,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
     public boolean batchUpdatePlanVariable(List<TaskPlanInfoDTO> planInfoList) {
         if (CollectionUtils.isEmpty(planInfoList)) {
             return true;

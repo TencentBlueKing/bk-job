@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,17 +46,17 @@ import java.util.HashSet;
 @Profile({"dev", "local"})
 public class SwaggerConfig {
 
-    private final BkConfig bkConfig;
+    private final JobCommonConfig jobCommonConfig;
 
     @Autowired
-    public SwaggerConfig(BkConfig bkConfig) {
-        this.bkConfig = bkConfig;
+    public SwaggerConfig(JobCommonConfig jobCommonConfig) {
+        this.jobCommonConfig = jobCommonConfig;
     }
 
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
-            .host(bkConfig.getSwaggerUrl())
+            .host(jobCommonConfig.getSwaggerUrl())
             .pathMapping("job-backup")
             .protocols(new HashSet<>(Arrays.asList("http", "https"))).select()
             .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.backup.api"))

@@ -137,6 +137,13 @@ Return the proper job-config-watcher image name
 {{- end -}}
 
 {{/*
+Return the proper job-assemble image name
+*/}}
+{{- define "job-assemble.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.assembleConfig.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "job.imagePullSecrets" -}}
@@ -641,7 +648,7 @@ livenessProbe:
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
-  failureThreshold: 2
+  failureThreshold: 20
   successThreshold: 1
 readinessProbe:
   httpGet:

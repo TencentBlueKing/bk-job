@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 echo 'Begin to package job'
-BACKEND_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-file-worker job-analysis)
+BACKEND_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-file-worker job-analysis job-assemble)
 FRONTEND_MODULES=(job-frontend)
-ALL_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-file-worker job-analysis job-frontend)
+ALL_MODULES=(job-config job-crontab job-execute job-gateway job-logsvr job-manage job-backup job-file-gateway job-file-worker job-analysis job-frontend job-assemble)
 JOB_EDITION=ce
 
 if [[ ! -d "release" ]]; then
@@ -16,7 +16,7 @@ usage () {
     cat <<EOF
 用法: 
     $PROGRAM [ -h --help -?  查看帮助 ]
-            [ -m, --module      [必选] "子模块(${PROJECTS[*]}), 逗号分隔。ALL表示全部都更新" ]
+            [ -m, --module      [必选] "子模块(${PROJECTS[*]}), 逗号分隔。ALL表示全部模块" ]
             [ -v, --version    [必选] "Job版本" ]
             [ -e, --edition    [非必选] "Job出包类型，ce表示社区版，ee表示企业版，默认ce" ]
 EOF
@@ -69,7 +69,7 @@ while (( $# > 0 )); do
     esac
     shift 
 done 
-
+echo ${JOB_MODULES}
 JOB_MODULES=${JOB_MODULES,,}          # to lower case
 # 判断参数
 if [[ -z $JOB_MODULES ]] || ! [[ $JOB_MODULES =~ ^[A-Za-z,-]+$ ]]; then
@@ -179,6 +179,24 @@ if [[ -d "support-files/templates" ]]; then
       continue
     fi
     simpleName=${m:4}
+    # job-assemble 配置文件单独处理
+    if [[ "${m}" == "job-assemble" ]]; then
+      moduleConfigFilePath="support-files/templates/#etc#job#job-${simpleName}#application-${simpleName}.yml"
+      if [[ -f "${moduleConfigFilePath}" ]]; then
+        cp "${moduleConfigFilePath}" release/job/support-files/templates
+      else
+        echo "cannot find yml template of #etc#job#job-assemble#application-assemble.yml"
+        exit 1
+      fi
+      moduleConfigFilePath="support-files/templates/#etc#job#job-assemble#application-gateway.yml"
+      if [[ -f "${moduleConfigFilePath}" ]]; then
+        cp "${moduleConfigFilePath}" release/job/support-files/templates
+      else
+        echo "cannot find yml template of #etc#job#job-assemble#application-gateway.yml"
+        exit 1
+      fi
+      continue
+    fi
     # Copy yml templates
     moduleConfigFilePath="support-files/templates/#etc#job#job-${simpleName}#job-${simpleName}.yml"
     if [[ -f "${moduleConfigFilePath}" ]]; then
@@ -189,7 +207,7 @@ if [[ -d "support-files/templates" ]]; then
         exit 1
       fi
     fi
-	# Copy application-{module}.yml templates
+	  # Copy application-{module}.yml templates
     moduleConfigFilePath="support-files/templates/#etc#job#application-${simpleName}.yml"
     if [[ -f "${moduleConfigFilePath}" ]]; then
       cp "${moduleConfigFilePath}" release/job/support-files/templates
@@ -218,7 +236,12 @@ if [[ -d "support-files/templates" ]]; then
   else
     echo "warn: cannot find ${jobEnvFile}, ignore"
   fi
+
+  # Copy deploy.yml/deploy_assemble.yml
+  cp "support-files/templates/#job#deploy.yml" release/job/support-files/templates
+  cp "support-files/templates/#job#deploy_lite.yml" release/job/support-files/templates
 fi
+
 # readme.md、requirements.txt
 for fileName in "readme.md" "requirements.txt";
 do

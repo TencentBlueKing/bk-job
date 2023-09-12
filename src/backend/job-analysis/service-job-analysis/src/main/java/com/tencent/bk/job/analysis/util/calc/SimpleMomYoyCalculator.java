@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.util.calc;
 
-import com.tencent.bk.job.common.statistics.model.dto.StatisticsDTO;
+import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 
 /**
  * 解析字段中直接存数字的统计数据
