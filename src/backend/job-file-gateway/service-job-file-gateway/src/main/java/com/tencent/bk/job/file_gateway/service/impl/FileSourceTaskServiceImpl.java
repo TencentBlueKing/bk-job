@@ -63,6 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,7 +78,7 @@ import java.util.stream.Collectors;
 public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     public static final String PREFIX_REDIS_TASK_LOG = "job:file-gateway:taskLog:";
-    
+
     private final FileSourceTaskDAO fileSourceTaskDAO;
     private final FileTaskDAO fileTaskDAO;
     private final FileWorkerDAO fileworkerDAO;
@@ -90,10 +91,8 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     @Autowired
     public FileSourceTaskServiceImpl(FileSourceTaskDAO fileSourceTaskDAO,
-                                     FileTaskDAO fileTaskDAO, 
-                                     FileWorkerDAO fileworkerDAO,
-                                     FileSourceDAO fileSourceDAO, 
-                                     DispatchService dispatchService,
+                                     FileTaskDAO fileTaskDAO, FileWorkerDAO fileworkerDAO,
+                                     FileSourceDAO fileSourceDAO, DispatchService dispatchService,
                                      FileSourceTaskReqGenService fileSourceTaskReqGenService,
                                      @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
                                      FileTaskStatusChangeListener fileTaskStatusChangeListener,
@@ -121,6 +120,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             fileSourceId, filePathList, null);
     }
 
+    @Transactional(rollbackFor = {Throwable.class})
     public TaskInfoDTO startFileSourceDownloadTaskWithId(String username, Long appId, Long stepInstanceId,
                                                          Integer executeCount, String batchTaskId,
                                                          Integer fileSourceId, List<String> filePathList,
@@ -240,28 +240,30 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     @Override
+    @Transactional(rollbackFor = {Throwable.class})
     public String updateFileSourceTask(String taskId, String filePath, String downloadPath, Long fileSize,
                                        String speed, Integer progress, String content, TaskStatusEnum status) {
-        FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTask(taskId, filePath);
+        FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTaskForUpdate(taskId, filePath);
         if (fileTaskDTO == null) {
             log.error("Cannot find fileTaskDTO by taskId {} filePath {}", taskId, filePath);
             return null;
         }
         TaskStatusEnum previousStatus = TaskStatusEnum.valueOf(fileTaskDTO.getStatus());
         fileTaskDTO.setDownloadPath(downloadPath);
-        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(taskId);
+        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskByIdForUpdate(taskId);
         if (fileSourceTaskDTO == null) {
             log.error("Cannot find fileSourceTaskDTO by taskId {} filePath {}", taskId, filePath);
             return null;
         }
         FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(fileSourceTaskDTO.getFileWorkerId());
+        int affectedRowNum = -1;
         if (status == TaskStatusEnum.RUNNING) {
             // 已处于结束态的任务不再接受状态更新
             if (!fileTaskDTO.isDone()) {
                 fileTaskDTO.setProgress(progress);
                 fileTaskDTO.setFileSize(fileSize);
                 fileTaskDTO.setStatus(TaskStatusEnum.RUNNING.getStatus());
-                fileTaskDAO.updateFileTask(fileTaskDTO);
+                affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
                 logUpdatedTaskStatus(taskId, filePath, progress, status);
             } else {
                 log.info("fileTask {} already done, do not update to running", taskId);
@@ -269,20 +271,23 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         } else if (status == TaskStatusEnum.SUCCESS) {
             fileTaskDTO.setProgress(100);
             fileTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
-            fileTaskDAO.updateFileTask(fileTaskDTO);
+            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
             logUpdatedTaskStatus(taskId, filePath, progress, status);
         } else if (status == TaskStatusEnum.FAILED) {
             fileTaskDTO.setProgress(progress);
             fileTaskDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
-            fileTaskDAO.updateFileTask(fileTaskDTO);
+            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
             logUpdatedTaskStatus(taskId, filePath, progress, status);
         } else if (status == TaskStatusEnum.STOPPED) {
             fileTaskDTO.setProgress(progress);
             fileTaskDTO.setStatus(TaskStatusEnum.STOPPED.getStatus());
-            fileTaskDAO.updateFileTask(fileTaskDTO);
+            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
             logUpdatedTaskStatus(taskId, filePath, progress, status);
         } else {
             log.warn("fileTask {} unknown status:{}", taskId, status);
+        }
+        if (affectedRowNum != -1) {
+            log.info("{} updated, affectedRowNum={}", fileTaskDTO, affectedRowNum);
         }
         // 通知关注者
         if (status != previousStatus) {
@@ -442,7 +447,8 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             addTaskIdToWorkerTaskMap(workerTaskMap, fileWorkerDTO, taskId);
             targetTaskIdList.add(taskId);
         }
-        fileSourceTaskDAO.updateFileClearStatus(targetTaskIdList, true);
+        int affectedRowNum = fileSourceTaskDAO.updateFileClearStatus(targetTaskIdList, true);
+        log.info("{}/{} taskFile set clear status true", affectedRowNum, targetTaskIdList.size());
         int allCount = 0;
         // 逐个Worker清理文件
         for (Map.Entry<FileWorkerDTO, List<String>> entry : workerTaskMap.entrySet()) {

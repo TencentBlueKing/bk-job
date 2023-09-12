@@ -58,8 +58,7 @@ public class FileSourceServiceImpl implements FileSourceService {
 
     @Autowired
     public FileSourceServiceImpl(FileSourceTypeDAO fileSourceTypeDAO,
-                                 FileSourceDAO fileSourceDAO,
-                                 FileWorkerDAO fileWorkerDAO) {
+                                 FileSourceDAO fileSourceDAO, FileWorkerDAO fileWorkerDAO) {
         this.fileSourceTypeDAO = fileSourceTypeDAO;
         this.fileSourceDAO = fileSourceDAO;
         this.fileWorkerDAO = fileWorkerDAO;

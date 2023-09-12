@@ -51,7 +51,8 @@ public class FileTaskServiceImpl implements FileTaskService {
 
     @Override
     public void resetTasks(String fileSourceTaskId) {
-        fileTaskDAO.resetFileTasks(fileSourceTaskId);
+        int affectedRowNum = fileTaskDAO.resetFileTasks(fileSourceTaskId);
+        log.info("fileSourceTask {} has been reset, {} fileTask updated", fileSourceTaskId, affectedRowNum);
     }
 
     @Override

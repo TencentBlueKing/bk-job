@@ -26,21 +26,13 @@ package com.tencent.bk.job.file_gateway.dao.filesource;
 
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBatchTaskDTO;
 
-import java.util.List;
-
 public interface FileSourceBatchTaskDAO {
     String insertFileSourceBatchTask(FileSourceBatchTaskDTO fileSourceBatchTaskDTO);
 
     int updateFileSourceBatchTask(FileSourceBatchTaskDTO fileSourceBatchTaskDTO);
 
-    int updateFileClearStatus(List<String> taskIdList, boolean fileCleared);
+    FileSourceBatchTaskDTO getBatchTaskById(String id);
 
-    int deleteFileSourceBatchTaskById(String id);
+    FileSourceBatchTaskDTO getBatchTaskByIdForUpdate(String id);
 
-    FileSourceBatchTaskDTO getFileSourceBatchTaskById(String id);
-
-    Long countFileSourceBatchTasks(Long appId);
-
-    List<FileSourceBatchTaskDTO> listFileSourceBatchTasks(Long appId, Integer start,
-                                                          Integer pageSize);
 }
