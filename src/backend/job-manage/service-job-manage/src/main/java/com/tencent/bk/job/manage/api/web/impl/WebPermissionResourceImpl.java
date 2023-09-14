@@ -234,10 +234,20 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 );
             case "edit":
                 templateId = Long.parseLong(resourceId);
+                AuthResult authEditResult = templateAuthService.authEditJobTemplate(
+                    username,
+                    appResourceScope,
+                    templateId
+                );
+                AuthResult authViewResult = templateAuthService.authViewJobTemplate(
+                    username,
+                    appResourceScope,
+                    templateId
+                );
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        templateAuthService.authEditJobTemplate(username, appResourceScope, templateId)
+                        authEditResult.mergeAuthResult(authViewResult)
                     )
                 );
             case "delete":
