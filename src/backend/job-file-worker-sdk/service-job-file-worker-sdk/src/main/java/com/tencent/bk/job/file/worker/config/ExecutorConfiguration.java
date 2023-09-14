@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.file.worker.config;
 
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,10 +39,12 @@ import java.util.concurrent.TimeUnit;
 public class ExecutorConfiguration {
 
     @Bean("fileTaskExecutor")
-    public ThreadPoolExecutor fileTaskExecutor() {
-        return new ThreadPoolExecutor(
-            20,
-            50,
+    public ThreadPoolExecutor fileTaskExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "fileTaskExecutor",
+            40,
+            40,
             1,
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(1000), (r, executor) -> {
@@ -50,10 +54,12 @@ public class ExecutorConfiguration {
     }
 
     @Bean("watchingTaskExecutor")
-    public ThreadPoolExecutor watchingTaskExecutor() {
-        return new ThreadPoolExecutor(
-            20,
-            50,
+    public ThreadPoolExecutor watchingTaskExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "watchingTaskExecutor",
+            40,
+            40,
             1,
             TimeUnit.MINUTES
             , new LinkedBlockingQueue<>(1000), (r, executor) ->

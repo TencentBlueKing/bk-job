@@ -127,14 +127,6 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         }
     }
 
-
-    @Override
-    public int deleteFileTaskById(Long id) {
-        return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).execute();
-    }
-
     @Override
     public int deleteFileTaskByFileSourceTaskId(String fileSourceTaskId) {
         return dslContext.deleteFrom(defaultTable).where(
@@ -143,43 +135,18 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
     }
 
     @Override
-    public FileTaskDTO getFileTaskById(Long id) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return convertRecordToDto(record);
-        }
-    }
-
-    @Override
-    public FileTaskDTO getOneFileTask(String fileSourceTaskId, String filePath) {
+    public FileTaskDTO getOneFileTaskForUpdate(String fileSourceTaskId, String filePath) {
         List<Condition> conditions = new ArrayList<>();
-        if (fileSourceTaskId != null) {
-            conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
-        }
-        if (filePath != null) {
-            conditions.add(defaultTable.FILE_PATH.eq(filePath));
-        }
+        conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
+        conditions.add(defaultTable.FILE_PATH.eq(filePath));
         val record = dslContext.selectFrom(defaultTable).where(
             conditions
-        ).fetchOne();
+        ).forUpdate().fetchOne();
         if (record == null) {
             return null;
         } else {
             return convertRecordToDto(record);
         }
-    }
-
-    @Override
-    public Long countFileTasks(String fileSourceTaskId) {
-        List<Condition> conditions = new ArrayList<>();
-        if (fileSourceTaskId != null) {
-            conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
-        }
-        return countFileTasksByConditions(conditions);
     }
 
     public Long countFileTasksByConditions(Collection<Condition> conditions) {

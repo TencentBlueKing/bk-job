@@ -113,7 +113,8 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
             for (FileTaskDTO fileTaskDTO : fileTaskDTOList) {
                 fileTaskDTO.setFileSourceTaskId(id);
                 // 插入FileTask
-                fileTaskDAO.insertFileTask(fileTaskDTO);
+                Long fileTaskId = fileTaskDAO.insertFileTask(fileTaskDTO);
+                log.debug("{} inserted, id={}", fileTaskDTO, fileTaskId);
             }
             fileSourceTaskDTO.setFileTaskList(fileTaskDTOList);
             return id;
@@ -177,12 +178,15 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public Long countFileSourceTasks(Long appId) {
-        List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(defaultTable.APP_ID.eq(appId));
+    public FileSourceTaskDTO getFileSourceTaskByIdForUpdate(String id) {
+        val record = dslContext.selectFrom(defaultTable).where(
+            defaultTable.ID.eq(id)
+        ).forUpdate().fetchOne();
+        if (record == null) {
+            return null;
+        } else {
+            return convertRecordToDto(record);
         }
-        return countFileSourceTasksByConditions(conditions);
     }
 
     @Override
@@ -214,42 +218,12 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public List<FileSourceTaskDTO> listFileSourceTasks(Long appId, Integer start,
-                                                       Integer pageSize) {
-        List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(defaultTable.APP_ID.eq(appId));
-        }
-        return listByConditions(conditions, start, pageSize);
-    }
-
-    @Override
-    public List<FileSourceTaskDTO> listTimeoutTasks(Long expireTimeMills,
-                                                    Collection<Byte> statusSet, Integer start, Integer pageSize) {
-        List<Condition> conditions = new ArrayList<>();
-        if (expireTimeMills != null && expireTimeMills > 0) {
-            conditions.add(defaultTable.LAST_MODIFY_TIME.le(System.currentTimeMillis() - expireTimeMills));
-        }
-        if (statusSet != null && !statusSet.isEmpty()) {
-            conditions.add(defaultTable.STATUS.in(statusSet));
-        }
-        return listByConditions(conditions, start, pageSize);
-    }
-
-    @Override
     public List<FileSourceTaskDTO> listByBatchTaskId(String batchTaskId) {
         List<Condition> conditions = new ArrayList<>();
         if (StringUtils.isNotBlank(batchTaskId)) {
             conditions.add(defaultTable.BATCH_TASK_ID.eq(batchTaskId));
         }
         return listByConditions(conditions, null, null);
-    }
-
-    @Override
-    public int deleteByBatchTaskId(String batchTaskId) {
-        return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.BATCH_TASK_ID.eq(batchTaskId)
-        ).execute();
     }
 
     private FileSourceTaskDTO convertRecordToDto(FileSourceTaskRecord record) {
