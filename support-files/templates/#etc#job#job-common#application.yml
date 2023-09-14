@@ -115,3 +115,17 @@ cmdb:
 swagger:
   url: swagger.job.com
 
+# 内置tomcat文件清理
+# server：
+  # tomcat:
+    # 临时文件保存路径，子目录名需包含端口
+    # basedir: /tmp/tomcat-job-${spring.application.name}-${server.port}
+# tomcat:
+  # file:
+    # 清理开关
+    # clear-enabled: false
+    # expired:
+      # 保留天数
+      # keep-days: 10
+      # 清理策略
+      # clear-cron: 0 0 2 * * ?
