@@ -36,20 +36,14 @@ public interface FileTaskDAO {
 
     int resetFileTasks(String fileSourceTaskId);
 
-    int deleteFileTaskById(Long id);
-
     int deleteFileTaskByFileSourceTaskId(String fileSourceTaskId);
 
-    FileTaskDTO getFileTaskById(Long id);
-
-    FileTaskDTO getOneFileTask(String fileSourceTaskId, String filePath);
-
-    Long countFileTasks(String fileSourceTaskId);
+    FileTaskDTO getOneFileTaskForUpdate(String fileSourceTaskId, String filePath);
 
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId, Integer start, Integer pageSize);
 
-    List<String> listTimeoutFileSourceTaskIds(Long expireTimeMills, Collection<Byte> statusSet
-        , Integer start, Integer pageSize);
+    List<String> listTimeoutFileSourceTaskIds(Long expireTimeMills, Collection<Byte> statusSet, Integer start,
+                                              Integer pageSize);
 
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId);
 

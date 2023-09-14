@@ -108,8 +108,7 @@ public class BatchTaskServiceImpl implements BatchTaskService {
     public BatchTaskStatusDTO getBatchTaskStatusAndLogs(String batchTaskId, Long logStart, Long logLength) {
         BatchTaskStatusDTO batchTaskStatusDTO = new BatchTaskStatusDTO();
         batchTaskStatusDTO.setBatchTaskId(batchTaskId);
-        FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getFileSourceBatchTaskById(
-            batchTaskId);
+        FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getBatchTaskById(batchTaskId);
         if (fileSourceBatchTaskDTO == null) {
             throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }

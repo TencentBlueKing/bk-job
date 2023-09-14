@@ -26,7 +26,6 @@ package com.tencent.bk.job.file_gateway.dao.filesource;
 
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface FileSourceTaskDAO {
@@ -40,16 +39,9 @@ public interface FileSourceTaskDAO {
 
     FileSourceTaskDTO getFileSourceTaskById(String id);
 
-    Long countFileSourceTasks(Long appId);
+    FileSourceTaskDTO getFileSourceTaskByIdForUpdate(String id);
 
     Long countFileSourceTasksByBatchTaskId(String batchTaskId, Byte status);
 
-    List<FileSourceTaskDTO> listFileSourceTasks(Long appId, Integer start, Integer pageSize);
-
-    List<FileSourceTaskDTO> listTimeoutTasks(Long expireTimeMills, Collection<Byte> statusSet,
-                                             Integer start, Integer pageSize);
-
     List<FileSourceTaskDTO> listByBatchTaskId(String batchTaskId);
-
-    int deleteByBatchTaskId(String batchTaskId);
 }
