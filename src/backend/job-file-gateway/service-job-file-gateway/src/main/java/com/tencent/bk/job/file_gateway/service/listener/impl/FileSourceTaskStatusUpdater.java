@@ -51,7 +51,8 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
 
     @Autowired
     public FileSourceTaskStatusUpdater(FileSourceTaskDAO fileSourceTaskDAO,
-                                       FileTaskDAO fileTaskDAO, FileSourceTaskStatusChangeListener listener) {
+                                       FileTaskDAO fileTaskDAO,
+                                       FileSourceTaskStatusChangeListener listener) {
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
         this.addFileTaskStatusChangeListener(listener);

@@ -91,8 +91,10 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     @Autowired
     public FileSourceTaskServiceImpl(FileSourceTaskDAO fileSourceTaskDAO,
-                                     FileTaskDAO fileTaskDAO, FileWorkerDAO fileworkerDAO,
-                                     FileSourceDAO fileSourceDAO, DispatchService dispatchService,
+                                     FileTaskDAO fileTaskDAO,
+                                     FileWorkerDAO fileworkerDAO,
+                                     FileSourceDAO fileSourceDAO,
+                                     DispatchService dispatchService,
                                      FileSourceTaskReqGenService fileSourceTaskReqGenService,
                                      @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
                                      FileTaskStatusChangeListener fileTaskStatusChangeListener,
@@ -120,7 +122,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             fileSourceId, filePathList, null);
     }
 
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = {Throwable.class})
     public TaskInfoDTO startFileSourceDownloadTaskWithId(String username, Long appId, Long stepInstanceId,
                                                          Integer executeCount, String batchTaskId,
                                                          Integer fileSourceId, List<String> filePathList,
@@ -240,7 +242,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Throwable.class})
+    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = {Throwable.class})
     public String updateFileSourceTask(String taskId, String filePath, String downloadPath, Long fileSize,
                                        String speed, Integer progress, String content, TaskStatusEnum status) {
         FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTaskForUpdate(taskId, filePath);
