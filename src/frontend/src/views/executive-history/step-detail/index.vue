@@ -552,19 +552,6 @@
         });
       },
       /**
-       * @desc 导出脚本执行日志
-       */
-      handleExportExecutionLog() {
-        TaskExecuteService.fetchStepExecutionLogFile({
-          id: this.params.id,
-        }).then(() => {
-          this.$bkMessage({
-            theme: 'success',
-            message: I18n.t('history.导出日志操作成功'),
-          });
-        });
-      },
-      /**
        * @desc 开始强制终止
        */
       handleStartForceTask() {

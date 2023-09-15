@@ -226,10 +226,11 @@ class TaskExecute extends ModuleBase {
 
   // 下载执行日志文件
   getLogFile(payload) {
-    const params = {};
-    if (payload.ip) {
-      params.ip = payload.ip;
-    }
+    const params = {
+      ...payload,
+    };
+    delete params.id;
+
     return Request.download(`${this.path}/step-execution-result/${payload.id}/log-file/download`, {
       params,
     });
