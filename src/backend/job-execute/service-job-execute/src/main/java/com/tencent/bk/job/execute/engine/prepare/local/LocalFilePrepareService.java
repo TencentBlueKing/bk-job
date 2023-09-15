@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
-import com.tencent.bk.job.execute.config.StorageSystemConfig;
+import com.tencent.bk.job.execute.config.StorageAndDistributeConfig;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
@@ -51,7 +51,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Service
 public class LocalFilePrepareService {
 
-    private final StorageSystemConfig storageSystemConfig;
+    private final StorageAndDistributeConfig storageAndDistributeConfig;
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForExecute localFileConfigForExecute;
     private final AgentService agentService;
@@ -61,14 +61,14 @@ public class LocalFilePrepareService {
     private final ThreadPoolExecutor localFilePrepareExecutor;
 
     @Autowired
-    public LocalFilePrepareService(StorageSystemConfig storageSystemConfig,
+    public LocalFilePrepareService(StorageAndDistributeConfig storageAndDistributeConfig,
                                    ArtifactoryConfig artifactoryConfig,
                                    LocalFileConfigForExecute localFileConfigForExecute,
                                    AgentService agentService,
                                    TaskInstanceService taskInstanceService,
                                    @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                    @Qualifier("localFilePrepareExecutor") ThreadPoolExecutor localFilePrepareExecutor) {
-        this.storageSystemConfig = storageSystemConfig;
+        this.storageAndDistributeConfig = storageAndDistributeConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.agentService = agentService;
@@ -108,7 +108,7 @@ public class LocalFilePrepareService {
             artifactoryClient,
             artifactoryConfig.getArtifactoryJobProject(),
             localFileConfigForExecute.getLocalUploadRepo(),
-            storageSystemConfig.getJobStorageRootPath(),
+            storageAndDistributeConfig.getJobDistributeRootPath(),
             localFilePrepareExecutor
         );
         taskMap.put(stepInstance.getUniqueKey(), task);

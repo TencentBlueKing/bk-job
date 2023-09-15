@@ -97,7 +97,11 @@ job:
     # 是否对接GSE2.0。 如果需要对接GSE1.0，设置job.features.gseV2.enabled=false
     gseV2:
       enabled: true
+  # 存储临时文件的根目录
   storage:
+    root-path: __BK_HOME__/public/job
+  # 存储要分发的文件的根目录，二进制环境下与存储临时文件的根目录一致
+  distribute:
     root-path: __BK_HOME__/public/job
 
 # 制品库相关配置

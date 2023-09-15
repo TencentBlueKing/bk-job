@@ -29,11 +29,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 存储配置
+ * 存储与分发配置
  */
 @Getter
-@Configuration("jobExecuteStorageSystemConfig")
-public class StorageSystemConfig {
+@Configuration("jobExecuteStorageAndDistributeConfig")
+public class StorageAndDistributeConfig {
+    /**
+     * 临时文件存储根目录
+     */
     @Value("${job.storage.root-path:/data/bkee/job/data}")
     private String jobStorageRootPath;
+    /**
+     * 要分发的文件存储根目录，二进制环境下与临时文件存储根目录相同
+     */
+    @Value("${job.distribute.root-path:/data/bkee/job/data}")
+    private String jobDistributeRootPath;
 }

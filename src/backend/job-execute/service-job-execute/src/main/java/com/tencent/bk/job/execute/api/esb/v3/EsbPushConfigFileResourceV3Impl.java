@@ -40,7 +40,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.config.StorageSystemConfig;
+import com.tencent.bk.job.execute.config.StorageAndDistributeConfig;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
@@ -66,17 +66,17 @@ public class EsbPushConfigFileResourceV3Impl
     extends JobExecuteCommonV3Processor
     implements EsbPushConfigFileV3Resource {
     private final TaskExecuteService taskExecuteService;
-    private final StorageSystemConfig storageSystemConfig;
+    private final StorageAndDistributeConfig storageAndDistributeConfig;
     private final AgentService agentService;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
-                                           StorageSystemConfig storageSystemConfig,
+                                           StorageAndDistributeConfig storageAndDistributeConfig,
                                            AgentService agentService,
                                            AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
-        this.storageSystemConfig = storageSystemConfig;
+        this.storageAndDistributeConfig = storageAndDistributeConfig;
         this.agentService = agentService;
         this.appScopeMappingService = appScopeMappingService;
     }
@@ -173,7 +173,7 @@ public class EsbPushConfigFileResourceV3Impl
             List<FileDetailDTO> files = new ArrayList<>();
             // 保存配置文件至机器
             String configFileLocalPath = ConfigFileUtil.saveConfigFileToLocal(
-                storageSystemConfig.getJobStorageRootPath(),
+                storageAndDistributeConfig.getJobDistributeRootPath(),
                 userName,
                 configFile.getFileName(),
                 configFile.getContent()

@@ -99,6 +99,8 @@ data:
         url: {{ include "job.web.url" . }}
       storage:
         root-path: {{ .Values.persistence.localStorage.path }}/local
+      distribute:
+        root-path: {{ .Values.distribute.hostPath }}/local
     cmdb:
       default:
         supplier:

@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskLogResource;
 import com.tencent.bk.job.execute.config.LogExportConfig;
-import com.tencent.bk.job.execute.config.StorageSystemConfig;
+import com.tencent.bk.job.execute.config.StorageAndDistributeConfig;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.util.NFSUtils;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
@@ -76,14 +76,14 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
     @Autowired
     public WebTaskLogResourceImpl(TaskInstanceService taskInstanceService,
-                                  StorageSystemConfig storageSystemConfig,
+                                  StorageAndDistributeConfig storageAndDistributeConfig,
                                   LogExportService logExportService,
                                   @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                   ArtifactoryConfig artifactoryConfig,
                                   LogExportConfig logExportConfig) {
         this.taskInstanceService = taskInstanceService;
         this.logExportService = logExportService;
-        this.logFileDir = NFSUtils.getFileDir(storageSystemConfig.getJobStorageRootPath(),
+        this.logFileDir = NFSUtils.getFileDir(storageAndDistributeConfig.getJobStorageRootPath(),
             FileDirTypeConf.JOB_INSTANCE_PATH);
         this.artifactoryClient = artifactoryClient;
         this.artifactoryConfig = artifactoryConfig;
