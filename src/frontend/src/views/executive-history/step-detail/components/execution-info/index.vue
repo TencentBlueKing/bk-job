@@ -286,7 +286,7 @@
       handleDownload() {
         TaskExecuteService.fetchStepExecutionLogFile({
           id: this.stepInstanceId,
-          ip: this.host.hostId,
+          hostId: this.host.hostId,
         }).then(() => {
           this.$bkMessage({
             theme: 'success',
