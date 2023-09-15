@@ -62,7 +62,8 @@ public interface EsbGetJobInstanceIpLogV3Resource {
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "job_instance_id") Long taskInstanceId,
         @RequestParam(value = "step_instance_id") Long stepInstanceId,
-        @RequestParam(value = "bk_cloud_id") Long cloudAreaId,
-        @RequestParam(value = "ip") String ip);
+        @RequestParam(value = "bk_host_id", required = false) Long hostId,
+        @RequestParam(value = "bk_cloud_id", required = false) Long cloudAreaId,
+        @RequestParam(value = "ip", required = false) String ip);
 
 }
