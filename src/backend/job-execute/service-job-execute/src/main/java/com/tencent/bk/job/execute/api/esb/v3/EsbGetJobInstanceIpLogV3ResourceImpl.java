@@ -230,6 +230,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
                                                       String scopeId,
                                                       Long taskInstanceId,
                                                       Long stepInstanceId,
+                                                      Long hostId,
                                                       Long cloudAreaId,
                                                       String ip) {
         EsbGetJobInstanceIpLogV3Request request = new EsbGetJobInstanceIpLogV3Request();
@@ -240,6 +241,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl extends JobQueryCommonProcesso
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
         request.setStepInstanceId(stepInstanceId);
+        request.setHostId(hostId);
         request.setCloudAreaId(cloudAreaId);
         request.setIp(ip);
         return getJobInstanceIpLogUsingPost(request);
