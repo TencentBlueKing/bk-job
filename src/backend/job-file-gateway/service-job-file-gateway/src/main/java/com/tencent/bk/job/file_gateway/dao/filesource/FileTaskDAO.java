@@ -47,5 +47,5 @@ public interface FileTaskDAO {
 
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId);
 
-    Long countFileTask(String fileSourceTaskId, Byte status);
+    Long countFileTaskForUpdate(String fileSourceTaskId, Byte status);
 }
