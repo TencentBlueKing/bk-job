@@ -144,7 +144,7 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersion:" + bkjobVersion
     }
-    set('bkAuditJavaSdkVersion', "1.0.6-alpla.5")
+    set('bkAuditJavaSdkVersion', "1.0.6-SNAPSHOT")
 }
 
 group "com.tencent.bk.job"
