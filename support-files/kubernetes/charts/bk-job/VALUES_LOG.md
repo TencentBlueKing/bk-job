@@ -3,8 +3,8 @@
 1.增加依赖宿主机GSE Agent的分发相关配置
 
 ```yaml
-## 依赖宿主机GSE Agent的分发相关配置
-distribute:
+## 依赖宿主机GSE Agent的文件分发相关配置
+fileDistribute:
   # 分发文件所在根目录：宿主机路径（以HostPath方式挂载到容器内）
   hostPath: /data/bkjob
 ```

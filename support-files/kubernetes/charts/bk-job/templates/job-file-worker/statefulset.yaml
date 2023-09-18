@@ -77,7 +77,7 @@ spec:
             - name: BK_JOB_JAR
               value: job-file-worker.jar
             - name: BK_JOB_FILE_WORKER_WORKSPACE_DIR
-              value: {{ .Values.distribute.hostPath }}/JobFileWorkerWorkspace
+              value: {{ .Values.fileDistribute.hostPath }}/JobFileWorkerWorkspace
             - name: BK_JOB_NODE_IP
               valueFrom:
                 fieldRef:
@@ -107,10 +107,10 @@ spec:
             {{- toYaml .Values.fileWorkerConfig.resources | nindent 12 }}
           volumeMounts:
             - name: distribute-volume
-              mountPath: {{ .Values.distribute.hostPath }}
+              mountPath: {{ .Values.fileDistribute.hostPath }}
       volumes:
         - name: distribute-volume
           hostPath:
-            path: {{ .Values.distribute.hostPath }}
+            path: {{ .Values.fileDistribute.hostPath }}
             type: DirectoryOrCreate
 {{- end }}

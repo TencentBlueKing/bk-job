@@ -32,8 +32,8 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
+import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.config.StorageAndDistributeConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
@@ -94,7 +94,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
     private final Tracer tracer;
     private final ExecuteMonitor executeMonitor;
-    private final StorageAndDistributeConfig storageAndDistributeConfig;
+    private final FileDistributeConfig fileDistributeConfig;
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
@@ -144,7 +144,7 @@ public class GseTaskManager implements SmartLifecycle {
                           TaskInstanceVariableService taskInstanceVariableService,
                           StepInstanceVariableValueService stepInstanceVariableValueService,
                           JobBuildInVariableResolver jobBuildInVariableResolver,
-                          StorageAndDistributeConfig storageAndDistributeConfig,
+                          FileDistributeConfig fileDistributeConfig,
                           AgentService agentService,
                           ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                           GseTasksExceptionCounter gseTasksExceptionCounter,
@@ -167,7 +167,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
-        this.storageAndDistributeConfig = storageAndDistributeConfig;
+        this.fileDistributeConfig = fileDistributeConfig;
         this.agentService = agentService;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
@@ -392,7 +392,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskInstance,
                 stepInstance,
                 gseTask,
-                storageAndDistributeConfig.getJobDistributeRootPath()
+                fileDistributeConfig.getJobDistributeRootPath()
             );
             fileTaskCounter.incrementAndGet();
         }

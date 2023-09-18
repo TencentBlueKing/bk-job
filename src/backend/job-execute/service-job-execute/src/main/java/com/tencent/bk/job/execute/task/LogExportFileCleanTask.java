@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.config.LogExportConfig;
-import com.tencent.bk.job.execute.config.StorageAndDistributeConfig;
+import com.tencent.bk.job.execute.config.StorageConfig;
 import com.tencent.bk.job.execute.constants.Consts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -59,16 +59,16 @@ public class LogExportFileCleanTask {
 
     private final LogExportConfig logExportConfig;
     private final ArtifactoryConfig artifactoryConfig;
-    private final StorageAndDistributeConfig storageAndDistributeConfig;
+    private final StorageConfig storageConfig;
     private final ArtifactoryClient artifactoryClient;
 
     public LogExportFileCleanTask(LogExportConfig logExportConfig,
                                   ArtifactoryConfig artifactoryConfig,
-                                  StorageAndDistributeConfig storageAndDistributeConfig,
+                                  StorageConfig storageConfig,
                                   @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient) {
         this.logExportConfig = logExportConfig;
         this.artifactoryConfig = artifactoryConfig;
-        this.storageAndDistributeConfig = storageAndDistributeConfig;
+        this.storageConfig = storageConfig;
         this.artifactoryClient = artifactoryClient;
     }
 
@@ -161,7 +161,7 @@ public class LogExportFileCleanTask {
             System.currentTimeMillis() - logExportConfig.getArtifactoryFileExpireDays() * 3600 * 24 * 1000
         );
         String logExportFileDirPath = PathUtil.joinFilePath(
-            storageAndDistributeConfig.getJobStorageRootPath(), Consts.LOG_EXPORT_DIR_NAME
+            storageConfig.getJobStorageRootPath(), Consts.LOG_EXPORT_DIR_NAME
         );
         Iterator<File> fileIterator = FileUtils.iterateFiles(
             new File(logExportFileDirPath),

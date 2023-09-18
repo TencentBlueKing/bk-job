@@ -22,7 +22,7 @@ rm -r /data/bkjob
 
 分发文件存储说明：  
 作业平台分发文件依赖宿主机上的GSE Agent，因此使用HostPath将宿主机目录挂载至容器内，需要保证配置的路径在宿主机上存在且可读写；  
-默认路径为：/data/bkjob，其中bkjob层将自动创建，可通过values文件中的`distribute.hostPath`进行配置。  
+默认路径为：/data/bkjob，其中bkjob层将自动创建，可通过values文件中的`fileDistribute.hostPath`进行配置。  
 
 ## 安装Chart
 使用以下命令在命名空间bk-job中安装名称为`bk-job`的release, 其中`<bk-job helm repo url>`代表helm仓库地址:  
@@ -121,7 +121,7 @@ bitnami/rabbitmq
 ### 依赖宿主机GSE Agent的分发相关配置
 |参数|描述|默认值 |
 |---|---|---|
-| `distribute.hostPath`     | 分发文件所在根目录：宿主机路径（以HostPath方式挂载到容器内）   | `/data/bkjob`  |
+| `fileDistribute.hostPath`     | 分发文件所在根目录：宿主机路径（以HostPath方式挂载到容器内）   | `/data/bkjob`  |
 
 ### 持久化存储配置，用于存储本地文件上传、执行日志导出、作业导入导出操作产生的临时文件等
 |参数|描述|默认值 |

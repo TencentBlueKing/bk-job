@@ -100,9 +100,6 @@ job:
   # 存储临时文件的根目录
   storage:
     root-path: __BK_HOME__/public/job
-  # 存储要分发的文件的根目录，二进制环境下与存储临时文件的根目录一致
-  distribute:
-    root-path: __BK_HOME__/public/job
 
 # 制品库相关配置
 artifactory:
