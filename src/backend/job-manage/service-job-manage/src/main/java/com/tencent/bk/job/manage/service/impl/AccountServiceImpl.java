@@ -115,7 +115,7 @@ public class AccountServiceImpl implements AccountService {
                 throw new NotFoundException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
             }
             if (!dbSystemAccount.getAppId().equals(account.getAppId())) {
-                log.warn("DB related system account is not in currentAuditContext app, systemAccountId={}, " +
+                log.warn("DB related system account is not in current app, systemAccountId={}, " +
                         "systemAccountAppId={}"
                     , account.getDbSystemAccountId(), dbSystemAccount.getAppId());
                 throw new NotFoundException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
@@ -235,7 +235,8 @@ public class AccountServiceImpl implements AccountService {
         if (StringUtils.isNotEmpty(updateAccount.getPassword())) {
             updateAccount.setPassword(encryptor.encrypt(updateAccount.getPassword()));
         }
-        if (updateAccount.getCategory() == AccountCategoryEnum.DB && StringUtils.isNotEmpty(updateAccount.getDbPassword())) {
+        if (updateAccount.getCategory() == AccountCategoryEnum.DB
+            && StringUtils.isNotEmpty(updateAccount.getDbPassword())) {
             updateAccount.setDbPassword(encryptor.encrypt(updateAccount.getPassword()));
         }
         // 账号用途、账号类型、账号名称不允许修改

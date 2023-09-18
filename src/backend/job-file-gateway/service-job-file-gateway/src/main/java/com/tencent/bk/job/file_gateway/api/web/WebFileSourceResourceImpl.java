@@ -126,11 +126,12 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
     @Override
     @AuditEntry(actionId = ActionId.CREATE_FILE_SOURCE)
-    public Response<FileSourceVO> saveFileSource(String username,
-                                                 AppResourceScope appResourceScope,
-                                                 String scopeType,
-                                                 String scopeId,
-                                                 @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+    public Response<FileSourceVO> saveFileSource(
+        String username,
+        AppResourceScope appResourceScope,
+        String scopeType,
+        String scopeId,
+        @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         try {
             Long appId = appResourceScope.getAppId();
             checkParam(appId, fileSourceCreateUpdateReq, true);
@@ -150,11 +151,12 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
 
     @Override
     @AuditEntry(actionId = ActionId.MANAGE_FILE_SOURCE)
-    public Response<FileSourceVO> updateFileSource(String username,
-                                                   AppResourceScope appResourceScope,
-                                                   String scopeType,
-                                                   String scopeId,
-                                                   @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+    public Response<FileSourceVO> updateFileSource(
+        String username,
+        AppResourceScope appResourceScope,
+        String scopeType,
+        String scopeId,
+        @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         Long appId = appResourceScope.getAppId();
         log.info("Input=({},{},{})", username, appId, fileSourceCreateUpdateReq);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);

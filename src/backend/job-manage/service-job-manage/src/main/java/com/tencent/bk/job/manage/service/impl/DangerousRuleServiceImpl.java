@@ -78,7 +78,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
     public DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
         int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
         int maxPriority = dangerousRuleDAO.getMaxPriority();
-        log.info(String.format("currentAuditContext maxPriority:%d", maxPriority));
+        log.info(String.format("current maxPriority:%d", maxPriority));
         long id = dangerousRuleDAO.insertDangerousRule(new DangerousRuleDTO(null, req.getExpression(),
             req.getDescription(), maxPriority + 1, scriptType, username, System.currentTimeMillis(), username,
             System.currentTimeMillis(), req.getAction(), EnableStatusEnum.DISABLED.getValue()));
