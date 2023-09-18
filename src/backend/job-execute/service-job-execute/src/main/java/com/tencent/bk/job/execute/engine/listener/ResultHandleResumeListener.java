@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.config.StorageSystemConfig;
+import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -77,7 +77,7 @@ public class ResultHandleResumeListener {
 
     private final GseTaskService gseTaskService;
 
-    private final StorageSystemConfig storageSystemConfig;
+    private final FileDistributeConfig fileDistributeConfig;
 
     private final LogService logService;
 
@@ -101,7 +101,7 @@ public class ResultHandleResumeListener {
                                       ResultHandleManager resultHandleManager,
                                       TaskInstanceVariableService taskInstanceVariableService,
                                       GseTaskService gseTaskService,
-                                      StorageSystemConfig storageSystemConfig,
+                                      FileDistributeConfig fileDistributeConfig,
                                       LogService logService,
                                       StepInstanceVariableValueService stepInstanceVariableValueService,
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
@@ -115,7 +115,7 @@ public class ResultHandleResumeListener {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.gseTaskService = gseTaskService;
-        this.storageSystemConfig = storageSystemConfig;
+        this.fileDistributeConfig = fileDistributeConfig;
         this.logService = logService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -204,7 +204,7 @@ public class ResultHandleResumeListener {
                                 GseTaskDTO gseTask,
                                 String requestId) {
         Set<JobFile> sendFiles = JobSrcFileUtils.parseSrcFiles(stepInstance,
-            storageSystemConfig.getJobStorageRootPath());
+            fileDistributeConfig.getJobDistributeRootPath());
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
         Map<JobFile, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
             sendFiles, targetDir, stepInstance.getFileTargetName());
