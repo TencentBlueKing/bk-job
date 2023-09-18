@@ -73,15 +73,29 @@ public interface WebDangerousRuleResource {
     );
 
 
-    @ApiOperation(value = "添加/修改高危语句规则", produces = "application/json")
+    @ApiOperation(value = "创建高危语句规则", produces = "application/json")
     @PostMapping
-    Response<Boolean> addOrUpdateDangerousRule(
+    Response<DangerousRuleVO> createDangerousRule(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
         @ApiParam(value = "创建或更新请求体", required = true)
         @RequestBody
-        @Validated   AddOrUpdateDangerousRuleReq req
+        @Validated AddOrUpdateDangerousRuleReq req
+    );
+
+    @ApiOperation(value = "修改高危语句规则", produces = "application/json")
+    @PutMapping("/{id}")
+    Response<DangerousRuleVO> updateDangerousRule(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username,
+        @ApiParam("高危语句规则ID")
+        @PathVariable("id")
+            Long id,
+        @ApiParam(value = "创建或更新请求体", required = true)
+        @RequestBody
+        @Validated AddOrUpdateDangerousRuleReq req
     );
 
 

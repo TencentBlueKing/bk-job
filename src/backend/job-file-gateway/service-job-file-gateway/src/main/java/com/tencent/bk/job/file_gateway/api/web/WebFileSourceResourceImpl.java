@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.file_gateway.api.web;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -123,94 +125,77 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     }
 
     @Override
-    public Response<Integer> saveFileSource(String username,
-                                            AppResourceScope appResourceScope,
-                                            String scopeType,
-                                            String scopeId,
-                                            FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+    @AuditEntry(actionId = ActionId.CREATE_FILE_SOURCE)
+    public Response<FileSourceVO> saveFileSource(String username,
+                                                 AppResourceScope appResourceScope,
+                                                 String scopeType,
+                                                 String scopeId,
+                                                 @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         try {
             Long appId = appResourceScope.getAppId();
-            AuthResult authResult = checkCreateFileSourcePermission(username, appResourceScope);
-            if (!authResult.isPass()) {
-                throw new PermissionDeniedException(authResult);
-            }
-
             checkParam(appId, fileSourceCreateUpdateReq, true);
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
-            Integer fileSourceId = fileSourceService.saveFileSource(appId, fileSourceDTO);
+            FileSourceDTO createdFileSource = fileSourceService.saveFileSource(username, appId, fileSourceDTO);
             boolean registerResult = fileSourceAuthService.registerFileSource(
-                username, fileSourceId, fileSourceDTO.getAlias());
+                username, createdFileSource.getId(), fileSourceDTO.getAlias());
             if (!registerResult) {
-                log.warn("Fail to register file_source to iam:({},{})", fileSourceId, fileSourceDTO.getAlias());
+                log.warn("Fail to register file_source to iam:({},{})", createdFileSource.getId(),
+                    fileSourceDTO.getAlias());
             }
-            return Response.buildSuccessResp(fileSourceId);
+            return Response.buildSuccessResp(FileSourceDTO.toVO(createdFileSource));
         } catch (ServiceException e) {
             return Response.buildCommonFailResp(e.getErrorCode(), e.getErrorParams());
         }
     }
 
     @Override
-    public Response<Integer> updateFileSource(String username,
-                                              AppResourceScope appResourceScope,
-                                              String scopeType,
-                                              String scopeId,
-                                              FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+    @AuditEntry(actionId = ActionId.MANAGE_FILE_SOURCE)
+    public Response<FileSourceVO> updateFileSource(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   String scopeType,
+                                                   String scopeId,
+                                                   @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         Long appId = appResourceScope.getAppId();
         log.info("Input=({},{},{})", username, appId, fileSourceCreateUpdateReq);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
-        AuthResult authResult = checkManageFileSourcePermission(username, appResourceScope, fileSourceDTO.getId());
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
         checkParam(appId, fileSourceCreateUpdateReq, false);
-        return Response.buildSuccessResp(fileSourceService.updateFileSourceById(appId, fileSourceDTO));
+
+        FileSourceDTO updateFileSource = fileSourceService.updateFileSourceById(username, appId, fileSourceDTO);
+        return Response.buildSuccessResp(FileSourceDTO.toVO(updateFileSource));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_FILE_SOURCE)
     public Response<Integer> deleteFileSource(String username,
                                               AppResourceScope appResourceScope,
                                               String scopeType,
                                               String scopeId,
                                               Integer id) {
-        Long appId = appResourceScope.getAppId();
-        AuthResult authResult = checkManageFileSourcePermission(username, appResourceScope, id);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-
-        return Response.buildSuccessResp(fileSourceService.deleteFileSourceById(appId, id));
+        return Response.buildSuccessResp(fileSourceService.deleteFileSourceById(username,
+            appResourceScope.getAppId(), id));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_FILE_SOURCE)
     public Response<Boolean> enableFileSource(String username,
                                               AppResourceScope appResourceScope,
                                               String scopeType,
                                               String scopeId,
                                               Integer id,
                                               Boolean enableFlag) {
-        Long appId = appResourceScope.getAppId();
-        AuthResult authResult = checkManageFileSourcePermission(username, appResourceScope, id);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-
-        return Response.buildSuccessResp(fileSourceService.enableFileSourceById(username, appId, id,
-            enableFlag));
+        return Response.buildSuccessResp(fileSourceService.enableFileSourceById(username,
+            appResourceScope.getAppId(), id, enableFlag));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_FILE_SOURCE)
     public Response<FileSourceVO> getFileSourceDetail(String username,
                                                       AppResourceScope appResourceScope,
                                                       String scopeType,
                                                       String scopeId,
                                                       Integer id) {
-
-        AuthResult authResult = checkViewFileSourcePermission(username, appResourceScope, id);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
         return Response.buildSuccessResp(
-            FileSourceDTO.toVO(fileSourceService.getFileSourceById(appResourceScope.getAppId(), id)));
+            FileSourceDTO.toVO(fileSourceService.getFileSourceById(username, appResourceScope.getAppId(), id)));
     }
 
     @Override

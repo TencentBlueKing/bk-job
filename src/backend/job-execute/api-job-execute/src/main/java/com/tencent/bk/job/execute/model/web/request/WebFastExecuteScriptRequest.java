@@ -114,5 +114,4 @@ public class WebFastExecuteScriptRequest {
 
     @ApiModelProperty(value = "是否启用滚动执行")
     private boolean rollingEnabled;
-
 }

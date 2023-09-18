@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditInstanceRecord;
+import com.tencent.bk.audit.context.ActionAuditContext;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
@@ -32,8 +36,11 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -87,7 +94,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.tencent.bk.job.common.audit.JobAuditAttributeNames.OPERATION;
 
+/**
+ * 定时任务 Service 实现
+ */
 @Slf4j
 @Service
 public class CronJobServiceImpl implements CronJobService {
@@ -139,19 +150,6 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    public List<CronJobInfoDTO> getOrderedCronJobInfoByIds(List<Long> cronJobIdList) {
-        Map<Long, CronJobInfoDTO> map = getCronJobInfoMapByIds(cronJobIdList);
-        List<CronJobInfoDTO> cronJobInfoDTOList = new ArrayList<>();
-        for (Long id : cronJobIdList) {
-            CronJobInfoDTO cronJobInfoDTO = map.get(id);
-            if (cronJobInfoDTO != null) {
-                cronJobInfoDTOList.add(cronJobInfoDTO);
-            }
-        }
-        return cronJobInfoDTOList;
-    }
-
-    @Override
     public Map<Long, CronJobInfoDTO> getCronJobInfoMapByIds(List<Long> cronJobIdList) {
         List<CronJobInfoDTO> cronJobInfoDTOList = cronJobDAO.getCronJobByIds(cronJobIdList);
         Map<Long, CronJobInfoDTO> map = new HashMap<>();
@@ -167,6 +165,26 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_CRON,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.CRON,
+            instanceIds = "#cronJobId",
+            instanceNames = "$?.name"
+        ),
+        content = EventContentConstants.VIEW_CRON_JOB
+    )
+    public CronJobInfoDTO getCronJobInfoById(String username, Long appId, Long cronJobId) {
+        CronJobInfoDTO cronJob = getCronJobInfoById(appId, cronJobId);
+        if (cronJob == null) {
+            throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
+        }
+        cronAuthService.authManageCron(username,
+            new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
+        return cronJob;
+    }
+
+    @Override
     public CronJobInfoDTO getCronJobErrorInfoById(Long appId, Long cronJobId) {
         return cronJobDAO.getCronJobErrorById(appId, cronJobId);
     }
@@ -178,45 +196,89 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
-    public Long saveCronJobInfo(CronJobInfoDTO cronJobInfo) {
+    @ActionAuditRecord(
+        actionId = ActionId.CREATE_CRON,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.CRON,
+            instanceIds = "#$?.id",
+            instanceNames = "#$?.name"
+        ),
+        content = EventContentConstants.CREATE_CRON_JOB
+    )
+    public CronJobInfoDTO createCronJobInfo(String username, CronJobInfoDTO cronJobInfo) {
+        cronAuthService.authCreateCron(username,
+            new AppResourceScope(cronJobInfo.getAppId())).denyIfNoPermission();
+
         checkCronJobPlanOrScript(cronJobInfo);
         saveSnapShotForHostVaiableValue(cronJobInfo);
-        if (cronJobInfo.getId() == null || cronJobInfo.getId() == 0) {
-            cronJobInfo.setCreateTime(DateUtils.currentTimeSeconds());
-            cronJobInfo.setEnable(false);
-            Long id = cronJobDAO.insertCronJob(cronJobInfo);
-            cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
-            return id;
-        } else {
-            processCronJobVariableValueMask(cronJobInfo);
-            if (cronJobInfo.getEnable()) {
-                try {
-                    List<ServiceTaskVariable> taskVariables = null;
-                    if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
-                        taskVariables =
-                            cronJobInfo.getVariableValue().stream()
-                                .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
-                    }
-                    executeTaskService.authExecuteTask(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId(),
-                        cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
-                    if (cronJobDAO.updateCronJobById(cronJobInfo)) {
-                        addJob(cronJobInfo.getAppId(), cronJobInfo.getId());
-                    } else {
-                        throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
-                    }
-                } catch (TaskExecuteAuthFailedException e) {
-                    log.error("Error while pre auth cron execute!", e);
-                    throw e;
+
+        cronJobInfo.setCreateTime(DateUtils.currentTimeSeconds());
+        cronJobInfo.setEnable(false);
+
+        Long id = cronJobDAO.insertCronJob(cronJobInfo);
+        cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
+
+        return getCronJobInfoById(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_CRON,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.CRON,
+            instanceIds = "#cronJobInfo?.id",
+            instanceNames = "#$?.name"
+        ),
+        content = EventContentConstants.EDIT_CRON_JOB
+    )
+    public CronJobInfoDTO updateCronJobInfo(String username, CronJobInfoDTO cronJobInfo) {
+        cronAuthService.authManageCron(username,
+            new AppResourceScope(cronJobInfo.getAppId()), cronJobInfo.getId(), null).denyIfNoPermission();
+
+        CronJobInfoDTO originCron = getCronJobInfoById(cronJobInfo.getId());
+        if (originCron == null) {
+            throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
+        }
+
+        checkCronJobPlanOrScript(cronJobInfo);
+        processCronJobVariableValueMask(cronJobInfo);
+
+        if (cronJobInfo.getEnable()) {
+            try {
+                List<ServiceTaskVariable> taskVariables = null;
+                if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
+                    taskVariables =
+                        cronJobInfo.getVariableValue().parallelStream()
+                            .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
                 }
-            } else {
+                executeTaskService.authExecuteTask(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId(),
+                    cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
                 if (cronJobDAO.updateCronJobById(cronJobInfo)) {
-                    deleteJob(cronJobInfo.getAppId(), cronJobInfo.getId());
+                    addJob(cronJobInfo.getAppId(), cronJobInfo.getId());
                 } else {
                     throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
                 }
+            } catch (TaskExecuteAuthFailedException e) {
+                log.error("Error while pre auth cron execute!", e);
+                throw e;
             }
-            return cronJobInfo.getId();
+        } else {
+            if (cronJobDAO.updateCronJobById(cronJobInfo)) {
+                deleteJob(cronJobInfo.getAppId(), cronJobInfo.getId());
+            } else {
+                throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
+            }
         }
+
+        CronJobInfoDTO updateCron = getCronJobInfoById(cronJobInfo.getId());
+
+        // 审计
+        ActionAuditContext.current()
+            .setOriginInstance(CronJobInfoDTO.toEsbCronInfoV3(originCron))
+            .setInstance(CronJobInfoDTO.toEsbCronInfoV3(updateCron));
+
+        return updateCron;
     }
 
     /**
@@ -298,7 +360,26 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    public Boolean deleteCronJobInfo(Long appId, Long cronJobId) {
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_CRON,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.CRON,
+            instanceIds = "#cronJobId"
+        ),
+        content = EventContentConstants.DELETE_CRON_JOB
+    )
+    public Boolean deleteCronJobInfo(String username, Long appId, Long cronJobId) {
+        cronAuthService.authManageCron(username,
+            new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
+
+        CronJobInfoDTO cron = getCronJobInfoById(cronJobId);
+        if (cron == null) {
+            throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
+        }
+
+        // 审计
+        ActionAuditContext.current().setInstanceName(cron.getName());
+
         if (cronJobDAO.deleteCronJobById(appId, cronJobId)) {
             deleteJob(appId, cronJobId);
             return true;
@@ -308,7 +389,28 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_CRON,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.CRON,
+            instanceIds = "#cronJobId"
+        ),
+        content = EventContentConstants.SWITCH_CRON_JOB_STATUS
+    )
     public Boolean changeCronJobEnableStatus(String username, Long appId, Long cronJobId, Boolean enable) {
+        cronAuthService.authManageCron(username,
+            new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
+
+        CronJobInfoDTO originCronJobInfo = getCronJobInfoById(appId, cronJobId);
+        if (originCronJobInfo == null) {
+            throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
+        }
+
+        // 审计
+        ActionAuditContext.current()
+            .setInstanceName(originCronJobInfo.getName())
+            .addAttribute(OPERATION, enable ? "Switch on" : "Switch off");
+
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         cronJobInfo.setAppId(appId);
         cronJobInfo.setId(cronJobId);
@@ -317,7 +419,6 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
         if (enable) {
             try {
-                CronJobInfoDTO originCronJobInfo = cronJobDAO.getCronJobById(appId, cronJobId);
                 List<ServiceTaskVariable> taskVariables = null;
                 if (CollectionUtils.isNotEmpty(originCronJobInfo.getVariableValue())) {
                     taskVariables =
@@ -495,39 +596,56 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
-    public Boolean batchUpdateCronJob(Long appId, BatchUpdateCronJobReq batchUpdateCronJobReq) {
-        if (batchUpdateCronJobReq != null) {
-            if (CollectionUtils.isNotEmpty(batchUpdateCronJobReq.getCronJobInfoList())) {
-                batchUpdateCronJobReq.getCronJobInfoList().forEach(cronJobInfo -> {
-                    CronJobInfoDTO cronJobInfoFromReq =
-                        CronJobInfoDTO.fromReq(JobContextUtil.getUsername(), appId, cronJobInfo);
-                    cronJobInfoFromReq.setEnable(cronJobInfo.getEnable());
-                    if (cronJobInfo.getEnable()) {
-                        try {
-                            CronJobInfoDTO originCronJobInfo = cronJobDAO.getCronJobById(appId, cronJobInfo.getId());
-                            List<ServiceTaskVariable> taskVariables = null;
-                            if (CollectionUtils.isNotEmpty(originCronJobInfo.getVariableValue())) {
-                                taskVariables =
-                                    originCronJobInfo.getVariableValue().stream()
-                                        .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
-                            }
-                            executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
-                                cronJobInfo.getId(), originCronJobInfo.getName(), taskVariables,
-                                JobContextUtil.getUsername());
-                            if (cronJobDAO.updateCronJobById(cronJobInfoFromReq)) {
-                                addJob(appId, cronJobInfo.getId());
-                            }
-                        } catch (TaskExecuteAuthFailedException e) {
-                            log.error("Error while pre auth cron execute!", e);
-                            throw e;
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_CRON,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.CRON
+        ),
+        content = EventContentConstants.EDIT_CRON_JOB
+    )
+    public Boolean batchUpdateCronJob(String username, Long appId, BatchUpdateCronJobReq batchUpdateCronJobReq) {
+        List<Long> cronJobInstanceList = new ArrayList<>();
+        batchUpdateCronJobReq.getCronJobInfoList()
+            .forEach(cronJobCreateUpdateReq -> cronJobInstanceList.add(cronJobCreateUpdateReq.getId()));
+        cronAuthService.batchAuthManageCron(username, new AppResourceScope(appId), cronJobInstanceList);
+
+        if (CollectionUtils.isNotEmpty(batchUpdateCronJobReq.getCronJobInfoList())) {
+            batchUpdateCronJobReq.getCronJobInfoList().forEach(cronJobInfo -> {
+                CronJobInfoDTO cronJobInfoFromReq =
+                    CronJobInfoDTO.fromReq(JobContextUtil.getUsername(), appId, cronJobInfo);
+                cronJobInfoFromReq.setEnable(cronJobInfo.getEnable());
+                CronJobInfoDTO originCronJobInfo = getCronJobInfoById(appId, cronJobInfo.getId());
+                if (cronJobInfo.getEnable()) {
+                    try {
+                        List<ServiceTaskVariable> taskVariables = null;
+                        if (CollectionUtils.isNotEmpty(originCronJobInfo.getVariableValue())) {
+                            taskVariables =
+                                originCronJobInfo.getVariableValue().stream()
+                                    .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
                         }
-                    } else {
+                        executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
+                            cronJobInfo.getId(), originCronJobInfo.getName(), taskVariables,
+                            JobContextUtil.getUsername());
                         if (cronJobDAO.updateCronJobById(cronJobInfoFromReq)) {
-                            deleteJob(appId, cronJobInfo.getId());
+                            addJob(appId, cronJobInfo.getId());
                         }
+                    } catch (TaskExecuteAuthFailedException e) {
+                        log.error("Error while pre auth cron execute!", e);
+                        throw e;
                     }
-                });
-            }
+                } else {
+                    if (cronJobDAO.updateCronJobById(cronJobInfoFromReq)) {
+                        deleteJob(appId, cronJobInfo.getId());
+                    }
+                }
+                CronJobInfoDTO updateCronJobInfo = getCronJobInfoById(appId, cronJobInfo.getId());
+                ActionAuditContext.current().addInstanceInfo(
+                    String.valueOf(cronJobInfo.getId()),
+                    cronJobInfo.getName(),
+                    originCronJobInfo,
+                    updateCronJobInfo
+                );
+            });
         }
         return true;
     }

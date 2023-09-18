@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.esb.model.job.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
 import javax.validation.constraints.Min;
@@ -39,34 +40,41 @@ public class EsbGlobalVarV3DTO {
      * 全局变量ID
      */
     @Min(value = 1L, message = "{validation.constraints.InvalidGlobalVarId.message}")
+    @JsonPropertyDescription("Global variable id")
     private Long id;
 
     /**
      * 全局变量名称
      */
+    @JsonPropertyDescription("Global variable name")
     private String name;
 
     /**
      * 全局变量值，当变量类型为字符、密码、数组时，此变量有效
      */
+    @JsonPropertyDescription("Global variable value")
     private String value;
 
     @JsonProperty("server")
+    @JsonPropertyDescription("Value for host variable")
     private EsbServerV3DTO server;
 
     /**
      * 变量描述
      */
+    @JsonPropertyDescription("description")
     private String description;
 
     /**
      * 变量类型
      */
+    @JsonPropertyDescription("Variable type")
     private Integer type;
 
     /**
      * 变量是否必填
      */
+    @JsonPropertyDescription("Required, 1: YES; 0: NO")
     private Integer required;
 
     /**

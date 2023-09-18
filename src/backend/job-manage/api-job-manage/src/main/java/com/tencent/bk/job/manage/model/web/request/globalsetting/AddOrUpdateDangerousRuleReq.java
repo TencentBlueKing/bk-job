@@ -48,7 +48,9 @@ import java.util.List;
 @Data
 @ApiModel("新增、更新高危语句规则")
 public class AddOrUpdateDangerousRuleReq {
-    @ApiModelProperty("高危语句规则Id，新增传-1")
+    /**
+     * 内部字段
+     */
     private Long id;
     @ApiModelProperty("表达式")
     @NotEmpty(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_empty.message}")

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
@@ -44,18 +43,46 @@ public interface AccountService {
     /**
      * 新增账号
      *
-     * @param account 账号信息
-     * @return 账号ID
+     * @param account 新增的账号信息
+     * @return 新增的账号
      */
-    long saveAccount(AccountDTO account) throws ServiceException;
+    AccountDTO createAccount(AccountDTO account);
+
+    /**
+     * 新增账号
+     *
+     * @param username 用户账号
+     * @param account  新增的账号信息
+     * @return 新增的账号
+     */
+    AccountDTO createAccount(String username, AccountDTO account);
 
     /**
      * 根据ID获取账号信息
      *
      * @param accountId 账号Id
-     * @return 账号信息
+     * @return 账号
      */
-    AccountDTO getAccountById(Long accountId) throws ServiceException;
+    AccountDTO getAccountById(Long accountId);
+
+    /**
+     * 根据ID获取账号信息
+     *
+     * @param username  用户账号
+     * @param appId     业务 ID
+     * @param accountId 账号Id
+     * @return 账号
+     */
+    AccountDTO getAccount(String username, long appId, Long accountId);
+
+    /**
+     * 根据ID获取账号信息
+     *
+     * @param appId     业务 ID
+     * @param accountId 账号Id
+     * @return 账号
+     */
+    AccountDTO getAccount(long appId, Long accountId);
 
     /**
      * 根据ID批量获取账号信息
@@ -63,59 +90,61 @@ public interface AccountService {
      * @param accountIds 账号集合
      * @return Map<账号Id ， 账号内容>
      */
-    Map<Long, AccountDisplayDTO> getAccountDisplayInfoMapByIds(Collection<Long> accountIds) throws ServiceException;
+    Map<Long, AccountDisplayDTO> getAccountDisplayInfoMapByIds(Collection<Long> accountIds);
 
     /**
      * 根据ID获取账号信息
      *
-     * @param appId   Job业务ID
-     * @param account 账号名称
-     * @return 账号信息
+     * @param appId   业务ID
+     * @param account 账号名
+     * @return 账号
      */
-    AccountDTO getAccountByAccount(Long appId, String account) throws ServiceException;
+    AccountDTO getAccountByAccount(Long appId, String account);
 
     /**
      * 更新账号
      *
-     * @param account 账号信息
+     * @param username 用户账号
+     * @param account  更新账号内容
+     * @return 更新完的账号信息
      */
-    void updateAccount(AccountDTO account) throws ServiceException;
+    AccountDTO updateAccount(String username, AccountDTO account);
 
     /**
      * 删除账号
      *
+     * @param username  用户账号
+     * @param appId     业务 ID
      * @param accountId 账号ID
      */
-    void deleteAccount(Long accountId) throws ServiceException;
+    void deleteAccount(String username, long appId, Long accountId);
 
     /**
      * 分页查询账号列表
      *
-     * @param accountQuery        账号查询条件
-     * @param baseSearchCondition 基础搜索条件
-     * @return 账号分页数据
+     * @param baseSearchCondition 基础查询条件
+     * @return 账号分页
      */
-    PageData<AccountDTO> listPageAccount(AccountDTO accountQuery, BaseSearchCondition baseSearchCondition)
-        throws ServiceException;
+    PageData<AccountDTO> listPageAccount(AccountDTO accountQuery, BaseSearchCondition baseSearchCondition);
 
     /**
      * 分页搜索账号列表
      *
      * @param keyword             关键字
-     * @param baseSearchCondition 基础搜索条件
-     * @return 账号分页数据
+     * @param baseSearchCondition 基础查询条件
+     * @return 账号分页
      */
     PageData<AccountDTO> searchPageAccount(
         Long appId, String keyword,
-        BaseSearchCondition baseSearchCondition) throws ServiceException;
+        BaseSearchCondition baseSearchCondition);
 
     /**
      * 根据别名获取账号信息
      *
-     * @param appId    Job业务ID
+     * @param appId    业务ID
      * @param category 账号类别
      * @param alias    账号别名
-     * @return 账号信息
+     * @return 账号
      */
     AccountDTO getAccount(Long appId, AccountCategoryEnum category, String alias);
 
@@ -146,7 +175,6 @@ public interface AccountService {
      * 系统账号是否被DB账号依赖
      *
      * @param accountId 系统账号ID
-     * @return 是否被依赖
      */
     boolean isSystemAccountRefByDbAccount(Long accountId);
 

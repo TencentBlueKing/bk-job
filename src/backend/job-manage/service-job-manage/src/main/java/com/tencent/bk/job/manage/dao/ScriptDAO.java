@@ -245,11 +245,10 @@ public interface ScriptDAO {
     /**
      * 分页查询脚本版本
      *
-     * @param scriptQuery
-     * @param baseSearchCondition
-     * @return
+     * @param scriptQuery 查询条件
+     * @return 脚本版本分页
      */
-    PageData<ScriptDTO> listPageScriptVersion(ScriptQuery scriptQuery, BaseSearchCondition baseSearchCondition);
+    PageData<ScriptDTO> listPageScriptVersion(ScriptQuery scriptQuery);
 
     /**
      * 获取脚本已上线版本信息

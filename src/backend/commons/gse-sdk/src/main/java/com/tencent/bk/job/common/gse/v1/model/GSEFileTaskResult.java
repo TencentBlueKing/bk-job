@@ -26,8 +26,8 @@ package com.tencent.bk.job.common.gse.v1.model;/*
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.FileTaskTypeEnum;
-import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.gse.util.GseFilePathUtils;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

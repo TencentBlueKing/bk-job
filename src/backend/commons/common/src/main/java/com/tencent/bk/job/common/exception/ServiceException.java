@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.util.I18nUtil;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.Locale;
+
 /**
  * 服务异常
  */
@@ -94,5 +96,9 @@ public class ServiceException extends RuntimeException {
 
     public String getI18nMessage() {
         return I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams);
+    }
+
+    public String getI18nMessage(Locale locale) {
+        return I18nUtil.getI18nMessage(locale, String.valueOf(errorCode), errorParams);
     }
 }

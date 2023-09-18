@@ -25,9 +25,19 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditInstanceRecord;
+import com.tencent.bk.audit.context.ActionAuditContext;
+import com.tencent.bk.job.common.audit.JobAuditAttributeNames;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
@@ -39,6 +49,7 @@ import com.tencent.bk.job.file_gateway.model.req.common.FileSourceMetaData;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,19 +61,23 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Slf4j
 public class FileSourceServiceImpl implements FileSourceService {
 
     private final FileSourceTypeDAO fileSourceTypeDAO;
     private final FileSourceDAO fileSourceDAO;
     private final FileWorkerDAO fileWorkerDAO;
+    private final FileSourceAuthService fileSourceAuthService;
 
     @Autowired
     public FileSourceServiceImpl(FileSourceTypeDAO fileSourceTypeDAO,
                                  FileSourceDAO fileSourceDAO,
-                                 FileWorkerDAO fileWorkerDAO) {
+                                 FileWorkerDAO fileWorkerDAO,
+                                 FileSourceAuthService fileSourceAuthService) {
         this.fileSourceTypeDAO = fileSourceTypeDAO;
         this.fileSourceDAO = fileSourceDAO;
         this.fileWorkerDAO = fileWorkerDAO;
+        this.fileSourceAuthService = fileSourceAuthService;
     }
 
     @Override
@@ -114,17 +129,74 @@ public class FileSourceServiceImpl implements FileSourceService {
     }
 
     @Override
-    public Integer saveFileSource(Long appId, FileSourceDTO fileSourceDTO) {
-        if (fileSourceDAO.checkFileSourceExists(fileSourceDTO.getAppId(), fileSourceDTO.getAlias())) {
+    @ActionAuditRecord(
+        actionId = ActionId.CREATE_FILE_SOURCE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.FILE_SOURCE,
+            instanceIds = "#$?.id",
+            instanceNames = "#fileSource?.alias"
+        ),
+        content = EventContentConstants.CREATE_FILE_SOURCE
+    )
+    public FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSource) {
+        authCreate(username, appId);
+
+        if (fileSourceDAO.checkFileSourceExists(fileSource.getAppId(), fileSource.getAlias())) {
             throw new AlreadyExistsException(ErrorCode.FILE_SOURCE_ALIAS_ALREADY_EXISTS,
-                new String[]{fileSourceDTO.getAlias()});
+                new String[]{fileSource.getAlias()});
         }
-        return fileSourceDAO.insertFileSource(fileSourceDTO);
+        Integer id = fileSourceDAO.insertFileSource(fileSource);
+
+        boolean registerResult = fileSourceAuthService.registerFileSource(
+            username, fileSource.getId(), fileSource.getAlias());
+        if (!registerResult) {
+            log.warn("Fail to register file_source to iam:({},{})", fileSource.getId(), fileSource.getAlias());
+        }
+        return getFileSourceById(id);
+    }
+
+    private void authView(String username, long appId, int fileSourceId) {
+        fileSourceAuthService.authViewFileSource(username, new AppResourceScope(appId), fileSourceId, null)
+            .denyIfNoPermission();
+    }
+
+    private void authCreate(String username, long appId) {
+        fileSourceAuthService.authCreateFileSource(username, new AppResourceScope(appId)).denyIfNoPermission();
+    }
+
+    private void authManage(String username, long appId, int fileSourceId) {
+        fileSourceAuthService.authManageFileSource(username, new AppResourceScope(appId),
+            fileSourceId, null).denyIfNoPermission();
     }
 
     @Override
-    public int updateFileSourceById(Long appId, FileSourceDTO fileSourceDTO) {
-        return fileSourceDAO.updateFileSource(fileSourceDTO);
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_FILE_SOURCE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.FILE_SOURCE,
+            instanceIds = "#fileSource?.id",
+            instanceNames = "$fileSource?.alias"
+        ),
+        content = EventContentConstants.EDIT_FILE_SOURCE
+    )
+    public FileSourceDTO updateFileSourceById(String username, Long appId, FileSourceDTO fileSource) {
+        authManage(username, appId, fileSource.getId());
+
+        FileSourceDTO originFileSource = getFileSourceById(fileSource.getId());
+        if (originFileSource == null) {
+            throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST);
+        }
+
+        fileSourceDAO.updateFileSource(fileSource);
+
+        FileSourceDTO updateFileSource = getFileSourceById(fileSource.getId());
+
+        // 审计
+        ActionAuditContext.current()
+            .setOriginInstance(FileSourceDTO.toEsbFileSourceV3DTO(fileSource))
+            .setInstance(FileSourceDTO.toEsbFileSourceV3DTO(updateFileSource));
+
+        return updateFileSource;
     }
 
     @Override
@@ -143,13 +215,63 @@ public class FileSourceServiceImpl implements FileSourceService {
     }
 
     @Override
-    public Integer deleteFileSourceById(Long appId, Integer id) {
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_FILE_SOURCE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.FILE_SOURCE,
+            instanceIds = "#id"
+        ),
+        content = EventContentConstants.DELETE_FILE_SOURCE
+    )
+    public Integer deleteFileSourceById(String username, Long appId, Integer id) {
+        authManage(username, appId, id);
+
+        FileSourceDTO fileSource = getFileSourceById(id);
+        if (fileSource == null) {
+            throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST);
+        }
+        ActionAuditContext.current().setInstanceName(fileSource.getAlias());
+
         return fileSourceDAO.deleteFileSourceById(id);
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_FILE_SOURCE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.FILE_SOURCE,
+            instanceIds = "#id"
+        ),
+        content = EventContentConstants.SWITCH_FILE_SOURCE_STATUS
+    )
     public Boolean enableFileSourceById(String username, Long appId, Integer id, Boolean enableFlag) {
+        authManage(username, appId, id);
+        FileSourceDTO fileSource = getFileSourceById(id);
+        if (fileSource == null) {
+            throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST);
+        }
+
+        // 审计
+        ActionAuditContext.current()
+            .setInstanceName(fileSource.getAlias())
+            .addAttribute(JobAuditAttributeNames.OPERATION, enableFlag ? "Switch on" : "Switch off");
+
         return fileSourceDAO.enableFileSourceById(username, appId, id, enableFlag) == 1;
+    }
+
+    @Override
+    @ActionAuditRecord(
+        actionId = ActionId.VIEW_FILE_SOURCE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.FILE_SOURCE,
+            instanceIds = "#id",
+            instanceNames = "#$?.alias"
+        ),
+        content = EventContentConstants.VIEW_FILE_SOURCE
+    )
+    public FileSourceDTO getFileSourceById(String username, Long appId, Integer id) {
+        authView(username, appId, id);
+        return getFileSourceById(appId, id);
     }
 
     @Override

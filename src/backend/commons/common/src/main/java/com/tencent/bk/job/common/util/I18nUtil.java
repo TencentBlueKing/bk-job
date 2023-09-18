@@ -27,9 +27,26 @@ package com.tencent.bk.job.common.util;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Locale;
+
 @Slf4j
 public class I18nUtil {
     private static MessageI18nService i18nService;
+
+    public static String getI18nMessage(Locale locale, String key, Object[] params) {
+        initI18nService();
+        if (i18nService == null) {
+            log.warn("Can not find available i18nService");
+            return "";
+        }
+        if (params != null && params.length > 0) {
+            // 如果参数中包含需要国际化的字符(格式:{i18n_key})，那么需要国际化参数
+            buildI18nParams(params);
+            return i18nService.getI18nWithArgs(locale, key, params);
+        } else {
+            return i18nService.getI18n(locale, key);
+        }
+    }
 
     public static String getI18nMessage(String key, Object[] params) {
         initI18nService();
@@ -46,7 +63,7 @@ public class I18nUtil {
         }
     }
 
-    private static Object[] buildI18nParams(Object[] params) {
+    private static void buildI18nParams(Object[] params) {
         for (int i = 0; i < params.length; i++) {
             Object errorParam = params[i];
             if (errorParam instanceof String) {
@@ -58,10 +75,13 @@ public class I18nUtil {
                 }
             }
         }
-        return params;
     }
 
     public static String getI18nMessage(String key) {
+        return getI18nMessage(key, null);
+    }
+
+    public static String getI18nMessage(Locale locale, String key) {
         return getI18nMessage(key, null);
     }
 

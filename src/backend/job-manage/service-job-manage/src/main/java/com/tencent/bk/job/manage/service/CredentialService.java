@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.service;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 
@@ -38,13 +37,15 @@ public interface CredentialService {
 
     PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
 
-    String saveCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq);
+    CredentialDTO createCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq);
+
+    CredentialDTO updateCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq);
 
     Integer deleteCredentialById(String username, Long appId, String id);
 
-    ServiceCredentialDTO getServiceCredentialById(Long appId, String id);
+    CredentialDTO getCredentialById(Long appId, String id);
 
-    ServiceCredentialDTO getServiceCredentialById(String id);
+    CredentialDTO getCredentialById(String id);
 
     List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids);
 }

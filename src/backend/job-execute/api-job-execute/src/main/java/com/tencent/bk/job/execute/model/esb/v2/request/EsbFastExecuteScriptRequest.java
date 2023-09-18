@@ -72,10 +72,10 @@ public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
     private String scriptParam;
 
     /**
-     * 脚本ID
+     * 脚本版本ID
      */
     @JsonProperty("script_id")
-    private Long scriptId;
+    private Long scriptVersionId;
 
     /**
      * 是否敏感参数
@@ -87,7 +87,7 @@ public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
      * 执行超时时间,单位秒
      */
     @JsonProperty("script_timeout")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
+    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
         message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Integer timeout;
 

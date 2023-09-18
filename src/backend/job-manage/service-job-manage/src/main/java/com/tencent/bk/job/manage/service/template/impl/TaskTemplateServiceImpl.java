@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.manage.service.template.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditInstanceRecord;
+import com.tencent.bk.audit.context.ActionAuditContext;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
@@ -33,13 +37,17 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobVO;
+import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
@@ -59,7 +67,7 @@ import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.service.AbstractTaskStepService;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.CronJobService;
-import com.tencent.bk.job.manage.service.ScriptService;
+import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
@@ -96,8 +104,9 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final TaskTemplateDAO taskTemplateDAO;
     private final TemplateStatusUpdateService templateStatusUpdateService;
     private final TaskFavoriteService taskFavoriteService;
+    private final TemplateAuthService templateAuthService;
     private TaskPlanService taskPlanService;
-    private ScriptService scriptService;
+    private ScriptManager scriptManager;
     private CronJobService cronJobService;
 
     /**
@@ -114,8 +123,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
      */
     @Autowired
     @Lazy
-    public void setScriptService(ScriptService scriptService) {
-        this.scriptService = scriptService;
+    public void setScriptManager(ScriptManager scriptManager) {
+        this.scriptManager = scriptManager;
     }
 
     /**
@@ -128,7 +137,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
 
-
     @Autowired
     public TaskTemplateServiceImpl(
         @Qualifier("TaskTemplateStepServiceImpl") AbstractTaskStepService taskStepService,
@@ -136,13 +144,15 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TaskTemplateDAO taskTemplateDAO,
         TagService tagService,
         TemplateStatusUpdateService templateStatusUpdateService,
-        @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService) {
+        @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
+        TemplateAuthService templateAuthService) {
         this.taskStepService = taskStepService;
         this.taskVariableService = taskVariableService;
         this.taskTemplateDAO = taskTemplateDAO;
         this.tagService = tagService;
         this.templateStatusUpdateService = templateStatusUpdateService;
         this.taskFavoriteService = taskFavoriteService;
+        this.templateAuthService = templateAuthService;
     }
 
     private void setUpdateFlag(TaskTemplateInfoDTO templateInfo) {
@@ -303,8 +313,87 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.VIEW_JOB_TEMPLATE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TEMPLATE,
+            instanceIds = "#templateId",
+            instanceNames = "#$?.name"
+        ),
+        content = EventContentConstants.VIEW_JOB_TEMPLATE
+    )
+    public TaskTemplateInfoDTO getTaskTemplate(String username, long appId, Long templateId) {
+        authViewJobTemplate(username, appId, templateId);
+        TaskTemplateInfoDTO templateInfo = getTaskTemplateById(appId, templateId);
+        if (templateInfo == null) {
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
+        }
+        return templateInfo;
+    }
+
+    private void authEditTemplate(String username, long appId, long templateId) {
+        templateAuthService.authEditJobTemplate(username, new AppResourceScope(appId),
+            templateId).denyIfNoPermission();
+    }
+
+    private void authViewJobTemplate(String username, long appId, long templateId) {
+        templateAuthService.authViewJobTemplate(username, new AppResourceScope(appId),
+            templateId).denyIfNoPermission();
+    }
+
+    private void authDeleteTemplate(String username, long appId, long templateId) {
+        templateAuthService.authDeleteJobTemplate(username, new AppResourceScope(appId),
+            templateId).denyIfNoPermission();
+    }
+
+    private void authCreateTemplate(String username, long appId) {
+        templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).denyIfNoPermission();
+    }
+
+    @Override
     @Transactional(value = "jobManageTransactionManager", rollbackFor = ServiceException.class)
-    public Long saveTaskTemplate(TaskTemplateInfoDTO taskTemplateInfo) {
+    @ActionAuditRecord(
+        actionId = ActionId.CREATE_JOB_TEMPLATE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TEMPLATE,
+            instanceIds = "#$?.id",
+            instanceNames = "#$?.name"
+        ),
+        content = EventContentConstants.CREATE_JOB_TEMPLATE
+    )
+    public TaskTemplateInfoDTO saveTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo) {
+        authCreateTemplate(username, taskTemplateInfo.getAppId());
+        TaskTemplateInfoDTO createdTemplate = saveOrUpdateTaskTemplate(taskTemplateInfo);
+        templateAuthService.registerTemplate(createdTemplate.getId(), createdTemplate.getName(), username);
+        return createdTemplate;
+    }
+
+    @Override
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @ActionAuditRecord(
+        actionId = ActionId.EDIT_JOB_TEMPLATE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TEMPLATE,
+            instanceIds = "#taskTemplateInfo?.id",
+            instanceNames = "#taskTemplateInfo?.name"
+        ),
+        content = EventContentConstants.EDIT_JOB_TEMPLATE
+    )
+    public TaskTemplateInfoDTO updateTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo) {
+        authEditTemplate(username, taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+
+        TaskTemplateInfoDTO template = saveOrUpdateTaskTemplate(taskTemplateInfo);
+
+        // 审计
+        ActionAuditContext.current()
+            .setOriginInstance(TaskTemplateInfoDTO.toEsbTemplateInfoV3DTO(
+                getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId())))
+            .setInstance(TaskTemplateInfoDTO.toEsbTemplateInfoV3DTO(template));
+
+        return template;
+    }
+
+    private TaskTemplateInfoDTO saveOrUpdateTaskTemplate(TaskTemplateInfoDTO taskTemplateInfo) {
         String lockKey = null;
         try {
             boolean isCreate = false;
@@ -392,7 +481,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             taskVariableService.batchInsertVariable(newVariables);
 
             templateStatusUpdateService.offerMessage(templateId);
-            return templateId;
+
+            return getTaskTemplateById(taskTemplateInfo.getAppId(), templateId);
         } catch (ServiceException e) {
             throw e;
         } catch (Exception e) {
@@ -485,7 +575,24 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     @Override
     @Transactional(value = "jobManageTransactionManager")
-    public Boolean deleteTaskTemplate(Long appId, Long templateId) {
+    @ActionAuditRecord(
+        actionId = ActionId.DELETE_JOB_TEMPLATE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TEMPLATE,
+            instanceIds = "#templateId",
+            instanceNames = "#$?.name"
+        ),
+        content = EventContentConstants.DELETE_JOB_TEMPLATE
+    )
+    public TaskTemplateInfoDTO deleteTaskTemplate(String username, Long appId, Long templateId) {
+        authDeleteTemplate(username, appId, templateId);
+
+        TaskTemplateInfoDTO template = getTaskTemplateById(appId, templateId);
+        if (template == null) {
+            log.warn("Delete job template, the template is not exist");
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
+        }
+
         List<TaskPlanInfoDTO> taskPlanInfoList = taskPlanService.listTaskPlansBasicInfo(appId, templateId);
         if (CollectionUtils.isNotEmpty(taskPlanInfoList)) {
             List<Long> taskPlanIdList =
@@ -505,7 +612,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         taskPlanService.deleteTaskPlanByTemplate(appId, templateId);
         taskTemplateDAO.deleteTaskTemplateById(appId, templateId);
         tagService.batchDeleteResourceTags(appId, JobResourceTypeEnum.TEMPLATE.getValue(), String.valueOf(templateId));
-        return true;
+        return template;
     }
 
     @Override
@@ -530,13 +637,37 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    public Boolean saveTaskTemplateBasicInfo(TaskTemplateInfoDTO taskTemplateInfo) {
+    @ActionAuditRecord(
+        actionId = ActionId.EDIT_JOB_TEMPLATE,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TEMPLATE,
+            instanceIds = "#taskTemplateInfo?.id",
+            instanceNames = "#taskTemplateInfo?.name"
+        ),
+        content = EventContentConstants.EDIT_JOB_TEMPLATE
+    )
+    public TaskTemplateInfoDTO saveTaskTemplateBasicInfo(String username, TaskTemplateInfoDTO taskTemplateInfo) {
+        authEditTemplate(username, taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+
+        TaskTemplateInfoDTO originTemplate = getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+        if (originTemplate == null) {
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
+        }
+
         createNewTagForTemplateIfNotExist(taskTemplateInfo);
         updateTemplateTags(taskTemplateInfo);
         if (!taskTemplateDAO.updateTaskTemplateById(taskTemplateInfo, false)) {
             throw new InternalException(ErrorCode.UPDATE_TEMPLATE_FAILED);
         }
-        return true;
+
+        TaskTemplateInfoDTO updatedTemplate =
+            getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+        // 审计
+        ActionAuditContext.current()
+            .setOriginInstance(TaskTemplateInfoDTO.toEsbTemplateInfoV3DTO(originTemplate))
+            .setInstance(TaskTemplateInfoDTO.toEsbTemplateInfoV3DTO(updatedTemplate));
+
+        return updatedTemplate;
     }
 
     private void updateTemplateTags(TaskTemplateInfoDTO taskTemplateInfo) {
@@ -705,7 +836,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 taskStepService.deleteStepById(taskStep.getTemplateId(), taskStep.getId());
                 stepIterator.remove();
             } else {
-                // Update previous step info on current step
+                // Update previous step info on currentAuditContext step
                 if (previousStep == null) {
                     taskStep.setPreviousStepId(0L);
                 } else {
@@ -720,13 +851,13 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                     taskStep.setId(taskStepService.insertStep(taskStep));
                 }
 
-                // update previous step to point to current step
+                // update previous step to point to currentAuditContext step
                 if (previousStep != null) {
                     previousStep.setNextStepId(taskStep.getId());
                     taskStepService.updateStepById(previousStep);
                 }
 
-                // make previous current
+                // make previous currentAuditContext
                 previousStep = taskStep;
                 if (firstStepId == 0) {
                     firstStepId = taskStep.getId();
@@ -871,7 +1002,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             if (MapUtils.isNotEmpty(scriptVersionMap)) {
                 Map<String, ScriptDTO> scriptInfoMap;
                 try {
-                    scriptInfoMap = scriptService
+                    scriptInfoMap = scriptManager
                         .batchGetOnlineScriptVersionByScriptIds(new ArrayList<>(scriptVersionMap.keySet()));
                 } catch (ServiceException e) {
                     log.error("Error while getting online script version!", e);

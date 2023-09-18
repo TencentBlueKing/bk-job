@@ -30,12 +30,9 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
-import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.StepRunModeEnum;
@@ -72,6 +69,7 @@ import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
+import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskResultService;
@@ -107,11 +105,11 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
     private final LogService logService;
-    private final ExecuteAuthService executeAuthService;
     private final TaskOperationLogService operationLogService;
     private final RollingConfigService rollingConfigService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
     private final HostService hostService;
+    private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
     @Autowired
     public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
@@ -121,11 +119,11 @@ public class TaskResultServiceImpl implements TaskResultService {
                                  ScriptAgentTaskService scriptAgentTaskService,
                                  FileAgentTaskService fileAgentTaskService,
                                  LogService logService,
-                                 ExecuteAuthService executeAuthService,
                                  TaskOperationLogService operationLogService,
                                  RollingConfigService rollingConfigService,
                                  StepInstanceRollingTaskService stepInstanceRollingTaskService,
-                                 HostService hostService) {
+                                 HostService hostService,
+                                 TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.taskInstanceDAO = taskInstanceDAO;
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceService = taskInstanceService;
@@ -133,11 +131,11 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.logService = logService;
-        this.executeAuthService = executeAuthService;
         this.operationLogService = operationLogService;
         this.rollingConfigService = rollingConfigService;
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
         this.hostService = hostService;
+        this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
     }
 
     @Override
@@ -166,17 +164,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     @Override
     public TaskExecuteResultDTO getTaskExecutionResult(String username, Long appId,
                                                        Long taskInstanceId) throws ServiceException {
-        TaskInstanceDTO taskInstance = taskInstanceDAO.getTaskInstance(taskInstanceId);
-        if (taskInstance == null) {
-            log.warn("Task instance is not exist, taskInstanceId={}", taskInstanceId);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
-        if (!taskInstance.getAppId().equals(appId)) {
-            log.warn("Task instance is not in application, taskInstanceId={}, appId={}", taskInstanceId, appId);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
-
-        authViewTaskInstance(username, appId, taskInstance);
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(username, appId, taskInstanceId);
 
         TaskExecutionDTO taskExecution = buildTaskExecutionDTO(taskInstance);
 
@@ -205,7 +193,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             taskInstance.getEndTime(), taskInstance.getTotalTime()));
         taskExecution.setStartTime(taskInstance.getStartTime());
         taskExecution.setEndTime(taskInstance.getEndTime());
-        taskExecution.setTaskId(taskInstance.getTaskId());
+        taskExecution.setTaskId(taskInstance.getPlanId());
         taskExecution.setTaskTemplateId(taskInstance.getTaskTemplateId());
         taskExecution.setDebugTask(taskInstance.isDebugTask());
         taskExecution.setCurrentStepInstanceId(taskInstance.getCurrentStepInstanceId());
@@ -238,29 +226,6 @@ public class TaskResultServiceImpl implements TaskResultService {
         return stepExecution;
     }
 
-    private void authViewTaskInstance(String username, Long appId, TaskInstanceDTO taskInstance) {
-
-        AuthResult authResult = executeAuthService.authViewTaskInstance(
-            username, new AppResourceScope(appId), taskInstance);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-    }
-
-    private void authViewStepInstance(String username, Long appId, StepInstanceBaseDTO stepInstance) {
-        String operator = stepInstance.getOperator();
-        if (username.equals(operator)) {
-            return;
-        }
-
-        AuthResult authResult = executeAuthService.authViewTaskInstance(
-            username, new AppResourceScope(appId),
-            stepInstance.getTaskInstanceId());
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-    }
-
     /**
      * 加入文件源文件拉取所使用的时间
      *
@@ -291,22 +256,6 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
     }
 
-    private StepInstanceBaseDTO checkGetStepExecutionDetail(String username, long appId, long stepInstanceId) {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        if (stepInstance == null) {
-            log.warn("Step instance is not exist, stepInstanceId={}", stepInstanceId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-
-        authViewStepInstance(username, appId, stepInstance);
-
-        if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
-            log.warn("Manual confirm step does not support get-step-detail operation");
-            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
-        }
-        return stepInstance;
-    }
-
     private boolean isMatchResultGroup(AgentTaskResultGroupDTO resultGroup, Integer resultType, String tag) {
         String matchTag = tag == null ? "" : tag;
         return resultType.equals(resultGroup.getStatus()) && matchTag.equals(resultGroup.getTag());
@@ -327,6 +276,8 @@ public class TaskResultServiceImpl implements TaskResultService {
     @Override
     public StepExecutionDetailDTO getFastTaskStepExecutionResult(String username, Long appId, Long taskInstanceId,
                                                                  StepExecutionResultQuery query) {
+        taskInstanceAccessProcessor.processBeforeAccess(username, appId, taskInstanceId);
+
         List<StepInstanceBaseDTO> stepInstanceList =
             stepInstanceDAO.listStepInstanceBaseByTaskInstanceId(taskInstanceId);
         StepInstanceBaseDTO stepInstance = stepInstanceList.get(0);
@@ -340,6 +291,17 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
 
         return getStepExecutionResult(username, appId, query);
+    }
+
+    private void preProcessViewStepExecutionResult(String username, Long appId, StepInstanceBaseDTO stepInstance)
+        throws NotFoundException, PermissionDeniedException {
+        // 查看步骤执行结果预处理，包括鉴权、审计等
+        taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
+
+        if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
+            log.warn("Manual confirm step does not support get-step-detail operation");
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
+        }
     }
 
     private void setAgentTasksForSpecifiedResultType(List<AgentTaskResultGroupDTO> resultGroups,
@@ -485,8 +447,10 @@ public class TaskResultServiceImpl implements TaskResultService {
         try {
             Long stepInstanceId = query.getStepInstanceId();
 
-            watch.start("checkGetStepExecutionDetail");
-            StepInstanceBaseDTO stepInstance = checkGetStepExecutionDetail(username, appId, stepInstanceId);
+            watch.start("getAndCheckStepInstance");
+            StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(appId, stepInstanceId);
+            preProcessViewStepExecutionResult(username, appId, stepInstance);
+
             int queryExecuteCount = query.getExecuteCount() == null ? stepInstance.getExecuteCount() :
                 query.getExecuteCount();
             query.setExecuteCount(queryExecuteCount);
@@ -938,7 +902,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         return taskInstances.stream().map(taskInstance -> {
             CronTaskExecuteResult cronTaskExecuteResult = new CronTaskExecuteResult();
             cronTaskExecuteResult.setCronTaskId(taskInstance.getCronTaskId());
-            cronTaskExecuteResult.setPlanId(taskInstance.getTaskId());
+            cronTaskExecuteResult.setPlanId(taskInstance.getPlanId());
             cronTaskExecuteResult.setStatus(taskInstance.getStatus().getValue());
             cronTaskExecuteResult.setExecuteTime(taskInstance.getCreateTime());
             return cronTaskExecuteResult;
@@ -954,12 +918,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                                               Integer resultType,
                                               String tag,
                                               String keyword) {
-        StepInstanceBaseDTO stepInstance = checkGetStepExecutionDetail(username, appId, stepInstanceId);
-
-        if (!stepInstance.getAppId().equals(appId)) {
-            log.warn("Step instance is not in application, stepInstanceId={}, appId={}", stepInstanceId, appId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(appId, stepInstanceId);
+        preProcessViewStepExecutionResult(username, appId, stepInstance);
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
             .stepInstanceId(stepInstanceId)
@@ -1009,7 +969,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                                  Long appId,
                                                                  Long stepInstanceId,
                                                                  Integer batch) {
-        StepInstanceBaseDTO stepInstance = checkGetStepExecutionDetail(username, appId, stepInstanceId);
+        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(appId, stepInstanceId);
+        preProcessViewStepExecutionResult(username, appId, stepInstance);
 
         // 步骤没有重试执行过
         if (stepInstance.getExecuteCount() == 0) {

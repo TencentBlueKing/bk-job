@@ -446,7 +446,7 @@ public class StatisticsTaskScheduler {
                 findStatisticsTask();
             }
             //根据任务各自周期进行调度
-            stopWatch.start("current all statistic tasks time consuming");
+            stopWatch.start("currentAuditContext all statistic tasks time consuming");
             //调度新线程跑分析任务
             for (IStatisticsTask iStatisticsTask : statisticsTaskList) {
                 String taskName =

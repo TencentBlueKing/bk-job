@@ -26,6 +26,7 @@ dependencies {
     api project(':commons:common-service')
     api project(':commons:esb-sdk')
     api project(':commons:common-iam')
+    api project(':commons:common-audit')
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.google.guava:guava'

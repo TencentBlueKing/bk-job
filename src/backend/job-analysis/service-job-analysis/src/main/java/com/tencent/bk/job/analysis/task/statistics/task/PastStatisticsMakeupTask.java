@@ -156,7 +156,7 @@ public class PastStatisticsMakeupTask {
                     }
                 }
             } else {
-                log.info("Use current single thread to run makeup tasks");
+                log.info("Use currentAuditContext single thread to run makeup tasks");
                 for (WatchableTask<Boolean> callable : callableList) {
                     try {
                         pastStatisticTaskFutureMap.put(

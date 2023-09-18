@@ -107,8 +107,9 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(request.getStart());
         baseSearchCondition.setLength(request.getLength());
+        scriptQuery.setBaseSearchCondition(baseSearchCondition);
 
-        PageData<ScriptDTO> pageScripts = scriptService.listPageScriptVersion(scriptQuery, baseSearchCondition);
+        PageData<ScriptDTO> pageScripts = scriptService.listPageScriptVersion(scriptQuery);
         if (returnScriptContent) {
             List<ScriptDTO> scriptDTOList = pageScripts.getData();
             if (scriptDTOList == null) {

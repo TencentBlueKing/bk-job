@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.manager.cache.DangerousRuleCache;
@@ -63,32 +66,56 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
     }
 
     @Override
-    public Boolean addOrUpdateDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
-        int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
-        if (req.getId() == -1) {
-            //新增
-            int maxPriority = dangerousRuleDAO.getMaxPriority();
-            log.info(String.format("current maxPriority:%d", maxPriority));
-            dangerousRuleDAO.insertDangerousRule(new DangerousRuleDTO(null, req.getExpression(),
-                req.getDescription(), maxPriority + 1, scriptType, username, System.currentTimeMillis(), username,
-                System.currentTimeMillis(), req.getAction(), EnableStatusEnum.DISABLED.getValue()));
-        } else {
-            //更新
-            DangerousRuleDTO existDangerousRuleDTO = dangerousRuleDAO.getDangerousRuleById(req.getId());
-            if (existDangerousRuleDTO != null) {
-                dangerousRuleDAO.updateDangerousRule(new DangerousRuleDTO(req.getId(),
-                    req.getExpression(), req.getDescription(), existDangerousRuleDTO.getPriority(), scriptType, null,
-                    null, username, System.currentTimeMillis(), req.getAction(), req.getStatus()));
-            } else {
-                return false;
-            }
-        }
-        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
-        return true;
+    public DangerousRuleDTO getDangerousRuleById(Long id) {
+        return dangerousRuleDAO.getDangerousRuleById(id);
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.HIGH_RISK_DETECT_RULE,
+        content = EventContentConstants.CREATE_HIGH_RISK_DETECT_RULE
+    )
+    public DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
+        int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
+        int maxPriority = dangerousRuleDAO.getMaxPriority();
+        log.info(String.format("currentAuditContext maxPriority:%d", maxPriority));
+        long id = dangerousRuleDAO.insertDangerousRule(new DangerousRuleDTO(null, req.getExpression(),
+            req.getDescription(), maxPriority + 1, scriptType, username, System.currentTimeMillis(), username,
+            System.currentTimeMillis(), req.getAction(), EnableStatusEnum.DISABLED.getValue()));
+
+        // 清理缓存
+        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
+
+        return getDangerousRuleById(id);
+    }
+
+    @Override
+    @ActionAuditRecord(
+        actionId = ActionId.HIGH_RISK_DETECT_RULE,
+        content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
+    )
+    public DangerousRuleDTO updateDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
+        int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
+        DangerousRuleDTO existDangerousRuleDTO = dangerousRuleDAO.getDangerousRuleById(req.getId());
+        if (existDangerousRuleDTO != null) {
+            dangerousRuleDAO.updateDangerousRule(new DangerousRuleDTO(req.getId(),
+                req.getExpression(), req.getDescription(), existDangerousRuleDTO.getPriority(), scriptType, null,
+                null, username, System.currentTimeMillis(), req.getAction(), req.getStatus()));
+        }
+
+        // 清理缓存
+        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
+
+        return getDangerousRuleById(req.getId());
+    }
+
+
+    @Override
     @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @ActionAuditRecord(
+        actionId = ActionId.HIGH_RISK_DETECT_RULE,
+        content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
+    )
     public Integer moveDangerousRule(String username, MoveDangerousRuleReq req) {
         int dir = req.getDir();
         DangerousRuleDTO currentRuleDTO = dangerousRuleDAO.getDangerousRuleById(req.getId());
@@ -145,6 +172,10 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
 
     @Override
     @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @ActionAuditRecord(
+        actionId = ActionId.HIGH_RISK_DETECT_RULE,
+        content = EventContentConstants.DELETE_HIGH_RISK_DETECT_RULE
+    )
     public Integer deleteDangerousRuleById(String username, Long id) {
         DangerousRuleDTO existDangerousRuleDTO = dangerousRuleDAO.getDangerousRuleById(id);
         if (existDangerousRuleDTO == null) {

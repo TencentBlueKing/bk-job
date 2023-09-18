@@ -37,8 +37,10 @@ import java.util.List;
 @ApiModel("账号创建、更新请求")
 @ToString(exclude = {"password", "dbPassword"})
 public class AccountCreateUpdateReq {
-
-    @ApiModelProperty(value = "ID,更新账号的时候需要传入，新建账号不需要")
+    /**
+     * 账号ID
+     */
+    @ApiModelProperty(value = "账号ID ID", hidden = true)
     private Long id;
     /**
      * 帐号名称

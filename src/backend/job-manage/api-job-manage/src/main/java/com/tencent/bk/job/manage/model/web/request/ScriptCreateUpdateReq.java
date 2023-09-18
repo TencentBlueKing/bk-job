@@ -34,19 +34,20 @@ import java.util.List;
 /**
  * 脚本新增、更新请求
  */
-
 @Data
 @ApiModel("脚本新增、更新请求报文")
 public class ScriptCreateUpdateReq {
     /**
      * 脚本版本ID，对应某个版本的脚本的ID
      */
-    @ApiModelProperty(value = "脚本版本ID,更新脚本版本时需要传入", required = false)
+    @Deprecated
+    @ApiModelProperty(value = "脚本版本ID，对应某个版本的脚本的ID", hidden = true)
     private Long scriptVersionId;
     /**
-     * 脚本ID，一个脚本包含多个版本的脚本
+     * 脚本ID
      */
-    @ApiModelProperty(value = "脚本ID,新增/更新脚本版本时需要传入", required = false)
+    @Deprecated
+    @ApiModelProperty(value = "脚本ID", hidden = true)
     private String id;
     /**
      * 脚本名称
@@ -56,41 +57,41 @@ public class ScriptCreateUpdateReq {
     /**
      * 脚本类型
      */
-    @ApiModelProperty(value = "脚本类型,新增脚本/脚本版本时需要传入", required = false)
+    @ApiModelProperty(value = "脚本类型,新增脚本/脚本版本时需要传入")
     private Integer type;
     /**
      * 脚本内容
      */
-    @ApiModelProperty(value = "脚本内容,新增脚本/脚本版本时需要传入，BASE64编码", required = false)
+    @ApiModelProperty(value = "脚本内容,新增脚本/脚本版本时需要传入，BASE64编码")
     private String content;
 
     /**
      * 创建者
      */
-    @ApiModelProperty(value = "创建者，新增脚本/脚本版本时需要传入", required = false)
+    @ApiModelProperty(value = "创建者，新增脚本/脚本版本时需要传入")
     private String creator;
 
     /**
      * 脚本的版本号
      */
-    @ApiModelProperty(value = "版本号，新增脚本/脚本版本时需要传入", required = false)
+    @ApiModelProperty(value = "版本号，新增脚本/脚本版本时需要传入")
     private String version;
     /**
      * 脚本标签
      */
-    @ApiModelProperty(value = "脚本标签，新增/更新脚本需要传入", required = false)
+    @ApiModelProperty(value = "脚本标签，新增/更新脚本需要传入")
     private List<TagVO> tags;
 
     /**
      * 脚本描述
      */
-    @ApiModelProperty(value = "脚本描述", required = false)
+    @ApiModelProperty(value = "脚本描述")
     private String description;
 
     /**
      * 脚本版本描述
      */
-    @ApiModelProperty(value = "脚本版本描述", required = false)
+    @ApiModelProperty(value = "脚本版本描述")
     private String versionDesc;
 
 

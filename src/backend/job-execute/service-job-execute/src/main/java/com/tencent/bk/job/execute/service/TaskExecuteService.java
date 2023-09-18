@@ -42,17 +42,17 @@ public interface TaskExecuteService {
      * 快速执行作业
      *
      * @param fastTask 快速执行作业
-     * @return 作业实例 ID
+     * @return 作业实例
      */
-    Long executeFastTask(FastTaskDTO fastTask);
+    TaskInstanceDTO executeFastTask(FastTaskDTO fastTask);
 
     /**
      * 重做快速作业实例
      *
      * @param fastTask 快速作业
-     * @return 作业实例 ID
+     * @return 作业实例
      */
-    Long redoFastTask(FastTaskDTO fastTask);
+    TaskInstanceDTO redoFastTask(FastTaskDTO fastTask);
 
     /**
      * 启动作业

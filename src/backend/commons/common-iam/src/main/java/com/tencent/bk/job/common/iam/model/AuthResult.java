@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.iam.model;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.common.model.iam.PathInfoDTO;
 import com.tencent.bk.job.common.model.iam.PermissionActionResourceDTO;
@@ -348,6 +349,15 @@ public class AuthResult {
         }
 
         return pathBuilder.build();
+    }
+
+    /**
+     * 处理鉴权结果。如果鉴权不通过，抛出 PermissionDeniedException
+     */
+    public void denyIfNoPermission() throws PermissionDeniedException {
+        if (!isPass()) {
+            throw new PermissionDeniedException(this);
+        }
     }
 
 }

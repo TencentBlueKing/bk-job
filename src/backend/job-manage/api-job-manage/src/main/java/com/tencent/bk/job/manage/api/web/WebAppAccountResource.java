@@ -58,7 +58,7 @@ public interface WebAppAccountResource {
 
     @ApiOperation(value = "新增账号", produces = "application/json")
     @PostMapping(value = "/scope/{scopeType}/{scopeId}/account")
-    Response<Long> saveAccount(
+    Response<AccountVO> saveAccount(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
@@ -77,8 +77,8 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "更新账号", produces = "application/json")
-    @PutMapping(value = "/scope/{scopeType}/{scopeId}/account")
-    Response updateAccount(
+    @PutMapping(value = "/scope/{scopeType}/{scopeId}/account/{accountId}")
+    Response<AccountVO> updateAccount(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
@@ -91,6 +91,9 @@ public interface WebAppAccountResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
+        @ApiParam(value = "账号ID", required = true)
+        @PathVariable(value = "accountId")
+            Long accountId,
         @ApiParam(value = "更新账号请求")
         @RequestBody @Validated
             AccountCreateUpdateReq accountCreateUpdateReq
@@ -207,7 +210,7 @@ public interface WebAppAccountResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "账号用途,1-系统账号，2-DB账号,不传表示所有用途", required = false)
+        @ApiParam(value = "账号用途,1-系统账号，2-DB账号,不传表示所有用途")
         @RequestParam(value = "category", required = false)
             Integer category
     );

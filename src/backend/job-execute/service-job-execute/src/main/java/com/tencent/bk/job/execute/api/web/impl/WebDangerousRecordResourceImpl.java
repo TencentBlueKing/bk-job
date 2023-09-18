@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -55,6 +59,11 @@ public class WebDangerousRecordResourceImpl implements WebDangerousRecordResourc
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RECORD)
+    @ActionAuditRecord(
+        actionId = ActionId.HIGH_RISK_DETECT_RECORD,
+        content = EventContentConstants.VIEW_HIGH_RISK_DETECT_RECORD
+    )
     public Response<PageData<DangerousRecordVO>> pageListDangerousRecords(String username,
                                                                           Long id,
                                                                           String scopeType,

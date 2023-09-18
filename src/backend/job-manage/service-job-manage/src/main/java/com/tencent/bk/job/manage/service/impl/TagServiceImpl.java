@@ -24,19 +24,27 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditInstanceRecord;
+import com.tencent.bk.audit.context.ActionAuditContext;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.WhiteCharChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
+import com.tencent.bk.job.manage.auth.TagAuthService;
 import com.tencent.bk.job.manage.dao.ResourceTagDAO;
 import com.tencent.bk.job.manage.dao.TagDAO;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
@@ -64,11 +72,15 @@ import java.util.stream.Collectors;
 public class TagServiceImpl implements TagService {
     private final TagDAO tagDAO;
     private final ResourceTagDAO resourceTagDAO;
+    private final TagAuthService tagAuthService;
 
     @Autowired
-    public TagServiceImpl(TagDAO tagDAO, ResourceTagDAO resourceTagDAO) {
+    public TagServiceImpl(TagDAO tagDAO,
+                          ResourceTagDAO resourceTagDAO,
+                          TagAuthService tagAuthService) {
         this.tagDAO = tagDAO;
         this.resourceTagDAO = resourceTagDAO;
+        this.tagAuthService = tagAuthService;
     }
 
     @Override
@@ -106,7 +118,18 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Long insertNewTag(String username, TagDTO tag) {
+    @ActionAuditRecord(
+        actionId = ActionId.CREATE_TAG,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TAG,
+            instanceIds = "#$?.id",
+            instanceNames = "#tag?.name"
+        ),
+        content = EventContentConstants.CREATE_TAG
+    )
+    public TagDTO createTag(String username, TagDTO tag) {
+        checkCreateTagPermission(username, tag.getAppId());
+
         tag.setCreator(username);
         tag.setLastModifyUser(username);
         checkRequiredParam(tag);
@@ -115,24 +138,53 @@ public class TagServiceImpl implements TagService {
         if (isTagExist) {
             throw new AlreadyExistsException(ErrorCode.TAG_ALREADY_EXIST);
         }
-        return tagDAO.insertTag(tag);
+        tag.setId(tagDAO.insertTag(tag));
+
+        tagAuthService.registerTag(tag.getId(), tag.getName(), username);
+
+        return tag;
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_TAG,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TAG,
+            instanceIds = "#tag?.id",
+            instanceNames = "#$?.name"
+        ),
+        content = EventContentConstants.EDIT_TAG
+    )
     public boolean updateTagById(String username, TagDTO tag) {
-        if (tag.getId() == null || tag.getId() <= 0) {
-            throw new InternalException(ErrorCode.ILLEGAL_PARAM);
-        }
-        tag.setAppId(tag.getAppId());
-        tag.setId(tag.getId());
+        checkManageTagPermission(username, tag.getAppId(), tag.getId());
+
         tag.setLastModifyUser(username);
         checkRequiredParam(tag);
+
+        TagDTO originTag = getTagInfoById(tag.getId());
 
         boolean isTagNameValid = checkTagName(tag.getAppId(), tag.getId(), tag.getName());
         if (!isTagNameValid) {
             throw new AlreadyExistsException(ErrorCode.TAG_ALREADY_EXIST);
         }
-        return tagDAO.updateTagById(tag);
+
+        boolean result = tagDAO.updateTagById(tag);
+
+        // 审计 - 当前数据
+        ActionAuditContext.current()
+            .setInstanceId(String.valueOf(tag.getId()))
+            .setInstanceName(originTag.getName())
+            .setOriginInstance(TagDTO.toEsbTagV3DTO(originTag))
+            .setInstance(TagDTO.toEsbTagV3DTO(tag));
+        return result;
+    }
+
+    private void checkManageTagPermission(String username, long appId, Long tagId) {
+        tagAuthService.authManageTag(username, new AppResourceScope(appId), tagId, null).denyIfNoPermission();
+    }
+
+    private void checkCreateTagPermission(String username, long appId) {
+        tagAuthService.authCreateTag(username, new AppResourceScope(appId)).denyIfNoPermission();
     }
 
     private void checkRequiredParam(TagDTO tag) {
@@ -196,8 +248,21 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager")
-    public void deleteTag(Long tagId) {
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_TAG,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TAG,
+            instanceIds = "#tagId"
+        ),
+        content = EventContentConstants.DELETE_TAG
+    )
+    public void deleteTag(String username, long appId, Long tagId) {
+        checkManageTagPermission(username, appId, tagId);
+
+        TagDTO tag = getTagInfoById(tagId);
+        ActionAuditContext.current().setInstanceName(tag.getName());
+
         tagDAO.deleteTagById(tagId);
         resourceTagDAO.deleteResourceTags(tagId);
     }

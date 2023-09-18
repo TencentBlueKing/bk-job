@@ -183,7 +183,7 @@ public interface WebTaskPlanResource {
 
     @ApiOperation(value = "更新执行方案", produces = "application/json")
     @PutMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
-    Response<Long> savePlan(
+    Response<TaskPlanVO> updatePlan(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -199,9 +199,32 @@ public interface WebTaskPlanResource {
         @ApiParam(value = "模版 ID", required = true)
         @PathVariable("templateId")
             Long templateId,
-        @ApiParam(value = "执行方案 ID，新建时填 0", required = true)
+        @ApiParam(value = "执行方案 ID", required = true)
         @PathVariable("planId")
             Long planId,
+        @ApiParam(value = "更新的执行方案对象", name = "planCreateUpdateReq")
+        @RequestBody
+            TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
+    );
+
+    @ApiOperation(value = "新增执行方案", produces = "application/json")
+    @PostMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}")
+    Response<TaskPlanVO> createPlan(
+        @ApiParam(value = "用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "模版 ID", required = true)
+        @PathVariable("templateId")
+            Long templateId,
         @ApiParam(value = "更新的执行方案对象", name = "planCreateUpdateReq")
         @RequestBody
             TaskPlanCreateUpdateReq taskPlanCreateUpdateReq

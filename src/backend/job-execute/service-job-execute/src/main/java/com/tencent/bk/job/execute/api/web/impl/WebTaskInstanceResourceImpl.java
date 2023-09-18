@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
@@ -31,6 +32,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -39,7 +41,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
-import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
@@ -67,8 +68,8 @@ import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
-import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
@@ -91,47 +92,40 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final TaskOperationLogService taskOperationLogService;
     private final MessageI18nService i18nService;
-    private final ExecuteAuthService executeAuthService;
     private final BusinessAuthService businessAuthService;
     private final RollingConfigService rollingConfigService;
+    private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
     @Autowired
     public WebTaskInstanceResourceImpl(TaskInstanceService taskInstanceService,
                                        TaskInstanceVariableService taskInstanceVariableService,
-                                       HostService hostService,
                                        TaskOperationLogService taskOperationLogService,
                                        MessageI18nService i18nService,
-                                       ExecuteAuthService executeAuthService,
                                        BusinessAuthService businessAuthService,
-                                       RollingConfigService rollingConfigService) {
+                                       RollingConfigService rollingConfigService,
+                                       TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.taskOperationLogService = taskOperationLogService;
         this.i18nService = i18nService;
-        this.executeAuthService = executeAuthService;
         this.businessAuthService = businessAuthService;
         this.rollingConfigService = rollingConfigService;
+        this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public Response<ExecuteStepVO> getStepInstanceDetail(String username,
                                                          AppResourceScope appResourceScope,
                                                          String scopeType,
                                                          String scopeId,
                                                          Long stepInstanceId) {
 
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
-        if (stepInstance == null) {
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-        if (!stepInstance.getAppId().equals(appResourceScope.getAppId())) {
-            log.warn("StepInstance:{} is not in app:{}", stepInstanceId, appResourceScope.getAppId());
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-        AuthResult authResult = authViewStepInstance(username, appResourceScope, stepInstance);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(
+            appResourceScope.getAppId(), stepInstanceId);
+
+        taskInstanceAccessProcessor.processBeforeAccess(username,
+            appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
 
         ExecuteStepVO stepVO = convertToStepVO(stepInstance);
         fillRollingConfigForRollingStep(stepVO, stepInstance);
@@ -152,25 +146,6 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             stepVO.setRollingConfig(rollingConfigVO);
             stepVO.setRollingEnabled(true);
         }
-    }
-
-    private void authViewTaskInstance(String username,
-                                      AppResourceScope appResourceScope,
-                                      TaskInstanceDTO taskInstance) throws PermissionDeniedException {
-        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appResourceScope, taskInstance);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-    }
-
-    private AuthResult authViewStepInstance(String username, AppResourceScope appResourceScope,
-                                            StepInstanceDTO stepInstance) {
-        String operator = stepInstance.getOperator();
-        if (username.equals(operator)) {
-            return AuthResult.pass();
-        }
-        return executeAuthService.authViewTaskInstance(
-            username, appResourceScope, stepInstance.getTaskInstanceId());
     }
 
     private void convertFileSources(ExecuteFileStepVO fileStepVO, StepInstanceDTO stepInstance) {
@@ -320,16 +295,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public Response<List<ExecuteVariableVO>> getTaskInstanceVariables(String username,
                                                                       AppResourceScope appResourceScope,
                                                                       String scopeType,
                                                                       String scopeId,
                                                                       Long taskInstanceId) {
 
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-
-        checkTaskInstanceExist(taskInstanceId, taskInstance, appResourceScope.getAppId());
-        authViewTaskInstance(username, appResourceScope, taskInstance);
+        taskInstanceAccessProcessor.processBeforeAccess(username, appResourceScope.getAppId(), taskInstanceId);
 
         List<TaskVariableDTO> taskVariables = taskInstanceVariableService.getByTaskInstanceId(taskInstanceId);
         List<ExecuteVariableVO> variableVOS = new ArrayList<>();
@@ -339,13 +312,6 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             });
         }
         return Response.buildSuccessResp(variableVOS);
-    }
-
-    private void checkTaskInstanceExist(long taskInstanceId, TaskInstanceDTO taskInstance, Long appId) {
-        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
-            log.warn("TaskInstance:{} is not in app:{}", taskInstanceId, appId);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
     }
 
     private ExecuteVariableVO convertToVariableVO(TaskVariableDTO variable) {
@@ -370,16 +336,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public Response<List<TaskOperationLogVO>> getTaskInstanceOperationLog(String username,
                                                                           AppResourceScope appResourceScope,
                                                                           String scopeType,
                                                                           String scopeId,
                                                                           Long taskInstanceId) {
 
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-
-        checkTaskInstanceExist(taskInstanceId, taskInstance, appResourceScope.getAppId());
-        authViewTaskInstance(username, appResourceScope, taskInstance);;
+        taskInstanceAccessProcessor.processBeforeAccess(username, appResourceScope.getAppId(), taskInstanceId);
 
         List<OperationLogDTO> operationLogs = taskOperationLogService.listOperationLog(taskInstanceId);
         if (operationLogs == null || operationLogs.isEmpty()) {
@@ -440,16 +404,15 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public Response<TaskInstanceDetailVO> getTaskInstanceDetail(String username,
                                                                 AppResourceScope appResourceScope,
                                                                 String scopeType,
                                                                 String scopeId,
                                                                 Long taskInstanceId) {
 
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
-
-        checkTaskInstanceExist(taskInstanceId, taskInstance, appResourceScope.getAppId());
-        authViewTaskInstance(username, appResourceScope, taskInstance);
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstanceDetail(username,
+            appResourceScope.getAppId(), taskInstanceId);
 
         return Response.buildSuccessResp(convertToTaskInstanceDetailVO(taskInstance));
     }

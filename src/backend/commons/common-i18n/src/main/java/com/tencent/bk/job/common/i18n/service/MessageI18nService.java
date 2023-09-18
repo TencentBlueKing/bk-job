@@ -50,9 +50,19 @@ public interface MessageI18nService {
     /**
      * 根据locale获取国际化
      *
-     * @param msgKey
-     * @param locale
-     * @return
+     * @param locale 语言
+     * @param msgKey i18nKey
+     * @return 国际化之后的值
      */
-    String getI18n(String msgKey, Locale locale);
+    String getI18n(Locale locale, String msgKey);
+
+    /**
+     * 根据locale获取国际化
+     *
+     * @param locale 语言
+     * @param msgKey i18nKey
+     * @param args   参数
+     * @return 国际化之后的值
+     */
+    String getI18nWithArgs(Locale locale, String msgKey, Object... args);
 }

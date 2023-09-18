@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.dto;
 
 import com.tencent.bk.job.common.model.dto.BasicDTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbTagV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTagDTO;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import lombok.Getter;
@@ -98,6 +99,17 @@ public class TagDTO extends BasicDTO implements Cloneable {
         serviceTag.setId(tagDTO.getId());
         serviceTag.setName(tagDTO.getName());
         return serviceTag;
+    }
+
+    public static EsbTagV3DTO toEsbTagV3DTO(TagDTO tag) {
+        if (tag == null) {
+            return null;
+        }
+        EsbTagV3DTO result = new EsbTagV3DTO();
+        result.setId(tag.getId());
+        result.setName(tag.getName());
+        result.setDescription(tag.getDescription());
+        return result;
     }
 
     @Override

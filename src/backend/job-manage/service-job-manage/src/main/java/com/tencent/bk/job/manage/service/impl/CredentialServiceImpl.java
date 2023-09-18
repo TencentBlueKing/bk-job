@@ -24,17 +24,23 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditInstanceRecord;
+import com.tencent.bk.audit.context.ActionAuditContext;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +51,13 @@ import java.util.List;
 public class CredentialServiceImpl implements CredentialService {
 
     private final CredentialDAO credentialDAO;
+    private final TicketAuthService ticketAuthService;
 
     @Autowired
-    public CredentialServiceImpl(CredentialDAO credentialDAO) {
+    public CredentialServiceImpl(CredentialDAO credentialDAO,
+                                 TicketAuthService ticketAuthService) {
         this.credentialDAO = credentialDAO;
+        this.ticketAuthService = ticketAuthService;
     }
 
     @Override
@@ -60,57 +69,115 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    public String saveCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {
-        String id = createUpdateReq.getId();
+    @ActionAuditRecord(
+        actionId = ActionId.CREATE_TICKET,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TICKET,
+            instanceIds = "#$?.id",
+            instanceNames = "#$?.name"
+        ),
+        content = EventContentConstants.CREATE_TICKET
+    )
+    public CredentialDTO createCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {
+        authCreateTicket(username, appId);
+
         CredentialDTO credentialDTO = buildCredentialDTO(username, appId, createUpdateReq);
-        if (StringUtils.isNotBlank(id)) {
-            CredentialDTO oldCredentialDTO = credentialDAO.getCredentialById(id);
-            if (oldCredentialDTO == null) {
-                throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
-            }
-            String value1 = createUpdateReq.getValue1();
-            if ("******".equals(value1)) {
-                credentialDTO.setFirstValue(oldCredentialDTO.getFirstValue());
-            } else {
-                credentialDTO.setFirstValue(value1);
-            }
-            String value2 = createUpdateReq.getValue2();
-            if ("******".equals(value2)) {
-                credentialDTO.setSecondValue(oldCredentialDTO.getSecondValue());
-            } else {
-                credentialDTO.setSecondValue(value2);
-            }
-            return credentialDAO.updateCredentialById(credentialDTO);
-        } else {
-            credentialDTO.setCreator(username);
-            credentialDTO.setCreateTime(credentialDTO.getLastModifyTime());
-            return credentialDAO.insertCredential(credentialDTO);
-        }
+        credentialDTO.setCreator(username);
+        credentialDTO.setCreateTime(credentialDTO.getLastModifyTime());
+        String id = credentialDAO.insertCredential(credentialDTO);
+
+        return getCredentialById(id);
+    }
+
+    public void authCreateTicket(String username, long appId) {
+        ticketAuthService.authCreateTicket(username, new AppResourceScope(appId)).denyIfNoPermission();
+    }
+
+    private void authManageTicket(String username, long appId, String credentialId) {
+        ticketAuthService.authManageTicket(username, new AppResourceScope(appId), credentialId, null)
+            .denyIfNoPermission();
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_TICKET,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TICKET,
+            instanceIds = "#createUpdateReq?.id",
+            instanceNames = "#createUpdateReq?.name"
+        ),
+        content = EventContentConstants.EDIT_TICKET
+    )
+    public CredentialDTO updateCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {
+        String id = createUpdateReq.getId();
+        authManageTicket(username, appId, id);
+
+        CredentialDTO credentialDTO = buildCredentialDTO(username, appId, createUpdateReq);
+        CredentialDTO originCredentialDTO = credentialDAO.getCredentialById(id);
+        if (originCredentialDTO == null) {
+            throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
+        }
+
+        String value1 = createUpdateReq.getValue1();
+        if ("******".equals(value1)) {
+            credentialDTO.setFirstValue(originCredentialDTO.getFirstValue());
+        } else {
+            credentialDTO.setFirstValue(value1);
+        }
+        String value2 = createUpdateReq.getValue2();
+        if ("******".equals(value2)) {
+            credentialDTO.setSecondValue(originCredentialDTO.getSecondValue());
+        } else {
+            credentialDTO.setSecondValue(value2);
+        }
+        credentialDAO.updateCredentialById(credentialDTO);
+
+        CredentialDTO updateCredential = getCredentialById(id);
+
+        // 审计
+        ActionAuditContext.current()
+            .setOriginInstance(originCredentialDTO.toEsbCredentialSimpleInfoV3DTO())
+            .setInstance(updateCredential.toEsbCredentialSimpleInfoV3DTO());
+
+        return updateCredential;
+    }
+
+    @Override
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_TICKET,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.TICKET,
+            instanceIds = "#id"
+        ),
+        content = EventContentConstants.DELETE_TICKET
+    )
     public Integer deleteCredentialById(String username, Long appId, String id) {
+        authManageTicket(username, appId, id);
+
+        CredentialDTO credential = getCredentialById(id);
+        if (credential == null) {
+            throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
+        }
+
+        // 审计
+        ActionAuditContext.current().setInstanceName(credential.getName());
+
         return credentialDAO.deleteCredentialById(id);
     }
 
     @Override
-    public ServiceCredentialDTO getServiceCredentialById(Long appId, String id) {
-        CredentialDTO credentialDTO = credentialDAO.getCredentialById(id);
+    public CredentialDTO getCredentialById(Long appId, String id) {
+        CredentialDTO credentialDTO = getCredentialById(id);
         if (credentialDTO == null || !credentialDTO.getAppId().equals(appId)) {
             return null;
         } else {
-            return credentialDTO.toServiceCredentialDTO();
+            return credentialDTO;
         }
     }
 
     @Override
-    public ServiceCredentialDTO getServiceCredentialById(String id) {
-        CredentialDTO credentialDTO = credentialDAO.getCredentialById(id);
-        if (credentialDTO == null) {
-            return null;
-        } else {
-            return credentialDTO.toServiceCredentialDTO();
-        }
+    public CredentialDTO getCredentialById(String id) {
+        return credentialDAO.getCredentialById(id);
     }
 
     @Override

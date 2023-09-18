@@ -1,155 +1,79 @@
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
-import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
+import com.tencent.bk.audit.utils.json.JsonSchemaUtils;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptService;
-import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.FetchInstanceInfoResponseDTO;
-import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.FetchResourceTypeSchemaResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Slf4j
-public class ScriptCallbackHelper extends BaseIamCallbackService {
+@Service
+public class ScriptCallbackHelper extends AbstractScriptCallbackHelper {
     private final ScriptService scriptService;
-    private final IGetBasicInfo basicInfoInterface;
-    private final ApplicationService applicationService;
 
-    public ScriptCallbackHelper(
-        ScriptService scriptService,
-        IGetBasicInfo basicInfoInterface,
-        ApplicationService applicationService) {
+    @Autowired
+    public ScriptCallbackHelper(ScriptService scriptService,
+                                ApplicationService applicationService) {
+        super(applicationService);
         this.scriptService = scriptService;
-        this.basicInfoInterface = basicInfoInterface;
-        this.applicationService = applicationService;
-    }
-
-    public interface IGetBasicInfo {
-        Pair<ScriptQuery, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest);
-
-        boolean isPublicScript();
-    }
-
-
-    private InstanceInfoDTO convert(ScriptDTO script) {
-        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-        instanceInfo.setId(String.valueOf(script.getId()));
-        instanceInfo.setDisplayName(script.getName());
-        return instanceInfo;
     }
 
     @Override
     protected ListInstanceResponseDTO listInstanceResp(CallbackRequestDTO callbackRequest) {
-        Pair<ScriptQuery, BaseSearchCondition> basicQueryCond =
-            basicInfoInterface.getBasicQueryCondition(callbackRequest);
-
-        ScriptQuery scriptQuery = basicQueryCond.getLeft();
-        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-        PageData<ScriptDTO> scriptDTOPageData = scriptService.listPageScript(scriptQuery,
-            baseSearchCondition);
+        ScriptQuery scriptQuery = buildBasicScriptQuery(callbackRequest);
+        PageData<ScriptDTO> scriptDTOPageData = scriptService.listPageScript(scriptQuery);
 
         return IamRespUtil.getListInstanceRespFromPageData(scriptDTOPageData, this::convert);
     }
 
+
     @Override
     protected SearchInstanceResponseDTO searchInstanceResp(CallbackRequestDTO callbackRequest) {
 
-        Pair<ScriptQuery, BaseSearchCondition> basicQueryCond =
-            basicInfoInterface.getBasicQueryCondition(callbackRequest);
-        ScriptQuery scriptQuery = basicQueryCond.getLeft();
-        BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
-
+        ScriptQuery scriptQuery = buildBasicScriptQuery(callbackRequest);
         scriptQuery.setName(callbackRequest.getFilter().getKeyword());
-        PageData<ScriptDTO> accountDTOPageData = scriptService.listPageScript(scriptQuery,
-            baseSearchCondition);
+        PageData<ScriptDTO> accountDTOPageData = scriptService.listPageScript(scriptQuery);
 
         return IamRespUtil.getSearchInstanceRespFromPageData(accountDTOPageData, this::convert);
     }
 
-    private InstanceInfoDTO buildInstance(ScriptBasicDTO scriptBasicDTO,
-                                          Map<Long, ResourceScope> appIdScopeMap) {
-        // 拓扑路径构建
-        List<PathInfoDTO> path = new ArrayList<>();
-        PathInfoDTO rootNode = new PathInfoDTO();
-        if (basicInfoInterface.isPublicScript()) {
-            // 公共脚本
-            rootNode.setType(ResourceTypeId.PUBLIC_SCRIPT);
-            rootNode.setId(scriptBasicDTO.getId());
-        } else {
-            // 业务脚本
-            Long appId = scriptBasicDTO.getAppId();
-            rootNode = getPathNodeByAppId(appId, appIdScopeMap);
-            PathInfoDTO scriptNode = new PathInfoDTO();
-            scriptNode.setType(ResourceTypeId.SCRIPT);
-            scriptNode.setId(scriptBasicDTO.getId());
-            rootNode.setChild(scriptNode);
-        }
-        path.add(rootNode);
-        // 实例组装
-        InstanceInfoDTO instanceInfo = new InstanceInfoDTO();
-        instanceInfo.setId(scriptBasicDTO.getId());
-        instanceInfo.setDisplayName(scriptBasicDTO.getName());
-        instanceInfo.setPath(path);
-        return instanceInfo;
+    @Override
+    protected CallbackBaseResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest) {
+        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
+        List<String> scriptIdList = searchCondition.getIdList();
+        List<ScriptBasicDTO> scriptBasicDTOList = scriptService.listScriptBasicInfoByScriptIds(scriptIdList);
+        return buildFetchInstanceResp(scriptIdList, scriptBasicDTOList);
     }
 
     @Override
-    protected CallbackBaseResponseDTO fetchInstanceResp(
-        CallbackRequestDTO callbackRequest
-    ) {
-        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        List<Object> instanceAttributeInfoList = new ArrayList<>();
-        List<String> scriptIdList = searchCondition.getIdList();
-        List<ScriptBasicDTO> scriptBasicDTOList = scriptService.listScriptBasicInfoByScriptIds(scriptIdList);
-        Map<String, ScriptBasicDTO> scriptBasicDTOMap = new HashMap<>(scriptBasicDTOList.size());
-        Set<Long> appIdSet = new HashSet<>();
-        for (ScriptBasicDTO scriptBasicDTO : scriptBasicDTOList) {
-            scriptBasicDTOMap.put(scriptBasicDTO.getId(), scriptBasicDTO);
-            appIdSet.add(scriptBasicDTO.getAppId());
-        }
-        // Job app --> CMDB biz/businessSet转换
-        Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
-        for (String id : searchCondition.getIdList()) {
-            ScriptBasicDTO scriptBasicDTO = scriptBasicDTOMap.get(id);
-            if (scriptBasicDTO == null || scriptBasicDTO.isPublicScript() != basicInfoInterface.isPublicScript()) {
-                logNotExistId(id);
-                continue;
-            }
-            try {
-                InstanceInfoDTO instanceInfo = buildInstance(scriptBasicDTO, appIdScopeMap);
-                instanceAttributeInfoList.add(instanceInfo);
-            } catch (Exception e) {
-                logBuildInstanceFailure(scriptBasicDTO, e);
-            }
-        }
-
-        FetchInstanceInfoResponseDTO fetchInstanceInfoResponse = new FetchInstanceInfoResponseDTO();
-        fetchInstanceInfoResponse.setCode(0L);
-        fetchInstanceInfoResponse.setData(instanceAttributeInfoList);
-        return fetchInstanceInfoResponse;
+    boolean isPublicScript() {
+        return false;
     }
 
     public CallbackBaseResponseDTO doCallback(CallbackRequestDTO callbackRequest) {
         return baseCallback(callbackRequest);
+    }
+
+    @Override
+    protected FetchResourceTypeSchemaResponseDTO fetchResourceTypeSchemaResp(
+        CallbackRequestDTO callbackRequest) {
+        FetchResourceTypeSchemaResponseDTO resp = new FetchResourceTypeSchemaResponseDTO();
+        resp.setData(JsonSchemaUtils.generateJsonSchema(EsbScriptV3DTO.class));
+        return resp;
     }
 }

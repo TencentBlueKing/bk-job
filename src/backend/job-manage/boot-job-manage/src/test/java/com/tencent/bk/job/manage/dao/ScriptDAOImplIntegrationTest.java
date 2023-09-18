@@ -451,8 +451,9 @@ class ScriptDAOImplIntegrationTest {
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(0);
         baseSearchCondition.setLength(Integer.MAX_VALUE);
+        scriptCondition.setBaseSearchCondition(baseSearchCondition);
 
-        PageData<ScriptDTO> pageData = scriptDAO.listPageScriptVersion(scriptCondition, baseSearchCondition);
+        PageData<ScriptDTO> pageData = scriptDAO.listPageScriptVersion(scriptCondition);
         assertThat(pageData).isNotNull();
         assertThat(pageData.getPageSize()).isEqualTo(Integer.MAX_VALUE);
         assertThat(pageData.getStart()).isEqualTo(0);

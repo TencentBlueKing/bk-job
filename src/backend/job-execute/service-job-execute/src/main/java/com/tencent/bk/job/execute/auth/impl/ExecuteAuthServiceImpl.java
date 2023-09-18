@@ -27,11 +27,11 @@ package com.tencent.bk.job.execute.auth.impl;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
-import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
@@ -43,7 +43,6 @@ import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -71,7 +70,6 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private final ResourceNameQueryService resourceNameQueryService;
     private final AuthService authService;
     private final AppAuthService appAuthService;
-    private final TaskInstanceService taskInstanceService;
     private final JobExecuteConfig jobExecuteConfig;
 
     @Autowired
@@ -80,13 +78,11 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                       ResourceNameQueryService resourceNameQueryService,
                                   AuthService authService,
                                   AppAuthService appAuthService,
-                                  TaskInstanceService taskInstanceService,
                                   JobExecuteConfig jobExecuteConfig) {
         this.authHelper = authHelper;
         this.resourceNameQueryService = resourceNameQueryService;
         this.authService = authService;
         this.appAuthService = appAuthService;
-        this.taskInstanceService = taskInstanceService;
         this.jobExecuteConfig = jobExecuteConfig;
         this.authService.setResourceNameQueryService(resourceNameQueryService);
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
@@ -484,21 +480,20 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     @Override
-    public AuthResult authViewTaskInstance(String username, AppResourceScope appResourceScope, long taskInstanceId) {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        if (taskInstance == null) {
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
+    public void authViewTaskInstance(String username,
+                                     AppResourceScope appResourceScope,
+                                     TaskInstanceDTO taskInstance) throws PermissionDeniedException {
         if (username.equals(taskInstance.getOperator())) {
-            return AuthResult.pass();
+            return;
         }
-        return appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
+        AuthResult authResult = appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
+        authResult.denyIfNoPermission();
     }
 
     @Override
-    public AuthResult authViewTaskInstance(String username,
-                                           AppResourceScope appResourceScope,
-                                           TaskInstanceDTO taskInstance) {
+    public AuthResult checkViewTaskInstancePermission(String username,
+                                                      AppResourceScope appResourceScope,
+                                                      TaskInstanceDTO taskInstance) {
         if (username.equals(taskInstance.getOperator())) {
             return AuthResult.pass();
         }

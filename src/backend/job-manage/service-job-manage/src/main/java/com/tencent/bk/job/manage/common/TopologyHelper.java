@@ -313,7 +313,7 @@ public class TopologyHelper {
             if (nodeTypeNameMap == null) {
                 throw new RuntimeException("Uninitialized node type name map!");
             }
-            // Check and init node name map for current type
+            // Check and init node name map for currentAuditContext type
             Map<Long, String> nodeNameMap = nodeTypeNameMap.get(topology.getObjectId());
             if (nodeNameMap == null) {
                 nodeNameMap = new ConcurrentHashMap<>(1);

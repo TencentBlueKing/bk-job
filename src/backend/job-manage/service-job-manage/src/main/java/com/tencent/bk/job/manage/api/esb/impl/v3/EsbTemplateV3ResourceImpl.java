@@ -29,14 +29,10 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
-import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbTemplateV3Resource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
@@ -55,15 +51,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     private final TaskTemplateService taskTemplateService;
-    private final BusinessAuthService businessAuthService;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbTemplateV3ResourceImpl(TaskTemplateService taskTemplateService,
-                                     BusinessAuthService businessAuthService,
                                      AppScopeMappingService appScopeMappingService) {
         this.taskTemplateService = taskTemplateService;
-        this.businessAuthService = businessAuthService;
         this.appScopeMappingService = appScopeMappingService;
     }
 
@@ -111,13 +104,6 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
             throw new InvalidParamException(checkResult);
         }
         long appId = request.getAppId();
-
-        AuthResult authResult =
-            businessAuthService.authAccessBusiness(
-                request.getUserName(), new AppResourceScope(request.getAppId()));
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         if (request.getStart() != null) {

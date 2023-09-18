@@ -22,50 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.api.esb.v2.impl;
+package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
-import com.tencent.bk.job.common.iam.model.AuthResult;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.execute.auth.ExecuteAuthService;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
- * 作业查询基础类
+ * 查看作业实例前置处理
  */
-@Slf4j
-public class JobQueryCommonProcessor {
+@Component
+public class TaskInstanceAccessProcessor {
+    private final TaskInstanceService taskInstanceService;
+
     @Autowired
-    protected ExecuteAuthService executeAuthService;
-
-    /**
-     * 查看作业实例鉴权
-     *
-     * @param username         用户名
-     * @param appResourceScope 资源范围
-     * @param taskInstance     作业实例
-     */
-    protected void authViewTaskInstance(String username, AppResourceScope appResourceScope,
-                                        TaskInstanceDTO taskInstance)
-        throws PermissionDeniedException {
-        if (taskInstance == null) {
-            log.info("TaskInstance is null");
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
-        if (!appResourceScope.getAppId().equals(taskInstance.getAppId())) {
-            log.info("TaskInstance {}|{} is not in resource scope : {}", taskInstance.getAppId(),
-                taskInstance.getId(), appResourceScope);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
-
-        AuthResult authResult = executeAuthService.authViewTaskInstance(
-            username, appResourceScope, taskInstance);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+    public TaskInstanceAccessProcessor(TaskInstanceService taskInstanceService) {
+        this.taskInstanceService = taskInstanceService;
     }
+
+    public void processBeforeAccess(String username, long appId, long taskInstanceId)
+        throws NotFoundException, PermissionDeniedException {
+        // 触发获取作业实例操作，会进行资源检查、鉴权、审计等操作
+        taskInstanceService.getTaskInstance(username, appId, taskInstanceId);
+    }
+
 }

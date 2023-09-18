@@ -24,16 +24,10 @@
 
 package com.tencent.bk.job.manage.api.iam.impl;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.api.iam.IamPublicScriptCallbackResource;
-import com.tencent.bk.job.manage.model.query.ScriptQuery;
-import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
-import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,37 +35,16 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallbackResource {
 
-    private final ScriptCallbackHelper scriptCallbackHelper;
+    private final PublicScriptCallbackHelper publicScriptCallbackHelper;
 
     @Autowired
-    public IamPublicScriptCallbackResourceImpl(ScriptService scriptService,
-                                               ApplicationService applicationService) {
-        this.scriptCallbackHelper = new ScriptCallbackHelper(scriptService, new ScriptCallbackHelper.IGetBasicInfo() {
-            @Override
-            public Pair<ScriptQuery, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
-                return getBasicQueryConditionImpl(callbackRequest);
-            }
-
-            @Override
-            public boolean isPublicScript() {
-                return true;
-            }
-        }, applicationService);
-    }
-
-    private Pair<ScriptQuery, BaseSearchCondition> getBasicQueryConditionImpl(CallbackRequestDTO callbackRequest) {
-        IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(searchCondition.getStart().intValue());
-        baseSearchCondition.setLength(searchCondition.getLength().intValue());
-
-        ScriptQuery scriptQuery = new ScriptQuery();
-        scriptQuery.setPublicScript(true);
-        return Pair.of(scriptQuery, baseSearchCondition);
+    public IamPublicScriptCallbackResourceImpl(
+        PublicScriptCallbackHelper publicScriptCallbackHelper) {
+        this.publicScriptCallbackHelper = publicScriptCallbackHelper;
     }
 
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return scriptCallbackHelper.doCallback(callbackRequest);
+        return publicScriptCallbackHelper.doCallback(callbackRequest);
     }
 }

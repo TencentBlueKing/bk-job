@@ -34,6 +34,7 @@ import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.FetchResourceTypeSchemaResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListAttributeValueResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceByPolicyResponseDTO;
@@ -105,6 +106,9 @@ public abstract class BaseIamCallbackService {
 
     protected abstract CallbackBaseResponseDTO fetchInstanceResp(CallbackRequestDTO callbackRequest);
 
+    protected abstract FetchResourceTypeSchemaResponseDTO fetchResourceTypeSchemaResp(
+        CallbackRequestDTO callbackRequest);
+
     public CallbackBaseResponseDTO baseCallback(CallbackRequestDTO callbackRequest) {
         CallbackBaseResponseDTO response;
         switch (callbackRequest.getMethod()) {
@@ -128,6 +132,9 @@ public abstract class BaseIamCallbackService {
                 break;
             case SEARCH_INSTANCE:
                 response = searchInstanceResp(callbackRequest);
+                break;
+            case FETCH_RESOURCE_TYPE_SCHEMA:
+                response = fetchResourceTypeSchemaResp(callbackRequest);
                 break;
             default:
                 log.error("Unknown callback method!|{}|{}|{}|{}", callbackRequest.getMethod(),

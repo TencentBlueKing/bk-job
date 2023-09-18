@@ -49,8 +49,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class EsbGetJobInstanceGlobalVarValueResourceImpl
-    extends JobQueryCommonProcessor implements EsbGetJobInstanceGlobalVarValueResource {
+public class EsbGetJobInstanceGlobalVarValueResourceImpl implements EsbGetJobInstanceGlobalVarValueResource {
 
     private final EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService;
     private final AppScopeMappingService appScopeMappingService;

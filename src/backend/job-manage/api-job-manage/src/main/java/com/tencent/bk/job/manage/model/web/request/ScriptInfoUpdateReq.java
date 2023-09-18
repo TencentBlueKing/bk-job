@@ -24,15 +24,25 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.NotEmptyChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
+import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 @Data
 @ApiModel("脚本元数据更新请求报文")
+@Slf4j
 public class ScriptInfoUpdateReq {
     /**
      * 脚本更新的字段，目前支持：scriptName/scriptDesc/scriptTags
@@ -48,4 +58,16 @@ public class ScriptInfoUpdateReq {
 
     @ApiModelProperty(value = "脚本标签", required = false)
     private List<TagVO> scriptTags;
+
+
+    public void validateScriptName() {
+        try {
+            StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(),
+                new NotEmptyChecker(), new IlegalCharChecker(), new MaxLengthChecker(60));
+            this.scriptName = stringCheckHelper.checkAndGetResult(scriptName);
+        } catch (StringCheckException e) {
+            log.warn("scriptName is invalid:", e);
+            throw new InvalidParamException(ErrorCode.SCRIPT_NAME_INVALID);
+        }
+    }
 }

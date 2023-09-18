@@ -414,7 +414,7 @@ public class GseStepEventHandler implements StepEventHandler {
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         if (!(taskInstance.getCurrentStepInstanceId() == stepInstanceId)) {
-            log.warn("Only current running step is support for skipping, stepInstanceId={}", stepInstanceId);
+            log.warn("Only currentAuditContext running step is support for skipping, stepInstanceId={}", stepInstanceId);
             return;
         }
 

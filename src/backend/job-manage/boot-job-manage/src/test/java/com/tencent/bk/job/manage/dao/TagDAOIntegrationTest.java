@@ -151,7 +151,7 @@ public class TagDAOIntegrationTest {
         assertThat(result.getDescription()).isEqualTo(updateTag.getDescription());
 
 
-        // Tag not exist in current application
+        // Tag not exist in currentAuditContext application
         updateTag.setAppId(1L);
         assertThat(tagDAO.updateTagById(updateTag)).isFalse();
         // Tag Not exist
