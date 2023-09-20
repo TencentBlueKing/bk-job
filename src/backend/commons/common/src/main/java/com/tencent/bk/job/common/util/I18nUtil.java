@@ -31,7 +31,7 @@ import java.util.Locale;
 
 @Slf4j
 public class I18nUtil {
-    private static MessageI18nService i18nService;
+    private volatile static MessageI18nService i18nService;
 
     public static String getI18nMessage(Locale locale, String key, Object[] params) {
         initI18nService();
@@ -82,7 +82,7 @@ public class I18nUtil {
     }
 
     public static String getI18nMessage(Locale locale, String key) {
-        return getI18nMessage(key, null);
+        return getI18nMessage(locale, key, null);
     }
 
     private static void initI18nService() {
