@@ -9,11 +9,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.StringJoiner;
 
-/**
- * 根据权重灰度策略
- */
 @Slf4j
-public class WeightToggleStrategy extends AbstractToggleStrategy {
+public class AllGseV2AgentToggleStrategy extends AbstractToggleStrategy {
     /**
      * 策略参数-权重
      */
@@ -21,13 +18,13 @@ public class WeightToggleStrategy extends AbstractToggleStrategy {
     /**
      * 特性开关开启策略ID
      */
-    public static final String STRATEGY_ID = "WeightToggleStrategy";
+    public static final String STRATEGY_ID = "AllGseV2AgentToggleStrategy";
 
     private final int weight;
 
     private final Random RANDOM = new SecureRandom();
 
-    public WeightToggleStrategy(String description, Map<String, String> initParams) {
+    public AllGseV2AgentToggleStrategy(String description, Map<String, String> initParams) {
         super(STRATEGY_ID, description, initParams);
         assertRequiredParameter(INIT_PARAM_WEIGHT);
         String weightStrValue = initParams.get(INIT_PARAM_WEIGHT);
@@ -67,7 +64,7 @@ public class WeightToggleStrategy extends AbstractToggleStrategy {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", WeightToggleStrategy.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", AllGseV2AgentToggleStrategy.class.getSimpleName() + "[", "]")
             .add("id='" + id + "'")
             .add("initParams=" + initParams)
             .add("weight=" + weight)

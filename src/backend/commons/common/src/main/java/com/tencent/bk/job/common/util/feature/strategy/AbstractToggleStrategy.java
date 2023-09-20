@@ -1,10 +1,12 @@
 package com.tencent.bk.job.common.util.feature.strategy;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,16 +16,44 @@ import java.util.Map;
 public abstract class AbstractToggleStrategy implements ToggleStrategy {
 
     protected final String id;
+    protected final String description;
+    protected List<ToggleStrategy> compositeStrategies = null;
     protected final Map<String, String> initParams;
 
     /**
      * 初始化特性开关
      *
-     * @param strategyId 策略ID
-     * @param initParams 初始化参数
+     * @param strategyId  策略ID
+     * @param description 策略说明
+     * @param compositeStrategies  子策略
+     * @param initParams  初始化参数
      */
-    public AbstractToggleStrategy(String strategyId, Map<String, String> initParams) {
+    public AbstractToggleStrategy(String strategyId,
+                                  String description,
+                                  List<ToggleStrategy> compositeStrategies,
+                                  Map<String, String> initParams) {
         this.id = strategyId;
+        this.description = description;
+        this.compositeStrategies = compositeStrategies;
+        if (initParams != null) {
+            this.initParams = initParams;
+        } else {
+            this.initParams = new HashMap<>();
+        }
+    }
+
+    /**
+     * 初始化特性开关
+     *
+     * @param strategyId  策略ID
+     * @param description 策略说明
+     * @param initParams  初始化参数
+     */
+    public AbstractToggleStrategy(String strategyId,
+                                  String description,
+                                  Map<String, String> initParams) {
+        this.id = strategyId;
+        this.description = description;
         if (initParams != null) {
             this.initParams = initParams;
         } else {
@@ -55,6 +85,14 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
         if (!anyMatch) {
             String msg = MessageFormatter.format(
                 "Required at least one parameter({}) for this ToggleStrategy", paramNames).getMessage();
+            log.error(msg);
+            throw new FeatureConfigParseException(msg);
+        }
+    }
+
+    public void assertRequiredAtLeastOneStrategy() {
+        if (!CollectionUtils.isEmpty(this.compositeStrategies)) {
+            String msg = "Required at least one strategy for this ToggleStrategy";
             log.error(msg);
             throw new FeatureConfigParseException(msg);
         }

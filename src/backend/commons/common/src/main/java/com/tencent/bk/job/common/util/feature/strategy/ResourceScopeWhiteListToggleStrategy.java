@@ -15,13 +15,13 @@ public class ResourceScopeWhiteListToggleStrategy extends AbstractResourceScopeT
      */
     public static final String STRATEGY_ID = "ResourceScopeWhiteListToggleStrategy";
 
-    public ResourceScopeWhiteListToggleStrategy(Map<String, String> initParams) {
-        super(STRATEGY_ID, initParams);
+    public ResourceScopeWhiteListToggleStrategy(String description, Map<String, String> initParams) {
+        super(STRATEGY_ID, description, initParams);
     }
 
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
-        ResourceScope scope = (ResourceScope) ctx.getParam(CTX_PARAM_RESOURCE_SCOPE);
+        ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
         return this.resourceScopes.contains(scope);
     }
 

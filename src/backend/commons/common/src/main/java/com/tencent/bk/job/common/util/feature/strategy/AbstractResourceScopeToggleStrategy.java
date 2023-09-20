@@ -19,15 +19,11 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
      * 策略初始化参数-资源范围
      */
     public static final String INIT_PARAM_RESOURCE_SCOPE_LIST = "resourceScopeList";
-    /**
-     * 上下文参数-资源范围
-     */
-    public static final String CTX_PARAM_RESOURCE_SCOPE = "resourceScope";
 
     protected final Set<ResourceScope> resourceScopes = new HashSet<>();
 
-    public AbstractResourceScopeToggleStrategy(String strategyId, Map<String, String> initParams) {
-        super(strategyId, initParams);
+    public AbstractResourceScopeToggleStrategy(String strategyId, String description, Map<String, String> initParams) {
+        super(strategyId, description, null, initParams);
         assertRequiredParameter(INIT_PARAM_RESOURCE_SCOPE_LIST);
 
         String resourceScopesValue = initParams.get(INIT_PARAM_RESOURCE_SCOPE_LIST);

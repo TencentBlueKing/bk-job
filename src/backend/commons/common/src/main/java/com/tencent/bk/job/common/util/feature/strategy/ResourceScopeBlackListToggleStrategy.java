@@ -15,13 +15,13 @@ public class ResourceScopeBlackListToggleStrategy extends AbstractResourceScopeT
      */
     public static final String STRATEGY_ID = "ResourceScopeBlackListToggleStrategy";
 
-    public ResourceScopeBlackListToggleStrategy(Map<String, String> initParams) {
-        super(STRATEGY_ID, initParams);
+    public ResourceScopeBlackListToggleStrategy(String description, Map<String, String> initParams) {
+        super(STRATEGY_ID, description, initParams);
     }
 
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
-        ResourceScope scope = (ResourceScope) ctx.getParam(CTX_PARAM_RESOURCE_SCOPE);
+        ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
         return !this.resourceScopes.contains(scope);
     }
 

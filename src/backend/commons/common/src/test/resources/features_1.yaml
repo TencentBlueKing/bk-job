@@ -1,0 +1,20 @@
+features:
+  gseV2:
+    enabled: true
+    strategy:
+      id: AnyMatchFeatureToggleStrategy
+      strategies:
+        - id: ResourceScopeBlackListToggleStrategy
+          description: "BizId=2 not gray"
+          params:
+            resourceScopeList: "biz:2"
+        - id: AllMatchFeatureToggleStrategy
+          description: "BizId=100 and all agents v2"
+          strategies:
+            - id: ResourceScopeWhiteListToggleStrategy
+              description: "BizId=100"
+              params:
+                resourceScopeList: "biz:100"
+            - id: AllGseV2AgentToggleStrategy
+              description: "Target agent v2"
+      description: ""

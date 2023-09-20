@@ -53,7 +53,7 @@ import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContextBuilder;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -957,11 +957,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
 
     private boolean isUsingGseV2(long appId) {
+        FeatureExecutionContext featureExecutionContext =
+            FeatureExecutionContext.builder()
+                .addResourceScopeContextParam(appScopeMappingService.getScopeByAppId(appId));
         boolean isUsingGseV2 = FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_GSE_V2,
-            FeatureExecutionContextBuilder.builder()
-                .resourceScope(appScopeMappingService.getScopeByAppId(appId))
-                .build()
+            featureExecutionContext
         );
         log.info("Determine gse version, appId: {}, isUsingGseV2: {}", appId, isUsingGseV2);
         return isUsingGseV2;
