@@ -214,8 +214,12 @@ build_backend_module () {
 # Build migration image
 build_migration_image(){
     log "Building migration image, version: ${VERSION}..."
+    $BACKEND_DIR/gradlew -p $BACKEND_DIR clean :upgrader:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     rm -rf tmp/*
+    cp $BACKEND_DIR/release/upgrader-$VERSION.jar tmp/upgrader.jar
     cp migration/startup.sh tmp/
+    cp migration/runUpgrader.sh tmp/
+    cp $SUPPORT_FILES_DIR/templates/#etc#job#upgrader#upgrader.properties tmp/upgrader.properties.tpl
     cp -r $SUPPORT_FILES_DIR/bkiam tmp/
     cp -r $SUPPORT_FILES_DIR/sql tmp/
     docker build -f migration/migration.Dockerfile -t $REGISTRY/job-migration:$VERSION tmp --network=host
@@ -262,7 +266,7 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	    if [[ "$SERVICE" == "job-frontend" ]]; then
 		    build_frontend_module
 	    elif [[ "$SERVICE" == "job-migration" ]]; then
-		    build_migration_image	
+		    build_migration_image
 	    elif [[ "$SERVICE" == "startup-controller" ]]; then
 		    build_startup_controller_image
 		else
