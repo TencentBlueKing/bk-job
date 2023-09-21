@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Release.Namespace }}-{{ include "common.names.fullname" . }}-local
+  name: {{ .Release.Namespace }}-{{ include "common.names.fullname" . }}-local-{{ .Values.persistence.storageClass }}
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}

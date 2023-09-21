@@ -149,12 +149,12 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         }
     }
 
-    public Long countFileTasksByConditions(Collection<Condition> conditions) {
+    public Long countFileTasksByConditionsForUpdate(Collection<Condition> conditions) {
         val query = dslContext.select(
             DSL.countDistinct(defaultTable.ID)
         ).from(defaultTable)
             .where(conditions);
-        return query.fetchOne(0, Long.class);
+        return query.forUpdate().fetchOne(0, Long.class);
     }
 
     @Override
@@ -196,7 +196,7 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
     }
 
     @Override
-    public Long countFileTask(String fileSourceTaskId, Byte status) {
+    public Long countFileTaskForUpdate(String fileSourceTaskId, Byte status) {
         List<Condition> conditions = new ArrayList<>();
         if (fileSourceTaskId != null) {
             conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
@@ -204,7 +204,7 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         if (status != null) {
             conditions.add(defaultTable.STATUS.eq(status));
         }
-        return countFileTasksByConditions(conditions);
+        return countFileTasksByConditionsForUpdate(conditions);
     }
 
     private FileTaskDTO convertRecordToDto(FileTaskRecord record) {

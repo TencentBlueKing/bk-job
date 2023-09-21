@@ -228,8 +228,10 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         redisTemplate.expireAt(PREFIX_REDIS_TASK_LOG + taskId, new Date(System.currentTimeMillis() + 3600 * 1000));
     }
 
-    private void notifyFileTaskStatusChangeListeners(FileTaskDTO fileTaskDTO, FileSourceTaskDTO fileSourceTaskDTO,
-                                                     FileWorkerDTO fileWorkerDTO, TaskStatusEnum previousStatus,
+    private void notifyFileTaskStatusChangeListeners(FileTaskDTO fileTaskDTO,
+                                                     FileSourceTaskDTO fileSourceTaskDTO,
+                                                     FileWorkerDTO fileWorkerDTO,
+                                                     TaskStatusEnum previousStatus,
                                                      TaskStatusEnum currentStatus) {
         TaskContext context = new DefaultTaskContext(fileTaskDTO, fileSourceTaskDTO, fileWorkerDTO);
         if (!fileTaskStatusChangeListenerList.isEmpty()) {
@@ -293,8 +295,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         }
         // 通知关注者
         if (status != previousStatus) {
-            notifyFileTaskStatusChangeListeners(fileTaskDTO, fileSourceTaskDTO, fileWorkerDTO,
-                TaskStatusEnum.valueOf(fileTaskDTO.getStatus()), status);
+            notifyFileTaskStatusChangeListeners(fileTaskDTO, fileSourceTaskDTO, fileWorkerDTO, previousStatus, status);
         }
         // 进度上报
         writeLog(fileSourceTaskDTO, fileWorkerDTO, filePath, fileSize, speed, progress, content);

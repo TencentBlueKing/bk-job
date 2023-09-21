@@ -122,6 +122,8 @@ spec:
           resources:
             {{- toYaml .Values.assembleConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: distribute-volume
+              mountPath: {{ .Values.fileDistribute.hostPath }}
             - name: job-storage
               mountPath: {{ .Values.persistence.localStorage.path }}
             - name: mariadb
@@ -141,9 +143,13 @@ spec:
               readOnly: true
       terminationGracePeriodSeconds: 120
       volumes:
+        - name: distribute-volume
+          hostPath:
+            path: {{ .Values.fileDistribute.hostPath }}
+            type: DirectoryOrCreate
         - name: job-storage
           persistentVolumeClaim:
-            claimName: {{ include "common.names.fullname" . }}-pv-claim
+            claimName: {{ include "job.storage.pvc.name" . }}
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}

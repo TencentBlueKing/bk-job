@@ -47,7 +47,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.config.StorageSystemConfig;
+import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
@@ -75,19 +75,19 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
     private final TaskExecuteService taskExecuteService;
 
     private final AccountService accountService;
-    private final StorageSystemConfig storageSystemConfig;
+    private final FileDistributeConfig fileDistributeConfig;
     private final AgentService agentService;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPushConfigFileResourceImpl(TaskExecuteService taskExecuteService,
                                          AccountService accountService,
-                                         StorageSystemConfig storageSystemConfig,
+                                         FileDistributeConfig fileDistributeConfig,
                                          AgentService agentService,
                                          AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
-        this.storageSystemConfig = storageSystemConfig;
+        this.fileDistributeConfig = fileDistributeConfig;
         this.agentService = agentService;
         this.appScopeMappingService = appScopeMappingService;
     }
@@ -196,7 +196,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
             fileSourceDTO.setFileType(TaskFileTypeEnum.BASE64_FILE.getType());
             // 保存配置文件至机器
             String configFileLocalPath = ConfigFileUtil.saveConfigFileToLocal(
-                storageSystemConfig.getJobStorageRootPath(),
+                fileDistributeConfig.getJobDistributeRootPath(),
                 userName,
                 configFile.getFileName(),
                 configFile.getContent()

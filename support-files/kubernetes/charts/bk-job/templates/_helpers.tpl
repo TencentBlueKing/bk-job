@@ -668,3 +668,11 @@ Return the Archive MariaDB secret name
 {{- define "job.archiveMariadb.secretName" -}}
 {{ printf "%s-%s" (include "job.fullname" .) "archive-mariadb" }}
 {{- end -}}
+
+
+{{/*
+Return the storage PVC name
+*/}}
+{{- define "job.storage.pvc.name" -}}
+{{ printf "%s-pv-claim-%s" (include "common.names.fullname" .) .Values.persistence.storageClass }}
+{{- end -}}

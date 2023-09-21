@@ -65,8 +65,8 @@ public class BatchTaskStatusUpdater implements FileSourceTaskStatusChangeListene
         }
         if (TaskStatusEnum.SUCCESS.equals(currentStatus)) {
             //检查批量任务是否成功
-            if (fileSourceTaskDAO.countFileSourceTasksByBatchTaskId(batchTaskId, null)
-                .equals(fileSourceTaskDAO.countFileSourceTasksByBatchTaskId(
+            if (fileSourceTaskDAO.countFileSourceTasksByBatchTaskIdForUpdate(batchTaskId, null)
+                .equals(fileSourceTaskDAO.countFileSourceTasksByBatchTaskIdForUpdate(
                     batchTaskId, TaskStatusEnum.SUCCESS.getStatus()))) {
                 // 批量任务成功
                 fileSourceBatchTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());

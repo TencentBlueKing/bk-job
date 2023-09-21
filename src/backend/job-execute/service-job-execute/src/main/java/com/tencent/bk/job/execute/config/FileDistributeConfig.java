@@ -22,19 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service.listener;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
-import com.tencent.bk.job.file_gateway.service.context.TaskContext;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-public interface FileSourceTaskStatusChangeListener {
+/**
+ * 文件分发配置
+ */
+@Getter
+@Configuration("jobExecuteFileDistributeConfig")
+public class FileDistributeConfig {
     /**
-     * 在单个文件源任务状态改变时被调用
-     *
-     * @param context        任务上下文
-     * @param previousStatus 上一个状态
-     * @param currentStatus  当前状态
-     * @return true 如果需要终止事件向后续的Listener传递则返回true
+     * 要分发的文件存储根目录，二进制环境下与临时文件存储根目录相同
      */
-    boolean onStatusChange(TaskContext context, TaskStatusEnum previousStatus, TaskStatusEnum currentStatus);
+    @Value("${job.execute.file.distribute.root-path:/data/bkee/job/data}")
+    private String jobDistributeRootPath;
 }
