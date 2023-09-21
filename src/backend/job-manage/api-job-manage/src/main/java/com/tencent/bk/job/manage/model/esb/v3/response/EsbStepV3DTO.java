@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
 /**
@@ -32,18 +33,24 @@ import lombok.Data;
  */
 @Data
 public class EsbStepV3DTO {
+    @JsonPropertyDescription("Step id")
     private Long id;
 
+    @JsonPropertyDescription("Step name")
     private String name;
 
+    @JsonPropertyDescription("Step type")
     private Integer type;
 
     @JsonProperty("script_info")
+    @JsonPropertyDescription("Script step info")
     private EsbScriptStepV3DTO scriptInfo;
 
     @JsonProperty("file_info")
+    @JsonPropertyDescription("File step info")
     private EsbFileStepV3DTO fileInfo;
 
     @JsonProperty("approval_info")
+    @JsonPropertyDescription("Approval step info")
     private EsbApprovalStepV3DTO approvalInfo;
 }

@@ -165,9 +165,9 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
             newAccount.setLastModifyUser(username);
         }
 
-        long accountId = accountService.saveAccount(newAccount);
-        newAccount.setId(accountId);
-        return InternalResponse.buildSuccessResp(newAccount.toServiceAccountDTO());
+        AccountDTO savedAccount = accountService.createAccount(newAccount);
+        newAccount.setId(savedAccount.getId());
+        return InternalResponse.buildSuccessResp(savedAccount.toServiceAccountDTO());
     }
 
     @Override
@@ -183,9 +183,9 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
 
         AccountDTO newAccount = accountService.buildCreateAccountDTO(username, appResourceScope.getAppId(),
             accountCreateUpdateReq);
-        long accountId = accountService.saveAccount(newAccount);
-        accountAuthService.registerAccount(username, accountId, newAccount.getAlias());
-        return Response.buildSuccessResp(accountId);
+        AccountDTO savedAccount = accountService.createAccount(newAccount);
+        accountAuthService.registerAccount(username, savedAccount.getId(), newAccount.getAlias());
+        return Response.buildSuccessResp(savedAccount.getId());
     }
 
     @Override

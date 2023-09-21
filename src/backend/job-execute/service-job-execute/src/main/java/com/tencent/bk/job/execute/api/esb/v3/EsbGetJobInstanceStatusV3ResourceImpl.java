@@ -24,16 +24,18 @@
 
 package com.tencent.bk.job.execute.api.esb.v3;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -54,9 +56,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class EsbGetJobInstanceStatusV3ResourceImpl
-    extends JobQueryCommonProcessor
-    implements EsbGetJobInstanceStatusV3Resource {
+public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceStatusV3Resource {
 
     private final TaskInstanceService taskInstanceService;
     private final AppScopeMappingService appScopeMappingService;
@@ -75,7 +75,9 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_status"})
-    public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatusUsingPost(EsbGetJobInstanceStatusV3Request request) {
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
+    public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatusUsingPost(
+        @AuditRequestBody EsbGetJobInstanceStatusV3Request request) {
         request.fillAppResourceScope(appScopeMappingService);
 
         ValidateResult checkResult = checkRequest(request);
@@ -86,10 +88,8 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
 
         long taskInstanceId = request.getTaskInstanceId();
 
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getTaskInstanceId());
-
-        authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
-
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(
+            request.getUserName(), request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         if (stepInstances == null || stepInstances.isEmpty()) {
@@ -184,6 +184,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatus(String username,
                                                                    String appCode,
                                                                    Long bizId,

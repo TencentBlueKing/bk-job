@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -53,10 +55,8 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastExecuteScriptRequest;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,20 +76,16 @@ public class EsbFastExecuteScriptResourceImpl
 
     private final MessageI18nService i18nService;
 
-    private final ScriptService scriptService;
-
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbFastExecuteScriptResourceImpl(TaskExecuteService taskExecuteService,
                                             AccountService accountService,
                                             MessageI18nService i18nService,
-                                            ScriptService scriptService,
                                             AppScopeMappingService appScopeMappingService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.i18nService = i18nService;
-        this.scriptService = scriptService;
         this.appScopeMappingService = appScopeMappingService;
     }
 
@@ -100,7 +96,8 @@ public class EsbFastExecuteScriptResourceImpl
             ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_API,
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_SCRIPT
         })
-    public EsbResp<EsbJobExecuteDTO> fastExecuteScript(EsbFastExecuteScriptRequest request) {
+    @AuditEntry
+    public EsbResp<EsbJobExecuteDTO> fastExecuteScript(@AuditRequestBody EsbFastExecuteScriptRequest request) {
         request.fillAppResourceScope(appScopeMappingService);
 
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
@@ -111,20 +108,20 @@ public class EsbFastExecuteScriptResourceImpl
 
         request.trimIps();
 
-        ServiceScriptDTO script = getAndCheckScript(request.getAppId(), request.getUserName(), request.getScriptId(),
-            scriptService);
         TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(request);
-        StepInstanceDTO stepInstance = buildFastScriptStepInstance(request, script);
-        long taskInstanceId = taskExecuteService.executeFastTask(
+        StepInstanceDTO stepInstance = buildFastScriptStepInstance(request);
+        TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
             FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
         );
 
         EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
-        jobExecuteInfo.setTaskInstanceId(taskInstanceId);
+        jobExecuteInfo.setTaskInstanceId(executeTaskInstance.getId());
         jobExecuteInfo.setTaskName(stepInstance.getName());
         jobExecuteInfo.setStepInstanceId(stepInstance.getId());
         return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
+
+
 
     private String generateDefaultFastTaskName() {
         return i18nService.getI18n("task.type.name.fast_execute_script") + "_"
@@ -132,9 +129,9 @@ public class EsbFastExecuteScriptResourceImpl
     }
 
     private ValidateResult checkFastExecuteScriptRequest(EsbFastExecuteScriptRequest request) {
-        if (request.getScriptId() != null) {
-            if (request.getScriptId() < 1) {
-                log.warn("Fast execute script, scriptId:{} is invalid", request.getScriptId());
+        if (request.getScriptVersionId() != null) {
+            if (request.getScriptVersionId() < 1) {
+                log.warn("Fast execute script, scriptId:{} is invalid", request.getScriptVersionId());
                 return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "script_id");
             }
         } else {
@@ -170,7 +167,7 @@ public class EsbFastExecuteScriptResourceImpl
         } else {
             taskInstance.setName(generateDefaultFastTaskName());
         }
-        taskInstance.setTaskId(-1L);
+        taskInstance.setPlanId(-1L);
         taskInstance.setCronTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setDebugTask(false);
@@ -187,7 +184,7 @@ public class EsbFastExecuteScriptResourceImpl
     }
 
 
-    private StepInstanceDTO buildFastScriptStepInstance(EsbFastExecuteScriptRequest request, ServiceScriptDTO script)
+    private StepInstanceDTO buildFastScriptStepInstance(EsbFastExecuteScriptRequest request)
         throws ServiceException {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setAppId(request.getAppId());
@@ -197,9 +194,8 @@ public class EsbFastExecuteScriptResourceImpl
             stepInstance.setName(generateDefaultFastTaskName());
         }
         stepInstance.setStepId(-1L);
-        if (script != null) {
-            stepInstance.setScriptContent(script.getContent());
-            stepInstance.setScriptType(script.getType());
+        if (request.getScriptVersionId() != null && request.getScriptVersionId() > 0) {
+            stepInstance.setScriptVersionId(request.getScriptVersionId());
         } else {
             // 对传入参数进行base64解码
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));

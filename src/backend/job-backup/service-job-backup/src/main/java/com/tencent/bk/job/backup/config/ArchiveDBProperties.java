@@ -28,7 +28,6 @@ import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter

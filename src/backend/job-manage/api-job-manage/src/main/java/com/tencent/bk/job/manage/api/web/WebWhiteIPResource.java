@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -91,12 +92,26 @@ public interface WebWhiteIPResource {
     );
 
 
-    @ApiOperation(value = "新增/更新IP白名单", produces = "application/json")
-    @PostMapping("/")
-    Response<Long> saveWhiteIP(
+    @ApiOperation(value = "新增IP白名单", produces = "application/json")
+    @PostMapping
+    Response<WhiteIPRecordVO> createWhiteIP(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
+        @ApiParam(value = "创建或更新请求体", required = true)
+        @RequestBody
+            WhiteIPRecordCreateUpdateReq createUpdateReq
+    );
+
+    @ApiOperation(value = "更新IP白名单", produces = "application/json")
+    @PutMapping("/{id}")
+    Response<WhiteIPRecordVO> updateWhiteIP(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username,
+        @ApiParam("IP白名单记录ID")
+        @PathVariable("id")
+            Long id,
         @ApiParam(value = "创建或更新请求体", required = true)
         @RequestBody
             WhiteIPRecordCreateUpdateReq createUpdateReq

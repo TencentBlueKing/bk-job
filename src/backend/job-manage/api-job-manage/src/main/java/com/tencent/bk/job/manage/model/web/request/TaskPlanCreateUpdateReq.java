@@ -40,13 +40,15 @@ public class TaskPlanCreateUpdateReq {
     /**
      * 执行方案 ID
      */
-    @ApiModelProperty(value = "执行方案 ID，更新和删除时需要传入", required = true)
+    @Deprecated
+    @ApiModelProperty(value = "执行方案 ID", hidden = true)
     private Long id;
 
     /**
      * 模版 ID
      */
-    @ApiModelProperty(value = "模版 ID", required = true)
+    @Deprecated
+    @ApiModelProperty(value = "模版 ID", hidden = true)
     private Long templateId;
 
     /**

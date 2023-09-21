@@ -293,7 +293,7 @@ class GenCompleteDependJarListAndRemoveInfectedJarsTask extends DefaultTask {
         // 写入Jar列表至文件
         BufferedWriter bw = null;
         try {
-            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(jarListFile), "UTF-8"));
+            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(jarListFile), StandardCharsets.UTF_8));
             for (int i = 0; i < libJarNameList.size(); i++) {
                 String libJarName = libJarNameList.get(i);
                 String libJarPath = libJarPathPrefix + libJarName;

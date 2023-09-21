@@ -24,17 +24,12 @@
 
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
-import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
-import com.tencent.bk.job.execute.service.ScriptService;
-import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -45,18 +40,6 @@ import java.util.List;
  */
 @Slf4j
 public class JobExecuteCommonProcessor {
-    protected final ServiceScriptDTO getAndCheckScript(Long appId, String operator, Long scriptId,
-                                                       ScriptService scriptService) throws ServiceException {
-        ServiceScriptDTO script = null;
-        if (scriptId != null && scriptId > 0) {
-            script = scriptService.getScriptByScriptVersionId(operator, appId, scriptId);
-            if (script == null) {
-                log.warn("Script:{} is not in app:{}", scriptId, appId);
-                throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-            }
-        }
-        return script;
-    }
 
     /**
      * 转换目标服务器

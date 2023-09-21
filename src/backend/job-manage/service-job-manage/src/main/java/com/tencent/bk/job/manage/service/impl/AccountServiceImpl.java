@@ -24,15 +24,25 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditInstanceRecord;
+import com.tencent.bk.audit.context.ActionAuditContext;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.crypto.Encryptor;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -41,9 +51,9 @@ import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.manage.auth.AccountAuthService;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
-import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
@@ -72,21 +82,21 @@ public class AccountServiceImpl implements AccountService {
     private final AccountDAO accountDAO;
     private final Encryptor encryptor;
     private final GlobalSettingsService globalSettingsService;
-    private final JobManageConfig jobManageConfig;
+    private final AccountAuthService accountAuthService;
 
     @Autowired
     public AccountServiceImpl(AccountDAO accountDAO,
                               @Qualifier("gseRsaEncryptor") Encryptor encryptor,
                               GlobalSettingsService globalSettingsService,
-                              JobManageConfig jobManageConfig) {
+                              AccountAuthService accountAuthService) {
         this.accountDAO = accountDAO;
         this.encryptor = encryptor;
         this.globalSettingsService = globalSettingsService;
-        this.jobManageConfig = jobManageConfig;
+        this.accountAuthService = accountAuthService;
     }
 
     @Override
-    public long saveAccount(AccountDTO account) throws ServiceException {
+    public AccountDTO createAccount(AccountDTO account) throws ServiceException {
         log.info("Save account, account={}", account);
         AccountDTO existAccount = accountDAO.getAccount(account.getAppId(), account.getCategory(), account.getAlias());
         if (existAccount != null) {
@@ -105,21 +115,90 @@ public class AccountServiceImpl implements AccountService {
                 throw new NotFoundException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
             }
             if (!dbSystemAccount.getAppId().equals(account.getAppId())) {
-                log.warn("DB related system account is not in current app, systemAccountId={}, systemAccountAppId={}"
+                log.warn("DB related system account is not in current app, systemAccountId={}, " +
+                        "systemAccountAppId={}"
                     , account.getDbSystemAccountId(), dbSystemAccount.getAppId());
                 throw new NotFoundException(ErrorCode.DB_SYSTEM_ACCOUNT_IS_INVALID);
             }
         }
+
+        long accountId;
         if (account.getId() == null) {
-            return accountDAO.saveAccount(account);
+            accountId = accountDAO.saveAccount(account);
         } else {
-            return accountDAO.saveAccountWithId(account);
+            accountId = accountDAO.saveAccountWithId(account);
         }
+
+        return getAccountById(accountId);
+    }
+
+    @Override
+    @ActionAuditRecord(
+        actionId = ActionId.CREATE_ACCOUNT,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.ACCOUNT,
+            instanceIds = "#$?.id",
+            instanceNames = "#$?.alias"
+        ),
+        content = EventContentConstants.CREATE_ACCOUNT
+    )
+    public AccountDTO createAccount(String username, AccountDTO account) {
+        authCreateAccount(username, account.getAppId());
+        AccountDTO createdAccount = createAccount(account);
+        accountAuthService.registerAccount(
+            username,
+            createdAccount.getId(),
+            createdAccount.getAlias()
+        );
+        return createdAccount;
+    }
+
+    private void authCreateAccount(String username, long appId) throws PermissionDeniedException {
+        accountAuthService.authCreateAccount(username, new AppResourceScope(appId)).denyIfNoPermission();
+    }
+
+    private void authUseAccount(String username, long appId, long accountId) throws PermissionDeniedException {
+        accountAuthService.authUseAccount(username, new AppResourceScope(appId), accountId, null)
+            .denyIfNoPermission();
+    }
+
+    private void authManageAccount(String username, long appId, long accountId) throws PermissionDeniedException {
+        accountAuthService.authManageAccount(username, new AppResourceScope(appId), accountId, null)
+            .denyIfNoPermission();
     }
 
     @Override
     public AccountDTO getAccountById(Long accountId) throws ServiceException {
         return accountDAO.getAccountById(accountId);
+    }
+
+    @Override
+    @ActionAuditRecord(
+        actionId = ActionId.USE_ACCOUNT,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.ACCOUNT,
+            instanceIds = "#accountId",
+            instanceNames = "#$?.alias"
+        ),
+        content = EventContentConstants.USE_ACCOUNT
+    )
+    public AccountDTO getAccount(String username, long appId, Long accountId) {
+        authUseAccount(username, appId, accountId);
+        return getAccount(appId, accountId);
+    }
+
+    @Override
+    public AccountDTO getAccount(long appId, Long accountId) {
+        AccountDTO account = getAccountById(accountId);
+        if (account == null) {
+            log.info("Account is not exist, accountId={}", accountId);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
+        }
+        if (!account.getAppId().equals(accountId)) {
+            log.info("Account is not in app, appId={}, accountId={}", appId, accountId);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
+        }
+        return account;
     }
 
     @Override
@@ -139,7 +218,45 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void updateAccount(AccountDTO account) throws ServiceException {
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_ACCOUNT,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.ACCOUNT,
+            instanceIds = "#updateAccount?.id",
+            instanceNames = "#updateAccount?.alias"
+        ),
+        content = EventContentConstants.EDIT_ACCOUNT
+    )
+    public AccountDTO updateAccount(String username, AccountDTO updateAccount) throws ServiceException {
+        authManageAccount(username, updateAccount.getAppId(), updateAccount.getId());
+        checkAccountAliasExist(updateAccount);
+
+        AccountDTO originAccount = getAccount(updateAccount.getAppId(), updateAccount.getId());
+        if (StringUtils.isNotEmpty(updateAccount.getPassword())) {
+            updateAccount.setPassword(encryptor.encrypt(updateAccount.getPassword()));
+        }
+        if (updateAccount.getCategory() == AccountCategoryEnum.DB
+            && StringUtils.isNotEmpty(updateAccount.getDbPassword())) {
+            updateAccount.setDbPassword(encryptor.encrypt(updateAccount.getPassword()));
+        }
+        // 账号用途、账号类型、账号名称不允许修改
+        updateAccount.setCategory(originAccount.getCategory());
+        updateAccount.setType(originAccount.getType());
+        updateAccount.setAccount(originAccount.getAccount());
+
+        log.info("Update account, account={}", updateAccount);
+        accountDAO.updateAccount(updateAccount);
+        AccountDTO updatedAccount = getAccountById(updateAccount.getId());
+
+        // 审计
+        ActionAuditContext.current()
+            .setOriginInstance(originAccount.toEsbAccountV3DTO())
+            .setInstance(updatedAccount.toEsbAccountV3DTO());
+
+        return updatedAccount;
+    }
+
+    private void checkAccountAliasExist(AccountDTO account) {
         AccountDTO existAccount = accountDAO.getAccount(
             account.getAppId(),
             account.getCategory(),
@@ -154,17 +271,40 @@ public class AccountServiceImpl implements AccountService {
             );
             throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALIAS_EXIST);
         }
-        if (StringUtils.isNotEmpty(account.getPassword())) {
-            account.setPassword(encryptor.encrypt(account.getPassword()));
-        }
-        log.info("Update account, account={}", account);
-        accountDAO.updateAccount(account);
     }
 
     @Override
-    public void deleteAccount(Long accountId) throws ServiceException {
+    @ActionAuditRecord(
+        actionId = ActionId.MANAGE_ACCOUNT,
+        instance = @AuditInstanceRecord(
+            resourceType = ResourceTypeId.ACCOUNT,
+            instanceIds = "#accountId"
+        ),
+        content = EventContentConstants.DELETE_ACCOUNT
+    )
+    public void deleteAccount(String username, long appId, Long accountId) throws ServiceException {
+        log.info("Delete account, operator={}, appId={}, accountId={}", username, appId, accountId);
+        AccountDTO account = getAccountById(accountId);
+        if (account == null) {
+            log.info("Account is not exist, accountId={}", accountId);
+            throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
+        }
+
+        authManageAccount(username, account.getAppId(), accountId);
+
+        if (isAccountRefByAnyStep(accountId)) {
+            log.info("Account:{} is ref by step, should not delete!", accountId);
+            throw new FailedPreconditionException(ErrorCode.DELETE_REF_ACCOUNT_FORBIDDEN);
+        }
+        if (account.getCategory() == AccountCategoryEnum.SYSTEM && isSystemAccountRefByDbAccount(accountId)) {
+            log.info("Account:{} is ref by db account, should not delete!", accountId);
+            throw new FailedPreconditionException(ErrorCode.DELETE_REF_ACCOUNT_FORBIDDEN);
+        }
+
         log.info("Delete account, accountId={}", accountId);
         accountDAO.deleteAccount(accountId);
+
+        ActionAuditContext.current().setInstanceName(account.getAccount());
     }
 
     @Override

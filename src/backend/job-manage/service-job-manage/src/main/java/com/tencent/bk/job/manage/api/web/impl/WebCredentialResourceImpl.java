@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -37,7 +39,6 @@ import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import com.tencent.bk.job.manage.service.CredentialService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -95,36 +96,40 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     }
 
     @Override
-    public Response<String> saveCredential(String username,
-                                           AppResourceScope appResourceScope,
-                                           String scopeType,
-                                           String scopeId,
-                                           CredentialCreateUpdateReq createUpdateReq) {
-        AuthResult authResult;
-        if (StringUtils.isBlank(createUpdateReq.getId())) {
-            authResult = checkCreateTicketPermission(username, appResourceScope);
-        } else {
-            authResult = checkManageTicketPermission(username, appResourceScope, createUpdateReq.getId());
-        }
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-        return Response.buildSuccessResp(credentialService.saveCredential(username, appResourceScope.getAppId(),
-            createUpdateReq));
+    @AuditEntry(actionId = ActionId.CREATE_TICKET)
+    public Response<CredentialVO> createCredential(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   String scopeType,
+                                                   String scopeId,
+                                                   @AuditRequestBody CredentialCreateUpdateReq createUpdateReq) {
+        CredentialDTO credential =
+            credentialService.createCredential(username, appResourceScope.getAppId(), createUpdateReq);
+        return Response.buildSuccessResp(credential.toVO());
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_TICKET)
+    public Response<CredentialVO> updateCredential(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   String scopeType,
+                                                   String scopeId,
+                                                   String credentialId,
+                                                   @AuditRequestBody CredentialCreateUpdateReq createUpdateReq) {
+        createUpdateReq.setId(credentialId);
+        CredentialDTO credential = credentialService.updateCredential(username, appResourceScope.getAppId(),
+            createUpdateReq);
+        return Response.buildSuccessResp(credential.toVO());
+    }
+
+    @Override
+    @AuditEntry(actionId = ActionId.MANAGE_TICKET)
     public Response<Integer> deleteCredentialById(String username,
                                                   AppResourceScope appResourceScope,
                                                   String scopeType,
                                                   String scopeId,
                                                   String id) {
-        AuthResult authResult = checkManageTicketPermission(username, appResourceScope, id);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-        return Response.buildSuccessResp(credentialService.deleteCredentialById(username, appResourceScope.getAppId(),
-            id));
+        return Response.buildSuccessResp(
+            credentialService.deleteCredentialById(username, appResourceScope.getAppId(), id));
     }
 
     private void addPermissionData(String username, AppResourceScope appResourceScope,
@@ -149,11 +154,5 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     public AuthResult checkCreateTicketPermission(String username, AppResourceScope appResourceScope) {
         // 需要拥有在业务下创建凭证的权限
         return ticketAuthService.authCreateTicket(username, appResourceScope);
-    }
-
-    private AuthResult checkManageTicketPermission(String username, AppResourceScope appResourceScope,
-                                                  String credentialId) {
-        // 需要拥有在业务下管理某个具体凭证的权限
-        return ticketAuthService.authManageTicket(username, appResourceScope, credentialId, null);
     }
 }

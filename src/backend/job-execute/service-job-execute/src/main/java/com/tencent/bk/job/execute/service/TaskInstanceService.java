@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.service;
 
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -41,7 +43,12 @@ public interface TaskInstanceService {
 
     long addTaskInstance(TaskInstanceDTO taskInstance);
 
-    TaskInstanceDTO getTaskInstance(long taskInstanceId);
+    TaskInstanceDTO getTaskInstance(long appId, long taskInstanceId) throws NotFoundException;
+
+    TaskInstanceDTO getTaskInstance(long taskInstanceId) throws NotFoundException;
+
+    TaskInstanceDTO getTaskInstance(String username, long appId, long taskInstanceId)
+        throws NotFoundException, PermissionDeniedException;
 
     /**
      * 保存步骤实例
@@ -59,6 +66,17 @@ public interface TaskInstanceService {
      */
     TaskInstanceDTO getTaskInstanceDetail(long taskInstanceId);
 
+    /**
+     * 获取作业实例详情-包含步骤信息和全局变量信息
+     *
+     * @param username       用户名
+     * @param appId          业务 ID
+     * @param taskInstanceId 作业实例 ID
+     * @return 作业实例
+     */
+    TaskInstanceDTO getTaskInstanceDetail(String username, long appId, long taskInstanceId)
+        throws NotFoundException, PermissionDeniedException;
+
     List<StepInstanceBaseDTO> listStepInstanceByTaskInstanceId(long taskInstanceId);
 
     /**
@@ -72,10 +90,28 @@ public interface TaskInstanceService {
     /**
      * 获取步骤基本信息
      *
+     * @param appId          业务 ID
      * @param stepInstanceId 步骤实例ID
      * @return 步骤基本信息
      */
-    StepInstanceDTO getStepInstanceDetail(long stepInstanceId);
+    StepInstanceBaseDTO getBaseStepInstance(long appId, long stepInstanceId);
+
+    /**
+     * 获取步骤基本信息
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 步骤基本信息
+     */
+    StepInstanceDTO getStepInstanceDetail(long stepInstanceId) throws NotFoundException;
+
+    /**
+     * 获取步骤基本信息
+     *
+     * @param appId          业务 ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 步骤基本信息
+     */
+    StepInstanceDTO getStepInstanceDetail(long appId, long stepInstanceId) throws NotFoundException;
 
     /**
      * 获取作业的第一个步骤实例

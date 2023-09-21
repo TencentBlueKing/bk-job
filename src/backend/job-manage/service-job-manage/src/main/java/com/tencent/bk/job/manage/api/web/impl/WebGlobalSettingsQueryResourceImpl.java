@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -41,7 +41,7 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIco
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
-import com.tencent.bk.job.manage.service.ScriptService;
+import com.tencent.bk.job.manage.service.PublicScriptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +64,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     private final JobManageConfig jobManageConfig;
     private final NoResourceScopeAuthService noResourceScopeAuthService;
     private final AppAuthService appAuthService;
-    private final ScriptService scriptService;
+    private final PublicScriptService publicScriptService;
     private final ThreadPoolExecutor adminAuthExecutor;
 
     @Autowired
@@ -73,23 +73,25 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                                               JobManageConfig jobManageConfig,
                                               NoResourceScopeAuthService noResourceScopeAuthService,
                                               AppAuthService appAuthService,
-                                              ScriptService scriptService,
+                                              PublicScriptService publicScriptService,
                                               @Qualifier("adminAuthExecutor") ThreadPoolExecutor adminAuthExecutor) {
         this.globalSettingsService = globalSettingsService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
         this.noResourceScopeAuthService = noResourceScopeAuthService;
         this.appAuthService = appAuthService;
-        this.scriptService = scriptService;
+        this.publicScriptService = publicScriptService;
         this.adminAuthExecutor = adminAuthExecutor;
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
     public Response<List<NotifyChannelWithIconVO>> listNotifyChannel(String username) {
         return Response.buildSuccessResp(globalSettingsService.listNotifyChannel(username));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
     public Response<AccountNameRulesWithDefaultVO> getAccountNameRules(String username) {
         return Response.buildSuccessResp(globalSettingsService.getAccountNameRules());
     }
@@ -133,7 +135,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                 // 是否能管理某些公共脚本
                 List<String> canManagePublicScriptIds =
                     noResourceScopeAuthService.batchAuthManagePublicScript(username,
-                        scriptService.listScriptIds(JobConstants.PUBLIC_APP_ID));
+                        publicScriptService.listScriptIds());
                 // 是否能够创建公共脚本
                 AuthResult authResult = noResourceScopeAuthService.authCreatePublicScript(username);
                 flag.set(flag.get() || !canManagePublicScriptIds.isEmpty() || authResult.isPass());

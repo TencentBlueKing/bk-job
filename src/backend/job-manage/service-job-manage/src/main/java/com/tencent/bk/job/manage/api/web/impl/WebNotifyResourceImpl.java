@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
@@ -77,6 +79,7 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.NOTIFICATION_SETTING)
     public Response<Long> saveAppDefaultNotifyPolicies(String username,
                                                        AppResourceScope appResourceScope,
                                                        String scopeType,

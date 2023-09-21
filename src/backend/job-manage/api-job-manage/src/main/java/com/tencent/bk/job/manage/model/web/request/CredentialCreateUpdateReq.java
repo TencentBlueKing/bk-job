@@ -39,7 +39,10 @@ import static com.tencent.bk.job.manage.common.consts.CredentialTypeEnum.USERNAM
 @ApiModel("凭据创建/更新请求")
 public class CredentialCreateUpdateReq {
 
-    @ApiModelProperty(value = "ID,更新凭据的时候需要传入，新建时不需要", required = false)
+    /**
+     * 凭据ID
+     */
+    @ApiModelProperty(value = "凭据 ID", hidden = true)
     private String id;
     /**
      * 名称

@@ -85,15 +85,11 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
             case "task_instance":
                 long taskInstanceId = Long.parseLong(resourceId);
                 TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-                if (taskInstance == null) {
-                    return Response.buildSuccessResp(
-                        AuthResultVO.fail());
-                }
                 switch (action) {
                     case "view":
                     case "redo":
-                        AuthResult authResult = executeAuthService.authViewTaskInstance(username, appResourceScope,
-                            taskInstanceId);
+                        AuthResult authResult = executeAuthService.checkViewTaskInstancePermission(username,
+                            appResourceScope, taskInstance);
                         return Response.buildSuccessResp(webAuthService.toAuthResultVO(isReturnApplyUrl, authResult));
                 }
                 break;

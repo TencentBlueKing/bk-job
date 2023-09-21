@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3;
 
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
 /**
@@ -31,9 +32,12 @@ import lombok.Data;
  */
 @Data
 public class EsbFileDestinationV3DTO {
+    @JsonPropertyDescription("Target path")
     private String path;
 
+    @JsonPropertyDescription("Target account")
     private EsbAccountV3BasicDTO account;
 
+    @JsonPropertyDescription("Target hosts")
     private EsbServerV3DTO server;
 }

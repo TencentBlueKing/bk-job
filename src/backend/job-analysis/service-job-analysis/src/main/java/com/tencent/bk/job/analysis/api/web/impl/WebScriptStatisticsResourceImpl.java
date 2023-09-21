@@ -24,9 +24,13 @@
 
 package com.tencent.bk.job.analysis.api.web.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.analysis.api.web.WebScriptStatisticsResource;
 import com.tencent.bk.job.analysis.model.web.ScriptCiteStatisticVO;
 import com.tencent.bk.job.analysis.service.ScriptStatisticService;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -55,6 +59,11 @@ public class WebScriptStatisticsResourceImpl implements WebScriptStatisticsResou
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.DASHBOARD_VIEW)
+    @ActionAuditRecord(
+        actionId = ActionId.DASHBOARD_VIEW,
+        content = EventContentConstants.VIEW_ANALYSIS_DASHBOARD
+    )
     public Response<ScriptCiteStatisticVO> scriptCiteInfo(String username, List<String> scopes, String date) {
         if (StringUtils.isBlank(date)) {
             date = DateUtils.getCurrentDateStr();

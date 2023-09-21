@@ -36,7 +36,7 @@ import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptConverter;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
-import com.tencent.bk.job.manage.service.ScriptService;
+import com.tencent.bk.job.manage.service.ScriptManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -47,16 +47,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 public class ServiceScriptResourceImpl implements ServiceScriptResource {
-    private final ScriptService scriptService;
+    private final ScriptManager scriptManager;
     private final MessageI18nService i18nService;
 
     private final ScriptDTOBuilder scriptDTOBuilder;
 
     @Autowired
-    public ServiceScriptResourceImpl(MessageI18nService i18nService, ScriptService scriptService,
+    public ServiceScriptResourceImpl(MessageI18nService i18nService, ScriptManager scriptManager,
                                      ScriptDTOBuilder scriptDTOBuilder) {
         this.i18nService = i18nService;
-        this.scriptService = scriptService;
+        this.scriptManager = scriptManager;
         this.scriptDTOBuilder = scriptDTOBuilder;
     }
 
@@ -72,7 +72,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
             log.warn("Get script version by id, param scriptVersionId is empty");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        ScriptDTO script = scriptService.getScriptVersion(username, appId, scriptVersionId);
+        ScriptDTO script = scriptManager.getScriptVersion(appId, scriptVersionId);
         if (script == null) {
             log.warn("Get script version by id:{}, the script is not exist", scriptVersionId);
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptVersionId));
@@ -88,7 +88,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
             throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
 
-        ScriptDTO script = scriptService.getScriptVersion(scriptVersionId);
+        ScriptDTO script = scriptManager.getScriptVersion(scriptVersionId);
         if (script == null) {
             log.warn("Get script version by id:{}, the script is not exist", scriptVersionId);
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptVersionId));
@@ -120,7 +120,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
             script.setStatus(scriptStatus);
         }
         return InternalResponse.buildSuccessResp(
-            scriptService.createScriptWithVersionId(username, appId, script, createTime, lastModifyTime));
+            scriptManager.createScriptWithVersionId(appId, script, createTime, lastModifyTime));
     }
 
     @Override
@@ -130,7 +130,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
             throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
 
-        ScriptDTO script = scriptService.getScriptWithoutTagByScriptId(scriptId);
+        ScriptDTO script = scriptManager.getScriptWithoutTagByScriptId(scriptId);
         if (script == null) {
             log.warn("Get script by id:{}, the script is not exist", scriptId);
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptId));
@@ -146,7 +146,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
             throw new InvalidParamException(ErrorCode.MISSING_PARAM);
         }
 
-        ScriptDTO script = scriptService.getOnlineScriptVersionByScriptId(scriptId);
+        ScriptDTO script = scriptManager.getOnlineScriptVersionByScriptId(scriptId);
         if (script == null) {
             return InternalResponse.buildSuccessResp(null);
         }

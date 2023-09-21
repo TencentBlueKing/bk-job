@@ -203,7 +203,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         if (shouldParseBuildInVariables(stepInstance)) {
             importVariables = VariableResolver.resolveJobImportVariables(stepInstance.getScriptContent());
             if (CollectionUtils.isNotEmpty(importVariables)) {
-                log.info("Parse imported variables, stepInstanceId:{}, variables: {}", stepInstance.getId(),
+                log.info("Parse imported attributes, stepInstanceId:{}, attributes: {}", stepInstance.getId(),
                     importVariables);
                 containsAnyImportedVariable = true;
             }

@@ -61,7 +61,7 @@ public class TaskInstanceConverter {
         taskInstanceVO.setType(taskInstanceDTO.getType());
         taskInstanceVO.setTypeDesc(
             i18nService.getI18n(Objects.requireNonNull(TaskTypeEnum.valueOf(taskInstanceDTO.getType())).getI18nKey()));
-        taskInstanceVO.setTaskId(taskInstanceDTO.getTaskId());
+        taskInstanceVO.setTaskId(taskInstanceDTO.getPlanId());
         taskInstanceVO.setTemplateId(taskInstanceDTO.getTaskTemplateId());
         taskInstanceVO.setDebugTask(taskInstanceDTO.isDebugTask());
         taskInstanceVO.setTotalTime(taskInstanceDTO.getTotalTime());
@@ -88,7 +88,7 @@ public class TaskInstanceConverter {
         serviceTaskInstance.setStatusDesc(
             i18nService.getI18n(taskInstanceDTO.getStatus().getI18nKey()));
         serviceTaskInstance.setDebugTask(taskInstanceDTO.isDebugTask());
-        serviceTaskInstance.setTaskId(taskInstanceDTO.getTaskId());
+        serviceTaskInstance.setTaskId(taskInstanceDTO.getPlanId());
         serviceTaskInstance.setTemplateId(taskInstanceDTO.getTaskTemplateId());
         serviceTaskInstance.setStartTime(taskInstanceDTO.getStartTime());
         serviceTaskInstance.setEndTime(taskInstanceDTO.getEndTime());

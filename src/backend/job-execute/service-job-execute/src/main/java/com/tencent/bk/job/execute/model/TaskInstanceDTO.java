@@ -28,6 +28,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import lombok.Data;
 
 import java.util.List;
@@ -43,9 +44,14 @@ public class TaskInstanceDTO {
     private Long id;
 
     /**
-     * 执行作业id
+     * 执行方案id
      */
-    private Long taskId;
+    private Long planId;
+
+    /**
+     * 执行方案
+     */
+    private ServiceTaskPlanDTO plan;
 
     /**
      * 定时作业ID
@@ -145,7 +151,7 @@ public class TaskInstanceDTO {
      * 判断是否为执行方案实例
      */
     public boolean isPlanInstance() {
-        return this.taskId > 0;
+        return this.planId > 0;
     }
 
 

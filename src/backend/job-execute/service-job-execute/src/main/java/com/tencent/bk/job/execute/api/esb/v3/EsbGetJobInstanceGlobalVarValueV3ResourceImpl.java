@@ -24,23 +24,24 @@
 
 package com.tencent.bk.job.execute.api.esb.v3;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.execute.api.esb.v2.impl.JobQueryCommonProcessor;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO.EsbStepInstanceGlobalVarValuesV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO.GlobalVarValueV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceGlobalVarValueV3Request;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,25 +52,27 @@ import java.util.List;
 @RestController
 @Slf4j
 public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
-    extends JobQueryCommonProcessor
     implements EsbGetJobInstanceGlobalVarValueV3Resource {
 
-    private final TaskInstanceService taskInstanceService;
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
     private final AppScopeMappingService appScopeMappingService;
+    private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
-    public EsbGetJobInstanceGlobalVarValueV3ResourceImpl(TaskInstanceService taskInstanceService,
-                                                         StepInstanceVariableValueService stepInstanceVariableValueService,
-                                                         AppScopeMappingService appScopeMappingService) {
-        this.taskInstanceService = taskInstanceService;
+
+    public EsbGetJobInstanceGlobalVarValueV3ResourceImpl(
+        StepInstanceVariableValueService stepInstanceVariableValueService,
+        AppScopeMappingService appScopeMappingService,
+        TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.appScopeMappingService = appScopeMappingService;
+        this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_var_value"})
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValueUsingPost(
-        EsbGetJobInstanceGlobalVarValueV3Request request) {
+        @AuditRequestBody EsbGetJobInstanceGlobalVarValueV3Request request) {
 
         request.fillAppResourceScope(appScopeMappingService);
 
@@ -80,8 +83,8 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
+        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+            request.getAppResourceScope().getAppId(), taskInstanceId);
 
         EsbJobInstanceGlobalVarValueV3DTO result = new EsbJobInstanceGlobalVarValueV3DTO();
         result.setTaskInstanceId(taskInstanceId);

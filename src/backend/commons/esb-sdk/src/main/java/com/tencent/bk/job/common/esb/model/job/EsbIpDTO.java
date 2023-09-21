@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.esb.model.job;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -42,11 +43,13 @@ import javax.validation.constraints.Pattern;
 public class EsbIpDTO {
 
     @JsonProperty("bk_host_id")
+    @JsonPropertyDescription("Host id")
     private Long hostId;
 
     @JsonProperty("bk_cloud_id")
     @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
     @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
+    @JsonPropertyDescription("BK-Network Area")
     private Long bkCloudId;
 
     @JsonProperty("ip")
@@ -54,6 +57,7 @@ public class EsbIpDTO {
         "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
         "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
         message = "{validation.constraints.InvalidIp.message}")
+    @JsonPropertyDescription("ip")
     private String ip;
 
     public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {

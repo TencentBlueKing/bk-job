@@ -103,22 +103,71 @@ public interface TaskPlanService {
     TaskPlanInfoDTO getTaskPlanById(Long appId, Long planId);
 
     /**
-     * 保存执行方案信息
+     * 查询执行方案信息
      *
-     * @param taskPlanInfo 待保存的执行方案信息
-     * @return 执行方案 ID
+     * @param username   用户账号
+     * @param appId      业务 ID
+     * @param templateId 作业模版 ID
+     * @param planId     执行方案 ID
+     * @return 执行方案信息
      */
-    Long saveTaskPlan(TaskPlanInfoDTO taskPlanInfo);
+    TaskPlanInfoDTO getTaskPlan(String username, Long appId, Long templateId, Long planId);
+
+    /**
+     * 查询执行方案信息
+     *
+     * @param username 用户账号
+     * @param appId    业务 ID
+     * @param planId   执行方案 ID
+     * @return 执行方案信息
+     */
+    TaskPlanInfoDTO getTaskPlan(String username, Long appId, Long planId);
+
+    /**
+     * 新建执行方案
+     *
+     * @param username     用户账号
+     * @param taskPlanInfo 执行方案
+     * @return 新建的执行方案
+     */
+    TaskPlanInfoDTO createTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo);
+
+    /**
+     * 新建执行方案
+     *
+     * @param taskPlanInfo 执行方案
+     * @return 新建的执行方案
+     */
+    TaskPlanInfoDTO createTaskPlan(TaskPlanInfoDTO taskPlanInfo);
+
+    /**
+     * 更新执行方案
+     *
+     * @param username     用户账号
+     * @param taskPlanInfo 执行方案
+     * @return 更新之后的执行方案
+     */
+    TaskPlanInfoDTO updateTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo);
+
+    /**
+     * 更新内置的用于调试的执行方案
+     *
+     * @param username     用户账号
+     * @param taskPlanInfo 执行方案
+     * @return 更新之后的执行方案
+     */
+    TaskPlanInfoDTO updateDebugTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo);
 
     /**
      * 删除执行方案
      *
+     * @param username   用户账号
      * @param appId      业务 ID
      * @param templateId 模版 ID
      * @param planId     执行方案 ID
-     * @return 是否删除成功
+     * @return 删除掉的执行方案
      */
-    Boolean deleteTaskPlan(Long appId, Long templateId, Long planId);
+    TaskPlanInfoDTO deleteTaskPlan(String username, Long appId, Long templateId, Long planId);
 
     /**
      * 获取调试执行方案（不存在则创建）

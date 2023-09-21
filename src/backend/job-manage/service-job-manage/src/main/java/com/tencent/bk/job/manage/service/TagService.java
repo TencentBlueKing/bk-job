@@ -84,9 +84,9 @@ public interface TagService {
      *
      * @param username 操作人
      * @param tag      Tag
-     * @return Tag ID
+     * @return Tag
      */
-    Long insertNewTag(String username, TagDTO tag);
+    TagDTO createTag(String username, TagDTO tag);
 
     /**
      * 更新 Tag 信息
@@ -123,9 +123,11 @@ public interface TagService {
     /**
      * 删除标签
      *
-     * @param tagId 标签ID
+     * @param username 用户账号
+     * @param appId    业务 ID
+     * @param tagId    标签ID
      */
-    void deleteTag(Long tagId);
+    void deleteTag(String username, long appId, Long tagId);
 
     List<ResourceTagDTO> listResourceTagsByTagId(Long appId, Long tagId);
 

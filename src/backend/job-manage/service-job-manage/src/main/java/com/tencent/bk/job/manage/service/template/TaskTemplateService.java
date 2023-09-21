@@ -65,21 +65,42 @@ public interface TaskTemplateService {
     TaskTemplateInfoDTO getTaskTemplateById(Long appId, Long templateId);
 
     /**
-     * 新增、保存模版信息
+     * 查询模版信息
      *
-     * @param taskTemplateInfo 待新增、保存的模版信息
-     * @return 模版 ID
+     * @param username   用户账号
+     * @param appId      业务 ID
+     * @param templateId 模版 ID
+     * @return 模版信息
      */
-    Long saveTaskTemplate(TaskTemplateInfoDTO taskTemplateInfo);
+    TaskTemplateInfoDTO getTaskTemplate(String username, long appId, Long templateId);
+
+    /**
+     * 新增作业模板
+     *
+     * @param username         用户账号
+     * @param taskTemplateInfo 模版信息
+     * @return 模版
+     */
+    TaskTemplateInfoDTO saveTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo);
+
+    /**
+     * 更新作业模板
+     *
+     * @param username         用户账号
+     * @param taskTemplateInfo 模版信息
+     * @return 模版
+     */
+    TaskTemplateInfoDTO updateTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo);
 
     /**
      * 删除模版
      *
+     * @param username   用户账号
      * @param appId      业务 ID
      * @param templateId 模版 ID
-     * @return 是否删除成功
+     * @return 被删除的模板
      */
-    Boolean deleteTaskTemplate(Long appId, Long templateId);
+    TaskTemplateInfoDTO deleteTaskTemplate(String username, Long appId, Long templateId);
 
     /**
      * 获取标签关联的模版数量
@@ -94,10 +115,11 @@ public interface TaskTemplateService {
      * <p>
      * 仅更新名称、描述、标签
      *
+     * @param username         用户账号
      * @param taskTemplateInfo 模版信息
      * @return 是否更新成功
      */
-    Boolean saveTaskTemplateBasicInfo(TaskTemplateInfoDTO taskTemplateInfo);
+    TaskTemplateInfoDTO saveTaskTemplateBasicInfo(String username, TaskTemplateInfoDTO taskTemplateInfo);
 
     /**
      * 根据作业模版 ID 查询模版基础信息

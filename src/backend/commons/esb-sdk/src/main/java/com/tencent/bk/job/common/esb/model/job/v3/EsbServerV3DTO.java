@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.esb.model.job.v3;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import lombok.Data;
@@ -43,35 +44,40 @@ public class EsbServerV3DTO {
      * 目标服务器对应的主机变量
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonPropertyDescription("Host variable name")
     private String variable;
 
     @JsonProperty("ip_list")
+    @JsonPropertyDescription("Hosts with ip")
     @Valid
     private List<EsbIpDTO> ips;
 
     @JsonProperty("host_id_list")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonPropertyDescription("Host ids")
     private List<Long> hostIds;
 
     /**
      * 动态分组ID列表
      */
     @JsonProperty("dynamic_group_list")
+    @JsonPropertyDescription("Cmdb dynamic groups")
     private List<EsbDynamicGroupDTO> dynamicGroups;
 
     /**
      * 分布式拓扑节点列表
      */
     @JsonProperty("topo_node_list")
+    @JsonPropertyDescription("Cmdb topo nodes")
     private List<EsbCmdbTopoNodeDTO> topoNodes;
 
     /**
-     * 是否包含执行主机的参数
+     * 检查执行主机的参数是否非空
      */
-    public boolean isHostParamsEmpty() {
-        return CollectionUtils.isEmpty(hostIds)
-            && CollectionUtils.isEmpty(ips)
-            && CollectionUtils.isEmpty(topoNodes)
-            && CollectionUtils.isEmpty(dynamicGroups);
+    public boolean checkHostParamsNonEmpty() {
+        return CollectionUtils.isNotEmpty(hostIds)
+            || CollectionUtils.isNotEmpty(ips)
+            || CollectionUtils.isNotEmpty(topoNodes)
+            || CollectionUtils.isNotEmpty(dynamicGroups);
     }
 }

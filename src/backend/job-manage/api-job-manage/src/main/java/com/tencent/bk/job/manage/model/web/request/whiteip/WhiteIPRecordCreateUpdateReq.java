@@ -38,7 +38,11 @@ import java.util.List;
 @ApiModel("IP白名单记录创建请求")
 public class WhiteIPRecordCreateUpdateReq {
 
-    @ApiModelProperty(value = "ID,更新IP白名单记录的时候需要传入，新建时不需要")
+    /**
+     * 内部字段
+     */
+    @Deprecated
+    @ApiModelProperty(value = "白名单记录 ID", hidden = true)
     private Long id;
 
     @ApiModelProperty(value = "是否对所有资源范围生效，默认为false")

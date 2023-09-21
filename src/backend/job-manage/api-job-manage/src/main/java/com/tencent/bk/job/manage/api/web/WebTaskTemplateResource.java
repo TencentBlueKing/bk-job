@@ -40,6 +40,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -133,9 +134,10 @@ public interface WebTaskTemplateResource {
             Long templateId
     );
 
-    @ApiOperation(value = "更新模版", produces = "application/json")
-    @PutMapping("/{templateId}")
-    Response<Long> saveTemplate(
+
+    @ApiOperation(value = "新建模版", produces = "application/json")
+    @PostMapping
+    Response<TaskTemplateVO> createTemplate(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -148,13 +150,34 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "模版 ID 新建填 0", required = true)
-        @PathVariable("templateId")
-            Long templateId,
-        @ApiParam(value = "新增/更新的模版对象", name = "templateCreateUpdateReq", required = true)
+        @ApiParam(value = "新增模版对象", name = "request", required = true)
         @RequestBody
         @Validated
-            TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
+            TaskTemplateCreateUpdateReq request
+    );
+
+    @ApiOperation(value = "更新模版", produces = "application/json")
+    @PutMapping("/{templateId}")
+    Response<TaskTemplateVO> updateTemplate(
+        @ApiParam(value = "用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "模版 ID", required = true)
+        @PathVariable("templateId")
+            Long templateId,
+        @ApiParam(value = "新增/更新的模版对象", name = "request", required = true)
+        @RequestBody
+        @Validated
+            TaskTemplateCreateUpdateReq request
     );
 
     @ApiOperation(value = "删除模版", produces = "application/json")
@@ -212,9 +235,9 @@ public interface WebTaskTemplateResource {
         @ApiParam(value = "模版ID", required = true)
         @PathVariable("templateId")
             Long templateId,
-        @ApiParam(value = "模版元数据更新请求报文", name = "templateBasicInfoUpdateReq", required = true)
+        @ApiParam(value = "模版元数据更新请求报文", name = "request", required = true)
         @RequestBody
-            TemplateBasicInfoUpdateReq templateBasicInfoUpdateReq
+            TemplateBasicInfoUpdateReq request
     );
 
     @ApiOperation(value = "新增收藏", produces = "application/json")

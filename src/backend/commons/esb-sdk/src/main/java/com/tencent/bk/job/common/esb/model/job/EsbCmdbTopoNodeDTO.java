@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.esb.model.job;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import lombok.Data;
 
@@ -37,12 +38,14 @@ public class EsbCmdbTopoNodeDTO {
      * topo节点ID
      */
     @JsonProperty("id")
+    @JsonPropertyDescription("Cmdb topo node id")
     private Long id;
 
     /**
      * topo节点类型
      */
     @JsonProperty("node_type")
+    @JsonPropertyDescription("Cmdb topo node type")
     private String nodeType;
 
     public static EsbCmdbTopoNodeDTO fromCmdbTopoNode(CmdbTopoNodeDTO ccTopoNode) {

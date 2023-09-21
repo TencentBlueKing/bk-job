@@ -25,11 +25,14 @@
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
 import com.google.common.collect.Lists;
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -41,13 +44,12 @@ import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceResultAndLog;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceLogRequest;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,32 +59,34 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor implements EsbGetJobInstanceLogResource {
+public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogResource {
 
     private final TaskInstanceService taskInstanceService;
     private final AppScopeMappingService appScopeMappingService;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
-    private final GseTaskService gseTaskService;
     private final LogService logService;
+    private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
                                             AppScopeMappingService appScopeMappingService,
                                             ScriptAgentTaskService scriptAgentTaskService,
                                             FileAgentTaskService fileAgentTaskService,
-                                            GseTaskService gseTaskService,
-                                            LogService logService) {
+                                            LogService logService,
+                                            TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
-        this.gseTaskService = gseTaskService;
         this.logService = logService;
+        this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_log"})
-    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(EsbGetJobInstanceLogRequest request) {
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
+    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(
+        @AuditRequestBody EsbGetJobInstanceLogRequest request) {
         request.fillAppResourceScope(appScopeMappingService);
 
         ValidateResult checkResult = checkRequest(request);
@@ -91,12 +95,11 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
             throw new InvalidParamException(checkResult);
         }
 
-        long taskInstanceId = request.getTaskInstanceId();
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        authViewTaskInstance(request.getUserName(), request.getAppResourceScope(), taskInstance);
+        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+            request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstanceList =
-            taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
+            taskInstanceService.listStepInstanceByTaskInstanceId(request.getTaskInstanceId());
         List<EsbStepInstanceResultAndLog> stepInstResultAndLogList = Lists.newArrayList();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
             EsbStepInstanceResultAndLog stepInstResultAndLog = new EsbStepInstanceResultAndLog();
@@ -180,6 +183,8 @@ public class EsbGetJobInstanceLogResourceImpl extends JobQueryCommonProcessor im
     }
 
     @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_log"})
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String appCode,
                                                                         String username,
                                                                         Long appId,

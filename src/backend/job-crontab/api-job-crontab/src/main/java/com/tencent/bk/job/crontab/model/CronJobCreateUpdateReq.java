@@ -43,10 +43,8 @@ public class CronJobCreateUpdateReq {
 
     /**
      * 定时任务 ID
-     * <p>
-     * 创建时填 0
      */
-    @ApiModelProperty(value = "任务 ID，创建填 0", required = true)
+    @ApiModelProperty(value = "定时任务 ID", hidden = true)
     private Long id;
 
     /**

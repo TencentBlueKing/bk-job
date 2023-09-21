@@ -34,6 +34,7 @@ import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
 import com.tencent.bk.sdk.iam.dto.callback.response.BaseDataResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.FetchInstanceInfoResponseDTO;
+import com.tencent.bk.sdk.iam.dto.callback.response.FetchResourceTypeSchemaResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
@@ -140,5 +141,12 @@ public class IamDashBoardViewCallbackResourceImpl extends BaseIamCallbackService
     @Override
     public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
         return baseCallback(callbackRequest);
+    }
+
+    @Override
+    protected FetchResourceTypeSchemaResponseDTO fetchResourceTypeSchemaResp(
+        CallbackRequestDTO callbackRequest) {
+        // 无需实现
+        return null;
     }
 }

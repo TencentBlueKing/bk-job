@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -61,6 +63,12 @@ public class BasicScriptVO {
      */
     @ApiModelProperty(value = "脚本类型")
     private Integer type;
+
+    /**
+     * 脚本类型名称
+     */
+    private String typeName;
+
     /**
      * 是否公共脚本
      */
@@ -97,12 +105,42 @@ public class BasicScriptVO {
     @ApiModelProperty(value = "脚本状态,0:未发布，1:已上线")
     private Integer status;
 
+    @ApiModelProperty(value = "脚本状态描述")
+    private String statusDesc;
+
 
     @ApiModelProperty("是否可以查看")
     private Boolean canView;
-
     @ApiModelProperty("是否可以管理")
     private Boolean canManage;
+    @ApiModelProperty("是否可以克隆")
+    private Boolean canClone;
+
+    /**
+     * 创建者
+     */
+    @ApiModelProperty(value = "创建者")
+    private String creator;
+
+    /**
+     * 创建时间
+     */
+    @ApiModelProperty(value = "创建时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long createTime;
+
+    /**
+     * 最后修改人
+     */
+    @ApiModelProperty(value = "最后更新者")
+    private String lastModifyUser;
+
+    /**
+     * 最后修改时间
+     */
+    @ApiModelProperty(value = "最后更新时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long lastModifyTime;
 
     @Override
     public String toString() {

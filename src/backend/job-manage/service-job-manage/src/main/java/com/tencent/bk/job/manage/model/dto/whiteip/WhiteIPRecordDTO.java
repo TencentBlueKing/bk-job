@@ -25,18 +25,22 @@
 package com.tencent.bk.job.manage.model.dto.whiteip;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import lombok.AllArgsConstructor;
+import com.tencent.bk.job.manage.model.web.vo.whiteip.ScopeVO;
+import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * IP白名单DTO
  */
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -46,6 +50,10 @@ public class WhiteIPRecordDTO {
      * 多个业务id列表
      */
     private List<Long> appIdList;
+    /**
+     * 多个业务列表
+     */
+    private List<ApplicationDTO> appList;
     /**
      * 备注
      */
@@ -76,4 +84,53 @@ public class WhiteIPRecordDTO {
      */
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
+
+    public WhiteIPRecordDTO(Long id,
+                            List<Long> appIdList,
+                            String remark,
+                            List<WhiteIPIPDTO> ipList,
+                            List<WhiteIPActionScopeDTO> actionScopeList,
+                            String creator,
+                            Long createTime,
+                            String lastModifier,
+                            Long lastModifyTime) {
+        this.id = id;
+        this.appIdList = appIdList;
+        this.remark = remark;
+        this.ipList = ipList;
+        this.actionScopeList = actionScopeList;
+        this.creator = creator;
+        this.createTime = createTime;
+        this.lastModifier = lastModifier;
+        this.lastModifyTime = lastModifyTime;
+    }
+
+    public WhiteIPRecordVO toVO() {
+        WhiteIPRecordVO vo = new WhiteIPRecordVO();
+        vo.setId(id);
+
+        if (CollectionUtils.isNotEmpty(ipList)) {
+            vo.setCloudAreaId(ipList.get(0).getCloudAreaId());
+            vo.setHostList(ipList.stream().map(WhiteIPIPDTO::extractWhiteIPHostVO)
+                .collect(Collectors.toList()));
+        }
+
+        vo.setAllScope(isAllScope(appIdList));
+        if (CollectionUtils.isNotEmpty(appList)) {
+            vo.setScopeList(appList.stream().map(app ->
+                new ScopeVO(app.getScope().getType().getValue(),
+                    app.getScope().getId(), app.getName())).collect(Collectors.toList()));
+        }
+        vo.setRemark(remark);
+        vo.setCreator(creator);
+        vo.setCreateTime(createTime);
+        vo.setLastModifier(lastModifier);
+        vo.setLastModifyTime(lastModifyTime);
+
+        return vo;
+    }
+
+    private boolean isAllScope(List<Long> appIdList) {
+        return CollectionUtils.isNotEmpty(appIdList) && appIdList.contains(JobConstants.PUBLIC_APP_ID);
+    }
 }

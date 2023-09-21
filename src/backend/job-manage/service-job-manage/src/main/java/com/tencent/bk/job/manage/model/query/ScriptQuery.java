@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.query;
 
+import com.tencent.bk.job.common.model.BaseSearchCondition;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -90,6 +91,8 @@ public class ScriptQuery {
      * 脚本内容检索关键字
      */
     private String contentKeyword;
+
+    private BaseSearchCondition baseSearchCondition;
 
     public boolean isExistTagCondition() {
         return this.untaggedScript || CollectionUtils.isNotEmpty(this.tagIds);

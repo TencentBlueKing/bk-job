@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -48,11 +48,10 @@ public class EsbGetPlanDetailV3Request extends EsbAppScopeReq {
     @JsonProperty("job_plan_id")
     private Long planId;
 
-    public ValidateResult validate() {
+    public void validate() {
         if (this.getPlanId() == null || this.getPlanId() <= 0) {
             log.warn("Plan Id is empty or illegal!|{}", this.getPlanId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_plan_id");
+            throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_plan_id");
         }
-        return ValidateResult.pass();
     }
 }

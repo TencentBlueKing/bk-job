@@ -25,11 +25,14 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -86,7 +89,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Service;
@@ -127,19 +129,18 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private String configedMaxFileSize;
 
 
-    public GlobalSettingsServiceImpl(
-        @Autowired NotifyEsbChannelDAO notifyEsbChannelDAO,
-        @Autowired AvailableEsbChannelDAO availableEsbChannelDAO,
-        @Autowired NotifyService notifyService,
-        @Autowired NotifySendService notifySendService,
-        @Autowired NotifyUserService notifyUserService,
-        @Autowired GlobalSettingDAO globalSettingDAO,
-        @Autowired NotifyTemplateDAO notifyTemplateDAO,
-        @Autowired MessageI18nService i18nService,
-        @Autowired JobManageConfig jobManageConfig,
-        @Autowired LocalFileConfigForManage localFileConfigForManage,
-        @Autowired NotifyTemplateConverter notifyTemplateConverter,
-        @Autowired(required = false) BuildProperties buildProperties) {
+    public GlobalSettingsServiceImpl(NotifyEsbChannelDAO notifyEsbChannelDAO,
+                                     AvailableEsbChannelDAO availableEsbChannelDAO,
+                                     NotifyService notifyService,
+                                     NotifySendService notifySendService,
+                                     NotifyUserService notifyUserService,
+                                     GlobalSettingDAO globalSettingDAO,
+                                     NotifyTemplateDAO notifyTemplateDAO,
+                                     MessageI18nService i18nService,
+                                     JobManageConfig jobManageConfig,
+                                     LocalFileConfigForManage localFileConfigForManage,
+                                     NotifyTemplateConverter notifyTemplateConverter,
+                                     BuildProperties buildProperties) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
@@ -212,6 +213,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
+    )
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
         return notifyService.setAvailableNotifyChannel(username, req);
     }
@@ -228,6 +233,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
+    )
     public List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
         return notifyUserService.saveNotifyBlackUsers(username, req);
     }
@@ -246,6 +255,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
+    )
     public Integer setHistoryExpireTime(String username, HistoryExpireReq req) {
         Long days = req.getDays();
         if (days == null || days <= 0) {
@@ -298,14 +311,11 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private List<AccountNameRule> getDefaultNameRules(Locale locale) {
         List<AccountNameRule> defaultNameRules = new ArrayList<>();
         defaultNameRules.add(new AccountNameRule(OSTypeEnum.LINUX, DEFAULT_ACCOUNT_NAME_RULE_LINUX,
-            i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.linux",
-                locale)));
+            i18nService.getI18n(locale, "job.manage.globalsettings.defaultNameRules.description.linux")));
         defaultNameRules.add(new AccountNameRule(OSTypeEnum.WINDOWS, DEFAULT_ACCOUNT_NAME_RULE_WINDOWS,
-            i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.windows",
-                locale)));
+            i18nService.getI18n(locale, "job.manage.globalsettings.defaultNameRules.description.windows")));
         defaultNameRules.add(new AccountNameRule(OSTypeEnum.DATABASE, DEFAULT_ACCOUNT_NAME_RULE_DATABASE,
-            i18nService.getI18n("job.manage.globalsettings.defaultNameRules.description.database",
-                locale)));
+            i18nService.getI18n(locale, "job.manage.globalsettings.defaultNameRules.description.database")));
         return defaultNameRules;
     }
 
@@ -343,6 +353,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
+    )
     public Boolean setAccountNameRules(String username, AccountNameRulesReq req) {
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
         String currentNameRulesKey = GlobalSettingKeys.KEY_CURRENT_NAME_RULES;
@@ -383,6 +397,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
+    )
     public Boolean saveFileUploadSettings(String username, FileUploadSettingReq req) {
         Float uploadMaxSize = req.getAmount();
         StorageUnitEnum unit = req.getUnit();
@@ -442,6 +460,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
+    )
     public Boolean setTitleFooter(String username, SetTitleFooterReq req) {
         //参数校验
         String lang = JobContextUtil.getUserLang();
@@ -569,6 +591,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
+    )
     public Integer saveChannelTemplate(String username, ChannelTemplateReq req) {
         if (StringUtils.isBlank(req.getChannelCode()) || StringUtils.isBlank(req.getMessageTypeCode())) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,

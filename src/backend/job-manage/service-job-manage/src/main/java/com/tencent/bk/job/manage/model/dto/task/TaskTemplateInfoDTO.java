@@ -25,10 +25,12 @@
 package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbTemplateInfoV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TemplateBasicInfoUpdateReq;
@@ -245,5 +247,33 @@ public class TaskTemplateInfoDTO {
                     .map(TaskStepDTO::toServiceDTO).collect(Collectors.toList()));
         }
         return serviceTemplate;
+    }
+
+    public static EsbTemplateInfoV3DTO toEsbTemplateInfoV3DTO(TaskTemplateInfoDTO templateInfo) {
+        if (templateInfo == null) {
+            return null;
+        }
+        EsbTemplateInfoV3DTO template = new EsbTemplateInfoV3DTO();
+        template.setId(templateInfo.getId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(templateInfo.getAppId(), template);
+        template.setName(templateInfo.getName());
+        template.setCreator(templateInfo.getCreator());
+        template.setCreateTime(templateInfo.getCreateTime());
+        template.setLastModifyUser(templateInfo.getLastModifyUser());
+        template.setLastModifyTime(templateInfo.getLastModifyTime());
+        template.setDescription(templateInfo.getDescription());
+
+        if (CollectionUtils.isNotEmpty(templateInfo.getVariableList())) {
+            template.setGlobalVarList(
+                templateInfo.getVariableList().stream()
+                    .map(TaskVariableDTO::toEsbGlobalVarV3).collect(Collectors.toList()));
+        }
+
+        if (CollectionUtils.isNotEmpty(templateInfo.getStepList())) {
+            template
+                .setStepList(templateInfo.getStepList().stream()
+                    .map(TaskStepDTO::toEsbStepV3).collect(Collectors.toList()));
+        }
+        return template;
     }
 }

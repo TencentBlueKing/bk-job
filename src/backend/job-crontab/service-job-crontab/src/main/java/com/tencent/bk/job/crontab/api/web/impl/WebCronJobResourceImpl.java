@@ -25,10 +25,11 @@
 package com.tencent.bk.job.crontab.api.web.impl;
 
 import com.google.common.base.CaseFormat;
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
-import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -43,7 +44,6 @@ import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.api.web.WebCronJobResource;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
-import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobLaunchHistoryVO;
@@ -180,7 +180,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     private void processCronJobPermission(AppResourceScope appResourceScope, List<CronJobVO> cronJobList) {
         List<Long> cronJobIdList = new ArrayList<>();
         cronJobList.forEach(cronJob -> cronJobIdList.add(cronJob.getId()));
-        List<Long> allowedCronJob = cronAuthService.batchAuthManageCron(
+        List<Long> allowedCronJob = cronAuthService.getPermissionAllowedCronIds(
             JobContextUtil.getUsername(), appResourceScope, cronJobIdList);
         cronJobList.forEach(cronJob -> {
             cronJob.setCanManage(allowedCronJob.contains(cronJob.getId()));
@@ -329,48 +329,62 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_CRON)
     public Response<CronJobVO> getCronJobById(String username,
                                               AppResourceScope appResourceScope,
                                               String scopeType,
                                               String scopeId,
                                               Long cronJobId) {
         Long appId = appResourceScope.getAppId();
+        CronJobInfoDTO cronJob = cronJobService.getCronJobInfoById(username, appId, cronJobId);
+        CronJobVO cronJobVO = CronJobInfoDTO.toVO(cronJob);
+        return Response.buildSuccessResp(cronJobVO);
+    }
 
-        CronJobVO cronJobVO = CronJobInfoDTO.toVO(cronJobService.getCronJobInfoById(appId, cronJobId));
+    @Override
+    @AuditEntry(actionId = ActionId.CREATE_CRON)
+    public Response<CronJobVO> createCronJob(String username,
+                                             AppResourceScope appResourceScope,
+                                             String scopeType,
+                                             String scopeId,
+                                             @AuditRequestBody CronJobCreateUpdateReq cronJobCreateUpdateReq) {
 
-        AuthResult authResult = cronAuthService.authManageCron(username,
-            appResourceScope, cronJobId, cronJobVO.getName());
-        if (authResult.isPass()) {
-            return Response.buildSuccessResp(cronJobVO);
+        Long appId = appResourceScope.getAppId();
+        checkCronName(cronJobCreateUpdateReq);
+        CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
+        if (cronJobInfoDTO.validate()) {
+            CronJobInfoDTO createdCronJob = cronJobService.createCronJobInfo(username, cronJobInfoDTO);
+            return Response.buildSuccessResp(CronJobInfoDTO.toVO(createdCronJob));
         } else {
-            throw new PermissionDeniedException(authResult);
+            log.warn("Validate cron job failed!|{}", JobContextUtil.getDebugMessage());
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
 
     @Override
-    public Response<Long> saveCronJob(String username,
-                                      AppResourceScope appResourceScope,
-                                      String scopeType,
-                                      String scopeId,
-                                      Long cronJobId,
-                                      CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+    @AuditEntry(actionId = ActionId.MANAGE_CRON)
+    public Response<CronJobVO> updateCronJob(String username,
+                                             AppResourceScope appResourceScope,
+                                             String scopeType,
+                                             String scopeId,
+                                             Long cronJobId,
+                                             @AuditRequestBody CronJobCreateUpdateReq cronJobCreateUpdateReq) {
 
         Long appId = appResourceScope.getAppId();
+        cronJobCreateUpdateReq.setId(cronJobId);
 
-        if (cronJobId > 0) {
-            cronJobCreateUpdateReq.setId(cronJobId);
-            AuthResult authResult = cronAuthService.authManageCron(username,
-                appResourceScope, cronJobId, null);
-            if (!authResult.isPass()) {
-                throw new PermissionDeniedException(authResult);
-            }
+        checkCronName(cronJobCreateUpdateReq);
+        CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
+        if (cronJobInfoDTO.validate()) {
+            CronJobInfoDTO updatedCronJob = cronJobService.updateCronJobInfo(username, cronJobInfoDTO);
+            return Response.buildSuccessResp(CronJobInfoDTO.toVO(updatedCronJob));
         } else {
-            AuthResult authResult = cronAuthService.authCreateCron(username,
-                appResourceScope);
-            if (!authResult.isPass()) {
-                throw new PermissionDeniedException(authResult);
-            }
+            log.warn("Validate cron job failed!|{}", JobContextUtil.getDebugMessage());
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
+    }
+
+    private void checkCronName(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
         try {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
                 new IlegalCharChecker(), new MaxLengthChecker(60));
@@ -379,38 +393,21 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
             log.warn("Cron Job Name is invalid:", e);
             throw new InvalidParamException(e, ErrorCode.ILLEGAL_PARAM);
         }
-        CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
-        if (cronJobInfoDTO.validate()) {
-            try {
-                Long finalCronJobId = cronJobService.saveCronJobInfo(cronJobInfoDTO);
-                return Response.buildSuccessResp(finalCronJobId);
-            } catch (TaskExecuteAuthFailedException e) {
-                throw new PermissionDeniedException(e.getAuthResult());
-            }
-        } else {
-            log.warn("Validate cron job failed!|{}", JobContextUtil.getDebugMessage());
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_CRON)
     public Response<Boolean> deleteCronJob(String username,
                                            AppResourceScope appResourceScope,
                                            String scopeType,
                                            String scopeId,
                                            Long cronJobId) {
-        Long appId = appResourceScope.getAppId();
-
-        AuthResult authResult = cronAuthService.authManageCron(username,
-            appResourceScope, cronJobId, null);
-        if (authResult.isPass()) {
-            return Response.buildSuccessResp(cronJobService.deleteCronJobInfo(appId, cronJobId));
-        } else {
-            throw new PermissionDeniedException(authResult);
-        }
+        return Response.buildSuccessResp(cronJobService.deleteCronJobInfo(username,
+            appResourceScope.getAppId(), cronJobId));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_CRON)
     public Response<Boolean> changeCronJobEnableStatus(String username,
                                                        AppResourceScope appResourceScope,
                                                        String scopeType,
@@ -418,19 +415,8 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                                        Long cronJobId,
                                                        Boolean enable) {
         Long appId = appResourceScope.getAppId();
-
-        AuthResult authResult = cronAuthService.authManageCron(username,
-            new AppResourceScope(appId), cronJobId, null);
-        if (authResult.isPass()) {
-            try {
-                return Response
-                    .buildSuccessResp(cronJobService.changeCronJobEnableStatus(username, appId, cronJobId, enable));
-            } catch (TaskExecuteAuthFailedException e) {
-                throw new PermissionDeniedException(e.getAuthResult());
-            }
-        } else {
-            throw new PermissionDeniedException(authResult);
-        }
+        return Response.buildSuccessResp(
+            cronJobService.changeCronJobEnableStatus(username, appId, cronJobId, enable));
     }
 
     @Override
@@ -445,23 +431,14 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_CRON)
     public Response<Boolean> batchUpdateCronJob(String username,
                                                 AppResourceScope appResourceScope,
                                                 String scopeType,
                                                 String scopeId,
-                                                BatchUpdateCronJobReq batchUpdateCronJobReq) {
-        Long appId = appResourceScope.getAppId();
-
-        List<Long> cronJobInstanceList = new ArrayList<>();
-        batchUpdateCronJobReq.getCronJobInfoList()
-            .forEach(cronJobCreateUpdateReq -> cronJobInstanceList.add(cronJobCreateUpdateReq.getId()));
-        List<Long> allowed =
-            cronAuthService.batchAuthManageCron(username, appResourceScope, cronJobInstanceList);
-        if (allowed.size() == cronJobInstanceList.size()) {
-            return Response.buildSuccessResp(cronJobService.batchUpdateCronJob(appId, batchUpdateCronJobReq));
-        } else {
-            return Response.buildCommonFailResp(ErrorCode.BK_PERMISSION_DENIED);
-        }
+                                                @AuditRequestBody BatchUpdateCronJobReq batchUpdateCronJobReq) {
+        return Response.buildSuccessResp(cronJobService.batchUpdateCronJob(username, appResourceScope.getAppId(),
+            batchUpdateCronJobReq));
     }
 
     @Override
@@ -471,7 +448,6 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                                             String scopeId,
                                                             Long planId) {
         Long appId = appResourceScope.getAppId();
-
         List<CronJobInfoDTO> cronJobInfoList = cronJobService.listCronJobByPlanId(appId, planId);
         if (CollectionUtils.isNotEmpty(cronJobInfoList)) {
             List<CronJobVO> cronJobList =
