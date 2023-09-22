@@ -48,6 +48,7 @@ import com.tencent.bk.job.file_gateway.model.dto.FileSourceBatchTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
+import com.tencent.bk.job.file_gateway.model.dto.FileTaskProgressDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileLogPieceDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
@@ -198,16 +199,12 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     private void writeLog(FileSourceTaskDTO fileSourceTaskDTO,
                           FileWorkerDTO fileWorkerDTO,
-                          String filePath,
-                          Long fileSize,
-                          String speed,
-                          Integer progress,
-                          String content) {
+                          FileTaskProgressDTO fileTaskProgressDTO) {
         String taskId = fileSourceTaskDTO.getId();
-        String fileSizeStr = FileSizeUtil.getFileSizeStr(fileSize);
+        String fileSizeStr = FileSizeUtil.getFileSizeStr(fileTaskProgressDTO.getFileSize());
         ThirdFileSourceTaskLogDTO thirdFileSourceTaskLog = new ThirdFileSourceTaskLogDTO();
-        String sourceIp = fileWorkerDTO.getCloudAreaId().toString() + ":" + fileWorkerDTO.getInnerIp();
-        thirdFileSourceTaskLog.setIp(sourceIp);
+        String sourceCloudIp = fileWorkerDTO.getCloudIp();
+        thirdFileSourceTaskLog.setIp(sourceCloudIp);
         // 追加文件源名称
         // 日志定位坐标：（文件源，文件路径），需要区分不同文件源下相同文件路径的日志
         FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(fileSourceTaskDTO.getFileSourceId());
@@ -215,15 +212,17 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST,
                 ArrayUtil.toArray("fileSourceId:" + fileSourceTaskDTO.getFileSourceId()));
         }
-        String filePathWithSourceAlias = PathUtil.joinFilePath(fileSourceDTO.getAlias(), filePath);
+        String filePathWithSourceAlias = PathUtil.joinFilePath(
+            fileSourceDTO.getAlias(),
+            fileTaskProgressDTO.getFilePath()
+        );
         List<FileLogPieceDTO> fileLogPieceList = new ArrayList<>();
         FileLogPieceDTO fileLogPiece = new FileLogPieceDTO();
-        fileLogPiece.setContent("FileName: " + filePathWithSourceAlias + " FileSize: " + fileSizeStr + " " +
-            "Speed: " + speed + " Progress: " + progress + "%" + " Detail: " + content);
+        fileLogPiece.setContent(buildFileLogContent(fileTaskProgressDTO, filePathWithSourceAlias, fileSizeStr));
         fileLogPiece.setDisplaySrcFile(filePathWithSourceAlias);
-        fileLogPiece.setProcess("" + progress + "%");
+        fileLogPiece.setProcess(buildProcessStr(fileTaskProgressDTO));
         fileLogPiece.setSize(fileSizeStr);
-        fileLogPiece.setSrcIp(sourceIp);
+        fileLogPiece.setSrcIp(sourceCloudIp);
         fileLogPiece.setStatus(FileDistStatusEnum.PULLING.getValue());
         fileLogPiece.setStatusDesc(FileDistStatusEnum.PULLING.getName());
         fileLogPieceList.add(fileLogPiece);
@@ -232,6 +231,119 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         redisTemplate.opsForList().rightPush(PREFIX_REDIS_TASK_LOG + taskId, thirdFileSourceTaskLog);
         // 一小时后过期
         redisTemplate.expireAt(PREFIX_REDIS_TASK_LOG + taskId, new Date(System.currentTimeMillis() + 3600 * 1000));
+    }
+
+    @SuppressWarnings("StringBufferReplaceableByString")
+    private String buildFileLogContent(FileTaskProgressDTO fileTaskProgressDTO,
+                                       String filePathWithSourceAlias,
+                                       String fileSizeStr) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FileName: ");
+        sb.append(filePathWithSourceAlias);
+        sb.append(" FileSize: ");
+        sb.append(fileSizeStr);
+        sb.append(" ");
+        sb.append("Speed: ");
+        sb.append(fileTaskProgressDTO.getSpeed());
+        sb.append(" Progress: ");
+        sb.append(fileTaskProgressDTO.getProgress());
+        sb.append("% Detail: ");
+        sb.append(fileTaskProgressDTO.getContent());
+        return sb.toString();
+    }
+
+    private String buildProcessStr(FileTaskProgressDTO fileTaskProgressDTO) {
+        return "" + fileTaskProgressDTO.getProgress() + "%";
+    }
+
+    @Override
+    public String updateFileSourceTask(FileTaskProgressDTO fileTaskProgressDTO) {
+        String fileSourceTaskId = fileTaskProgressDTO.getFileSourceTaskId();
+        String filePath = fileTaskProgressDTO.getFilePath();
+        FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTask(
+            fileSourceTaskId,
+            filePath
+        );
+        if (fileTaskDTO == null) {
+            log.error(
+                "Cannot find fileTaskDTO by taskId {} filePath {}",
+                fileTaskProgressDTO.getFileSourceTaskId(),
+                fileTaskProgressDTO.getFilePath()
+            );
+            return null;
+        }
+        TaskStatusEnum previousStatus = TaskStatusEnum.valueOf(fileTaskDTO.getStatus());
+        fileTaskDTO.setDownloadPath(fileTaskProgressDTO.getDownloadPath());
+        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(fileSourceTaskId);
+        if (fileSourceTaskDTO == null) {
+            log.error("Cannot find fileSourceTaskDTO by taskId {} filePath {}", fileSourceTaskId, filePath);
+            return null;
+        }
+        return updateFileSourceTask(fileTaskDTO, fileSourceTaskDTO, fileTaskProgressDTO, previousStatus);
+    }
+
+    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = {Throwable.class})
+    public String updateFileSourceTask(FileTaskDTO fileTaskDTO,
+                                       FileSourceTaskDTO fileSourceTaskDTO,
+                                       FileTaskProgressDTO fileTaskProgressDTO,
+                                       TaskStatusEnum previousStatus) {
+        // 开启事务后立即加排它锁，保证读取到其他事务已提交的数据
+        FileSourceBatchTaskDTO fileSourceBatchTaskDTO =
+            fileSourceBatchTaskDAO.getBatchTaskByIdForUpdate(fileSourceTaskDTO.getBatchTaskId());
+        String fileSourceTaskId = fileTaskProgressDTO.getFileSourceTaskId();
+        String filePath = fileTaskProgressDTO.getFilePath();
+        TaskStatusEnum status = fileTaskProgressDTO.getStatus();
+        Integer progress = fileTaskProgressDTO.getProgress();
+        Long fileSize = fileTaskProgressDTO.getFileSize();
+        if (fileSourceBatchTaskDTO == null) {
+            log.error("Cannot find fileSourceBatchTaskDTO by batchTaskId {} fileSourceTaskId {} filePath {}",
+                fileSourceTaskDTO.getBatchTaskId(),
+                fileSourceTaskId,
+                filePath
+            );
+            return null;
+        }
+        FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(fileSourceTaskDTO.getFileWorkerId());
+        int affectedRowNum = -1;
+        if (status == TaskStatusEnum.RUNNING) {
+            // 已处于结束态的任务不再接受状态更新
+            if (!fileTaskDTO.isDone()) {
+                fileTaskDTO.setProgress(progress);
+                fileTaskDTO.setFileSize(fileSize);
+                fileTaskDTO.setStatus(TaskStatusEnum.RUNNING.getStatus());
+                affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
+                logUpdatedTaskStatus(fileSourceTaskId, filePath, progress, status);
+            } else {
+                log.info("fileTask {} already done, do not update to running", fileSourceTaskId);
+            }
+        } else if (status == TaskStatusEnum.SUCCESS) {
+            fileTaskDTO.setProgress(100);
+            fileTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
+            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
+            logUpdatedTaskStatus(fileSourceTaskId, filePath, progress, status);
+        } else if (status == TaskStatusEnum.FAILED) {
+            fileTaskDTO.setProgress(progress);
+            fileTaskDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
+            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
+            logUpdatedTaskStatus(fileSourceTaskId, filePath, progress, status);
+        } else if (status == TaskStatusEnum.STOPPED) {
+            fileTaskDTO.setProgress(progress);
+            fileTaskDTO.setStatus(TaskStatusEnum.STOPPED.getStatus());
+            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
+            logUpdatedTaskStatus(fileSourceTaskId, filePath, progress, status);
+        } else {
+            log.warn("fileTask {} unknown status:{}", fileSourceTaskId, status);
+        }
+        if (affectedRowNum != -1) {
+            log.info("{} updated, affectedRowNum={}", fileTaskDTO, affectedRowNum);
+        }
+        // 通知关注者
+        if (status != previousStatus) {
+            notifyFileTaskStatusChangeListeners(fileTaskDTO, fileSourceTaskDTO, fileWorkerDTO, previousStatus, status);
+        }
+        // 进度上报
+        writeLog(fileSourceTaskDTO, fileWorkerDTO, fileTaskProgressDTO);
+        return fileSourceTaskId;
     }
 
     private void notifyFileTaskStatusChangeListeners(FileTaskDTO fileTaskDTO,
@@ -247,99 +359,6 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 if (stop) break;
             }
         }
-    }
-
-    @Override
-    public String updateFileSourceTask(String taskId, String filePath, String downloadPath, Long fileSize,
-                                       String speed, Integer progress, String content, TaskStatusEnum status) {
-        FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTask(taskId, filePath);
-        if (fileTaskDTO == null) {
-            log.error("Cannot find fileTaskDTO by taskId {} filePath {}", taskId, filePath);
-            return null;
-        }
-        TaskStatusEnum previousStatus = TaskStatusEnum.valueOf(fileTaskDTO.getStatus());
-        fileTaskDTO.setDownloadPath(downloadPath);
-        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(taskId);
-        if (fileSourceTaskDTO == null) {
-            log.error("Cannot find fileSourceTaskDTO by taskId {} filePath {}", taskId, filePath);
-            return null;
-        }
-        return updateFileSourceTask(
-            fileTaskDTO,
-            fileSourceTaskDTO,
-            taskId,
-            filePath,
-            fileSize,
-            speed,
-            progress,
-            content,
-            status,
-            previousStatus
-        );
-    }
-
-    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = {Throwable.class})
-    public String updateFileSourceTask(FileTaskDTO fileTaskDTO,
-                                       FileSourceTaskDTO fileSourceTaskDTO,
-                                       String taskId,
-                                       String filePath,
-                                       Long fileSize,
-                                       String speed,
-                                       Integer progress,
-                                       String content,
-                                       TaskStatusEnum status,
-                                       TaskStatusEnum previousStatus) {
-        FileSourceBatchTaskDTO fileSourceBatchTaskDTO =
-            fileSourceBatchTaskDAO.getBatchTaskByIdForUpdate(fileSourceTaskDTO.getBatchTaskId());
-        if (fileSourceBatchTaskDTO == null) {
-            log.error("Cannot find fileSourceBatchTaskDTO by batchTaskId {} taskId {} filePath {}",
-                fileSourceTaskDTO.getBatchTaskId(),
-                taskId,
-                filePath
-            );
-            return null;
-        }
-        FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(fileSourceTaskDTO.getFileWorkerId());
-        int affectedRowNum = -1;
-        if (status == TaskStatusEnum.RUNNING) {
-            // 已处于结束态的任务不再接受状态更新
-            if (!fileTaskDTO.isDone()) {
-                fileTaskDTO.setProgress(progress);
-                fileTaskDTO.setFileSize(fileSize);
-                fileTaskDTO.setStatus(TaskStatusEnum.RUNNING.getStatus());
-                affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
-                logUpdatedTaskStatus(taskId, filePath, progress, status);
-            } else {
-                log.info("fileTask {} already done, do not update to running", taskId);
-            }
-        } else if (status == TaskStatusEnum.SUCCESS) {
-            fileTaskDTO.setProgress(100);
-            fileTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
-            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
-            logUpdatedTaskStatus(taskId, filePath, progress, status);
-        } else if (status == TaskStatusEnum.FAILED) {
-            fileTaskDTO.setProgress(progress);
-            fileTaskDTO.setStatus(TaskStatusEnum.FAILED.getStatus());
-            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
-            logUpdatedTaskStatus(taskId, filePath, progress, status);
-        } else if (status == TaskStatusEnum.STOPPED) {
-            fileTaskDTO.setProgress(progress);
-            fileTaskDTO.setStatus(TaskStatusEnum.STOPPED.getStatus());
-            affectedRowNum = fileTaskDAO.updateFileTask(fileTaskDTO);
-            logUpdatedTaskStatus(taskId, filePath, progress, status);
-        } else {
-            log.warn("fileTask {} unknown status:{}", taskId, status);
-        }
-        if (affectedRowNum != -1) {
-            log.info("{} updated, affectedRowNum={}", fileTaskDTO, affectedRowNum);
-        }
-        // 通知关注者
-        if (status != previousStatus) {
-            notifyFileTaskStatusChangeListeners(fileTaskDTO, fileSourceTaskDTO, fileWorkerDTO, previousStatus, status);
-        }
-        // 进度上报
-        writeLog(fileSourceTaskDTO, fileWorkerDTO, filePath, fileSize, speed, progress, content);
-        return taskId;
     }
 
     private void logUpdatedTaskStatus(String taskId, String filePath, Integer progress, TaskStatusEnum status) {

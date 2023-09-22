@@ -40,8 +40,6 @@ public interface FileTaskDAO {
 
     FileTaskDTO getOneFileTask(String fileSourceTaskId, String filePath);
 
-    FileTaskDTO getOneFileTaskForUpdate(String fileSourceTaskId, String filePath);
-
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId, Integer start, Integer pageSize);
 
     List<String> listTimeoutFileSourceTaskIds(Long expireTimeMills, Collection<Byte> statusSet, Integer start,
@@ -50,6 +48,4 @@ public interface FileTaskDAO {
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId);
 
     Long countFileTask(String fileSourceTaskId, Byte status);
-
-    Long countFileTaskForUpdate(String fileSourceTaskId, Byte status);
 }

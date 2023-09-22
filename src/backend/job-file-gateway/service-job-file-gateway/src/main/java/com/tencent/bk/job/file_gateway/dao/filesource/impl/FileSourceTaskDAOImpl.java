@@ -178,18 +178,6 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public FileSourceTaskDTO getFileSourceTaskByIdForUpdate(String id) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).forUpdate().fetchOne();
-        if (record == null) {
-            return null;
-        } else {
-            return convertRecordToDto(record);
-        }
-    }
-
-    @Override
     public Long countFileSourceTasksByBatchTaskId(String batchTaskId, Byte status) {
         List<Condition> conditions = new ArrayList<>();
         if (batchTaskId != null) {
@@ -201,32 +189,12 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
         return countFileSourceTasksByConditions(conditions);
     }
 
-    @Override
-    public Long countFileSourceTasksByBatchTaskIdForUpdate(String batchTaskId, Byte status) {
-        List<Condition> conditions = new ArrayList<>();
-        if (batchTaskId != null) {
-            conditions.add(defaultTable.BATCH_TASK_ID.eq(batchTaskId));
-        }
-        if (status != null) {
-            conditions.add(defaultTable.STATUS.eq(status));
-        }
-        return countFileSourceTasksByConditionsForUpdate(conditions);
-    }
-
     public Long countFileSourceTasksByConditions(Collection<Condition> conditions) {
         val query = dslContext.select(
             DSL.countDistinct(defaultTable.ID)
         ).from(defaultTable)
             .where(conditions);
         return query.fetchOne(0, Long.class);
-    }
-
-    public Long countFileSourceTasksByConditionsForUpdate(Collection<Condition> conditions) {
-        val query = dslContext.select(
-            DSL.countDistinct(defaultTable.ID)
-        ).from(defaultTable)
-            .where(conditions);
-        return query.forUpdate().fetchOne(0, Long.class);
     }
 
     public List<FileSourceTaskDTO> listByConditions(Collection<Condition> conditions,
