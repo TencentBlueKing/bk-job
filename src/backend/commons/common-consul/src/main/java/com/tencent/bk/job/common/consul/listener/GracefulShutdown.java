@@ -40,8 +40,10 @@ public class GracefulShutdown implements ApplicationListener<ContextClosedEvent>
     private final ConsulServiceRegistry consulServiceRegistry;
     private final JobConsulProperties jobConsulProperties;
 
-    public GracefulShutdown(ConsulRegistration consulRegistration, ConsulServiceRegistry consulServiceRegistry,
+    public GracefulShutdown(ConsulRegistration consulRegistration,
+                            ConsulServiceRegistry consulServiceRegistry,
                             JobConsulProperties jobConsulProperties) {
+        log.info("Init consul service graceful shutdown component");
         this.consulRegistration = consulRegistration;
         this.consulServiceRegistry = consulServiceRegistry;
         this.jobConsulProperties = jobConsulProperties;
