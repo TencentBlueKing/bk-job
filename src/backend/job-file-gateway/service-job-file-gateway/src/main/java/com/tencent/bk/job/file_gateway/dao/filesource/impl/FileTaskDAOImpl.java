@@ -135,6 +135,21 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
     }
 
     @Override
+    public FileTaskDTO getOneFileTask(String fileSourceTaskId, String filePath) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
+        conditions.add(defaultTable.FILE_PATH.eq(filePath));
+        val record = dslContext.selectFrom(defaultTable).where(
+            conditions
+        ).fetchOne();
+        if (record == null) {
+            return null;
+        } else {
+            return convertRecordToDto(record);
+        }
+    }
+
+    @Override
     public FileTaskDTO getOneFileTaskForUpdate(String fileSourceTaskId, String filePath) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
@@ -147,6 +162,14 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         } else {
             return convertRecordToDto(record);
         }
+    }
+
+    public Long countFileTasksByConditions(Collection<Condition> conditions) {
+        val query = dslContext.select(
+            DSL.countDistinct(defaultTable.ID)
+        ).from(defaultTable)
+            .where(conditions);
+        return query.fetchOne(0, Long.class);
     }
 
     public Long countFileTasksByConditionsForUpdate(Collection<Condition> conditions) {
@@ -193,6 +216,18 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
     @Override
     public List<FileTaskDTO> listFileTasks(String fileSourceTaskId) {
         return listFileTasks(fileSourceTaskId, 0, -1);
+    }
+
+    @Override
+    public Long countFileTask(String fileSourceTaskId, Byte status) {
+        List<Condition> conditions = new ArrayList<>();
+        if (fileSourceTaskId != null) {
+            conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
+        }
+        if (status != null) {
+            conditions.add(defaultTable.STATUS.eq(status));
+        }
+        return countFileTasksByConditions(conditions);
     }
 
     @Override

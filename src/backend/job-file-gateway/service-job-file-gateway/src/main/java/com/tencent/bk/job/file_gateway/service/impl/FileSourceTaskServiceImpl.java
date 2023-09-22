@@ -39,10 +39,12 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
+import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceBatchTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceBatchTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
@@ -79,6 +81,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     public static final String PREFIX_REDIS_TASK_LOG = "job:file-gateway:taskLog:";
 
+    private final FileSourceBatchTaskDAO fileSourceBatchTaskDAO;
     private final FileSourceTaskDAO fileSourceTaskDAO;
     private final FileTaskDAO fileTaskDAO;
     private final FileWorkerDAO fileworkerDAO;
@@ -90,15 +93,18 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
     @Autowired
-    public FileSourceTaskServiceImpl(FileSourceTaskDAO fileSourceTaskDAO,
-                                     FileTaskDAO fileTaskDAO,
-                                     FileWorkerDAO fileworkerDAO,
-                                     FileSourceDAO fileSourceDAO,
-                                     DispatchService dispatchService,
-                                     FileSourceTaskReqGenService fileSourceTaskReqGenService,
-                                     @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
-                                     FileTaskStatusChangeListener fileTaskStatusChangeListener,
-                                     JobHttpClient jobHttpClient) {
+    public FileSourceTaskServiceImpl(
+        FileSourceBatchTaskDAO fileSourceBatchTaskDAO,
+        FileSourceTaskDAO fileSourceTaskDAO,
+        FileTaskDAO fileTaskDAO,
+        FileWorkerDAO fileworkerDAO,
+        FileSourceDAO fileSourceDAO,
+        DispatchService dispatchService,
+        FileSourceTaskReqGenService fileSourceTaskReqGenService,
+        @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
+        FileTaskStatusChangeListener fileTaskStatusChangeListener,
+        JobHttpClient jobHttpClient) {
+        this.fileSourceBatchTaskDAO = fileSourceBatchTaskDAO;
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
         this.fileworkerDAO = fileworkerDAO;
@@ -244,19 +250,53 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     @Override
-    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = {Throwable.class})
     public String updateFileSourceTask(String taskId, String filePath, String downloadPath, Long fileSize,
                                        String speed, Integer progress, String content, TaskStatusEnum status) {
-        FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTaskForUpdate(taskId, filePath);
+        FileTaskDTO fileTaskDTO = fileTaskDAO.getOneFileTask(taskId, filePath);
         if (fileTaskDTO == null) {
             log.error("Cannot find fileTaskDTO by taskId {} filePath {}", taskId, filePath);
             return null;
         }
         TaskStatusEnum previousStatus = TaskStatusEnum.valueOf(fileTaskDTO.getStatus());
         fileTaskDTO.setDownloadPath(downloadPath);
-        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskByIdForUpdate(taskId);
+        FileSourceTaskDTO fileSourceTaskDTO = fileSourceTaskDAO.getFileSourceTaskById(taskId);
         if (fileSourceTaskDTO == null) {
             log.error("Cannot find fileSourceTaskDTO by taskId {} filePath {}", taskId, filePath);
+            return null;
+        }
+        return updateFileSourceTask(
+            fileTaskDTO,
+            fileSourceTaskDTO,
+            taskId,
+            filePath,
+            fileSize,
+            speed,
+            progress,
+            content,
+            status,
+            previousStatus
+        );
+    }
+
+    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = {Throwable.class})
+    public String updateFileSourceTask(FileTaskDTO fileTaskDTO,
+                                       FileSourceTaskDTO fileSourceTaskDTO,
+                                       String taskId,
+                                       String filePath,
+                                       Long fileSize,
+                                       String speed,
+                                       Integer progress,
+                                       String content,
+                                       TaskStatusEnum status,
+                                       TaskStatusEnum previousStatus) {
+        FileSourceBatchTaskDTO fileSourceBatchTaskDTO =
+            fileSourceBatchTaskDAO.getBatchTaskByIdForUpdate(fileSourceTaskDTO.getBatchTaskId());
+        if (fileSourceBatchTaskDTO == null) {
+            log.error("Cannot find fileSourceBatchTaskDTO by batchTaskId {} taskId {} filePath {}",
+                fileSourceTaskDTO.getBatchTaskId(),
+                taskId,
+                filePath
+            );
             return null;
         }
         FileWorkerDTO fileWorkerDTO = fileworkerDAO.getFileWorkerById(fileSourceTaskDTO.getFileWorkerId());
