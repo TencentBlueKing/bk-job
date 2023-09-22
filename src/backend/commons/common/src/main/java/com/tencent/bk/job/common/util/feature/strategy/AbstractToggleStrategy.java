@@ -1,10 +1,10 @@
 package com.tencent.bk.job.common.util.feature.strategy;
 
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,10 +23,10 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
     /**
      * 初始化特性开关
      *
-     * @param strategyId  策略ID
-     * @param description 策略说明
-     * @param compositeStrategies  子策略
-     * @param initParams  初始化参数
+     * @param strategyId          策略ID
+     * @param description         策略说明
+     * @param compositeStrategies 子策略
+     * @param initParams          初始化参数
      */
     public AbstractToggleStrategy(String strategyId,
                                   String description,
@@ -71,7 +71,7 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
         return this.initParams;
     }
 
-    public void assertRequiredParameter(String paramName) {
+    public void assertRequiredInitParam(String paramName) {
         if (!initParams.containsKey(paramName)) {
             String msg = MessageFormatter.format(
                 "Parameter {} is required for this ToggleStrategy", paramName).getMessage();
@@ -80,19 +80,18 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
         }
     }
 
-    public void assertRequiredAtLeastOneParameter(String... paramNames) {
-        boolean anyMatch = Arrays.stream(paramNames).anyMatch(initParams::containsKey);
-        if (!anyMatch) {
-            String msg = MessageFormatter.format(
-                "Required at least one parameter({}) for this ToggleStrategy", paramNames).getMessage();
+    public void assertRequiredAtLeastOneStrategy() {
+        if (CollectionUtils.isEmpty(this.compositeStrategies)) {
+            String msg = "Required at least one strategy for this ToggleStrategy";
             log.error(msg);
             throw new FeatureConfigParseException(msg);
         }
     }
 
-    public void assertRequiredAtLeastOneStrategy() {
-        if (!CollectionUtils.isEmpty(this.compositeStrategies)) {
-            String msg = "Required at least one strategy for this ToggleStrategy";
+    public void assertRequiredContextParam(FeatureExecutionContext context, String paramName) {
+        if (context.getParam(paramName) == null) {
+            String msg = MessageFormatter.format(
+                "Context param {} is required for evaluate", paramName).getMessage();
             log.error(msg);
             throw new FeatureConfigParseException(msg);
         }

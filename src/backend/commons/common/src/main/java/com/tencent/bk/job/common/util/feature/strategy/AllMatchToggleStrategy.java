@@ -54,11 +54,6 @@ public class AllMatchToggleStrategy extends AbstractToggleStrategy {
     }
 
     @Override
-    public boolean isCompositeStrategy() {
-        return true;
-    }
-
-    @Override
     public List<ToggleStrategy> getCompositeToggleStrategies() {
         return this.compositeStrategies;
     }

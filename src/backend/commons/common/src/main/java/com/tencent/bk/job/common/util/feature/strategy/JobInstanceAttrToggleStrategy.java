@@ -1,0 +1,104 @@
+package com.tencent.bk.job.common.util.feature.strategy;
+
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
+
+/**
+ * 按照作业实例属性灰度策略
+ */
+@Slf4j
+public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
+    /**
+     * 特性开关开启策略ID
+     */
+    public static final String STRATEGY_ID = "JobInstanceAttrToggleStrategy";
+
+    /**
+     * 策略初始化参数
+     */
+    public static final String INIT_PARAM_REQUIRE_ALL_GSE_V2_AGENT_AVAILABLE = "requireAllGseV2AgentAvailable";
+    public static final String INIT_PARAM_STARTUP_MODES = "startupModes";
+    public static final String INIT_PARAM_OPERATORS = "operators";
+
+    /**
+     * 灰度策略上下文参数
+     */
+    public static final String CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE = "isAllGseV2AgentAvailable";
+    public static final String CTX_PARAM_STARTUP_MODE = "startupMode";
+    public static final String CTX_PARAM_OPERATOR = "operator";
+
+    /**
+     * 灰度策略生效条件 - 所有 GSE v2 agent 可用
+     */
+    private Boolean requireAllGseV2AgentAvailable;
+    /**
+     * 灰度策略生效条件 - 任务启动方式，web: job 页面启动; api: 第三方 API 调用；cron: 定时触发
+     */
+    private Set<String> startupModes;
+    /**
+     * 灰度策略生效条件 - 操作人列表
+     */
+    private Set<String> operators;
+
+
+    public JobInstanceAttrToggleStrategy(String description, Map<String, String> initParams) {
+        super(STRATEGY_ID, description, initParams);
+        String requireAllGseV2AgentAvailableValue = initParams.get(INIT_PARAM_REQUIRE_ALL_GSE_V2_AGENT_AVAILABLE);
+        if (StringUtils.isNotBlank(requireAllGseV2AgentAvailableValue)) {
+            requireAllGseV2AgentAvailable = Boolean.valueOf(requireAllGseV2AgentAvailableValue);
+        }
+
+        String startupModesValue = initParams.get(INIT_PARAM_STARTUP_MODES);
+        if (StringUtils.isNotBlank(startupModesValue)) {
+            startupModes = Arrays.stream(startupModesValue.split(",")).collect(Collectors.toSet());
+        }
+
+        String operatorValue = initParams.get(INIT_PARAM_OPERATORS);
+        if (StringUtils.isNotBlank(operatorValue)) {
+            operators = Arrays.stream(operatorValue.split(",")).collect(Collectors.toSet());
+        }
+    }
+
+    @Override
+    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
+        assertRequiredContextParam(ctx, CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+        assertRequiredContextParam(ctx, CTX_PARAM_STARTUP_MODE);
+        assertRequiredContextParam(ctx, CTX_PARAM_OPERATOR);
+        if (requireAllGseV2AgentAvailable != null) {
+            boolean isAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+            if (!isAgentV2Available) {
+                return false;
+            }
+        }
+        if (CollectionUtils.isNotEmpty(startupModes)) {
+            String startupMode = (String) ctx.getParam(CTX_PARAM_STARTUP_MODE);
+            if (!startupModes.contains(startupMode)) {
+                return false;
+            }
+        }
+        if (CollectionUtils.isNotEmpty(operators)) {
+            String operator = (String) ctx.getParam(CTX_PARAM_OPERATOR);
+            if (!operators.contains(operator)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", JobInstanceAttrToggleStrategy.class.getSimpleName() + "[", "]")
+            .add("id='" + id + "'")
+            .add("description='" + description + "'")
+            .add("initParams=" + initParams)
+            .toString();
+    }
+}

@@ -372,7 +372,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private String buildDetail(UserOperationEnum operationCode, OperationLogDTO.OperationDetail detail) {
         switch (operationCode) {
             case START:
-                if (detail.getStartupMode().equals(TaskStartupModeEnum.NORMAL.getValue())) {
+                if (detail.getStartupMode().equals(TaskStartupModeEnum.WEB.getValue())) {
                     return i18nService.getI18n("user.operation.detail.start.web");
                 } else if (detail.getStartupMode().equals(TaskStartupModeEnum.CRON.getValue())) {
                     return i18nService.getI18n("user.operation.detail.start.cron");

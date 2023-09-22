@@ -29,7 +29,7 @@ public class WeightToggleStrategy extends AbstractToggleStrategy {
 
     public WeightToggleStrategy(String description, Map<String, String> initParams) {
         super(STRATEGY_ID, description, initParams);
-        assertRequiredParameter(INIT_PARAM_WEIGHT);
+        assertRequiredInitParam(INIT_PARAM_WEIGHT);
         String weightStrValue = initParams.get(INIT_PARAM_WEIGHT);
         this.weight = computeWeight(weightStrValue);
     }

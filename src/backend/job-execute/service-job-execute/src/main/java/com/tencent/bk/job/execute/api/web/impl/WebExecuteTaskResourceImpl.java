@@ -129,7 +129,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
             TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
                 .operator(username).executeVariableValues(executeVariableValues)
-                .startupMode(TaskStartupModeEnum.NORMAL).build());
+                .startupMode(TaskStartupModeEnum.WEB).build());
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -302,7 +302,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         taskInstance.setCronTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setAppId(appId);
-        taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
+        taskInstance.setStartupMode(TaskStartupModeEnum.WEB.getValue());
         taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
@@ -464,7 +464,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setAppId(appId);
         taskInstance.setStatus(RunStatusEnum.BLANK);
-        taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
+        taskInstance.setStartupMode(TaskStartupModeEnum.WEB.getValue());
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setCurrentStepInstanceId(0L);

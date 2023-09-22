@@ -28,15 +28,21 @@ import com.tencent.bk.job.common.service.config.FeatureConfig;
 import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.service.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.feature.strategy.AllMatchToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.AnyMatchToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.FeatureConfigParseException;
+import com.tencent.bk.job.common.util.feature.strategy.JobInstanceAttrToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeBlackListToggleStrategy;
+import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeWhiteListToggleStrategy;
 import com.tencent.bk.job.common.util.feature.strategy.ToggleStrategy;
-import com.tencent.bk.job.common.util.feature.strategy.ToggleStrategyRegister;
+import com.tencent.bk.job.common.util.feature.strategy.WeightToggleStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 特性开关
@@ -112,52 +118,48 @@ public class FeatureToggle {
 
     private static ToggleStrategy parseToggleStrategy(ToggleStrategyConfig strategyConfig) {
         String strategyId = strategyConfig.getId();
-        return ToggleStrategyRegister.getToggleStrategyInitial(strategyId)
-            .build(strategyConfig);
+        ToggleStrategy toggleStrategy;
+        switch (strategyId) {
+            case ResourceScopeWhiteListToggleStrategy.STRATEGY_ID:
+                toggleStrategy = new ResourceScopeWhiteListToggleStrategy(strategyConfig.getDescription(),
+                    strategyConfig.getParams());
+                break;
+            case ResourceScopeBlackListToggleStrategy.STRATEGY_ID:
+                toggleStrategy = new ResourceScopeBlackListToggleStrategy(strategyConfig.getDescription(),
+                    strategyConfig.getParams());
+                break;
+            case WeightToggleStrategy.STRATEGY_ID:
+                toggleStrategy = new WeightToggleStrategy(strategyConfig.getDescription(),
+                    strategyConfig.getParams());
+                break;
+            case JobInstanceAttrToggleStrategy.STRATEGY_ID:
+                toggleStrategy = new JobInstanceAttrToggleStrategy(strategyConfig.getDescription(),
+                    strategyConfig.getParams());
+                break;
+            case AllMatchToggleStrategy.STRATEGY_ID:
+                toggleStrategy = new AllMatchToggleStrategy(
+                    strategyId,
+                    strategyConfig.getStrategies()
+                        .stream()
+                        .map(FeatureToggle::parseToggleStrategy)
+                        .collect(Collectors.toList()),
+                    strategyConfig.getParams());
+                break;
+            case AnyMatchToggleStrategy.STRATEGY_ID:
+                toggleStrategy = new AnyMatchToggleStrategy(
+                    strategyId,
+                    strategyConfig.getStrategies()
+                        .stream()
+                        .map(FeatureToggle::parseToggleStrategy)
+                        .collect(Collectors.toList()),
+                    strategyConfig.getParams());
+                break;
+            default:
+                log.error("Unsupported toggle strategy: {} , ignore it!", strategyId);
+                throw new FeatureConfigParseException("Unsupported toggle strategy " + strategyId);
+        }
+        return toggleStrategy;
     }
-
-//    private static ToggleStrategy parseToggleStrategy(ToggleStrategyConfig strategyConfig) {
-//        String strategyId = strategyConfig.getId();
-//        ToggleStrategy toggleStrategy = null;
-//        ToggleStrategyInitial strategyInitial = ToggleStrategyRegister.getToggleStrategyInitial(strategyId);
-//        toggleStrategy = strategyInitial.build(strategyConfig);
-//        switch (strategyId) {
-//            case ResourceScopeWhiteListToggleStrategy.STRATEGY_ID:
-//                toggleStrategy = new ResourceScopeWhiteListToggleStrategy(strategyConfig.getDescription(),
-//                    strategyConfig.getParams());
-//                break;
-//            case ResourceScopeBlackListToggleStrategy.STRATEGY_ID:
-//                toggleStrategy = new ResourceScopeBlackListToggleStrategy(strategyConfig.getDescription(),
-//                    strategyConfig.getParams());
-//                break;
-//            case WeightToggleStrategy.STRATEGY_ID:
-//                toggleStrategy = new WeightToggleStrategy(strategyConfig.getDescription(),
-//                    strategyConfig.getParams());
-//                break;
-//            case AllMatchToggleStrategy.STRATEGY_ID:
-//                toggleStrategy = new AllMatchToggleStrategy(
-//                    strategyId,
-//                    strategyConfig.getStrategies()
-//                        .stream()
-//                        .map(FeatureToggle::parseToggleStrategy)
-//                        .collect(Collectors.toList()),
-//                    strategyConfig.getParams());
-//                break;
-//            case AnyMatchToggleStrategy.STRATEGY_ID:
-//                toggleStrategy = new AnyMatchToggleStrategy(
-//                    strategyId,
-//                    strategyConfig.getStrategies()
-//                        .stream()
-//                        .map(FeatureToggle::parseToggleStrategy)
-//                        .collect(Collectors.toList()),
-//                    strategyConfig.getParams());
-//                break;
-//            default:
-//                log.error("Unsupported toggle strategy: {} , ignore it!", strategyId);
-//                break;
-//        }
-//        return toggleStrategy;
-//    }
 
 
     /**

@@ -24,7 +24,7 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
 
     public AbstractResourceScopeToggleStrategy(String strategyId, String description, Map<String, String> initParams) {
         super(strategyId, description, null, initParams);
-        assertRequiredParameter(INIT_PARAM_RESOURCE_SCOPE_LIST);
+        assertRequiredInitParam(INIT_PARAM_RESOURCE_SCOPE_LIST);
 
         String resourceScopesValue = initParams.get(INIT_PARAM_RESOURCE_SCOPE_LIST);
         if (StringUtils.isNotEmpty(resourceScopesValue)) {

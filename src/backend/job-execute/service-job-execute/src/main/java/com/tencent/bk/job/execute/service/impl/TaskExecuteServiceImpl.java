@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -56,6 +57,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.strategy.JobInstanceAttrToggleStrategy;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -777,7 +779,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throwHostInvalidException(queryHostsResult.getNotExistHosts());
         }
 
-        fillTaskInstanceHostDetail(appId, stepInstances, variables, queryHostsResult);
+        fillTaskInstanceHostDetail(taskInstance, stepInstances, variables, queryHostsResult);
 
         return queryHostsResult;
     }
@@ -956,15 +958,26 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
 
-    private boolean isUsingGseV2(long appId) {
+    private boolean isUsingGseV2(TaskInstanceDTO taskInstance, Collection<HostDTO> taskInstanceHosts) {
+        // 初始化Job任务灰度对接 GSE2.0 上下文
         FeatureExecutionContext featureExecutionContext =
             FeatureExecutionContext.builder()
-                .addResourceScopeContextParam(appScopeMappingService.getScopeByAppId(appId));
+                .addResourceScopeContextParam(appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
+                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE,
+                    taskInstanceHosts.stream().noneMatch(host -> {
+                        // AgentId 为空或者为 V1 格式的
+                        return StringUtils.isEmpty(host.getAgentId()) || AgentUtils.isGseV1AgentId(host.getAgentId());
+                    }))
+                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE,
+                    TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()).getName())
+                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, taskInstance.getOperator());
+
         boolean isUsingGseV2 = FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_GSE_V2,
             featureExecutionContext
         );
-        log.info("Determine gse version, appId: {}, isUsingGseV2: {}", appId, isUsingGseV2);
+        log.info("Determine gse version, featureExecutionContext: {}, isUsingGseV2: {}",
+            featureExecutionContext, isUsingGseV2);
         return isUsingGseV2;
     }
 
@@ -1043,12 +1056,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return !stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue());
     }
 
-    private void fillTaskInstanceHostDetail(long appId,
+    private void fillTaskInstanceHostDetail(TaskInstanceDTO taskInstance,
                                             List<StepInstanceDTO> stepInstanceList,
                                             Collection<TaskVariableDTO> variables,
                                             ServiceListAppHostResultDTO hosts) {
 
-        fillHostAgent(appId, hosts);
+        fillHostAgent(taskInstance, hosts);
 
         Map<String, HostDTO> hostMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
@@ -1083,8 +1096,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void fillHostAgent(long appId, ServiceListAppHostResultDTO hosts) {
-        boolean isUsingGseV2 = isUsingGseV2(appId);
+    private void fillHostAgent(TaskInstanceDTO taskInstance, ServiceListAppHostResultDTO hosts) {
+        boolean isUsingGseV2 = isUsingGseV2(taskInstance,
+            ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
         /*
          * 后续下发任务给GSE会根据agentId路由请求到GSE1.0/2.0。如果要使用GSE2.0，那么直接使用原始bk_agent_id;如果要使用GSE1.0,
          * 按照{云区域ID:ip}的方式构造agent_id
@@ -1102,7 +1116,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(invalidAgentIdHosts)) {
             // 如果存在主机没有agentID，不影响影响整个任务的执行。所以这里仅输出日志，不拦截整个任务的执行。后续执行代码会处理`主机没有agentId`的情况
             log.warn("Contains invalid agent id host, appId: {}, isUsingGseV2: {}, invalidHosts: {}",
-                appId, isUsingGseV2, invalidAgentIdHosts);
+                taskInstance.getAppId(), isUsingGseV2, invalidAgentIdHosts);
         }
 
         setAgentStatus(hosts.getValidHosts());
@@ -1746,7 +1760,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         taskInstance.setAppId(originTaskInstance.getAppId());
         taskInstance.setType(originTaskInstance.getType());
-        taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
+        taskInstance.setStartupMode(TaskStartupModeEnum.WEB.getValue());
         taskInstance.setCronTaskId(-1L);
         taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());

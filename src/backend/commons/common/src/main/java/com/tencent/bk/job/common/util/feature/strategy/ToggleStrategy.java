@@ -28,13 +28,6 @@ public interface ToggleStrategy {
     Map<String, String> getInitParams();
 
     /**
-     * 是否是复合策略
-     */
-    default boolean isCompositeStrategy() {
-        return false;
-    }
-
-    /**
      * 获取复合策略
      */
     default List<ToggleStrategy> getCompositeToggleStrategies() {
