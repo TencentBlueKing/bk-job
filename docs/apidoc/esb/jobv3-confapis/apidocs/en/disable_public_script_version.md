@@ -33,8 +33,8 @@ Disable the public script version. Once disabled successfully, it cannot be rest
     "code": 0,
     "result": true,
     "data": {
-        "script_version_id": 1000018,
-        "id": "4537fb49ec0840a1b91cef4179c99f9c",
+        "id": 1000018,
+        "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
         "status": 3
     }
 }
@@ -56,6 +56,6 @@ Disable the public script version. Once disabled successfully, it cannot be rest
 
 | Fields            | Type   | Description                                                  |
 | ----------------- | ------ | ------------------------------------------------------------ |
-| id                | string | Script id                                                    |
-| script_version_id | long   | Script version id                                            |
+| script_id                | string | Script id                                                    |
+| id | long   | Script version id                                            |
 | status            | int    | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled) |

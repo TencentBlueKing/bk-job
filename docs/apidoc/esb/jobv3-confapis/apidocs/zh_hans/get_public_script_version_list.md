@@ -48,7 +48,10 @@
                 "creator": "admin",
                 "create_time": 1600746078520,
                 "last_modify_user": "admin",
-                "last_modify_time": 1600746078520
+                "last_modify_time": 1600746078520,
+                "script_language": 1,
+                "public_script": true,
+                "description": "脚本描述"
             }
         ],
         "start": 0,
@@ -84,3 +87,6 @@
 | create_time       | long      | 创建时间Unix时间戳（ms） |
 | last_modify_user  | string    | 最近一次修改人 |
 | last_modify_time  | long      | 最近一次修改时间Unix时间戳（ms） |
+| script_language   | int    | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell |
+| public_script     | bool   | 是否公共脚本                                                 |
+| description       | string | 脚本描述                                                     |
