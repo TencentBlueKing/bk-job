@@ -1,4 +1,4 @@
-FROM blueking/jdk:0.0.1
+FROM bkjob/jdk:0.0.3
 
 LABEL maintainer="Tencent BlueKing Job"
 
@@ -13,6 +13,7 @@ RUN pip install requests==2.6.0
 
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
+    chmod +x /data/job/exec/runUpgrader.sh && \
     chmod +x /data/job/exec/startup.sh
 
 ENV LANG en_US.utf8
