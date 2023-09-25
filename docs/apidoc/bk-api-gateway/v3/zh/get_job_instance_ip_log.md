@@ -42,6 +42,7 @@
     "message": "",
     "data": {
         "log_type": 1,
+        "bk_host_id": 101,
         "ip": "10.0.0.1",
         "bk_cloud_id": 0,
         "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"
@@ -58,31 +59,35 @@
     "message": "",
     "data": {
         "log_type": 2,
+        "bk_host_id": 101,
         "ip": "10.0.0.1",
         "bk_cloud_id": 0,
         "file_logs": [
             {
-                "mode": 1, 
+                "mode": 1,
                 "src_ip": {
-                    "bk_cloud_id": 0, 
+                    "host_id": 102,
+                    "bk_cloud_id": 0,
                     "ip": "10.0.0.2"
-                }, 
-                "src_path": "/data/1.log", 
+                },
+                "src_path": "/data/1.log",
                 "dest_ip": {
-                    "bk_cloud_id": 0, 
+                    "bk_host_id": 101,
+                    "bk_cloud_id": 0,
                     "ip": "10.0.0.1"
-                }, 
-                "dest_path": "/tmp/1.log", 
+                },
+                "dest_path": "/tmp/1.log",
                 "status": 4,
-                "log_content": "[2021-06-28 11:32:16] FileName: /tmp/1.log FileSize: 9.0 Bytes State: dest agent success download file Speed: 1 KB/s Progress: 100% StatusDesc: dest agent success download file Detail: success" 
-            }, 
+                "log_content": "[2021-06-28 11:32:16] FileName: /tmp/1.log FileSize: 9.0 Bytes State: dest agent success download file Speed: 1 KB/s Progress: 100% StatusDesc: dest agent success download file Detail: success"
+            },
             {
-                "mode": 0, 
+                "mode": 0,
                 "src_ip": {
-                    "bk_cloud_id": 0, 
+                    "bk_host_id": 102,
+                    "bk_cloud_id": 0,
                     "ip": "10.0.0.2"
-                }, 
-                "src_path": "/data/1.log",  
+                },
+                "src_path": "/data/1.log",
                 "status": 4,
                 "log_content": "[2021-06-28 11:32:16] FileName: /data/1.log FileSize: 9.0 Bytes State: source agent success upload file Speed: 1 KB/s Progress: 100% StatusDesc: source agent success upload file Detail: success upload"
             }
@@ -110,6 +115,7 @@
 
 | 字段      | 类型      | 描述      |
 |-----------|-----------|-----------|
+| bk_host_id | long | 主机ID |
 | bk_cloud_id   | int         | 目标服务器管控区域ID |
 | ip            | string      | 目标服务器IP地址 |
 | log_type   | int         | 日志类型。1-脚本执行任务日志;2-文件分发任务日志 |
@@ -132,5 +138,6 @@
 
 | 字段      |  类型     |  描述      |
 |-----------|------------|--------|
+| bk_host_id | long | 主机ID |
 | bk_cloud_id |  long    | 管控区域ID |
 | ip          |  string  | IP地址   |

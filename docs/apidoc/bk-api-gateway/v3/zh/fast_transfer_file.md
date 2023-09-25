@@ -50,12 +50,12 @@
 | alias | string | 否   | 源执行账号别名，可从账号页面获取，推荐使用。与alias必须存在一个。当同时存在alias和id时，id优先。 |
 
 ##### server
-
-| 字段      |  类型      | 必选   |  描述      |
-|-----------|------------|--------|------------|
-| ip_list               | array | 否     | 静态IP列表 |
-| dynamic_group_list | array | 否     | 动态分组ID列表 |
-| topo_node_list        | array | 否     | 动态topo节点列表 |
+| 字段               | 类型  | 必选 | 描述                                |
+| ------------------ | ----- | ---- | ----------------------------------- |
+| host_id_list       | array | 否   | 主机ID列表                                                   |
+| ip_list            | array | 否   | ***不推荐使用，建议使用host_id_list参数***。主机IP 列表，定义见ip |
+| dynamic_group_list | array | 否   | 动态分组列表，定义见dynamic_group   |
+| topo_node_list     | array | 否   | 动态 topo 节点列表，定义见topo_node |
 
 ##### ip_list
 | 字段      |  类型      | 必选   |  描述      |
@@ -102,15 +102,9 @@
                         "id": "blo8gojho0sabc7priuy"
                     }
                 ],
-                "ip_list": [
-                    {
-                        "bk_cloud_id": 0,
-                        "ip": "10.0.0.1"
-                    },
-                    {
-                        "bk_cloud_id": 0,
-                        "ip": "10.0.0.2"
-                    }
+                "host_id_list": [
+                    101,
+                    102
                 ],
                 "topo_node_list": [
                     {
@@ -145,15 +139,9 @@
                 "id": "blo8gojho0sabc7priuy"
             }
         ],
-        "ip_list": [
-            {
-                "bk_cloud_id": 0,
-                "ip": "10.0.0.1"
-            },
-            {
-                "bk_cloud_id": 0,
-                "ip": "10.0.0.2"
-            }
+        "host_id_list": [
+            103,
+            104
         ],
         "topo_node_list": [
             {
@@ -175,7 +163,7 @@
     "data": {
         "job_instance_name": "API Quick Distribution File1521101427176",
         "job_instance_id": 10000,
-		    "step_instance_id": 10001
+		"step_instance_id": 10001
     }
 }
 ```

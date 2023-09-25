@@ -60,10 +60,12 @@
                     ],
                     "ip_list": [
                         {
+                            "bk_host_id": 101,
                             "bk_cloud_id": 0,
                             "ip": "10.0.0.1"
                         },
                         {
+                            "bk_host_id": 102,
                             "bk_cloud_id": 0,
                             "ip": "10.0.0.2"
                         }

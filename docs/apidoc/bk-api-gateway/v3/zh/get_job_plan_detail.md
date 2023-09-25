@@ -36,8 +36,7 @@
     "result": true,
     "code": 0,
     "message": "",
-    "data":
-    {
+    "data": {
         "bk_scope_type": "biz",
         "bk_scope_id": "1",
         "job_plan_id": 100,
@@ -46,16 +45,14 @@
         "create_time": 1546272000000,
         "last_modify_user": "admin",
         "last_modify_time": 1577807999999,
-        "global_var_list":
-        [
+        "global_var_list": [
             {
                 "id": 11,
                 "type": 1,
                 "name": "varName",
                 "value": "value is Me",
                 "description": "hello",
-                "required": 1,
-                "used": false
+                "required": 1
             },
             {
                 "id": 12,
@@ -63,11 +60,8 @@
                 "name": "servers",
                 "description": "",
                 "required": 0,
-                "used": true,
-                "server":
-                {
-                    "dynamic_group_list":
-                    [
+                "server": {
+                    "dynamic_group_list": [
                         {
                             "id": "blo8gojho0skft7pr5q0"
                         },
@@ -75,19 +69,19 @@
                             "id": "blo8gojho0sabc7priuy"
                         }
                     ],
-                    "ip_list":
-                    [
+                    "ip_list": [
                         {
+                            "bk_host_id": 101,
                             "bk_cloud_id": 0,
                             "ip": "10.0.0.1"
                         },
                         {
+                            "bk_host_id": 102,
                             "bk_cloud_id": 0,
                             "ip": "10.0.0.2"
                         }
                     ],
-                    "topo_node_list":
-                    [
+                    "topo_node_list": [
                         {
                             "id": 1000,
                             "node_type": "module"
@@ -96,109 +90,70 @@
                 }
             }
         ],
-        "step_list":
-        [
+        "step_list": [
             {
                 "id": 1059,
                 "type": 1,
                 "name": "run local script",
-                "script_info":
-                {
+                "script_info": {
                     "script_type": 1,
                     "script_timeout": 1000,
                     "script_content": "ZWNobyAkMSAkMiAkMw==",
                     "script_param": "YTEgYTIgYTM=",
                     "is_param_sensitive": 0,
-                    "account":
-                    {
-                        "id": 1,
-                        "name": "root",
-                        "alias": "root"
-                    },
-                    "server":
-                    {
-                        "ip_list":
-                        [
-                            {
-                                "bk_cloud_id": 0,
-                                "ip": "10.0.0.1"
-                            }
-                        ]
-                    }
+                    "account": "root"
                 }
             },
             {
                 "id": 1060,
                 "type": 1,
                 "name": "run cite script",
-                "script_info":
-                {
+                "script_info": {
                     "script_type": 2,
                     "script_id": "aaaaa-bbb-ccc-ddddd",
                     "script_version_id": 1078,
                     "script_timeout": 1000,
                     "script_param": "YTEgYTIgYTM=",
                     "is_param_sensitive": 1,
-                    "account":
-                    {
-                        "id": 1,
-                        "name": "root",
-                        "alias": "root"
-                    },
-                    "server":
-                    {
-                        "variable": "servers"
-                    }
+                    "account": "root"
                 }
             },
             {
                 "id": 1061,
                 "type": 2,
                 "name": "xxx",
-                "file_info":
-                {
-                    "file_source":
-                    [
+                "file_info": {
+                    "file_source": [
                         {
-                            "file_list":
-                            [
+                            "file_list": [
                                 "/tmp/REGEX:[a-z]*.txt"
                             ],
-                            "server":
-                            {
+                            "server": {
                                 "variable": "servers"
                             },
-                            "account":
-                            {
+                            "account": {
                                 "id": 1,
-                                "name": "root",
-                                "alias": "root"
+                                "name": "root"
                             },
                             "file_type": 1
                         },
                         {
-                            "file_list":
-                            [
+                            "file_list": [
                                 "testbucket/test.txt"
                             ],
                             "file_type": 3,
                             "file_source_id": 1
                         }
                     ],
-                    "file_destination":
-                    {
+                    "file_destination": {
                         "path": "/tmp/",
-                        "account":
-                        {
+                        "account": {
                             "id": 1,
-                            "name": "root",
-                            "alias": "root"
+                            "name": "root"
                         },
-                        "server":
-                        {
+                        "server": {
                             "variable": "",
-                            "dynamic_group_list":
-                            [
+                            "dynamic_group_list": [
                                 {
                                     "id": "blo8gojho0skft7pr5q0"
                                 },
@@ -206,19 +161,19 @@
                                     "id": "blo8gojho0sabc7priuy"
                                 }
                             ],
-                            "ip_list":
-                            [
+                            "ip_list": [
                                 {
+                                    "bk_host_id": 103,
                                     "bk_cloud_id": 0,
                                     "ip": "10.0.0.3"
                                 },
                                 {
+                                    "bk_host_id": 104,
                                     "bk_cloud_id": 0,
                                     "ip": "10.0.0.4"
                                 }
                             ],
-                            "topo_node_list":
-                            [
+                            "topo_node_list": [
                                 {
                                     "id": 1000,
                                     "node_type": "module"
@@ -319,6 +274,7 @@
 ##### ip
 | 字段         |  类型   | 描述   |
 |-------------|---------|---------|
+| bk_host_id |  long    | 主机ID |
 | bk_cloud_id |  int    | 管控区域ID |
 | ip          |  string | IP地址 |
 

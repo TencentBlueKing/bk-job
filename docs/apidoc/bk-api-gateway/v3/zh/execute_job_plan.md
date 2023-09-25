@@ -38,6 +38,7 @@
 
 | 字段               | 类型  | 必选 | 描述                                |
 | ------------------ | ----- | ---- | ----------------------------------- |
+| host_id_list       | array | 否   | 主机ID列表         |
 | ip_list            | array | 否   | 静态 IP 列表，定义见ip              |
 | dynamic_group_list | array | 否   | 动态分组列表，定义见dynamic_group   |
 | topo_node_list     | array | 否   | 动态 topo 节点列表，定义见topo_node |
@@ -79,15 +80,9 @@
                         "id": "blo8gojho0skft7pr5q0"
                     }
                 ],
-                "ip_list": [
-                    {
-                        "bk_cloud_id": 0,
-                        "ip": "10.0.0.1"
-                    },
-                    {
-                        "bk_cloud_id": 0,
-                        "ip": "10.0.0.2"
-                    }
+                "host_id_list": [
+                    101,
+                    102
                 ],
                 "topo_node_list": [
                     {

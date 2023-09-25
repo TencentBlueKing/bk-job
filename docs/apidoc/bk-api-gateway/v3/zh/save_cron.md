@@ -40,7 +40,8 @@
 ##### server
 | 字段                   |  类型 | 必选   |  描述      |
 |-----------------------|-------|--------|------------|
-| ip_list               | array | 否     | 静态 IP 列表 |
+| host_id_list       | array | 否   | 主机ID列表         |
+| ip_list            | array | 否   | ***不推荐使用，建议使用host_id_list参数***;如果host_id_list与ip_list同时存在，将忽略ip_list参数。主机IP 列表，定义见ip |
 | dynamic_group_list | array | 否     | 动态分组列表 |
 | topo_node_list        | array | 否     | 动态 topo 节点列表 |
 
@@ -93,12 +94,7 @@
         {
             "name": "hostVar",
             "server": {
-                "ip_list": [
-                    {
-                        "bk_cloud_id": 0,
-                        "ip": "10.0.0.1"
-                    }
-                ]
+                "host_id_list": [1,2,3]
             }
         }
     ]
@@ -138,12 +134,7 @@
         {
             "name": "hostVar",
             "server": {
-                "ip_list": [
-                    {
-                        "bk_cloud_id": 0,
-                        "ip": "10.0.0.1"
-                    }
-                ]
+                "host_id_list": [2,3,4]
             }
         }
     ]
@@ -221,6 +212,7 @@
                 "server": {                  
                     "ip_list": [
                         {
+                            "bk_host_id": 101,
                             "bk_cloud_id": 0, 
                             "ip": "10.0.0.1"  
                         }
@@ -306,6 +298,7 @@
                 "server": {
                     "ip_list": [
                         {
+                            "bk_host_id": 101,
                             "bk_cloud_id": 0,
                             "ip": "10.0.0.1"
                         }
@@ -367,6 +360,7 @@
 |-----------------------|-------|------------|
 | variable              | string | 引用的变量名 |
 | ip_list               | array  | 静态 IP 列表 |
+| host_id_list          | array  | 静态 主机ID 列表，元素为Long类型 |
 | dynamic_group_list    | array  | 动态分组 ID 列表 |
 | topo_node_list        | array  | 动态 topo 节点列表 |
 

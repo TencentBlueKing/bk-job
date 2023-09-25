@@ -23,7 +23,8 @@
 | bk_biz_id        |  long       | 是     | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
 | job_instance_id | long | 是 | 作业实例ID |
 | step_instance_id |  long    | 是     | 步骤实例ID |
-| ip_list |  array    | 是     | 源/目标主机IP列表,定义见ip |
+| host_id_list       | array | 否   | 主机ID列表         |
+| ip_list            | array | 否   | ***不推荐使用，建议使用host_id_list参数***;如果host_id_list与ip_list同时存在，将忽略ip_list参数。主机IP 列表，定义见ip |
 
 ##### ip
 
@@ -40,15 +41,8 @@
     "bk_scope_id": "1",
     "job_instance_id": 100,
     "step_instance_id": 200,
-    "ip_list": [
-        {
-            "bk_cloud_id": 0,
-            "ip": "10.0.0.1"
-        },
-        {
-            "bk_cloud_id": 0,
-            "ip": "10.0.0.2"
-        }
+    "host_id_list": [
+        101,102
     ]
 }	
 ```
@@ -63,15 +57,17 @@
     "message": "",
     "data": {
         "log_type": 1,
-        "task_instance_id": 100,
+        "job_instance_id": 100,
         "step_instance_id": 200,
         "script_task_logs": [
             {
+                "bk_host_id": 101,
                 "ip": "10.0.0.1",
                 "bk_cloud_id": 0,
                 "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"
             },
             {
+                "bk_host_id": 102,
                 "ip": "10.0.0.2",
                 "bk_cloud_id": 0,
                 "log_content": "[2018-03-15 14:39:30][PID:16789] job_start\n"
@@ -90,21 +86,24 @@
     "message": "",
     "data": {
         "log_type": 2,
-        "task_instance_id": 100,
+        "job_instance_id": 100,
         "step_instance_id": 200,
         "file_task_logs": [
             {
+                "bk_host_id": 101,
                 "ip": "10.0.0.1",
                 "bk_cloud_id": 0,
                 "file_logs": [
                     {
                         "mode": 1, 
                         "src_ip": {
+                            "bk_host_id": 102,
                             "bk_cloud_id": 0, 
                             "ip": "10.0.0.2"
                         }, 
                         "src_path": "/data/1.log", 
                         "dest_ip": {
+                            "bk_host_id": 101,
                             "bk_cloud_id": 0, 
                             "ip": "10.0.0.1"
                         }, 
@@ -115,12 +114,14 @@
                 ]
             },
             {
+                "bk_host_id": 102,
                 "ip": "10.0.0.2",
                 "bk_cloud_id": 0,
                 "file_logs": [
                     {
                         "mode": 0, 
                         "src_ip": {
+                            "bk_host_id": 102,
                             "bk_cloud_id": 0, 
                             "ip": "10.0.0.2"
                         }, 
@@ -137,7 +138,7 @@
 
 **文件任务返回结果说明**
 
-- 如果需要返回文件源的上传日志，需要在ip_list添加源文件服务器IP
+- 如果需要返回文件源的上传日志，需要在 host_id_list/ip_list添加源文件主机信息
 
 ### 返回结果说明
 
@@ -145,6 +146,7 @@
 
 | 字段      | 类型      | 描述      |
 |-----------|-----------|-----------|
+| bk_host_id |  long    | 主机ID |
 | bk_cloud_id   | int         | 目标服务器管控区域ID |
 | ip            | string      | 目标服务器IP地址 |
 | log_type   | int         | 日志类型。1-脚本执行任务日志;2-文件分发任务日志 |
@@ -155,6 +157,7 @@
 
 | 字段      |  类型     |  描述      |
 |-----------|------------|--------|
+| bk_host_id |  long    | 主机ID |
 | bk_cloud_id |  long    | 管控区域ID |
 | ip          |  string  | 目标IP地址 |
 | log_content |  string  | 脚本执行日志内容   |
@@ -163,6 +166,7 @@
 
 | 字段      |  类型     |  描述      |
 |-----------|------------|--------|
+| bk_host_id |  long    | 主机ID |
 | bk_cloud_id |  long    | 管控区域ID |
 | ip          |  string  | 源/目标IP地址 |
 | file_logs   |  array  | 文件分发日志内容。定义见file_log |
@@ -183,5 +187,6 @@
 
 | 字段      |  类型     |  描述      |
 |-----------|------------|--------|
+| bk_host_id |  long    | 主机ID |
 | bk_cloud_id |  long    | 管控区域ID |
 | ip          |  string  | IP地址   |
