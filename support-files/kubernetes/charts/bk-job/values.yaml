@@ -514,6 +514,13 @@ iam:
   # 作业平台注册到IAM的系统ID
   systemId: bk_job
 
+## 操作审计配置
+audit:
+  # 是否开启操作审计
+  enabled: true
+  # 作业平台系统ID
+  systemId: bk_job
+
 ## 蓝鲸制品库配置
 artifactory:
   admin:
