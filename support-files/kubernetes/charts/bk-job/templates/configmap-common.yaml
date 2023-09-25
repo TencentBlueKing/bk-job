@@ -73,6 +73,9 @@ data:
     iam:
       base-url: {{ .Values.bkIamApiUrl }}
       system-id: {{ .Values.iam.systemId }}
+    audit:
+      enabled: {{ .Values.audit.enabled }}
+      system-id: {{ .Values.audit.systemId }}
     paas:
       server:
         url: {{ .Values.bkPaasUrl }}
