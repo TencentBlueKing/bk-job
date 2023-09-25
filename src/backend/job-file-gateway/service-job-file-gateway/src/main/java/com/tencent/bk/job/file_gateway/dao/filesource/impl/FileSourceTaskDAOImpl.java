@@ -178,6 +178,18 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
+    public FileSourceTaskDTO getFileSourceTaskByIdForUpdate(String id) {
+        val record = dslContext.selectFrom(defaultTable).where(
+            defaultTable.ID.eq(id)
+        ).forUpdate().fetchOne();
+        if (record == null) {
+            return null;
+        } else {
+            return convertRecordToDto(record);
+        }
+    }
+
+    @Override
     public Long countFileSourceTasksByBatchTaskId(String batchTaskId, Byte status) {
         List<Condition> conditions = new ArrayList<>();
         if (batchTaskId != null) {

@@ -22,9 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file.worker.service;
 
 import com.tencent.bk.job.common.util.file.PathUtil;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,18 +34,24 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 class FileProgressWatchingTask extends Thread {
 
-    String taskId;
-    String filePath;
-    String downloadFileDir;
-    AtomicLong fileSize;
-    AtomicInteger speed;
-    AtomicInteger process;
-    TaskReporter taskReporter;
-    FileProgressWatchingTaskEventListener watchingTaskEventListener;
+    private final String taskId;
+    private final String filePath;
+    private final String downloadFileDir;
+    private final AtomicLong fileSize;
+    private final AtomicInteger speed;
+    private final AtomicInteger process;
+    private final TaskReporter taskReporter;
+    private final FileProgressWatchingTaskEventListener watchingTaskEventListener;
     volatile boolean runFlag = true;
 
-    public FileProgressWatchingTask(String taskId, String filePath, String downloadFileDir, AtomicLong fileSize,
-                                    AtomicInteger speed, AtomicInteger process, TaskReporter taskReporter,
+    @Builder
+    public FileProgressWatchingTask(String taskId,
+                                    String filePath,
+                                    String downloadFileDir,
+                                    AtomicLong fileSize,
+                                    AtomicInteger speed,
+                                    AtomicInteger process,
+                                    TaskReporter taskReporter,
                                     FileProgressWatchingTaskEventListener watchingTaskEventListener) {
         this.taskId = taskId;
         this.filePath = filePath;
@@ -60,6 +67,7 @@ class FileProgressWatchingTask extends Thread {
         this.runFlag = false;
     }
 
+    @SuppressWarnings("BusyWait")
     @Override
     public void run() {
         String fileTaskKey = taskId + "_" + filePath;
@@ -76,8 +84,7 @@ class FileProgressWatchingTask extends Thread {
                     sleep(1000);
                 }
             }
-        } catch (InterruptedException e) {
-            log.info("watching interrupted", e);
+        } catch (InterruptedException ignore) {
         } finally {
             if (watchingTaskEventListener != null) {
                 watchingTaskEventListener.onWatchingTaskFinally(fileTaskKey);
