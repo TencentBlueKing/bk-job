@@ -26,20 +26,26 @@ package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-/**
- * 平台TitleFooter配置VO
- */
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
-@ApiModel("平台TitleFooter配置（含默认配置）")
 @Data
-public class TitleFooterWithDefaultVO {
-    @ApiModelProperty("当前已设置的TitleFooter信息")
-    private TitleFooterVO currentTitleFooter;
-    @ApiModelProperty("默认TitleFooter信息")
-    private TitleFooterVO defaultTitleFooter;
+@ApiModel("全局设置-平台设置")
+public class PlatformInfoVO extends TitleFooterVO {
+    @ApiModelProperty("助手链接")
+    private String helperContactLink;
+
+    public PlatformInfoVO(TitleFooterVO titleFooterVO) {
+        this(titleFooterVO, null);
+    }
+
+    public PlatformInfoVO(TitleFooterVO titleFooterVO,
+                          String helperContactLink) {
+        super(titleFooterVO.getTitleHead(), titleFooterVO.getTitleSeparator(),
+            titleFooterVO.getFooterLink(), titleFooterVO.getFooterCopyRight());
+        this.helperContactLink = helperContactLink;
+    }
 }

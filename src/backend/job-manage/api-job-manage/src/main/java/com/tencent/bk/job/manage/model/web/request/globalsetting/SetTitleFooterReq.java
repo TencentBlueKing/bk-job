@@ -30,11 +30,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * @Description
- * @Date 2020/2/27
- * @Version 1.0
- */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

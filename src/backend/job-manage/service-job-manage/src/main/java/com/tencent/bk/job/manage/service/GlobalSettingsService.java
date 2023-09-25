@@ -29,7 +29,6 @@ import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
@@ -37,8 +36,8 @@ import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChan
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
@@ -76,11 +75,27 @@ public interface GlobalSettingsService {
 
     FileUploadSettingVO getFileUploadSettings();
 
-    Boolean setTitleFooter(String username, SetTitleFooterReq req);
+    /**
+     * 全局设置-平台信息-保存
+     *
+     * @param username       用户名
+     * @param platformInfoVO 平台信息
+     */
+    PlatformInfoVO savePlatformInfo(String username, PlatformInfoVO platformInfoVO);
 
-    TitleFooterVO getTitleFooter();
+    /**
+     * 获取渲染之后的平台信息
+     *
+     * @return 渲染之后的平台信息
+     */
+    PlatformInfoVO getRenderedPlatformInfo();
 
-    TitleFooterWithDefaultVO getTitleFooterWithDefault(String username);
+    /**
+     * 获取全局设置-平台信息
+     *
+     * @param username 用户名
+     */
+    PlatformInfoWithDefaultVO getPlatformInfoWithDefault(String username);
 
     Integer saveChannelTemplate(String username, ChannelTemplateReq req);
 

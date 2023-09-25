@@ -33,7 +33,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TopologyHelperTest {
+public class TopologyHelperInfoTest {
 
     @Test
     public void testFindTopologyPath() {

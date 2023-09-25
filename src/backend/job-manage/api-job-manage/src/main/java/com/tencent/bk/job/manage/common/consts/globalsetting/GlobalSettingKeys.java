@@ -52,4 +52,6 @@ public class GlobalSettingKeys {
     public static final String KEY_ENABLE_UPLOAD_TO_ARTIFACTORY = "ENABLE_UPLOAD_TO_ARTIFACTORY";
     //Job自有业务集是否已完全迁移至CMDB
     public static final String KEY_IS_BIZSET_MIGRATED_TO_CMDB = "IS_BIZSET_MIGRATED_TO_CMDB";
+    // 助手信息
+    public static final String KEY_BK_HELPER = "BK_HELPER";
 }

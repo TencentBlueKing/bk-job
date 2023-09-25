@@ -26,26 +26,20 @@ package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 平台信息VO(含默认配置)
+ */
 @NoArgsConstructor
+@AllArgsConstructor
+@ApiModel("平台信息VO(含默认配置)")
 @Data
-@ApiModel("全局设置-平台设置-title/footer")
-public class TitleFooterVO {
-    @ApiModelProperty("Title固定头文字")
-    private String titleHead;
-    @ApiModelProperty("Title分隔符")
-    private String titleSeparator;
-    @ApiModelProperty("Footer第一行联系方式等内容，Markdown格式")
-    private String footerLink;
-    @ApiModelProperty("Footer第二行copyright内容，Markdown格式")
-    private String footerCopyRight;
-
-    public TitleFooterVO(String titleHead, String titleSeparator, String footerLink, String footerCopyRight) {
-        this.titleHead = titleHead;
-        this.titleSeparator = titleSeparator;
-        this.footerLink = footerLink;
-        this.footerCopyRight = footerCopyRight;
-    }
+public class PlatformInfoWithDefaultVO {
+    @ApiModelProperty("当前已设置的平台信息")
+    private PlatformInfoVO currentPlatformInfo;
+    @ApiModelProperty("默认的平台信息")
+    private PlatformInfoVO defaultPlatformInfo;
 }

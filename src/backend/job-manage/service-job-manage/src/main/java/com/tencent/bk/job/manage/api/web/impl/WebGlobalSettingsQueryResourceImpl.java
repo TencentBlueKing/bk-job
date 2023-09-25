@@ -38,7 +38,7 @@ import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.PublicScriptService;
@@ -232,8 +232,8 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     }
 
     @Override
-    public Response<TitleFooterVO> getTitleFooter() {
-        return Response.buildSuccessResp(globalSettingsService.getTitleFooter());
+    public Response<PlatformInfoVO> getRenderedPlatformInfo() {
+        return Response.buildSuccessResp(globalSettingsService.getRenderedPlatformInfo());
     }
 
     @Override
