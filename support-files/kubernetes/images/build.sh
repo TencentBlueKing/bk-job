@@ -279,7 +279,7 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
 		    build_startup_controller_image
 		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
-            BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}     
+            BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
 		fi
 	done
     if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then
