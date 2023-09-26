@@ -40,7 +40,7 @@
     "code": 0,
     "result": true,
     "data": {
-        "script_version_id": 1000018,
+        "id": 1000018,
         "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
         "name": "public script test",
         "script_language": 1,
@@ -73,7 +73,7 @@
 
 | 字段              | 类型   | 描述                                                         |
 | ----------------- | ------ | ------------------------------------------------------------ |
-| script_version_id | long   | 公共脚本版本ID                                               |
+| id | long   | 公共脚本版本ID                                               |
 | script_id         | string | 公共脚本ID                                                   |
 | name              | string | 公共脚本名称                                                 |
 | script_language   | int    | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |

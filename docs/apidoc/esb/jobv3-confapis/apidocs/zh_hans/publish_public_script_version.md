@@ -33,8 +33,8 @@
     "code": 0,
     "result": true,
     "data": {
-        "script_version_id": 1000018,
-        "id": "4537fb49ec0840a1b91cef4179c99f9c",
+        "id": 1000018,
+        "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
         "status": 2
     }
 }
@@ -56,6 +56,6 @@
 
 | 字段              | 类型   | 描述                                                         |
 | ----------------- | ------ | ------------------------------------------------------------ |
-| id                | string | 脚本ID                                                       |
-| script_version_id | long   | 脚本版本ID                                                   |
+| script_id                | string | 脚本ID                                                       |
+| id | long   | 脚本版本ID                                                   |
 | status            | int    | 脚本版本当前状态（0：未上线，1：已上线，2：已下线，3：已禁用） |

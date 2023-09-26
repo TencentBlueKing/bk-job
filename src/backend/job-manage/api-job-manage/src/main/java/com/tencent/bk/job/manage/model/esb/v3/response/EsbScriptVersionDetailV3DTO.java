@@ -69,12 +69,6 @@ public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
     private Long lastModifyTime;
 
     /**
-     * 脚本版本ID
-     */
-    @JsonProperty("script_version_id")
-    private Long scriptVersionId;
-
-    /**
      * 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell
      */
     @JsonProperty("script_language")
