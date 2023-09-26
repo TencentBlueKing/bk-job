@@ -1,6 +1,6 @@
 ### Function Description
 
-Check script
+High risk script detection
 
 ### Request Parameters
 
@@ -21,7 +21,7 @@ Check script
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "script_language": [1],
+    "script_language": 1,
     "content": "cm0gLXJmIC8="
 }
 ```
@@ -38,8 +38,6 @@ Check script
             "lineContent": "rm /tmp",
             "matchContent": "rm /tmp",
             "level": 1,
-            "action": null,
-            "code": "103701001",
             "description": "The first line of the script does not define a valid script type, for example: #!/bin/bash"
         },
         {
@@ -47,8 +45,6 @@ Check script
             "line_content": "rm /tmp",
             "matchContent": "rm",
             "level": 3,
-            "action": 2,
-            "code": null,
             "description": "dangerous！！！"
         }
      ]
@@ -75,6 +71,4 @@ Check script
 | line_content  | string | The content of the line where the script is located |
 | match_content | string | Matching Content                                    |
 | level         | int    | Error level: 1- Warning, 2- Error, 3- Fatal         |
-| action        | int    | Processing actions: 1- Scan, 2- Intercept           |
 | description   | string | Description                                         |
-| code          | string | Error code                                          |

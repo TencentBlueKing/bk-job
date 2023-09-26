@@ -39,8 +39,7 @@ Get dangerous rule list
             "id": 1,
             "expression": "rm",
             "script_language_list": [1],
-            "description": "drangerous!!!",
-            "order": 1,
+            "description": "drangerous!!!"
             "action": 2,
             "status": 0,
             "creator": "admin",
@@ -72,7 +71,6 @@ Get dangerous rule list
 | expression           | string | expression                                                   |
 | script_language_list | array  | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
 | description          | string | Description                                                  |
-| order                | int    | Order: Small comes first                                     |
 | action               | int    | Processing actions: 1- Scan, 2- Intercept                    |
 | status               | int    | Enabling status: 0- disabled, 1- enabled                     |
 | creator              | string | Creator                                                      |

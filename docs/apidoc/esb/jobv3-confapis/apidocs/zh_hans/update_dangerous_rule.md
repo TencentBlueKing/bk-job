@@ -43,7 +43,6 @@
         "expression": "rm",
         "script_language_list": [1],
         "description": "drangerous!!!",
-        "order": 1,
         "action": 2,
         "status": 0,
         "creator": "admin",
@@ -74,7 +73,6 @@
 | expression           | string | 表达式                                                       |
 | script_language_list | array  | 脚本语言列表:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
 | description          | string | 规则描述                                                     |
-| order                | int    | 顺序：小的在前                                               |
 | action               | int    | 处理动作: 1 - 扫描, 2 - 拦截                                 |
 | status               | int    | 启用状态: 0 - 停用, 1 - 启用                                 |
 | creator              | string | 创建人                                                       |

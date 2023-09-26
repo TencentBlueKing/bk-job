@@ -1,6 +1,6 @@
 ### 功能描述
 
-脚本检测。
+高危脚本检测。
 
 ### 请求参数
 
@@ -21,7 +21,7 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "script_language": [1],
+    "script_language": 1,
     "content": "cm0gLXJmIC8="
 }
 ```
@@ -38,17 +38,13 @@
             "lineContent": "rm /tmp",
             "matchContent": "rm /tmp",
             "level": 1,
-            "action": null,
-            "code": "103701001",
-            "description": "脚本首行没有定义合法的脚本类型，例如： #!/bin/bash"
+            "description": "The first line of the script does not define a valid script type, for example: #!/bin/bash"
         },
         {
             "line": 1,
             "line_content": "rm /tmp",
             "matchContent": "rm",
             "level": 3,
-            "action": 2,
-            "code": null,
             "description": "dangerous！！！"
         }
      ]
@@ -75,6 +71,4 @@
 | line_content  | string | 脚本所在行的内容                       |
 | match_content | string | 匹配的内容                             |
 | level         | int    | 错误级别：1 - 警告，2 - 错误，3 - 致命 |
-| action        | int    | 处理动作：1 - 扫描，2 - 拦截           |
 | description   | string | 检查项描述                             |
-| code          | string | 错误代码                               |
