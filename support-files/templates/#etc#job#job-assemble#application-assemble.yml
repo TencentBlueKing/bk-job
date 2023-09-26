@@ -400,7 +400,16 @@ job:
           # 通知频率：默认 5 - 每5次通知， 1 - 每次通知
           frequency: 5
           # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
-          total: -1   
+          total: -1
+  file-gateway:
+    # 任务重调度相关配置
+    reDispatch:
+      # 超时任务
+      timeoutTask:
+        # 是否开启重调度
+        enabled: true
+        # 超时时间（秒）
+        timeoutSeconds: 10
 bk:
   {% if job_edition == "ce" -%}
   doc:

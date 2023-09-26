@@ -25,8 +25,8 @@
 package com.tencent.bk.job.file.worker.api;
 
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.file.worker.cos.service.OpService;
 import com.tencent.bk.job.file.worker.model.req.WorkerOffLineReq;
+import com.tencent.bk.job.file.worker.service.OpService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;

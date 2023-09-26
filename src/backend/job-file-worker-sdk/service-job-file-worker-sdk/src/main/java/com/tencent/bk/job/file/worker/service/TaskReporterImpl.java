@@ -22,13 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file.worker.service;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
-import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.UpdateFileSourceTaskReq;
 import lombok.extern.slf4j.Slf4j;
@@ -41,12 +39,14 @@ import java.util.List;
 @Service
 public class TaskReporterImpl implements TaskReporter {
 
-    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final GatewayInfoService gatewayInfoService;
+    private final JobHttpClient jobHttpClient;
 
     @Autowired
-    public TaskReporterImpl(GatewayInfoService gatewayInfoService) {
+    public TaskReporterImpl(GatewayInfoService gatewayInfoService,
+                            JobHttpClient jobHttpClient) {
         this.gatewayInfoService = gatewayInfoService;
+        this.jobHttpClient = jobHttpClient;
     }
 
     public void reportFileDownloadStart(String taskId, String filePath, String downloadPath) {
@@ -61,8 +61,12 @@ public class TaskReporterImpl implements TaskReporter {
         reportTaskStatus(req);
     }
 
-    public void reportFileDownloadProgress(String taskId, String filePath, String downloadPath, Long fileSize,
-                                           Integer speed, Integer progress) {
+    public void reportFileDownloadProgress(String taskId,
+                                           String filePath,
+                                           String downloadPath,
+                                           Long fileSize,
+                                           Integer speed,
+                                           Integer progress) {
         UpdateFileSourceTaskReq req = new UpdateFileSourceTaskReq();
         req.setFileSourceTaskId(taskId);
         req.setFilePath(filePath);
@@ -75,8 +79,13 @@ public class TaskReporterImpl implements TaskReporter {
         reportTaskStatus(req);
     }
 
-    public void reportFileDownloadProgressWithContent(String taskId, String filePath, String downloadPath, Long fileSize,
-                                                      Integer speed, Integer progress, String content) {
+    public void reportFileDownloadProgressWithContent(String taskId,
+                                                      String filePath,
+                                                      String downloadPath,
+                                                      Long fileSize,
+                                                      Integer speed,
+                                                      Integer progress,
+                                                      String content) {
         UpdateFileSourceTaskReq req = new UpdateFileSourceTaskReq();
         req.setFileSourceTaskId(taskId);
         req.setFilePath(filePath);
@@ -89,8 +98,12 @@ public class TaskReporterImpl implements TaskReporter {
         reportTaskStatus(req);
     }
 
-    public void reportFileDownloadSuccess(String taskId, String filePath, String downloadPath, Long fileSize,
-                                          Integer speed, Integer progress) {
+    public void reportFileDownloadSuccess(String taskId,
+                                          String filePath,
+                                          String downloadPath,
+                                          Long fileSize,
+                                          Integer speed,
+                                          Integer progress) {
         UpdateFileSourceTaskReq req = new UpdateFileSourceTaskReq();
         req.setFileSourceTaskId(taskId);
         req.setFilePath(filePath);
@@ -108,7 +121,10 @@ public class TaskReporterImpl implements TaskReporter {
     }
 
     @Override
-    public void reportFileDownloadStopped(String taskId, String filePath, String downloadPath, Long fileSize,
+    public void reportFileDownloadStopped(String taskId,
+                                          String filePath,
+                                          String downloadPath,
+                                          Long fileSize,
                                           Integer progress) {
         UpdateFileSourceTaskReq req = new UpdateFileSourceTaskReq();
         req.setFileSourceTaskId(taskId);
@@ -139,16 +155,12 @@ public class TaskReporterImpl implements TaskReporter {
         // TODO
     }
 
-
     public void reportTaskStatus(UpdateFileSourceTaskReq updateFileSourceTaskReq) {
         String url = gatewayInfoService.getReportTaskStatusUrl();
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, updateFileSourceTaskReq);
-        String respStr = null;
         try {
-            log.info(String.format("url=%s,body=%s,headers=%s", url, req.getBody(),
-                JsonUtils.toJson(req.getHeaders())));
-            respStr = httpHelper.post(url, req.getBody(), req.getHeaders());
-            log.info(String.format("respStr=%s", respStr));
+            log.info("url={},body={}", url, req.getBody());
+            jobHttpClient.post(req);
         } catch (Exception e) {
             log.error("Fail to request file-gateway:", e);
         }

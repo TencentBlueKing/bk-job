@@ -54,7 +54,7 @@ public class BatchTaskStatusUpdater implements FileSourceTaskStatusChangeListene
     public boolean onStatusChange(TaskContext context, TaskStatusEnum previousStatus, TaskStatusEnum currentStatus) {
         FileSourceTaskDTO fileSourceTaskDTO = context.getFileSourceTaskDTO();
         String batchTaskId = fileSourceTaskDTO.getBatchTaskId();
-        FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getBatchTaskByIdForUpdate(batchTaskId);
+        FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getBatchTaskById(batchTaskId);
         if (StringUtils.isBlank(batchTaskId)) {
             return false;
         }
@@ -65,8 +65,8 @@ public class BatchTaskStatusUpdater implements FileSourceTaskStatusChangeListene
         }
         if (TaskStatusEnum.SUCCESS.equals(currentStatus)) {
             //检查批量任务是否成功
-            if (fileSourceTaskDAO.countFileSourceTasksByBatchTaskIdForUpdate(batchTaskId, null)
-                .equals(fileSourceTaskDAO.countFileSourceTasksByBatchTaskIdForUpdate(
+            if (fileSourceTaskDAO.countFileSourceTasksByBatchTaskId(batchTaskId, null)
+                .equals(fileSourceTaskDAO.countFileSourceTasksByBatchTaskId(
                     batchTaskId, TaskStatusEnum.SUCCESS.getStatus()))) {
                 // 批量任务成功
                 fileSourceBatchTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());

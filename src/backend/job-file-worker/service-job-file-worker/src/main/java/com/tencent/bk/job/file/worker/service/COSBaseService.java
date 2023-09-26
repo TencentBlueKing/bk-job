@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file.worker.service;
 
 import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;

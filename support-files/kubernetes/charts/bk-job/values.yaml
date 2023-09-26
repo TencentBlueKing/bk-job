@@ -1179,8 +1179,16 @@ fileGatewayConfig:
     white: "k8s"
     # 不能调度的worker标签黑名单，逗号分隔
     black: ""
+  # 任务重调度相关配置
+  reDispatch:
+    # 超时任务
+    timeoutTask:
+      # 是否开启重调度
+      enabled: true
+      # 超时时间（秒）
+      timeoutSeconds: 10
 
-## job-file-worker文件源接入点配置
+ ## job-file-worker文件源接入点配置
 fileWorkerConfig:
   # 模块是否启用，默认启用
   enabled: true

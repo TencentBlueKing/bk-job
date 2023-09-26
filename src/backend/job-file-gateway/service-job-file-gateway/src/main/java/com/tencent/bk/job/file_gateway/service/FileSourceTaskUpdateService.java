@@ -22,41 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file_gateway.service;
 
-import com.tencent.bk.job.file.worker.config.WorkerConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.file_gateway.model.dto.FileTaskProgressDTO;
 
-@Slf4j
-@Service
-public class GatewayInfoService {
+public interface FileSourceTaskUpdateService {
 
-    private final WorkerConfig workerConfig;
+    String updateFileSourceTask(String batchTaskId,
+                                String fileSourceTaskId,
+                                Long fileTaskId,
+                                FileTaskProgressDTO fileTaskProgressDTO);
 
-    @Autowired
-    public GatewayInfoService(WorkerConfig workerConfig) {
-        this.workerConfig = workerConfig;
-    }
-
-    private String getJobApiRootUrl() {
-        String jobApiRootUrl = workerConfig.getJobApiRootUrl();
-        while (jobApiRootUrl.endsWith("/")) {
-            jobApiRootUrl = jobApiRootUrl.substring(0, jobApiRootUrl.length() - 1);
-        }
-        return jobApiRootUrl;
-    }
-
-    public String getHeartBeatUrl() {
-        return getJobApiRootUrl() + "/remote/fileWorker/heartBeat";
-    }
-
-    public String getReportTaskStatusUrl() {
-        return getJobApiRootUrl() + "/remote/fileWorker/task/update";
-    }
-
-    public String getWorkerOffLineUrl() {
-        return getJobApiRootUrl() + "/remote/fileWorker/offLineAndReDispatch";
-    }
 }

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file.worker.service;
 
 import java.util.List;
 
@@ -30,18 +30,34 @@ public interface TaskReporter {
 
     void reportFileDownloadStart(String taskId, String filePath, String downloadPath);
 
-    void reportFileDownloadProgress(String taskId, String filePath, String downloadPath, Long fileSize, Integer speed
-        , Integer progress);
+    void reportFileDownloadProgress(String taskId,
+                                    String filePath,
+                                    String downloadPath,
+                                    Long fileSize,
+                                    Integer speed,
+                                    Integer progress);
 
-    void reportFileDownloadProgressWithContent(String taskId, String filePath, String downloadPath, Long fileSize, Integer speed
-        , Integer progress, String content);
+    void reportFileDownloadProgressWithContent(String taskId,
+                                               String filePath,
+                                               String downloadPath,
+                                               Long fileSize,
+                                               Integer speed,
+                                               Integer progress,
+                                               String content);
 
-    void reportFileDownloadSuccess(String taskId, String filePath, String downloadPath, Long fileSize, Integer speed,
+    void reportFileDownloadSuccess(String taskId,
+                                   String filePath,
+                                   String downloadPath,
+                                   Long fileSize,
+                                   Integer speed,
                                    Integer progress);
 
     void reportFileDownloadFailure(String taskId, String filePath, String downloadPath);
 
-    void reportFileDownloadStopped(String taskId, String filePath, String downloadPath, Long fileSize,
+    void reportFileDownloadStopped(String taskId,
+                                   String filePath,
+                                   String downloadPath,
+                                   Long fileSize,
                                    Integer progress);
 
     void reportFileDownloadFailure(String taskId, String filePath, String downloadPath, String content);
