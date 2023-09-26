@@ -84,19 +84,7 @@ public interface WebPermissionResource {
         @ApiParam(value = "资源范围ID", required = true)
         @RequestParam(value = "scopeId")
             String scopeId,
-        @ApiParam("操作ID,取值为: [script/create,script/view," +
-            "script/edit,script/delete,script/execute," +
-            "script/clone],[job_template/create,job_template/view," +
-            "job_template/edit,job_template/delete," +
-            "job_template/clone,job_template/debug]," +
-            "[job_plan/create,job_plan/view,job_plan/edit," +
-            "job_plan/delete,job_plan/execute,job_plan/sync]," +
-            "[account/create,account/view,account/edit," +
-            "account/delete],[public_script/create," +
-            "public_script/view,public_script/edit," +
-            "public_script/delete,public_script/execute]," +
-            "[whitelist/create,whitelist/view,whitelist/edit," +
-            "whitelist/delete],[tag/create,tag/edit,tag/delete]")
+        @ApiParam("操作ID,取值为: [task_instance/view,task_instance/redo]")
         @RequestParam(value = "operation")
             String operation,
         @ApiParam(value = "资源ID,比如作业ID,定时任务ID;对于部分不需要资源ID的操作(新建),不需要传参")
