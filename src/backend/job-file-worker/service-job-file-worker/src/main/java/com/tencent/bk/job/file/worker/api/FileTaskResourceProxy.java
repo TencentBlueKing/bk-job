@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.file.worker.api;
 
-import com.tencent.bk.job.file.worker.cos.service.FileTaskService;
-import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
+import com.tencent.bk.job.file.worker.service.FileTaskService;
+import com.tencent.bk.job.file.worker.service.RemoteClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;

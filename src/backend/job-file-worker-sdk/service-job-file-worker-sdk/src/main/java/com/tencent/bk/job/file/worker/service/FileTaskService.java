@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file.worker.service;
 
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
@@ -81,14 +81,38 @@ public class FileTaskService {
             AtomicLong fileSize = new AtomicLong(0L);
             AtomicInteger speed = new AtomicInteger(0);
             AtomicInteger process = new AtomicInteger(0);
-            FileProgressWatchingTask progressWatchingTask = new FileProgressWatchingTask(taskId, filePath,
-                workerConfig.getWorkspaceDirPath(), fileSize, speed, process, taskReporter, watchingTaskMap::remove);
-            DownloadFileTask downloadFileTask = new DownloadFileTask(client, taskId, filePath,
-                workerConfig.getWorkspaceDirPath(), filePrefix, fileSize, speed, process, progressWatchingTask,
-                taskReporter, tmpfileTaskKey -> {
-                fileTaskMap.remove(tmpfileTaskKey);
-                ThreadCommandBus.destroyCommandQueue(tmpfileTaskKey);
-            });
+            FileProgressWatchingTask progressWatchingTask = FileProgressWatchingTask.builder()
+                .taskId(taskId)
+                .filePath(filePath)
+                .downloadFileDir(workerConfig.getWorkspaceDirPath())
+                .fileSize(fileSize)
+                .speed(speed)
+                .process(process)
+                .taskReporter(taskReporter)
+                .watchingTaskEventListener(pFileTaskKey -> {
+                    Future<?> future = watchingTaskMap.get(pFileTaskKey);
+                    if (future != null) {
+                        future.cancel(true);
+                        watchingTaskMap.remove(pFileTaskKey);
+                    }
+                })
+                .build();
+            DownloadFileTask downloadFileTask = DownloadFileTask.builder()
+                .remoteClient(client)
+                .taskId(taskId)
+                .filePath(filePath)
+                .downloadFileDir(workerConfig.getWorkspaceDirPath())
+                .filePrefix(filePrefix)
+                .fileSize(fileSize)
+                .speed(speed)
+                .process(process)
+                .watchingTask(progressWatchingTask)
+                .taskReporter(taskReporter)
+                .taskEventListener(tmpFileTaskKey -> {
+                    fileTaskMap.remove(tmpFileTaskKey);
+                    ThreadCommandBus.destroyCommandQueue(tmpFileTaskKey);
+                })
+                .build();
             Future<?> fileTaskFuture = fileTaskExecutor.submit(downloadFileTask);
             Future<?> watchingTaskFuture = watchingTaskExecutor.submit(progressWatchingTask);
             fileTaskMap.put(fileTaskKey, fileTaskFuture);

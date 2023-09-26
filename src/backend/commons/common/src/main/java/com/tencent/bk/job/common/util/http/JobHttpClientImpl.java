@@ -85,7 +85,7 @@ public class JobHttpClientImpl implements JobHttpClient {
     }
 
     private void logAndThrow(ResponseEntity<String> respEntity) {
-        log.error("Fail to request fileWorker, status={}, msg={}", respEntity.getStatusCode(), respEntity.getBody());
+        log.error("Fail to request, status={}, msg={}", respEntity.getStatusCode(), respEntity.getBody());
         throw new ServiceException(
             ErrorType.INTERNAL,
             ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON,

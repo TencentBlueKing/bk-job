@@ -135,10 +135,9 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
     }
 
     @Override
-    public FileTaskDTO getOneFileTaskForUpdate(String fileSourceTaskId, String filePath) {
+    public FileTaskDTO getFileTaskByIdForUpdate(Long id) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
-        conditions.add(defaultTable.FILE_PATH.eq(filePath));
+        conditions.add(defaultTable.ID.eq(id));
         val record = dslContext.selectFrom(defaultTable).where(
             conditions
         ).forUpdate().fetchOne();
@@ -149,12 +148,27 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         }
     }
 
-    public Long countFileTasksByConditionsForUpdate(Collection<Condition> conditions) {
+    @Override
+    public FileTaskDTO getOneFileTask(String fileSourceTaskId, String filePath) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
+        conditions.add(defaultTable.FILE_PATH.eq(filePath));
+        val record = dslContext.selectFrom(defaultTable).where(
+            conditions
+        ).fetchOne();
+        if (record == null) {
+            return null;
+        } else {
+            return convertRecordToDto(record);
+        }
+    }
+
+    public Long countFileTasksByConditions(Collection<Condition> conditions) {
         val query = dslContext.select(
             DSL.countDistinct(defaultTable.ID)
         ).from(defaultTable)
             .where(conditions);
-        return query.forUpdate().fetchOne(0, Long.class);
+        return query.fetchOne(0, Long.class);
     }
 
     @Override
@@ -196,7 +210,7 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
     }
 
     @Override
-    public Long countFileTaskForUpdate(String fileSourceTaskId, Byte status) {
+    public Long countFileTask(String fileSourceTaskId, Byte status) {
         List<Condition> conditions = new ArrayList<>();
         if (fileSourceTaskId != null) {
             conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
@@ -204,7 +218,7 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
         if (status != null) {
             conditions.add(defaultTable.STATUS.eq(status));
         }
-        return countFileTasksByConditionsForUpdate(conditions);
+        return countFileTasksByConditions(conditions);
     }
 
     private FileTaskDTO convertRecordToDto(FileTaskRecord record) {

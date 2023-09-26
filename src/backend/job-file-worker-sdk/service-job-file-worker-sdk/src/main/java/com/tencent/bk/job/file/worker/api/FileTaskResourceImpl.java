@@ -26,13 +26,13 @@ package com.tencent.bk.job.file.worker.api;
 
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.file.worker.cos.service.FileTaskService;
-import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
-import com.tencent.bk.job.file.worker.cos.service.ThreadCommandBus;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ClearTaskFilesReq;
 import com.tencent.bk.job.file.worker.model.req.DownloadFilesTaskReq;
 import com.tencent.bk.job.file.worker.model.req.StopTasksReq;
+import com.tencent.bk.job.file.worker.service.FileTaskService;
+import com.tencent.bk.job.file.worker.service.RemoteClient;
+import com.tencent.bk.job.file.worker.service.ThreadCommandBus;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,8 +71,7 @@ public abstract class FileTaskResourceImpl implements RemoteClientAccess, FileTa
     @Override
     public Response<Integer> clearFiles(ClearTaskFilesReq req) {
         List<String> taskIdList = req.getTaskIdList();
-        Integer count = 0;
-        count = fileTaskService.clearTaskFilesAtOnce(taskIdList);
+        Integer count = fileTaskService.clearTaskFilesAtOnce(taskIdList);
         return Response.buildSuccessResp(count);
     }
 }

@@ -38,7 +38,9 @@ public interface FileTaskDAO {
 
     int deleteFileTaskByFileSourceTaskId(String fileSourceTaskId);
 
-    FileTaskDTO getOneFileTaskForUpdate(String fileSourceTaskId, String filePath);
+    FileTaskDTO getFileTaskByIdForUpdate(Long id);
+
+    FileTaskDTO getOneFileTask(String fileSourceTaskId, String filePath);
 
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId, Integer start, Integer pageSize);
 
@@ -47,5 +49,5 @@ public interface FileTaskDAO {
 
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId);
 
-    Long countFileTaskForUpdate(String fileSourceTaskId, Byte status);
+    Long countFileTask(String fileSourceTaskId, Byte status);
 }

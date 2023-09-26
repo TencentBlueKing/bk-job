@@ -26,6 +26,21 @@ fileDistribute:
 
 3.临时文件存储根路径`persistence.localStorage.path`默认值修改为`/data/job_temp_file`
 
+4.新增job-file-gateway文件网关任务重调度相关配置
+```yaml
+## job-file-gateway文件网关服务配置
+fileGatewayConfig:
+  # 任务重调度相关配置
+  reDispatch:
+    # 超时任务
+    timeoutTask:
+      # 是否开启重调度
+      enabled: true
+      # 超时时间（秒）
+      timeoutSeconds: 10
+
+```
+
 ## 0.5.1
 1.增加轻量化部署配置
 

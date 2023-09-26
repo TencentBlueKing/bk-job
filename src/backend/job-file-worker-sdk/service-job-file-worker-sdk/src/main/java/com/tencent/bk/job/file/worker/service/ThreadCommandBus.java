@@ -22,38 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.file.worker.service;
 
-import com.tencent.bk.job.file.worker.service.OpService;
+import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Slf4j
-@Component
-public class GracefulShutdown implements ApplicationListener<ContextClosedEvent> {
+public class ThreadCommandBus {
 
-    private final OpService opService;
+    private static final ConcurrentHashMap<String, LinkedBlockingQueue<Command>> map = new ConcurrentHashMap<>();
 
-    @Value("${app.shutdownTimeout:30}")
-    int shutdownTimeout = 30;
-
-    @Autowired
-    public GracefulShutdown(OpService opService) {
-        this.opService = opService;
+    public static void destroyCommandQueue(String key) {
+        map.remove(key);
     }
 
-    @Override
-    public void onApplicationEvent(ContextClosedEvent event) {
-        log.info("Close event listened, event:{}", event);
-        List<String> runningTaskIdList = opService.offLine();
-        log.info("worker apply to offLine, {} tasks to be reDispatched are {}", runningTaskIdList.size(),
-            runningTaskIdList);
+    public static Queue<Command> getCommandQueue(String key) {
+        return map.computeIfAbsent(key, s -> new LinkedBlockingQueue<>());
     }
 
+    public static void sendCommand(String key, Command command) {
+        Queue<Command> queue = getCommandQueue(key);
+        if (queue.size() > 100) {
+            throw new RuntimeException("Too many commands for " + key);
+        } else {
+            log.debug("add {} to queue {}", command, key);
+            queue.add(command);
+            log.debug("queue.size={}", queue.size());
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Command {
+        // 指令
+        TaskCommandEnum cmd;
+        // 数据
+        Object data;
+    }
 }

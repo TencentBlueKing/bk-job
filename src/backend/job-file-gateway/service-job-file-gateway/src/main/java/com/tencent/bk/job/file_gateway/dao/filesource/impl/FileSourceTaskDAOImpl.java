@@ -190,7 +190,7 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
     }
 
     @Override
-    public Long countFileSourceTasksByBatchTaskIdForUpdate(String batchTaskId, Byte status) {
+    public Long countFileSourceTasksByBatchTaskId(String batchTaskId, Byte status) {
         List<Condition> conditions = new ArrayList<>();
         if (batchTaskId != null) {
             conditions.add(defaultTable.BATCH_TASK_ID.eq(batchTaskId));
@@ -198,15 +198,15 @@ public class FileSourceTaskDAOImpl extends BaseDAOImpl implements FileSourceTask
         if (status != null) {
             conditions.add(defaultTable.STATUS.eq(status));
         }
-        return countFileSourceTasksByConditionsForUpdate(conditions);
+        return countFileSourceTasksByConditions(conditions);
     }
 
-    public Long countFileSourceTasksByConditionsForUpdate(Collection<Condition> conditions) {
+    public Long countFileSourceTasksByConditions(Collection<Condition> conditions) {
         val query = dslContext.select(
             DSL.countDistinct(defaultTable.ID)
         ).from(defaultTable)
             .where(conditions);
-        return query.forUpdate().fetchOne(0, Long.class);
+        return query.fetchOne(0, Long.class);
     }
 
     public List<FileSourceTaskDTO> listByConditions(Collection<Condition> conditions,
