@@ -22,23 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr;
+package com.tencent.bk.job.common.util.feature;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.FeatureToggleConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+/**
+ * 特性开关配置存储
+ */
+public interface FeatureStore {
+    /**
+     * 返回特性开关配置
+     *
+     * @param featureId 特性 ID
+     */
+    Feature getFeature(String featureId);
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.logsvr",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients
-@EnableConfigurationProperties({FeatureToggleConfig.class})
-public class JobLogBootApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(JobLogBootApplication.class, args);
-    }
+    /**
+     * 加载配置
+     *
+     * @param ignoreException 是否忽略加载配置异常；true - 忽略异常；false: 抛出异常
+     */
+    void load(boolean ignoreException);
+
 }

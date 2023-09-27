@@ -22,23 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr;
+package com.tencent.bk.job.common.service.feature.strategy;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.FeatureToggleConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.ToggleStrategy;
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.logsvr",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients
-@EnableConfigurationProperties({FeatureToggleConfig.class})
-public class JobLogBootApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(JobLogBootApplication.class, args);
+import java.util.List;
+import java.util.Map;
+
+public class AnyMatchToggleStrategy extends AbstractToggleStrategy {
+
+    /**
+     * 特性开关开启策略ID
+     */
+    public static final String STRATEGY_ID = "AnyMatchToggleStrategy";
+
+    public AnyMatchToggleStrategy(String description,
+                                  List<ToggleStrategy> strategies,
+                                  Map<String, String> initParams) {
+        super(STRATEGY_ID, description, strategies, initParams);
+        assertRequiredAtLeastOneStrategy();
+    }
+
+    @Override
+    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
+        assertRequiredAtLeastOneStrategy();
+        for (ToggleStrategy strategy : getCompositeToggleStrategies()) {
+            boolean isMatch = strategy.evaluate(featureId, ctx);
+            if (isMatch) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public List<ToggleStrategy> getCompositeToggleStrategies() {
+        return this.compositeStrategies;
     }
 }

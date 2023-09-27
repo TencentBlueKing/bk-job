@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.feature.FeatureToggleConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;

@@ -22,23 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr;
+package com.tencent.bk.job.common.service.feature;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.FeatureToggleConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.logsvr",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients
-@EnableConfigurationProperties({FeatureToggleConfig.class})
-public class JobLogBootApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(JobLogBootApplication.class, args);
+import javax.annotation.PostConstruct;
+import java.util.Map;
+
+/**
+ * 特性开关配置
+ * <p>
+ * ignoreInvalidFields: true, 避免因为错误的配置导致微服务不可用（RefreshScopeHealthIndicator会对ConfigurationProperties
+ * 进行健康检查，如果配置有问题，会把微服务的状态设置为health=DOWN)
+ */
+@ConfigurationProperties(prefix = "job", ignoreInvalidFields = true)
+@ToString
+@Getter
+@Setter
+@Slf4j
+public class FeatureToggleConfig {
+
+    /**
+     * 特性
+     */
+    private Map<String, FeatureConfig> features;
+
+    @PostConstruct
+    public void print() {
+        log.info("FeatureToggleConfig init: {}", JsonUtils.toJson(this));
     }
 }

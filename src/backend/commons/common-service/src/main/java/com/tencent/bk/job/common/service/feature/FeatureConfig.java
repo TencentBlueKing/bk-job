@@ -22,11 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature.strategy;
+package com.tencent.bk.job.common.service.feature;
 
-import com.tencent.bk.job.common.service.config.ToggleStrategyConfig;
+import lombok.Data;
 
-@FunctionalInterface
-public interface ToggleStrategyInitial {
-    ToggleStrategy build(ToggleStrategyConfig toggleStrategyConfig);
+/**
+ * 特性配置
+ */
+@Data
+public class FeatureConfig {
+    /**
+     * 是否启用特性
+     */
+    private boolean enabled;
+    /**
+     * 特性启用策略；必须enabled=true,策略才会生效
+     */
+    private ToggleStrategyConfig strategy;
 }

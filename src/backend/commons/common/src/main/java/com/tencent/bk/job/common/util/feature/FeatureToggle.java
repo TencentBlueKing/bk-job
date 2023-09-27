@@ -24,143 +24,14 @@
 
 package com.tencent.bk.job.common.util.feature;
 
-import com.tencent.bk.job.common.service.config.FeatureConfig;
-import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.common.util.feature.strategy.AllMatchToggleStrategy;
-import com.tencent.bk.job.common.util.feature.strategy.AnyMatchToggleStrategy;
-import com.tencent.bk.job.common.util.feature.strategy.FeatureConfigParseException;
-import com.tencent.bk.job.common.util.feature.strategy.JobInstanceAttrToggleStrategy;
-import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeBlackListToggleStrategy;
-import com.tencent.bk.job.common.util.feature.strategy.ResourceScopeWhiteListToggleStrategy;
-import com.tencent.bk.job.common.util.feature.strategy.ToggleStrategy;
-import com.tencent.bk.job.common.util.feature.strategy.WeightToggleStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.helpers.MessageFormatter;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 特性开关
  */
 @Slf4j
 public class FeatureToggle {
-
-    /**
-     * key: featureId; value: Feature
-     */
-    private static volatile Map<String, Feature> features = new HashMap<>();
-    private static volatile boolean isInitial = false;
-
-    public static void reload() {
-        synchronized (FeatureToggle.class) {
-            load();
-            isInitial = true;
-        }
-    }
-
-    public static void load() {
-        log.info("Load feature toggle start ...");
-        FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
-
-        if (featureToggleConfig.getFeatures() == null || featureToggleConfig.getFeatures().isEmpty()) {
-            log.info("Feature toggle config empty!");
-            return;
-        }
-
-        Map<String, Feature> tmpFeatures = new HashMap<>();
-        featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
-            try {
-                Feature feature = parseFeatureConfig(featureId, featureConfig);
-                tmpFeatures.put(featureId, feature);
-            } catch (Throwable e) {
-                String msg = MessageFormatter.format(
-                    "Load feature toggle config fail, skip update feature toggle config! featureId: {}, " +
-                        "featureConfig: {}", featureId, featureConfig).getMessage();
-                log.error(msg, e);
-                if (features.get(featureId) != null) {
-                    // 如果加载失败，那么使用原有的特性配置
-                    tmpFeatures.put(featureId, features.get(featureId));
-                }
-            }
-        });
-
-        // 使用新的配置完全替换老的配置
-        features = tmpFeatures;
-        log.info("Load feature toggle config done! features: {}", features);
-    }
-
-    private static Feature parseFeatureConfig(String featureId,
-                                              FeatureConfig featureConfig) throws FeatureConfigParseException {
-        if (StringUtils.isBlank(featureId)) {
-            log.error("FeatureId is blank");
-            throw new FeatureConfigParseException("FeatureId is blank");
-        }
-        Feature feature = new Feature();
-        feature.setId(featureId);
-        feature.setEnabled(featureConfig.isEnabled());
-
-        if (featureConfig.isEnabled()) {
-            ToggleStrategyConfig strategyConfig = featureConfig.getStrategy();
-            if (strategyConfig != null) {
-                ToggleStrategy toggleStrategy = parseToggleStrategy(strategyConfig);
-                if (toggleStrategy != null) {
-                    feature.setStrategy(toggleStrategy);
-                }
-            }
-        }
-        return feature;
-    }
-
-    private static ToggleStrategy parseToggleStrategy(ToggleStrategyConfig strategyConfig) {
-        String strategyId = strategyConfig.getId();
-        ToggleStrategy toggleStrategy;
-        switch (strategyId) {
-            case ResourceScopeWhiteListToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new ResourceScopeWhiteListToggleStrategy(strategyConfig.getDescription(),
-                    strategyConfig.getParams());
-                break;
-            case ResourceScopeBlackListToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new ResourceScopeBlackListToggleStrategy(strategyConfig.getDescription(),
-                    strategyConfig.getParams());
-                break;
-            case WeightToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new WeightToggleStrategy(strategyConfig.getDescription(),
-                    strategyConfig.getParams());
-                break;
-            case JobInstanceAttrToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new JobInstanceAttrToggleStrategy(strategyConfig.getDescription(),
-                    strategyConfig.getParams());
-                break;
-            case AllMatchToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new AllMatchToggleStrategy(
-                    strategyId,
-                    strategyConfig.getStrategies()
-                        .stream()
-                        .map(FeatureToggle::parseToggleStrategy)
-                        .collect(Collectors.toList()),
-                    strategyConfig.getParams());
-                break;
-            case AnyMatchToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new AnyMatchToggleStrategy(
-                    strategyId,
-                    strategyConfig.getStrategies()
-                        .stream()
-                        .map(FeatureToggle::parseToggleStrategy)
-                        .collect(Collectors.toList()),
-                    strategyConfig.getParams());
-                break;
-            default:
-                log.error("Unsupported toggle strategy: {} , ignore it!", strategyId);
-                throw new FeatureConfigParseException("Unsupported toggle strategy " + strategyId);
-        }
-        return toggleStrategy;
-    }
-
 
     /**
      * 判断特性是否开启
@@ -170,31 +41,37 @@ public class FeatureToggle {
      * @return 是否开启
      */
     public static boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
-        if (!isInitial) {
-            synchronized (FeatureConfig.class) {
-                if (!isInitial) {
-                    load();
-                    isInitial = true;
-                }
+        FeatureStore featureStore = ApplicationContextRegister.getBean(FeatureStore.class);
+        if (featureStore == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Feature store is null, featureId: {}", featureId);
+                return false;
             }
         }
 
-        Feature feature = features.get(featureId);
+        Feature feature = featureStore.getFeature(featureId);
         if (log.isDebugEnabled()) {
             log.debug("Check feature, featureId: {}, config: {}", featureId, feature);
         }
         if (feature == null) {
-            log.debug("Feature: {} is not exist!", featureId);
+            if (log.isDebugEnabled()) {
+                log.debug("Feature: {} is not exist!", featureId);
+
+            }
             return false;
         }
         if (!feature.isEnabled()) {
-            log.debug("Feature: {} is disabled!", featureId);
+            if (log.isDebugEnabled()) {
+                log.debug("Feature: {} is disabled!", featureId);
+            }
             return false;
         }
 
         ToggleStrategy strategy = feature.getStrategy();
         if (strategy == null) {
-            log.debug("Feature:{} strategy is empty!", featureId);
+            if (log.isDebugEnabled()) {
+                log.debug("Feature:{} strategy is empty!", featureId);
+            }
             // 如果没有配置特性开启策略，且enabled=true，判定为特性开启
             return true;
         }

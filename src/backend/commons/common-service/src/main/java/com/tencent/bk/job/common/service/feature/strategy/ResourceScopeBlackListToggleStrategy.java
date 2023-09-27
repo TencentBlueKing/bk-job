@@ -22,23 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr;
+package com.tencent.bk.job.common.service.feature.strategy;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.FeatureToggleConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.logsvr",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients
-@EnableConfigurationProperties({FeatureToggleConfig.class})
-public class JobLogBootApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(JobLogBootApplication.class, args);
+import java.util.Map;
+import java.util.StringJoiner;
+
+/**
+ * 根据资源范围黑名单灰度策略
+ */
+public class ResourceScopeBlackListToggleStrategy extends AbstractResourceScopeToggleStrategy {
+    /**
+     * 特性开关开启策略ID
+     */
+    public static final String STRATEGY_ID = "ResourceScopeBlackListToggleStrategy";
+
+    public ResourceScopeBlackListToggleStrategy(String description, Map<String, String> initParams) {
+        super(STRATEGY_ID, description, initParams);
+    }
+
+    @Override
+    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
+        ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
+        return !this.resourceScopes.contains(scope);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScopeBlackListToggleStrategy.class.getSimpleName() + "[", "]")
+            .add("id='" + id + "'")
+            .add("initParams=" + initParams)
+            .add("resourceScopes=" + resourceScopes)
+            .toString();
     }
 }
