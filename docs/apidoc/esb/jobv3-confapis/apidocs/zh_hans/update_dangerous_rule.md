@@ -10,7 +10,7 @@
 
 | 字段                 | 类型   | 必选 | 描述                                                         |
 | -------------------- | ------ | ---- | ------------------------------------------------------------ |
-| id                   | int    | 是   | 高危语句规则ID                                               |
+| id                   | long   | 是   | 高危语句规则ID                                               |
 | expression           | string | 是   | 表达式                                                       |
 | script_language_list | array  | 是   | 脚本语言列表:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
 | description          | string | 是   | 规则描述                                                     |

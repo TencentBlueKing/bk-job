@@ -22,31 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
-import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbJobReq;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
-public interface DangerousRuleService {
+/**
+ * 查询高危语句规则请求
+ */
+@Data
+@ApiModel("查询高危语句规则请求")
+@EqualsAndHashCode(callSuper = true)
+public class EsbGetDangerousRuleV3Req extends EsbJobReq {
+    /**
+     * 表达式
+     */
+    private String expression;
 
-    List<DangerousRuleVO> listDangerousRules(String username);
+    /**
+     * 脚本类型
+     */
+    @JsonProperty("script_language_list")
+    private List<Byte> scriptTypeList;
 
-    DangerousRuleDTO getDangerousRuleById(Long id);
+    /**
+     * 规则描述
+     */
+    private String description;
 
-    DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
-
-    DangerousRuleDTO updateDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
-
-    Integer moveDangerousRule(String username, MoveDangerousRuleReq req);
-
-    Integer deleteDangerousRuleById(String username, Long id);
-
-    List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query);
-
-    DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, Integer status);
+    /**
+     * 处理动作
+     */
+    private Integer action;
 }

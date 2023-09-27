@@ -209,4 +209,17 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
             .map(DangerousRuleDTO::toVO)
             .collect(Collectors.toList());
     }
+
+    @Override
+    @ActionAuditRecord(
+        actionId = ActionId.HIGH_RISK_DETECT_RULE,
+        content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
+    )
+    public DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, Integer status) {
+        dangerousRuleDAO.updateDangerousRuleStatus(userName, id, status);
+        DangerousRuleDTO dangerousRuleDTO = getDangerousRuleById(id);
+        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+            DangerousRuleDTO.decodeScriptType(dangerousRuleDTO.getScriptType()));
+        return dangerousRuleDTO;
+    }
 }

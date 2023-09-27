@@ -10,7 +10,7 @@ Disable dangerous rule
 
 | Fields | Type | Required | Description |
 | ------ | ---- | -------- | ----------- |
-| id     | int  | yes      | Rule id     |
+| id     | long | yes      | Rule id     |
 
 
 ### Example of request

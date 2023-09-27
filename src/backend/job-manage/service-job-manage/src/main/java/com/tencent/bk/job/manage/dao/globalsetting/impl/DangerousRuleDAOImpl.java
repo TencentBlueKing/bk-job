@@ -243,6 +243,22 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
         }
     }
 
+    @Override
+    public int updateDangerousRuleStatus(String userName, Long id, Integer status) {
+        val query = dslContext.update(T)
+            .set(T.LAST_MODIFY_USER, userName)
+            .set(T.LAST_MODIFY_TIME, ULong.valueOf(System.currentTimeMillis()))
+            .set(T.STATUS, (byte) status.intValue())
+            .where(T.ID.eq(id));
+        try {
+            return query.execute();
+        } catch (Exception e) {
+            val sql = query.getSQL(ParamType.INLINED);
+            log.error(sql);
+            throw e;
+        }
+    }
+
     private DangerousRuleDTO convertRecordToDto(Record record) {
         return new DangerousRuleDTO(
             record.get(T.ID),

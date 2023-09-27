@@ -49,4 +49,6 @@ public interface DangerousRuleDAO {
     int getMaxPriority();
 
     int getMinPriority();
+
+    int updateDangerousRuleStatus(String userName, Long id, Integer status);
 }

@@ -10,7 +10,7 @@ update dangerous rule
 
 | Fields               | Type   | Required | Description                                                  |
 | -------------------- | ------ | -------- | ------------------------------------------------------------ |
-| id                   | int    | yes      | Rule id                                                      |
+| id                   | long   | yes      | Rule id                                                      |
 | expression           | string | yes      | Expression                                                   |
 | script_language_list | array  | yes      | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
 | description          | string | yes      | Rule description                                             |

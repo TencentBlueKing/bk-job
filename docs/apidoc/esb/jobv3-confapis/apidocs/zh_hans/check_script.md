@@ -10,8 +10,8 @@
 
 | 字段            | 类型   | 必选 | 描述                                                         |
 | --------------- | ------ | ---- | ------------------------------------------------------------ |
-| script_language | int    | 是   | 脚本语言列表:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| content         | string | 是   | 脚本内容，需Base64编码                                                     |
+| script_language | int    | 是   | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| content         | string | 是   | 脚本内容，需Base64编码                                       |
 
 
 ### 请求参数示例

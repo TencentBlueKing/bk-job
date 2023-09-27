@@ -22,31 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
-import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-import java.util.List;
+@Data
+public class EsbCheckScriptV3DTO {
+    /**
+     * 错误所在行数
+     */
+    private Integer line;
 
-public interface DangerousRuleService {
+    /**
+     * 脚本所在行的内容
+     */
+    @JsonProperty("line_content")
+    private String lineContent;
 
-    List<DangerousRuleVO> listDangerousRules(String username);
+    /**
+     * 匹配的内容
+     */
+    @JsonProperty("match_content")
+    private String matchContent;
 
-    DangerousRuleDTO getDangerousRuleById(Long id);
+    /**
+     * 错误级别
+     * @see com.tencent.bk.job.manage.common.consts.script.ScriptCheckErrorLevelEnum
+     */
+    private Integer level;
 
-    DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
-
-    DangerousRuleDTO updateDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
-
-    Integer moveDangerousRule(String username, MoveDangerousRuleReq req);
-
-    Integer deleteDangerousRuleById(String username, Long id);
-
-    List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query);
-
-    DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, Integer status);
+    /**
+     * 检查项描述
+     */
+    private String description;
 }
