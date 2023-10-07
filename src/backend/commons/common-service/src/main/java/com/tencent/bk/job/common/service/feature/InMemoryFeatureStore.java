@@ -40,7 +40,6 @@ import com.tencent.bk.job.common.util.feature.FeatureStore;
 import com.tencent.bk.job.common.util.feature.ToggleStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +49,6 @@ import java.util.stream.Collectors;
  * 特性开关配置存储实现
  */
 @Slf4j
-@Component
 public class InMemoryFeatureStore implements FeatureStore {
 
     /**

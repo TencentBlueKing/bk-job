@@ -25,26 +25,19 @@
 package com.tencent.bk.job.common.service.feature;
 
 import com.tencent.bk.job.common.util.feature.FeatureStore;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 特性开关配置加载 ApplicationRunner
- */
-@Slf4j
-public class FeatureLoadApplicationRunner implements ApplicationRunner {
-    private final FeatureStore featureStore;
+@Configuration(proxyBeanMethods = false)
+public class FeatureToggleAutoConfiguration {
 
-    public FeatureLoadApplicationRunner(FeatureStore featureStore) {
-        this.featureStore = featureStore;
+    @Bean
+    public FeatureStore featureStore() {
+        return new InMemoryFeatureStore();
     }
 
-    @Override
-    public void run(ApplicationArguments args) throws Exception {
-        // 初始化特性开关配置；如果初始化错误，那么抛出异常终止程序启动
-        log.info("FeatureLoadApplicationRunner start");
-        featureStore.load(false);
-        log.info("FeatureLoadApplicationRunner run success");
+    @Bean
+    public FeatureLoadApplicationRunner featureLoadApplicationRunner(FeatureStore featureStore) {
+        return new FeatureLoadApplicationRunner(featureStore);
     }
 }
