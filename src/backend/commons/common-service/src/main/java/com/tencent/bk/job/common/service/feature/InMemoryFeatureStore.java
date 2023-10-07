@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.feature.Feature;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
 import com.tencent.bk.job.common.util.feature.ToggleStrategy;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -95,6 +96,8 @@ public class InMemoryFeatureStore implements FeatureStore {
                 log.info("Feature toggle config empty!");
                 return;
             }
+
+            log.info("Parse feature toggle config: {}", JsonUtils.toJson(featureToggleConfig));
 
             Map<String, Feature> tmpFeatures = new HashMap<>();
             featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
