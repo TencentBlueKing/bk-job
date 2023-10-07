@@ -22,50 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file.worker.service;
 
-import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;
+import com.tencent.bk.job.file.worker.model.FileMetaData;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpRequestBase;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
-@Slf4j
-public class ThreadCommandBus {
+public class COSRemoteClient implements RemoteClient {
 
+    JobTencentInnerCOSClient jobTencentInnerCOSClient;
 
-    private static final ConcurrentHashMap<String, LinkedBlockingQueue<Command>> map = new ConcurrentHashMap<>();
-
-    public static void destroyCommandQueue(String key) {
-        map.remove(key);
+    public COSRemoteClient(JobTencentInnerCOSClient jobTencentInnerCOSClient) {
+        this.jobTencentInnerCOSClient = jobTencentInnerCOSClient;
     }
 
-    public static Queue<Command> getCommandQueue(String key) {
-        return map.computeIfAbsent(key, s -> new LinkedBlockingQueue<>());
+    private List<String> parsePath(String rawPath) {
+        int i = rawPath.indexOf("/");
+        String bucketName = rawPath.substring(0, i);
+        String key = rawPath.substring(i + 1);
+        List<String> list = new ArrayList<>();
+        list.add(bucketName);
+        list.add(key);
+        return list;
     }
 
-    public static void sendCommand(String key, Command command) {
-        Queue<Command> queue = getCommandQueue(key);
-        if (queue.size() > 100) {
-            throw new RuntimeException("Too many commands for " + key);
-        } else {
-            log.debug("add {} to queue {}", command, key);
-            queue.add(command);
-            log.debug("queue.size={}", queue.size());
-        }
+    @Override
+    public FileMetaData getFileMetaData(String filePath) {
+        List<String> pathList = parsePath(filePath);
+        return jobTencentInnerCOSClient.getFileMetaData(pathList.get(0), pathList.get(1));
     }
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class Command {
-        // 指令
-        TaskCommandEnum cmd;
-        // 数据
-        Object data;
+    @Override
+    public Pair<InputStream, HttpRequestBase> getFileInputStream(String filePath) {
+        List<String> pathList = parsePath(filePath);
+        return jobTencentInnerCOSClient.getFileInputStream(pathList.get(0), pathList.get(1));
+    }
+
+    @Override
+    public void shutdown() {
+        jobTencentInnerCOSClient.shutdown();
     }
 }

@@ -268,4 +268,8 @@ public class FileWorkerDTO {
     public String getBasicDesc() {
         return "(id=" + id + ", appId=" + appId + ", name=" + name + ")";
     }
+
+    public String getCloudIp() {
+        return cloudAreaId + ":" + innerIp;
+    }
 }

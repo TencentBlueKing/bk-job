@@ -28,10 +28,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.file.worker.consts.FileSourceTypeEnum;
-import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;
+import com.tencent.bk.job.file.worker.service.RemoteClient;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,10 @@ public class FileResourceProxy implements IFileResource {
         } else if (FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name().equals(req.getFileSourceTypeCode())) {
             return artifactoryFileResource;
         } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"fileSourceTypeCode"});
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                new String[]{"fileSourceTypeCode"}
+            );
         }
     }
 

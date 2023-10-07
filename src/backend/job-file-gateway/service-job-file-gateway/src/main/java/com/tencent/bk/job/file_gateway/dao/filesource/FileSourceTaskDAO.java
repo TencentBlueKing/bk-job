@@ -41,7 +41,7 @@ public interface FileSourceTaskDAO {
 
     FileSourceTaskDTO getFileSourceTaskByIdForUpdate(String id);
 
-    Long countFileSourceTasksByBatchTaskIdForUpdate(String batchTaskId, Byte status);
+    Long countFileSourceTasksByBatchTaskId(String batchTaskId, Byte status);
 
     List<FileSourceTaskDTO> listByBatchTaskId(String batchTaskId);
 }

@@ -40,7 +40,7 @@ Create public script
     "code": 0,
     "result": true,
     "data": {
-        "script_version_id": 1000018,
+        "id": 1000018,
         "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
         "name": "public script test",
         "script_language": 1,
@@ -73,7 +73,7 @@ Create public script
 
 | Fields            | Type   | Description                                                  |
 | ----------------- | ------ | ------------------------------------------------------------ |
-| script_version_id | long   | Script version id                                            |
+| id | long   | Script version id                                            |
 | script_id         | string | Script id                                                    |
 | name              | string | Script name                                                  |
 | script_language   | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |

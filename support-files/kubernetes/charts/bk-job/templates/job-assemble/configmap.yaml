@@ -374,7 +374,13 @@ data:
             start:
               begin: {{ .Values.crontabConfig.notificationPolicy.failed.start.begin | default 1 }}
               frequency: {{ .Values.crontabConfig.notificationPolicy.failed.start.frequency | default 5 }}
-              total: {{ .Values.crontabConfig.notificationPolicy.failed.start.total | default -1 }}     
+              total: {{ .Values.crontabConfig.notificationPolicy.failed.start.total | default -1 }}
+      file-gateway:
+        reDispatch:
+          {{- toYaml .Values.fileGatewayConfig.reDispatch | nindent 10 }}
+        worker-tags:
+          white: {{ .Values.fileGatewayConfig.workerTags.white }}
+          black: {{ .Values.fileGatewayConfig.workerTags.black }}
     bk:
       doc:
         root: {{ .Values.bkDocsCenterUrl }}

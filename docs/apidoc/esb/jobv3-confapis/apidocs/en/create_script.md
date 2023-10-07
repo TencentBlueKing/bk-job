@@ -44,7 +44,7 @@ Create Script
     "code": 0,
     "result": true,
     "data": {
-        "script_version_id": 1000019,
+        "id": 1000019,
         "script_id": "4a350b0e0707450e93326f6ace921072",
         "name": "script test",
         "script_language": 1,
@@ -79,7 +79,7 @@ Create Script
 
 | Fields            | Type   | Description                                                  |
 | ----------------- | ------ | ------------------------------------------------------------ |
-| script_version_id | long   | Script version id                                            |
+| id | long   | Script version id                                            |
 | script_id         | string | Script id                                                    |
 | name              | string | Script name                                                  |
 | script_language   | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |

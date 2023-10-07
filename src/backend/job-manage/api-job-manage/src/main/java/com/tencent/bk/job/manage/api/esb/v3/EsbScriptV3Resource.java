@@ -46,10 +46,8 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbCheckScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -137,42 +135,42 @@ public interface EsbScriptV3Resource {
             EsbCreateScriptVersionV3Req request
     );
 
-    @DeleteMapping("/delete_script")
+    @PostMapping("/delete_script")
     EsbResp deleteScript(
             @RequestBody
             @Validated(Delete.class)
                 EsbDeleteScriptV3Req request
         );
 
-    @DeleteMapping("/delete_script_version")
+    @PostMapping("/delete_script_version")
     EsbResp deleteScriptVersion(
         @RequestBody
         @Validated(Delete.class)
             EsbDeleteScriptVersionV3Req request
     );
 
-    @PutMapping("/disable_script_version")
+    @PostMapping("/disable_script_version")
     EsbResp<EsbScriptVersionDetailV3DTO> disableScriptVersion(
         @RequestBody
         @Validated(Update.class)
             EsbManageScriptVersionV3Req request
     );
 
-    @PutMapping("/publish_script_version")
+    @PostMapping("/publish_script_version")
     EsbResp<EsbScriptVersionDetailV3DTO> publishScriptVersion(
         @RequestBody
         @Validated(Update.class)
             EsbManageScriptVersionV3Req request
     );
 
-    @PutMapping("/update_script_basic")
+    @PostMapping("/update_script_basic")
     EsbResp<EsbScriptVersionDetailV3DTO> updateScriptBasic(
         @RequestBody
         @Validated(Update.class)
             EsbUpdateScriptBasicV3Req request
     );
 
-    @PutMapping("/update_script_version")
+    @PostMapping("/update_script_version")
     EsbResp<EsbScriptVersionDetailV3DTO> updateScriptVersion(
         @RequestBody
         @Validated(Update.class)

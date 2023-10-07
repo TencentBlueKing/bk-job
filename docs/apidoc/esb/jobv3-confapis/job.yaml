@@ -336,22 +336,22 @@
   name: update_public_script_basic
   label: 更新公共脚本基础信息
   label_en: Update public script
-  suggest_method: PUT
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_public_script_basic/
-  dest_http_method: PUT
+  dest_http_method: POST
    
 
 - path: /v2/jobv3/delete_public_script_version/
   name: delete_public_script_version
   label: 删除公共脚本版本
   label_en: Delete public script version
-  suggest_method: DELETE
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/delete_public_script_version/
-  dest_http_method: DELETE
+  dest_http_method: POST
      
 
 - path: /v2/jobv3/create_public_script_version/
@@ -369,44 +369,44 @@
   name: update_public_script_version
   label: 修改公共脚本版本
   label_en: Update public script version
-  suggest_method: PUT
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_public_script_version/
-  dest_http_method: PUT
+  dest_http_method: POST
        
 
 - path: /v2/jobv3/publish_public_script_version/
   name: publish_public_script_version
   label: 发布公共脚本版本
   label_en: Publish public script version
-  suggest_method: PUT
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/publish_public_script_version/
-  dest_http_method: PUT
+  dest_http_method: POST
          
 
 - path: /v2/jobv3/disable_public_script_version/
   name: disable_public_script_version
   label: 禁用公共脚本版本
   label_en: Disable public script version
-  suggest_method: PUT
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/disable_public_script_version/
-  dest_http_method: PUT
+  dest_http_method: POST
        
 
 - path: /v2/jobv3/delete_public_script/
   name: delete_public_script
   label: 删除公共脚本
   label_en: Delete public script
-  suggest_method: DELETE
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/delete_public_script/
-  dest_http_method: DELETE
+  dest_http_method: POST
  
 
 - path: /v2/jobv3/create_script/
@@ -424,22 +424,22 @@
   name: update_script_basic
   label: 更新脚本基础信息
   label_en: Update script basic
-  suggest_method: PUT
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_script_basic/
-  dest_http_method: PUT
+  dest_http_method: POST
    
 
 - path: /v2/jobv3/delete_script_version/
   name: delete_script_version
   label: 删除脚本版本
   label_en: Delete script version
-  suggest_method: DELETE
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/delete_script_version/
-  dest_http_method: DELETE
+  dest_http_method: POST
      
 
 - path: /v2/jobv3/create_script_version/
@@ -457,44 +457,44 @@
   name: update_script_version
   label: 修改脚本版本信息
   label_en: Update script version
-  suggest_method: PUT
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_script_version/
-  dest_http_method: PUT
+  dest_http_method: POST
        
 
 - path: /v2/jobv3/publish_script_version/
   name: publish_script_version
   label: 发布脚本版本
   label_en: Publish script version
-  suggest_method: PUT
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/publish_script_version/
-  dest_http_method: PUT
+  dest_http_method: POST
          
 
 - path: /v2/jobv3/disable_script_version/
   name: disable_script_version
   label: 禁用脚本版本
   label_en: Disable script version
-  suggest_method: PUT
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/disable_script_version/
-  dest_http_method: PUT
+  dest_http_method: POST
        
 
 - path: /v2/jobv3/delete_script/
   name: delete_script
   label: 删除脚本
   label_en: Delete script
-  suggest_method: DELETE
+  suggest_method: POST
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/delete_script/
-  dest_http_method: DELETE
+  dest_http_method: POST
 
 
 - path: /v2/jobv3/create_dangerous_rule/

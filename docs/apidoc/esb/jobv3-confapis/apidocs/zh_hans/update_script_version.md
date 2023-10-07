@@ -41,7 +41,7 @@
     "code": 0,
     "result": true,
     "data": {
-        "script_version_id": 1000019,
+        "id": 1000019,
         "script_id": "4a350b0e0707450e93326f6ace921072",
         "name": "script test",
         "script_language": 1,
@@ -77,7 +77,7 @@
 
 | 字段              | 类型   | 描述                                                         |
 | ----------------- | ------ | ------------------------------------------------------------ |
-| script_version_id | long   | 脚本版本ID                                                   |
+| id | long   | 脚本版本ID                                                   |
 | script_id         | string | 脚本ID                                                       |
 | name              | string | 脚本名称                                                     |
 | script_language   | int    | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |

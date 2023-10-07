@@ -22,49 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file.worker.service;
 
-import com.tencent.bk.job.file.worker.cos.JobTencentInnerCOSClient;
-import com.tencent.bk.job.file.worker.model.FileMetaData;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.client.methods.HttpRequestBase;
+import com.tencent.bk.job.file.worker.config.WorkerConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+@Slf4j
+@Service
+public class GatewayInfoService {
 
-public class COSRemoteClient implements RemoteClient {
+    private final WorkerConfig workerConfig;
 
-    JobTencentInnerCOSClient jobTencentInnerCOSClient;
-
-    public COSRemoteClient(JobTencentInnerCOSClient jobTencentInnerCOSClient) {
-        this.jobTencentInnerCOSClient = jobTencentInnerCOSClient;
+    @Autowired
+    public GatewayInfoService(WorkerConfig workerConfig) {
+        this.workerConfig = workerConfig;
     }
 
-    private List<String> parsePath(String rawPath) {
-        int i = rawPath.indexOf("/");
-        String bucketName = rawPath.substring(0, i);
-        String key = rawPath.substring(i + 1);
-        List<String> list = new ArrayList<>();
-        list.add(bucketName);
-        list.add(key);
-        return list;
+    private String getJobApiRootUrl() {
+        String jobApiRootUrl = workerConfig.getJobApiRootUrl();
+        while (jobApiRootUrl.endsWith("/")) {
+            jobApiRootUrl = jobApiRootUrl.substring(0, jobApiRootUrl.length() - 1);
+        }
+        return jobApiRootUrl;
     }
 
-    @Override
-    public FileMetaData getFileMetaData(String filePath) {
-        List<String> pathList = parsePath(filePath);
-        return jobTencentInnerCOSClient.getFileMetaData(pathList.get(0), pathList.get(1));
+    public String getHeartBeatUrl() {
+        return getJobApiRootUrl() + "/remote/fileWorker/heartBeat";
     }
 
-    @Override
-    public Pair<InputStream, HttpRequestBase> getFileInputStream(String filePath) {
-        List<String> pathList = parsePath(filePath);
-        return jobTencentInnerCOSClient.getFileInputStream(pathList.get(0), pathList.get(1));
+    public String getReportTaskStatusUrl() {
+        return getJobApiRootUrl() + "/remote/fileWorker/task/update";
     }
 
-    @Override
-    public void shutdown() {
-        jobTencentInnerCOSClient.shutdown();
+    public String getWorkerOffLineUrl() {
+        return getJobApiRootUrl() + "/remote/fileWorker/offLineAndReDispatch";
     }
 }

@@ -63,3 +63,13 @@ spring:
     multipart:
       max-file-size: 5GB
       max-request-size: 5GB
+job:
+  file-gateway:
+    # 任务重调度相关配置
+    reDispatch:
+      # 超时任务
+      timeoutTask:
+        # 是否开启重调度
+        enabled: true
+        # 超时时间（秒）
+        timeoutSeconds: 10

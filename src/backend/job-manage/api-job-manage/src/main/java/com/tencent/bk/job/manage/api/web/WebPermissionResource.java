@@ -90,11 +90,11 @@ public interface WebPermissionResource {
     Response<AuthResultVO> checkOperationPermission(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @ApiParam(value = "资源范围类型", required = true)
-        @RequestParam(value = "scopeType")
+        @ApiParam(value = "资源范围类型")
+        @RequestParam(value = "scopeType", required = false)
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @RequestParam(value = "scopeId")
+        @ApiParam(value = "资源范围ID")
+        @RequestParam(value = "scopeId", required = false)
             String scopeId,
         @ApiParam("操作ID,取值为: [script/create,script/view," +
             "script/edit,script/delete,script/execute," +

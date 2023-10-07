@@ -25,7 +25,7 @@
 package com.tencent.bk.job.file_gateway.api.remote;
 
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
+import com.tencent.bk.job.file_gateway.model.dto.FileTaskProgressDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
@@ -66,16 +66,9 @@ public class RemoteFileWorkerResourceImpl implements RemoteFileWorkerResource {
     @Override
     public Response<String> updateFileSourceTask(UpdateFileSourceTaskReq updateFileSourceTaskReq) {
         log.info("updateFileSourceTaskReq=({})", updateFileSourceTaskReq);
-        String taskId = updateFileSourceTaskReq.getFileSourceTaskId();
-        String filePath = updateFileSourceTaskReq.getFilePath();
-        String downloadPath = updateFileSourceTaskReq.getDownloadPath();
-        Long fileSize = updateFileSourceTaskReq.getFileSize();
-        String speed = updateFileSourceTaskReq.getSpeed();
-        Integer progress = updateFileSourceTaskReq.getProgress();
-        String content = updateFileSourceTaskReq.getContent();
-        TaskStatusEnum status = updateFileSourceTaskReq.getStatus();
-        return Response.buildSuccessResp(fileSourceTaskService.updateFileSourceTask(taskId, filePath,
-            downloadPath, fileSize, speed, progress, content, status));
+        FileTaskProgressDTO fileTaskProgressDTO =
+            FileTaskProgressDTO.fromUpdateFileSourceTaskReq(updateFileSourceTaskReq);
+        return Response.buildSuccessResp(fileSourceTaskService.updateFileSourceTask(fileTaskProgressDTO));
     }
 
     @Override
