@@ -35,8 +35,10 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.service.feature.FeatureToggle;
+import com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
@@ -383,7 +385,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         return FeatureToggle.checkFeature(
             FeatureIdConstants.GSE_FILE_PROTOCOL_BEFORE_V2,
             FeatureExecutionContext.builder()
-                .addResourceScopeContextParam(GlobalAppScopeMappingService.get().getScopeByAppId(appId))
+                .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
+                    GlobalAppScopeMappingService.get().getScopeByAppId(appId))
         );
     }
 

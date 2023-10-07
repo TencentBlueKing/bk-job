@@ -40,25 +40,30 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractToggleStrategy implements ToggleStrategy {
 
+    /**
+     * 策略 ID
+     */
     protected final String id;
-    protected final String description;
+    /**
+     * 组合策略
+     */
     protected List<ToggleStrategy> compositeStrategies = null;
+    /**
+     * 策略初始化参数
+     */
     protected final Map<String, String> initParams;
 
     /**
      * 初始化特性开关
      *
      * @param strategyId          策略ID
-     * @param description         策略说明
-     * @param compositeStrategies 子策略
+     * @param compositeStrategies 组合策略
      * @param initParams          初始化参数
      */
     public AbstractToggleStrategy(String strategyId,
-                                  String description,
                                   List<ToggleStrategy> compositeStrategies,
                                   Map<String, String> initParams) {
         this.id = strategyId;
-        this.description = description;
         this.compositeStrategies = compositeStrategies;
         if (initParams != null) {
             this.initParams = initParams;
@@ -70,15 +75,12 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
     /**
      * 初始化特性开关
      *
-     * @param strategyId  策略ID
-     * @param description 策略说明
-     * @param initParams  初始化参数
+     * @param strategyId 策略ID
+     * @param initParams 初始化参数
      */
     public AbstractToggleStrategy(String strategyId,
-                                  String description,
                                   Map<String, String> initParams) {
         this.id = strategyId;
-        this.description = description;
         if (initParams != null) {
             this.initParams = initParams;
         } else {

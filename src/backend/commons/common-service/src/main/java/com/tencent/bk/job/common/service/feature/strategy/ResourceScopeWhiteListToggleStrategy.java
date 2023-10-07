@@ -39,8 +39,8 @@ public class ResourceScopeWhiteListToggleStrategy extends AbstractResourceScopeT
      */
     public static final String STRATEGY_ID = "ResourceScopeWhiteListToggleStrategy";
 
-    public ResourceScopeWhiteListToggleStrategy(String description, Map<String, String> initParams) {
-        super(STRATEGY_ID, description, initParams);
+    public ResourceScopeWhiteListToggleStrategy(Map<String, String> initParams) {
+        super(STRATEGY_ID, initParams);
     }
 
     @Override

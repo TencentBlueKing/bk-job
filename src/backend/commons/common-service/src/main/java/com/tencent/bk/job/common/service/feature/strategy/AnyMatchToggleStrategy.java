@@ -37,10 +37,9 @@ public class AnyMatchToggleStrategy extends AbstractToggleStrategy {
      */
     public static final String STRATEGY_ID = "AnyMatchToggleStrategy";
 
-    public AnyMatchToggleStrategy(String description,
-                                  List<ToggleStrategy> strategies,
+    public AnyMatchToggleStrategy(List<ToggleStrategy> strategies,
                                   Map<String, String> initParams) {
-        super(STRATEGY_ID, description, strategies, initParams);
+        super(STRATEGY_ID, strategies, initParams);
         assertRequiredAtLeastOneStrategy();
     }
 

@@ -50,13 +50,15 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.service.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.service.feature.FeatureToggle;
 import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
+import com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -961,7 +963,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 初始化Job任务灰度对接 GSE2.0 上下文
         FeatureExecutionContext featureExecutionContext =
             FeatureExecutionContext.builder()
-                .addResourceScopeContextParam(appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
+                .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
+                    appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE,
                     taskInstanceHosts.stream().noneMatch(host -> {
                         // AgentId 为空或者为 V1 格式的

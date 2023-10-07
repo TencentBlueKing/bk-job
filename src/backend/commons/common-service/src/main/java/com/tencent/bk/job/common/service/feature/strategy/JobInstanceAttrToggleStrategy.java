@@ -73,8 +73,8 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
     private Set<String> operators;
 
 
-    public JobInstanceAttrToggleStrategy(String description, Map<String, String> initParams) {
-        super(STRATEGY_ID, description, initParams);
+    public JobInstanceAttrToggleStrategy(Map<String, String> initParams) {
+        super(STRATEGY_ID, initParams);
         String requireAllGseV2AgentAvailableValue = initParams.get(INIT_PARAM_REQUIRE_ALL_GSE_V2_AGENT_AVAILABLE);
         if (StringUtils.isNotBlank(requireAllGseV2AgentAvailableValue)) {
             requireAllGseV2AgentAvailable = Boolean.valueOf(requireAllGseV2AgentAvailableValue);
@@ -121,7 +121,6 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
     public String toString() {
         return new StringJoiner(", ", JobInstanceAttrToggleStrategy.class.getSimpleName() + "[", "]")
             .add("id='" + id + "'")
-            .add("description='" + description + "'")
             .add("initParams=" + initParams)
             .toString();
     }

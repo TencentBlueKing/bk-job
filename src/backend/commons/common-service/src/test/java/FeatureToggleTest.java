@@ -22,38 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
-
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.feature.InMemoryFeatureStore;
+import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.common.util.feature.strategy.JobInstanceAttrToggleStrategy;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureStore;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
 
-import static com.tencent.bk.job.common.util.feature.strategy.ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE;
+import static com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FeatureToggleTest {
 
     @BeforeAll
-    static void load() {
+    static void beforeAll() {
         Yaml yaml = new Yaml(new Constructor(FeatureToggleConfig.class));
         InputStream inputStream = FeatureToggleTest.class.getClassLoader()
             .getResourceAsStream("features_1.yaml");
         FeatureToggleConfig featureToggleConfig = yaml.load(inputStream);
 
-        Mockito.mockStatic(ApplicationContextRegister.class)
-            .when(() -> ApplicationContextRegister.getBean(FeatureToggleConfig.class))
+        MockedStatic<ApplicationContextRegister> mockedStatic = Mockito.mockStatic(ApplicationContextRegister.class);
+        mockedStatic.when(() -> ApplicationContextRegister.getBean(FeatureToggleConfig.class))
             .thenReturn(featureToggleConfig);
+        FeatureStore mockedFeatureStore = new InMemoryFeatureStore();
+        mockedFeatureStore.load(false);
+        mockedStatic.close();
 
-        FeatureToggle.load();
+        Mockito.mockStatic(ApplicationContextRegister.class)
+            .when(() -> ApplicationContextRegister.getBean(FeatureStore.class))
+            .thenReturn(mockedFeatureStore);
     }
 
     @Test

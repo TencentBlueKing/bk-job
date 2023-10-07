@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.feature;
+package com.tencent.bk.job.common.service.feature.config;
 
 import lombok.Data;
 

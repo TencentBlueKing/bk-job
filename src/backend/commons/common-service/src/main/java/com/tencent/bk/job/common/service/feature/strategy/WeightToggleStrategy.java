@@ -51,8 +51,8 @@ public class WeightToggleStrategy extends AbstractToggleStrategy {
 
     private final Random RANDOM = new SecureRandom();
 
-    public WeightToggleStrategy(String description, Map<String, String> initParams) {
-        super(STRATEGY_ID, description, initParams);
+    public WeightToggleStrategy(Map<String, String> initParams) {
+        super(STRATEGY_ID, initParams);
         assertRequiredInitParam(INIT_PARAM_WEIGHT);
         String weightStrValue = initParams.get(INIT_PARAM_WEIGHT);
         this.weight = computeWeight(weightStrValue);

@@ -38,19 +38,12 @@ public interface ToggleStrategy {
     String getId();
 
     /**
-     * 获取策略说明
-     */
-    default String getDescription() {
-        return "";
-    }
-
-    /**
      * 获取初始化参数
      */
     Map<String, String> getInitParams();
 
     /**
-     * 获取复合策略
+     * 获取组合策略
      */
     default List<ToggleStrategy> getCompositeToggleStrategies() {
         return Collections.emptyList();

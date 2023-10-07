@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.common.service.feature;
 
+import com.tencent.bk.job.common.service.feature.config.FeatureConfig;
+import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.feature.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.service.feature.strategy.AllMatchToggleStrategy;
 import com.tencent.bk.job.common.service.feature.strategy.AnyMatchToggleStrategy;
 import com.tencent.bk.job.common.service.feature.strategy.FeatureConfigParseException;
@@ -37,7 +40,7 @@ import com.tencent.bk.job.common.util.feature.FeatureStore;
 import com.tencent.bk.job.common.util.feature.ToggleStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.helpers.MessageFormatter;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +50,7 @@ import java.util.stream.Collectors;
  * 特性开关配置存储实现
  */
 @Slf4j
+@Component
 public class InMemoryFeatureStore implements FeatureStore {
 
     /**
@@ -63,7 +67,7 @@ public class InMemoryFeatureStore implements FeatureStore {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
-                    load(false);
+                    load(true);
                 }
             }
         }
@@ -72,6 +76,19 @@ public class InMemoryFeatureStore implements FeatureStore {
 
     @Override
     public void load(boolean ignoreException) {
+        try {
+            loadInternal();
+        } catch (Throwable e) {
+            log.warn("Load feature config error", e);
+            if (ignoreException) {
+                log.warn("Ignore feature config load error");
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private void loadInternal() {
         synchronized (this) {
             log.info("Load feature toggle start ...");
             FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
@@ -83,19 +100,8 @@ public class InMemoryFeatureStore implements FeatureStore {
 
             Map<String, Feature> tmpFeatures = new HashMap<>();
             featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
-                try {
-                    Feature feature = parseFeatureConfig(featureId, featureConfig);
-                    tmpFeatures.put(featureId, feature);
-                } catch (Throwable e) {
-                    String msg = MessageFormatter.format(
-                        "Load feature toggle config fail, skip update feature toggle config! featureId: {}, " +
-                            "featureConfig: {}", featureId, featureConfig).getMessage();
-                    log.error(msg, e);
-                    if (features.get(featureId) != null) {
-                        // 如果加载失败，那么使用原有的特性配置
-                        tmpFeatures.put(featureId, features.get(featureId));
-                    }
-                }
+                Feature feature = parseFeatureConfig(featureId, featureConfig);
+                tmpFeatures.put(featureId, feature);
             });
 
             // 使用新的配置完全替换老的配置
@@ -132,24 +138,19 @@ public class InMemoryFeatureStore implements FeatureStore {
         ToggleStrategy toggleStrategy;
         switch (strategyId) {
             case ResourceScopeWhiteListToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new ResourceScopeWhiteListToggleStrategy(strategyConfig.getDescription(),
-                    strategyConfig.getParams());
+                toggleStrategy = new ResourceScopeWhiteListToggleStrategy(strategyConfig.getParams());
                 break;
             case ResourceScopeBlackListToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new ResourceScopeBlackListToggleStrategy(strategyConfig.getDescription(),
-                    strategyConfig.getParams());
+                toggleStrategy = new ResourceScopeBlackListToggleStrategy(strategyConfig.getParams());
                 break;
             case WeightToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new WeightToggleStrategy(strategyConfig.getDescription(),
-                    strategyConfig.getParams());
+                toggleStrategy = new WeightToggleStrategy(strategyConfig.getParams());
                 break;
             case JobInstanceAttrToggleStrategy.STRATEGY_ID:
-                toggleStrategy = new JobInstanceAttrToggleStrategy(strategyConfig.getDescription(),
-                    strategyConfig.getParams());
+                toggleStrategy = new JobInstanceAttrToggleStrategy(strategyConfig.getParams());
                 break;
             case AllMatchToggleStrategy.STRATEGY_ID:
                 toggleStrategy = new AllMatchToggleStrategy(
-                    strategyId,
                     strategyConfig.getStrategies()
                         .stream()
                         .map(this::parseToggleStrategy)
@@ -158,7 +159,6 @@ public class InMemoryFeatureStore implements FeatureStore {
                 break;
             case AnyMatchToggleStrategy.STRATEGY_ID:
                 toggleStrategy = new AnyMatchToggleStrategy(
-                    strategyId,
                     strategyConfig.getStrategies()
                         .stream()
                         .map(this::parseToggleStrategy)
@@ -166,7 +166,7 @@ public class InMemoryFeatureStore implements FeatureStore {
                     strategyConfig.getParams());
                 break;
             default:
-                log.error("Unsupported toggle strategy: {} , ignore it!", strategyId);
+                log.error("Unsupported toggle strategy: {}", strategyId);
                 throw new FeatureConfigParseException("Unsupported toggle strategy " + strategyId);
         }
         return toggleStrategy;

@@ -22,27 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.feature;
+package com.tencent.bk.job.common.service.feature.config;
+
+import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * 特性ID定义
+ * 特性启用策略配置
  */
-public interface FeatureIdConstants {
+@Data
+public class ToggleStrategyConfig {
     /**
-     * 特性: 对接 GSE2.0
+     * 策略ID
      */
-    String FEATURE_GSE_V2 = "gseV2";
+    private String id;
     /**
-     * 特性: OpenAPI 兼容bk_biz_id参数
+     * 组合策略配置
      */
-    String FEATURE_BK_BIZ_ID_COMPATIBLE = "bkBizIdCompatible";
-    /**
-     * 特性-第三方文件源
-     */
-    String FEATURE_FILE_MANAGE = "fileManage";
+    private List<ToggleStrategyConfig> strategies;
 
     /**
-     * 特性-是否支持GSE 获取文件分发任务结果的API协议(2.0版本之前)
+     * 策略初始化参数
      */
-    String GSE_FILE_PROTOCOL_BEFORE_V2 = "gseFileProtocolBeforeV2";
+    private Map<String, String> params;
 }

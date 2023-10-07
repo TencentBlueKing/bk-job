@@ -42,12 +42,6 @@ public class FeatureToggle {
      */
     public static boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
         FeatureStore featureStore = ApplicationContextRegister.getBean(FeatureStore.class);
-        if (featureStore == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Feature store is null, featureId: {}", featureId);
-                return false;
-            }
-        }
 
         Feature feature = featureStore.getFeature(featureId);
         if (log.isDebugEnabled()) {
@@ -56,7 +50,6 @@ public class FeatureToggle {
         if (feature == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Feature: {} is not exist!", featureId);
-
             }
             return false;
         }

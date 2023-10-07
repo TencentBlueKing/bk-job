@@ -24,36 +24,31 @@
 
 package com.tencent.bk.job.common.service.feature;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.util.feature.FeatureStore;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.PostConstruct;
-import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
 
 /**
- * 特性开关配置
- * <p>
- * ignoreInvalidFields: true, 避免因为错误的配置导致微服务不可用（RefreshScopeHealthIndicator会对ConfigurationProperties
- * 进行健康检查，如果配置有问题，会把微服务的状态设置为health=DOWN)
+ * 特性开关配置加载 ApplicationRunner
  */
-@ConfigurationProperties(prefix = "job", ignoreInvalidFields = true)
-@ToString
-@Getter
-@Setter
+@Component
 @Slf4j
-public class FeatureToggleConfig {
+public class FeatureLoadApplicationRunner implements ApplicationRunner {
+    private final FeatureStore featureStore;
 
-    /**
-     * 特性
-     */
-    private Map<String, FeatureConfig> features;
+    @Autowired
+    public FeatureLoadApplicationRunner(FeatureStore featureStore) {
+        this.featureStore = featureStore;
+    }
 
-    @PostConstruct
-    public void print() {
-        log.info("FeatureToggleConfig init: {}", JsonUtils.toJson(this));
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        // 初始化特性开关配置；如果初始化错误，那么抛出异常终止程序启动
+        log.info("FeatureLoadApplicationRunner start");
+        featureStore.load(false);
+        log.info("FeatureLoadApplicationRunner run success");
     }
 }
