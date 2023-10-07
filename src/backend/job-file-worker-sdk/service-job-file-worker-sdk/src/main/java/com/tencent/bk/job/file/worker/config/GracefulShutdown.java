@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file.worker.config;
 
-import com.tencent.bk.job.file.worker.cos.service.OpService;
+import com.tencent.bk.job.file.worker.service.OpService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,4 +1,46 @@
 # chart values 更新日志
+
+## 0.5.3
+1. 增加操作审计相关配置
+
+```yaml
+## 操作审计配置
+audit:
+  # 是否开启操作审计
+  enabled: true
+  # 作业平台系统ID
+  systemId: bk_job
+```
+
+## 0.5.2
+1.增加依赖宿主机GSE Agent的分发相关配置
+
+```yaml
+## 依赖宿主机GSE Agent的文件分发相关配置
+fileDistribute:
+  # 分发文件所在根目录：宿主机路径（以HostPath方式挂载到容器内）
+  hostPath: /data/bkjob
+```
+
+2.去除实际上并未用到的`persistence.enabled`配置
+
+3.临时文件存储根路径`persistence.localStorage.path`默认值修改为`/data/job_temp_file`
+
+4.新增job-file-gateway文件网关任务重调度相关配置
+```yaml
+## job-file-gateway文件网关服务配置
+fileGatewayConfig:
+  # 任务重调度相关配置
+  reDispatch:
+    # 超时任务
+    timeoutTask:
+      # 是否开启重调度
+      enabled: true
+      # 超时时间（秒）
+      timeoutSeconds: 10
+
+```
+
 ## 0.5.1
 1.增加轻量化部署配置
 

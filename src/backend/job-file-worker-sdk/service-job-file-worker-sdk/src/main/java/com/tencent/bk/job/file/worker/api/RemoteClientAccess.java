@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.file.worker.api;
 
-import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
+import com.tencent.bk.job.file.worker.service.RemoteClient;
 
 public interface RemoteClientAccess {
     RemoteClient getRemoteClient(BaseReq req);

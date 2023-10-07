@@ -40,11 +40,11 @@ import com.tencent.bk.job.file.worker.artifactory.consts.ArtifactoryActionCodeEn
 import com.tencent.bk.job.file.worker.artifactory.consts.ArtifactoryNodeTypeEnum;
 import com.tencent.bk.job.file.worker.artifactory.service.ArtifactoryBaseService;
 import com.tencent.bk.job.file.worker.artifactory.service.ArtifactoryRemoteClient;
-import com.tencent.bk.job.file.worker.cos.service.MetaDataService;
-import com.tencent.bk.job.file.worker.cos.service.RemoteClient;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;
+import com.tencent.bk.job.file.worker.service.MetaDataService;
+import com.tencent.bk.job.file.worker.service.RemoteClient;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesDTO;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileTreeNodeDef;
 import io.micrometer.core.instrument.util.StringUtils;

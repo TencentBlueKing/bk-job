@@ -29,12 +29,12 @@ import com.tencent.bk.job.file_gateway.service.context.TaskContext;
 
 public interface FileSourceTaskStatusChangeListener {
     /**
-     * Invoked when FileSourceTask status change
+     * 在单个文件源任务状态改变时被调用
      *
-     * @param context
-     * @param previousStatus
-     * @param currentStatus
-     * @return true if need to stop event dispatch to later listeners
+     * @param context        任务上下文
+     * @param previousStatus 上一个状态
+     * @param currentStatus  当前状态
+     * @return true 如果需要终止事件向后续的Listener传递则返回true
      */
     boolean onStatusChange(TaskContext context, TaskStatusEnum previousStatus, TaskStatusEnum currentStatus);
 }

@@ -386,6 +386,10 @@ job:
       # artifactory:
       #   # 存储执行日志导出临时文件的仓库名称
       #   repo: filedata
+    file:
+      # 存储要分发的文件的根目录，二进制环境下与存储临时文件的根目录一致
+      distribute:
+        root-path: __BK_HOME__/public/job
   crontab:
     # 定时任务连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
     notification-policy:
@@ -396,7 +400,16 @@ job:
           # 通知频率：默认 5 - 每5次通知， 1 - 每次通知
           frequency: 5
           # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
-          total: -1   
+          total: -1
+  file-gateway:
+    # 任务重调度相关配置
+    reDispatch:
+      # 超时任务
+      timeoutTask:
+        # 是否开启重调度
+        enabled: true
+        # 超时时间（秒）
+        timeoutSeconds: 10
 bk:
   {% if job_edition == "ce" -%}
   doc:

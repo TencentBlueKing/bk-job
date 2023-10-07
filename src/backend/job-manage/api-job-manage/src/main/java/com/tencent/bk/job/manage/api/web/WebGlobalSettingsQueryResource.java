@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -113,9 +113,9 @@ public interface WebGlobalSettingsQueryResource {
     );
 
 
-    @ApiOperation(value = "获取Title与Footer", produces = "application/json")
-    @GetMapping("/titleFooter")
-    Response<TitleFooterVO> getTitleFooter();
+    @ApiOperation(value = "获取渲染后的平台设置", produces = "application/json")
+    @GetMapping("/platformInfo")
+    Response<PlatformInfoVO> getRenderedPlatformInfo();
 
 
     @ApiOperation(value = "获取文档中心根路径", produces = "application/json")

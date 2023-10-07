@@ -101,8 +101,6 @@ spec:
           resources:
             {{- toYaml .Values.crontabConfig.resources | nindent 12 }}
           volumeMounts:
-            - name: job-storage
-              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -113,9 +111,6 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
       volumes:
-        - name: job-storage
-          persistentVolumeClaim:
-            claimName: {{ include "common.names.fullname" . }}-pv-claim
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}

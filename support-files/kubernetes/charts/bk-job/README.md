@@ -11,16 +11,21 @@ BK-JOB由11个微服务/独立程序构成
 - PV provisioner
 
 ## 宿主机要求
-注意：若完全使用默认参数，需要保证宿主机/data存在、可读写、且目录下有足够大的空间，chart将自动创建bkjob目录用于存放日志与临时文件，该目录在chart卸载后若无需保留则需要进行清理：
-参考命令：
+注意：若完全使用默认参数，需要保证宿主机/data存在、可读写、且目录下有足够大的空间，chart将自动创建job_temp_file目录用于存放临时文件，自动创建bkjob目录用于存放待分发文件，这些目录在chart卸载后若无需保留则需要进行清理：  
+参考命令：  
+rm -r /data/job_temp_file  
 rm -r /data/bkjob
 
-日志与临时文件存储说明：
-作业平台使用Persistent Volume存储程序产生的日志、导入导出操作产生的临时文件、第三方源文件分发产生的临时文件，使用PVC进行声明，若K8s集群不提供合适的共享存储作为PV资源，则默认采用宿主机路径进行HostPath挂载，需要保证配置的路径在宿主机上存在且可读写；
-默认路径为：/data/bkjob，其中bkjob层将自动创建，可通过values文件中的`persistence.localStorage.path`进行配置。
+临时文件存储说明：  
+作业平台使用Persistent Volume存储执行日志导出、作业导入导出操作产生的临时文件，使用PVC进行声明，若K8s集群不提供合适的共享存储作为PV资源，则默认采用宿主机路径进行HostPath挂载，需要保证配置的路径在宿主机上存在且可读写；  
+默认路径为：/data/job_temp_file，其中job_temp_file层将自动创建，可通过values文件中的`persistence.localStorage.path`进行配置。  
+
+分发文件存储说明：  
+作业平台分发文件依赖宿主机上的GSE Agent，因此使用HostPath将宿主机目录挂载至容器内，需要保证配置的路径在宿主机上存在且可读写；  
+默认路径为：/data/bkjob，其中bkjob层将自动创建，可通过values文件中的`fileDistribute.hostPath`进行配置。  
 
 ## 安装Chart
-使用以下命令在命名空间bk-job中安装名称为`bk-job`的release, 其中`<bk-job helm repo url>`代表helm仓库地址:
+使用以下命令在命名空间bk-job中安装名称为`bk-job`的release, 其中`<bk-job helm repo url>`代表helm仓库地址:  
 
 ```shell
 $ helm repo add bkee <bk-job helm repo url>
@@ -40,12 +45,12 @@ $ kubectl delete pvc -n bk-job --all
 上述命令将移除所有和bk-job相关的Kubernetes组件，并删除release。
 
 ## Chart依赖
-bitnami/common
-bitnami/nginx-ingress-controller
-bitnami/mariadb
-bitnami/redis
-bitnami/mongodb
-bitnami/rabbitmq
+bitnami/common  
+bitnami/nginx-ingress-controller  
+bitnami/mariadb  
+bitnami/redis  
+bitnami/mongodb  
+bitnami/rabbitmq  
 
 ## 配置说明
 各项配置集中在仓库的一个values.yaml文件之中，下面展示了可配置的参数列表以及默认值
@@ -113,12 +118,19 @@ bitnami/rabbitmq
 | `job.ingress.https.certBase64` | 开启HTTPS时使用的证书base64编码    | ``       |
 | `job.ingress.https.keyBase64` | 开启HTTPS时使用的证书私钥base64编码    | ``       |
 
-### 持久化存储配置
+### 依赖宿主机GSE Agent的分发相关配置
 |参数|描述|默认值 |
 |---|---|---|
-| `persistence.enabled`       | 是否开启持久化存储              | `true`           |
-| `persistence.accessMode`    | 持久化存储模式                 | `ReadWriteOnce`  |
-| `persistence.size`          | 持久化存储空间大小，默认200Gi    | `200Gi`          |
+| `fileDistribute.hostPath`     | 分发文件所在根目录：宿主机路径（以HostPath方式挂载到容器内）   | `/data/bkjob`  |
+
+### 持久化存储配置，用于存储本地文件上传、执行日志导出、作业导入导出操作产生的临时文件等
+|参数|描述|默认值 |
+|---|---|---|
+| `persistence.accessMode`            | 持久化存储模式                 | `ReadWriteMany`  |
+| `persistence.size`                  | 持久化存储空间大小，默认200Gi    | `200Gi`          |
+| `persistence.storageClass`          | 存储模式：默认将日志存储于pod所在节点HostPath下，若使用其他共享存储可配置为对应的storageClass，支持NFS    | `job-local`      |
+| `persistence.localStorage.enabled`  | 是否使用HostPath作为本地存储        | `true`          |
+| `persistence.localStorage.path`     | 临时文件根路径（使用HostPath作为本地存储时同时也是宿主机根路径）    | `/data/job_temp_file`          |
 
 ### 蓝鲸日志采集配置
 |参数|描述|默认值 |

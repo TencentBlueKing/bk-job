@@ -146,6 +146,7 @@ public class FileSourceServiceImpl implements FileSourceService {
                 new String[]{fileSource.getAlias()});
         }
         Integer id = fileSourceDAO.insertFileSource(fileSource);
+        fileSource.setId(id);
 
         boolean registerResult = fileSourceAuthService.registerFileSource(
             username, fileSource.getId(), fileSource.getAlias());

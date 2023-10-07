@@ -54,7 +54,7 @@ public class BatchTaskStatusUpdater implements FileSourceTaskStatusChangeListene
     public boolean onStatusChange(TaskContext context, TaskStatusEnum previousStatus, TaskStatusEnum currentStatus) {
         FileSourceTaskDTO fileSourceTaskDTO = context.getFileSourceTaskDTO();
         String batchTaskId = fileSourceTaskDTO.getBatchTaskId();
-        FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getBatchTaskByIdForUpdate(batchTaskId);
+        FileSourceBatchTaskDTO fileSourceBatchTaskDTO = fileSourceBatchTaskDAO.getBatchTaskById(batchTaskId);
         if (StringUtils.isBlank(batchTaskId)) {
             return false;
         }

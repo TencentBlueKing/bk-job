@@ -226,8 +226,12 @@ build_backend_modules () {
 # Build migration image
 build_migration_image(){
     log "Building migration image, version: ${VERSION}..."
+    $BACKEND_DIR/gradlew -p $BACKEND_DIR/upgrader clean :upgrader:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     rm -rf tmp/migration/*
+    cp $BACKEND_DIR/release/upgrader-$VERSION.jar tmp/migration/upgrader.jar
     cp migration/startup.sh tmp/migration
+    cp migration/runUpgrader.sh tmp/migration
+    cp $SUPPORT_FILES_DIR/templates/#etc#job#upgrader#upgrader.properties tmp/migration/upgrader.properties.tpl
     cp -r $SUPPORT_FILES_DIR/bkiam tmp/migration/
     cp -r $SUPPORT_FILES_DIR/sql tmp/migration/
     docker build -f migration/migration.Dockerfile -t $REGISTRY/job-migration:$VERSION tmp/migration --network=host
@@ -275,7 +279,7 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
 		    build_startup_controller_image
 		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
-            BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}     
+            BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
 		fi
 	done
     if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then

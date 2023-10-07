@@ -135,13 +135,27 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
     }
 
     @Override
-    public FileTaskDTO getOneFileTaskForUpdate(String fileSourceTaskId, String filePath) {
+    public FileTaskDTO getFileTaskByIdForUpdate(Long id) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.ID.eq(id));
+        val record = dslContext.selectFrom(defaultTable).where(
+            conditions
+        ).forUpdate().fetchOne();
+        if (record == null) {
+            return null;
+        } else {
+            return convertRecordToDto(record);
+        }
+    }
+
+    @Override
+    public FileTaskDTO getOneFileTask(String fileSourceTaskId, String filePath) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.FILE_SOURCE_TASK_ID.eq(fileSourceTaskId));
         conditions.add(defaultTable.FILE_PATH.eq(filePath));
         val record = dslContext.selectFrom(defaultTable).where(
             conditions
-        ).forUpdate().fetchOne();
+        ).fetchOne();
         if (record == null) {
             return null;
         } else {

@@ -54,6 +54,7 @@ import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
 import com.tencent.bk.job.manage.model.dto.converter.NotifyTemplateConverter;
+import com.tencent.bk.job.manage.model.dto.globalsetting.HelperInfo;
 import com.tencent.bk.job.manage.model.dto.globalsetting.TitleFooter;
 import com.tencent.bk.job.manage.model.dto.globalsetting.TitleFooterDTO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.UploadFileRestrictDTO;
@@ -64,7 +65,6 @@ import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
@@ -73,8 +73,9 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRuleVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
@@ -92,6 +93,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -459,136 +461,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return fileUploadSettingVO;
     }
 
-    @Override
-    @ActionAuditRecord(
-        actionId = ActionId.GLOBAL_SETTINGS,
-        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
-    )
-    public Boolean setTitleFooter(String username, SetTitleFooterReq req) {
-        //参数校验
-        String lang = JobContextUtil.getUserLang();
-        if (req.getTitleHead() == null) {
-            req.setTitleHead("");
-        }
-        if (req.getTitleSeparator() == null) {
-            req.setTitleSeparator("");
-        }
-        if (req.getFooterLink() == null) {
-            req.setFooterLink("");
-        }
-        if (req.getFooterCopyRight() == null) {
-            req.setFooterCopyRight("");
-        }
-        GlobalSettingDTO titleFooterDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_TITLE_FOOTER);
-        if (titleFooterDTO == null) {
-            Map<String, TitleFooter> titleFooterLanguageMap = new HashMap<>();
-            titleFooterLanguageMap.put(
-                LocaleUtils.getNormalLang(lang), new TitleFooter(
-                    req.getTitleHead()
-                    , req.getTitleSeparator()
-                    , req.getFooterLink()
-                    , req.getFooterCopyRight()
-                ));
-            titleFooterDTO = new GlobalSettingDTO(
-                GlobalSettingKeys.KEY_TITLE_FOOTER
-                , JsonUtils.toJson(
-                new TitleFooterDTO(
-                    titleFooterLanguageMap
-                    , username
-                    , TimeUtil.getCurrentTimeStr()))
-                , String.format("Updated by %s at %s", username, DateUtils.defaultLocalDateTime(LocalDateTime.now())));
-            return globalSettingDAO.insertGlobalSetting(titleFooterDTO) == 1;
-        } else {
-            Map<String, TitleFooter> titleFooterLanguageMap = JsonUtils.fromJson(titleFooterDTO.getValue(),
-                new TypeReference<TitleFooterDTO>() {
-                }).getTitleFooterLanguageMap();
-            titleFooterLanguageMap.put(
-                LocaleUtils.getNormalLang(lang), new TitleFooter(
-                    req.getTitleHead()
-                    , req.getTitleSeparator()
-                    , req.getFooterLink()
-                    , req.getFooterCopyRight()
-                ));
-            titleFooterDTO.setValue(JsonUtils.toJson(new TitleFooterDTO(titleFooterLanguageMap
-                , username
-                , TimeUtil.getCurrentTimeStr())));
-            return globalSettingDAO.updateGlobalSetting(titleFooterDTO) == 1;
-        }
-    }
-
-    private TitleFooterVO getCEDefaultTitleFooterVO() {
-        return getEEDefaultTitleFooterVO();
-    }
-
-    private TitleFooterVO getEEDefaultTitleFooterVO() {
-        return new TitleFooterVO(
-            i18nService.getI18n("job.manage.globalsettings.defaultTitleHead"),
-            "|",
-            i18nService.getI18n("job.manage.globalsettings.ee.footerLink").replace("{PAAS_SERVER_URL}",
-                jobManageConfig.getPaasServerUrl()),
-            i18nService.getI18n("job.manage.globalsettings.ee.footerCopyRight")
-        );
-    }
-
-    private TitleFooterVO getDefaultTitleFooterVOWithoutVersion() {
-        String jobEdition = jobManageConfig.getJobEdition();
-        if (jobEdition.toLowerCase().equals("ee")) {
-            return getEEDefaultTitleFooterVO();
-        } else {
-            return getCEDefaultTitleFooterVO();
-        }
-    }
-
-    @Override
-    public TitleFooterVO getTitleFooter() {
-        TitleFooterVO titleFooterVO = getTitleFooterWithoutVersion();
-        // 渲染版本号
-        Map<String, String> valuesMap = new HashMap<>();
-        String pattern = "(\\{\\{(.*?)\\}\\})";
-        if (buildProperties != null) {
-            valuesMap.put(STRING_TPL_KEY_CURRENT_VERSION, "V" + buildProperties.getVersion());
-        }
-        valuesMap.put(STRING_TPL_KEY_CURRENT_YEAR, DateUtils.getCurrentDateStr("yyyy"));
-        titleFooterVO.setFooterCopyRight(
-            StringUtil.replaceByRegex(titleFooterVO.getFooterCopyRight(), pattern, valuesMap)
-        );
-        titleFooterVO.setFooterLink(
-            StringUtil.replaceByRegex(titleFooterVO.getFooterLink(), pattern, valuesMap)
-        );
-        return titleFooterVO;
-    }
-
-    public TitleFooterVO getTitleFooterWithoutVersion() {
-        GlobalSettingDTO titleFooterSettingDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_TITLE_FOOTER);
-        if (titleFooterSettingDTO == null) {
-            log.warn("Default titleFooter not configured, use system default, plz contact admin to set");
-            return getDefaultTitleFooterVOWithoutVersion();
-        }
-        TitleFooterDTO titleFooterDTO = JsonUtils.fromJson(titleFooterSettingDTO.getValue(),
-            new TypeReference<TitleFooterDTO>() {
-            });
-        String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
-        log.info("normalLang={}", normalLang);
-        TitleFooter titleFooter = titleFooterDTO.getTitleFooterLanguageMap().get(normalLang);
-        String currentYear = TimeUtil.getCurrentTimeStr("yyyy");
-        if (titleFooter != null) {
-            String copyRight = titleFooter.getFooterCopyRight();
-            //替换变量
-            copyRight = copyRight.replace("${currentYear}", currentYear);
-            return new TitleFooterVO(titleFooter.getTitleHead(), titleFooter.getTitleSeparator(),
-                titleFooter.getFooterLink(), copyRight);
-        } else {
-            log.warn("TitleFooter of language:{} not configured, use default:zh_CN", normalLang);
-            return getDefaultTitleFooterVOWithoutVersion();
-        }
-    }
-
-    @Override
-    public TitleFooterWithDefaultVO getTitleFooterWithDefault(String username) {
-        return new TitleFooterWithDefaultVO(getTitleFooterWithoutVersion(), getDefaultTitleFooterVOWithoutVersion());
-    }
 
     @Override
     @ActionAuditRecord(
@@ -803,5 +675,180 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         addEnableFeatureFileManageConfig(configMap);
         addEnableUploadToArtifactoryConfig(configMap);
         return configMap;
+    }
+
+    @Override
+    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
+    )
+    public PlatformInfoVO savePlatformInfo(String username, PlatformInfoVO platformInfoVO) {
+        // 设置页面 footer/title 信息
+        saveTitleFooter(username, platformInfoVO);
+        // 设置助手信息
+        saveHelperInfo(platformInfoVO);
+        return getPlatformInfoVO();
+    }
+
+    private void saveTitleFooter(String username, PlatformInfoVO platformInfoVO) {
+        //参数校验
+        String lang = JobContextUtil.getUserLang();
+        if (platformInfoVO.getTitleHead() == null) {
+            platformInfoVO.setTitleHead("");
+        }
+        if (platformInfoVO.getTitleSeparator() == null) {
+            platformInfoVO.setTitleSeparator("");
+        }
+        if (platformInfoVO.getFooterLink() == null) {
+            platformInfoVO.setFooterLink("");
+        }
+        if (platformInfoVO.getFooterCopyRight() == null) {
+            platformInfoVO.setFooterCopyRight("");
+        }
+        GlobalSettingDTO titleFooterDTO = globalSettingDAO.getGlobalSetting(
+            GlobalSettingKeys.KEY_TITLE_FOOTER);
+        if (titleFooterDTO == null) {
+            Map<String, TitleFooter> titleFooterLanguageMap = new HashMap<>();
+            titleFooterLanguageMap.put(
+                LocaleUtils.getNormalLang(lang), new TitleFooter(
+                    platformInfoVO.getTitleHead(),
+                    platformInfoVO.getTitleSeparator(),
+                    platformInfoVO.getFooterLink(),
+                    platformInfoVO.getFooterCopyRight()
+                ));
+            titleFooterDTO = new GlobalSettingDTO(
+                GlobalSettingKeys.KEY_TITLE_FOOTER, JsonUtils.toJson(
+                new TitleFooterDTO(
+                    titleFooterLanguageMap,
+                    username,
+                    TimeUtil.getCurrentTimeStr())),
+                String.format("Updated by %s at %s", username, DateUtils.defaultLocalDateTime(LocalDateTime.now())));
+            globalSettingDAO.insertGlobalSetting(titleFooterDTO);
+        } else {
+            Map<String, TitleFooter> titleFooterLanguageMap = JsonUtils.fromJson(titleFooterDTO.getValue(),
+                new TypeReference<TitleFooterDTO>() {
+                }).getTitleFooterLanguageMap();
+            titleFooterLanguageMap.put(
+                LocaleUtils.getNormalLang(lang), new TitleFooter(
+                    platformInfoVO.getTitleHead(),
+                    platformInfoVO.getTitleSeparator(),
+                    platformInfoVO.getFooterLink(),
+                    platformInfoVO.getFooterCopyRight()
+                ));
+            titleFooterDTO.setValue(JsonUtils.toJson(new TitleFooterDTO(titleFooterLanguageMap,
+                username, TimeUtil.getCurrentTimeStr())));
+            globalSettingDAO.updateGlobalSetting(titleFooterDTO);
+        }
+    }
+
+    private void saveHelperInfo(PlatformInfoVO platformInfoVO) {
+        HelperInfo helperInfo = new HelperInfo();
+        helperInfo.setContactLink(platformInfoVO.getHelperContactLink());
+
+        GlobalSettingDTO globalSetting = globalSettingDAO.getGlobalSetting(
+            GlobalSettingKeys.KEY_BK_HELPER);
+        if (globalSetting == null) {
+            globalSetting = new GlobalSettingDTO(GlobalSettingKeys.KEY_BK_HELPER,
+                JsonUtils.toJson(helperInfo), "helper info");
+            globalSettingDAO.insertGlobalSetting(globalSetting);
+        } else {
+            globalSetting.setValue(JsonUtils.toJson(helperInfo));
+            globalSettingDAO.updateGlobalSetting(globalSetting);
+        }
+    }
+
+    @Override
+    public PlatformInfoVO getRenderedPlatformInfo() {
+        TitleFooterVO titleFooterVO = getRenderedTitleFooter();
+        PlatformInfoVO platformInfoVO = new PlatformInfoVO(titleFooterVO);
+        HelperInfo helperInfo = getHelperInfo();
+        if (helperInfo != null) {
+            platformInfoVO.setHelperContactLink(helperInfo.getContactLink());
+        }
+        return platformInfoVO;
+    }
+
+    public PlatformInfoVO getPlatformInfoVO() {
+        TitleFooterVO titleFooterVO = getTitleFooter();
+        HelperInfo helperInfo = getHelperInfo();
+        return new PlatformInfoVO(titleFooterVO, helperInfo == null ? "" : helperInfo.getContactLink());
+    }
+
+    public TitleFooterVO getRenderedTitleFooter() {
+        TitleFooterVO titleFooterVO = getTitleFooter();
+        // 渲染版本号
+        Map<String, String> valuesMap = new HashMap<>();
+        String pattern = "(\\{\\{(.*?)\\}\\})";
+        if (buildProperties != null) {
+            valuesMap.put(STRING_TPL_KEY_CURRENT_VERSION, "V" + buildProperties.getVersion());
+        }
+        valuesMap.put(STRING_TPL_KEY_CURRENT_YEAR, DateUtils.getCurrentDateStr("yyyy"));
+        titleFooterVO.setFooterCopyRight(
+            StringUtil.replaceByRegex(titleFooterVO.getFooterCopyRight(), pattern, valuesMap)
+        );
+        titleFooterVO.setFooterLink(
+            StringUtil.replaceByRegex(titleFooterVO.getFooterLink(), pattern, valuesMap)
+        );
+        return titleFooterVO;
+    }
+
+    private TitleFooterVO getTitleFooter() {
+        GlobalSettingDTO titleFooterSettingDTO = globalSettingDAO.getGlobalSetting(
+            GlobalSettingKeys.KEY_TITLE_FOOTER);
+        if (titleFooterSettingDTO == null) {
+            log.warn("Default titleFooter not configured, use system default, plz contact admin to set");
+            return getDefaultTitleFooterVO();
+        }
+        TitleFooterDTO titleFooterDTO = JsonUtils.fromJson(titleFooterSettingDTO.getValue(),
+            new TypeReference<TitleFooterDTO>() {
+            });
+        String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
+        TitleFooter titleFooter = titleFooterDTO.getTitleFooterLanguageMap().get(normalLang);
+        return titleFooter == null ? getDefaultTitleFooterVO() :
+            new TitleFooterVO(titleFooter.getTitleHead(), titleFooter.getTitleSeparator(),
+                titleFooter.getFooterLink(), titleFooter.getFooterCopyRight());
+    }
+
+    private PlatformInfoVO getDefaultPlatformInfoVO() {
+        return new PlatformInfoVO(getDefaultTitleFooterVO());
+    }
+
+    private TitleFooterVO getDefaultTitleFooterVO() {
+        String jobEdition = jobManageConfig.getJobEdition();
+        if (jobEdition.toLowerCase().equals("ee")) {
+            return getEEDefaultTitleFooterVO();
+        } else {
+            return getCEDefaultTitleFooterVO();
+        }
+    }
+
+    private TitleFooterVO getCEDefaultTitleFooterVO() {
+        return getEEDefaultTitleFooterVO();
+    }
+
+    private TitleFooterVO getEEDefaultTitleFooterVO() {
+        return new TitleFooterVO(
+            i18nService.getI18n("job.manage.globalsettings.defaultTitleHead"),
+            "|",
+            i18nService.getI18n("job.manage.globalsettings.ee.footerLink").replace("{PAAS_SERVER_URL}",
+                jobManageConfig.getPaasServerUrl()),
+            i18nService.getI18n("job.manage.globalsettings.ee.footerCopyRight")
+        );
+    }
+
+
+    @Override
+    public PlatformInfoWithDefaultVO getPlatformInfoWithDefault(String username) {
+        return new PlatformInfoWithDefaultVO(getPlatformInfoVO(), getDefaultPlatformInfoVO());
+    }
+
+    private HelperInfo getHelperInfo() {
+        GlobalSettingDTO globalSetting = globalSettingDAO.getGlobalSetting(
+            GlobalSettingKeys.KEY_BK_HELPER);
+        if (globalSetting == null || StringUtils.isEmpty(globalSetting.getValue())) {
+            return null;
+        }
+        return JsonUtils.fromJson(globalSetting.getValue(), HelperInfo.class);
     }
 }

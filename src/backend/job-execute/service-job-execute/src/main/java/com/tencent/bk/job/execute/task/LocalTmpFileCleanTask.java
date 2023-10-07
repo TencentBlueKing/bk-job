@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.task;
 
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.file.PathUtil;
+import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
-import com.tencent.bk.job.execute.config.StorageSystemConfig;
 import com.tencent.bk.job.execute.constants.Consts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -44,13 +44,13 @@ import java.util.Iterator;
 public class LocalTmpFileCleanTask {
 
     private final LocalFileConfigForExecute localFileConfigForExecute;
-    private final StorageSystemConfig storageSystemConfig;
+    private final FileDistributeConfig fileDistributeConfig;
 
     public LocalTmpFileCleanTask(
         LocalFileConfigForExecute localFileConfigForExecute,
-        StorageSystemConfig storageSystemConfig) {
+        FileDistributeConfig fileDistributeConfig) {
         this.localFileConfigForExecute = localFileConfigForExecute;
-        this.storageSystemConfig = storageSystemConfig;
+        this.fileDistributeConfig = fileDistributeConfig;
     }
 
     public void execute() {
@@ -77,7 +77,7 @@ public class LocalTmpFileCleanTask {
             System.currentTimeMillis() - 3600 * 24 * 1000
         );
         String localFileDirPath = PathUtil.joinFilePath(
-            storageSystemConfig.getJobStorageRootPath(), Consts.LOCAL_FILE_DIR_NAME
+            fileDistributeConfig.getJobDistributeRootPath(), Consts.LOCAL_FILE_DIR_NAME
         );
         Iterator<File> fileIterator = FileUtils.iterateFiles(
             new File(localFileDirPath),
