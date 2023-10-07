@@ -27,10 +27,8 @@ package com.tencent.bk.job.common.service;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
 
 import java.util.Set;
 import java.util.StringJoiner;
@@ -38,13 +36,11 @@ import java.util.StringJoiner;
 /**
  * 配置刷新监听
  */
-@Component
 @Slf4j
 public class ConfigRefreshEventListener {
 
     private final FeatureStore featureStore;
 
-    @Autowired
     public ConfigRefreshEventListener(FeatureStore featureStore) {
         this.featureStore = featureStore;
         log.info("Init ConfigRefreshEventListener");
