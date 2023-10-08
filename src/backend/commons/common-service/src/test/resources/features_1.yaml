@@ -18,7 +18,7 @@ features:
             - id: JobInstanceAttrToggleStrategy
               params:
                 requireAllGseV2AgentAvailable: true
-        # 策略 2：如果业务ID=100 并且作业任务下的主机都是 2.0 gse agent，那么使用 GSE2.0
+        # 策略 3：如果业务ID=200 并且作业执行人是 admin, 那么使用 GSE2.0
         - id: AllMatchToggleStrategy
           strategies:
             - id: ResourceScopeWhiteListToggleStrategy
