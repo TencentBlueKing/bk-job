@@ -49,6 +49,7 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
      * 策略初始化参数
      */
     public static final String INIT_PARAM_REQUIRE_ALL_GSE_V2_AGENT_AVAILABLE = "requireAllGseV2AgentAvailable";
+    public static final String INIT_PARAM_REQUIRE_ANY_GSE_V2_AGENT_AVAILABLE = "requireAnyGseV2AgentAvailable";
     public static final String INIT_PARAM_STARTUP_MODES = "startupModes";
     public static final String INIT_PARAM_OPERATORS = "operators";
 
@@ -56,6 +57,7 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
      * 灰度策略上下文参数
      */
     public static final String CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE = "isAllGseV2AgentAvailable";
+    public static final String CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE = "isAnyGseV2AgentAvailable";
     public static final String CTX_PARAM_STARTUP_MODE = "startupMode";
     public static final String CTX_PARAM_OPERATOR = "operator";
 
@@ -63,6 +65,10 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
      * 灰度策略生效条件 - 所有 GSE v2 agent 可用
      */
     private Boolean requireAllGseV2AgentAvailable;
+    /**
+     * 灰度策略生效条件 - 任一 GSE v2 agent 可用
+     */
+    private Boolean requireAnyGseV2AgentAvailable;
     /**
      * 灰度策略生效条件 - 任务启动方式，web: job 页面启动; api: 第三方 API 调用；cron: 定时触发
      */
@@ -80,6 +86,11 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
             requireAllGseV2AgentAvailable = Boolean.valueOf(requireAllGseV2AgentAvailableValue);
         }
 
+        String requireAnyGseV2AgentAvailableValue = initParams.get(INIT_PARAM_REQUIRE_ANY_GSE_V2_AGENT_AVAILABLE);
+        if (StringUtils.isNotBlank(requireAnyGseV2AgentAvailableValue)) {
+            requireAnyGseV2AgentAvailable = Boolean.valueOf(requireAnyGseV2AgentAvailableValue);
+        }
+
         String startupModesValue = initParams.get(INIT_PARAM_STARTUP_MODES);
         if (StringUtils.isNotBlank(startupModesValue)) {
             startupModes = Arrays.stream(startupModesValue.split(",")).collect(Collectors.toSet());
@@ -94,11 +105,18 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
         assertRequiredContextParam(ctx, CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+        assertRequiredContextParam(ctx, CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
         assertRequiredContextParam(ctx, CTX_PARAM_STARTUP_MODE);
         assertRequiredContextParam(ctx, CTX_PARAM_OPERATOR);
         if (requireAllGseV2AgentAvailable != null && requireAllGseV2AgentAvailable) {
             boolean isAllAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
             if (!isAllAgentV2Available) {
+                return false;
+            }
+        }
+        if (requireAnyGseV2AgentAvailable != null && requireAnyGseV2AgentAvailable) {
+            boolean isAnyAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
+            if (!isAnyAgentV2Available) {
                 return false;
             }
         }
