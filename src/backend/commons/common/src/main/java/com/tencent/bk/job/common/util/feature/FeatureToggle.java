@@ -28,10 +28,12 @@ import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 特性开关
+ * 特性开关工具类
  */
 @Slf4j
 public class FeatureToggle {
+
+    private static volatile FeatureManager featureManager = null;
 
     /**
      * 判断特性是否开启
@@ -41,39 +43,14 @@ public class FeatureToggle {
      * @return 是否开启
      */
     public static boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
-        FeatureStore featureStore = ApplicationContextRegister.getBean(FeatureStore.class);
-
-        Feature feature = featureStore.getFeature(featureId);
-        if (log.isDebugEnabled()) {
-            log.debug("Check feature, featureId: {}, config: {}", featureId, feature);
-        }
-        if (feature == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Feature: {} is not exist!", featureId);
+        if (featureManager == null) {
+            synchronized (FeatureToggle.class) {
+                if (featureManager == null) {
+                    featureManager = ApplicationContextRegister.getBean(FeatureManager.class);
+                }
             }
-            return false;
-        }
-        if (!feature.isEnabled()) {
-            if (log.isDebugEnabled()) {
-                log.debug("Feature: {} is disabled!", featureId);
-            }
-            return false;
         }
 
-        ToggleStrategy strategy = feature.getStrategy();
-        if (strategy == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Feature:{} strategy is empty!", featureId);
-            }
-            // 如果没有配置特性开启策略，且enabled=true，判定为特性开启
-            return true;
-        }
-
-        boolean result = strategy.evaluate(featureId, ctx);
-        if (log.isDebugEnabled()) {
-            log.debug("Apply feature toggle strategy, featureId: {}, strategy: {}, context: {}, result: {}",
-                featureId, strategy, ctx, result);
-        }
-        return result;
+        return featureManager.checkFeature(featureId, ctx);
     }
 }

@@ -22,28 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.feature;
+package com.tencent.bk.job.common.util.feature;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration(proxyBeanMethods = false)
-public class FeatureToggleAutoConfiguration {
-
-    @Bean
-    public FeatureStore featureStore() {
-        return new InMemoryFeatureStore();
-    }
-
-    @Bean
-    public DefaultFeatureManager featureManager(FeatureStore featureStore, MeterRegistry meterRegistry) {
-        return new DefaultFeatureManager(featureStore, meterRegistry);
-    }
-
-    @Bean
-    public FeatureLoadApplicationRunner featureLoadApplicationRunner(FeatureStore featureStore) {
-        return new FeatureLoadApplicationRunner(featureStore);
-    }
+/**
+ * 特性管理
+ */
+public interface FeatureManager {
+    /**
+     * 判断特性是否开启
+     *
+     * @param featureId 特性ID
+     * @param ctx       特性运行上下文
+     * @return 是否开启
+     */
+    boolean checkFeature(String featureId, FeatureExecutionContext ctx);
 }

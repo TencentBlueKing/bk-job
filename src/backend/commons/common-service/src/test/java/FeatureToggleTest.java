@@ -24,14 +24,18 @@
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.feature.DefaultFeatureManager;
 import com.tencent.bk.job.common.service.feature.InMemoryFeatureStore;
 import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
 import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureManager;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -43,6 +47,8 @@ import java.io.InputStream;
 
 import static com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class FeatureToggleTest {
 
@@ -56,13 +62,18 @@ class FeatureToggleTest {
         MockedStatic<ApplicationContextRegister> mockedStatic = Mockito.mockStatic(ApplicationContextRegister.class);
         mockedStatic.when(() -> ApplicationContextRegister.getBean(FeatureToggleConfig.class))
             .thenReturn(featureToggleConfig);
-        FeatureStore mockedFeatureStore = new InMemoryFeatureStore();
-        mockedFeatureStore.load(false);
+        FeatureStore mockFeatureStore = new InMemoryFeatureStore();
+        mockFeatureStore.load(false);
         mockedStatic.close();
 
+        MeterRegistry mockMeterRegistry = mock(MeterRegistry.class);
+        Counter mockCounter = mock(Counter.class);
+        when(mockMeterRegistry.counter(Mockito.anyString(), Mockito.anyIterable())).thenReturn(mockCounter);
+        FeatureManager featureManager = new DefaultFeatureManager(mockFeatureStore, mockMeterRegistry);
+
         Mockito.mockStatic(ApplicationContextRegister.class)
-            .when(() -> ApplicationContextRegister.getBean(FeatureStore.class))
-            .thenReturn(mockedFeatureStore);
+            .when(() -> ApplicationContextRegister.getBean(FeatureManager.class))
+            .thenReturn(featureManager);
     }
 
     @Test
