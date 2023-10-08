@@ -966,10 +966,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE,
-                    taskInstanceHosts.stream().noneMatch(host -> {
-                        // AgentId 为空或者为 V1 格式的
-                        return StringUtils.isEmpty(host.getAgentId()) || AgentUtils.isGseV1AgentId(host.getAgentId());
-                    }))
+                    taskInstanceHosts.stream().allMatch(
+                        host -> AgentUtils.isGseV2AgentId(host.getAgentId())
+                    ))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE,
                     TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()).getName())
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, taskInstance.getOperator());

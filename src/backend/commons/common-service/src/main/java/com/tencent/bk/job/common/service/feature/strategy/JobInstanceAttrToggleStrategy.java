@@ -96,9 +96,9 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
         assertRequiredContextParam(ctx, CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
         assertRequiredContextParam(ctx, CTX_PARAM_STARTUP_MODE);
         assertRequiredContextParam(ctx, CTX_PARAM_OPERATOR);
-        if (requireAllGseV2AgentAvailable != null) {
-            boolean isAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
-            if (!isAgentV2Available) {
+        if (requireAllGseV2AgentAvailable != null && requireAllGseV2AgentAvailable) {
+            boolean isAllAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+            if (!isAllAgentV2Available) {
                 return false;
             }
         }
@@ -119,7 +119,8 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", JobInstanceAttrToggleStrategy.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", JobInstanceAttrToggleStrategy.class.getSimpleName()
+            + "[", "]")
             .add("id='" + id + "'")
             .add("initParams=" + initParams)
             .toString();
