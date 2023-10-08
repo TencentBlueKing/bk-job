@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.service.feature;
 
+import com.tencent.bk.job.common.util.feature.FeatureManager;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +39,7 @@ public class FeatureToggleAutoConfiguration {
     }
 
     @Bean
-    public DefaultFeatureManager featureManager(FeatureStore featureStore, MeterRegistry meterRegistry) {
+    public FeatureManager featureManager(FeatureStore featureStore, MeterRegistry meterRegistry) {
         return new DefaultFeatureManager(featureStore, meterRegistry);
     }
 
