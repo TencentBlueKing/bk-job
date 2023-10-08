@@ -104,10 +104,6 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
 
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
-        assertRequiredContextParam(ctx, CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
-        assertRequiredContextParam(ctx, CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
-        assertRequiredContextParam(ctx, CTX_PARAM_STARTUP_MODE);
-        assertRequiredContextParam(ctx, CTX_PARAM_OPERATOR);
         if (requireAllGseV2AgentAvailable != null && requireAllGseV2AgentAvailable) {
             boolean isAllAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
             if (!isAllAgentV2Available) {

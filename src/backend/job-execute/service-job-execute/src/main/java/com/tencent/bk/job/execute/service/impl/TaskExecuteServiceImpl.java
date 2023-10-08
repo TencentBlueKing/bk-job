@@ -966,23 +966,24 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE,
-                    taskInstanceHosts.stream().anyMatch(
-                        host -> AgentUtils.isGseV2AgentId(host.getAgentId())
+                    () -> taskInstanceHosts.stream().anyMatch(host -> {
+                        log.info("CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE");
+                        return AgentUtils.isGseV2AgentId(host.getAgentId());
+                        }
                     ))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE,
-                    taskInstanceHosts.stream().allMatch(
+                    () -> taskInstanceHosts.stream().allMatch(
                         host -> AgentUtils.isGseV2AgentId(host.getAgentId())
                     ))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE,
-                    TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()).getName())
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, taskInstance.getOperator());
+                    () -> TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()).getName())
+                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, taskInstance::getOperator);
 
         boolean isUsingGseV2 = FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_GSE_V2,
             featureExecutionContext
         );
-        log.info("Determine gse version, featureExecutionContext: {}, isUsingGseV2: {}",
-            featureExecutionContext, isUsingGseV2);
+        log.info("Use gse version {}", isUsingGseV2 ? "v2" : "v1");
         return isUsingGseV2;
     }
 

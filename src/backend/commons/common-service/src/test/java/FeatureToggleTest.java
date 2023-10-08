@@ -82,6 +82,7 @@ class FeatureToggleTest {
             FeatureExecutionContext.builder()
                 .addContextParam(CTX_PARAM_RESOURCE_SCOPE, new ResourceScope(ResourceScopeTypeEnum.BIZ, "1000"))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE, true)
+                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE, true)
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE, "web")
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, "admin");
         assertThat(FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_GSE_V2, ctx)).isTrue();
@@ -89,6 +90,7 @@ class FeatureToggleTest {
         ctx = FeatureExecutionContext.builder()
             .addContextParam(CTX_PARAM_RESOURCE_SCOPE, new ResourceScope(ResourceScopeTypeEnum.BIZ, "2"))
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE, true)
+            .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE, true)
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE, "web")
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, "admin");
         assertThat(FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_GSE_V2, ctx)).isFalse();
@@ -96,6 +98,7 @@ class FeatureToggleTest {
         ctx = FeatureExecutionContext.builder()
             .addContextParam(CTX_PARAM_RESOURCE_SCOPE, new ResourceScope(ResourceScopeTypeEnum.BIZ, "100"))
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE, false)
+            .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE, true)
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE, "web")
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, "admin");
         assertThat(FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_GSE_V2, ctx)).isFalse();
@@ -103,6 +106,7 @@ class FeatureToggleTest {
         ctx = FeatureExecutionContext.builder()
             .addContextParam(CTX_PARAM_RESOURCE_SCOPE, new ResourceScope(ResourceScopeTypeEnum.BIZ, "100"))
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE, true)
+            .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE, true)
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE, "web")
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, "admin");
         assertThat(FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_GSE_V2, ctx)).isTrue();
@@ -110,12 +114,14 @@ class FeatureToggleTest {
         ctx = FeatureExecutionContext.builder()
             .addContextParam(CTX_PARAM_RESOURCE_SCOPE, new ResourceScope(ResourceScopeTypeEnum.BIZ, "200"))
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE, false)
+            .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE, true)
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE, "web")
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, "admin");
         assertThat(FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_GSE_V2, ctx)).isTrue();
         ctx = FeatureExecutionContext.builder()
             .addContextParam(CTX_PARAM_RESOURCE_SCOPE, new ResourceScope(ResourceScopeTypeEnum.BIZ, "200"))
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE, false)
+            .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE, true)
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE, "web")
             .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, "job");
         assertThat(FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_GSE_V2, ctx)).isFalse();

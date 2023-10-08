@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.util.feature;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.function.Supplier;
 
 /**
  * 特性运行上下文
@@ -39,6 +40,11 @@ public class FeatureExecutionContext {
      */
     private final Map<String, Object> params = new HashMap<>();
 
+    /**
+     * 运行时参数 Supplier, 用于延迟计算可选参数
+     */
+    private final Map<String, Supplier<Object>> paramSuppliers = new HashMap<>();
+
     public static FeatureExecutionContext builder() {
         return new FeatureExecutionContext();
     }
@@ -47,11 +53,25 @@ public class FeatureExecutionContext {
     }
 
     public Object getParam(String paramName) {
-        return this.params.get(paramName);
+        Object value = this.params.get(paramName);
+        if (value != null) {
+            return value;
+        }
+        Supplier<Object> paramSupplier = this.paramSuppliers.get(paramName);
+        if (paramSupplier != null) {
+            value = paramSupplier.get();
+            params.put(paramName, value);
+        }
+        return value;
     }
 
     public FeatureExecutionContext addContextParam(String paramName, Object value) {
         this.params.put(paramName, value);
+        return this;
+    }
+
+    public FeatureExecutionContext addContextParam(String paramName, Supplier<Object> paramValueSupplier) {
+        this.paramSuppliers.put(paramName, paramValueSupplier);
         return this;
     }
 
