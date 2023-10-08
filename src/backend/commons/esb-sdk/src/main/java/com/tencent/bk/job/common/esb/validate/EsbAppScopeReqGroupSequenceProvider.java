@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.esb.validate;
 
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,8 @@ public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequence
         validationGroups.add(EsbAppScopeReq.class);
         if (req != null) {
             // 如果不兼容bk_biz_id，那么使用bk_scope_type+bk_scope_id参数校验方式
-            if (!FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE, null)) {
+            if (!FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE,
+                FeatureExecutionContext.EMPTY)) {
                 validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
                 return validationGroups;
             }

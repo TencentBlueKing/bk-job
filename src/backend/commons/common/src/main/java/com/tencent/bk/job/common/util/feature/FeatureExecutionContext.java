@@ -32,6 +32,8 @@ import java.util.StringJoiner;
  * 特性运行上下文
  */
 public class FeatureExecutionContext {
+    public static FeatureExecutionContext EMPTY = new FeatureExecutionContext();
+
     /**
      * 运行时参数
      */

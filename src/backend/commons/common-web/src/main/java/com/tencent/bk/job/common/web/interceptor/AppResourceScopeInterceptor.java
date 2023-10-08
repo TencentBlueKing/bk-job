@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -150,7 +151,8 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
         }
 
         // 如果兼容bk_biz_id参数
-        if (FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE, null)) {
+        if (FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE,
+            FeatureExecutionContext.EMPTY)) {
             // 兼容当前业务ID参数
             if (StringUtils.isNotBlank(bizIdStr)) {
                 long bizId = Long.parseLong(bizIdStr);
