@@ -54,7 +54,7 @@ class CronJob extends ModuleBase {
     });
   }
 
-  // // 删除定时任务
+  // 删除定时任务
   deleteDataById({ id }) {
     return Request.delete(`${this.path}/cron/job/${id}`);
   }
