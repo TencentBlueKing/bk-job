@@ -58,7 +58,7 @@ public class DefaultFeatureManager implements FeatureManager {
 
         Feature feature = featureStore.getFeature(featureId);
         if (log.isDebugEnabled()) {
-            log.debug("Check feature, featureId: {}, config: {}", featureId, feature);
+            log.debug("Check feature {}", featureId);
         }
         if (feature == null) {
             if (log.isDebugEnabled()) {
@@ -85,8 +85,7 @@ public class DefaultFeatureManager implements FeatureManager {
 
         boolean result = strategy.evaluate(featureId, ctx);
         if (log.isDebugEnabled()) {
-            log.debug("Apply feature toggle strategy, featureId: {}, strategy: {}, context: {}, result: {}",
-                featureId, strategy, ctx, result);
+            log.debug("Apply feature toggle strategy, featureId: {}, context: {}, result: {}", featureId, ctx, result);
         }
         if (result) {
             recordFeatureToggleHitTotal(featureId, resourceScope);

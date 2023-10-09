@@ -966,15 +966,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE,
-                    () -> taskInstanceHosts.stream().anyMatch(host -> {
-                        log.info("CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE");
-                        return AgentUtils.isGseV2AgentId(host.getAgentId());
-                        }
-                    ))
+                    () -> taskInstanceHosts.stream().anyMatch(host -> AgentUtils.isGseV2AgentId(host.getAgentId())))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE,
                     () -> taskInstanceHosts.stream().allMatch(
-                        host -> AgentUtils.isGseV2AgentId(host.getAgentId())
-                    ))
+                        host -> AgentUtils.isGseV2AgentId(host.getAgentId())))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE,
                     () -> TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()).getName())
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, taskInstance::getOperator);
