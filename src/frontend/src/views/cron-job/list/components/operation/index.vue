@@ -675,7 +675,9 @@
             if (params.endTime) {
               params.endTime = new Date(params.endTime).getTime() / 1000;
             }
-            return CronJobService.update({
+
+            const requestHandler = params.id ? CronJobService.update : CronJobService.create;
+            return requestHandler({
               ...params,
               variableValue: variableList,
             }).then(() => {
