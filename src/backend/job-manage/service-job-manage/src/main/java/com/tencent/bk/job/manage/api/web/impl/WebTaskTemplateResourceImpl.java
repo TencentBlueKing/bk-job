@@ -284,6 +284,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                    String scopeId,
                                                    Long templateId,
                                                    @AuditRequestBody TaskTemplateCreateUpdateReq request) {
+        request.setId(templateId);
         request.validate();
 
         TaskTemplateInfoDTO updatedTemplate = templateService.updateTaskTemplate(
