@@ -112,6 +112,14 @@ public class InMemoryFeatureStore implements FeatureStore {
         }
     }
 
+    /**
+     * 解析特性配置
+     *
+     * @param featureId     特性 ID
+     * @param featureConfig 特性配置信息
+     * @return 解析之后的特性
+     * @throws FeatureConfigParseException 如果解析报错，抛出异常
+     */
     private Feature parseFeatureConfig(String featureId,
                                        FeatureConfig featureConfig) throws FeatureConfigParseException {
         if (StringUtils.isBlank(featureId)) {

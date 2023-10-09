@@ -37,6 +37,15 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DefaultFeatureManager implements FeatureManager {
+    /**
+     * 度量指标 - 特性灰度检查总次数
+     */
+    private static final String METRIC_JOB_FEATURE_TOGGLE_TOTAL = "job.feature.toggle.total";
+    /**
+     * 度量指标 - 特性灰度命中总次数
+     */
+    private static final String METRIC_JOB_FEATURE_TOGGLE_HIT_TOTAL = "job.feature.toggle.hit.total";
+
     private final FeatureStore featureStore;
     private final MeterRegistry meterRegistry;
 
@@ -103,15 +112,13 @@ public class DefaultFeatureManager implements FeatureManager {
     }
 
     private void recordFeatureToggleTotal(String featureId, String resourceScope) {
-        String metricName = "job.feature.toggle.total";
-        meterRegistry.counter(metricName,
+        meterRegistry.counter(METRIC_JOB_FEATURE_TOGGLE_TOTAL,
             Tags.of("resourceScope", resourceScope).and("feature", featureId))
             .increment();
     }
 
     private void recordFeatureToggleHitTotal(String featureId, String resourceScope) {
-        String metricName = "job.feature.toggle.hit.total";
-        meterRegistry.counter(metricName,
+        meterRegistry.counter(METRIC_JOB_FEATURE_TOGGLE_HIT_TOTAL,
             Tags.of("resourceScope", resourceScope).and("feature", featureId))
             .increment();
     }

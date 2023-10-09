@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.util.feature.ToggleStrategy;
 import java.util.List;
 import java.util.Map;
 
-public class AnyMatchToggleStrategy extends AbstractToggleStrategy {
+public class AnyMatchToggleStrategy extends AbstractCompositeToggleStrategy {
 
     /**
      * 特性开关开启策略ID
@@ -40,23 +40,17 @@ public class AnyMatchToggleStrategy extends AbstractToggleStrategy {
     public AnyMatchToggleStrategy(List<ToggleStrategy> strategies,
                                   Map<String, String> initParams) {
         super(STRATEGY_ID, strategies, initParams);
-        assertRequiredAtLeastOneStrategy();
     }
 
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
         assertRequiredAtLeastOneStrategy();
-        for (ToggleStrategy strategy : getCompositeToggleStrategies()) {
+        for (ToggleStrategy strategy : compositeStrategies) {
             boolean isMatch = strategy.evaluate(featureId, ctx);
             if (isMatch) {
                 return true;
             }
         }
         return false;
-    }
-
-    @Override
-    public List<ToggleStrategy> getCompositeToggleStrategies() {
-        return this.compositeStrategies;
     }
 }

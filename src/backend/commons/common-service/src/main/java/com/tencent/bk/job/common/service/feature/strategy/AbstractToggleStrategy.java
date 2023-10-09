@@ -27,11 +27,9 @@ package com.tencent.bk.job.common.service.feature.strategy;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.ToggleStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,36 +42,14 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
      * 策略 ID
      */
     protected final String id;
-    /**
-     * 组合策略
-     */
-    protected List<ToggleStrategy> compositeStrategies = null;
+
     /**
      * 策略初始化参数
      */
     protected final Map<String, String> initParams;
 
     /**
-     * 初始化特性开关
-     *
-     * @param strategyId          策略ID
-     * @param compositeStrategies 组合策略
-     * @param initParams          初始化参数
-     */
-    public AbstractToggleStrategy(String strategyId,
-                                  List<ToggleStrategy> compositeStrategies,
-                                  Map<String, String> initParams) {
-        this.id = strategyId;
-        this.compositeStrategies = compositeStrategies;
-        if (initParams != null) {
-            this.initParams = initParams;
-        } else {
-            this.initParams = new HashMap<>();
-        }
-    }
-
-    /**
-     * 初始化特性开关
+     * 构造策略
      *
      * @param strategyId 策略ID
      * @param initParams 初始化参数
@@ -107,13 +83,7 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
         }
     }
 
-    public void assertRequiredAtLeastOneStrategy() {
-        if (CollectionUtils.isEmpty(this.compositeStrategies)) {
-            String msg = "Required at least one strategy for this ToggleStrategy";
-            log.error(msg);
-            throw new FeatureConfigParseException(msg);
-        }
-    }
+
 
     public void assertRequiredContextParam(FeatureExecutionContext context, String paramName) {
         if (context.getParam(paramName) == null) {

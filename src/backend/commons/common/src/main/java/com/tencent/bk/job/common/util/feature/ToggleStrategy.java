@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.common.util.feature;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,13 +39,6 @@ public interface ToggleStrategy {
      * 获取初始化参数
      */
     Map<String, String> getInitParams();
-
-    /**
-     * 获取组合策略
-     */
-    default List<ToggleStrategy> getCompositeToggleStrategies() {
-        return Collections.emptyList();
-    }
 
     /**
      * 判断是否开启特性

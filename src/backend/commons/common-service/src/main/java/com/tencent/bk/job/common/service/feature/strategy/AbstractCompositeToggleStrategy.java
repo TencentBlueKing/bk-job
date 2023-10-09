@@ -24,31 +24,36 @@
 
 package com.tencent.bk.job.common.service.feature.strategy;
 
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.ToggleStrategy;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
 
-public class AllMatchToggleStrategy extends AbstractCompositeToggleStrategy {
+/**
+ * 组合策略抽象实现
+ */
+@Slf4j
+public abstract class AbstractCompositeToggleStrategy extends AbstractToggleStrategy {
     /**
-     * 特性开关开启策略ID
+     * 组合策略
      */
-    public static final String STRATEGY_ID = "AllMatchToggleStrategy";
+    protected final List<ToggleStrategy> compositeStrategies;
 
-    public AllMatchToggleStrategy(List<ToggleStrategy> strategies,
-                                  Map<String, String> initParams) {
-        super(STRATEGY_ID, strategies, initParams);
+    public AbstractCompositeToggleStrategy(String strategyId,
+                                           List<ToggleStrategy> compositeStrategies,
+                                           Map<String, String> initParams) {
+        super(strategyId, initParams);
+        this.compositeStrategies = compositeStrategies;
+        assertRequiredAtLeastOneStrategy();
     }
 
-    @Override
-    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
-        for (ToggleStrategy strategy : compositeStrategies) {
-            boolean isMatch = strategy.evaluate(featureId, ctx);
-            if (!isMatch) {
-                return false;
-            }
+    protected void assertRequiredAtLeastOneStrategy() {
+        if (CollectionUtils.isEmpty(this.compositeStrategies)) {
+            String msg = "Required at least one strategy for this ToggleStrategy";
+            log.error(msg);
+            throw new FeatureConfigParseException(msg);
         }
-        return true;
     }
 }
