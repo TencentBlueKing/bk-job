@@ -190,7 +190,7 @@ public class NotifyServiceImpl implements NotifyService {
         trigger.setAppId(taskNotifyDTO.getAppId());
         trigger.setTriggerUser(taskNotifyDTO.getOperator());
         Integer startupMode = taskNotifyDTO.getStartupMode();
-        if (startupMode.equals(TaskStartupModeEnum.NORMAL.getValue())) {
+        if (startupMode.equals(TaskStartupModeEnum.WEB.getValue())) {
             trigger.setTriggerType(TriggerTypeEnum.PAGE_EXECUTE.getType());
         } else if (startupMode.equals(TaskStartupModeEnum.API.getValue())) {
             trigger.setTriggerType(TriggerTypeEnum.API_INVOKE.getType());

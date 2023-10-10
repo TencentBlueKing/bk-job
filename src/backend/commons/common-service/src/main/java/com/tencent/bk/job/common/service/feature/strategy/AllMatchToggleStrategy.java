@@ -22,27 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.service.feature.strategy;
 
-import lombok.Data;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.ToggleStrategy;
 
-/**
- * 特性
- */
-@Data
-public class Feature {
+import java.util.List;
+import java.util.Map;
+
+public class AllMatchToggleStrategy extends AbstractCompositeToggleStrategy {
     /**
-     * 特性ID
+     * 特性开关开启策略ID
      */
-    private String id;
-    /**
-     * 是否启用特性
-     */
-    private boolean enabled;
-    /**
-     * 特性启用灰度策略
-     */
-    private ToggleStrategy strategy;
+    public static final String STRATEGY_ID = "AllMatchToggleStrategy";
 
+    public AllMatchToggleStrategy(List<ToggleStrategy> strategies,
+                                  Map<String, String> initParams) {
+        super(STRATEGY_ID, strategies, initParams);
+    }
 
+    @Override
+    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
+        for (ToggleStrategy strategy : compositeStrategies) {
+            boolean isMatch = strategy.evaluate(featureId, ctx);
+            if (!isMatch) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

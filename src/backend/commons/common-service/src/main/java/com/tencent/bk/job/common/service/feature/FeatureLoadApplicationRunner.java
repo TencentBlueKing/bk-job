@@ -22,27 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.service.feature;
 
-import lombok.Data;
+import com.tencent.bk.job.common.util.feature.FeatureStore;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 
 /**
- * 特性
+ * 特性开关配置加载 ApplicationRunner
  */
-@Data
-public class Feature {
-    /**
-     * 特性ID
-     */
-    private String id;
-    /**
-     * 是否启用特性
-     */
-    private boolean enabled;
-    /**
-     * 特性启用灰度策略
-     */
-    private ToggleStrategy strategy;
+@Slf4j
+public class FeatureLoadApplicationRunner implements ApplicationRunner {
+    private final FeatureStore featureStore;
 
+    public FeatureLoadApplicationRunner(FeatureStore featureStore) {
+        this.featureStore = featureStore;
+    }
 
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        // 初始化特性开关配置；如果初始化错误，那么抛出异常终止程序启动
+        log.info("FeatureLoadApplicationRunner start");
+        featureStore.load(false);
+        log.info("FeatureLoadApplicationRunner run success");
+    }
 }

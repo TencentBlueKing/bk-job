@@ -22,27 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.service;
 
-import lombok.Data;
+import com.tencent.bk.job.common.util.feature.FeatureStore;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 特性
- */
-@Data
-public class Feature {
-    /**
-     * 特性ID
-     */
-    private String id;
-    /**
-     * 是否启用特性
-     */
-    private boolean enabled;
-    /**
-     * 特性启用灰度策略
-     */
-    private ToggleStrategy strategy;
+@Configuration(proxyBeanMethods = false)
+public class CommonServiceAutoConfiguration {
 
-
+    @Bean
+    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
+        return new ConfigRefreshEventListener(featureStore);
+    }
 }

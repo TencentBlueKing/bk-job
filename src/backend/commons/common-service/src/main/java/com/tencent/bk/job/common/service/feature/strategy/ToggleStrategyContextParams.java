@@ -22,27 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.service.feature.strategy;
 
-import lombok.Data;
-
-/**
- * 特性
- */
-@Data
-public class Feature {
+public interface ToggleStrategyContextParams {
     /**
-     * 特性ID
+     * 上下文参数-资源范围
      */
-    private String id;
-    /**
-     * 是否启用特性
-     */
-    private boolean enabled;
-    /**
-     * 特性启用灰度策略
-     */
-    private ToggleStrategy strategy;
-
-
+    String CTX_PARAM_RESOURCE_SCOPE = "resourceScope";
 }

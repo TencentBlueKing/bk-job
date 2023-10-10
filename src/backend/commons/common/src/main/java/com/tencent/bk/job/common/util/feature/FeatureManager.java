@@ -24,25 +24,16 @@
 
 package com.tencent.bk.job.common.util.feature;
 
-import lombok.Data;
-
 /**
- * 特性
+ * 特性管理
  */
-@Data
-public class Feature {
+public interface FeatureManager {
     /**
-     * 特性ID
+     * 判断特性是否开启
+     *
+     * @param featureId 特性ID
+     * @param ctx       特性运行上下文
+     * @return 是否开启
      */
-    private String id;
-    /**
-     * 是否启用特性
-     */
-    private boolean enabled;
-    /**
-     * 特性启用灰度策略
-     */
-    private ToggleStrategy strategy;
-
-
+    boolean checkFeature(String featureId, FeatureExecutionContext ctx);
 }

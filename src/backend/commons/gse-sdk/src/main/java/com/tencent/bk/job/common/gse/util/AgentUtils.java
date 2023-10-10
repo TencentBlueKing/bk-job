@@ -24,4 +24,16 @@ public class AgentUtils {
         return GSE_V1_AGENT_ID_PATTERN.matcher(agentId).matches();
     }
 
+    /**
+     * 是否是GSE2.0 AgentId
+     *
+     * @param agentId agentId
+     */
+    public static boolean isGseV2AgentId(String agentId) {
+        if (StringUtils.isEmpty(agentId)) {
+            return false;
+        }
+        return !isGseV1AgentId(agentId);
+    }
+
 }
