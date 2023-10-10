@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -575,7 +576,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 for (AgentTaskDetailDTO agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
                     agentTaskVO.setHostId(agentTask.getHostId());
-                    agentTaskVO.setAgentId(agentTask.getAgentId());
+                    agentTaskVO.setAgentId(displayAsRealAgentId(agentTask.getAgentId()));
                     agentTaskVO.setIp(agentTask.getCloudIp());
                     agentTaskVO.setDisplayIp(agentTask.getIp());
                     agentTaskVO.setIpv4(agentTask.getIp());
@@ -607,6 +608,15 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         }
 
         return stepExecutionDetailVO;
+    }
+
+    private String displayAsRealAgentId(String agentId) {
+        /*
+         * 对接 GSE V1 的 agentId 值为 云区域:ip（内部实现，产品上 GSE V1 Agent 并没有 AgentId 的概念）。
+         * 只有GSE V2 Agent 才会在 cmdb 注册真实的 agentId。
+         * 为了避免与cmdb 主机 AgentId 属性的理解上的歧义，需要把内部实现上的 GSE V1 agentId 隐藏
+         */
+        return AgentUtils.isGseV1AgentId(agentId) ? "" : agentId;
     }
 
     private List<RollingStepBatchTaskVO> toRollingStepBatchTaskVOs(Integer latestBatch,
