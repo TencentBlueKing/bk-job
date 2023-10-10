@@ -90,10 +90,19 @@ public class HostDTO implements Cloneable {
     private String ipv6;
 
     /**
-     * agent状态，0-异常，1-正常
+     * agent存活状态，0-异常，1-正常
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer alive;
+
+    /**
+     * 操作系统
+     */
+    private String os;
+    /**
+     * 主机名称
+     */
+    private String hostname;
 
     @Deprecated
     public HostDTO(Long bkCloudId, String ip) {
@@ -172,6 +181,8 @@ public class HostDTO implements Cloneable {
         cloudAreaInfo.setId(hostDTO.getBkCloudId());
         cloudAreaInfo.setName(hostDTO.getBkCloudName());
         hostInfoVO.setCloudArea(cloudAreaInfo);
+        hostInfoVO.setOs(hostDTO.getOs());
+        hostInfoVO.setHostName(hostDTO.getHostname());
         return hostInfoVO;
     }
 

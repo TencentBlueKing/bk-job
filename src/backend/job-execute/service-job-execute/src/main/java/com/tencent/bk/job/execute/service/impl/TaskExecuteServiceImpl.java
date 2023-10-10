@@ -1177,6 +1177,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 host.setIp(hostDetail.getIp());
                 host.setIpv6(hostDetail.getIpv6());
                 host.setBkCloudName(hostDetail.getBkCloudName());
+                host.setOs(hostDetail.getOs());
+                host.setAlive(hostDetail.getAlive());
             });
         }
     }
