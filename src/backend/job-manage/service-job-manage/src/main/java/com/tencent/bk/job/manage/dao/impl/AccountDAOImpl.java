@@ -34,6 +34,7 @@ import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
+import com.tencent.bk.job.manage.model.dto.AccountSearchDTO;
 import com.tencent.bk.job.manage.model.tables.Account;
 import com.tencent.bk.job.manage.model.tables.TaskTemplate;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStep;
@@ -343,6 +344,32 @@ public class AccountDAOImpl implements AccountDAO {
         return listPageAccountByConditions(baseSearchCondition, conditions, count);
     }
 
+    @Override
+    public PageData<AccountDTO> accurateSearchPageAccount(AccountSearchDTO accountSearchDTO,
+                                                          BaseSearchCondition baseSearchCondition) {
+        List<Condition> conditions = buildConditions(accountSearchDTO);
+        long count = countAccountByConditions(conditions);
+        return listPageAccountByConditions(baseSearchCondition, conditions, count);
+    }
+
+    private List<Condition> buildConditions(AccountSearchDTO accountSearchDTO) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)));
+        if (accountSearchDTO.getAppId() != null) {
+            conditions.add(TB_ACCOUNT.APP_ID.eq(accountSearchDTO.getAppId()));
+        }
+        if (accountSearchDTO.getCategory() != null) {
+            conditions.add(TB_ACCOUNT.CATEGORY.eq(JooqDataTypeUtil.getByteFromInteger(accountSearchDTO.getCategory())));
+        }
+        if (StringUtils.isNotBlank(accountSearchDTO.getAccount())) {
+            conditions.add(TB_ACCOUNT.ACCOUNT_.eq(accountSearchDTO.getAccount()));
+        }
+        if (StringUtils.isNotBlank(accountSearchDTO.getAlias())) {
+            conditions.add(TB_ACCOUNT.ALIAS.eq(accountSearchDTO.getAlias()));
+        }
+        return conditions;
+    }
+
     public PageData<AccountDTO> listPageAccountByConditions(BaseSearchCondition baseSearchCondition,
                                                             List<Condition> conditions, long count) {
 
@@ -414,6 +441,10 @@ public class AccountDAOImpl implements AccountDAO {
      */
     private long getPageAccountCount(AccountDTO accountQuery, BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildConditionList(accountQuery, baseSearchCondition);
+        return countAccountByConditions(conditions);
+    }
+
+    private long countAccountByConditions(List<Condition> conditions) {
         Long count = ctx.selectCount().from(TB_ACCOUNT).where(conditions).fetchOne(0, Long.class);
         assert count != null;
         return count;

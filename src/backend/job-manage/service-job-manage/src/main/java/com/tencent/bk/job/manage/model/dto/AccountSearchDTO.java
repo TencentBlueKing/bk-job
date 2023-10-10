@@ -22,53 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.manage.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class EsbAccountV3DTO extends EsbAppScopeDTO {
-    private Long id;
+@Getter
+@Setter
+public class AccountSearchDTO {
 
+    /**
+     * 业务ID
+     */
+    private Long appId;
+    /**
+     * 账号用途
+     */
+    private Integer category;
+    /**
+     * 账号名称
+     */
     private String account;
-
+    /**
+     * 账号别名
+     */
     private String alias;
 
-    // 账号用途（1：系统账号，2：DB账号）
-    private int category;
-
-    // 账号类型（1：Linux，2：Windows，9：MySQL，10：Oracle，11：DB2）
-    private int type;
-
-    @JsonProperty("db_system_account_id")
-    private Long dbSystemAccountId;
-
-    private String os;
-
-    private String creator;
-
-    @JsonProperty("create_time")
-    private Long createTime;
-
-    @JsonProperty("last_modify_user")
-    private String lastModifyUser;
-
-    @JsonProperty("last_modify_time")
-    private Long lastModifyTime;
-
-    /**
-     * 账号描述
-     */
-    @JsonProperty("description")
-    private String description;
-
-    /**
-     * 是否有权限使用
-     */
-    @JsonProperty("can_use")
-    private Boolean canUse;
 }

@@ -22,53 +22,59 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.util.json.SkipLogFields;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class EsbAccountV3DTO extends EsbAppScopeDTO {
-    private Long id;
+@ApiModel("账号创建请求")
+@ToString(exclude = {"password"})
+public class EsbCreateAccountV3Req extends EsbAppScopeReq {
 
+    /**
+     * 帐号名称
+     */
+    @NotEmpty(message = "{validation.constraints.AccountName_empty.message}")
     private String account;
 
+    /**
+     * 账号类型：1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2
+     */
+    @NotNull(message = "{validation.constraints.AccountType_empty.message}")
+    private Integer type;
+
+    /**
+     * 账号用途：1-系统账号，2-数据库账号
+     */
+    @NotNull(message = "{validation.constraints.AccountCategory_empty.message}")
+    private Integer category;
+
+    /**
+     * 系统账号的密码(Windows)
+     */
+    @SkipLogFields
+    @Length(max = 255, message = "{validation.constraints.AccountPassword_tooLong.message}")
+    private String password;
+
+    /**
+     * 别名
+     */
+    @Length(max = 255, message = "{validation.constraints.AccountAlias_tooLong.message}")
     private String alias;
 
-    // 账号用途（1：系统账号，2：DB账号）
-    private int category;
-
-    // 账号类型（1：Linux，2：Windows，9：MySQL，10：Oracle，11：DB2）
-    private int type;
-
-    @JsonProperty("db_system_account_id")
-    private Long dbSystemAccountId;
-
-    private String os;
-
-    private String creator;
-
-    @JsonProperty("create_time")
-    private Long createTime;
-
-    @JsonProperty("last_modify_user")
-    private String lastModifyUser;
-
-    @JsonProperty("last_modify_time")
-    private Long lastModifyTime;
-
     /**
-     * 账号描述
+     * 描述
      */
     @JsonProperty("description")
-    private String description;
-
-    /**
-     * 是否有权限使用
-     */
-    @JsonProperty("can_use")
-    private Boolean canUse;
+    @Length(max = 1024, message = "{validation.constraints.AccountDescription_tooLong.message}")
+    private String remark;
 }

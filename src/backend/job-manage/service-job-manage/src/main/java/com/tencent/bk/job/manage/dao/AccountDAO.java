@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
+import com.tencent.bk.job.manage.model.dto.AccountSearchDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -101,6 +102,16 @@ public interface AccountDAO {
      * @return 账号分页数据
      */
     PageData<AccountDTO> listPageAccount(AccountDTO accountQuery, BaseSearchCondition baseSearchCondition);
+
+    /**
+     * 分页精确搜索账号列表
+     *
+     * @param accountSearchDTO    账号搜索条件
+     * @param baseSearchCondition 基础查询条件
+     * @return 账号分页
+     */
+    PageData<AccountDTO> accurateSearchPageAccount(AccountSearchDTO accountSearchDTO,
+                                                   BaseSearchCondition baseSearchCondition);
 
     /**
      * 分页搜索账号列表

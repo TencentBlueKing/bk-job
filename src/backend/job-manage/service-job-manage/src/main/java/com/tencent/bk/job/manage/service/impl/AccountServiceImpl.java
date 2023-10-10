@@ -57,6 +57,7 @@ import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
+import com.tencent.bk.job.manage.model.dto.AccountSearchDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
 import com.tencent.bk.job.manage.service.AccountService;
@@ -311,6 +312,12 @@ public class AccountServiceImpl implements AccountService {
     public PageData<AccountDTO> listPageAccount(AccountDTO accountQuery, BaseSearchCondition baseSearchCondition)
         throws ServiceException {
         return accountDAO.listPageAccount(accountQuery, baseSearchCondition);
+    }
+
+    @Override
+    public PageData<AccountDTO> accurateSearchPageAccount(AccountSearchDTO accountSearchDTO,
+                                                          BaseSearchCondition baseSearchCondition) {
+        return accountDAO.accurateSearchPageAccount(accountSearchDTO, baseSearchCondition);
     }
 
     @Override

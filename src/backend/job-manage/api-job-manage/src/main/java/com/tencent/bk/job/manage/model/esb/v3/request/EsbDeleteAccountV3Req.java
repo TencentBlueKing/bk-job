@@ -22,53 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotNull;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class EsbAccountV3DTO extends EsbAppScopeDTO {
+@ApiModel("账号删除请求")
+public class EsbDeleteAccountV3Req extends EsbAppScopeReq {
+
+    /**
+     * 帐号ID
+     */
+    @NotNull(message = "{validation.constraints.AccountId_empty.message}")
     private Long id;
 
-    private String account;
-
-    private String alias;
-
-    // 账号用途（1：系统账号，2：DB账号）
-    private int category;
-
-    // 账号类型（1：Linux，2：Windows，9：MySQL，10：Oracle，11：DB2）
-    private int type;
-
-    @JsonProperty("db_system_account_id")
-    private Long dbSystemAccountId;
-
-    private String os;
-
-    private String creator;
-
-    @JsonProperty("create_time")
-    private Long createTime;
-
-    @JsonProperty("last_modify_user")
-    private String lastModifyUser;
-
-    @JsonProperty("last_modify_time")
-    private Long lastModifyTime;
-
-    /**
-     * 账号描述
-     */
-    @JsonProperty("description")
-    private String description;
-
-    /**
-     * 是否有权限使用
-     */
-    @JsonProperty("can_use")
-    private Boolean canUse;
 }
