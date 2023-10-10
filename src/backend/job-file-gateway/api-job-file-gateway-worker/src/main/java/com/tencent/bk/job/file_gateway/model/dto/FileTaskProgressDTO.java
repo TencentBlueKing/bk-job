@@ -22,66 +22,67 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.file_gateway.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
+import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
+import com.tencent.bk.job.file_gateway.model.req.inner.UpdateFileSourceTaskReq;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
+/**
+ * 单个文件任务进度信息
+ */
+@NoArgsConstructor
 @Getter
 @Setter
-@ToString
-public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
+public class FileTaskProgressDTO {
     /**
-     * 脚本版本ID
+     * ID
      */
-    private Long id;
-
-    @JsonProperty("script_id")
-    private String scriptId;
-
+    private String fileSourceTaskId;
     /**
-     * 脚本名称
+     * 文件路径（含bucketName）
      */
-    private String name;
-
-    private String version;
-
+    private String filePath;
+    /**
+     * 文件下载到机器上的真实路径
+     */
+    private String downloadPath;
+    /**
+     * 任务文件状态
+     */
+    private TaskStatusEnum status;
+    /**
+     * 文件大小（字节）
+     */
+    private Long fileSize;
+    /**
+     * 速度
+     */
+    private String speed;
+    /**
+     * 进度
+     */
+    private Integer progress;
+    /**
+     * 日志内容
+     */
     private String content;
 
-    // 脚本版本状态（0：未上线，1：已上线，2：已下线，3：已禁用）
-    private Integer status;
-
-    @JsonProperty("version_desc")
-    private String versionDesc;
-
-    private String creator;
-
-    @JsonProperty("create_time")
-    private Long createTime;
-
-    @JsonProperty("last_modify_user")
-    private String lastModifyUser;
-
-    @JsonProperty("last_modify_time")
-    private Long lastModifyTime;
-
-    /**
-     * 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell
-     */
-    @JsonProperty("script_language")
-    private Integer type;
-
-    /**
-     * 是否公共脚本
-     */
-    @JsonProperty("public_script")
-    private Boolean publicScript;
-
-    /**
-     * 脚本描述
-     */
-    private String description;
+    public static FileTaskProgressDTO fromUpdateFileSourceTaskReq(UpdateFileSourceTaskReq req) {
+        if (req == null) {
+            return null;
+        }
+        FileTaskProgressDTO fileTaskProgressDTO = new FileTaskProgressDTO();
+        fileTaskProgressDTO.setFileSourceTaskId(req.getFileSourceTaskId());
+        fileTaskProgressDTO.setFilePath(req.getFilePath());
+        fileTaskProgressDTO.setDownloadPath(req.getDownloadPath());
+        fileTaskProgressDTO.setStatus(req.getStatus());
+        fileTaskProgressDTO.setFileSize(req.getFileSize());
+        fileTaskProgressDTO.setSpeed(req.getSpeed());
+        fileTaskProgressDTO.setProgress(req.getProgress());
+        fileTaskProgressDTO.setContent(req.getContent());
+        return fileTaskProgressDTO;
+    }
 }

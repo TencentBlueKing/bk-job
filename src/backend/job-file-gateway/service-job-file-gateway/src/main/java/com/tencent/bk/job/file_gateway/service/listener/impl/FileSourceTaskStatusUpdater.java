@@ -93,8 +93,8 @@ public class FileSourceTaskStatusUpdater implements FileTaskStatusChangeListener
             }
         } else if (TaskStatusEnum.SUCCESS.equals(currentStatus)) {
             //检查主任务是否成功
-            if (fileTaskDAO.countFileTaskForUpdate(fileSourceTaskId, null).equals(
-                fileTaskDAO.countFileTaskForUpdate(fileSourceTaskId, TaskStatusEnum.SUCCESS.getStatus()))) {
+            if (fileTaskDAO.countFileTask(fileSourceTaskId, null).equals(
+                fileTaskDAO.countFileTask(fileSourceTaskId, TaskStatusEnum.SUCCESS.getStatus()))) {
                 // 主任务成功
                 fileSourceTaskDTO.setStatus(TaskStatusEnum.SUCCESS.getStatus());
                 fileSourceTaskDAO.updateFileSourceTask(fileSourceTaskDTO);

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.cos.service;
+package com.tencent.bk.job.file.worker.service;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.FileUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -52,14 +53,22 @@ class DownloadFileTask extends Thread {
     AtomicLong fileSize;
     AtomicInteger speed;
     AtomicInteger process;
+    FileProgressWatchingTask watchingTask;
     TaskReporter taskReporter;
     DownloadFileTaskEventListener taskEventListener;
-    FileProgressWatchingTask watchingTask;
 
-    public DownloadFileTask(RemoteClient remoteClient, String taskId, String filePath, String downloadFileDir,
-                            String filePrefix, AtomicLong fileSize, AtomicInteger speed, AtomicInteger process,
+    @Builder
+    public DownloadFileTask(RemoteClient remoteClient,
+                            String taskId,
+                            String filePath,
+                            String downloadFileDir,
+                            String filePrefix,
+                            AtomicLong fileSize,
+                            AtomicInteger speed,
+                            AtomicInteger process,
                             FileProgressWatchingTask watchingTask,
-                            TaskReporter taskReporter, DownloadFileTaskEventListener taskEventListener) {
+                            TaskReporter taskReporter,
+                            DownloadFileTaskEventListener taskEventListener) {
         this.remoteClient = remoteClient;
         this.taskId = taskId;
         this.filePath = filePath;
@@ -94,8 +103,8 @@ class DownloadFileTask extends Thread {
         InputStream ins = null;
         HttpRequestBase req = null;
         try {
-            String fileMd5 = "";
-            String currentMd5 = "";
+            String fileMd5;
+            String currentMd5;
             int count = 0;
             boolean downloadSuccess = false;
             do {

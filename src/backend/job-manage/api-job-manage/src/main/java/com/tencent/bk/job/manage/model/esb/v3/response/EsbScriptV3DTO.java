@@ -65,7 +65,7 @@ public class EsbScriptV3DTO extends EsbAppScopeDTO {
     @JsonPropertyDescription("Online script version id")
     private Long onlineScriptVersionId;
 
-    @JsonProperty("脚本描述")
+    @JsonProperty("description")
     @JsonPropertyDescription("Script description")
     private String description;
 

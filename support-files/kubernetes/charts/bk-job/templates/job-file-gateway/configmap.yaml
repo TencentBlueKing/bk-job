@@ -69,6 +69,8 @@ data:
             readTimeout: 20000
     job:
       file-gateway:
+        reDispatch:
+          {{- toYaml .Values.fileGatewayConfig.reDispatch | nindent 10 }}
         worker-tags:
           white: {{ .Values.fileGatewayConfig.workerTags.white }}
           black: {{ .Values.fileGatewayConfig.workerTags.black }}
