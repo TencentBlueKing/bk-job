@@ -35,15 +35,15 @@
     "data": [
         {
             "line": 1,
-            "lineContent": "rm /tmp",
-            "matchContent": "rm /tmp",
+            "line_content": "rm /tmp",
+            "match_content": "rm /tmp",
             "level": 1,
             "description": "The first line of the script does not define a valid script type, for example: #!/bin/bash"
         },
         {
             "line": 1,
             "line_content": "rm /tmp",
-            "matchContent": "rm",
+            "match_content": "rm",
             "level": 3,
             "description": "dangerous！！！"
         }

@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.api.esb.impl.v3;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -94,11 +93,8 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_dangerous_rule"})
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
     public EsbResp deleteDangerousRule(@AuditRequestBody EsbManageDangerousRuleV3Req request) {
-        Integer id = dangerousRuleService.deleteDangerousRuleById(request.getUserName(), request.getId());
-        if (id > 0) {
-            return EsbResp.buildSuccessResp(null);
-        }
-        return EsbResp.buildCommonFailResp(ErrorCode.INTERNAL_ERROR);
+        dangerousRuleService.deleteDangerousRuleById(request.getUserName(), request.getId());
+        return EsbResp.buildSuccessResp(null);
     }
 
     @Override
@@ -125,7 +121,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
     public EsbResp<EsbDangerousRuleV3DTO> enableDangerousRule(@AuditRequestBody EsbManageDangerousRuleV3Req request) {
         DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(request.getUserName(),
             request.getId(),
-            EnableStatusEnum.ENABLED.getValue());
+            EnableStatusEnum.ENABLED);
         return EsbResp.buildSuccessResp(dangerousRuleDTO.toEsbManageDangerousRuleV3DTO());
     }
 
@@ -135,7 +131,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
     public EsbResp<EsbDangerousRuleV3DTO> disableDangerousRule(@AuditRequestBody EsbManageDangerousRuleV3Req request) {
         DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(request.getUserName(),
             request.getId(),
-            EnableStatusEnum.DISABLED.getValue());
+            EnableStatusEnum.DISABLED);
         return EsbResp.buildSuccessResp(dangerousRuleDTO.toEsbManageDangerousRuleV3DTO());
     }
 }
