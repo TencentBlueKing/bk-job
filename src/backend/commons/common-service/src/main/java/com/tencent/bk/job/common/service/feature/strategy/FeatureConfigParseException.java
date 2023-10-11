@@ -22,38 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.config;
-
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.PostConstruct;
-import java.util.Map;
+package com.tencent.bk.job.common.service.feature.strategy;
 
 /**
- * 特性开关配置
- * <p>
- * ignoreInvalidFields: true, 避免因为错误的配置导致微服务不可用（RefreshScopeHealthIndicator会对ConfigurationProperties
- * 进行健康检查，如果配置有问题，会把微服务的状态设置为health=DOWN)
+ * 特性开关配置解析异常
  */
-@ConfigurationProperties(prefix = "job", ignoreInvalidFields = true)
-@ToString
-@Getter
-@Setter
-@Slf4j
-public class FeatureToggleConfig {
+public class FeatureConfigParseException extends RuntimeException {
+    public FeatureConfigParseException() {
+    }
 
-    /**
-     * 特性
-     */
-    private Map<String, FeatureConfig> features;
+    public FeatureConfigParseException(String message) {
+        super(message);
+    }
 
-    @PostConstruct
-    public void print() {
-        log.info("FeatureToggleConfig init: {}", JsonUtils.toJson(this));
+    public FeatureConfigParseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public FeatureConfigParseException(Throwable cause) {
+        super(cause);
     }
 }

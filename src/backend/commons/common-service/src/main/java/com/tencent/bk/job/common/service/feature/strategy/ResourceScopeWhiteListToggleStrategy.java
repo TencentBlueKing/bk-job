@@ -22,27 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.service.feature.strategy;
 
-import lombok.Data;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+
+import java.util.Map;
+import java.util.StringJoiner;
 
 /**
- * 特性
+ * 根据资源范围白名单灰度策略
  */
-@Data
-public class Feature {
+public class ResourceScopeWhiteListToggleStrategy extends AbstractResourceScopeToggleStrategy {
     /**
-     * 特性ID
+     * 特性开关开启策略ID
      */
-    private String id;
-    /**
-     * 是否启用特性
-     */
-    private boolean enabled;
-    /**
-     * 特性启用灰度策略
-     */
-    private ToggleStrategy strategy;
+    public static final String STRATEGY_ID = "ResourceScopeWhiteListToggleStrategy";
 
+    public ResourceScopeWhiteListToggleStrategy(Map<String, String> initParams) {
+        super(STRATEGY_ID, initParams);
+    }
 
+    @Override
+    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
+        ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
+        return this.resourceScopes.contains(scope);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScopeWhiteListToggleStrategy.class.getSimpleName() + "[", "]")
+            .add("id='" + id + "'")
+            .add("initParams=" + initParams)
+            .add("resourceScopes=" + resourceScopes)
+            .toString();
+    }
 }

@@ -22,27 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.service.feature.strategy;
 
-import lombok.Data;
+import com.tencent.bk.job.common.util.feature.ToggleStrategy;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * 特性
+ * 组合策略抽象实现
  */
-@Data
-public class Feature {
+@Slf4j
+public abstract class AbstractCompositeToggleStrategy extends AbstractToggleStrategy {
     /**
-     * 特性ID
+     * 组合策略
      */
-    private String id;
-    /**
-     * 是否启用特性
-     */
-    private boolean enabled;
-    /**
-     * 特性启用灰度策略
-     */
-    private ToggleStrategy strategy;
+    protected final List<ToggleStrategy> compositeStrategies;
 
+    public AbstractCompositeToggleStrategy(String strategyId,
+                                           List<ToggleStrategy> compositeStrategies,
+                                           Map<String, String> initParams) {
+        super(strategyId, initParams);
+        this.compositeStrategies = compositeStrategies;
+        assertRequiredAtLeastOneStrategy();
+    }
 
+    protected void assertRequiredAtLeastOneStrategy() {
+        if (CollectionUtils.isEmpty(this.compositeStrategies)) {
+            String msg = "Required at least one strategy for this ToggleStrategy";
+            log.error(msg);
+            throw new FeatureConfigParseException(msg);
+        }
+    }
 }

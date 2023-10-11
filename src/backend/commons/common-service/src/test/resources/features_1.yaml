@@ -1,0 +1,30 @@
+features:
+  gseV2:
+    enabled: true
+    strategy:
+      # 作业执行对接 GSE2.0 灰度策略。任一策略满足即可开启灰度
+      id: AnyMatchToggleStrategy
+      strategies:
+        # 策略 1： 业务黑名单灰度策略，除了 Biz:2,Biz:100,biz:200， 其他业务都使用 GSE2.0
+        - id: ResourceScopeBlackListToggleStrategy
+          params:
+            resourceScopeList: "biz:2,biz:100,biz:200"
+        # 策略 2：如果业务ID=100 并且作业任务下的主机都是 2.0 gse agent，那么使用 GSE2.0
+        - id: AllMatchToggleStrategy
+          strategies:
+            - id: ResourceScopeWhiteListToggleStrategy
+              params:
+                resourceScopeList: "biz:100"
+            - id: JobInstanceAttrToggleStrategy
+              params:
+                requireAllGseV2AgentAvailable: true
+        # 策略 3：如果业务ID=200 并且作业执行人是 admin, 那么使用 GSE2.0
+        - id: AllMatchToggleStrategy
+          strategies:
+            - id: ResourceScopeWhiteListToggleStrategy
+              params:
+                resourceScopeList: "biz:200"
+            - id: JobInstanceAttrToggleStrategy
+              params:
+                operators: admin
+

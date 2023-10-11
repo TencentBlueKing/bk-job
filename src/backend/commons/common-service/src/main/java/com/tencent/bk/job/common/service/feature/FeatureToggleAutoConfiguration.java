@@ -22,27 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.service.feature;
 
-import lombok.Data;
+import com.tencent.bk.job.common.util.feature.FeatureManager;
+import com.tencent.bk.job.common.util.feature.FeatureStore;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 特性
- */
-@Data
-public class Feature {
-    /**
-     * 特性ID
-     */
-    private String id;
-    /**
-     * 是否启用特性
-     */
-    private boolean enabled;
-    /**
-     * 特性启用灰度策略
-     */
-    private ToggleStrategy strategy;
+@Configuration(proxyBeanMethods = false)
+public class FeatureToggleAutoConfiguration {
 
+    @Bean
+    public FeatureStore featureStore() {
+        return new InMemoryFeatureStore();
+    }
 
+    @Bean
+    public FeatureManager featureManager(FeatureStore featureStore, MeterRegistry meterRegistry) {
+        return new DefaultFeatureManager(featureStore, meterRegistry);
+    }
+
+    @Bean
+    public FeatureLoadApplicationRunner featureLoadApplicationRunner(FeatureStore featureStore) {
+        return new FeatureLoadApplicationRunner(featureStore);
+    }
 }

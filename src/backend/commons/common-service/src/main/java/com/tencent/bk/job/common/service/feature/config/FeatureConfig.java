@@ -22,27 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
+package com.tencent.bk.job.common.service.feature.config;
 
 import lombok.Data;
 
 /**
- * 特性
+ * 特性配置
  */
 @Data
-public class Feature {
-    /**
-     * 特性ID
-     */
-    private String id;
+public class FeatureConfig {
     /**
      * 是否启用特性
      */
     private boolean enabled;
     /**
-     * 特性启用灰度策略
+     * 特性启用策略；必须enabled=true,策略才会生效
      */
-    private ToggleStrategy strategy;
-
-
+    private ToggleStrategyConfig strategy;
 }
