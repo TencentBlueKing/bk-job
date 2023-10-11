@@ -194,7 +194,7 @@ public class AccountServiceImpl implements AccountService {
             log.info("Account is not exist, accountId={}", accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
         }
-        if (!account.getAppId().equals(accountId)) {
+        if (!account.getAppId().equals(appId)) {
             log.info("Account is not in app, appId={}, accountId={}", appId, accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
         }
