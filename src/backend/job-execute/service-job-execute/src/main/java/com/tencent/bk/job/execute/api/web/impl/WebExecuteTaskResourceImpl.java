@@ -355,7 +355,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                 AppResourceScope appResourceScope,
                                                 String scopeType,
                                                 String scopeId,
-                                                WebFastPushFileRequest request) {
+                                                @AuditRequestBody WebFastPushFileRequest request) {
         log.debug("Fast send file, scope={}, operator={}, request={}", appResourceScope, username, request);
         if (!checkFastPushFileRequest(request)) {
             log.warn("Fast send file request is illegal!");
