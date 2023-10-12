@@ -325,19 +325,22 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category) {
-        return accountDAO.listAllAppAccount(appId, category, null);
+    public List<AccountDTO> listAppAccount(Long appId, AccountCategoryEnum category) {
+        return accountDAO.listAppAccount(appId, category, null, null, null);
     }
 
     @Override
-    public List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category,
-                                              BaseSearchCondition baseSearchCondition) {
-        return accountDAO.listAllAppAccount(appId, category, baseSearchCondition);
+    public List<AccountDTO> listAppAccount(Long appId,
+                                           AccountCategoryEnum category,
+                                           String account,
+                                           String alias,
+                                           BaseSearchCondition baseSearchCondition) {
+        return accountDAO.listAppAccount(appId, category, account, alias, baseSearchCondition);
     }
 
     @Override
-    public Integer countAllAppAccount(Long appId, AccountCategoryEnum category) {
-        return accountDAO.countAllAppAccount(appId, category);
+    public Integer countAppAccount(Long appId, AccountCategoryEnum category, String account, String alias) {
+        return accountDAO.countAppAccount(appId, category, account, alias);
     }
 
     @Override

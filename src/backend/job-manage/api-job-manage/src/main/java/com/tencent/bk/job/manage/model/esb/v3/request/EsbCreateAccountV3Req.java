@@ -24,42 +24,61 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.util.json.SkipLogFields;
 import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.hibernate.validator.constraints.Length;
 
-/**
- * 查询账号列表请求
- */
-@EqualsAndHashCode(callSuper = true)
+import javax.validation.constraints.NotEmpty;
+
 @Data
-public class EsbGetAccountListV3Req extends EsbAppScopeReq {
+@ApiModel("账号创建请求")
+@ToString(exclude = {"password"})
+public class EsbCreateAccountV3Req extends EsbAppScopeReq {
+
     /**
-     * 账号用途（1：系统账号，2：DB账号），不传则不区分
+     * 帐号名称
+     */
+    @NotEmpty(message = "{validation.constraints.AccountName_empty.message}")
+    private String account;
+
+    /**
+     * 账号类型：1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2
+     */
+    @CheckEnum(enumClass = AccountTypeEnum.class, enumMethod = "isValid",
+        message = "{validation.constraints.AccountType_illegal.message}")
+    private Integer type;
+
+    /**
+     * 账号用途：1-系统账号，2-数据库账号
      */
     @CheckEnum(enumClass = AccountCategoryEnum.class, enumMethod = "isValid",
         message = "{validation.constraints.AccountCategory_illegal.message}")
     private Integer category;
 
     /**
-     * 账号名称
+     * 系统账号的密码(Windows)
      */
-    private String account;
+    @SkipLogFields
+    @Length(max = 255, message = "{validation.constraints.AccountPassword_tooLong.message}")
+    private String password;
 
     /**
-     * 账号别名
+     * 别名
      */
+    @Length(max = 255, message = "{validation.constraints.AccountAlias_tooLong.message}")
     private String alias;
 
     /**
-     * 起始位置
+     * 描述
      */
-    private Integer start;
-
-    /**
-     * 起始位置
-     */
-    private Integer length;
+    @JsonProperty("description")
+    @Length(max = 1024, message = "{validation.constraints.AccountDescription_tooLong.message}")
+    private String remark;
 }

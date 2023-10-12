@@ -22,51 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-/**
- * 账号分类
- */
-public enum AccountCategoryEnum {
-    SYSTEM(1, "system"),
-    DB(2, "db");
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
 
-    private final Integer value;
-    private final String name;
+import javax.validation.constraints.NotNull;
 
-    AccountCategoryEnum(Integer category, String name) {
-        this.value = category;
-        this.name = name;
-    }
+@Data
+@ApiModel("账号删除请求")
+public class EsbDeleteAccountV3Req extends EsbAppScopeReq {
 
-    public static AccountCategoryEnum valOf(Integer category) {
-        if (category == null) {
-            return null;
-        }
-        for (AccountCategoryEnum categoryEnum : values()) {
-            if (categoryEnum.getValue().equals(category)) {
-                return categoryEnum;
-            }
-        }
-        return null;
-    }
+    /**
+     * 帐号ID
+     */
+    @NotNull(message = "{validation.constraints.AccountId_empty.message}")
+    private Long id;
 
-    public static boolean isValid(Integer category) {
-        if (category == null) {
-            return false;
-        }
-        return valOf(category) != null;
-    }
-
-    public Integer getValue() {
-        return value;
-    }
-
-    public String getI18nKey() {
-        return "job.account.category." + name;
-    }
-
-    public String getName() {
-        return name;
-    }
 }

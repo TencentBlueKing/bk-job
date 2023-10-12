@@ -56,6 +56,13 @@ public enum AccountTypeEnum {
         return null;
     }
 
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        return valueOf(type) != null;
+    }
+
     public static boolean isValidDbType(Integer type) {
         if (type == null) {
             return false;

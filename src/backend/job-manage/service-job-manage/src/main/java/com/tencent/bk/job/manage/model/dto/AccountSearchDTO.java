@@ -22,51 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.manage.model.dto;
 
-/**
- * 账号分类
- */
-public enum AccountCategoryEnum {
-    SYSTEM(1, "system"),
-    DB(2, "db");
+import lombok.Getter;
+import lombok.Setter;
 
-    private final Integer value;
-    private final String name;
+@Getter
+@Setter
+public class AccountSearchDTO {
 
-    AccountCategoryEnum(Integer category, String name) {
-        this.value = category;
-        this.name = name;
-    }
+    /**
+     * 业务ID
+     */
+    private Long appId;
+    /**
+     * 账号用途
+     */
+    private Integer category;
+    /**
+     * 账号名称
+     */
+    private String account;
+    /**
+     * 账号别名
+     */
+    private String alias;
 
-    public static AccountCategoryEnum valOf(Integer category) {
-        if (category == null) {
-            return null;
-        }
-        for (AccountCategoryEnum categoryEnum : values()) {
-            if (categoryEnum.getValue().equals(category)) {
-                return categoryEnum;
-            }
-        }
-        return null;
-    }
-
-    public static boolean isValid(Integer category) {
-        if (category == null) {
-            return false;
-        }
-        return valOf(category) != null;
-    }
-
-    public Integer getValue() {
-        return value;
-    }
-
-    public String getI18nKey() {
-        return "job.account.category." + name;
-    }
-
-    public String getName() {
-        return name;
-    }
 }

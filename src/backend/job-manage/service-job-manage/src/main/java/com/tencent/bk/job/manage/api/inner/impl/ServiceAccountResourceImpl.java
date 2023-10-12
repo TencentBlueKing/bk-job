@@ -191,7 +191,7 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     @Override
     public Response<List<ServiceAccountDTO>> listAccounts(Long appId, Integer category) {
         List<AccountDTO> accountDTOS =
-            accountService.listAllAppAccount(appId, AccountCategoryEnum.valOf(category));
+            accountService.listAppAccount(appId, AccountCategoryEnum.valOf(category));
         List<ServiceAccountDTO> accounts = new ArrayList<>();
         if (accountDTOS != null && !accountDTOS.isEmpty()) {
             for (AccountDTO accountDTO : accountDTOS) {

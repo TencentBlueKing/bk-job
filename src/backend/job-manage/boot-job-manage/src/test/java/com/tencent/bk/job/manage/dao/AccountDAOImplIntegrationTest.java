@@ -297,7 +297,13 @@ public class AccountDAOImplIntegrationTest {
     @Test
     @DisplayName("测试获取业务下指定分类的账号")
     public void testListAllAppAccount() {
-        List<AccountDTO> accounts = accountDAO.listAllAppAccount(2L, AccountCategoryEnum.SYSTEM, null);
+        List<AccountDTO> accounts = accountDAO.listAppAccount(
+            2L,
+            AccountCategoryEnum.SYSTEM,
+            null,
+            null,
+            null
+        );
         assertThat(accounts).hasSize(3).extracting("id").containsOnly(1L, 2L, 4L);
     }
 
