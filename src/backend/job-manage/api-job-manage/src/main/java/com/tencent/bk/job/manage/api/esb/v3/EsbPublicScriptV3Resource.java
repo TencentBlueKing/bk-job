@@ -151,7 +151,7 @@ public interface EsbPublicScriptV3Resource {
     );
 
     @PostMapping("/update_public_script_basic")
-    EsbResp<EsbScriptVersionDetailV3DTO> updatePublicScriptBasic(
+    EsbResp<EsbScriptV3DTO> updatePublicScriptBasic(
         @RequestBody
         @Validated(Update.class)
             EsbUpdatePublicScriptBasicV3Req request

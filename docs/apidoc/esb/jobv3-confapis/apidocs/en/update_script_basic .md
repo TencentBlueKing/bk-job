@@ -38,7 +38,7 @@ Update script basic information
     "code": 0,
     "result": true,
     "data": {
-        "script_id": "4a350b0e0707450e93326f6ace921072",
+        "id": "4a350b0e0707450e93326f6ace921072",
         "name": "script test",
         "script_language": 1,
         "public_script": false,
@@ -69,7 +69,7 @@ Update script basic information
 
 | Fields           | Type   | Description                                                  |
 | ---------------- | ------ | ------------------------------------------------------------ |
-| script_id        | string | Script id                                                    |
+| id               | string | Script id                                                    |
 | name             | string | Script name                                                  |
 | script_language  | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
 | public_script    | bool   | Public script or not                                         |
