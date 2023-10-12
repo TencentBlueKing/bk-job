@@ -1,5 +1,3 @@
----
-# Job Execute API
 - path: /v2/jobv3/execute_job_plan/
   name: execute_job_plan
   label: 执行作业执行方案
@@ -121,7 +119,6 @@
   dest_path: /api/job/v3/job-execute/get_job_instance_global_var_value/
   dest_http_method: POST
 
-# Job management API
 - path: /v2/jobv3/get_job_template_list/
   name: get_job_template_list
   label: 查询作业模版列表
@@ -222,7 +219,6 @@
   dest_path: /api/job/v3/job-manage/get_script_version_detail/
   dest_http_method: POST
 
-# Job Crontab API
 - path: /v2/jobv3/get_cron_list/
   name: get_cron_list
   label: 查询业务下定时作业信息
@@ -319,8 +315,6 @@
   dest_http_method: POST
   is_hidden: True
 
----
-# Job management API
 - path: /v2/jobv3/create_public_script/
   name: create_public_script
   label: 创建公共脚本
