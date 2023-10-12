@@ -72,7 +72,7 @@ public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResou
             throw new InvalidParamException(checkResult);
         }
         long appId = request.getAppId();
-        List<AccountDTO> dbAccounts = accountService.listAllAppAccount(appId, AccountCategoryEnum.DB);
+        List<AccountDTO> dbAccounts = accountService.listAppAccount(appId, AccountCategoryEnum.DB);
         List<AccountDTO> grantedDbAccounts = new ArrayList<>();
         dbAccounts.forEach(dbAccount -> {
             if (StringUtils.isBlank(dbAccount.getGrantees())) {

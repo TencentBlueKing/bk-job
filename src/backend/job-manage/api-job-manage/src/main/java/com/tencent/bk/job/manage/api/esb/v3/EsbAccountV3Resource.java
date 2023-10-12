@@ -25,9 +25,11 @@
 package com.tencent.bk.job.manage.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
@@ -35,6 +37,7 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -47,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RequestMapping("/esb/api/v3")
 @RestController
+@Validated
 @EsbAPI
 public interface EsbAccountV3Resource {
 
@@ -64,17 +68,10 @@ public interface EsbAccountV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @RequestParam(value = "category", required = false) Integer category,
-        @RequestParam(value = "start", required = false) Integer start,
-        @RequestParam(value = "length", required = false) Integer length);
-
-    @GetMapping("/search_account")
-    EsbResp<EsbPageDataV3<EsbAccountV3DTO>> searchAccount(
-        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
-        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @RequestParam(value = "category", required = false) Integer category,
+        @RequestParam(value = "category", required = false)
+        @CheckEnum(enumClass = AccountCategoryEnum.class, enumMethod = "isValid",
+            message = "{validation.constraints.AccountCategory_illegal.message}")
+            Integer category,
         @RequestParam(value = "account", required = false) String account,
         @RequestParam(value = "alias", required = false) String alias,
         @RequestParam(value = "start", required = false) Integer start,
@@ -87,13 +84,13 @@ public interface EsbAccountV3Resource {
             EsbCreateAccountV3Req req
     );
 
-    @DeleteMapping("/delete_account")
+    @DeleteMapping("/scope/{bk_scope_type}/{bk_scope_id}/accounts/{id}")
     EsbResp<EsbAccountV3DTO> deleteAccount(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
-        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @RequestParam(value = "id") Long id
+        @PathVariable(value = "bk_scope_type") String scopeType,
+        @PathVariable(value = "bk_scope_id") String scopeId,
+        @PathVariable(value = "id") Long id
     );
 
     @PostMapping("/delete_account")

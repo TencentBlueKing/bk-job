@@ -65,10 +65,4 @@ public class EsbAccountV3DTO extends EsbAppScopeDTO {
      */
     @JsonProperty("description")
     private String description;
-
-    /**
-     * 是否有权限使用
-     */
-    @JsonProperty("can_use")
-    private Boolean canUse;
 }

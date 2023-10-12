@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
-import com.tencent.bk.job.manage.model.dto.AccountSearchDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -104,16 +103,6 @@ public interface AccountDAO {
     PageData<AccountDTO> listPageAccount(AccountDTO accountQuery, BaseSearchCondition baseSearchCondition);
 
     /**
-     * 分页精确搜索账号列表
-     *
-     * @param accountSearchDTO    账号搜索条件
-     * @param baseSearchCondition 基础查询条件
-     * @return 账号分页
-     */
-    PageData<AccountDTO> accurateSearchPageAccount(AccountSearchDTO accountSearchDTO,
-                                                   BaseSearchCondition baseSearchCondition);
-
-    /**
      * 分页搜索账号列表
      *
      * @param keyword             关键字
@@ -127,12 +116,17 @@ public interface AccountDAO {
      *
      * @param appId    业务ID
      * @param category 账号类型，如果传入null，表示所有类型
+     * @param account  账号名称
+     * @param alias    账号别名
      * @return 账号列表
      */
-    List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category,
-                                       BaseSearchCondition baseSearchCondition);
+    List<AccountDTO> listAppAccount(Long appId,
+                                    AccountCategoryEnum category,
+                                    String account,
+                                    String alias,
+                                    BaseSearchCondition baseSearchCondition);
 
-    Integer countAllAppAccount(Long appId, AccountCategoryEnum category);
+    Integer countAppAccount(Long appId, AccountCategoryEnum category, String account, String alias);
 
     /**
      * 根据别名获取账号信息

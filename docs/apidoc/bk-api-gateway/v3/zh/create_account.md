@@ -58,7 +58,6 @@
         "alias": "Admin",
         "category": 1,
         "type": 2,
-        "db_system_account_id": null,
         "os": "Windows",
         "description": "An account for windows",
         "creator": "admin",
@@ -93,7 +92,6 @@
 | alias                 | string    | 账号别名 |
 | category              | int       | 账号用途（1：系统账号） |
 | type                  | int       | 账号类型（1：Linux，2：Windows）|
-| db_system_account_id  | long      | 账号用途为数据库账号时该字段生效，表示数据库账号对应的系统账号ID |
 | os                    | string    | 账号用途为系统账号时该字段生效，账号对应的OS |
 | description           | string    | 账号描述  |
 | creator               | string    | 创建人 |

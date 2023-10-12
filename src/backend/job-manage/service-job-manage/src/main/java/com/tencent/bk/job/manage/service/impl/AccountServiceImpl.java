@@ -57,7 +57,6 @@ import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
-import com.tencent.bk.job.manage.model.dto.AccountSearchDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
 import com.tencent.bk.job.manage.service.AccountService;
@@ -315,12 +314,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public PageData<AccountDTO> accurateSearchPageAccount(AccountSearchDTO accountSearchDTO,
-                                                          BaseSearchCondition baseSearchCondition) {
-        return accountDAO.accurateSearchPageAccount(accountSearchDTO, baseSearchCondition);
-    }
-
-    @Override
     public PageData<AccountDTO> searchPageAccount(Long appId, String keyword,
                                                   BaseSearchCondition baseSearchCondition) throws ServiceException {
         return accountDAO.searchPageAccount(appId, keyword, baseSearchCondition);
@@ -332,19 +325,22 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category) {
-        return accountDAO.listAllAppAccount(appId, category, null);
+    public List<AccountDTO> listAppAccount(Long appId, AccountCategoryEnum category) {
+        return accountDAO.listAppAccount(appId, category, null, null, null);
     }
 
     @Override
-    public List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category,
-                                              BaseSearchCondition baseSearchCondition) {
-        return accountDAO.listAllAppAccount(appId, category, baseSearchCondition);
+    public List<AccountDTO> listAppAccount(Long appId,
+                                           AccountCategoryEnum category,
+                                           String account,
+                                           String alias,
+                                           BaseSearchCondition baseSearchCondition) {
+        return accountDAO.listAppAccount(appId, category, account, alias, baseSearchCondition);
     }
 
     @Override
-    public Integer countAllAppAccount(Long appId, AccountCategoryEnum category) {
-        return accountDAO.countAllAppAccount(appId, category);
+    public Integer countAppAccount(Long appId, AccountCategoryEnum category, String account, String alias) {
+        return accountDAO.countAppAccount(appId, category, account, alias);
     }
 
     @Override

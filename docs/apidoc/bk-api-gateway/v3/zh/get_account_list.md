@@ -50,7 +50,6 @@
         "category": 1,
         "type": 1,
         "os": "Linux",
-        "can_use": true,
         "creator": "admin",
         "bk_scope_type": "biz",
         "bk_scope_id": "1",
@@ -95,7 +94,6 @@
 | type                  | int       | 账号类型（1：Linux，2：Windows，9：MySQL，10：Oracle，11：DB2）|
 | db_system_account_id  | long      | 账号用途为DB账号时该字段生效，表示DB账号对应的系统账号ID |
 | os                    | string    | 账号用途为系统账号时该字段生效，账号对应的OS |
-| can_use               | bool      | 是否有使用该账号的权限  |
 | creator               | string    | 创建人 |
 | create_time           | long      | 创建时间Unix时间戳（ms） |
 | last_modify_user      | string    | 最近一次修改人 |

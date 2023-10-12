@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.request;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.CheckEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -37,7 +39,19 @@ public class EsbGetAccountListV3Req extends EsbAppScopeReq {
     /**
      * 账号用途（1：系统账号，2：DB账号），不传则不区分
      */
+    @CheckEnum(enumClass = AccountCategoryEnum.class, enumMethod = "isValid",
+        message = "{validation.constraints.AccountCategory_illegal.message}")
     private Integer category;
+
+    /**
+     * 账号名称
+     */
+    private String account;
+
+    /**
+     * 账号别名
+     */
+    private String alias;
 
     /**
      * 起始位置

@@ -497,17 +497,6 @@
   dest_http_method: POST
 
 
-- path: /v2/jobv3/search_account/
-  name: search_account
-  label: 搜索账号
-  label_en: Search account
-  suggest_method: GET
-  api_type: query
-  comp_codename: generic.v2.jobv3.job_component
-  dest_path: /api/job/v3/job-manage/search_account/
-  dest_http_method: GET
-
-
 - path: /v2/jobv3/create_account/
   name: create_account
   label: 创建账号
