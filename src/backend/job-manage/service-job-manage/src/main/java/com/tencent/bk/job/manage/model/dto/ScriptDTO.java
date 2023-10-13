@@ -138,6 +138,7 @@ public class ScriptDTO {
         esbScript.setLastModifyTime(lastModifyTime);
         esbScript.setOnlineScriptVersionId(scriptVersionId);
         esbScript.setDescription(description);
+        esbScript.setPublicScript(publicScript);
         return esbScript;
     }
 
@@ -189,22 +190,5 @@ public class ScriptDTO {
         managetDetail.setScriptId(id);
         managetDetail.setStatus(status);
         return managetDetail;
-    }
-
-    public EsbScriptVersionDetailV3DTO toEsbUpdateScriptV3DTO() {
-        EsbScriptVersionDetailV3DTO updateScriptV3DTO = new EsbScriptVersionDetailV3DTO();
-        updateScriptV3DTO.setScriptId(id);
-        updateScriptV3DTO.setName(name);
-        updateScriptV3DTO.setType(type);
-        updateScriptV3DTO.setPublicScript(publicScript);
-        if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
-            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, updateScriptV3DTO);
-        }
-        updateScriptV3DTO.setCreator(creator);
-        updateScriptV3DTO.setCreateTime(createTime);
-        updateScriptV3DTO.setLastModifyUser(lastModifyUser);
-        updateScriptV3DTO.setLastModifyTime(lastModifyTime);
-        updateScriptV3DTO.setDescription(description);
-        return updateScriptV3DTO;
     }
 }

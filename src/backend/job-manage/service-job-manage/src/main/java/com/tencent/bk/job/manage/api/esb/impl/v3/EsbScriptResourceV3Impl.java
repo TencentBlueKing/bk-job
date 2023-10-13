@@ -397,7 +397,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_update_script_basic"})
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
-    public EsbResp<EsbScriptVersionDetailV3DTO> updateScriptBasic(
+    public EsbResp<EsbScriptV3DTO> updateScriptBasic(
         @AuditRequestBody EsbUpdateScriptBasicV3Req request) {
 
         request.fillAppResourceScope(appScopeMappingService);
@@ -410,7 +410,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         }
 
         ScriptDTO scriptDTO = scriptService.getScript(appResourceScope.getAppId(), scriptId);
-        EsbScriptVersionDetailV3DTO updateScriptV3DTO = scriptDTO.toEsbUpdateScriptV3DTO();
+        EsbScriptV3DTO updateScriptV3DTO = scriptDTO.toEsbScriptV3DTO();
         return EsbResp.buildSuccessResp(updateScriptV3DTO);
     }
 

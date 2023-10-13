@@ -69,4 +69,7 @@ public class EsbScriptV3DTO extends EsbAppScopeDTO {
     @JsonPropertyDescription("Script description")
     private String description;
 
+    @JsonProperty("public_script")
+    @JsonPropertyDescription("Is public script")
+    private Boolean publicScript;
 }
