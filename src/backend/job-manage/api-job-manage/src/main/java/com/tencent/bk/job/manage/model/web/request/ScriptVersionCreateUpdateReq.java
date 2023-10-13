@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web;
+package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.common.validation.Update;

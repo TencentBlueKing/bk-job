@@ -35,8 +35,8 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Req;
-import com.tencent.bk.job.manage.model.web.ScriptVersionCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptVersionCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import org.springframework.stereotype.Service;
 
