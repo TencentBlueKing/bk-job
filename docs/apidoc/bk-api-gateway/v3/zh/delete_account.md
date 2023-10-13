@@ -14,7 +14,7 @@
 | Accept                    |  string    | 是      | 固定值。application/json|
 | Content-Type              |  string    | 是      | 固定值。application/json|
 
-#### Query参数
+#### Path参数
 
 | 字段           |  类型      | 必选    |  描述      |
 |---------------|------------|--------|------------|
@@ -26,7 +26,7 @@
 
 - DELETE
 ```json
-/api/v3/delete_account?bk_scope_type=biz&bk_scope_id=1&id=70
+/api/v3/scope/biz/1/accounts/70
 ```
 
 ### 返回结果示例
