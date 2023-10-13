@@ -24,58 +24,60 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.util.List;
 
 /**
- * 脚本新增、更新请求
+ * 脚本新增请求
  */
 @Data
-@ApiModel("脚本新增、更新请求报文")
-public class ScriptCreateUpdateReq {
-    /**
-     * 脚本版本ID，对应某个版本的脚本的ID
-     */
-    @Deprecated
-    @ApiModelProperty(value = "脚本版本ID，对应某个版本的脚本的ID", hidden = true)
-    private Long scriptVersionId;
-    /**
-     * 脚本ID
-     */
-    @Deprecated
-    @ApiModelProperty(value = "脚本ID", hidden = true)
-    private String id;
+@ApiModel("脚本新增请求")
+public class ScriptCreateReq {
+
     /**
      * 脚本名称
      */
     @ApiModelProperty(value = "脚本名称", required = true, example = "scriptName")
+    @NotEmpty(message = "{validation.constraints.ScriptName_empty.message}")
+    @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}")
+    @Pattern(regexp = "^[^\\\\|/:*<>\"?]+$", message = "{validation.constraints.ScriptName_illegal.message}")
     private String name;
+
     /**
      * 脚本类型
      */
-    @ApiModelProperty(value = "脚本类型,新增脚本/脚本版本时需要传入")
+    @ApiModelProperty(value = "脚本类型,创建脚本时需要传入")
+    @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
+    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
+        message = "{validation.constraints.ScriptType_illegal.message}")
     private Integer type;
+
     /**
      * 脚本内容
      */
-    @ApiModelProperty(value = "脚本内容,新增脚本/脚本版本时需要传入，BASE64编码")
+    @ApiModelProperty(value = "脚本内容,创建脚本时需要传入，BASE64编码")
+    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
     private String content;
-
-    /**
-     * 创建者
-     */
-    @ApiModelProperty(value = "创建者，新增脚本/脚本版本时需要传入")
-    private String creator;
 
     /**
      * 脚本的版本号
      */
-    @ApiModelProperty(value = "版本号，新增脚本/脚本版本时需要传入")
+    @ApiModelProperty(value = "版本号，新增脚本时需要传入")
+    @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}")
+    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}")
+    @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}")
     private String version;
+
     /**
      * 脚本标签
      */
@@ -87,13 +89,6 @@ public class ScriptCreateUpdateReq {
      */
     @ApiModelProperty(value = "脚本描述")
     private String description;
-
-    /**
-     * 脚本版本描述
-     */
-    @ApiModelProperty(value = "脚本版本描述")
-    private String versionDesc;
-
 
 }
 
