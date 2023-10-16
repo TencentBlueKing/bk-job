@@ -41,7 +41,6 @@ Create Public Script Version
         "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
         "name": "public script test",
         "script_language": 1,
-        "public_script": true,
         "content": "IyEvYmluL2Jhc2gKbHM=",
         "creator": "admin",
         "create_time": 1691739630000,
@@ -75,7 +74,6 @@ Create Public Script Version
 | script_id         | string | Script id                                                    |
 | name              | string | Script name                                                  |
 | script_language   | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| public_script     | bool   | Public script or not                                         |
 | content           | string | Script content                                               |
 | creator           | string | Creator                                                      |
 | create_time       | long   | Created time, Unix timestamp                                 |

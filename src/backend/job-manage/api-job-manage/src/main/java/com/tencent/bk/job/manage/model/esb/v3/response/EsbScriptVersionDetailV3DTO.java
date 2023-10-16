@@ -75,12 +75,6 @@ public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
     private Integer type;
 
     /**
-     * 是否公共脚本
-     */
-    @JsonProperty("public_script")
-    private Boolean publicScript;
-
-    /**
      * 脚本描述
      */
     private String description;
