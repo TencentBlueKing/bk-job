@@ -183,10 +183,10 @@ public class ScriptDTO {
     }
 
     public EsbScriptVersionDetailV3DTO toEsbManageScriptV3DTO() {
-        EsbScriptVersionDetailV3DTO managetDetail = new EsbScriptVersionDetailV3DTO();
-        managetDetail.setId(scriptVersionId);
-        managetDetail.setScriptId(id);
-        managetDetail.setStatus(status);
-        return managetDetail;
+        EsbScriptVersionDetailV3DTO result = new EsbScriptVersionDetailV3DTO();
+        result.setId(scriptVersionId);
+        result.setScriptId(id);
+        result.setStatus(status);
+        return result;
     }
 }
