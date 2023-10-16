@@ -60,15 +60,11 @@ public class ScriptConverter {
             scriptVO.setContent(Base64Util.encodeContentToStr(script.getContent()));
         }
 
-        scriptVO.setVersionDesc(script.getVersionDesc());
-        scriptVO.setDescription(script.getDescription());
-        scriptVO.setTags(convertToTagVOs(script.getTags()));
-
         return scriptVO;
     }
 
     private static List<TagVO> convertToTagVOs(List<TagDTO> tags) {
-        if (CollectionUtils.isNotEmpty(tags)) {
+        if (CollectionUtils.isEmpty(tags)) {
             return null;
         }
         List<TagVO> tagVOS = new ArrayList<>();
