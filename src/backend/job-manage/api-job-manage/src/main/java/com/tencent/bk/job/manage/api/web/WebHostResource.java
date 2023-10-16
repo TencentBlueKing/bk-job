@@ -24,16 +24,13 @@
 
 package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.HostDetailReq;
@@ -45,8 +42,6 @@ import com.tencent.bk.job.manage.model.web.request.ipchooser.PageListHostsByDyna
 import com.tencent.bk.job.manage.model.web.request.ipchooser.QueryNodesPathReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
-import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.ipchooser.DynamicGroupHostStatisticsVO;
 import com.tencent.bk.job.manage.model.web.vo.ipchooser.NodeHostStatisticsVO;
@@ -61,7 +56,6 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -75,228 +69,6 @@ import java.util.List;
 @RestController
 @WebAPI
 public interface WebHostResource {
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "获取业务下的机器列表", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/host"})
-    Response<PageData<HostInfoVO>> listAppHost(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "分页-开始")
-        @RequestParam(value = "start", required = false)
-            Integer start,
-        @ApiParam(value = "分页-每页大小")
-        @RequestParam(value = "pageSize", required = false)
-            Integer pageSize,
-        @ApiParam(value = "模块类型 0-所有模块 1-普通模块，2-DB模块")
-        @RequestParam(value = "moduleType",
-            required = false) Long moduleType,
-        @ApiParam(value = "ip，搜索条件，模糊匹配")
-        @RequestParam(value = "ipCondition", required = false)
-            String ipCondition
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "获取业务拓扑列表", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology"})
-    Response<CcTopologyNodeVO> listAppTopologyTree(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "获取业务拓扑主机列表", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology/host"})
-    Response<CcTopologyNodeVO> listAppTopologyHostTree(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "获取业务拓扑树（含各节点主机数）", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostCount"})
-    Response<CcTopologyNodeVO> listAppTopologyHostCountTree(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId
-    );
-
-    @Deprecated
-    @CompatibleImplementation(
-        explain = "仅用作IPv6上线发布过程中的兼容，后续切换为listHostIdByBizTopologyNodes", deprecatedVersion = "3.7.0")
-    @ApiOperation(value = "IP选择器根据拓扑节点集合获取机器列表（纯IP），返回IP格式为[cloudId:IP]"
-        , produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/IPs/nodes"})
-    Response<PageData<String>> listIpByBizTopologyNodes(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "拓扑节点集合与分页信息", required = true)
-        @RequestBody
-            ListHostByBizTopologyNodesReq req
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "获取节点详情", produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/detail"})
-    Response<List<BizTopoNode>> getNodeDetail(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "选中的拓扑节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
-        @RequestBody
-            List<TargetNodeVO> targetNodeVOList
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "根据模块获取机器列表", produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/node"})
-    Response<List<NodeInfoVO>> listHostByNode(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "选中的拓扑节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
-        @RequestBody
-            List<TargetNodeVO> targetNodeVOList
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "获取业务动态分组主机列表")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}"})
-    Response<List<DynamicGroupInfoVO>> listAppDynamicGroupHost(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "动态分组 ID，逗号分割", required = true)
-        @PathVariable("dynamicGroupId")
-            List<String> dynamicGroupIds
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "获取业务动态分组信息(不含主机)")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/dynamicGroup/{dynamicGroupId}/detailWithoutHosts"})
-    Response<List<DynamicGroupInfoVO>> listAppDynamicGroupWithoutHosts(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "动态分组 ID，逗号分割", required = true)
-        @PathVariable("dynamicGroupId")
-            List<String> dynamicGroupIds
-    );
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    @ApiOperation(value = "获取节点拓扑路径", produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/node/queryPath"})
-    Response<List<List<CcTopologyNodeVO>>> queryNodePath(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "需要查询拓扑路径的节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
-        @RequestBody
-            List<TargetNodeVO> targetNodeVOList
-    );
 
     @ApiOperation(value = "查询主机统计信息")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/statistics"})
@@ -507,9 +279,8 @@ public interface WebHostResource {
     );
 
     // 标准接口9
-    @CompatibleImplementation(explain = "旧的/ip/check仅用于发布过程兼容", deprecatedVersion = "3.7.0")
     @ApiOperation(value = "根据用户选择/输入的主机信息获取真实存在的机器信息")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/ip/check", "/scope/{scopeType}/{scopeId}/host/check"})
+    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/check"})
     Response<List<HostInfoVO>> checkHosts(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")

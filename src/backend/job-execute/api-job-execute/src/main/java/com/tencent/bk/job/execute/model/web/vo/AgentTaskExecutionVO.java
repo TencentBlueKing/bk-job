@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
@@ -50,12 +49,6 @@ public class AgentTaskExecutionVO {
     @ApiModelProperty("云区域+ipv4，废弃字段，ipv6版本发布后删除")
     @Deprecated
     private String ip;
-
-    @Deprecated
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，发布完成后可删除",
-        deprecatedVersion = "3.7.x")
-    @ApiModelProperty("废弃字段，ipv6版本发布后删除")
-    private String displayIp;
 
     @ApiModelProperty("Agent ipv4")
     private String ipv4;

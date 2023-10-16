@@ -146,16 +146,16 @@ public class AgentStatusService {
      */
     public AgentStatistics calcAgentStatistics(List<ApplicationHostDTO> hosts) {
         fillRealTimeAgentStatus(hosts);
-        int normalNum = 0;
-        int abnormalNum = 0;
+        int aliveCount = 0;
+        int notAliveCount = 0;
         for (ApplicationHostDTO it : hosts) {
             Boolean alive = it.getGseAgentAlive();
             if (alive != null && alive) {
-                normalNum++;
+                aliveCount++;
             } else {
-                abnormalNum++;
+                notAliveCount++;
             }
         }
-        return new AgentStatistics(normalNum, abnormalNum);
+        return new AgentStatistics(aliveCount, notAliveCount);
     }
 }
