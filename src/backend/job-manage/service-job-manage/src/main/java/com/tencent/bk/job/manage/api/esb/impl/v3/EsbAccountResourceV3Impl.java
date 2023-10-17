@@ -191,21 +191,11 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
 
     @Override
     @AuditEntry(actionId = ActionId.MANAGE_ACCOUNT)
-    public EsbResp<EsbAccountV3DTO> deleteAccount(String username,
-                                                  String appCode,
-                                                  String scopeType,
-                                                  String scopeId,
-                                                  Long id) {
-        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
-        AccountDTO accountDTO = accountService.getAccount(appId, id);
-        accountService.deleteAccount(username, appId, id);
-        return EsbResp.buildSuccessResp(accountDTO.toEsbAccountV3DTO());
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.MANAGE_ACCOUNT)
     public EsbResp<EsbAccountV3DTO> deleteAccountUsingPost(@AuditRequestBody EsbDeleteAccountV3Req req) {
         req.fillAppResourceScope(appScopeMappingService);
-        return deleteAccount(req.getUserName(), req.getAppCode(), req.getScopeType(), req.getScopeId(), req.getId());
+        Long appId = appScopeMappingService.getAppIdByScope(req.getScopeType(), req.getScopeId());
+        AccountDTO accountDTO = accountService.getAccount(appId, req.getId());
+        accountService.deleteAccount(req.getUserName(), appId, req.getId());
+        return EsbResp.buildSuccessResp(accountDTO.toEsbAccountV3DTO());
     }
 }
