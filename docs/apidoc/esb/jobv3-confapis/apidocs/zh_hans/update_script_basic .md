@@ -41,6 +41,7 @@
         "id": "4a350b0e0707450e93326f6ace921072",
         "name": "script test",
         "script_language": 1,
+        "online_script_version_id": 1000019,
         "bk_scope_type": "biz",
         "bk_scope_id": "2",
         "creator": "admin",
@@ -71,6 +72,7 @@
 | id               | string | 脚本ID                                                       |
 | name             | string | 脚本名称                                                     |
 | script_language  | int    | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| online_script_version_id            | long    | 已上线脚本版本ID;如果脚本没有已上线版本，该值为空 |
 | bk_scope_type    | string | 资源范围类型。可选值: biz - 业务，biz_set - 业务集           |
 | bk_scope_id      | string | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID      |
 | creator          | string | 创建人                                                       |

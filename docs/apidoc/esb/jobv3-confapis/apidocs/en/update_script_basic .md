@@ -41,6 +41,7 @@ Update script basic information
         "id": "4a350b0e0707450e93326f6ace921072",
         "name": "script test",
         "script_language": 1,
+        "online_script_version_id": 1000019,
         "bk_scope_type": "biz",
         "bk_scope_id": "2",
         "creator": "admin",
@@ -71,6 +72,7 @@ Update script basic information
 | id               | string | Script id                                                    |
 | name             | string | Script name                                                  |
 | script_language  | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| online_script_version_id            |  long    | Online script version ID; null if the script does not have an online version|
 | bk_scope_type    | string | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
 | bk_scope_id      | string | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
 | creator          | string | Creator                                                      |

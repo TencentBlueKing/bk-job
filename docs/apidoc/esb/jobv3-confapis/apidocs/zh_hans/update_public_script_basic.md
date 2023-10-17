@@ -38,6 +38,7 @@
         "id": "4537fb49ec0840a1b91cef4179c99f9c",
         "name": "public script test",
         "script_language": 1,
+        "online_script_version_id": 1000020,
         "creator": "admin",
         "create_time": 1691739630000,
         "last_modify_user": "admin",
@@ -66,6 +67,7 @@
 | id               | string | 脚本ID                                                       |
 | name             | string | 脚本名称                                                     |
 | script_language  | int    | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| online_script_version_id            | long    | 已上线脚本版本ID;如果脚本没有已上线版本，该值为空 |
 | creator          | string | 创建人                                                       |
 | create_time      | long   | 创建时间Unix时间戳（ms）                                     |
 | last_modify_user | string | 最近一次修改人                                               |

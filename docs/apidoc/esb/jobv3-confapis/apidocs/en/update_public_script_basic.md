@@ -38,6 +38,7 @@ Update basic information of public scripts
         "id": "4537fb49ec0840a1b91cef4179c99f9c",
         "name": "public script test",
         "script_language": 1,
+        "online_script_version_id": 1000020,
         "creator": "admin",
         "create_time": 1691739630000,
         "last_modify_user": "admin",
@@ -66,6 +67,7 @@ Update basic information of public scripts
 | id               | string | Script id                                                    |
 | name             | string | Script name                                                  |
 | script_language  | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| online_script_version_id            |  long    | Online script version ID; null if the script does not have an online version|
 | creator          | string | Creator                                                      |
 | create_time      | long   | Created time, Unix timestamp                                 |
 | last_modify_user | string | Last modify user                                             |
