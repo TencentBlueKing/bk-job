@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.gse.service;
 
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 import java.util.List;
@@ -37,24 +38,24 @@ public interface AgentStateClient {
     /**
      * 根据agentId获取agent状态
      *
-     * @param agentId AgentId
+     * @param hostAgentStateQuery Agent状态查询条件
      * @return Agent状态对象
      */
-    AgentState getAgentState(String agentId);
+    AgentState getAgentState(HostAgentStateQuery hostAgentStateQuery);
 
     /**
      * 根据agentId批量获取agent状态
      *
-     * @param agentIdList agentId列表
+     * @param hostAgentStateQueryList Agent状态查询条件列表
      * @return agentId与Agent状态的Map
      */
-    Map<String, AgentState> batchGetAgentState(List<String> agentIdList);
+    Map<String, AgentState> batchGetAgentState(List<HostAgentStateQuery> hostAgentStateQueryList);
 
     /**
      * 根据agentId批量获取agent存活状态
      *
-     * @param agentIdList agentId列表
+     * @param hostAgentStateQueryList Agent状态查询条件列表
      * @return agentId与Agent存活状态的Map
      */
-    Map<String, Boolean> batchGetAgentAliveStatus(List<String> agentIdList);
+    Map<String, Boolean> batchGetAgentAliveStatus(List<HostAgentStateQuery> hostAgentStateQueryList);
 }

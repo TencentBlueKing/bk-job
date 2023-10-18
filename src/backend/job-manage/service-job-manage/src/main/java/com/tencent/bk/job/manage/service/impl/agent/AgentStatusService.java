@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.impl.agent;
 
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
@@ -41,6 +42,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Agent状态查询服务
@@ -63,15 +66,18 @@ public class AgentStatusService {
      */
     public void fillRealTimeAgentStatus(List<ApplicationHostDTO> hosts) {
         // 查出节点下主机与Agent状态
-        List<String> agentIdList = ApplicationHostDTO.buildAgentIdList(hosts);
-        // 批量设置agent状态
+        List<HostAgentStateQuery> hostAgentStateQueryList = null;
         Map<String, AgentState> agentStateMap;
         try {
-            agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+            hostAgentStateQueryList = hosts.stream()
+                .filter(Objects::nonNull)
+                .map(HostAgentStateQuery::from)
+                .collect(Collectors.toList());
+            agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                "Fail to get agentState by agentIdList:{}",
-                LogUtil.buildListLog(agentIdList, 20)
+                "Fail to get agentState by hosts:{}",
+                LogUtil.buildListLog(hostAgentStateQueryList, 20)
             );
             log.warn(msg.getMessage(), e);
             return;
@@ -80,6 +86,7 @@ public class AgentStatusService {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
+        // 批量设置agent状态
         for (ApplicationHostDTO hostInfoDTO : hosts) {
             if (hostInfoDTO == null) {
                 continue;
@@ -103,14 +110,17 @@ public class AgentStatusService {
         List<HostSimpleDTO> statusChangedHosts = new ArrayList<>();
         if (hosts.isEmpty()) return statusChangedHosts;
 
-        List<String> agentIdList = HostSimpleDTO.buildAgentIdList(hosts);
+        List<HostAgentStateQuery> hostAgentStateQueryList = hosts.stream()
+            .filter(Objects::nonNull)
+            .map(HostAgentStateQuery::from)
+            .collect(Collectors.toList());
         Map<String, AgentState> agentStateMap;
         try {
-            agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+            agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                "Fail to get agentState by agentIdList:{}",
-                LogUtil.buildListLog(agentIdList, 20)
+                "Fail to get agentState by hosts:{}",
+                LogUtil.buildListLog(hostAgentStateQueryList, 20)
             );
             log.warn(msg.getMessage(), e);
             return statusChangedHosts;

@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -145,6 +146,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -2173,12 +2175,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
-        List<String> agentIdList = hosts.stream()
-            .map(HostDTO::getAgentId)
-            .filter(StringUtils::isNotEmpty)
-            .distinct()
+        List<HostAgentStateQuery> hostAgentStateQueryList = hosts.stream()
+            .filter(Objects::nonNull)
+            .map(HostAgentStateQuery::from)
             .collect(Collectors.toList());
-        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
 
         for (HostDTO host : hosts) {
             if (StringUtils.isEmpty(host.getAgentId())) {

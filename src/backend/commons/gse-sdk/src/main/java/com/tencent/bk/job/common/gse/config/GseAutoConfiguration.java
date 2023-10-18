@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.crypto.RSAEncryptor;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
-import com.tencent.bk.job.common.gse.service.AgentStateClientImpl;
+import com.tencent.bk.job.common.gse.service.PreferV2AgentStateClientImpl;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
 import com.tencent.bk.job.common.gse.v1.config.GseV1AutoConfiguration;
 import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
@@ -63,7 +63,7 @@ public class GseAutoConfiguration {
     @Bean("AgentStateClient")
     public AgentStateClient agentStateClient(AgentStateQueryConfig agentStateQueryConfig,
                                              GseClient gseClient) {
-        return new AgentStateClientImpl(agentStateQueryConfig, gseClient);
+        return new PreferV2AgentStateClientImpl(agentStateQueryConfig, gseClient);
     }
 
     @Bean("gseRsaEncryptor")
