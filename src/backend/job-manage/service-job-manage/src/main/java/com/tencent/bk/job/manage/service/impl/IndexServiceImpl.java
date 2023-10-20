@@ -108,7 +108,7 @@ public class IndexServiceImpl implements IndexService {
                 content = it.getContent();
             }
             return new GreetingVO(it.getId(), content.replace("${time}",
-                    TimeUtil.getCurrentTimeStrWithDescription("HH:mm"))
+                TimeUtil.getCurrentTimeStrWithDescription("HH:mm"))
                 .replace("${username}", username), it.getPriority());
         }).collect(Collectors.toList());
     }
@@ -117,8 +117,8 @@ public class IndexServiceImpl implements IndexService {
     public AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope) {
         // 查出业务
         ApplicationDTO appInfo = applicationDAO.getAppById(appResourceScope.getAppId());
-        long normalNum = 0L;
-        long abnormalNum = 0L;
+        int aliveCount = 0;
+        int notAliveCount = 0;
         List<Long> bizIds;
         if (appInfo.isBiz()) {
             // 普通业务
@@ -137,12 +137,12 @@ public class IndexServiceImpl implements IndexService {
         List<HostStatusNumStatisticsDTO> statisticsDTOS = applicationHostDAO.countHostStatusNumByBizIds(bizIds);
         for (HostStatusNumStatisticsDTO statisticsDTO : statisticsDTOS) {
             if (statisticsDTO.getGseAgentAlive() == AgentAliveStatusEnum.ALIVE.getStatusValue()) {
-                normalNum += statisticsDTO.getHostNum();
+                aliveCount += statisticsDTO.getHostNum();
             } else {
-                abnormalNum += statisticsDTO.getHostNum();
+                notAliveCount += statisticsDTO.getHostNum();
             }
         }
-        return new AgentStatistics((int) normalNum, (int) abnormalNum);
+        return new AgentStatistics(aliveCount, notAliveCount);
     }
 
     /**

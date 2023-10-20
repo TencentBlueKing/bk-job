@@ -119,10 +119,10 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             dynamicGroupIdList
         );
         Set<ServiceHostStatusDTO> hostStatusDTOSet = new HashSet<>();
-        hostList.forEach(hostInfoVO -> {
+        hostList.forEach(applicationHostDTO -> {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-            serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getGseAgentAlive() ? 1 : 0);
+            serviceHostStatusDTO.setHostId(applicationHostDTO.getHostId());
+            serviceHostStatusDTO.setAlive(applicationHostDTO.getGseAgentAlive() ? 1 : 0);
             hostStatusDTOSet.add(serviceHostStatusDTO);
         });
         return InternalResponse.buildSuccessResp(new ArrayList<>(hostStatusDTOSet));

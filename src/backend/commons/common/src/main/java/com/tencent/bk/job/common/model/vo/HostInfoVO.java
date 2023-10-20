@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -65,8 +64,6 @@ public class HostInfoVO {
 
     @ApiModelProperty("主机名称")
     private String hostName;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    private String ipDesc;
 
     // agent状态：-2：未找到，-1：查询失败，0：初始安装，1：启动中，2：运行中，3：有损状态，4：繁忙，5：升级中，6：停止中，7：解除安装
     @JsonIgnore
@@ -77,16 +74,12 @@ public class HostInfoVO {
 
     @ApiModelProperty("云区域信息")
     private CloudAreaInfoVO cloudArea;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    private CloudAreaInfoVO cloudAreaInfo;
 
     /**
      * 操作系统
      */
     @ApiModelProperty("操作系统")
     private String osName;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    private String os;
 
     @ApiModelProperty("系统类型")
     @JsonProperty("osType")
@@ -98,57 +91,6 @@ public class HostInfoVO {
     @ApiModelProperty("所属云厂商")
     @JsonProperty("cloudVendor")
     private String cloudVendorName;
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public String getHostName() {
-        if (hostName != null) {
-            return hostName;
-        } else if (ipDesc != null) {
-            log.warn("Use compatible field:ipDesc={}", ipDesc);
-            return ipDesc;
-        }
-        return null;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setHostName(String hostName) {
-        this.hostName = hostName;
-        this.ipDesc = hostName;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public CloudAreaInfoVO getCloudArea() {
-        if (cloudArea != null) {
-            return cloudArea;
-        } else if (cloudAreaInfo != null) {
-            log.warn("Use compatible field:cloudAreaInfo={}", cloudAreaInfo);
-            return cloudAreaInfo;
-        }
-        return null;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setCloudArea(CloudAreaInfoVO cloudArea) {
-        this.cloudArea = cloudArea;
-        this.cloudAreaInfo = cloudArea;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public String getOsName() {
-        if (osName != null) {
-            return osName;
-        } else if (os != null) {
-            log.warn("Use compatible field:os={}", os);
-            return os;
-        }
-        return null;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setOsName(String osName) {
-        this.osName = osName;
-        this.os = osName;
-    }
 
     public void validate(boolean isCreate) throws InvalidParamException {
         if (!JobContextUtil.isAllowMigration() && (hostId == null || hostId <= 0)) {
