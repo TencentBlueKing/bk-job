@@ -109,8 +109,11 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
-        return Response.buildSuccessResp(credentialService.saveCredential(username, appResourceScope.getAppId(),
-            createUpdateReq));
+        String id = credentialService.saveCredential(username, appResourceScope.getAppId(), createUpdateReq);
+        if (StringUtils.isBlank(createUpdateReq.getId())) {
+            ticketAuthService.registerTicket(username, id, createUpdateReq.getName());
+        }
+        return Response.buildSuccessResp(id);
     }
 
     @Override
