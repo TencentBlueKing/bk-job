@@ -63,6 +63,7 @@ import com.tencent.bk.job.manage.service.host.BizTopoHostService;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.ScopeTopoHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
 import com.tencent.bk.job.manage.service.impl.BizDynamicGroupService;
@@ -90,6 +91,7 @@ public class WebHostResourceImpl implements WebHostResource {
 
     private final ApplicationService applicationService;
     private final HostService hostService;
+    private final ScopeTopoHostService scopeTopoHostService;
     private final ScopeHostService scopeHostService;
     private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final AgentStatusService agentStatusService;
@@ -102,6 +104,7 @@ public class WebHostResourceImpl implements WebHostResource {
     @Autowired
     public WebHostResourceImpl(ApplicationService applicationService,
                                HostService hostService,
+                               ScopeTopoHostService scopeTopoHostService,
                                ScopeHostService scopeHostService,
                                WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                                AgentStatusService agentStatusService,
@@ -112,6 +115,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                ScopeDynamicGroupService scopeDynamicGroupHostService) {
         this.applicationService = applicationService;
         this.hostService = hostService;
+        this.scopeTopoHostService = scopeTopoHostService;
         this.scopeHostService = scopeHostService;
         this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.agentStatusService = agentStatusService;
@@ -131,7 +135,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                        ListTopologyHostCountTreesReq req) {
         return Response.buildSuccessResp(
             Collections.singletonList(
-                hostService.listAppTopologyHostCountTree(username, appResourceScope)
+                scopeTopoHostService.listAppTopologyHostCountTree(username, appResourceScope)
             )
         );
     }

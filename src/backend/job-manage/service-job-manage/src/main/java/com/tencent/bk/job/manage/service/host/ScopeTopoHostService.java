@@ -22,40 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.feature.strategy;
+package com.tencent.bk.job.manage.service.host;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
-
-import java.util.Map;
-import java.util.StringJoiner;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 
 /**
- * 根据资源范围白名单灰度策略
+ * 主机、topo相关服务
  */
-public class ResourceScopeWhiteListToggleStrategy extends AbstractResourceScopeToggleStrategy {
+public interface ScopeTopoHostService {
+
     /**
-     * 特性开关开启策略ID
+     * 查询带主机数量信息的业务拓扑树
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @return 带主机数量信息的拓扑结构树
      */
-    public static final String STRATEGY_ID = "ResourceScopeWhiteListToggleStrategy";
+    CcTopologyNodeVO listAppTopologyHostCountTree(String username, AppResourceScope appResourceScope);
 
-    public ResourceScopeWhiteListToggleStrategy(Map<String, String> initParams) {
-        super(STRATEGY_ID, initParams);
-    }
-
-    @Override
-    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
-        ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
-        return this.resourceScopes.contains(scope);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ResourceScopeWhiteListToggleStrategy.class.getSimpleName() + "[", "]")
-            .add("id='" + id + "'")
-            .add("initParams=" + initParams)
-            .add("resourceScopes=" + resourceScopes)
-            .toString();
-    }
 }

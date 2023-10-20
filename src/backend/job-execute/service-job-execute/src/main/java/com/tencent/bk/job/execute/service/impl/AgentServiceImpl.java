@@ -52,11 +52,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -195,29 +193,36 @@ public class AgentServiceImpl implements AgentService {
      * @return Agent存活的第一个主机或者Null
      */
     private ServiceHostDTO findOneAliveHost(Collection<ServiceHostDTO> serviceHosts) {
-        List<HostAgentStateQuery> hostAgentStateQueryList = serviceHosts.stream()
-            .filter(Objects::nonNull)
-            .map(serviceHost -> {
-                HostAgentStateQuery query = new HostAgentStateQuery();
-                query.setHostId(serviceHost.getHostId());
-                query.setBizId(serviceHost.getBizId());
-                query.setCloudIp(serviceHost.getCloudIp());
-                query.setAgentId(serviceHost.getAgentId());
-                return query;
-            })
-            .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(serviceHosts)) {
+            return null;
+        }
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(serviceHosts.size());
+        Map<String, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(serviceHosts.size());
+        for (ServiceHostDTO serviceHost : serviceHosts) {
+            if (serviceHost == null) {
+                continue;
+            }
+            HostAgentStateQuery query = new HostAgentStateQuery();
+            query.setHostId(serviceHost.getHostId());
+            query.setBizId(serviceHost.getBizId());
+            query.setCloudIp(serviceHost.getCloudIp());
+            query.setAgentId(serviceHost.getAgentId());
+            hostAgentStateQueryList.add(query);
+            hostAgentStateQueryMap.put(serviceHost.getHostIdOrCloudIp(), query);
+        }
         Map<String, Boolean> agentStatusMap = agentStateClient.batchGetAgentAliveStatus(hostAgentStateQueryList);
 
-        Map<String, ServiceHostDTO> agentIdToHostMap = new HashMap<>();
-        serviceHosts.forEach(serviceHost -> agentIdToHostMap.put(
-            StringUtils.isNotEmpty(serviceHost.getAgentId()) ? serviceHost.getAgentId()
-                : serviceHost.getCloudIp(),
-            serviceHost)
+        Map<String, ServiceHostDTO> effectiveAgentIdToHostMap = new HashMap<>();
+        serviceHosts.forEach(serviceHost -> {
+                HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(serviceHost.getHostIdOrCloudIp());
+                String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+                effectiveAgentIdToHostMap.put(effectiveAgentId, serviceHost);
+            }
         );
         List<ServiceHostDTO> aliveHosts = new ArrayList<>();
-        agentStatusMap.forEach((agentId, status) -> {
+        agentStatusMap.forEach((effectiveAgentId, status) -> {
             if (status != null && status) {
-                aliveHosts.add(agentIdToHostMap.get(agentId));
+                aliveHosts.add(effectiveAgentIdToHostMap.get(effectiveAgentId));
             }
         });
         if (CollectionUtils.isEmpty(aliveHosts)) {

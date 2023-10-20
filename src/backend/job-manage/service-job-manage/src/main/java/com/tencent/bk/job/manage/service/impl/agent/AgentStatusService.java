@@ -40,10 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Agent状态查询服务
@@ -64,15 +63,22 @@ public class AgentStatusService {
      *
      * @param hosts 主机列表
      */
+    @SuppressWarnings("DuplicatedCode")
     public void fillRealTimeAgentStatus(List<ApplicationHostDTO> hosts) {
+        if (CollectionUtils.isEmpty(hosts)) {
+            return;
+        }
         // 查出节点下主机与Agent状态
-        List<HostAgentStateQuery> hostAgentStateQueryList = null;
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
+        Map<String, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
+        hosts.forEach(host -> {
+            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(host);
+            hostAgentStateQueryList.add(hostAgentStateQuery);
+            hostAgentStateQueryMap.put(host.getHostIdOrCloudIp(), hostAgentStateQuery);
+        });
+
         Map<String, AgentState> agentStateMap;
         try {
-            hostAgentStateQueryList = hosts.stream()
-                .filter(Objects::nonNull)
-                .map(HostAgentStateQuery::from)
-                .collect(Collectors.toList());
             agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
@@ -91,8 +97,9 @@ public class AgentStatusService {
             if (hostInfoDTO == null) {
                 continue;
             }
-            String agentId = hostInfoDTO.getFinalAgentId();
-            AgentState agentState = agentStateMap.get(agentId);
+            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(hostInfoDTO.getHostIdOrCloudIp());
+            String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            AgentState agentState = agentStateMap.get(effectiveAgentId);
             if (agentState == null) {
                 hostInfoDTO.setGseAgentStatus(null);
             } else {
@@ -106,14 +113,18 @@ public class AgentStatusService {
      *
      * @param hosts 主机列表
      */
+    @SuppressWarnings("DuplicatedCode")
     public List<HostSimpleDTO> findStatusChangedHosts(List<HostSimpleDTO> hosts) {
         List<HostSimpleDTO> statusChangedHosts = new ArrayList<>();
         if (hosts.isEmpty()) return statusChangedHosts;
 
-        List<HostAgentStateQuery> hostAgentStateQueryList = hosts.stream()
-            .filter(Objects::nonNull)
-            .map(HostAgentStateQuery::from)
-            .collect(Collectors.toList());
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
+        Map<String, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
+        hosts.forEach(hostSimpleDTO -> {
+            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostSimpleDTO);
+            hostAgentStateQueryList.add(hostAgentStateQuery);
+            hostAgentStateQueryMap.put(hostSimpleDTO.getHostIdOrCloudIp(), hostAgentStateQuery);
+        });
         Map<String, AgentState> agentStateMap;
         try {
             agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
@@ -127,17 +138,18 @@ public class AgentStatusService {
         }
 
         for (HostSimpleDTO host : hosts) {
-            String agentId = host.getFinalAgentId();
-            AgentState agentState = agentStateMap.get(agentId);
+            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host.getHostIdOrCloudIp());
+            String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            AgentState agentState = agentStateMap.get(effectiveAgentId);
             AgentAliveStatusEnum agentAliveStatus = AgentAliveStatusEnum.fromAgentState(agentState);
             int agentAliveStatusValue = agentAliveStatus.getStatusValue();
             if (host.getAgentAliveStatus() != agentAliveStatusValue) {
                 if (log.isDebugEnabled()) {
-                    log.debug("host {} status changed: {}->{}, agentId={}, agentState={}",
+                    log.debug("host {} status changed: {}->{}, effectiveAgentId={}, agentState={}",
                         host.getHostId(),
                         host.getAgentAliveStatus(),
                         agentAliveStatusValue,
-                        agentId,
+                        effectiveAgentId,
                         agentState
                     );
                 }

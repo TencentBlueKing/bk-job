@@ -102,31 +102,46 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
         if (requireAllGseV2AgentAvailable != null && requireAllGseV2AgentAvailable) {
-            boolean isAllAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+            Object isAllAgentV2AvailableObj = ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+            if (isAllAgentV2AvailableObj == null) {
+                return false;
+            }
+            boolean isAllAgentV2Available = (boolean) isAllAgentV2AvailableObj;
             if (!isAllAgentV2Available) {
                 return false;
             }
         }
         if (requireAnyGseV2AgentAvailable != null && requireAnyGseV2AgentAvailable) {
-            boolean isAnyAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
+            Object isAnyAgentV2AvailableObj = ctx.getParam(CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
+            if (isAnyAgentV2AvailableObj == null) {
+                return false;
+            }
+            boolean isAnyAgentV2Available = (boolean) isAnyAgentV2AvailableObj;
             if (!isAnyAgentV2Available) {
                 return false;
             }
         }
         if (CollectionUtils.isNotEmpty(startupModes)) {
-            String startupMode = (String) ctx.getParam(CTX_PARAM_STARTUP_MODE);
+            Object startupModeObj = ctx.getParam(CTX_PARAM_STARTUP_MODE);
+            if (startupModeObj == null) {
+                return false;
+            }
+            String startupMode = (String) startupModeObj;
             if (!startupModes.contains(startupMode)) {
                 return false;
             }
         }
         if (CollectionUtils.isNotEmpty(operators)) {
-            String operator = (String) ctx.getParam(CTX_PARAM_OPERATOR);
-            if (!operators.contains(operator)) {
+            Object operatorObj = ctx.getParam(CTX_PARAM_OPERATOR);
+            if (operatorObj == null) {
                 return false;
             }
+            String operator = (String) operatorObj;
+            return operators.contains(operator);
         }
         return true;
     }

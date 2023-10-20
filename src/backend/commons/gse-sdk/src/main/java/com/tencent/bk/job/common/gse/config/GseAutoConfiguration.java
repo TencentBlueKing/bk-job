@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.common.gse.config;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import com.tencent.bk.job.common.crypto.Encryptor;
 import com.tencent.bk.job.common.crypto.RSAEncryptor;
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.PreferV2AgentStateClientImpl;
@@ -34,13 +37,20 @@ import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
 import com.tencent.bk.job.common.gse.v1.config.GseV1AutoConfiguration;
 import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
 import com.tencent.bk.job.common.gse.v2.GseV2AutoConfiguration;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 @Configuration(proxyBeanMethods = false)
@@ -60,10 +70,30 @@ public class GseAutoConfiguration {
             gseV2ApiClient.getIfAvailable());
     }
 
-    @Bean("AgentStateClient")
-    public AgentStateClient agentStateClient(AgentStateQueryConfig agentStateQueryConfig,
-                                             GseClient gseClient) {
-        return new PreferV2AgentStateClientImpl(agentStateQueryConfig, gseClient);
+    @ConditionalOnMissingBean(name = DefaultBeanNames.AGENT_STATUS_QUERY_THREAD_POOL_EXECUTOR)
+    @Bean(DefaultBeanNames.AGENT_STATUS_QUERY_THREAD_POOL_EXECUTOR)
+    public ThreadPoolExecutor agentStatusQueryExecutor(MeterRegistry meterRegistry,
+                                                       AgentStateQueryConfig agentStateQueryConfig) {
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("agentStatusQuery-thread-%d").build();
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "agentStatusQueryExecutor",
+            agentStateQueryConfig.getGseQueryBatchSize(),
+            agentStateQueryConfig.getGseQueryBatchSize(),
+            60,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            threadFactory
+        );
+    }
+
+    @ConditionalOnMissingBean(value = AgentStateClient.class)
+    @Bean("PreferV2AgentStateClient")
+    public AgentStateClient preferV2AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
+                                                         GseClient gseClient,
+                                                         @Qualifier("agentStatusQueryExecutor")
+                                                             ThreadPoolExecutor threadPoolExecutor) {
+        return new PreferV2AgentStateClientImpl(agentStateQueryConfig, gseClient, threadPoolExecutor);
     }
 
     @Bean("gseRsaEncryptor")

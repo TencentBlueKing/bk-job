@@ -288,6 +288,14 @@ public class ApplicationHostDTO {
         return JobConstants.GSE_AGENT_STATUS_VALUE_ALIVE;
     }
 
+    @JsonIgnore
+    public String getHostIdOrCloudIp() {
+        if (hostId != null && hostId > 0) {
+            return String.valueOf(hostId);
+        }
+        return getCloudIp();
+    }
+
     public HostDTO toHostDTO() {
         HostDTO host = new HostDTO();
         host.setHostId(hostId);

@@ -52,7 +52,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
-import com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.ListUtil;
@@ -60,6 +59,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -2175,22 +2175,28 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
-        List<HostAgentStateQuery> hostAgentStateQueryList = hosts.stream()
-            .filter(Objects::nonNull)
-            .map(HostAgentStateQuery::from)
-            .collect(Collectors.toList());
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
+        Map<HostDTO, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
+        hosts.forEach(hostDTO -> {
+            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostDTO);
+            hostAgentStateQueryList.add(hostAgentStateQuery);
+            hostAgentStateQueryMap.put(hostDTO, hostAgentStateQuery);
+        });
+
         Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
 
         for (HostDTO host : hosts) {
-            if (StringUtils.isEmpty(host.getAgentId())) {
+            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host);
+            String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            if (StringUtils.isEmpty(effectiveAgentId)) {
                 host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
+                continue;
+            }
+            AgentState agentState = agentStateMap.get(effectiveAgentId);
+            if (agentState != null) {
+                host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
             } else {
-                AgentState agentState = agentStateMap.get(host.getAgentId());
-                if (agentState != null) {
-                    host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
-                } else {
-                    host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
-                }
+                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
             }
         }
     }

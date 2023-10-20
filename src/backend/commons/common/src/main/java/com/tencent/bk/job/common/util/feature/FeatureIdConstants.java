@@ -29,9 +29,13 @@ package com.tencent.bk.job.common.util.feature;
  */
 public interface FeatureIdConstants {
     /**
-     * 特性: 对接 GSE2.0
+     * 特性: 任务下发对接 GSE2.0
      */
     String FEATURE_GSE_V2 = "gseV2";
+    /**
+     * 特性: Agent状态对接 GSE2.0
+     */
+    String FEATURE_AGENT_STATUS_GSE_V2 = "agentStatusGseV2";
     /**
      * 特性: OpenAPI 兼容bk_biz_id参数
      */
