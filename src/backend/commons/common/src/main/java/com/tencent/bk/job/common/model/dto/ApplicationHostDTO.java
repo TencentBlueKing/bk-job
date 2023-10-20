@@ -292,10 +292,13 @@ public class ApplicationHostDTO {
         HostDTO host = new HostDTO();
         host.setHostId(hostId);
         host.setBkCloudId(cloudAreaId);
+        host.setBkCloudName(cloudAreaName);
         host.setIp(ip);
         host.setIpv6(ipv6);
         host.setAgentId(agentId);
         host.setAlive(getAgentAliveValue());
+        host.setOs(osName);
+        host.setOsType(osType);
         return host;
     }
 

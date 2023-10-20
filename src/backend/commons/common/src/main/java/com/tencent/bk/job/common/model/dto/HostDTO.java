@@ -96,9 +96,13 @@ public class HostDTO implements Cloneable {
     private Integer alive;
 
     /**
-     * 操作系统
+     * 操作系统名称
      */
     private String os;
+    /**
+     * 操作系统类型
+     */
+    private String osType;
     /**
      * 主机名称
      */
@@ -168,25 +172,21 @@ public class HostDTO implements Cloneable {
         }
     }
 
-    public static HostInfoVO toVO(HostDTO hostDTO) {
-        if (hostDTO == null) {
-            return null;
-        }
+    public HostInfoVO toHostInfoVO() {
         HostInfoVO hostInfoVO = new HostInfoVO();
-        hostInfoVO.setHostId(hostDTO.getHostId());
-        hostInfoVO.setIp(hostDTO.getIp());
-        hostInfoVO.setIpv6(hostDTO.getIpv6());
-        hostInfoVO.setAgentStatus(hostDTO.getAlive());
-        CloudAreaInfoVO cloudAreaInfo = new CloudAreaInfoVO();
-        cloudAreaInfo.setId(hostDTO.getBkCloudId());
-        cloudAreaInfo.setName(hostDTO.getBkCloudName());
-        hostInfoVO.setCloudArea(cloudAreaInfo);
-        hostInfoVO.setOs(hostDTO.getOs());
-        hostInfoVO.setHostName(hostDTO.getHostname());
+        hostInfoVO.setHostId(hostId);
+        hostInfoVO.setCloudArea(new CloudAreaInfoVO(bkCloudId, bkCloudName));
+        hostInfoVO.setIp(ip);
+        hostInfoVO.setIpv6(ipv6);
+        hostInfoVO.setHostName(hostname);
+        hostInfoVO.setOsName(os);
+        hostInfoVO.setOsTypeName(osType);
+        hostInfoVO.setAlive(alive);
+        hostInfoVO.setAgentId(agentId);
         return hostInfoVO;
     }
 
-    public static HostDTO fromVO(HostInfoVO hostInfoVO) {
+    public static HostDTO fromHostInfoVO(HostInfoVO hostInfoVO) {
         if (hostInfoVO == null) {
             return null;
         }
@@ -200,6 +200,8 @@ public class HostDTO implements Cloneable {
             hostDTO.setBkCloudName(cloudAreaInfo.getName());
         }
         hostDTO.setAlive(hostInfoVO.getAgentStatus());
+        hostDTO.setOs(hostInfoVO.getOsName());
+        hostDTO.setOsType(hostInfoVO.getOsTypeName());
         return hostDTO;
     }
 
@@ -273,5 +275,17 @@ public class HostDTO implements Cloneable {
             .add("ip='" + ip + "'")
             .add("ipv6='" + ipv6 + "'")
             .toString();
+    }
+
+    public void updateByHost(HostDTO host) {
+        this.hostId = host.getHostId();
+        this.agentId = host.getAgentId();
+        this.bkCloudId = host.getBkCloudId();
+        this.bkCloudName = host.getBkCloudName();
+        this.ip = host.getIp();
+        this.ipv6 = host.getIpv6();
+        this.os = host.getOs();
+        this.osType = host.getOsType();
+        this.alive = host.getAlive();
     }
 }
