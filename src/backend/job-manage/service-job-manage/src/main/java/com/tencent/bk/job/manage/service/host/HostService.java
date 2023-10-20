@@ -25,21 +25,13 @@
 package com.tencent.bk.job.manage.service.host;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
-import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 
 import java.util.Collection;
 import java.util.List;
@@ -94,16 +86,6 @@ public interface HostService {
     long countHostsByOsType(String osType);
 
     /**
-     * 根据给定条件查询主机信息
-     *
-     * @param applicationHostInfoCondition 业务查询条件
-     * @param baseSearchCondition          通用查询分页条件
-     * @return 带分页信息的主机信息列表
-     */
-    PageData<ApplicationHostDTO> listAppHost(ApplicationHostDTO applicationHostInfoCondition,
-                                             BaseSearchCondition baseSearchCondition);
-
-    /**
      * 查询指定业务的拓扑树
      *
      * @param username         用户名
@@ -111,15 +93,6 @@ public interface HostService {
      * @return 拓扑结构树
      */
     CcTopologyNodeVO listAppTopologyTree(String username, AppResourceScope appResourceScope);
-
-    /**
-     * 查询带主机信息的业务的拓扑树
-     *
-     * @param username         用户名
-     * @param appResourceScope 资源范围
-     * @return 带主机信息的拓扑结构树
-     */
-    CcTopologyNodeVO listAppTopologyHostTree(String username, AppResourceScope appResourceScope);
 
     /**
      * 查询带主机数量信息的业务拓扑树
@@ -130,63 +103,9 @@ public interface HostService {
      */
     CcTopologyNodeVO listAppTopologyHostCountTree(String username, AppResourceScope appResourceScope);
 
-    PageData<HostInfoVO> listHostByAppTopologyNodes(String username,
-                                                    AppResourceScope appResourceScope,
-                                                    ListHostByBizTopologyNodesReq req);
-
-    PageData<String> listIPByBizTopologyNodes(String username,
-                                              AppResourceScope appResourceScope,
-                                              ListHostByBizTopologyNodesReq req);
-
-    List<BizTopoNode> getAppTopologyTreeNodeDetail(String username,
-                                                   AppResourceScope appResourceScope,
-                                                   List<BizTopoNode> treeNodeList);
-
     List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
                                                       Long bizId,
                                                       List<InstanceTopologyDTO> nodeList);
-
-    List<NodeInfoVO> getBizHostsByNode(String username,
-                                       Long bizId,
-                                       List<BizTopoNode> treeNodeList);
-
-    /**
-     * 获取业务下动态分组列表
-     *
-     * @param appResourceScope 资源范围
-     * @param username         用户名
-     * @return 动态分组信息列表
-     */
-    List<DynamicGroupWithHost> getAppDynamicGroupList(String username, AppResourceScope appResourceScope);
-
-    /**
-     * 根据动态分组 ID 列表批量获取带主机信息的动态分组信息列表
-     *
-     * @param username           用户名
-     * @param bizId              业务 ID
-     * @param dynamicGroupIdList 动态分组 ID 列表
-     * @return 带主机信息的动态分组信息列表
-     */
-    List<DynamicGroupWithHost> getBizDynamicGroupHostList(String username,
-                                                          Long bizId,
-                                                          List<String> dynamicGroupIdList);
-
-    /**
-     * 根据 IP 列表查询主机信息
-     *
-     * @param username    用户名
-     * @param appId       业务 ID
-     * @param checkIpList 待查询的 IP 列表
-     * @return 主机信息列表
-     */
-    List<HostInfoVO> getHostsByIp(String username,
-                                  Long appId,
-                                  ActionScopeEnum actionScope,
-                                  List<String> checkIpList);
-
-    List<HostInfoVO> listHostByAppTopologyNodes(String username,
-                                                Long appId,
-                                                List<BizTopoNode> appTopoNodeList);
 
     /**
      * 获取业务下的主机。如果在Job缓存的主机中不存在，那么从cmdb查询

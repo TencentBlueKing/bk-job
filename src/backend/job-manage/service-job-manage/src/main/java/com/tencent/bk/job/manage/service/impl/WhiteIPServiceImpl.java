@@ -54,7 +54,6 @@ import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPRecordDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
-import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPActionScopeDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
@@ -249,15 +248,6 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             getActionScopeId(actionScope),
             ipv6s
         )));
-    }
-
-    @Override
-    public List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope) {
-        List<Long> effectiveAppIds = getEffectiveAppIdList(appId);
-        return whiteIPRecordDAO.listWhiteIPByAppIds(
-            effectiveAppIds,
-            getActionScopeId(actionScope)
-        );
     }
 
     private List<WhiteIPIPDTO> buildIpDtoList(List<HostIdWithMeta> hostList,
