@@ -297,8 +297,9 @@ public class ApplicationHostDTO {
         host.setIpv6(ipv6);
         host.setAgentId(agentId);
         host.setAlive(getAgentAliveValue());
-        host.setOs(osName);
+        host.setOsName(osName);
         host.setOsType(osType);
+        host.setOsTypeName(osTypeName);
         return host;
     }
 

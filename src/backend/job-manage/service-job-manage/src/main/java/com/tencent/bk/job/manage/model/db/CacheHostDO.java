@@ -98,6 +98,11 @@ public class CacheHostDO {
      */
     private String osType;
 
+    /**
+     * 操作系统类型名称
+     */
+    private String osTypeName;
+
     public ApplicationHostDTO toApplicationHostDTO() {
         ApplicationHostDTO host = new ApplicationHostDTO();
         host.setBizId(this.bizId);
@@ -111,6 +116,7 @@ public class CacheHostDO {
         host.setHostName(this.hostDesc);
         host.setOsName(this.os);
         host.setOsType(this.osType);
+        host.setOsTypeName(this.osTypeName);
         host.setGseAgentStatus(this.gseAgentStatus);
         return host;
     }
@@ -128,6 +134,7 @@ public class CacheHostDO {
         cacheHost.setHostDesc(host.getHostName());
         cacheHost.setOs(host.getOsName());
         cacheHost.setOsType(host.getOsType());
+        cacheHost.setOsTypeName(host.getOsTypeName());
         cacheHost.setGseAgentStatus(host.getGseAgentStatus());
         return cacheHost;
     }

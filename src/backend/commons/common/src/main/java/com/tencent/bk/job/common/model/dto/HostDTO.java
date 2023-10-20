@@ -98,11 +98,17 @@ public class HostDTO implements Cloneable {
     /**
      * 操作系统名称
      */
-    private String os;
+    private String osName;
+
     /**
      * 操作系统类型
      */
     private String osType;
+
+    /**
+     * 操作系统类型名称
+     */
+    private String osTypeName;
     /**
      * 主机名称
      */
@@ -179,8 +185,8 @@ public class HostDTO implements Cloneable {
         hostInfoVO.setIp(ip);
         hostInfoVO.setIpv6(ipv6);
         hostInfoVO.setHostName(hostname);
-        hostInfoVO.setOsName(os);
-        hostInfoVO.setOsTypeName(osType);
+        hostInfoVO.setOsName(osName);
+        hostInfoVO.setOsTypeName(osTypeName);
         hostInfoVO.setAlive(alive);
         hostInfoVO.setAgentId(agentId);
         return hostInfoVO;
@@ -200,8 +206,8 @@ public class HostDTO implements Cloneable {
             hostDTO.setBkCloudName(cloudAreaInfo.getName());
         }
         hostDTO.setAlive(hostInfoVO.getAgentStatus());
-        hostDTO.setOs(hostInfoVO.getOsName());
-        hostDTO.setOsType(hostInfoVO.getOsTypeName());
+        hostDTO.setOsName(hostInfoVO.getOsName());
+        hostDTO.setOsTypeName(hostInfoVO.getOsTypeName());
         return hostDTO;
     }
 
@@ -284,8 +290,9 @@ public class HostDTO implements Cloneable {
         this.bkCloudName = host.getBkCloudName();
         this.ip = host.getIp();
         this.ipv6 = host.getIpv6();
-        this.os = host.getOs();
+        this.osName = host.getOsName();
         this.osType = host.getOsType();
+        this.osTypeName = host.getOsTypeName();
         this.alive = host.getAlive();
     }
 }
