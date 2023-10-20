@@ -38,10 +38,9 @@ Update script basic information
     "code": 0,
     "result": true,
     "data": {
-        "script_id": "4a350b0e0707450e93326f6ace921072",
+        "id": "4a350b0e0707450e93326f6ace921072",
         "name": "script test",
         "script_language": 1,
-        "public_script": false,
         "bk_scope_type": "biz",
         "bk_scope_id": "2",
         "creator": "admin",
@@ -69,10 +68,9 @@ Update script basic information
 
 | Fields           | Type   | Description                                                  |
 | ---------------- | ------ | ------------------------------------------------------------ |
-| script_id        | string | Script id                                                    |
+| id               | string | Script id                                                    |
 | name             | string | Script name                                                  |
 | script_language  | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| public_script    | bool   | Public script or not                                         |
 | bk_scope_type    | string | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
 | bk_scope_id      | string | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
 | creator          | string | Creator                                                      |

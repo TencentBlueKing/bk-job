@@ -181,7 +181,7 @@ public class TopologyHelper {
         node.setInstanceName(bizInstTopo.getInstanceName());
         // 模块不需要展开,其他的默认展开
         if (CcNodeTypeEnum.MODULE.getType().equals(bizInstTopo.getObjectId())) {
-            node.setExpanded(false);
+            node.setLazy(true);
         }
         List<CcTopologyNodeVO> children = new ArrayList<>();
         if (bizInstTopo.getChild() != null && !bizInstTopo.getChild().isEmpty()) {

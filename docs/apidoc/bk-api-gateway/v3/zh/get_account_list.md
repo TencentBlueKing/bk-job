@@ -22,6 +22,8 @@
 | bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
 | bk_biz_id        |  long       | 是     | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
 | category               |  int        | 否     | 账号用途（1：系统账号，2：DB账号），不传则不区分 |
+| account                |  string     | 否     | 账号名称 |
+| alias                  |  string     | 否     | 账号别名 |
 | start                  |  int        | 否     | 分页记录起始位置，不传默认为0 |
 | length                 |  int        | 否     | 单次返回最大记录数，最大1000，不传默认为20 |
 
@@ -29,7 +31,7 @@
 
 - GET
 ```json
-/api/v3/get_account_list?bk_scope_type=biz&bk_scope_id=1&category=1&start=0&length=1
+/api/v3/get_account_list?bk_scope_type=biz&bk_scope_id=1&category=1&account=aaa&alias=aaa&start=0&length=1
 ```
 
 ### 返回结果示例

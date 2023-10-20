@@ -11,6 +11,12 @@ audit:
   # 作业平台系统ID
   systemId: bk_job
 ```
+2. 增加pod删除时等待优雅关闭的最大时间配置
+
+```yaml
+# pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
+podTerminationGracePeriodSeconds: 40
+```
 
 ## 0.5.2
 1.增加依赖宿主机GSE Agent的分发相关配置

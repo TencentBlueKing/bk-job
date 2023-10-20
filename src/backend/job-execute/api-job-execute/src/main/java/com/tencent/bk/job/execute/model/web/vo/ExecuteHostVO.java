@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -52,20 +51,5 @@ public class ExecuteHostVO {
 
     @ApiModelProperty("云区域ID")
     private Long cloudId;
-    @ApiModelProperty("云区域信息")
-    private ExecuteCloudAreaInfoVO cloudAreaInfo;
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setCloudAreaInfo(ExecuteCloudAreaInfoVO cloudAreaInfo) {
-        this.cloudAreaInfo = cloudAreaInfo;
-        if (cloudAreaInfo != null) {
-            this.cloudId = cloudAreaInfo.getId();
-        }
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setCloudId(Long cloudId) {
-        this.cloudId = cloudId;
-        this.cloudAreaInfo = new ExecuteCloudAreaInfoVO(cloudId, null);
-    }
 }

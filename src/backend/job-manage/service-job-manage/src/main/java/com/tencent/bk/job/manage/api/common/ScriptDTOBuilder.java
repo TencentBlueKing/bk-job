@@ -35,7 +35,8 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Req;
-import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptVersionCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +46,14 @@ import java.util.List;
 @Service
 public class ScriptDTOBuilder {
 
-    public ScriptDTO buildFromCreateUpdateReq(ScriptCreateUpdateReq req) {
+    /**
+     * ScriptCreateReq -> ScriptDTO 转换
+     *
+     * @param req 请求
+     * @return 转换后的脚本
+     */
+    public ScriptDTO buildFromScriptCreateReq(ScriptCreateReq req) {
         ScriptDTO scriptDTO = new ScriptDTO();
-        scriptDTO.setId(req.getId());
-        scriptDTO.setScriptVersionId(req.getScriptVersionId());
         scriptDTO.setName(req.getName());
         scriptDTO.setType(req.getType());
         if (req.getType() != null) {
@@ -71,6 +76,19 @@ public class ScriptDTOBuilder {
         }
         scriptDTO.setVersion(req.getVersion());
         scriptDTO.setDescription(req.getDescription());
+        return scriptDTO;
+    }
+
+    /**
+     * ScriptVersionCreateUpdateReq -> ScriptDTO 转换
+     *
+     * @param req 请求
+     * @return 转换后的脚本
+     */
+    public ScriptDTO buildFromScriptVersionCreateUpdateReq(ScriptVersionCreateUpdateReq req) {
+        ScriptDTO scriptDTO = new ScriptDTO();
+        scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
+        scriptDTO.setVersion(req.getVersion());
         scriptDTO.setVersionDesc(req.getVersionDesc());
         return scriptDTO;
     }

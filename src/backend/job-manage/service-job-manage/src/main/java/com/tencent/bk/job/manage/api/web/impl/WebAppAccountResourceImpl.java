@@ -242,7 +242,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         List<AccountDTO> accountDTOS =
-            accountService.listAllAppAccount(appResourceScope.getAppId(), AccountCategoryEnum.valOf(category));
+            accountService.listAppAccount(appResourceScope.getAppId(), AccountCategoryEnum.valOf(category));
         List<AccountVO> accountVOS = new ArrayList<>();
         if (accountDTOS != null && !accountDTOS.isEmpty()) {
             List<Long> accountIdList = new ArrayList<>();

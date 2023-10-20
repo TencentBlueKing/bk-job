@@ -37,6 +37,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -59,20 +60,21 @@ public class ScriptConverter {
             scriptVO.setContent(Base64Util.encodeContentToStr(script.getContent()));
         }
 
-        scriptVO.setVersionDesc(script.getVersionDesc());
-        scriptVO.setDescription(script.getDescription());
-        if (script.getTags() != null && !script.getTags().isEmpty()) {
-            List<TagVO> tagVOS = new ArrayList<>();
-            for (TagDTO tagDTO : script.getTags()) {
-                TagVO tagVO = new TagVO();
-                tagVO.setId(tagDTO.getId());
-                tagVO.setName(tagDTO.getName());
-                tagVOS.add(tagVO);
-            }
-            scriptVO.setTags(tagVOS);
-        }
-
         return scriptVO;
+    }
+
+    private static List<TagVO> convertToTagVOs(List<TagDTO> tags) {
+        if (CollectionUtils.isEmpty(tags)) {
+            return null;
+        }
+        List<TagVO> tagVOS = new ArrayList<>();
+        for (TagDTO tagDTO : tags) {
+            TagVO tagVO = new TagVO();
+            tagVO.setId(tagDTO.getId());
+            tagVO.setName(tagDTO.getName());
+            tagVOS.add(tagVO);
+        }
+        return tagVOS;
     }
 
     public static BasicScriptVO convertToBasicScriptVO(ScriptDTO script) {
@@ -110,6 +112,9 @@ public class ScriptConverter {
         scriptVO.setCreator(script.getCreator());
         scriptVO.setLastModifyTime(script.getLastModifyTime());
         scriptVO.setLastModifyUser(script.getLastModifyUser());
+        scriptVO.setDescription(script.getDescription());
+        scriptVO.setVersionDesc(script.getVersionDesc());
+        scriptVO.setTags(convertToTagVOs(script.getTags()));
     }
 
 

@@ -25,9 +25,13 @@
 package com.tencent.bk.job.manage.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateAccountV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import org.springframework.validation.annotation.Validated;
@@ -44,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RequestMapping("/esb/api/v3")
 @RestController
+@Validated
 @EsbAPI
 public interface EsbAccountV3Resource {
 
@@ -61,8 +66,27 @@ public interface EsbAccountV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @RequestParam(value = "category", required = false) Integer category,
+        @RequestParam(value = "category", required = false)
+        @CheckEnum(enumClass = AccountCategoryEnum.class, enumMethod = "isValid",
+            message = "{validation.constraints.AccountCategory_illegal.message}")
+            Integer category,
+        @RequestParam(value = "account", required = false) String account,
+        @RequestParam(value = "alias", required = false) String alias,
         @RequestParam(value = "start", required = false) Integer start,
         @RequestParam(value = "length", required = false) Integer length);
+
+    @PostMapping("/create_account")
+    EsbResp<EsbAccountV3DTO> createAccount(
+        @RequestBody
+        @Validated
+            EsbCreateAccountV3Req req
+    );
+
+    @PostMapping("/delete_account")
+    EsbResp<EsbAccountV3DTO> deleteAccountUsingPost(
+        @RequestBody
+        @Validated
+            EsbDeleteAccountV3Req req
+    );
 
 }

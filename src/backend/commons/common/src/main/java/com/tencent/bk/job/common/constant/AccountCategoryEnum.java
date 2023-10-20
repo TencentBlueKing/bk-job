@@ -51,6 +51,13 @@ public enum AccountCategoryEnum {
         return null;
     }
 
+    public static boolean isValid(Integer category) {
+        if (category == null) {
+            return false;
+        }
+        return valOf(category) != null;
+    }
+
     public Integer getValue() {
         return value;
     }

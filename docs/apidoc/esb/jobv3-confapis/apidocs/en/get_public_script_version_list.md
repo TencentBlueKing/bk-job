@@ -50,7 +50,6 @@ Query public script version list
                 "last_modify_user": "admin",
                 "last_modify_time": 1600746078520,
                 "script_language": 1,
-                "public_script": true,
                 "description": "script description"
             }
         ],
@@ -88,5 +87,4 @@ Query public script version list
 | last_modify_user  | string    | Last modify user|
 | last_modify_time  | long      | Last modified time Unix timestamp (ms)|
 | script_language   | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| public_script     | bool   | Public script or not                                         |
 | description       | string | Description                                                  |

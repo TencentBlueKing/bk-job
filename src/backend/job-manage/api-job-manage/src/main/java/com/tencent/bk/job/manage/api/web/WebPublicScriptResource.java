@@ -27,10 +27,13 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptVersionCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
@@ -41,6 +44,7 @@ import com.tencent.bk.job.manage.model.web.vo.script.ScriptSyncResultVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -193,7 +197,8 @@ public interface WebPublicScriptResource {
             String username,
         @ApiParam(value = "新增/更新的脚本对象", name = "request", required = true)
         @RequestBody
-            ScriptCreateUpdateReq request
+        @Validated
+            ScriptCreateReq request
     );
 
     @ApiOperation(value = "新增脚本版本", produces = "application/json")
@@ -206,7 +211,8 @@ public interface WebPublicScriptResource {
             String scriptId,
         @ApiParam(value = "新增脚本版本请求", name = "request", required = true)
         @RequestBody
-            ScriptCreateUpdateReq request
+        @Validated(Create.class)
+            ScriptVersionCreateUpdateReq request
     );
 
     @ApiOperation(value = "更新脚本版本", produces = "application/json")
@@ -221,7 +227,8 @@ public interface WebPublicScriptResource {
             Long scriptVersionId,
         @ApiParam(value = "更新脚本版本请求", name = "request", required = true)
         @RequestBody
-            ScriptCreateUpdateReq request
+        @Validated(Update.class)
+            ScriptVersionCreateUpdateReq request
     );
 
     @ApiOperation(value = "上线脚本", produces = "application/json")

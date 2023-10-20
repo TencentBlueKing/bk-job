@@ -292,7 +292,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_update_public_script_basic"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
-    public EsbResp<EsbScriptVersionDetailV3DTO> updatePublicScriptBasic(
+    public EsbResp<EsbScriptV3DTO> updatePublicScriptBasic(
         @AuditRequestBody EsbUpdatePublicScriptBasicV3Req request) {
         String userName = request.getUserName();
         String scriptId = request.getScriptId();
@@ -302,7 +302,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         }
 
         ScriptDTO scriptDTO = publicScriptService.getScript(scriptId);
-        EsbScriptVersionDetailV3DTO updatePublicScriptV3DTO = scriptDTO.toEsbUpdateScriptV3DTO();
+        EsbScriptV3DTO updatePublicScriptV3DTO = scriptDTO.toEsbScriptV3DTO();
         return EsbResp.buildSuccessResp(updatePublicScriptV3DTO);
     }
 

@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -355,7 +354,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                 AppResourceScope appResourceScope,
                                                 String scopeType,
                                                 String scopeId,
-                                                WebFastPushFileRequest request) {
+                                                @AuditRequestBody WebFastPushFileRequest request) {
         log.debug("Fast send file, scope={}, operator={}, request={}", appResourceScope, username, request);
         if (!checkFastPushFileRequest(request)) {
             log.warn("Fast send file request is illegal!");
@@ -501,7 +500,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return stepInstance;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容IP，发布完成之后使用hostId，不再使用IP", deprecatedVersion = "3.6.x")
     private ServersDTO convertToServersDTO(ExecuteTargetVO target) {
         if (target == null || target.getHostNodeInfo() == null) {
             return null;
@@ -509,19 +507,15 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         ExecuteServersVO hostNode = target.getHostNodeInfo();
         ServersDTO serversDTO = new ServersDTO();
         if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
-            List<HostDTO> staticIpList = new ArrayList<>();
+            List<HostDTO> hostList = new ArrayList<>();
             hostNode.getHostList().forEach(host -> {
                 HostDTO targetHost = new HostDTO();
                 if (host.getHostId() != null) {
                     targetHost.setHostId(host.getHostId());
-                } else {
-                    // 兼容IP，发布完成后删除
-                    targetHost.setBkCloudId(host.getCloudId());
-                    targetHost.setIp(host.getIp());
                 }
-                staticIpList.add(targetHost);
+                hostList.add(targetHost);
             });
-            serversDTO.setStaticIpList(staticIpList);
+            serversDTO.setStaticIpList(hostList);
         }
         if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
