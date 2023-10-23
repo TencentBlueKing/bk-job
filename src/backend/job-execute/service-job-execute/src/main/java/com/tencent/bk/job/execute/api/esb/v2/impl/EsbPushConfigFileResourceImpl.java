@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
@@ -77,19 +76,16 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
     private final AccountService accountService;
     private final FileDistributeConfig fileDistributeConfig;
     private final AgentService agentService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPushConfigFileResourceImpl(TaskExecuteService taskExecuteService,
                                          AccountService accountService,
                                          FileDistributeConfig fileDistributeConfig,
-                                         AgentService agentService,
-                                         AppScopeMappingService appScopeMappingService) {
+                                         AgentService agentService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.fileDistributeConfig = fileDistributeConfig;
         this.agentService = agentService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -101,8 +97,6 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         })
     @AuditEntry(actionId = ActionId.QUICK_TRANSFER_FILE)
     public EsbResp<EsbJobExecuteDTO> pushConfigFile(@AuditRequestBody EsbPushConfigFileRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");

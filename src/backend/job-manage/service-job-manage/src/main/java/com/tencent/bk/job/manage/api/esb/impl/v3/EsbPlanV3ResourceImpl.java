@@ -35,7 +35,6 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPlanV3Resource;
 import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.manager.variable.StepRefVariableParser;
@@ -59,15 +58,12 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
 
     private final TaskPlanService taskPlanService;
     private final PlanAuthService planAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPlanV3ResourceImpl(TaskPlanService taskPlanService,
-                                 PlanAuthService planAuthService,
-                                 AppScopeMappingService appScopeMappingService) {
+                                 PlanAuthService planAuthService) {
         this.taskPlanService = taskPlanService;
         this.planAuthService = planAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -123,7 +119,6 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_plan_list"})
     public EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>> getPlanListUsingPost(EsbGetPlanListV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get plan list, request is illegal!");
@@ -167,7 +162,6 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_plan_detail"})
     @AuditEntry(actionId = ActionId.VIEW_JOB_PLAN)
     public EsbResp<EsbPlanInfoV3DTO> getPlanDetailUsingPost(@AuditRequestBody EsbGetPlanDetailV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
         request.validate();
 
         TaskPlanInfoDTO taskPlanInfo = taskPlanService.getTaskPlan(request.getUserName(),

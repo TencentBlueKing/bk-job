@@ -35,7 +35,6 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
@@ -71,17 +70,14 @@ public class EsbPushConfigFileResourceV3Impl
     private final TaskExecuteService taskExecuteService;
     private final FileDistributeConfig fileDistributeConfig;
     private final AgentService agentService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
                                            FileDistributeConfig fileDistributeConfig,
-                                           AgentService agentService,
-                                           AppScopeMappingService appScopeMappingService) {
+                                           AgentService agentService) {
         this.taskExecuteService = taskExecuteService;
         this.fileDistributeConfig = fileDistributeConfig;
         this.agentService = agentService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -93,7 +89,6 @@ public class EsbPushConfigFileResourceV3Impl
         })
     @AuditEntry(actionId = ActionId.QUICK_TRANSFER_FILE)
     public EsbResp<EsbJobExecuteV3DTO> pushConfigFile(@AuditRequestBody EsbPushConfigFileV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");

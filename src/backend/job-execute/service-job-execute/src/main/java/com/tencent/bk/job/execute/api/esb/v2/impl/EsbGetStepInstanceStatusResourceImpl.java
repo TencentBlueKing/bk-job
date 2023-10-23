@@ -38,7 +38,6 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
@@ -68,15 +67,12 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
     private final TaskInstanceService taskInstanceService;
     private final TaskResultService taskResultService;
     private final MessageI18nService i18nService;
-    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService,
                                                 TaskInstanceService taskInstanceService,
-                                                AppScopeMappingService appScopeMappingService,
                                                 TaskResultService taskResultService) {
         this.i18nService = i18nService;
         this.taskInstanceService = taskInstanceService;
-        this.appScopeMappingService = appScopeMappingService;
         this.taskResultService = taskResultService;
     }
 
@@ -85,8 +81,6 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(
         @AuditRequestBody EsbGetStepInstanceStatusRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get step instance status request is illegal!");

@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
@@ -62,19 +61,16 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 public class ServiceHostResourceImpl implements ServiceHostResource {
-    private final AppScopeMappingService appScopeMappingService;
     private final ApplicationService applicationService;
     private final HostService hostService;
     private final BizTopoHostService bizTopoHostService;
     private final BizDynamicGroupHostService bizDynamicGroupHostService;
 
     @Autowired
-    public ServiceHostResourceImpl(AppScopeMappingService appScopeMappingService,
-                                   ApplicationService applicationService,
+    public ServiceHostResourceImpl(ApplicationService applicationService,
                                    HostService hostService,
                                    BizTopoHostService bizTopoHostService,
                                    BizDynamicGroupHostService bizDynamicGroupHostService) {
-        this.appScopeMappingService = appScopeMappingService;
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.bizTopoHostService = bizTopoHostService;
@@ -113,7 +109,6 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         }
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
         AppResourceScope appResourceScope = new AppResourceScope(appId);
-        appScopeMappingService.fillAppResourceScope(appResourceScope);
         List<ApplicationHostDTO> hostList = bizDynamicGroupHostService.listHostByDynamicGroups(
             appResourceScope,
             dynamicGroupIdList

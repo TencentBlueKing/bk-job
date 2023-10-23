@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO.EsbStepInstanceGlobalVarValuesV3DTO;
@@ -55,16 +54,13 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
     implements EsbGetJobInstanceGlobalVarValueV3Resource {
 
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
-    private final AppScopeMappingService appScopeMappingService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
 
     public EsbGetJobInstanceGlobalVarValueV3ResourceImpl(
         StepInstanceVariableValueService stepInstanceVariableValueService,
-        AppScopeMappingService appScopeMappingService,
         TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.appScopeMappingService = appScopeMappingService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
     }
 
@@ -73,9 +69,6 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValueUsingPost(
         @AuditRequestBody EsbGetJobInstanceGlobalVarValueV3Request request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");
