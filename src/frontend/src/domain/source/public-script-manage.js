@@ -56,9 +56,7 @@ class PublicScriptManage {
 
   // 删除脚本
   deleteById({ id }) {
-    return Request.delete(`${this.module}/script/${id}`, {
-      prefixPath: this.prefixPath,
-    });
+    return Request.delete(`${this.module}/script/${id}`);
   }
 
   // 获取脚本的所有版本
@@ -66,14 +64,13 @@ class PublicScriptManage {
     const params = { ...payload };
     delete params.id;
     return Request.get(`${this.module}/script/${payload.id}/scriptVersion/list`, {
-      prefixPath: this.prefixPath,
       params,
     });
   }
 
   // 新增脚本版本
   createVersion(params = {}) {
-    return Request.post(`${this.path}/script/${params.id}/scriptVersion`, {
+    return Request.post(`${this.module}/script/${params.id}/scriptVersion`, {
       params,
     });
   }

@@ -14,7 +14,7 @@
 | Accept                    |  string    | 是      | 固定值。application/json|
 | Content-Type              |  string    | 是      | 固定值。application/json|
 
-#### Path参数
+#### Body参数
 
 | 字段           |  类型      | 必选    |  描述      |
 |---------------|------------|--------|------------|
@@ -24,9 +24,13 @@
 
 ### 请求参数示例
 
-- DELETE
+- POST
 ```json
-/api/v3/scope/biz/1/accounts/70
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "id": 70
+}
 ```
 
 ### 返回结果示例
