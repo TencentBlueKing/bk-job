@@ -68,7 +68,12 @@ public abstract class AbstractScriptCallbackHelper extends BaseIamCallbackServic
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         ScriptQuery scriptQuery = new ScriptQuery();
-        scriptQuery.setPublicScript(isPublicScript());
+        boolean isPublicScript = isPublicScript();
+        scriptQuery.setPublicScript(isPublicScript);
+        if (!isPublicScript) {
+            Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+            scriptQuery.setAppId(appId);
+        }
         scriptQuery.setBaseSearchCondition(baseSearchCondition);
         return scriptQuery;
     }
