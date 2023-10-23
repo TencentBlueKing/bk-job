@@ -106,7 +106,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         Long appId = req.getAppId();
         String code = req.getCode();
         if (StringUtils.isBlank(code)) {
-            throw new MissingParameterException(ErrorCode.FILE_SOURCE_CODE_NOT_EMPTY);
+            throw new MissingParameterException(ErrorCode.FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY);
         }
         Integer id = fileSourceService.getFileSourceIdByCode(appId, code);
         if (id == null) {
