@@ -22,34 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.aspects;
+package com.tencent.bk.job.common.web.config;
 
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
+import com.tencent.bk.job.common.web.aspects.EsbAppResourceScopeReqAspect;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * 执行ESB Controller之前，对AppResourceScope中的数据进行转换与填充
+ * Esb请求切面配置
  */
-@Aspect
-@Slf4j
-public class EsbAppResourceScopeReqAspect {
-    private final AppScopeMappingService appScopeMappingService;
-
-    public EsbAppResourceScopeReqAspect(AppScopeMappingService appScopeMappingService) {
-        this.appScopeMappingService = appScopeMappingService;
-    }
-
-    @Before("execution(* com.tencent.bk.job.*.api.esb..*.*(..)))")
-    public void handleAppScopeReq(JoinPoint joinPoint) {
-        Object[] args = joinPoint.getArgs();
-        for (Object arg : args) {
-            if (arg instanceof EsbAppScopeReq) {
-                ((EsbAppScopeReq) arg).fillAppResourceScope(appScopeMappingService);
-            }
-        }
+@Configuration(proxyBeanMethods = false)
+public class EsbAppReqAspectAutoConfiguration {
+    @Bean
+    public EsbAppResourceScopeReqAspect esbAppResourceScopeReqAspect(
+        ObjectProvider<AppScopeMappingService> appScopeMappingServiceProvider) {
+        return new EsbAppResourceScopeReqAspect(appScopeMappingServiceProvider.getIfAvailable());
     }
 }
