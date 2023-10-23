@@ -44,11 +44,6 @@ public class CacheHostDO {
     private Long cloudAreaId;
 
     /**
-     * 云区域名称
-     */
-    private String cloudAreaName;
-
-    /**
      * ipv4
      */
     private String ip;
@@ -98,17 +93,11 @@ public class CacheHostDO {
      */
     private String osType;
 
-    /**
-     * 操作系统类型名称
-     */
-    private String osTypeName;
-
     public ApplicationHostDTO toApplicationHostDTO() {
         ApplicationHostDTO host = new ApplicationHostDTO();
         host.setBizId(this.bizId);
         host.setAppId(this.appId);
         host.setCloudAreaId(this.cloudAreaId);
-        host.setCloudAreaName(this.cloudAreaName);
         host.setIp(this.ip);
         host.setIpv6(ipv6);
         host.setHostId(this.hostId);
@@ -116,7 +105,6 @@ public class CacheHostDO {
         host.setHostName(this.hostDesc);
         host.setOsName(this.os);
         host.setOsType(this.osType);
-        host.setOsTypeName(this.osTypeName);
         host.setGseAgentStatus(this.gseAgentStatus);
         return host;
     }
@@ -126,7 +114,6 @@ public class CacheHostDO {
         cacheHost.setBizId(host.getBizId());
         cacheHost.setAppId(host.getAppId());
         cacheHost.setCloudAreaId(host.getCloudAreaId());
-        cacheHost.setCloudAreaName(host.getCloudAreaName());
         cacheHost.setIp(host.getIp());
         cacheHost.setIpv6(host.getIpv6());
         cacheHost.setHostId(host.getHostId());
@@ -134,7 +121,6 @@ public class CacheHostDO {
         cacheHost.setHostDesc(host.getHostName());
         cacheHost.setOs(host.getOsName());
         cacheHost.setOsType(host.getOsType());
-        cacheHost.setOsTypeName(host.getOsTypeName());
         cacheHost.setGseAgentStatus(host.getGseAgentStatus());
         return cacheHost;
     }

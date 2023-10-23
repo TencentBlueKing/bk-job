@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 /**
  * 管控区域 Client
  */
-
 @Slf4j
 public class BkNetClient {
     private static final Map<Long, String> CLOUD_AREA_NAME_MAP = new ConcurrentHashMap<>();

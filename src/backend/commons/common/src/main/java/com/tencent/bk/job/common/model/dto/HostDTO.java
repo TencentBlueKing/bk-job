@@ -114,6 +114,16 @@ public class HostDTO implements Cloneable {
      */
     private String hostname;
 
+    /**
+     * 所属云厂商ID
+     */
+    private String cloudVendorId;
+
+    /**
+     * 所属云厂商名称
+     */
+    private String cloudVendorName;
+
     @Deprecated
     public HostDTO(Long bkCloudId, String ip) {
         this.bkCloudId = bkCloudId;
@@ -189,6 +199,7 @@ public class HostDTO implements Cloneable {
         hostInfoVO.setOsTypeName(osTypeName);
         hostInfoVO.setAlive(alive);
         hostInfoVO.setAgentId(agentId);
+        hostInfoVO.setCloudVendorName(cloudVendorName);
         return hostInfoVO;
     }
 
@@ -294,5 +305,7 @@ public class HostDTO implements Cloneable {
         this.osType = host.getOsType();
         this.osTypeName = host.getOsTypeName();
         this.alive = host.getAlive();
+        this.cloudVendorId = host.getCloudVendorId();
+        this.cloudVendorName = host.getCloudVendorName();
     }
 }
