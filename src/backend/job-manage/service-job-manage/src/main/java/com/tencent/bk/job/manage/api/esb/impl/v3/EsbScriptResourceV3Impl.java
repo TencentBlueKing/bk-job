@@ -40,7 +40,6 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
@@ -75,16 +74,13 @@ import java.util.Map;
 public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     private final ScriptService scriptService;
     private final ScriptAuthService scriptAuthService;
-    private final AppScopeMappingService appScopeMappingService;
     private final ScriptDTOBuilder scriptDTOBuilder;
 
     public EsbScriptResourceV3Impl(ScriptService scriptService,
                                    ScriptAuthService scriptAuthService,
-                                   AppScopeMappingService appScopeMappingService,
                                    ScriptDTOBuilder scriptDTOBuilder) {
         this.scriptService = scriptService;
         this.scriptAuthService = scriptAuthService;
-        this.appScopeMappingService = appScopeMappingService;
         this.scriptDTOBuilder = scriptDTOBuilder;
     }
 
@@ -164,7 +160,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptListUsingPost(EsbGetScriptListV3Req request) {
-        request.fillAppResourceScope(appScopeMappingService);
         checkEsbGetScriptListV3Req(request);
 
         ScriptQuery scriptQuery = buildListPageScriptQuery(request);
@@ -237,7 +232,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     )
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getScriptVersionListUsingPost(
         @AuditRequestBody EsbGetScriptVersionListV3Req request) {
-        request.fillAppResourceScope(appScopeMappingService);
         checkEsbGetScriptVersionListV3Req(request);
 
         scriptAuthService.authViewScript(request.getUserName(), request.getAppResourceScope(), request.getScriptId(),
@@ -283,7 +277,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @AuditEntry(actionId = ActionId.VIEW_SCRIPT)
     public EsbResp<EsbScriptVersionDetailV3DTO> getScriptVersionDetailUsingPost(
         @AuditRequestBody EsbGetScriptVersionDetailV3Req request) {
-        request.fillAppResourceScope(appScopeMappingService);
         checkEsbGetScriptVersionDetailV3Req(request);
 
         long appId = request.getAppId();
@@ -311,7 +304,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @AuditEntry(actionId = ActionId.CREATE_SCRIPT)
     public EsbResp<EsbScriptVersionDetailV3DTO> createScript(
         @AuditRequestBody EsbCreateScriptV3Req request) {
-        request.fillAppResourceScope(appScopeMappingService);
         String userName = request.getUserName();
         AppResourceScope appResourceScope = request.getAppResourceScope();
 
@@ -331,7 +323,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @AuditEntry(actionId = ActionId.CREATE_SCRIPT)
     public EsbResp<EsbScriptVersionDetailV3DTO> createScriptVersion(
         @AuditRequestBody EsbCreateScriptVersionV3Req request) {
-        request.fillAppResourceScope(appScopeMappingService);
         String userName = request.getUserName();
         AppResourceScope appResourceScope = request.getAppResourceScope();
 
@@ -353,7 +344,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_script"})
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
     public EsbResp deleteScript(@AuditRequestBody EsbDeleteScriptV3Req request) {
-        request.fillAppResourceScope(appScopeMappingService);
         scriptService.deleteScript(request.getUserName(), request.getAppId(), request.getScriptId());
         return EsbResp.buildSuccessResp(null);
     }
@@ -362,7 +352,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
     public EsbResp deleteScriptVersion(@AuditRequestBody EsbDeleteScriptVersionV3Req request) {
-        request.fillAppResourceScope(appScopeMappingService);
         scriptService.deleteScriptVersion(request.getUserName(), request.getAppResourceScope().getAppId(),
             request.getScriptVersionId());
         return EsbResp.buildSuccessResp(null);
@@ -373,8 +362,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
     public EsbResp<EsbScriptVersionDetailV3DTO> disableScriptVersion(
         @AuditRequestBody EsbManageScriptVersionV3Req request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
         scriptService.disableScript(request.getAppResourceScope().getAppId(), request.getUserName(),
             request.getScriptId(), request.getScriptVersionId());
         ScriptDTO scriptVersion = scriptService.getScriptVersion(request.getScriptVersionId());
@@ -386,8 +373,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
     public EsbResp<EsbScriptVersionDetailV3DTO> publishScriptVersion(
         @AuditRequestBody EsbManageScriptVersionV3Req request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
         scriptService.publishScript(request.getAppResourceScope().getAppId(), request.getUserName(),
             request.getScriptId(), request.getScriptVersionId());
         ScriptDTO scriptVersion = scriptService.getScriptVersion(request.getScriptVersionId());
@@ -399,8 +384,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
     public EsbResp<EsbScriptV3DTO> updateScriptBasic(
         @AuditRequestBody EsbUpdateScriptBasicV3Req request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
         String userName = request.getUserName();
         String scriptId = request.getScriptId();
         AppResourceScope appResourceScope = request.getAppResourceScope();
@@ -419,8 +402,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
     public EsbResp<EsbScriptVersionDetailV3DTO> updateScriptVersion(
         @AuditRequestBody EsbUpdateScriptVersionV3Req request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
         ScriptDTO scriptVersionDTO = scriptDTOBuilder.buildFromCreateUpdateReq(request);
         scriptVersionDTO.setAppId(request.getAppResourceScope().getAppId());
         scriptVersionDTO.setPublicScript(false);

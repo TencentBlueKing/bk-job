@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -57,21 +56,15 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceListV3Resource {
 
     private final TaskResultService taskResultService;
-    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbGetJobInstanceListV3ResourceImpl(TaskResultService taskResultService,
-                                               AppScopeMappingService appScopeMappingService) {
+    public EsbGetJobInstanceListV3ResourceImpl(TaskResultService taskResultService) {
         this.taskResultService = taskResultService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_list"})
     public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceListUsingPost(
         EsbGetJobInstanceListV3Request request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance ip log request is illegal!");

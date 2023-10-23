@@ -35,7 +35,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -62,13 +61,10 @@ public class EsbExecuteJobPlanV3ResourceImpl
     implements EsbExecuteJobPlanV3Resource {
 
     private final TaskExecuteService taskExecuteService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbExecuteJobPlanV3ResourceImpl(TaskExecuteService taskExecuteService,
-                                           AppScopeMappingService appScopeMappingService) {
+    public EsbExecuteJobPlanV3ResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -80,7 +76,6 @@ public class EsbExecuteJobPlanV3ResourceImpl
         })
     @AuditEntry(actionId = ActionId.LAUNCH_JOB_PLAN)
     public EsbResp<EsbJobExecuteV3DTO> executeJobPlan(@AuditRequestBody EsbExecuteJobV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkExecuteTaskRequest(request);
         log.info("Execute task, request={}", JsonUtils.toJson(request));
         if (!checkResult.isPass()) {

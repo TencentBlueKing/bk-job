@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.v2.EsbExecuteTaskResource;
@@ -65,13 +64,10 @@ import java.util.List;
 public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implements EsbExecuteTaskResource {
 
     private final TaskExecuteService taskExecuteService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                      AppScopeMappingService appScopeMappingService) {
+    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -83,8 +79,6 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
         })
     @AuditEntry(actionId = ActionId.LAUNCH_JOB_PLAN)
     public EsbResp<EsbJobExecuteDTO> executeJob(@AuditRequestBody EsbExecuteJobRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         log.info("Execute task, request={}", JsonUtils.toJson(request));
         ValidateResult checkResult = checkExecuteTaskRequest(request);
         if (!checkResult.isPass()) {
