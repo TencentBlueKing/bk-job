@@ -138,7 +138,6 @@ public class ScriptDTO {
         esbScript.setLastModifyTime(lastModifyTime);
         esbScript.setOnlineScriptVersionId(scriptVersionId);
         esbScript.setDescription(description);
-        esbScript.setPublicScript(publicScript);
         return esbScript;
     }
 
@@ -168,7 +167,6 @@ public class ScriptDTO {
         scriptDetail.setScriptId(id);
         scriptDetail.setName(name);
         scriptDetail.setType(type);
-        scriptDetail.setPublicScript(publicScript);
         scriptDetail.setContent(content);
         scriptDetail.setCreator(creator);
         scriptDetail.setCreateTime(createTime);
@@ -185,10 +183,10 @@ public class ScriptDTO {
     }
 
     public EsbScriptVersionDetailV3DTO toEsbManageScriptV3DTO() {
-        EsbScriptVersionDetailV3DTO managetDetail = new EsbScriptVersionDetailV3DTO();
-        managetDetail.setId(scriptVersionId);
-        managetDetail.setScriptId(id);
-        managetDetail.setStatus(status);
-        return managetDetail;
+        EsbScriptVersionDetailV3DTO result = new EsbScriptVersionDetailV3DTO();
+        result.setId(scriptVersionId);
+        result.setScriptId(id);
+        result.setStatus(status);
+        return result;
     }
 }
