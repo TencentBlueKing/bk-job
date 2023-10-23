@@ -55,10 +55,11 @@ import com.tencent.bk.job.manage.model.dto.TemplateStepIDDTO;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptConverter;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.model.web.request.ScriptCheckReq;
-import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptVersionCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCheckResultItemVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
@@ -76,6 +77,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -348,10 +350,9 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                          AppResourceScope appResourceScope,
                                          String scopeType,
                                          String scopeId,
-                                         @AuditRequestBody ScriptCreateUpdateReq request) {
+                                         @AuditRequestBody @Validated ScriptCreateReq request) {
 
-        ScriptDTO script = buildCreateOrUpdateScript(request, appResourceScope, username);
-        script.setCreator(username);
+        ScriptDTO script = buildCreateScriptDTO(request, appResourceScope, username);
         ScriptDTO savedScript = scriptService.createScript(username, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
@@ -359,12 +360,13 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
     }
 
 
-    private ScriptDTO buildCreateOrUpdateScript(ScriptCreateUpdateReq request,
-                                                AppResourceScope appResourceScope,
-                                                String username) {
-        ScriptDTO script = scriptDTOBuilder.buildFromCreateUpdateReq(request);
+    private ScriptDTO buildCreateScriptDTO(ScriptCreateReq request,
+                                           AppResourceScope appResourceScope,
+                                           String username) {
+        ScriptDTO script = scriptDTOBuilder.buildFromScriptCreateReq(request);
         script.setAppId(appResourceScope.getAppId());
         script.setPublicScript(false);
+        script.setCreator(username);
         script.setLastModifyUser(username);
         return script;
     }
@@ -376,30 +378,46 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                 String scopeType,
                                                 String scopeId,
                                                 String scriptId,
-                                                @AuditRequestBody ScriptCreateUpdateReq request) {
+                                                @AuditRequestBody ScriptVersionCreateUpdateReq request) {
 
-        ScriptDTO script = buildCreateOrUpdateScript(request, appResourceScope, username);
-        script.setId(scriptId);
-        script.setCreator(username);
+        ScriptDTO script = buildCreateOrUpdateScriptVersion(true, request, scriptId, null,
+            appResourceScope, username);
         ScriptDTO savedScript = scriptService.createScriptVersion(username, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
         return Response.buildSuccessResp(scriptVO);
     }
 
+    private ScriptDTO buildCreateOrUpdateScriptVersion(boolean isCreate,
+                                                       ScriptVersionCreateUpdateReq request,
+                                                       String scriptId,
+                                                       Long scriptVersionId,
+                                                       AppResourceScope appResourceScope,
+                                                       String username) {
+        ScriptDTO script = scriptDTOBuilder.buildFromScriptVersionCreateUpdateReq(request);
+        script.setId(scriptId);
+        script.setAppId(appResourceScope.getAppId());
+        script.setPublicScript(false);
+        script.setLastModifyUser(username);
+        if (isCreate) {
+            script.setCreator(username);
+        } else {
+            script.setScriptVersionId(scriptVersionId);
+        }
+        return script;
+    }
+
     @Override
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
     public Response<ScriptVO> updateScriptVersion(String username,
                                                   AppResourceScope appResourceScope,
-                                                  String scopeType,
-                                                  String scopeId,
+                                                  String scopeType, String scopeId,
                                                   String scriptId,
                                                   Long scriptVersionId,
-                                                  @AuditRequestBody ScriptCreateUpdateReq request) {
+                                                  @AuditRequestBody ScriptVersionCreateUpdateReq request) {
 
-        ScriptDTO script = buildCreateOrUpdateScript(request, appResourceScope, username);
-        script.setId(scriptId);
-        script.setScriptVersionId(scriptVersionId);
+        ScriptDTO script = buildCreateOrUpdateScriptVersion(false, request, scriptId, scriptVersionId,
+            appResourceScope, username);
         ScriptDTO savedScriptVersion = scriptService.updateScriptVersion(username, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScriptVersion);

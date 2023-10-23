@@ -44,7 +44,6 @@
         "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
         "name": "public script test",
         "script_language": 1,
-        "public_script": true,
         "content": "IyEvYmluL2Jhc2gKbHM=",
         "creator": "admin",
         "create_time": 1691739630000,
@@ -77,7 +76,6 @@
 | script_id         | string | 公共脚本ID                                                   |
 | name              | string | 公共脚本名称                                                 |
 | script_language   | int    | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| public_script     | bool   | 是否公共脚本                                                 |
 | content           | string | 公共脚本版本内容                                             |
 | creator           | string | 创建人                                                       |
 | create_time       | long   | 创建时间Unix时间戳（ms）                                     |

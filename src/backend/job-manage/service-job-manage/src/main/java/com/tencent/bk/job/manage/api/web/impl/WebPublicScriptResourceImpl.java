@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -45,10 +46,11 @@ import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.TemplateStepIDDTO;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptConverter;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
-import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptVersionCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
@@ -192,7 +194,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public Response<ScriptVO> updateScriptInfo(String username,
                                                String scriptId,
-                                               ScriptInfoUpdateReq request) {
+                                               @AuditRequestBody ScriptInfoUpdateReq request) {
         String updateField = request.getUpdateField();
         boolean isUpdateDesc = "scriptDesc".equals(updateField);
         boolean isUpdateName = "scriptName".equals(updateField);
@@ -278,21 +280,20 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @Override
     @AuditEntry(actionId = ActionId.CREATE_PUBLIC_SCRIPT)
     public Response<ScriptVO> saveScript(String username,
-                                         ScriptCreateUpdateReq request) {
+                                         @AuditRequestBody ScriptCreateReq request) {
 
-        ScriptDTO script = buildCreateOrUpdateScript(request, username);
-        script.setCreator(username);
+        ScriptDTO script = buildCreateScriptDTO(request, username);
         ScriptDTO savedScript = publicScriptService.saveScript(username, script);
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
         return Response.buildSuccessResp(scriptVO);
     }
 
-
-    private ScriptDTO buildCreateOrUpdateScript(ScriptCreateUpdateReq request,
-                                                String username) {
-        ScriptDTO script = scriptDTOBuilder.buildFromCreateUpdateReq(request);
+    private ScriptDTO buildCreateScriptDTO(ScriptCreateReq request,
+                                           String username) {
+        ScriptDTO script = scriptDTOBuilder.buildFromScriptCreateReq(request);
         script.setAppId(PUBLIC_APP_ID);
         script.setPublicScript(true);
+        script.setCreator(username);
         script.setLastModifyUser(username);
         return script;
     }
@@ -301,14 +302,31 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public Response<ScriptVO> saveScriptVersion(String username,
                                                 String scriptId,
-                                                ScriptCreateUpdateReq request) {
-        ScriptDTO script = buildCreateOrUpdateScript(request, username);
-        script.setId(scriptId);
-        script.setCreator(username);
+                                                @AuditRequestBody ScriptVersionCreateUpdateReq request) {
+        ScriptDTO script = buildCreateOrUpdateScriptVersion(true, request, scriptId,
+            null, username);
         ScriptDTO savedScript = publicScriptService.saveScriptVersion(username, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
         return Response.buildSuccessResp(scriptVO);
+    }
+
+    private ScriptDTO buildCreateOrUpdateScriptVersion(boolean isCreate,
+                                                       ScriptVersionCreateUpdateReq request,
+                                                       String scriptId,
+                                                       Long scriptVersionId,
+                                                       String username) {
+        ScriptDTO script = scriptDTOBuilder.buildFromScriptVersionCreateUpdateReq(request);
+        script.setId(scriptId);
+        script.setAppId(PUBLIC_APP_ID);
+        script.setPublicScript(true);
+        script.setLastModifyUser(username);
+        if (isCreate) {
+            script.setCreator(username);
+        } else {
+            script.setScriptVersionId(scriptVersionId);
+        }
+        return script;
     }
 
     @Override
@@ -316,10 +334,9 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     public Response<ScriptVO> updateScriptVersion(String username,
                                                   String scriptId,
                                                   Long scriptVersionId,
-                                                  ScriptCreateUpdateReq request) {
-        ScriptDTO script = buildCreateOrUpdateScript(request, username);
-        script.setId(scriptId);
-        script.setScriptVersionId(scriptVersionId);
+                                                  @AuditRequestBody ScriptVersionCreateUpdateReq request) {
+        ScriptDTO script = buildCreateOrUpdateScriptVersion(false, request, scriptId,
+            scriptVersionId, username);
         ScriptDTO savedScriptVersion = publicScriptService.updateScriptVersion(username, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScriptVersion);
@@ -399,7 +416,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     public Response<List<ScriptSyncResultVO>> syncScripts(String username,
                                                           String scriptId,
                                                           Long scriptVersionId,
-                                                          ScriptSyncReq scriptSyncReq) {
+                                                          @AuditRequestBody ScriptSyncReq scriptSyncReq) {
         List<TemplateStepIDDTO> templateStepIDs = new ArrayList<>(scriptSyncReq.getSteps().size());
         scriptSyncReq.getSteps().forEach(step ->
             templateStepIDs.add(new TemplateStepIDDTO(step.getTemplateId(), step.getStepId())));
@@ -430,7 +447,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @Override
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public Response<?> batchUpdatePublicScriptTags(String username,
-                                                   ScriptTagBatchPatchReq req) {
+                                                   @AuditRequestBody ScriptTagBatchPatchReq req) {
         // 校验
         req.validate();
 
