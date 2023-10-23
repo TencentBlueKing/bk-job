@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.host.HostService;
@@ -39,6 +40,7 @@ import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.BlockingQueue;
@@ -53,7 +55,8 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                      CmdbEventSampler cmdbEventSampler,
                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,
                      HostService hostService,
-                     AgentStateClient agentStateClient) {
+                     @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
+                         AgentStateClient agentStateClient) {
         super(queue, tracer, cmdbEventSampler);
         this.hostService = hostService;
         this.agentStateClient = agentStateClient;

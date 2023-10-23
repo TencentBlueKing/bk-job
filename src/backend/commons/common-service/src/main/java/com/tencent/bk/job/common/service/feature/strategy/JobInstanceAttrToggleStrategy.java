@@ -106,41 +106,29 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
         if (requireAllGseV2AgentAvailable != null && requireAllGseV2AgentAvailable) {
-            Object isAllAgentV2AvailableObj = ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
-            if (isAllAgentV2AvailableObj == null) {
-                return false;
-            }
-            boolean isAllAgentV2Available = (boolean) isAllAgentV2AvailableObj;
+            assertRequiredContextParam(ctx, CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+            boolean isAllAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
             if (!isAllAgentV2Available) {
                 return false;
             }
         }
         if (requireAnyGseV2AgentAvailable != null && requireAnyGseV2AgentAvailable) {
-            Object isAnyAgentV2AvailableObj = ctx.getParam(CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
-            if (isAnyAgentV2AvailableObj == null) {
-                return false;
-            }
-            boolean isAnyAgentV2Available = (boolean) isAnyAgentV2AvailableObj;
+            assertRequiredContextParam(ctx, CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
+            boolean isAnyAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
             if (!isAnyAgentV2Available) {
                 return false;
             }
         }
         if (CollectionUtils.isNotEmpty(startupModes)) {
-            Object startupModeObj = ctx.getParam(CTX_PARAM_STARTUP_MODE);
-            if (startupModeObj == null) {
-                return false;
-            }
-            String startupMode = (String) startupModeObj;
+            assertRequiredContextParam(ctx, CTX_PARAM_STARTUP_MODE);
+            String startupMode = (String) ctx.getParam(CTX_PARAM_STARTUP_MODE);
             if (!startupModes.contains(startupMode)) {
                 return false;
             }
         }
         if (CollectionUtils.isNotEmpty(operators)) {
-            Object operatorObj = ctx.getParam(CTX_PARAM_OPERATOR);
-            if (operatorObj == null) {
-                return false;
-            }
-            String operator = (String) operatorObj;
+            assertRequiredContextParam(ctx, CTX_PARAM_OPERATOR);
+            String operator = (String) ctx.getParam(CTX_PARAM_OPERATOR);
             return operators.contains(operator);
         }
         return true;

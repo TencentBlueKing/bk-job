@@ -31,12 +31,14 @@ import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.util.LogUtil;
+import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ public class AgentStatusService {
     private final AgentStateClient agentStateClient;
 
     @Autowired
-    public AgentStatusService(AgentStateClient agentStateClient) {
+    public AgentStatusService(@Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT) AgentStateClient agentStateClient) {
         this.agentStateClient = agentStateClient;
     }
 

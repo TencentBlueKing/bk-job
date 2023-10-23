@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
+@Service("jobExecuteBizHostInfoQueryService")
 public class BizHostInfoQueryServiceImpl implements BizHostInfoQueryService {
 
     private final ServiceHostResource hostResource;

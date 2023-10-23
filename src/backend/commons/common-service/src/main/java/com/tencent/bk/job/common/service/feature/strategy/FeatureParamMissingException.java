@@ -22,49 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.feature;
-
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import lombok.extern.slf4j.Slf4j;
+package com.tencent.bk.job.common.service.feature.strategy;
 
 /**
- * 特性开关工具类
+ * 特性开关配置参数缺失异常
  */
-@Slf4j
-public class FeatureToggle {
+public class FeatureParamMissingException extends RuntimeException {
 
-    private static volatile FeatureManager featureManager = null;
-
-    /**
-     * 判断特性是否开启
-     *
-     * @param featureId 特性ID
-     * @param ctx       特性运行上下文
-     * @return 是否开启
-     */
-    public static boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
-        ensureFeatureManagerInited();
-        return featureManager.checkFeature(featureId, ctx);
-    }
-
-    /**
-     * 判断特性是否开启（只考虑特性本身，忽略策略）
-     *
-     * @param featureId 特性ID
-     * @return 是否开启
-     */
-    public static boolean isFeatureEnabled(String featureId) {
-        ensureFeatureManagerInited();
-        return featureManager.isFeatureEnabled(featureId);
-    }
-
-    private static void ensureFeatureManagerInited() {
-        if (featureManager == null) {
-            synchronized (FeatureToggle.class) {
-                if (featureManager == null) {
-                    featureManager = ApplicationContextRegister.getBean(FeatureManager.class);
-                }
-            }
-        }
+    public FeatureParamMissingException(String message) {
+        super(message);
     }
 }

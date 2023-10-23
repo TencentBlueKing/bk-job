@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
+@Service("jobManageBizHostInfoQueryService")
 public class BizHostInfoQueryServiceImpl implements BizHostInfoQueryService {
 
     private final HostService hostService;

@@ -87,8 +87,7 @@ public class GseAutoConfiguration {
         );
     }
 
-    @ConditionalOnMissingBean(value = AgentStateClient.class)
-    @Bean("PreferV2AgentStateClient")
+    @Bean(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
     public AgentStateClient preferV2AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
                                                          GseClient gseClient,
                                                          @Qualifier("agentStatusQueryExecutor")

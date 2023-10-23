@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.execute.config.GseConfig;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
@@ -39,6 +40,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -75,7 +77,8 @@ public class AgentServiceImpl implements AgentService {
             );
 
     @Autowired
-    public AgentServiceImpl(AgentStateClient agentStateClient,
+    public AgentServiceImpl(@Qualifier(GseConfig.EXECUTE_BEAN_AGENT_STATE_CLIENT)
+                                AgentStateClient agentStateClient,
                             HostService hostService) {
         this.agentStateClient = agentStateClient;
         this.hostService = hostService;
