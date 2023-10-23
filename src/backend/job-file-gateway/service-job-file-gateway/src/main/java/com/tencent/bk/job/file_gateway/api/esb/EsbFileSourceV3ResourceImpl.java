@@ -19,6 +19,7 @@ import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
@@ -41,6 +42,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
     }
 
     @Override
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public EsbResp<EsbFileSourceSimpleInfoV3DTO> createFileSource(EsbCreateOrUpdateFileSourceV3Req req) {
         req.fillAppResourceScope(appScopeMappingService);
         Long appId = req.getAppId();
