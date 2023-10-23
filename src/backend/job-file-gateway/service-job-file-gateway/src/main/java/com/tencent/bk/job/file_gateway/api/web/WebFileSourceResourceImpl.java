@@ -46,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -123,6 +124,7 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     }
 
     @Override
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public Response<Integer> saveFileSource(String username,
                                             AppResourceScope appResourceScope,
                                             String scopeType,

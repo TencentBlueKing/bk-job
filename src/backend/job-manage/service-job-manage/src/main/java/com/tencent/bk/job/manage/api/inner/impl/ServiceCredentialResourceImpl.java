@@ -91,6 +91,9 @@ public class ServiceCredentialResourceImpl implements ServiceCredentialResource 
             return InternalResponse.buildAuthFailResp(AuthResult.toAuthResultDTO(authResult));
         }
         String credentialId = credentialService.saveCredential(username, appId, createUpdateReq);
+        if (StringUtils.isBlank(createUpdateReq.getId())) {
+            ticketAuthService.registerTicket(username, credentialId, createUpdateReq.getName());
+        }
         return InternalResponse.buildSuccessResp(new ServiceBasicCredentialDTO(credentialId));
     }
 
