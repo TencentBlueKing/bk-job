@@ -206,7 +206,7 @@
   import TaskStatus from './components/task-status';
   import ViewGlobalVariable from './components/view-global-variable';
   import ViewOperationRecord from './components/view-operation-record';
-  import ViewStepInfo from './components/view-step-info';
+  import ViewStepInfo from './components/view-step-info/index.vue';
 
   const appendURLParams = (params = {}) => {
     const curSearchParams = new URLSearchParams(window.location.search);

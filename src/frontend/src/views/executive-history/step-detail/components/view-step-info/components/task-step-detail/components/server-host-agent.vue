@@ -26,98 +26,132 @@
 -->
 
 <template>
-  <div class="render-file-server">
+  <div class="execute-detail-server-host-agent">
     <div
-      class="server-agent-text"
-      @click="handlerView"
-      v-html="data.serverDesc" />
-    <jb-dialog
-      v-model="isShowDetail"
-      class="step-view-server-detail-dialog"
-      :ok-text="$t('template.关闭')"
-      :width="1020">
-      <template #header>
-        <div class="variable-title">
-          <span>{{ $t('template.服务器文件-服务器列表') }}</span>
-          <i
-            class="dialog-close-btn bk-icon icon-close"
-            @click="handleClose" />
-        </div>
-      </template>
-      <div class="content-wraper">
-        <scroll-faker>
-          <ip-selector
-            readonly
-            show-view
-            :value="hostNodeInfo" />
-        </scroll-faker>
+      class="agent-text"
+      @click="handleShowDetail">
+      <div v-if="statistics.normalNum > 0">
+        {{ $t('正常') }}:<span class="success number">{{ statistics.normalNum }}</span>
       </div>
-      <template #footer>
-        <bk-button @click="handleClose">
-          {{ $t('关闭') }}
-        </bk-button>
-      </template>
-    </jb-dialog>
+      <div v-if="statistics.abnormalNum > 0">
+        <span
+          v-if="statistics.normalNum > 0"
+          class="splite" />
+        {{ $t('异常') }}:<span class="error number">{{ statistics.abnormalNum }}</span>
+      </div>
+      <span v-if="isEmpty">--</span>
+    </div>
+    <lower-component
+      :custom="isShowDetail"
+      level="custom">
+      <jb-dialog
+        v-model="isShowDetail"
+        class="execute-detail-server-host-agent-dialog"
+        :ok-text="$t('关闭')"
+        :width="1020">
+        <template #header>
+          <div class="variable-title">
+            <span>{{ title }}</span>
+            <i
+              class="dialog-close-btn bk-icon icon-close"
+              @click="handleClose" />
+          </div>
+        </template>
+        <div class="content-wraper">
+          <scroll-faker>
+            <ip-selector
+              :complete-host-list="hostsDetails(hostList)"
+              readonly
+              show-view />
+          </scroll-faker>
+        </div>
+        <template #footer>
+          <bk-button @click="handleClose">
+            {{ $t('关闭') }}
+          </bk-button>
+        </template>
+      </jb-dialog>
+    </lower-component>
   </div>
 </template>
-<script>
-  import TaskHostNodeModel from '@model/task-host-node';
+<script setup>
+  import {
+    computed,
+    ref,
+  } from 'vue';
 
-  import ScrollFaker from '@components/scroll-faker';
+  import { hostsDetails } from '@components/ip-selector/adapter';
 
-  export default {
-    name: '',
-    components: {
-      ScrollFaker,
+  const props = defineProps({
+    title: {
+      type: String,
+      required: true,
     },
-    props: {
-      data: {
-        type: Object,
-        required: true,
-      },
+    hostList: {
+      type: Array,
+      required: true,
     },
-    data() {
-      const { hostNodeInfo } = new TaskHostNodeModel({});
-      return {
-        isShowDetail: false,
-        hostNodeInfo,
-      };
-    },
+  });
 
-    methods: {
-      handlerView() {
-        this.hostNodeInfo = this.data.host.hostNodeInfo;
-        this.isShowDetail = true;
-      },
-      handleClose() {
-        this.isShowDetail = false;
-      },
-    },
-  };
-</script>
-<style lang='postcss'>
-  .render-file-server {
-    min-height: 30px;
-    padding: 5px;
-    margin-left: -10px;
-    cursor: pointer;
+  const isShowDetail = ref(false);
 
-    &:hover {
-      background: #f0f1f5;
+  const isEmpty = computed(() => props.hostList.length < 1);
+  const statistics = computed(() => props.hostList.reduce((result, item) => {
+    if (item.alive) {
+      return Object.assign({}, result, {
+        normalNum: result.normalNum + 1 });
     }
+    return Object.assign({}, result, {
+      abnormalNum: result.abnormalNum + 1 });
+  }, {
+    normalNum: 0,
+    abnormalNum: 0,
+  }));
 
-    .server-agent-text {
-      white-space: pre;
+  const handleShowDetail = () => {
+    isShowDetail.value = true;
+  };
+  const handleClose = () => {
+    isShowDetail.value = false;
+  };
 
-      .sep-location {
-        &::before {
-          content: "";
-        }
+</script>
+<style lang="postcss">
+  .execute-detail-server-host-agent {
+    .agent-text {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      cursor: pointer;
+
+      .strong {
+        color: #3a84ff;
+      }
+
+      .error {
+        color: #ea3636;
+      }
+
+      .success {
+        color: #3fc06d;
+      }
+
+      .number {
+        padding: 0 4px;
+        font-weight: bold;
+      }
+
+      .splite {
+        padding-left: 16px;
       }
     }
   }
 
-  .step-view-server-detail-dialog {
+  .execute-detail-server-host-agent-dialog {
+    .ip-selector-view-host{
+      margin-top: 0 !important;
+    }
+
     .bk-dialog-tool {
       display: none;
     }
