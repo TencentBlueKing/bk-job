@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import lombok.Data;
 
@@ -39,11 +41,15 @@ public class EsbUserRoleInfoV3DTO {
     /**
      * 用户名列表
      */
+    @JsonProperty("user_list")
+    @JsonPropertyDescription("User list")
     private List<String> userList;
 
     /**
      * 角色 ID 列表
      */
+    @JsonProperty("role_list")
+    @JsonPropertyDescription("Job role list ")
     private List<String> roleList;
 
     public static EsbUserRoleInfoV3DTO fromUserRoleInfo(UserRoleInfoDTO approvalUser) {
