@@ -517,7 +517,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
         String resourceType = resourceAndAction[0];
         String action = resourceAndAction[1];
-        AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         boolean isReturnApplyUrl = returnPermissionDetail != null && returnPermissionDetail;
 
         switch (resourceType) {
@@ -526,31 +525,38 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     return Response.buildSuccessResp(
                         webAuthService.toAuthResultVO(
                             isReturnApplyUrl,
-                            businessAuthService.authAccessBusiness(username, appResourceScope)
+                            businessAuthService.authAccessBusiness(username, buildResourceScope(scopeType, scopeId))
                         )
                     );
                 }
                 break;
             case "script":
-                return checkScriptOperationPermission(username, appResourceScope, action, resourceId, isReturnApplyUrl);
+                return checkScriptOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                    action, resourceId, isReturnApplyUrl);
             case "public_script":
                 return checkPublicScriptOperationPermission(username, action, resourceId, isReturnApplyUrl);
             case "job_template":
-                return checkJobTemplateOperationPermission(username, appResourceScope, action, resourceId,
-                    isReturnApplyUrl);
+                return checkJobTemplateOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                    action, resourceId, isReturnApplyUrl);
             case "job_plan":
-                return checkJobPlanOperationPermission(username, appResourceScope, action, resourceId,
-                    isReturnApplyUrl);
+                return checkJobPlanOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                    action, resourceId, isReturnApplyUrl);
             case "account":
-                return checkAccountOperationPermission(username, appResourceScope, action, resourceId,
-                    isReturnApplyUrl);
+                return checkAccountOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                    action, resourceId, isReturnApplyUrl);
             case "whitelist":
                 return checkWhiteIPOperationPermission(username, action, isReturnApplyUrl);
             case "tag":
-                return checkTagOperationPermission(username, appResourceScope, action, resourceId, isReturnApplyUrl);
+                return checkTagOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                    action, resourceId, isReturnApplyUrl);
             case "ticket":
-                return checkTicketOperationPermission(username, appResourceScope, action, resourceId, isReturnApplyUrl);
+                return checkTicketOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                    action, resourceId, isReturnApplyUrl);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
+    }
+
+    private AppResourceScope buildResourceScope(String scopeType, String scopeId) {
+        return new AppResourceScope(scopeType, scopeId, null);
     }
 }

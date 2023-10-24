@@ -47,6 +47,16 @@ class TaskManage extends ModuleBase {
     });
   }
 
+  // 新建模版
+  create(params = {}) {
+    const realParams = { ...params };
+    delete realParams.id;
+
+    return Request.post(`${this.path}/task/template`, {
+      params: realParams,
+    });
+  }
+
   // 更新模板
   update(payload = {}) {
     const params = { ...payload };

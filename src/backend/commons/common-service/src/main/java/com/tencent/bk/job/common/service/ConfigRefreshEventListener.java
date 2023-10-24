@@ -24,12 +24,11 @@
 
 package com.tencent.bk.job.common.service;
 
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.FeatureStore;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
 
 import java.util.Set;
 import java.util.StringJoiner;
@@ -37,10 +36,13 @@ import java.util.StringJoiner;
 /**
  * 配置刷新监听
  */
-@Component
 @Slf4j
 public class ConfigRefreshEventListener {
-    public ConfigRefreshEventListener() {
+
+    private final FeatureStore featureStore;
+
+    public ConfigRefreshEventListener(FeatureStore featureStore) {
+        this.featureStore = featureStore;
         log.info("Init ConfigRefreshEventListener");
     }
 
@@ -76,7 +78,7 @@ public class ConfigRefreshEventListener {
         boolean isFeatureToggleConfigChanged =
             changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."));
         if (isFeatureToggleConfigChanged) {
-            FeatureToggle.reload();
+            featureStore.load(true);
         }
     }
 }

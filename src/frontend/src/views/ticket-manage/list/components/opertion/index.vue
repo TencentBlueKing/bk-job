@@ -85,7 +85,7 @@
 </template>
 
 <script>
-  import TicketService from '@service/ticket-manage';
+  import TicketManageService from '@service/ticket-manage';
 
   import I18n from '@/i18n';
 
@@ -157,10 +157,12 @@
        * 校验通过后,根据文件源ID是否存在提示新建、编辑提示语
        */
       submit() {
+        const requestHandler = this.data.id ? TicketManageService.update : TicketManageService.create;
+
         return Promise.all([
           this.$refs.handler.getData(),
           this.$refs.ticketForm.validate(),
-        ]).then(([data, validate]) => TicketService.update({
+        ]).then(([data, validate]) => requestHandler({
           ...this.formData,
           ...data,
         }))

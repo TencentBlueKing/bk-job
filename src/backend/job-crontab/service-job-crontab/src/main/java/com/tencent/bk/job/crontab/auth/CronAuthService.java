@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.auth;
 
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
@@ -64,9 +65,21 @@ public interface CronAuthService {
      * @param cronIdList       定时任务ID列表
      * @return 有权限的定时任务ID
      */
-    List<Long> batchAuthManageCron(String username,
-                                   AppResourceScope appResourceScope,
-                                   List<Long> cronIdList);
+    List<Long> getPermissionAllowedCronIds(String username,
+                                           AppResourceScope appResourceScope,
+                                           List<Long> cronIdList);
+
+    /**
+     * 定时任务管理批量鉴权
+     *
+     * @param username         用户账号
+     * @param appResourceScope 资源范围
+     * @param cronIdList       定时任务ID列表
+     * @throws PermissionDeniedException 鉴权未通过
+     */
+    void batchAuthManageCron(String username,
+                             AppResourceScope appResourceScope,
+                             List<Long> cronIdList) throws PermissionDeniedException;
 
     /**
      * 注册定时任务实例

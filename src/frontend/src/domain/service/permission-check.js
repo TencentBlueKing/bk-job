@@ -76,6 +76,8 @@ const permissionCheckService = {
     // 公共脚本权限需要拼接一个public_
     if (isScriptPermission(params.operation) && checkPublicScript(window.BKApp.$route)) {
       params.operation = `public_${params.operation}`;
+      delete params.scopeType;
+      delete params.scopeId;
     }
 
     return requestService(params);

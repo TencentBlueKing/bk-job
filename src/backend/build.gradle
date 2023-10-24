@@ -121,6 +121,7 @@ ext {
     set('commonsIOVersion', "2.6")
     set('javaxServletVersion', "4.0.1")
     set('guavaVersion', "28.2-jre")
+    set('caffeineVersion', "2.9.3")
     set('jjwtVersion', "0.9.1")
     set('hibernateValidatorVersion', "6.1.4.Final")
     set('micrometerPrometheusVersion', "1.5.1")
@@ -143,6 +144,8 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersion:" + bkjobVersion
     }
+    set('bkAuditJavaSdkVersion', "1.0.6-SNAPSHOT")
+    set('mockitoVersion', "4.0.0")
 }
 
 group "com.tencent.bk.job"
@@ -186,16 +189,22 @@ allprojects {
                 maven { url repoUrl }
             }
         }
-
-        maven { url "https://plugins.gradle.org/m2/" }
+        mavenCentral()
         maven {
             url "https://repo.spring.io/snapshot"
         }
         maven {
             url "https://repo.spring.io/milestone"
         }
-        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            cacheChangingModulesFor 0, "seconds"
+            cacheDynamicVersionsFor 0, "seconds"
+        }
     }
 }
 
@@ -235,8 +244,6 @@ subprojects {
         }
         include '**/*Test.class'
     }
-    build.dependsOn testAll
-
     build.dependsOn testAll
 
     dependencyManagement {
@@ -293,6 +300,7 @@ subprojects {
             // https://mvnrepository.com/artifact/org.apache.thrift/libthrift
             dependency group: 'org.apache.thrift', name: 'libthrift', version: "$apacheThriftVersion"
             dependency group: 'com.google.guava', name: 'guava', version: "$guavaVersion"
+            dependency "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
             dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
             dependency "net.sourceforge.jchardet:jchardet:1.0"
             dependency "io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion"
@@ -328,6 +336,8 @@ subprojects {
             }
             dependency "com.beust:jcommander:$jcommanderVersion"
             dependency "com.tencent.bk.sdk:crypto-java-sdk:$cryptoJavaSDKVersion"
+            dependency "com.tencent.bk.sdk:spring-boot-bk-audit-starter:$bkAuditJavaSdkVersion"
+            dependency "org.mockito:mockito-inline:$mockitoVersion"
         }
     }
     dependencies {

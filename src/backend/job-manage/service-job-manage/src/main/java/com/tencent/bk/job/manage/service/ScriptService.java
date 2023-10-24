@@ -24,134 +24,31 @@
 
 package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
-import com.tencent.bk.job.manage.model.dto.ScriptRelatedTaskPlanDTO;
-import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
 import com.tencent.bk.job.manage.model.dto.SyncScriptResultDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.dto.TemplateStepIDDTO;
-import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskPlanDTO;
-import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 脚本服务
- *
- * @date 2019/09/19
+ * 公共脚本服务
  */
 public interface ScriptService {
 
     /**
-     * 根据ID查询脚本版本
-     *
-     * @param operator        操作者
-     * @param appId           业务ID
-     * @param scriptVersionId 脚本ID
-     * @return 脚本版本
-     * @throws ServiceException 业务异常
-     */
-    ScriptDTO getScriptVersion(String operator, Long appId, Long scriptVersionId) throws ServiceException;
-
-    /**
-     * 根据ID查询脚本版本
-     *
-     * @param operator 操作者
-     * @param appId    业务ID
-     * @param scriptId 脚本ID
-     * @param version  脚本版本
-     * @return 脚本版本
-     * @throws ServiceException 业务异常
-     */
-    ScriptDTO getByScriptIdAndVersion(
-        String operator,
-        Long appId,
-        String scriptId,
-        String version
-    ) throws ServiceException;
-
-    /**
-     * 根据ID查询脚本版本
-     *
-     * @param scriptVersionId 脚本版本ID
-     * @return 脚本
-     * @throws ServiceException
-     */
-    ScriptDTO getScriptVersion(Long scriptVersionId) throws ServiceException;
-
-    /**
-     * 根据scriptId查询脚本
-     *
-     * @param operator 操作者
-     * @param appId    业务ID
-     * @param scriptId 脚本ID
-     * @return 脚本
-     * @throws ServiceException 业务异常
-     */
-    ScriptDTO getScript(String operator, Long appId, String scriptId) throws ServiceException;
-
-    /**
-     * 根据scriptId查询脚本
-     *
-     * @param scriptId 脚本ID
-     * @return 脚本
-     * @throws ServiceException 业务异常
-     */
-    ScriptDTO getScriptByScriptId(String scriptId) throws ServiceException;
-
-    /**
-     * 根据scriptIds批量查询脚本基础信息
-     *
-     * @param scriptIds 脚本ID集合
-     * @return 脚本
-     * @throws ServiceException 业务异常
-     */
-    List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds) throws ServiceException;
-
-    /**
-     * 根据scriptId查询脚本基本信息,不包含标签信息
-     *
-     * @param scriptId 脚本ID
-     * @return 脚本
-     * @throws ServiceException 业务异常
-     */
-    ScriptDTO getScriptWithoutTagByScriptId(String scriptId) throws ServiceException;
-
-    /**
-     * 根据脚本ID查询所有版本的脚本
-     *
-     * @param operator 操作者
-     * @param appId    业务ID
-     * @param scriptId 脚本ID
-     * @return 脚本版本列表
-     * @throws ServiceException 业务异常
-     */
-    List<ScriptDTO> listScriptVersion(String operator, Long appId, String scriptId) throws ServiceException;
-
-    /**
      * 分页查询脚本列表
      *
-     * @param scriptCondition     查询条件
-     * @param baseSearchCondition 基本查询条件
+     * @param scriptQuery 查询条件
      * @return 分页脚本列表
-     * @throws ServiceException 业务异常
      */
-    PageData<ScriptDTO> listPageScript(
-        ScriptQuery scriptCondition,
-        BaseSearchCondition baseSearchCondition
-    ) throws ServiceException;
+    PageData<ScriptDTO> listPageScript(ScriptQuery scriptQuery);
 
     /**
      * 根据条件查询脚本
@@ -162,136 +59,167 @@ public interface ScriptService {
     List<ScriptDTO> listScripts(ScriptQuery scriptQuery);
 
     /**
-     * 保存脚本
+     * 根据scriptId查询脚本
      *
-     * @param operator 操作者
      * @param appId    业务ID
-     * @param script   脚本信息
-     * @throws ServiceException 业务异常
-     */
-    ScriptDTO saveScript(String operator, Long appId, ScriptDTO script) throws ServiceException;
-
-    /**
-     * 指定版本Id创建脚本版本
-     *
-     * @param operator 操作者
-     * @param appId    业务ID
-     * @param script   脚本信息
-     * @throws ServiceException 业务异常
-     */
-    Pair<String, Long> createScriptWithVersionId(
-        String operator,
-        Long appId,
-        ScriptDTO script,
-        Long createTime,
-        Long lastModifyTime
-    ) throws ServiceException;
-
-    /**
-     * 查询引用脚本的作业列表
-     *
      * @param scriptId 脚本ID
-     * @return 引用的作业列表
-     * @throws ServiceException 业务异常
+     * @return 脚本
      */
-    List<ScriptRelatedTaskPlanDTO> listScriptRelatedTasks(String scriptId) throws ServiceException;
+    ScriptDTO getScript(Long appId, String scriptId);
 
     /**
-     * 查询引用脚本版本的作业列表
+     * 查询脚本
      *
-     * @param scriptId        脚本ID
-     * @param scriptVersionId 脚本版本ID
-     * @return 引用的作业列表
-     * @throws ServiceException 业务异常
+     * @param username 用户账号
+     * @param appId    业务ID
+     * @param scriptId 脚本ID
+     * @return 脚本
      */
-    List<ScriptRelatedTaskPlanDTO> listScriptVersionRelatedTasks(
-        String scriptId,
-        Long scriptVersionId
-    ) throws ServiceException;
+    ScriptDTO getScript(String username, Long appId, String scriptId);
+
+    /**
+     * 根据scriptIds批量查询脚本基础信息
+     *
+     * @param scriptIds 脚本ID集合
+     * @return 脚本
+     */
+    List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds);
+
+    /**
+     * 创建脚本
+     *
+     * @param username 用户账号
+     * @param script   脚本信息
+     */
+    ScriptDTO createScript(String username, ScriptDTO script);
 
     /**
      * 删除脚本
      *
-     * @param operator 操作者
+     * @param username 用户账号
      * @param appId    业务ID
      * @param scriptId 脚本ID
-     * @throws ServiceException 业务异常
      */
-    void deleteScript(String operator, Long appId, String scriptId) throws ServiceException;
+    void deleteScript(String username, Long appId, String scriptId);
+
+    /**
+     * 根据版本ID查询脚本版本
+     *
+     * @param appId           业务ID
+     * @param scriptVersionId 脚本ID
+     * @return 脚本版本
+     */
+    ScriptDTO getScriptVersion(long appId, Long scriptVersionId);
+
+    /**
+     * 根据版本ID查询脚本版本
+     *
+     * @param scriptVersionId 脚本ID
+     * @return 脚本版本
+     */
+    ScriptDTO getScriptVersion(Long scriptVersionId);
+
+    /**
+     * 查询脚本版本
+     *
+     * @param username        用户账号
+     * @param appId           业务ID
+     * @param scriptVersionId 脚本ID
+     * @return 脚本版本
+     */
+    ScriptDTO getScriptVersion(String username, long appId, Long scriptVersionId);
+
+    /**
+     * 根据脚本ID查询所有版本的脚本
+     *
+     * @param appId    业务ID
+     * @param scriptId 脚本ID
+     * @return 脚本版本列表
+     */
+    List<ScriptDTO> listScriptVersion(long appId, String scriptId);
+
+    /**
+     * 创建脚本版本
+     *
+     * @param username      用户账号
+     * @param scriptVersion 脚本版本
+     */
+    ScriptDTO createScriptVersion(String username, ScriptDTO scriptVersion);
+
+    /**
+     * 更新脚本版本
+     *
+     * @param username      用户账号
+     * @param scriptVersion 脚本版本
+     */
+    ScriptDTO updateScriptVersion(String username, ScriptDTO scriptVersion);
 
     /**
      * 删除脚本版本
      *
-     * @param operator        操作者
+     * @param username        操作者
      * @param appId           业务ID
      * @param scriptVersionId 脚本版本ID
-     * @throws ServiceException 业务异常
      */
-    void deleteScriptVersion(String operator, Long appId, Long scriptVersionId) throws ServiceException;
+    void deleteScriptVersion(String username, Long appId, Long scriptVersionId);
 
     /**
      * 上线脚本
      *
      * @param appId           业务ID
-     * @param operator        操作者
+     * @param username        操作者
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
-     * @throws ServiceException 业务异常
      */
-    void publishScript(Long appId, String operator, String scriptId, Long scriptVersionId) throws ServiceException;
+    void publishScript(Long appId, String username, String scriptId, Long scriptVersionId);
 
     /**
      * 下线脚本
      *
      * @param appId           业务ID
-     * @param operator        操作者
+     * @param username        操作者
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
-     * @throws ServiceException 业务异常
      */
-    void disableScript(Long appId, String operator, String scriptId, Long scriptVersionId) throws ServiceException;
+    void disableScript(Long appId, String username, String scriptId, Long scriptVersionId);
 
     /**
      * 批量获取脚本的在线版本
      *
      * @param scriptIdList 脚本ID列表
      * @return 脚本信息
-     * @throws ServiceException 业务异常
      */
-    Map<String, ScriptDTO> batchGetOnlineScriptVersionByScriptIds(List<String> scriptIdList) throws ServiceException;
+    Map<String, ScriptDTO> batchGetOnlineScriptVersionByScriptIds(List<String> scriptIdList);
 
     /**
      * 更新脚本描述
      *
      * @param appId    业务ID
-     * @param operator 操作者
+     * @param username 操作者
      * @param scriptId 脚本ID
      * @param desc     脚本描述
-     * @throws ServiceException 业务异常
      */
-    void updateScriptDesc(Long appId, String operator, String scriptId, String desc) throws ServiceException;
+    ScriptDTO updateScriptDesc(Long appId, String username, String scriptId, String desc);
 
     /**
      * 更新脚本名称
      *
      * @param appId    业务ID
-     * @param operator 操作者
+     * @param username 操作者
      * @param scriptId 脚本ID
      * @param newName  脚本名称
-     * @throws ServiceException 业务异常
      */
-    void updateScriptName(Long appId, String operator, String scriptId, String newName) throws ServiceException;
+    ScriptDTO updateScriptName(Long appId, String username, String scriptId, String newName);
 
     /**
      * 更新脚本标签
      *
      * @param appId    业务ID
-     * @param operator 操作者
+     * @param username 操作者
      * @param scriptId 脚本ID
      * @param tags     脚本标签列表
-     * @throws ServiceException 业务异常
      */
-    void updateScriptTags(Long appId, String operator, String scriptId, List<TagDTO> tags) throws ServiceException;
+    ScriptDTO updateScriptTags(Long appId, String username, String scriptId, List<TagDTO> tags);
 
     /**
      * 根据脚本名称模糊查询业务下的脚本名
@@ -299,9 +227,8 @@ public interface ScriptService {
      * @param appId   业务ID
      * @param keyword 关键字
      * @return 脚本名称列表
-     * @throws ServiceException 业务异常
      */
-    List<String> listScriptNames(Long appId, String keyword) throws ServiceException;
+    List<String> listScriptNames(Long appId, String keyword);
 
     /**
      * 获取业务下的已上线脚本列表
@@ -309,58 +236,26 @@ public interface ScriptService {
      * @param operator 操作者
      * @param appId    业务ID
      * @return 脚本列表
-     * @throws ServiceException 业务异常
      */
-    List<ScriptDTO> listOnlineScriptForApp(String operator, long appId) throws ServiceException;
-
-    /**
-     * 获取脚本列表
-     *
-     * @param scriptCondition     查询条件
-     * @param baseSearchCondition 基本查询条件
-     * @return 脚本列表
-     * @throws ServiceException 业务异常
-     */
-    PageData<ScriptDTO> listPageOnlineScript(ScriptQuery scriptCondition,
-                                             BaseSearchCondition baseSearchCondition) throws ServiceException;
+    List<ScriptDTO> listOnlineScript(String operator, long appId);
 
     /**
      * 获取脚本已上线脚本版本
      *
-     * @param operator 操作者
+     * @param username 用户账号
      * @param appId    业务 ID
      * @param scriptId 脚本 ID
      * @return 已上线版本，如果没有返回null
-     * @throws ServiceException
      */
-    ScriptDTO getOnlineScriptVersionByScriptId(String operator, long appId, String scriptId) throws ServiceException;
-
-    /**
-     * 获取脚本已上线脚本版本
-     *
-     * @param scriptId 脚本 ID
-     * @return 已上线版本，如果没有返回null
-     */
-    ScriptDTO getOnlineScriptVersionByScriptId(String scriptId);
+    ScriptDTO getOnlineScriptVersionByScriptId(String username, long appId, String scriptId);
 
     /**
      * 分页查询脚本版本列表
      *
-     * @param scriptQuery         查询条件
-     * @param baseSearchCondition 基本查询条件
-     * @return
+     * @param scriptQuery 查询条件
+     * @return 脚本版本列表
      */
-    PageData<ScriptDTO> listPageScriptVersion(ScriptQuery scriptQuery, BaseSearchCondition baseSearchCondition);
-
-    /**
-     * 获取引用脚本的模板与步骤
-     *
-     * @param username 用户名
-     * @param appId    业务ID
-     * @param scriptId 脚本ID
-     * @return 引用脚本的模板与步骤
-     */
-    List<ScriptSyncTemplateStepDTO> listScriptSyncTemplateSteps(String username, Long appId, String scriptId);
+    PageData<ScriptDTO> listPageScriptVersion(ScriptQuery scriptQuery);
 
     /**
      * 批量同步脚本到作业模板
@@ -374,74 +269,13 @@ public interface ScriptService {
      */
     List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username, Long appId, String scriptId,
                                                        Long syncScriptVersionId,
-                                                       List<TemplateStepIDDTO> templateStepIDs)
-        throws PermissionDeniedException;
+                                                       List<TemplateStepIDDTO> templateStepIDs);
+
 
     /**
-     * 获取引用脚本的模板数量
-     *
-     * @param username
-     * @param appId
-     * @param scriptId
-     * @param scriptVersionId
-     * @return
+     * 是否存在任意业务脚本
      */
-    Integer getScriptTemplateCiteCount(String username, Long appId, String scriptId, Long scriptVersionId);
-
-    /**
-     * 获取引用脚本的执行方案数量
-     *
-     * @param username
-     * @param appId
-     * @param scriptId
-     * @param scriptVersionId
-     * @return
-     */
-    Integer getScriptTaskPlanCiteCount(String username, Long appId, String scriptId, Long scriptVersionId);
-
-    /**
-     * 获取引用脚本的模板信息
-     *
-     * @param username        用户名
-     * @param appId           业务ID
-     * @param scriptId        脚本ID
-     * @param scriptVersionId 脚本版本ID
-     * @return
-     */
-    List<ScriptCitedTaskTemplateDTO> getScriptCitedTemplates(String username, Long appId, String scriptId,
-                                                             Long scriptVersionId);
-
-    /**
-     * 获取引用脚本的执行方案信息
-     *
-     * @param username        用户名
-     * @param appId           业务ID
-     * @param scriptId        脚本ID
-     * @param scriptVersionId 脚本版本ID
-     * @return
-     */
-    List<ScriptCitedTaskPlanDTO> getScriptCitedTaskPlans(String username, Long appId, String scriptId,
-                                                         Long scriptVersionId);
-
-    /**
-     * 业务下是否存在任意脚本
-     *
-     * @param appId 业务ID
-     */
-    boolean isExistAnyAppScript(Long appId);
-
-    /**
-     * 是否存在任意公共脚本
-     */
-    boolean isExistAnyPublicScript();
-
-    Integer countScripts(Long appId, ScriptTypeEnum scriptTypeEnum, JobResourceStatusEnum jobResourceStatusEnum);
-
-    Integer countScriptVersions(Long appId, ScriptTypeEnum scriptTypeEnum, JobResourceStatusEnum jobResourceStatusEnum);
-
-    List<String> listScriptIds(Long appId);
-
-    Integer countCiteScripts(Long appId);
+    boolean isExistAnyAppScript(long appId);
 
     /**
      * 获取标签关联的模版数量
@@ -450,5 +284,24 @@ public interface ScriptService {
      * @return 标签模版数量
      */
     TagCountVO getTagScriptCount(Long appId);
+
+    /**
+     * 根据脚本ID/版本号查询脚本
+     *
+     * @param username 用户账号
+     * @param appId    业务ID
+     * @param scriptId 脚本ID
+     * @param version  脚本版本
+     * @return 脚本版本
+     */
+    ScriptDTO getByScriptIdAndVersion(String username, Long appId, String scriptId, String version);
+
+    /**
+     * 根据脚本ID获取业务脚本
+     *
+     * @param scriptId 脚本ID
+     * @return 脚本
+     */
+    ScriptDTO getScriptByScriptId(String scriptId);
 
 }

@@ -31,22 +31,9 @@ class PublicScriptManage {
     this.module = 'job-manage/web/public_script';
   }
 
-  // 更新脚本
-  update(params = {}) {
+  create(params = {}) {
     return Request.post(`${this.module}/script`, {
       params,
-    });
-  }
-
-  // 通过脚本id获取脚本详情
-  getDataByScriptId({ id }) {
-    return Request.get(`${this.module}/script/${id}`);
-  }
-
-  // 删除脚本
-  deleteById({ id }) {
-    return Request.delete(`${this.module}/script/${id}`, {
-      prefixPath: this.prefixPath,
     });
   }
 
@@ -61,19 +48,29 @@ class PublicScriptManage {
     });
   }
 
+
+  // 通过脚本id获取脚本详情
+  getDataByScriptId({ id }) {
+    return Request.get(`${this.module}/script/${id}`);
+  }
+
+  // 删除脚本
+  deleteById({ id }) {
+    return Request.delete(`${this.module}/script/${id}`);
+  }
+
   // 获取脚本的所有版本
   getAllVersion(payload = {}) {
     const params = { ...payload };
     delete params.id;
     return Request.get(`${this.module}/script/${payload.id}/scriptVersion/list`, {
-      prefixPath: this.prefixPath,
       params,
     });
   }
 
   // 新增脚本版本
   createVersion(params = {}) {
-    return Request.post(`${this.path}/script/${params.id}/scriptVersion`, {
+    return Request.post(`${this.module}/script/${params.id}/scriptVersion`, {
       params,
     });
   }
@@ -84,7 +81,7 @@ class PublicScriptManage {
     delete realParams.id;
     delete realParams.scriptVersionId;
 
-    return Request.post(`${this.module}/script/${params.id}/scriptVersion/${params.scriptVersionId}`, {
+    return Request.put(`${this.module}/script/${params.id}/scriptVersion/${params.scriptVersionId}`, {
       params: realParams,
     });
   }

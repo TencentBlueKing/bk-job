@@ -250,6 +250,7 @@ public class StringUtil {
         return replaceByRegex(rawStr, pattern, variablesMap, 3);
     }
 
+
     /**
      * 使用变量Map中指定的值对原始字符串的指定模式进行替换
      *
@@ -260,21 +261,28 @@ public class StringUtil {
      * @return 替换后的字符串
      */
     public static String replaceByRegex(String rawStr, String pattern, Map<String, String> variablesMap, int depth) {
-        log.debug("rawStr={},pattern={},variablesMap={},depth={}", rawStr, pattern, variablesMap, depth);
+        if (log.isDebugEnabled()) {
+            log.debug("rawStr={},pattern={},variablesMap={},depth={}", rawStr, pattern, variablesMap, depth);
+        }
         String resultStr = rawStr;
         List<Pair<String, String>> keys = findTwoRegexPatterns(rawStr, pattern);
         Set<String> keyset = variablesMap.keySet();
         for (Pair<String, String> pair : keys) {
             String placeHolder = pair.getLeft().trim();
             String key = pair.getRight().trim();
-            log.debug("resultStr={},placeHolder={},key={}", resultStr, placeHolder, key);
+            if (log.isDebugEnabled()) {
+                log.debug("resultStr={},placeHolder={},key={}", resultStr, placeHolder, key);
+            }
             if (keyset.contains(key)) {
                 String value = variablesMap.get(key);
                 if (value != null) {
                     resultStr = resultStr.replace(placeHolder, value);
                 }
             } else {
-                log.warn("There is no value to replace {} in {},variablesMap:{}", placeHolder, rawStr, variablesMap);
+                if (log.isDebugEnabled()) {
+                    log.debug("There is no value to replace {} in {},variablesMap:{}", placeHolder, rawStr,
+                        variablesMap);
+                }
             }
         }
         // 变量值中含有变量，递归替换

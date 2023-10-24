@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
  * 蓝鲸API调用客户端 - for BK API Gateway
  */
 public abstract class AbstractBkApiClient {
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String bkApiGatewayUrl;
     private final String appSecret;

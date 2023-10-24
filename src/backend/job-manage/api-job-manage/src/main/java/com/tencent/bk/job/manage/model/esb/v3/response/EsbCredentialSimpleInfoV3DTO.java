@@ -24,15 +24,21 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class EsbCredentialSimpleInfoV3DTO {
-
+    @JsonPropertyDescription("Credential id")
     private String id;
 
+    @JsonPropertyDescription("Credential name")
+    private String name;
+
+    public EsbCredentialSimpleInfoV3DTO(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

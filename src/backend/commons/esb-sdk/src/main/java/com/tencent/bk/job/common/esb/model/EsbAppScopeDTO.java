@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.esb.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,17 +43,20 @@ public class EsbAppScopeDTO {
      */
     @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", deprecatedVersion = "3.6.x")
     @JsonProperty("bk_biz_id")
+    @JsonPropertyDescription("bk_biz_id")
     private Long bizId;
 
     /**
      * 资源范围类型
      */
     @JsonProperty("bk_scope_type")
+    @JsonPropertyDescription("Resource scope type")
     private String scopeType;
 
     /**
      * 资源范围ID
      */
     @JsonProperty("bk_scope_id")
+    @JsonPropertyDescription("Resource scope id")
     private String scopeId;
 }

@@ -145,7 +145,6 @@
         const requestHandler = this.oldVersionScript.publicScript ? PublicScriptService : ScriptService;
         requestHandler.getOneOnlineScript({
           id: this.oldVersionScript.id,
-          publicScript: this.oldVersionScript.publicScript,
         })
           .then((data) => {
             this.lastVersionScript = data;

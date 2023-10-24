@@ -37,7 +37,8 @@ import java.util.Map;
 @ApiModel("文件源创建、更新请求")
 public class FileSourceCreateUpdateReq {
 
-    @ApiModelProperty(value = "ID,更新文件源的时候需要传入，新建文件源不需要", required = false)
+    @Deprecated
+    @ApiModelProperty(value = "文件源 ID", hidden = true)
     private Integer id;
     /**
      * 文件源Code

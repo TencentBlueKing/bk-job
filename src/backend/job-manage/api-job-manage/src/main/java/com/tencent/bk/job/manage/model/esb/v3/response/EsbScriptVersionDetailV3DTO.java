@@ -52,7 +52,7 @@ public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
     private String content;
 
     // 脚本版本状态（0：未上线，1：已上线，2：已下线，3：已禁用）
-    private int status;
+    private Integer status;
 
     @JsonProperty("version_desc")
     private String versionDesc;
@@ -67,4 +67,15 @@ public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
 
     @JsonProperty("last_modify_time")
     private Long lastModifyTime;
+
+    /**
+     * 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell
+     */
+    @JsonProperty("script_language")
+    private Integer type;
+
+    /**
+     * 脚本描述
+     */
+    private String description;
 }

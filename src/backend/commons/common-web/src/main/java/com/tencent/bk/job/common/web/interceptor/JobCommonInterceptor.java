@@ -217,6 +217,6 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
     }
 
     private boolean isClientOrServerError(HttpServletResponse response) {
-        return response.getStatus() > HttpStatus.SC_BAD_REQUEST;
+        return response.getStatus() >= HttpStatus.SC_BAD_REQUEST;
     }
 }

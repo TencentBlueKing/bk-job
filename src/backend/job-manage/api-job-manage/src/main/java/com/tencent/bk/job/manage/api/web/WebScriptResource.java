@@ -28,11 +28,14 @@ import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.Update;
 import com.tencent.bk.job.manage.model.web.request.ScriptCheckReq;
-import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptInfoUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptSyncReq;
 import com.tencent.bk.job.manage.model.web.request.ScriptTagBatchPatchReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptVersionCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCheckResultItemVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
@@ -44,6 +47,7 @@ import com.tencent.bk.job.manage.model.web.vo.script.ScriptSyncResultVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -112,7 +116,7 @@ public interface WebScriptResource {
 
     @ApiOperation(value = "根据脚本ID获取脚本基本信息", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/basic/{scriptId}"})
-    Response<ScriptVO> getScriptBasicInfo(
+    Response<BasicScriptVO> getScriptBasicInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -146,10 +150,7 @@ public interface WebScriptResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "脚本ID", required = true, example = "1")
-        @PathVariable("scriptId") String scriptId,
-        @ApiParam(value = "是否公共脚本")
-        @RequestParam(value = "publicScript", required = false, defaultValue = "false")
-            Boolean publicScript
+        @PathVariable("scriptId") String scriptId
     );
 
     @ApiOperation(value = "获取脚本列表", produces = "application/json")
@@ -166,9 +167,6 @@ public interface WebScriptResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "是否公共脚本")
-        @RequestParam(value = "publicScript", required = false, defaultValue = "false")
-            Boolean publicScript,
         @ApiParam(value = "脚本名称")
         @RequestParam(value = "name", required = false)
             String name,
@@ -252,7 +250,7 @@ public interface WebScriptResource {
 
     @ApiOperation(value = "更新脚本元数据，比如脚本描述、名称、标签", produces = "application/json")
     @PutMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/info")
-    Response updateScriptInfo(
+    Response<ScriptVO> updateScriptInfo(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -268,13 +266,13 @@ public interface WebScriptResource {
         @ApiParam(value = "脚本ID", required = true, example = "uuid")
         @PathVariable("scriptId")
             String scriptId,
-        @ApiParam(value = "脚本元数据更新请求报文", name = "scriptInfoUpdateReq", required = true)
+        @ApiParam(value = "脚本元数据更新请求报文", name = "request", required = true)
         @RequestBody
-            ScriptInfoUpdateReq scriptInfoUpdateReq
+            ScriptInfoUpdateReq request
     );
 
 
-    @ApiOperation(value = "更新脚本", produces = "application/json")
+    @ApiOperation(value = "创建脚本", produces = "application/json")
     @PostMapping("/scope/{scopeType}/{scopeId}/script")
     Response<ScriptVO> saveScript(
         @ApiParam("用户名，网关自动传入")
@@ -289,9 +287,57 @@ public interface WebScriptResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "新增/更新的脚本对象", name = "scriptCreateUpdateReq", required = true)
+        @ApiParam(value = "新增/更新的脚本对象", name = "request", required = true)
         @RequestBody
-            ScriptCreateUpdateReq scriptCreateUpdateReq
+            ScriptCreateReq request
+    );
+
+    @ApiOperation(value = "新增脚本版本", produces = "application/json")
+    @PostMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion")
+    Response<ScriptVO> saveScriptVersion(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @PathVariable(value = "scriptId")
+            String scriptId,
+        @ApiParam(value = "新增脚本版本请求", name = "request", required = true)
+        @RequestBody
+        @Validated(Create.class)
+            ScriptVersionCreateUpdateReq request
+    );
+
+    @ApiOperation(value = "更新脚本版本", produces = "application/json")
+    @PutMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/{scriptVersionId}")
+    Response<ScriptVO> updateScriptVersion(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @PathVariable(value = "scriptId")
+            String scriptId,
+        @PathVariable(value = "scriptVersionId")
+            Long scriptVersionId,
+        @ApiParam(value = "更新脚本版本请求", name = "request", required = true)
+        @RequestBody
+        @Validated(Update.class)
+            ScriptVersionCreateUpdateReq request
     );
 
     @ApiOperation(value = "上线脚本", produces = "application/json")
@@ -382,7 +428,7 @@ public interface WebScriptResource {
 
     @ApiOperation(value = "根据条件查询业务下的脚本名称列表", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scriptNames"})
-    Response listAppScriptNames(
+    Response<List<String>> listAppScriptNames(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

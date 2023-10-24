@@ -596,7 +596,6 @@
       handleExec(scriptData) {
         this.serviceHandler.getOneOnlineScript({
           id: scriptData.id,
-          publicScript: this.isPublicScript,
         }).then((script) => {
           if (!script) {
             this.$bkMessage({

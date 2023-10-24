@@ -68,8 +68,8 @@ public interface HostService {
     /**
      * 获取业务下的主机列表
      *
-     * @param appId Job业务ID
-     * @param hosts 主机列表
+     * @param appId          Job业务ID
+     * @param hosts          主机列表
      * @param refreshAgentId 是否重新刷新主机agentId
      * @return 主机信息
      */
@@ -119,10 +119,10 @@ public interface HostService {
 
 
     /**
-     * 获取主机云区域名称
+     * 批量获取主机云区域名称
      *
-     * @param cloudAreaId 云区域ID
-     * @return 云区域名称
+     * @param bkCloudIds 云区域ID集合
+     * @return 云区域ID/名称
      */
-    String getCloudAreaName(long cloudAreaId);
+    Map<Long, String> batchGetCloudAreaNames(Collection<Long> bkCloudIds);
 }

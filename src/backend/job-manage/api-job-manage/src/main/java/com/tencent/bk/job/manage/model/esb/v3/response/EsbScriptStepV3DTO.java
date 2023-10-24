@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import lombok.Data;
@@ -35,30 +36,40 @@ import lombok.Data;
 @Data
 public class EsbScriptStepV3DTO {
     @JsonProperty("script_type")
+    @JsonPropertyDescription("Script type")
     private Integer type;
 
     @JsonProperty("script_id")
+    @JsonPropertyDescription("Script id")
     private String scriptId;
 
     @JsonProperty("script_version_id")
+    @JsonPropertyDescription("Script version id")
     private Long scriptVersionId;
 
     @JsonProperty("script_content")
+    @JsonPropertyDescription("Script content")
     private String content;
 
     @JsonProperty("script_language")
+    @JsonPropertyDescription("Script language")
     private Integer language;
 
     @JsonProperty("script_param")
+    @JsonPropertyDescription("Script params")
     private String scriptParam;
 
     @JsonProperty("script_timeout")
+    @JsonPropertyDescription("Timeout")
     private Long scriptTimeout;
 
+    @JsonPropertyDescription("Account")
     private EsbAccountV3BasicDTO account;
 
+    @JsonPropertyDescription("Hosts")
     private EsbServerV3DTO server;
 
     @JsonProperty("is_param_sensitive")
+    @JsonPropertyDescription("Is script params sensitive")
     private Integer secureParam;
 }

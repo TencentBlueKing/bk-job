@@ -24,8 +24,18 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditInstanceRecord;
+import com.tencent.bk.audit.context.ActionAuditContext;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
@@ -61,16 +71,19 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     private final StepInstanceDAO stepInstanceDAO;
     private final TaskInstanceDAO taskInstanceDAO;
     private final TaskInstanceVariableService taskInstanceVariableService;
+    private final ExecuteAuthService executeAuthService;
 
     @Autowired
     public TaskInstanceServiceImpl(ApplicationService applicationService,
                                    StepInstanceDAO stepInstanceDAO,
                                    TaskInstanceDAO taskInstanceDAO,
-                                   TaskInstanceVariableService taskInstanceVariableService) {
+                                   TaskInstanceVariableService taskInstanceVariableService,
+                                   ExecuteAuthService executeAuthService) {
         this.applicationService = applicationService;
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
+        this.executeAuthService = executeAuthService;
     }
 
     @Override
@@ -79,8 +92,63 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public TaskInstanceDTO getTaskInstance(long taskInstanceId) {
-        return taskInstanceDAO.getTaskInstance(taskInstanceId);
+    public TaskInstanceDTO getTaskInstance(long appId, long taskInstanceId) throws NotFoundException {
+        TaskInstanceDTO taskInstance = getTaskInstance(taskInstanceId);
+        if (!taskInstance.getAppId().equals(appId)) {
+            log.warn("Task instance is not in application, taskInstanceId={}, appId={}", taskInstanceId, appId);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+        }
+        return taskInstance;
+    }
+
+    @Override
+    public TaskInstanceDTO getTaskInstance(long taskInstanceId) throws NotFoundException {
+        TaskInstanceDTO taskInstance = taskInstanceDAO.getTaskInstance(taskInstanceId);
+        if (taskInstance == null) {
+            log.warn("Task instance is not exist, taskInstanceId={}", taskInstanceId);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+        }
+        return taskInstance;
+    }
+
+    @Override
+    @ActionAuditRecord(
+        actionId = ActionId.VIEW_HISTORY,
+        instance = @AuditInstanceRecord(
+            instanceIds = "#taskInstanceId",
+            instanceNames = "$?.name"
+        ),
+        content = EventContentConstants.VIEW_JOB_INSTANCE
+    )
+    public TaskInstanceDTO getTaskInstance(String username, long appId, long taskInstanceId)
+        throws NotFoundException, PermissionDeniedException {
+
+        TaskInstanceDTO taskInstance = getTaskInstance(taskInstanceId);
+        checkTaskInstanceExist(appId, taskInstanceId, taskInstance);
+        auditAndAuthViewTaskInstance(username, taskInstance);
+        return taskInstance;
+    }
+
+    private void checkTaskInstanceExist(long appId, long taskInstanceId, TaskInstanceDTO taskInstance) {
+        if (taskInstance == null) {
+            log.warn("Task instance is not exist, taskInstanceId={}", taskInstanceId);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+        }
+        if (!taskInstance.getAppId().equals(appId)) {
+            log.warn("Task instance is not in application, taskInstanceId={}, appId={}", taskInstanceId, appId);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+        }
+    }
+
+    private void auditAndAuthViewTaskInstance(String username,
+                                              TaskInstanceDTO taskInstance) {
+        // 审计
+        ActionAuditContext.current()
+            .setInstanceId(String.valueOf(taskInstance.getId()))
+            .setInstanceName(taskInstance.getName());
+
+        // 鉴权
+        executeAuthService.authViewTaskInstance(username, new AppResourceScope(taskInstance.getAppId()), taskInstance);
     }
 
     @Override
@@ -100,26 +168,27 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         return stepInstanceId;
     }
 
+    @Override
     public TaskInstanceDTO getTaskInstanceDetail(long taskInstanceId) {
         TaskInstanceDTO taskInstance = getTaskInstance(taskInstanceId);
-        if (taskInstance == null) {
-            return null;
-        }
-        List<StepInstanceBaseDTO> baseStepInstanceList =
-            stepInstanceDAO.listStepInstanceBaseByTaskInstanceId(taskInstanceId);
-        if (baseStepInstanceList == null || baseStepInstanceList.isEmpty()) {
-            return taskInstance;
-        }
-        List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
-        for (StepInstanceBaseDTO baseStepInstance : baseStepInstanceList) {
-            StepInstanceDTO stepInstance = new StepInstanceDTO(baseStepInstance);
-            fillStepInstanceDetail(stepInstance);
-            stepInstanceList.add(stepInstance);
-        }
-        taskInstance.setStepInstances(stepInstanceList);
-        List<TaskVariableDTO> taskVariables = taskInstanceVariableService.getByTaskInstanceId(taskInstanceId);
-        taskInstance.setVariables(taskVariables);
+        fillStepAndVariable(taskInstance);
         return taskInstance;
+    }
+
+    private void fillStepAndVariable(TaskInstanceDTO taskInstance) {
+        List<StepInstanceBaseDTO> baseStepInstanceList =
+            stepInstanceDAO.listStepInstanceBaseByTaskInstanceId(taskInstance.getId());
+        if (CollectionUtils.isNotEmpty(baseStepInstanceList)) {
+            List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
+            for (StepInstanceBaseDTO baseStepInstance : baseStepInstanceList) {
+                StepInstanceDTO stepInstance = new StepInstanceDTO(baseStepInstance);
+                fillStepInstanceDetail(stepInstance);
+                stepInstanceList.add(stepInstance);
+            }
+            taskInstance.setStepInstances(stepInstanceList);
+        }
+        List<TaskVariableDTO> taskVariables = taskInstanceVariableService.getByTaskInstanceId(taskInstance.getId());
+        taskInstance.setVariables(taskVariables);
     }
 
     private void fillStepInstanceDetail(StepInstanceDTO stepInstance) {
@@ -135,6 +204,14 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
+    public TaskInstanceDTO getTaskInstanceDetail(String username, long appId, long taskInstanceId)
+        throws NotFoundException, PermissionDeniedException {
+        TaskInstanceDTO taskInstance = getTaskInstance(username, appId, taskInstanceId);
+        fillStepAndVariable(taskInstance);
+        return taskInstance;
+    }
+
+    @Override
     public List<StepInstanceBaseDTO> listStepInstanceByTaskInstanceId(long taskInstanceId) {
         return stepInstanceDAO.listStepInstanceBaseByTaskInstanceId(taskInstanceId);
     }
@@ -145,13 +222,34 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public StepInstanceDTO getStepInstanceDetail(long stepInstanceId) {
+    public StepInstanceBaseDTO getBaseStepInstance(long appId, long stepInstanceId) {
+        StepInstanceBaseDTO stepInstance = getBaseStepInstance(stepInstanceId);
+        if (!stepInstance.getAppId().equals(appId)) {
+            log.warn("StepInstance:{} is not in app:{}", stepInstanceId, appId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        return stepInstance;
+    }
+
+    @Override
+    public StepInstanceDTO getStepInstanceDetail(long stepInstanceId) throws NotFoundException {
         StepInstanceBaseDTO stepInstanceBase = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         if (stepInstanceBase == null) {
-            return null;
+            log.warn("StepInstance:{} not exist", stepInstanceId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         StepInstanceDTO stepInstance = new StepInstanceDTO(stepInstanceBase);
         fillStepInstanceDetail(stepInstance);
+        return stepInstance;
+    }
+
+    @Override
+    public StepInstanceDTO getStepInstanceDetail(long appId, long stepInstanceId) throws NotFoundException {
+        StepInstanceDTO stepInstance = getStepInstanceDetail(stepInstanceId);
+        if (!stepInstance.getAppId().equals(appId)) {
+            log.warn("StepInstance:{} is not in app:{}", stepInstanceId, appId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
         return stepInstance;
     }
 

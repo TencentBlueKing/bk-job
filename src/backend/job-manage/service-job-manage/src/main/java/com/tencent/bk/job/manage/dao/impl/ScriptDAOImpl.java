@@ -740,13 +740,13 @@ public class ScriptDAOImpl implements ScriptDAO {
     }
 
     @Override
-    public PageData<ScriptDTO> listPageScriptVersion(ScriptQuery scriptQuery,
-                                                     BaseSearchCondition baseSearchCondition) {
+    public PageData<ScriptDTO> listPageScriptVersion(ScriptQuery scriptQuery) {
         Script tbScript = Script.SCRIPT;
         ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION;
 
-        long count = getScriptVersionPageCount(scriptQuery, baseSearchCondition);
+        long count = getScriptVersionPageCount(scriptQuery);
 
+        BaseSearchCondition baseSearchCondition = scriptQuery.getBaseSearchCondition();
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
@@ -775,7 +775,8 @@ public class ScriptDAOImpl implements ScriptDAO {
         return scriptVersionPageData;
     }
 
-    private long getScriptVersionPageCount(ScriptQuery scriptQuery, BaseSearchCondition baseSearchCondition) {
+    private long getScriptVersionPageCount(ScriptQuery scriptQuery) {
+        BaseSearchCondition baseSearchCondition = scriptQuery.getBaseSearchCondition();
         Script tbScript = Script.SCRIPT;
         ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION;
         List<Condition> conditions = buildScriptVersionConditionList(scriptQuery, baseSearchCondition);

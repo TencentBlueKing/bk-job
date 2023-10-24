@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.analysis.api.web.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.web.WebStatisticsResource;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
@@ -44,8 +46,10 @@ import com.tencent.bk.job.analysis.service.FastFileStatisticService;
 import com.tencent.bk.job.analysis.service.FastScriptStatisticService;
 import com.tencent.bk.job.analysis.service.RollingTaskStatisticService;
 import com.tencent.bk.job.analysis.service.TagStatisticService;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -105,6 +109,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.DASHBOARD_VIEW)
+    @ActionAuditRecord(
+        actionId = ActionId.DASHBOARD_VIEW,
+        content = EventContentConstants.VIEW_ANALYSIS_DASHBOARD
+    )
     public Response<CommonStatisticWithRateVO> totalStatistics(String username,
                                                                TotalMetricEnum metric,
                                                                List<String> scopes,
@@ -125,6 +134,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.DASHBOARD_VIEW)
+    @ActionAuditRecord(
+        actionId = ActionId.DASHBOARD_VIEW,
+        content = EventContentConstants.VIEW_ANALYSIS_DASHBOARD
+    )
     public Response<List<CommonTrendElementVO>> trends(String username,
                                                        TotalMetricEnum metric,
                                                        List<String> scopes,
@@ -178,6 +192,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.DASHBOARD_VIEW)
+    @ActionAuditRecord(
+        actionId = ActionId.DASHBOARD_VIEW,
+        content = EventContentConstants.VIEW_ANALYSIS_DASHBOARD
+    )
     public Response<List<PerAppStatisticVO>> listByPerApp(String username,
                                                           TotalMetricEnum metric,
                                                           List<String> scopes,
@@ -209,6 +228,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.DASHBOARD_VIEW)
+    @ActionAuditRecord(
+        actionId = ActionId.DASHBOARD_VIEW,
+        content = EventContentConstants.VIEW_ANALYSIS_DASHBOARD
+    )
     public Response<CommonDistributionVO> distributionStatistics(String username,
                                                                  DistributionMetricEnum metric,
                                                                  List<String> scopes,
@@ -267,6 +291,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.DASHBOARD_VIEW)
+    @ActionAuditRecord(
+        actionId = ActionId.DASHBOARD_VIEW,
+        content = EventContentConstants.VIEW_ANALYSIS_DASHBOARD
+    )
     public Response<List<DayDistributionElementVO>> dayDetailStatistics(String username,
                                                                         ResourceEnum resource,
                                                                         DimensionEnum dimension,
@@ -302,6 +331,11 @@ public class WebStatisticsResourceImpl implements WebStatisticsResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.DASHBOARD_VIEW)
+    @ActionAuditRecord(
+        actionId = ActionId.DASHBOARD_VIEW,
+        content = EventContentConstants.VIEW_ANALYSIS_DASHBOARD
+    )
     public Response<Map<String, String>> getStatisticsDataInfo(String username) {
         Map<String, String> statisticsDataInfoMap = new HashMap<>();
         LocalDateTime now = LocalDateTime.now();

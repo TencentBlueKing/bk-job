@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
+import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import com.tencent.bk.job.manage.service.WhiteIPService;
@@ -57,6 +58,12 @@ public class ServiceWhiteIPResourceImpl implements ServiceWhiteIPResource {
 
     @Override
     public InternalResponse<Long> saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
-        return InternalResponse.buildSuccessResp(whiteIPService.saveWhiteIP(username, createUpdateReq));
+        WhiteIPRecordDTO record;
+        if (createUpdateReq.getId() != null && createUpdateReq.getId() > 0) {
+            record = whiteIPService.updateWhiteIP(username, createUpdateReq);
+        } else {
+            record = whiteIPService.createWhiteIP(username, createUpdateReq);
+        }
+        return InternalResponse.buildSuccessResp(record.getId());
     }
 }

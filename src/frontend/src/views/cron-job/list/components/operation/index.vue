@@ -185,9 +185,9 @@
   </div>
 </template>
 <script>
+  import CronJobService from '@service/cron-job';
   import TaskService from '@service/task-manage';
   import TaskPlanService from '@service/task-plan';
-  import CronJobService from '@service/time-task';
 
   import {
     checkIllegalHostFromVariableTargetValue,
@@ -555,7 +555,7 @@
        * @param {String} name 定时任务名
        */
       checkName(name) {
-        return CronJobService.timeTaskCheckName({
+        return CronJobService.checkName({
           id: this.formData.id,
           name,
         });
@@ -675,7 +675,9 @@
             if (params.endTime) {
               params.endTime = new Date(params.endTime).getTime() / 1000;
             }
-            return CronJobService.timeTaskUpdate({
+
+            const requestHandler = params.id ? CronJobService.update : CronJobService.create;
+            return requestHandler({
               ...params,
               variableValue: variableList,
             }).then(() => {

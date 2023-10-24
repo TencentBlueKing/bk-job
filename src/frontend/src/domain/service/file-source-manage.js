@@ -47,12 +47,12 @@ export default {
         return data;
       });
   },
-  addSource(params) {
-    return FileSourceManageSource.addFileSource(params)
+  create(params) {
+    return FileSourceManageSource.create(params)
       .then(({ data }) => data);
   },
-  updateSource(params) {
-    return FileSourceManageSource.updateFileSource(params)
+  update(params) {
+    return FileSourceManageSource.update(params)
       .then(({ data }) => data);
   },
   getSourceInfo(params) {

@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -59,6 +60,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.AccountService;
+import com.tencent.bk.job.manage.service.PublicScriptService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import lombok.extern.slf4j.Slf4j;
@@ -84,6 +86,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     private final AbstractTaskVariableService taskVariableService;
 
     private final ScriptService scriptService;
+    private final PublicScriptService publicScriptService;
 
     private final AccountService accountService;
 
@@ -91,11 +94,12 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     public ServiceTaskPlanResourceImpl(
         TaskPlanService taskPlanService,
         @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskVariableService,
-        ScriptService scriptService,
+        ScriptService scriptService, PublicScriptService publicScriptService,
         AccountService accountService) {
         this.taskPlanService = taskPlanService;
         this.taskVariableService = taskVariableService;
         this.scriptService = scriptService;
+        this.publicScriptService = publicScriptService;
         this.accountService = accountService;
     }
 
@@ -343,7 +347,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         scriptStepDTO.setType(scriptStep.getLanguage().getValue());
 
         if (scriptStep.getScriptVersionId() != null && scriptStep.getScriptVersionId() > 0) {
-            ScriptDTO script = scriptService.getScriptVersion(scriptStep.getScriptVersionId());
+            ScriptDTO script = getScriptVersion(scriptStep.getScriptSource(), scriptStep.getScriptVersionId());
             if (script == null) {
                 log.warn("Plan related script is not exist, planId={}, scriptVersionId={}", scriptStep.getPlanId(),
                     scriptStep.getScriptVersionId());
@@ -366,6 +370,19 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         scriptStepDTO.setExecuteTarget(targetServer.toServiceTaskTargetDTO());
         scriptStepDTO.setIgnoreError(scriptStep.getIgnoreError());
         return scriptStepDTO;
+    }
+
+    private ScriptDTO getScriptVersion(TaskScriptSourceEnum scriptSource, long scriptVersionId) {
+        ScriptDTO scriptVersion = null;
+        switch (scriptSource) {
+            case CITING:
+                scriptVersion = scriptService.getScriptVersion(scriptVersionId);
+                break;
+            case PUBLIC:
+                scriptVersion = publicScriptService.getScriptVersion(scriptVersionId);
+                break;
+        }
+        return scriptVersion;
     }
 
     private ServiceAccountDTO buildAccount(Long accountId, Map<Long, ServiceAccountDTO> cacheAccountMap) {

@@ -137,6 +137,7 @@ public class ScriptDTO {
         esbScript.setLastModifyUser(lastModifyUser);
         esbScript.setLastModifyTime(lastModifyTime);
         esbScript.setOnlineScriptVersionId(scriptVersionId);
+        esbScript.setDescription(description);
         return esbScript;
     }
 
@@ -158,5 +159,34 @@ public class ScriptDTO {
         esbScriptVersion.setLastModifyUser(lastModifyUser);
         esbScriptVersion.setLastModifyTime(lastModifyTime);
         return esbScriptVersion;
+    }
+
+    public EsbScriptVersionDetailV3DTO toEsbCreateScriptV3DTO() {
+        EsbScriptVersionDetailV3DTO scriptDetail = new EsbScriptVersionDetailV3DTO();
+        scriptDetail.setId(scriptVersionId);
+        scriptDetail.setScriptId(id);
+        scriptDetail.setName(name);
+        scriptDetail.setType(type);
+        scriptDetail.setContent(content);
+        scriptDetail.setCreator(creator);
+        scriptDetail.setCreateTime(createTime);
+        scriptDetail.setLastModifyUser(lastModifyUser);
+        scriptDetail.setLastModifyTime(lastModifyTime);
+        scriptDetail.setVersion(version);
+        scriptDetail.setStatus(status);
+        scriptDetail.setDescription(description);
+        scriptDetail.setVersionDesc(versionDesc);
+        if (appId != null && !appId.equals(PUBLIC_APP_ID)) {
+            EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, scriptDetail);
+        }
+        return scriptDetail;
+    }
+
+    public EsbScriptVersionDetailV3DTO toEsbManageScriptV3DTO() {
+        EsbScriptVersionDetailV3DTO result = new EsbScriptVersionDetailV3DTO();
+        result.setId(scriptVersionId);
+        result.setScriptId(id);
+        result.setStatus(status);
+        return result;
     }
 }

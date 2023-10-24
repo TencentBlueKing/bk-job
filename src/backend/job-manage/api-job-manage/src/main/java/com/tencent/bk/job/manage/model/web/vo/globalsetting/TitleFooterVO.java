@@ -26,19 +26,12 @@ package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * @Description
- * @Date 2020/2/27
- * @Version 1.0
- */
-@AllArgsConstructor
 @NoArgsConstructor
 @Data
-@ApiModel("全站Title与Footer")
+@ApiModel("全局设置-平台设置-title/footer")
 public class TitleFooterVO {
     @ApiModelProperty("Title固定头文字")
     private String titleHead;
@@ -48,4 +41,11 @@ public class TitleFooterVO {
     private String footerLink;
     @ApiModelProperty("Footer第二行copyright内容，Markdown格式")
     private String footerCopyRight;
+
+    public TitleFooterVO(String titleHead, String titleSeparator, String footerLink, String footerCopyRight) {
+        this.titleHead = titleHead;
+        this.titleSeparator = titleSeparator;
+        this.footerLink = footerLink;
+        this.footerCopyRight = footerCopyRight;
+    }
 }

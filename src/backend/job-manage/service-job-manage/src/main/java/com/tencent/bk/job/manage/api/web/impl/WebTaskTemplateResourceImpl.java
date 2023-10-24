@@ -25,10 +25,13 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.google.common.base.CaseFormat;
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -70,7 +73,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * @since 16/10/2019 16:16
+ * 作业模板Resource
  */
 @Slf4j
 @RestController
@@ -211,21 +214,15 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_JOB_TEMPLATE)
     public Response<TaskTemplateVO> getTemplateById(String username,
                                                     AppResourceScope appResourceScope,
                                                     String scopeType,
                                                     String scopeId,
                                                     Long templateId) {
+        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplate(username,
+            appResourceScope.getAppId(), templateId);
 
-        AuthResult authResult = templateAuthService.authViewJobTemplate(username, appResourceScope,
-            templateId);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplateById(appResourceScope.getAppId(), templateId);
-        if (templateInfo == null) {
-            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
-        }
         StepRefVariableParser.parseStepRefVars(templateInfo.getStepList(), templateInfo.getVariableList());
 
         TaskTemplateVO taskTemplateVO = TaskTemplateInfoDTO.toVO(templateInfo);
@@ -242,54 +239,58 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     }
 
     @Override
-    public Response<Long> saveTemplate(String username,
-                                       AppResourceScope appResourceScope,
-                                       String scopeType,
-                                       String scopeId,
-                                       Long templateId,
-                                       TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq) {
-        if (templateId > 0) {
-            taskTemplateCreateUpdateReq.setId(templateId);
-        }
-        taskTemplateCreateUpdateReq.validate();
+    @AuditEntry(
+        actionId = ActionId.CREATE_JOB_TEMPLATE
+    )
+    public Response<TaskTemplateVO> createTemplate(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   String scopeType,
+                                                   String scopeId,
+                                                   @AuditRequestBody TaskTemplateCreateUpdateReq request) {
 
-        AuthResult authResult;
-        if (templateId > 0) {
-            authResult = templateAuthService.authEditJobTemplate(username, appResourceScope, templateId);
-        } else {
-            authResult = templateAuthService.authCreateJobTemplate(username, appResourceScope);
-        }
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+        request.validate();
 
-        Long finalTemplateId = templateService
-            .saveTaskTemplate(TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(),
-                taskTemplateCreateUpdateReq));
-        templateAuthService.registerTemplate(finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
-        return Response.buildSuccessResp(finalTemplateId);
+        TaskTemplateInfoDTO createdTemplate = templateService.saveTaskTemplate(username,
+            TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request));
+        return Response.buildSuccessResp(TaskTemplateInfoDTO.toVO(createdTemplate));
     }
 
     @Override
     @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @AuditEntry(
+        actionId = ActionId.DELETE_JOB_TEMPLATE,
+        subActionIds = {ActionId.DELETE_JOB_PLAN}
+    )
     public Response<Boolean> deleteTemplate(String username,
                                             AppResourceScope appResourceScope,
                                             String scopeType,
                                             String scopeId,
                                             Long templateId) {
 
-        AuthResult authResult = templateAuthService.authDeleteJobTemplate(username, appResourceScope,
-            templateId);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-
         Long appId = appResourceScope.getAppId();
-        if (templateService.deleteTaskTemplate(appId, templateId)) {
-            taskFavoriteService.deleteFavorite(appId, username, templateId);
-            return Response.buildSuccessResp(true);
-        }
-        return Response.buildSuccessResp(false);
+        templateService.deleteTaskTemplate(username, appId, templateId);
+        taskFavoriteService.deleteFavorite(appId, username, templateId);
+
+        return Response.buildSuccessResp(true);
+    }
+
+    @Override
+    @AuditEntry(
+        actionId = ActionId.EDIT_JOB_TEMPLATE
+    )
+    public Response<TaskTemplateVO> updateTemplate(String username,
+                                                   AppResourceScope appResourceScope,
+                                                   String scopeType,
+                                                   String scopeId,
+                                                   Long templateId,
+                                                   @AuditRequestBody TaskTemplateCreateUpdateReq request) {
+        request.setId(templateId);
+        request.validate();
+
+        TaskTemplateInfoDTO updatedTemplate = templateService.updateTaskTemplate(
+            username, TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request));
+
+        return Response.buildSuccessResp(TaskTemplateInfoDTO.toVO(updatedTemplate));
     }
 
     @Override
@@ -302,27 +303,18 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     }
 
     @Override
+    @AuditEntry(
+        actionId = ActionId.EDIT_JOB_TEMPLATE
+    )
     public Response<Boolean> updateTemplateBasicInfo(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId,
                                                      Long templateId,
-                                                     TemplateBasicInfoUpdateReq templateBasicInfoUpdateReq) {
-
-        if (templateId > 0) {
-            templateBasicInfoUpdateReq.setId(templateId);
-        } else {
-            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
-        }
-        AuthResult authResult = templateAuthService.authEditJobTemplate(username, appResourceScope,
-            templateId);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-
-        return Response.buildSuccessResp(
-            templateService.saveTaskTemplateBasicInfo(
-                TaskTemplateInfoDTO.fromBasicReq(username, appResourceScope.getAppId(), templateBasicInfoUpdateReq)));
+                                                     @AuditRequestBody TemplateBasicInfoUpdateReq request) {
+        templateService.saveTaskTemplateBasicInfo(username,
+            TaskTemplateInfoDTO.fromBasicReq(username, appResourceScope.getAppId(), request));
+        return Response.buildSuccessResp(true);
     }
 
     @Override

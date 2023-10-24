@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.file_gateway.model.resp.common.SimpleFileSourceVO;
+import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -147,6 +148,31 @@ public class FileSourceDTO {
         fileSourceVO.setCode(fileSourceDTO.getCode());
         fileSourceVO.setAlias(fileSourceDTO.getAlias());
         return fileSourceVO;
+    }
+
+    public static EsbFileSourceV3DTO toEsbFileSourceV3DTO(FileSourceDTO fileSourceDTO) {
+        if (fileSourceDTO == null) {
+            return null;
+        }
+        EsbFileSourceV3DTO fileSource = new EsbFileSourceV3DTO();
+        fileSource.setId(fileSourceDTO.getId());
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(fileSourceDTO.getAppId());
+        fileSource.setScopeType(resourceScope.getType().getValue());
+        fileSource.setScopeId(resourceScope.getId());
+        fileSource.setCode(fileSourceDTO.getCode());
+        fileSource.setAlias(fileSourceDTO.getAlias());
+        fileSource.setCredentialId(fileSourceDTO.getCredentialId());
+        fileSource.setEnable(fileSourceDTO.getEnable());
+        fileSource.setFileSourceType(fileSourceDTO.getFileSourceType().getId());
+        fileSource.setPublicFlag(fileSourceDTO.getPublicFlag());
+        fileSource.setStatus(fileSourceDTO.getStatus());
+        fileSource.setCreateTime(fileSourceDTO.getCreateTime());
+        fileSource.setCreator(fileSourceDTO.getCreator());
+        fileSource.setLastModifyTime(fileSourceDTO.getLastModifyTime());
+        fileSource.setLastModifyUser(fileSourceDTO.getLastModifyUser());
+        return fileSource;
     }
 
     public static FileSourceVO toVO(FileSourceDTO fileSourceDTO) {

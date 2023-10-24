@@ -24,12 +24,16 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.audit.annotations.ActionAuditRecord;
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
+import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.web.WebGlobalSettingsResource;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
@@ -37,7 +41,8 @@ import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChan
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
@@ -61,26 +66,41 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
     public Response<List<NotifyChannelWithIconVO>> listNotifyChannel(String username) {
         return Response.buildSuccessResp(globalSettingsService.listNotifyChannel(username));
     }
 
     @Override
-    public Response<Integer> setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    public Response<Integer> setAvailableNotifyChannel(String username,
+                                                       @AuditRequestBody SetAvailableNotifyChannelReq req) {
         return Response.buildSuccessResp(globalSettingsService.setAvailableNotifyChannel(username, req));
     }
 
     @Override
-    public Response<Integer> saveChannelTemplate(String username, ChannelTemplateReq req) {
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    public Response<Integer> saveChannelTemplate(String username,
+                                                 @AuditRequestBody ChannelTemplateReq req) {
         return Response.buildSuccessResp(globalSettingsService.saveChannelTemplate(username, req));
     }
 
     @Override
-    public Response<Integer> sendChannelTemplate(String username, ChannelTemplatePreviewReq req) {
+    public Response<Integer> sendChannelTemplate(String username,
+                                                 @AuditRequestBody ChannelTemplatePreviewReq req) {
         return Response.buildSuccessResp(globalSettingsService.sendChannelTemplate(username, req));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
     public Response<ChannelTemplateDetailWithDefaultVO> getChannelTemplateDetail(String username,
                                                                                  String channelCode,
                                                                                  String messageTypeCode) {
@@ -89,63 +109,109 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
     public Response<List<ChannelTemplateStatusVO>> listChannelTemplateStatus(String username) {
         return Response.buildSuccessResp(globalSettingsService.listChannelTemplateStatus(username));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
     public Response<List<UserVO>> listUsers(String username, String prefixStr, Long offset, Long limit) {
         return Response.buildSuccessResp(globalSettingsService.listUsers(username, prefixStr, offset, limit));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
     public Response<List<NotifyBlackUserInfoVO>> listNotifyBlackUsers(String username, Integer start,
                                                                       Integer pageSize) {
         return Response.buildSuccessResp(globalSettingsService.listNotifyBlackUsers(username, start, pageSize));
     }
 
     @Override
-    public Response<List<String>> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    public Response<List<String>> saveNotifyBlackUsers(String username,
+                                                       @AuditRequestBody NotifyBlackUsersReq req) {
         return Response.buildSuccessResp(globalSettingsService.saveNotifyBlackUsers(username, req));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
     public Response<Long> getHistoryExpireTime(String username) {
         return Response.buildSuccessResp(globalSettingsService.getHistoryExpireTime(username));
     }
 
     @Override
-    public Response<Integer> setHistoryExpireTime(String username, HistoryExpireReq req) {
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    public Response<Integer> setHistoryExpireTime(String username,
+                                                  @AuditRequestBody HistoryExpireReq req) {
         return Response.buildSuccessResp(globalSettingsService.setHistoryExpireTime(username, req));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
     public Response<AccountNameRulesWithDefaultVO> getAccountNameRules(String username) {
         return Response.buildSuccessResp(globalSettingsService.getAccountNameRules());
     }
 
     @Override
-    public Response<Boolean> setAccountNameRules(String username, AccountNameRulesReq req) {
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    public Response<Boolean> setAccountNameRules(String username,
+                                                 @AuditRequestBody AccountNameRulesReq req) {
         return Response.buildSuccessResp(globalSettingsService.setAccountNameRules(username, req));
     }
 
     @Override
-    public Response<Boolean> saveFileUploadSettings(String username, FileUploadSettingReq req) {
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    public Response<Boolean> saveFileUploadSettings(String username,
+                                                    @AuditRequestBody FileUploadSettingReq req) {
         return Response.buildSuccessResp(globalSettingsService.saveFileUploadSettings(username, req));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
     public Response<FileUploadSettingVO> getFileUploadSettings(String username) {
         return Response.buildSuccessResp(globalSettingsService.getFileUploadSettings());
     }
 
     @Override
-    public Response<Boolean> setTitleFooter(String username, SetTitleFooterReq req) {
-        return Response.buildSuccessResp(globalSettingsService.setTitleFooter(username, req));
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    public Response<PlatformInfoVO> savePlatformInfo(String username,
+                                                     @AuditRequestBody PlatformInfoVO platformInfoVO) {
+        PlatformInfoVO updatedPlatformInfo = globalSettingsService.savePlatformInfo(username, platformInfoVO);
+        return Response.buildSuccessResp(updatedPlatformInfo);
     }
 
     @Override
-    public Response<TitleFooterWithDefaultVO> getTitleFooterWithDefault(String username) {
-        return Response.buildSuccessResp(globalSettingsService.getTitleFooterWithDefault(username));
+    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
+    @ActionAuditRecord(
+        actionId = ActionId.GLOBAL_SETTINGS,
+        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
+    )
+    public Response<PlatformInfoWithDefaultVO> getPlatformInfoWithDefault(String username) {
+        return Response.buildSuccessResp(globalSettingsService.getPlatformInfoWithDefault(username));
     }
 }

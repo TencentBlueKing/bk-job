@@ -1,4 +1,23 @@
 # chart values 更新日志
+
+## 0.5.3
+1. 增加操作审计相关配置
+
+```yaml
+## 操作审计配置
+audit:
+  # 是否开启操作审计
+  enabled: true
+  # 作业平台系统ID
+  systemId: bk_job
+```
+2. 增加pod删除时等待优雅关闭的最大时间配置
+
+```yaml
+# pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
+podTerminationGracePeriodSeconds: 40
+```
+
 ## 0.5.2
 1.增加依赖宿主机GSE Agent的分发相关配置
 

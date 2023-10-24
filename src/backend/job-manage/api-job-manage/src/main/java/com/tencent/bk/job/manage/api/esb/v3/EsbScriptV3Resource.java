@@ -28,9 +28,19 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.Delete;
+import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbManageScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptBasicV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
 import org.springframework.validation.annotation.Validated;
@@ -107,4 +117,59 @@ public interface EsbScriptV3Resource {
             EsbGetScriptVersionDetailV3Req request
     );
 
+    @PostMapping("/create_script")
+    EsbResp<EsbScriptVersionDetailV3DTO> createScript(
+        @RequestBody
+        @Validated(Create.class)
+            EsbCreateScriptV3Req request
+    );
+
+    @PostMapping("/create_script_version")
+    EsbResp<EsbScriptVersionDetailV3DTO> createScriptVersion(
+        @RequestBody
+        @Validated(Create.class)
+            EsbCreateScriptVersionV3Req request
+    );
+
+    @PostMapping("/delete_script")
+    EsbResp deleteScript(
+            @RequestBody
+            @Validated(Delete.class)
+                EsbDeleteScriptV3Req request
+        );
+
+    @PostMapping("/delete_script_version")
+    EsbResp deleteScriptVersion(
+        @RequestBody
+        @Validated(Delete.class)
+            EsbDeleteScriptVersionV3Req request
+    );
+
+    @PostMapping("/disable_script_version")
+    EsbResp<EsbScriptVersionDetailV3DTO> disableScriptVersion(
+        @RequestBody
+        @Validated(Update.class)
+            EsbManageScriptVersionV3Req request
+    );
+
+    @PostMapping("/publish_script_version")
+    EsbResp<EsbScriptVersionDetailV3DTO> publishScriptVersion(
+        @RequestBody
+        @Validated(Update.class)
+            EsbManageScriptVersionV3Req request
+    );
+
+    @PostMapping("/update_script_basic")
+    EsbResp<EsbScriptV3DTO> updateScriptBasic(
+        @RequestBody
+        @Validated(Update.class)
+            EsbUpdateScriptBasicV3Req request
+    );
+
+    @PostMapping("/update_script_version")
+    EsbResp<EsbScriptVersionDetailV3DTO> updateScriptVersion(
+        @RequestBody
+        @Validated(Update.class)
+            EsbUpdateScriptVersionV3Req request
+    );
 }

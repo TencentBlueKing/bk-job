@@ -190,7 +190,7 @@ public class NotifyServiceImpl implements NotifyService {
         trigger.setAppId(taskNotifyDTO.getAppId());
         trigger.setTriggerUser(taskNotifyDTO.getOperator());
         Integer startupMode = taskNotifyDTO.getStartupMode();
-        if (startupMode.equals(TaskStartupModeEnum.NORMAL.getValue())) {
+        if (startupMode.equals(TaskStartupModeEnum.WEB.getValue())) {
             trigger.setTriggerType(TriggerTypeEnum.PAGE_EXECUTE.getType());
         } else if (startupMode.equals(TaskStartupModeEnum.API.getValue())) {
             trigger.setTriggerType(TriggerTypeEnum.API_INVOKE.getType());
@@ -299,11 +299,11 @@ public class NotifyServiceImpl implements NotifyService {
             locale = Locale.ENGLISH;
         }
         if (taskNotifyDTO.getResourceType() == ResourceTypeEnum.SCRIPT.getType()) {
-            variablesMap.put("task.type", i18nService.getI18n("task.type.name.fast_execute_script", locale));
+            variablesMap.put("task.type", i18nService.getI18n(locale, "task.type.name.fast_execute_script"));
         } else if (taskNotifyDTO.getResourceType() == ResourceTypeEnum.FILE.getType()) {
-            variablesMap.put("task.type", i18nService.getI18n("task.type.name.fast_push_file", locale));
+            variablesMap.put("task.type", i18nService.getI18n(locale, "task.type.name.fast_push_file"));
         } else if (taskNotifyDTO.getResourceType() == ResourceTypeEnum.JOB.getType()) {
-            variablesMap.put("task.type", i18nService.getI18n("task.type.name.job", locale));
+            variablesMap.put("task.type", i18nService.getI18n(locale, "task.type.name.job"));
         } else {
             variablesMap.put("task.type", "Unknown");
             log.error("Not supported resourceType:{}", taskNotifyDTO.getResourceType());
@@ -395,7 +395,7 @@ public class NotifyServiceImpl implements NotifyService {
         notifyDTO.setChannels(stepInstanceDetail.getNotifyChannels());
         notifyDTO.setTriggerUser(stepInstance.getOperator());
         taskNotifyDTO.setNotifyDTO(notifyDTO);
-        taskNotifyDTO.setResourceId(String.valueOf(taskInstance.getTaskId()));
+        taskNotifyDTO.setResourceId(String.valueOf(taskInstance.getPlanId()));
         taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
         taskNotifyDTO.setOperator(stepInstance.getOperator());
         taskExecuteMQEventDispatcher.dispatchNotifyMsg(taskNotifyDTO);
@@ -404,7 +404,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     private void setResourceInfo(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance,
                                  TaskNotifyDTO taskNotifyDTO) {
-        Long taskPlanId = taskInstance.getTaskId();
+        Long taskPlanId = taskInstance.getPlanId();
         taskNotifyDTO.setResourceId(String.valueOf(taskPlanId));
         if (taskPlanId == -1L) {
             if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())) {
@@ -427,7 +427,7 @@ public class NotifyServiceImpl implements NotifyService {
         taskNotifyDTO.setOperator(operator);
         taskNotifyDTO.setTaskInstanceId(taskInstance.getId());
         taskNotifyDTO.setStartupMode(taskInstance.getStartupMode());
-        taskNotifyDTO.setTaskId(taskInstance.getTaskId());
+        taskNotifyDTO.setTaskId(taskInstance.getPlanId());
         taskNotifyDTO.setTaskInstanceName(taskInstance.getName());
         return taskNotifyDTO;
     }

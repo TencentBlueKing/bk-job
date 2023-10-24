@@ -139,26 +139,4 @@ public class TaskFileStepVO {
             ignoreError = 0;
         }
     }
-
-    public Integer getNotExistPathHandler() {
-        if (transferMode == 1) {
-            return NotExistPathHandlerEnum.STEP_FAIL.getValue();
-        } else {
-            return NotExistPathHandlerEnum.CREATE_DIR.getValue();
-        }
-    }
-
-    public Integer getDuplicateHandler() {
-        switch (transferMode) {
-            case 1:
-            case 2:
-                return DuplicateHandlerEnum.OVERWRITE.getId();
-            case 3:
-                return DuplicateHandlerEnum.GROUP_BY_IP.getId();
-            case 4:
-                return DuplicateHandlerEnum.GROUP_BY_DATE_AND_IP.getId();
-            default:
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-    }
 }

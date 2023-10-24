@@ -24,8 +24,11 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -33,7 +36,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.web.WebTagResource;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
@@ -72,8 +74,7 @@ public class WebTagResourceImpl implements WebTagResource {
                               TagAuthService tagAuthService,
                               ScriptAuthService scriptAuthService,
                               TemplateAuthService templateAuthService,
-                              NoResourceScopeAuthService noResourceScopeAuthService,
-                              AppScopeMappingService appScopeMappingService) {
+                              NoResourceScopeAuthService noResourceScopeAuthService) {
         this.tagService = tagService;
         this.tagAuthService = tagAuthService;
         this.scriptAuthService = scriptAuthService;
@@ -179,16 +180,13 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_TAG)
     public Response<Boolean> updateTagInfo(String username,
                                            AppResourceScope appResourceScope,
                                            String scopeType,
                                            String scopeId,
                                            Long tagId,
                                            TagCreateUpdateReq tagCreateUpdateReq) {
-        AuthResult authResult = checkManageTagPermission(username, appResourceScope, tagId);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
         TagDTO tag = new TagDTO();
         tag.setId(tagId);
         tag.setAppId(appResourceScope.getAppId());
@@ -198,46 +196,28 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.CREATE_TAG)
     public Response<TagVO> saveTagInfo(String username,
                                        AppResourceScope appResourceScope,
                                        String scopeType,
                                        String scopeId,
-                                       TagCreateUpdateReq tagCreateUpdateReq) {
-        AuthResult authResult = checkCreateTagPermission(username, appResourceScope);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
+                                       @AuditRequestBody TagCreateUpdateReq tagCreateUpdateReq) {
         TagDTO tag = new TagDTO();
         tag.setAppId(appResourceScope.getAppId());
         tag.setName(tagCreateUpdateReq.getName());
         tag.setDescription(tagCreateUpdateReq.getDescription());
-        Long tagId = tagService.insertNewTag(username, tag);
-        tagAuthService.registerTag(tagId, tagCreateUpdateReq.getName(), username);
-
-        TagDTO savedTag = tagService.getTagInfoById(appResourceScope.getAppId(), tagId);
-        return Response.buildSuccessResp(TagDTO.toVO(savedTag));
-    }
-
-    private AuthResult checkManageTagPermission(String username, AppResourceScope appResourceScope, Long tagId) {
-        return tagAuthService.authManageTag(username, appResourceScope, tagId, null);
-    }
-
-    private AuthResult checkCreateTagPermission(String username, AppResourceScope appResourceScope) {
-        return tagAuthService.authCreateTag(username, appResourceScope);
+        TagDTO newTag = tagService.createTag(username, tag);
+        return Response.buildSuccessResp(TagDTO.toVO(newTag));
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.MANAGE_TAG)
     public Response<Boolean> deleteTag(String username,
                                        AppResourceScope appResourceScope,
                                        String scopeType,
                                        String scopeId,
                                        Long tagId) {
-        AuthResult authResult = checkManageTagPermission(username, appResourceScope, tagId);
-
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
-        tagService.deleteTag(tagId);
+        tagService.deleteTag(username, appResourceScope.getAppId(), tagId);
         return Response.buildSuccessResp(true);
     }
 

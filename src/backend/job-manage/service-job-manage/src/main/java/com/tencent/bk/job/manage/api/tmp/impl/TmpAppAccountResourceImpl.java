@@ -148,7 +148,7 @@ public class TmpAppAccountResourceImpl implements TmpAppAccountResource {
 
         AccountDTO newAccount = buildCreateAccountDTO(username, appId, createTime, lastModifyTime, lastModifyUser,
             accountCreateUpdateReq);
-        accountId = accountService.saveAccount(newAccount);
-        return Response.buildSuccessResp(accountId);
+        AccountDTO savedAccount = accountService.createAccount(newAccount);
+        return Response.buildSuccessResp(savedAccount.getId());
     }
 }

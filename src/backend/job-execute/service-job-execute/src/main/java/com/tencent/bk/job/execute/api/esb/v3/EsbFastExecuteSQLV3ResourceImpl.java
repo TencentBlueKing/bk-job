@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.api.esb.v3;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
@@ -81,7 +83,8 @@ public class EsbFastExecuteSQLV3ResourceImpl
             ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_API,
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_SQL
         })
-    public EsbResp<EsbJobExecuteV3DTO> fastExecuteSQL(EsbFastExecuteSQLV3Request request) {
+    @AuditEntry
+    public EsbResp<EsbJobExecuteV3DTO> fastExecuteSQL(@AuditRequestBody EsbFastExecuteSQLV3Request request) {
         request.fillAppResourceScope(appScopeMappingService);
 
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
@@ -94,12 +97,12 @@ public class EsbFastExecuteSQLV3ResourceImpl
 
         TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(request);
         StepInstanceDTO stepInstance = buildFastSQLStepInstance(request);
-        long taskInstanceId = taskExecuteService.executeFastTask(
+        TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
             FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
         );
 
         EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
-        jobExecuteInfo.setTaskInstanceId(taskInstanceId);
+        jobExecuteInfo.setTaskInstanceId(executeTaskInstance.getId());
         jobExecuteInfo.setTaskName(stepInstance.getName());
         return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
@@ -148,7 +151,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
         taskInstance.setCronTaskId(-1L);
         taskInstance.setAppId(request.getAppId());
         taskInstance.setOperator(request.getUserName());
-        taskInstance.setTaskId(-1L);
+        taskInstance.setPlanId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setDebugTask(false);
         taskInstance.setStatus(RunStatusEnum.BLANK);

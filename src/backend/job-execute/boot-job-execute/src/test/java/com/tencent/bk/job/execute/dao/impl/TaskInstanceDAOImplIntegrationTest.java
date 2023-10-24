@@ -67,7 +67,7 @@ class TaskInstanceDAOImplIntegrationTest {
 
         assertThat(taskInstance.getId()).isEqualTo(1L);
         assertThat(taskInstance.getAppId()).isEqualTo(2L);
-        assertThat(taskInstance.getTaskId()).isEqualTo(1L);
+        assertThat(taskInstance.getPlanId()).isEqualTo(1L);
         assertThat(taskInstance.getTaskTemplateId()).isEqualTo(1L);
         assertThat(taskInstance.getName()).isEqualTo("task1");
         assertThat(taskInstance.getType()).isEqualTo(TaskTypeEnum.SCRIPT.getValue());
@@ -85,7 +85,7 @@ class TaskInstanceDAOImplIntegrationTest {
     @Test
     void testAddTaskInstance() {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
-        taskInstance.setTaskId(3L);
+        taskInstance.setPlanId(3L);
         taskInstance.setTaskTemplateId(3L);
         taskInstance.setAppId(2L);
         taskInstance.setName("task3");
@@ -103,7 +103,7 @@ class TaskInstanceDAOImplIntegrationTest {
 
         assertThat(returnTaskInstance.getId()).isEqualTo(4L);
         assertThat(returnTaskInstance.getAppId()).isEqualTo(2L);
-        assertThat(returnTaskInstance.getTaskId()).isEqualTo(3L);
+        assertThat(returnTaskInstance.getPlanId()).isEqualTo(3L);
         assertThat(returnTaskInstance.getTaskTemplateId()).isEqualTo(3L);
         assertThat(returnTaskInstance.getName()).isEqualTo("task3");
         assertThat(taskInstance.getType()).isEqualTo(TaskTypeEnum.NORMAL.getValue());
@@ -251,7 +251,7 @@ class TaskInstanceDAOImplIntegrationTest {
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setAppId(2L);
         taskQuery.setOperator("admin");
-        taskQuery.setStartupModes(Collections.singletonList(TaskStartupModeEnum.NORMAL));
+        taskQuery.setStartupModes(Collections.singletonList(TaskStartupModeEnum.WEB));
         taskQuery.setTaskType(TaskTypeEnum.SCRIPT);
         taskQuery.setStatus(RunStatusEnum.SUCCESS);
         taskQuery.setStartTime(1572865200000L);

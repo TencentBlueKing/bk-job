@@ -174,8 +174,39 @@ public interface WebCronJobResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "定时任务 ID", required = true) @PathVariable(value = "cronJobId")
+        @ApiParam(value = "定时任务 ID", required = true)
+        @PathVariable(value = "cronJobId")
             Long cronJobId
+    );
+
+    /**
+     * 更新定时任务
+     *
+     * @param username               用户名
+     * @param appResourceScope       资源范围；Spring拦截器注入
+     * @param scopeType              资源范围类型
+     * @param scopeId                资源范围ID
+     * @param cronJobCreateUpdateReq 定时任务信息
+     * @return 定时任务
+     */
+    @ApiOperation(value = "创建定时任务", produces = "application/json")
+    @PostMapping
+    Response<CronJobVO> createCronJob(
+        @ApiParam(value = "用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "创建的定时任务对象", name = "cronJobCreateUpdateReq", required = true)
+        @RequestBody
+            CronJobCreateUpdateReq cronJobCreateUpdateReq
     );
 
     /**
@@ -187,11 +218,11 @@ public interface WebCronJobResource {
      * @param scopeId                资源范围ID
      * @param cronJobId              定时任务 ID
      * @param cronJobCreateUpdateReq 定时任务信息
-     * @return 定时任务 ID
+     * @return 定时任务
      */
     @ApiOperation(value = "更新定时任务", produces = "application/json")
     @PutMapping("/{cronJobId}")
-    Response<Long> saveCronJob(
+    Response<CronJobVO> updateCronJob(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,

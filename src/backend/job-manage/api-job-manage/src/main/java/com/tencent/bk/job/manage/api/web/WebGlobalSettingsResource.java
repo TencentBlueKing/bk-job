@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.SetTitleFooterReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
@@ -37,7 +36,8 @@ import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChan
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterWithDefaultVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
+import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
@@ -48,6 +48,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -232,20 +233,20 @@ public interface WebGlobalSettingsResource {
             String username
     );
 
-    @ApiOperation(value = "设置Title与Footer", produces = "application/json")
-    @PostMapping("/titleFooter")
-    Response<Boolean> setTitleFooter(
+    @ApiOperation(value = "设置平台信息", produces = "application/json")
+    @PutMapping("/platformInfo")
+    Response<PlatformInfoVO> savePlatformInfo(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "设置Title与Footer请求体", required = true)
+        @ApiParam(value = "设置平台信息请求体", required = true)
         @RequestBody
-            SetTitleFooterReq req
+            PlatformInfoVO platformInfoVO
     );
 
-    @ApiOperation(value = "获取Title与Footer", produces = "application/json")
-    @GetMapping("/titleFooterWithDefault")
-    Response<TitleFooterWithDefaultVO> getTitleFooterWithDefault(
+    @ApiOperation(value = "获取平台信息-包含默认配置", produces = "application/json")
+    @GetMapping("/platformInfoWithDefault")
+    Response<PlatformInfoWithDefaultVO> getPlatformInfoWithDefault(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username

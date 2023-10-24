@@ -28,8 +28,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
-import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -79,12 +77,6 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
             throw new InvalidParamException(checkResult);
         }
         long appId = request.getAppId();
-
-        AuthResult authResult =
-            businessAuthService.authAccessBusiness(request.getUserName(), request.getAppResourceScope());
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
 
         TaskPlanQueryDTO taskPlanQueryDTO = new TaskPlanQueryDTO();
         taskPlanQueryDTO.setAppId(appId);

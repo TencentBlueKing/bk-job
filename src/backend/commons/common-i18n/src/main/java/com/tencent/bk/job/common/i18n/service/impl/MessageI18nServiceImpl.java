@@ -34,7 +34,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import java.util.Locale;
 
 /**
- * @date 2019/09/19
+ * 国际化
  */
 @Slf4j
 public class MessageI18nServiceImpl implements MessageI18nService {
@@ -54,7 +54,7 @@ public class MessageI18nServiceImpl implements MessageI18nService {
     }
 
     @Override
-    public String getI18n(String msgKey, Locale locale) {
+    public String getI18n(Locale locale, String msgKey) {
         if (StringUtils.isBlank(msgKey)) {
             return "";
         }
@@ -67,5 +67,14 @@ public class MessageI18nServiceImpl implements MessageI18nService {
             return "";
         }
         return messageSource.getMessage(msgKey, args, LocaleContextHolder.getLocale());
+    }
+
+
+    @Override
+    public String getI18nWithArgs(Locale locale, String msgKey, Object... args) {
+        if (StringUtils.isBlank(msgKey)) {
+            return "";
+        }
+        return messageSource.getMessage(msgKey, args, locale);
     }
 }

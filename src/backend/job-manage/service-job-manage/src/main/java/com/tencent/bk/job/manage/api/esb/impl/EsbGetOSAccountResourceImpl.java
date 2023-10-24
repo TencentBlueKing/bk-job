@@ -63,7 +63,7 @@ public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
     public EsbResp<List<EsbAccountDTO>> getAppOsAccountList(EsbGetOSAccountListRequest request) {
         request.fillAppResourceScope(appScopeMappingService);
         long appId = request.getAppId();
-        List<AccountDTO> systemAccounts = accountService.listAllAppAccount(appId, AccountCategoryEnum.SYSTEM);
+        List<AccountDTO> systemAccounts = accountService.listAppAccount(appId, AccountCategoryEnum.SYSTEM);
         return EsbResp.buildSuccessResp(convertToEsbAccountDTOList(systemAccounts));
     }
 

@@ -116,12 +116,17 @@ public interface AccountDAO {
      *
      * @param appId    业务ID
      * @param category 账号类型，如果传入null，表示所有类型
+     * @param account  账号名称
+     * @param alias    账号别名
      * @return 账号列表
      */
-    List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category,
-                                       BaseSearchCondition baseSearchCondition);
+    List<AccountDTO> listAppAccount(Long appId,
+                                    AccountCategoryEnum category,
+                                    String account,
+                                    String alias,
+                                    BaseSearchCondition baseSearchCondition);
 
-    Integer countAllAppAccount(Long appId, AccountCategoryEnum category);
+    Integer countAppAccount(Long appId, AccountCategoryEnum category, String account, String alias);
 
     /**
      * 根据别名获取账号信息

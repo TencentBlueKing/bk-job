@@ -98,7 +98,7 @@
 <script>
   import _ from 'lodash';
 
-  import TimeTaskService from '@service/time-task';
+  import CronJobService from '@service/cron-job';
 
   import PermissionSection from '@components/apply-permission/apply-section';
   import Empty from '@components/empty';
@@ -166,7 +166,7 @@
        */
       fetchData() {
         this.isLoading = true;
-        TimeTaskService.getDetail({
+        CronJobService.getDetail({
           id: this.data.id,
         }, {
           permission: 'catch',

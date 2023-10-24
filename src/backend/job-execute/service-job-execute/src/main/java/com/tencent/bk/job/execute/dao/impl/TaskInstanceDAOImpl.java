@@ -83,7 +83,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             TASK_INSTANCE.STATUS, TASK_INSTANCE.START_TIME,
             TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME, TASK_INSTANCE.CALLBACK_URL,
             TASK_INSTANCE.TYPE, TASK_INSTANCE.APP_CODE)
-            .values(taskInstance.getTaskId(),
+            .values(taskInstance.getPlanId(),
                 taskInstance.getCronTaskId(),
                 taskInstance.getTaskTemplateId(),
                 taskInstance.isDebugTask() ? (byte) 1 : (byte) 0,
@@ -124,7 +124,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         }
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         taskInstance.setId(record.get(TaskInstance.TASK_INSTANCE.ID));
-        taskInstance.setTaskId(record.get(TaskInstance.TASK_INSTANCE.TASK_ID));
+        taskInstance.setPlanId(record.get(TaskInstance.TASK_INSTANCE.TASK_ID));
         taskInstance.setCronTaskId(record.get(TaskInstance.TASK_INSTANCE.CRON_TASK_ID));
         taskInstance.setTaskTemplateId(record.get(TaskInstance.TASK_INSTANCE.TASK_TEMPLATE_ID));
         taskInstance.setDebugTask(record.get(TaskInstance.TASK_INSTANCE.IS_DEBUG_TASK) == 1);

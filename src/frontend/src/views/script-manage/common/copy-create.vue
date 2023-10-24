@@ -308,7 +308,7 @@
         this.$refs.form.validate()
           .then(() => scriptErrorConfirm())
           .then(() => {
-            this.scriptManageServiceHandler.scriptUpdate({
+            this.scriptManageServiceHandler.createVersion({
               ...this.formData,
             }).then((data) => {
               window.changeFlag = false;
@@ -349,6 +349,10 @@
 </script>
 <style lang='postcss'>
   .script-manage-copy-create-box {
+    .bk-label{
+      height: 16px !important;
+    }
+
     .script-version {
       position: relative;
 

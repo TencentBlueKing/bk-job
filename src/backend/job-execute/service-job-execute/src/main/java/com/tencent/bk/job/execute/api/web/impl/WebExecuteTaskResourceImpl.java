@@ -24,10 +24,13 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -110,11 +113,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_WEB,
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_EXECUTE_PLAN
         })
+    @AuditEntry(actionId = ActionId.LAUNCH_JOB_PLAN)
     public Response<TaskExecuteVO> executeTask(String username,
                                                AppResourceScope appResourceScope,
                                                String scopeType,
                                                String scopeId,
-                                               WebTaskExecuteRequest request) {
+                                               @AuditRequestBody WebTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
 
         if (!checkExecuteTaskRequest(request)) {
@@ -125,7 +129,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
             TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
                 .operator(username).executeVariableValues(executeVariableValues)
-                .startupMode(TaskStartupModeEnum.NORMAL).build());
+                .startupMode(TaskStartupModeEnum.WEB).build());
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -226,11 +230,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_WEB,
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_SCRIPT
         })
+    @AuditEntry
     public Response<StepExecuteVO> fastExecuteScript(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId,
-                                                     WebFastExecuteScriptRequest request) {
+                                                     @AuditRequestBody WebFastExecuteScriptRequest request) {
         log.debug("Fast execute script, scope={}, operator={}, request={}", appResourceScope, username, request);
 
         if (!checkFastExecuteScriptRequest(request)) {
@@ -293,11 +298,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                         WebFastExecuteScriptRequest request) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         taskInstance.setName(request.getName());
-        taskInstance.setTaskId(-1L);
+        taskInstance.setPlanId(-1L);
         taskInstance.setCronTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setAppId(appId);
-        taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
+        taskInstance.setStartupMode(TaskStartupModeEnum.WEB.getValue());
         taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
@@ -345,11 +350,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_WEB,
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_FILE
         })
+    @AuditEntry(actionId = ActionId.QUICK_TRANSFER_FILE)
     public Response<StepExecuteVO> fastPushFile(String username,
                                                 AppResourceScope appResourceScope,
                                                 String scopeType,
                                                 String scopeId,
-                                                WebFastPushFileRequest request) {
+                                                @AuditRequestBody WebFastPushFileRequest request) {
         log.debug("Fast send file, scope={}, operator={}, request={}", appResourceScope, username, request);
         if (!checkFastPushFileRequest(request)) {
             log.warn("Fast send file request is illegal!");
@@ -372,14 +378,14 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                            StepRollingConfigDTO rollingConfig) {
         FastTaskDTO fastTask = FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance)
             .rollingConfig(rollingConfig).build();
-        long taskInstanceId;
+        TaskInstanceDTO executeTaskInstance;
         if (!isRedoTask) {
-            taskInstanceId = taskExecuteService.executeFastTask(fastTask);
+            executeTaskInstance = taskExecuteService.executeFastTask(fastTask);
         } else {
-            taskInstanceId = taskExecuteService.redoFastTask(fastTask);
+            executeTaskInstance = taskExecuteService.redoFastTask(fastTask);
         }
         StepExecuteVO stepExecuteVO = new StepExecuteVO();
-        stepExecuteVO.setTaskInstanceId(taskInstanceId);
+        stepExecuteVO.setTaskInstanceId(executeTaskInstance.getId());
         stepExecuteVO.setStepInstanceId(stepInstance.getId());
         stepExecuteVO.setStepName(stepInstance.getName());
         return Response.buildSuccessResp(stepExecuteVO);
@@ -453,12 +459,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         taskInstance.setType(TaskTypeEnum.FILE.getValue());
         taskInstance.setName(request.getName());
-        taskInstance.setTaskId(-1L);
+        taskInstance.setPlanId(-1L);
         taskInstance.setCronTaskId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setAppId(appId);
         taskInstance.setStatus(RunStatusEnum.BLANK);
-        taskInstance.setStartupMode(TaskStartupModeEnum.NORMAL.getValue());
+        taskInstance.setStartupMode(TaskStartupModeEnum.WEB.getValue());
         taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setCurrentStepInstanceId(0L);

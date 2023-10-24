@@ -68,9 +68,9 @@ public interface FileSourceService {
         Integer pageSize
     );
 
-    Integer saveFileSource(Long appId, FileSourceDTO fileSourceDTO);
+    FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSourceDTO);
 
-    int updateFileSourceById(Long appId, FileSourceDTO fileSourceDTO);
+    FileSourceDTO updateFileSourceById(String username, Long appId, FileSourceDTO fileSourceDTO);
 
     int updateFileSourceStatus(Integer fileSourceId, Integer status);
 
@@ -78,9 +78,11 @@ public interface FileSourceService {
 
     FileSourceTypeDTO getFileSourceTypeByCode(String code);
 
-    Integer deleteFileSourceById(Long appId, Integer id);
+    Integer deleteFileSourceById(String username, Long appId, Integer id);
 
     Boolean enableFileSourceById(String username, Long appId, Integer id, Boolean enableFlag);
+
+    FileSourceDTO getFileSourceById(String username, Long appId, Integer id);
 
     FileSourceDTO getFileSourceById(Long appId, Integer id);
 

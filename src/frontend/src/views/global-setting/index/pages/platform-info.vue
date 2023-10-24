@@ -89,6 +89,15 @@
             <jb-input
               v-model="formData.footerCopyRight" />
           </jb-form-item>
+          <div class="block-title">
+            <span>{{ $t('setting.报错提示信息设置') }}:</span>
+          </div>
+          <jb-form-item :label="$t('setting.助手链接')">
+            <jb-input
+              v-model="formData.helperContactLink"
+              :placeholder="$t('setting.请输入平台客服助手的通信跳转链接，方便用户快速反馈问题')"
+              style="width: 680px;" />
+          </jb-form-item>
         </jb-form>
       </div>
       <template #action>
@@ -121,6 +130,7 @@
     titleSeparator: '',
     footerLink: '',
     footerCopyRight: '',
+    helperContactLink: '',
   });
 
 
@@ -135,8 +145,8 @@
         isLoading: false,
         isSubmitting: false,
         formData: getDefaultData(),
-        currentTitleFooter: {},
-        defaultTitleFooter: {},
+        currentPlatformInfo: {},
+        defaultPlatformInfo: {},
       };
     },
     created() {
@@ -165,25 +175,25 @@
         this.isLoading = true;
         GlobalSettingService.fetchTitleAndFooterConfig()
           .then((data) => {
-            this.defaultTitleFooter = _.cloneDeep(data.defaultTitleFooter);
-            this.currentTitleFooter = _.cloneDeep(data.currentTitleFooter);
-            this.formData = { ...this.formData, ...data.currentTitleFooter };
+            this.defaultPlatformInfo = _.cloneDeep(data.defaultPlatformInfo);
+            this.currentPlatformInfo = _.cloneDeep(data.currentPlatformInfo);
+            this.formData = { ...this.formData, ...data.currentPlatformInfo };
           })
           .finally(() => {
             this.isLoading = false;
           });
       },
       handleRestore() {
-        this.formData = _.cloneDeep(this.defaultTitleFooter);
+        this.formData = _.cloneDeep(this.defaultPlatformInfo);
       },
       handleReset() {
-        this.formData = _.cloneDeep(this.currentTitleFooter);
+        this.formData = _.cloneDeep(this.currentPlatformInfo);
       },
       handleSave() {
         this.$refs.platformForm.validate()
           .then((validator) => {
             this.isSubmitting = true;
-            GlobalSettingService.updateTitleAndFooterConfig(this.formData)
+            GlobalSettingService.updatePlatformInfo(this.formData)
               .then(() => {
                 window.changeFlag = false;
                 this.messageSuccess(I18n.t('setting.保存成功'));

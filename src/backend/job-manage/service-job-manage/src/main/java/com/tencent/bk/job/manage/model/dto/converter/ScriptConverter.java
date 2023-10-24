@@ -27,12 +27,18 @@ package com.tencent.bk.job.manage.model.dto.converter;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.I18nUtil;
+import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.web.vo.BasicScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.ScriptVO;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,44 +54,27 @@ public class ScriptConverter {
             return null;
         }
         ScriptVO scriptVO = new ScriptVO();
-        if (script.getAppId() != null && !script.getAppId().equals(PUBLIC_APP_ID)) {
-            AppScopeMappingService appScopeMappingService =
-                ApplicationContextRegister.getBean(AppScopeMappingService.class);
-            ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(script.getAppId());
-            scriptVO.setScopeType(resourceScope.getType().getValue());
-            scriptVO.setScopeId(resourceScope.getId());
+        fillBasicScriptVO(scriptVO, script);
+
+        if (StringUtils.isNotBlank(script.getContent())) {
+            scriptVO.setContent(Base64Util.encodeContentToStr(script.getContent()));
         }
 
-        scriptVO.setLastModifyUser(script.getLastModifyUser());
-        scriptVO.setCategory(script.getCategory());
-        scriptVO.setContent(script.getContent());
-        if (null != script.getCreateTime()) {
-            scriptVO.setCreateTime(script.getCreateTime());
-        }
-        scriptVO.setCreator(script.getCreator());
-        scriptVO.setScriptVersionId(script.getScriptVersionId());
-        scriptVO.setId(script.getId());
-        scriptVO.setPublicScript(script.isPublicScript());
-        if (null != script.getLastModifyTime()) {
-            scriptVO.setLastModifyTime(script.getLastModifyTime());
-        }
-        scriptVO.setName(script.getName());
-        scriptVO.setType(script.getType());
-        scriptVO.setVersion(script.getVersion());
-        scriptVO.setStatus(script.getStatus());
-        scriptVO.setVersionDesc(script.getVersionDesc());
-        scriptVO.setDescription(script.getDescription());
-        if (script.getTags() != null && !script.getTags().isEmpty()) {
-            List<TagVO> tagVOS = new ArrayList<>();
-            for (TagDTO tagDTO : script.getTags()) {
-                TagVO tagVO = new TagVO();
-                tagVO.setId(tagDTO.getId());
-                tagVO.setName(tagDTO.getName());
-                tagVOS.add(tagVO);
-            }
-            scriptVO.setTags(tagVOS);
-        }
         return scriptVO;
+    }
+
+    private static List<TagVO> convertToTagVOs(List<TagDTO> tags) {
+        if (CollectionUtils.isEmpty(tags)) {
+            return null;
+        }
+        List<TagVO> tagVOS = new ArrayList<>();
+        for (TagDTO tagDTO : tags) {
+            TagVO tagVO = new TagVO();
+            tagVO.setId(tagDTO.getId());
+            tagVO.setName(tagDTO.getName());
+            tagVOS.add(tagVO);
+        }
+        return tagVOS;
     }
 
     public static BasicScriptVO convertToBasicScriptVO(ScriptDTO script) {
@@ -93,6 +82,12 @@ public class ScriptConverter {
             return null;
         }
         BasicScriptVO scriptVO = new BasicScriptVO();
+        fillBasicScriptVO(scriptVO, script);
+
+        return scriptVO;
+    }
+
+    private static void fillBasicScriptVO(BasicScriptVO scriptVO, ScriptDTO script) {
         if (script.getAppId() != null && !script.getAppId().equals(PUBLIC_APP_ID)) {
             AppScopeMappingService appScopeMappingService =
                 ApplicationContextRegister.getBean(AppScopeMappingService.class);
@@ -100,15 +95,26 @@ public class ScriptConverter {
             scriptVO.setScopeType(resourceScope.getType().getValue());
             scriptVO.setScopeId(resourceScope.getId());
         }
-        scriptVO.setCategory(script.getCategory());
-        scriptVO.setScriptVersionId(script.getScriptVersionId());
         scriptVO.setId(script.getId());
+        scriptVO.setScriptVersionId(script.getScriptVersionId());
+        scriptVO.setCategory(script.getCategory());
         scriptVO.setPublicScript(script.isPublicScript());
         scriptVO.setName(script.getName());
         scriptVO.setType(script.getType());
+        scriptVO.setTypeName(ScriptTypeEnum.getName(script.getType()));
         scriptVO.setVersion(script.getVersion());
         scriptVO.setStatus(script.getStatus());
-        return scriptVO;
+        JobResourceStatusEnum status = JobResourceStatusEnum.getJobResourceStatus(script.getStatus());
+        if (status != null) {
+            scriptVO.setStatusDesc(I18nUtil.getI18nMessage(status.getStatusI18nKey()));
+        }
+        scriptVO.setCreateTime(script.getCreateTime());
+        scriptVO.setCreator(script.getCreator());
+        scriptVO.setLastModifyTime(script.getLastModifyTime());
+        scriptVO.setLastModifyUser(script.getLastModifyUser());
+        scriptVO.setDescription(script.getDescription());
+        scriptVO.setVersionDesc(script.getVersionDesc());
+        scriptVO.setTags(convertToTagVOs(script.getTags()));
     }
 
 

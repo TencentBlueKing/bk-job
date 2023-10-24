@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.api.esb.v2.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -31,6 +33,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbGlobalVarDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -78,7 +81,8 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
             ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_API,
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_EXECUTE_PLAN
         })
-    public EsbResp<EsbJobExecuteDTO> executeJob(EsbExecuteJobRequest request) {
+    @AuditEntry(actionId = ActionId.LAUNCH_JOB_PLAN)
+    public EsbResp<EsbJobExecuteDTO> executeJob(@AuditRequestBody EsbExecuteJobRequest request) {
         request.fillAppResourceScope(appScopeMappingService);
 
         log.info("Execute task, request={}", JsonUtils.toJson(request));

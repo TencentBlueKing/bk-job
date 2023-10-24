@@ -54,4 +54,5 @@ dependencies {
     api 'io.prometheus:simpleclient_pushgateway'
     api 'io.micrometer:micrometer-registry-prometheus'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-inline'
 }

@@ -29,7 +29,14 @@ import com.tencent.bk.job.manage.common.consts.script.ScriptCategoryEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
-import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptVersionCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import org.springframework.stereotype.Service;
 
@@ -39,10 +46,14 @@ import java.util.List;
 @Service
 public class ScriptDTOBuilder {
 
-    public ScriptDTO buildFromCreateUpdateReq(ScriptCreateUpdateReq req) {
+    /**
+     * ScriptCreateReq -> ScriptDTO 转换
+     *
+     * @param req 请求
+     * @return 转换后的脚本
+     */
+    public ScriptDTO buildFromScriptCreateReq(ScriptCreateReq req) {
         ScriptDTO scriptDTO = new ScriptDTO();
-        scriptDTO.setId(req.getId());
-        scriptDTO.setScriptVersionId(req.getScriptVersionId());
         scriptDTO.setName(req.getName());
         scriptDTO.setType(req.getType());
         if (req.getType() != null) {
@@ -65,7 +76,93 @@ public class ScriptDTOBuilder {
         }
         scriptDTO.setVersion(req.getVersion());
         scriptDTO.setDescription(req.getDescription());
+        return scriptDTO;
+    }
+
+    /**
+     * ScriptVersionCreateUpdateReq -> ScriptDTO 转换
+     *
+     * @param req 请求
+     * @return 转换后的脚本
+     */
+    public ScriptDTO buildFromScriptVersionCreateUpdateReq(ScriptVersionCreateUpdateReq req) {
+        ScriptDTO scriptDTO = new ScriptDTO();
+        scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
+        scriptDTO.setVersion(req.getVersion());
         scriptDTO.setVersionDesc(req.getVersionDesc());
         return scriptDTO;
     }
+
+    public ScriptDTO buildFromCreateUpdateReq(EsbUpdateScriptVersionV3Req req) {
+        ScriptDTO scriptDTO = new ScriptDTO();
+        scriptDTO.setId(req.getScriptId());
+        scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
+        scriptDTO.setVersionDesc(req.getVersionDesc());
+        scriptDTO.setScriptVersionId(req.getScriptVersionId());
+        return scriptDTO;
+    }
+
+    public ScriptDTO buildFromCreateUpdateReq(EsbUpdatePublicScriptVersionV3Req req) {
+        ScriptDTO scriptDTO = new ScriptDTO();
+        scriptDTO.setId(req.getScriptId());
+        scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
+        scriptDTO.setVersionDesc(req.getVersionDesc());
+        scriptDTO.setScriptVersionId(req.getScriptVersionId());
+        return scriptDTO;
+    }
+
+    public ScriptDTO buildFromEsbCreateReq(EsbCreateScriptV3Req req) {
+        ScriptDTO scriptDTO = new ScriptDTO();
+        scriptDTO.setName(req.getName());
+        scriptDTO.setType(req.getType());
+        if (req.getType() != null) {
+            if (!req.getType().equals(ScriptTypeEnum.SQL.getValue())) {
+                scriptDTO.setCategory(ScriptCategoryEnum.SYSSCRIPT.getValue());
+            } else {
+                scriptDTO.setCategory(ScriptCategoryEnum.SQLSCRIPT.getValue());
+            }
+        }
+        scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
+        scriptDTO.setVersion(req.getVersion());
+        scriptDTO.setDescription(req.getDescription());
+        scriptDTO.setVersionDesc(req.getVersionDesc());
+        return scriptDTO;
+    }
+
+    public ScriptDTO buildFromEsbCreateReq(EsbCreatePublicScriptV3Req req) {
+        ScriptDTO scriptDTO = new ScriptDTO();
+        scriptDTO.setName(req.getName());
+        scriptDTO.setType(req.getType());
+        if (req.getType() != null) {
+            if (!req.getType().equals(ScriptTypeEnum.SQL.getValue())) {
+                scriptDTO.setCategory(ScriptCategoryEnum.SYSSCRIPT.getValue());
+            } else {
+                scriptDTO.setCategory(ScriptCategoryEnum.SQLSCRIPT.getValue());
+            }
+        }
+        scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
+        scriptDTO.setVersion(req.getVersion());
+        scriptDTO.setDescription(req.getDescription());
+        scriptDTO.setVersionDesc(req.getVersionDesc());
+        return scriptDTO;
+    }
+
+    public ScriptDTO buildFromEsbCreateReq(EsbCreateScriptVersionV3Req req) {
+        ScriptDTO scriptDTO = new ScriptDTO();
+        scriptDTO.setId(req.getScriptId());
+        scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
+        scriptDTO.setVersion(req.getVersion());
+        scriptDTO.setVersionDesc(req.getVersionDesc());
+        return scriptDTO;
+    }
+
+    public ScriptDTO buildFromEsbCreateReq(EsbCreatePublicScriptVersionV3Req req) {
+        ScriptDTO scriptDTO = new ScriptDTO();
+        scriptDTO.setId(req.getScriptId());
+        scriptDTO.setContent(Base64Util.decodeContentToStr(req.getContent()));
+        scriptDTO.setVersion(req.getVersion());
+        scriptDTO.setVersionDesc(req.getVersionDesc());
+        return scriptDTO;
+    }
+
 }

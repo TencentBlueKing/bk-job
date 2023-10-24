@@ -36,6 +36,8 @@ data:
         index index.html;
 
         location / {
+          add_header Cache-Control no-cache;
+          expires 0;
           try_files $uri $uri/ @rewrites;
         }
 

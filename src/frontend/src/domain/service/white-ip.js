@@ -29,8 +29,13 @@ import WhiteIpModel from '@model/white-ip';
 import WhiteIpSource from '../source/white-ip';
 
 export default {
+  create(params) {
+    return WhiteIpSource.create(params)
+      .then(({ data }) => data);
+  },
   whiteIpUpdate(params = {}) {
-    return WhiteIpSource.update(params);
+    return WhiteIpSource.update(params)
+      .then(({ data }) => data);
   },
   getAllCloudArea() {
     return WhiteIpSource.getAllCloudArea()
