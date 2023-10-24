@@ -174,5 +174,59 @@ class CollectionUtilTest {
             assertThat(mergedElements).hasSize(2009);
         }
 
+        @Test
+        void testConvertToMap() {
+            assertThat(CollectionUtil.convertToMap(null, TestEntity::getKey, TestEntity::getStringValue)).isEmpty();
+            List<TestEntity> entityList = new ArrayList<>();
+            entityList.add(new TestEntity(null, null, null));
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).size()).isEqualTo(1);
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).containsKey(null)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).containsValue(null)).isTrue();
+            Long key = 1L;
+            String stringValue = "StringValue";
+            Object objectValue = new Object();
+            entityList.add(new TestEntity(key, stringValue, objectValue));
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).size()).isEqualTo(2);
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).containsKey(key)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).containsValue(stringValue)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getObjectValue).size()).isEqualTo(2);
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getObjectValue).containsKey(key)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getObjectValue).containsValue(objectValue)).isTrue();
+            String stringValue2 = "StringValue2";
+            Object objectValue2 = new Object();
+            entityList.add(new TestEntity(2L, stringValue2, objectValue2));
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).size()).isEqualTo(3);
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).containsKey(key)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).containsValue(stringValue)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getStringValue).containsValue(stringValue2)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getObjectValue).size()).isEqualTo(3);
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getObjectValue).containsKey(key)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getObjectValue).containsValue(objectValue)).isTrue();
+            assertThat(CollectionUtil.convertToMap(entityList, TestEntity::getKey, TestEntity::getObjectValue).containsValue(objectValue2)).isTrue();
+        }
+
+        class TestEntity {
+            private final Long key;
+            private final String stringValue;
+            private final Object objectValue;
+
+            public TestEntity(Long key, String stringValue, Object objectValue) {
+                this.key = key;
+                this.stringValue = stringValue;
+                this.objectValue = objectValue;
+            }
+
+            public Long getKey() {
+                return key;
+            }
+
+            public String getStringValue() {
+                return stringValue;
+            }
+
+            public Object getObjectValue() {
+                return objectValue;
+            }
+        }
     }
 }

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.model.db;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import lombok.Getter;
@@ -85,12 +84,6 @@ public class CacheHostDO {
     private Integer gseAgentStatus;
 
     /**
-     * 主机Agent是否存活
-     */
-    @CompatibleImplementation(name = "ipv6", explain = "兼容实现，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    private Boolean gseAgentAlive;
-
-    /**
      * 操作系统
      */
     private String os;
@@ -112,11 +105,7 @@ public class CacheHostDO {
         host.setHostName(this.hostDesc);
         host.setOsName(this.os);
         host.setOsType(this.osType);
-        if (gseAgentStatus != null) {
-            host.setGseAgentStatus(this.gseAgentStatus);
-        } else {
-            host.setGseAgentAlive(this.gseAgentAlive);
-        }
+        host.setGseAgentStatus(this.gseAgentStatus);
         return host;
     }
 
@@ -133,7 +122,6 @@ public class CacheHostDO {
         cacheHost.setOs(host.getOsName());
         cacheHost.setOsType(host.getOsType());
         cacheHost.setGseAgentStatus(host.getGseAgentStatus());
-        cacheHost.setGseAgentAlive(host.getGseAgentAlive());
         return cacheHost;
     }
 }

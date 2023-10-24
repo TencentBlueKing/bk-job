@@ -40,7 +40,9 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
+import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -51,7 +53,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
-import com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.ListUtil;
@@ -59,6 +60,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -134,6 +136,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -161,7 +164,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final AgentStateClient agentStateClient;
+    private final AgentStateClient preferV2AgentStateClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
     private final StepInstanceService stepInstanceService;
@@ -183,7 +186,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
-                                  AgentStateClient agentStateClient,
+                                  @Qualifier(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
+                                      AgentStateClient preferV2AgentStateClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
                                   StepInstanceService stepInstanceService,
@@ -201,7 +205,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.agentStateClient = agentStateClient;
+        this.preferV2AgentStateClient = preferV2AgentStateClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
         this.stepInstanceService = stepInstanceService;
@@ -2173,23 +2177,29 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
-        List<String> agentIdList = hosts.stream()
-            .map(HostDTO::getAgentId)
-            .filter(StringUtils::isNotEmpty)
-            .distinct()
-            .collect(Collectors.toList());
-        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
+        Map<HostDTO, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
+        hosts.forEach(hostDTO -> {
+            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostDTO);
+            hostAgentStateQueryList.add(hostAgentStateQuery);
+            hostAgentStateQueryMap.put(hostDTO, hostAgentStateQuery);
+        });
+
+        // 此处用于记录下发任务时的Agent状态快照数据，因此使用最终真实下发任务的agentId获取状态
+        Map<String, AgentState> agentStateMap = preferV2AgentStateClient.batchGetAgentState(hostAgentStateQueryList);
 
         for (HostDTO host : hosts) {
-            if (StringUtils.isEmpty(host.getAgentId())) {
+            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host);
+            String effectiveAgentId = preferV2AgentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            if (StringUtils.isEmpty(effectiveAgentId)) {
                 host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
+                continue;
+            }
+            AgentState agentState = agentStateMap.get(effectiveAgentId);
+            if (agentState != null) {
+                host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
             } else {
-                AgentState agentState = agentStateMap.get(host.getAgentId());
-                if (agentState != null) {
-                    host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
-                } else {
-                    host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
-                }
+                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
             }
         }
     }

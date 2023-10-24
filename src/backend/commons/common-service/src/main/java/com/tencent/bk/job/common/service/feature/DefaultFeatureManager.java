@@ -25,12 +25,12 @@
 package com.tencent.bk.job.common.service.feature;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.feature.Feature;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureManager;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
 import com.tencent.bk.job.common.util.feature.ToggleStrategy;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +52,17 @@ public class DefaultFeatureManager implements FeatureManager {
     public DefaultFeatureManager(FeatureStore featureStore, MeterRegistry meterRegistry) {
         this.featureStore = featureStore;
         this.meterRegistry = meterRegistry;
+    }
+
+    public boolean isFeatureEnabled(String featureId) {
+        Feature feature = featureStore.getFeature(featureId);
+        if (feature == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Feature: {} is not exist!", featureId);
+            }
+            return false;
+        }
+        return feature.isEnabled();
     }
 
     /**

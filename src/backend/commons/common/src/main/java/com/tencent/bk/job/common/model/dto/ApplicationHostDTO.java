@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
@@ -179,7 +178,6 @@ public class ApplicationHostDTO {
         }
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
     private Integer getAgentAliveValue() {
         return gseAgentAlive == null ? 0 : (gseAgentAlive ? 1 : 0);
     }
@@ -288,6 +286,14 @@ public class ApplicationHostDTO {
             return JobConstants.GSE_AGENT_STATUS_VALUE_NOT_ALIVE;
         }
         return JobConstants.GSE_AGENT_STATUS_VALUE_ALIVE;
+    }
+
+    @JsonIgnore
+    public String getHostIdOrCloudIp() {
+        if (hostId != null && hostId > 0) {
+            return String.valueOf(hostId);
+        }
+        return getCloudIp();
     }
 
     public HostDTO toHostDTO() {

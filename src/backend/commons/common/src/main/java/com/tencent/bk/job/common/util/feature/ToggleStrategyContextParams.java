@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.feature.strategy;
+package com.tencent.bk.job.common.util.feature;
 
 public interface ToggleStrategyContextParams {
     /**

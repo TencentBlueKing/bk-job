@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,10 +36,6 @@ import java.util.Map;
 @NoArgsConstructor
 public class ServiceWhiteIPInfo {
     private Long hostId;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    private Long cloudId;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    private String ip;
     private boolean isForAllApp;
     //（脚本执行：SCRIPT_EXECUTE/文件分发：FILE_DISTRIBUTION）
     private List<String> allAppActionScopeList;
