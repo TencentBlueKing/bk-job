@@ -78,13 +78,13 @@ public class HostDetailServiceImpl implements HostDetailService {
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
                 cloudVendorId,
-                cloudVendorId == null ? null : "ID=" + cloudVendorId
+                "Unknown"
                 )
             );
             String osTypeId = host.getOsType();
             host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(
                 osTypeId,
-                osTypeId == null ? null : "ID=" + osTypeId
+                "Unknown"
                 )
             );
         }
@@ -94,9 +94,14 @@ public class HostDetailServiceImpl implements HostDetailService {
     public void fillDetailForHosts(List<HostDTO> hostList) {
         for (HostDTO host : hostList) {
             host.setBkCloudName(BkNetClient.getCloudAreaNameFromCache(host.getBkCloudId()));
-            String osTypeId = host.getOsType();
+            String cloudVendorId = host.getCloudVendorId();
+            host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
+                cloudVendorId,
+                "Unknown"
+                )
+            );
             host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(
-                osTypeId,
+                host.getOsType(),
                 "Unknown"
                 )
             );

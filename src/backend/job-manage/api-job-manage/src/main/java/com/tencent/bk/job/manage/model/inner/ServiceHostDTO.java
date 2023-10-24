@@ -156,6 +156,11 @@ public class ServiceHostDTO {
         hostDTO.setBkCloudId(serviceHostDTO.getCloudAreaId());
         hostDTO.setBkCloudName(serviceHostDTO.getCloudAreaName());
         hostDTO.setHostname(serviceHostDTO.getHostname());
+        hostDTO.setCloudVendorId(serviceHostDTO.getCloudVendorId());
+        hostDTO.setCloudVendorName(serviceHostDTO.getCloudVendorName());
+        hostDTO.setOsType(serviceHostDTO.getOsType());
+        hostDTO.setOsTypeName(serviceHostDTO.getOsTypeName());
+        hostDTO.setOsName(serviceHostDTO.getOsName());
         return hostDTO;
     }
 }

@@ -181,7 +181,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
-
+        hostDetailService.fillDetailForApplicationHosts(hosts);
         return InternalResponse.buildSuccessResp(
             hosts.stream()
                 .map(ServiceHostDTO::fromApplicationHostDTO)

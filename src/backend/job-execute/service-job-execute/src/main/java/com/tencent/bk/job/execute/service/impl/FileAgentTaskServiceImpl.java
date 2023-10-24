@@ -12,7 +12,6 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +37,8 @@ public class FileAgentTaskServiceImpl
     @Autowired
     public FileAgentTaskServiceImpl(FileAgentTaskDAO fileAgentTaskDAO,
                                     StepInstanceService stepInstanceService,
-                                    HostService hostService,
                                     GseTaskIpLogDAO gseTaskIpLogDAO) {
-        super(stepInstanceService, hostService);
+        super(stepInstanceService);
         this.fileAgentTaskDAO = fileAgentTaskDAO;
         this.gseTaskIpLogDAO = gseTaskIpLogDAO;
     }

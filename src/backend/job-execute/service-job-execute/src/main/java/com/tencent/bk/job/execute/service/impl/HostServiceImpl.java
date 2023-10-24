@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.cache.CloudAreaCache;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
@@ -70,17 +69,14 @@ public class HostServiceImpl implements HostService {
     private final ServiceHostResource hostResource;
     private final AppScopeMappingService appScopeMappingService;
     private final ExecutorService getHostsByTopoExecutor;
-    private final CloudAreaCache cloudAreaCache;
 
     @Autowired
     public HostServiceImpl(ServiceHostResource hostResource,
                            AppScopeMappingService appScopeMappingService,
-                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor,
-                           CloudAreaCache cloudAreaCache) {
+                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor) {
         this.hostResource = hostResource;
         this.appScopeMappingService = appScopeMappingService;
         this.getHostsByTopoExecutor = getHostsByTopoExecutor;
-        this.cloudAreaCache = cloudAreaCache;
     }
 
     @Override
@@ -257,10 +253,6 @@ public class HostServiceImpl implements HostService {
         return result;
     }
 
-    @Override
-    public Map<Long, String> batchGetCloudAreaNames(Collection<Long> bkCloudIds) {
-        return cloudAreaCache.batchGetCloudAreaNames(bkCloudIds);
-    }
 
     private class GetTopoHostTask implements Callable<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>> {
         private final long appId;
