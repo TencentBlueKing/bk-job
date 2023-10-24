@@ -142,7 +142,15 @@
     </bk-collapse>
   </div>
 </template>
-<script>
+<script setup>
+  import {
+    computed,
+    shallowRef,
+    watch,
+  } from 'vue';
+
+  import { useRouter } from '@router';
+
   import FileManageService from '@service/file-source-manage';
 
   import JbCollapseItem from '@components/jb-collapse-item';
@@ -153,110 +161,91 @@
   import RenderFileServer from './render-file-server';
   import ServerHostAgent from './server-host-agent.vue';
 
-  export default {
-    name: '',
-    components: {
-      JbCollapseItem,
-      ServerHostAgent,
-      RenderFilePath,
-      RenderFileServer,
+  const props = defineProps({
+    data: {
+      type: Array,
+      default: () => [],
     },
-    props: {
-      data: {
-        type: Array,
-        default: () => [],
-      },
-      account: {
-        type: Array,
-        default: () => [],
-      },
+    account: {
+      type: Array,
+      default: () => [],
     },
-    data() {
-      return {
-        activeResult: [],
-        localFileList: [],
-        serverFileList: [],
-        sourceFileList: [],
-        fileSourceIdsList: [], // 文件源ID
-        fileSourceAliasList: [], // 文件源名称
-      };
-    },
-    computed: {
-      isShowLocalFile() {
-        return this.localFileList.length > 0;
-      },
-      isShowServerFile() {
-        return this.serverFileList.length > 0;
-      },
-      isShowSourceFile() {
-        return this.sourceFileList.length > 0;
-      },
-    },
-    watch: {
-      data: {
-        handler(fileList) {
-          fileList.forEach((fileItem) => {
-            const fileSource = new SourceFileVO(fileItem);
-            if (fileSource.isServerFile) {
-              this.serverFileList.push(fileSource);
-            } else if (fileSource.isLocalFile) {
-              this.localFileList.push(fileSource);
-            } else if (fileSource.isSourceFile) {
-              this.sourceFileList.push(fileSource);
-              const idLists = []; // 文件源ID
-              this.sourceFileList.forEach((e) => {
-                idLists.push(e.fileSourceId);
-                this.fileSourceIdsList = idLists;
-              });
-            }
-            if (this.localFileList.length > 0) {
-              this.activeResult = ['local'];
-            } else if (this.serverFileList.length > 0) {
-              this.activeResult = ['server'];
-            }
-          });
-        },
-        immediate: true,
-      },
-      // 根据文件源ID获取文件源Alias
-      fileSourceIdsList: {
-        handler(newVal) {
-          if (newVal.length) {
-            const promiseList = newVal.map(id => FileManageService.getSourceInfo({
-              id,
-            }));
-            Promise.all(promiseList).then((res) => {
-              res.forEach((e) => {
-                this.fileSourceAliasList.push(e.alias);
-              });
-            });
-          }
-        },
-        immediate: true,
-      },
-    },
-    methods: {
-      findAccountAlias(payload) {
-        const accountData = this.account.find(item => item.id === payload);
-        if (accountData) {
-          return accountData.alias;
-        }
-        return '';
-      },
-      handleGoSource(payload, index) {
-        const { fileSourceId } = payload;
-        const sourceAlias = this.fileSourceAliasList[index];
-        const { href } = this.$router.resolve({
-          name: 'bucketList',
-          query: {
-            fileSourceId,
-            sourceAlias,
-          },
+  });
+
+  const router = useRouter();
+
+  const activeResult = shallowRef([]);
+  const localFileList = shallowRef([]);
+  const serverFileList = shallowRef([]);
+  const sourceFileList = shallowRef([]);
+  const fileSourceIdsList = shallowRef([]);
+  const fileSourceAliasList = shallowRef([]);
+
+  const isShowLocalFile = computed(() => localFileList.value.length > 0);
+  const isShowServerFile = computed(() => serverFileList.value.length > 0);
+  const isShowSourceFile = computed(() => sourceFileList.value.length > 0);
+
+  watch(() => props.data, () => {
+    props.data.forEach((fileItem) => {
+      const fileSource = new SourceFileVO(fileItem);
+      if (fileSource.isServerFile) {
+        serverFileList.value.push(fileSource);
+      } else if (fileSource.isLocalFile) {
+        localFileList.value.push(fileSource);
+      } else if (fileSource.isSourceFile) {
+        sourceFileList.value.push(fileSource);
+        const idLists = []; // 文件源ID
+        sourceFileList.value.forEach((e) => {
+          idLists.push(e.fileSourceId);
+          fileSourceIdsList.value = idLists;
         });
-        window.open(href, '_blank');
-      },
-    },
+      }
+      if (localFileList.value.length > 0) {
+        activeResult.value = ['local'];
+      } else if (serverFileList.value.length > 0) {
+        activeResult.value = ['server'];
+      }
+    });
+  }, {
+    immediate: true,
+  });
+
+  watch(() => fileSourceIdsList.value, () => {
+    if (fileSourceIdsList.value.length) {
+      const promiseList = fileSourceIdsList.value.map(id => FileManageService.getSourceInfo({
+        id,
+      }));
+      Promise.all(promiseList).then((res) => {
+        res.forEach((e) => {
+          fileSourceAliasList.value.push(e.alias);
+        });
+      });
+    }
+  }, {
+    immediate: true,
+  });
+
+  const findAccountAlias = (payload) => {
+    const accountData = props.account.find(item => item.id === payload);
+    if (accountData) {
+      return accountData.alias;
+    }
+    return '';
   };
+
+  const handleGoSource = (payload, index) => {
+    const { fileSourceId } = payload;
+    const sourceAlias = fileSourceAliasList.value[index];
+    const { href } = router.resolve({
+      name: 'bucketList',
+      query: {
+        fileSourceId,
+        sourceAlias,
+      },
+    });
+    window.open(href, '_blank');
+  };
+
 </script>
 <style lang='postcss'>
   @import url("@/css/mixins/scroll");

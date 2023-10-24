@@ -60,84 +60,78 @@
     <slot />
   </div>
 </template>
-<script>
+<script setup>
+  import {
+    ref,
+    shallowRef,
+  } from 'vue';
+
   import NotifyService from '@service/notify';
   import QueryGlobalSettingService from '@service/query-global-setting';
 
   import DetailItem from '@components/detail-layout/item';
 
-  export default {
-    name: '',
-    components: {
-      DetailItem,
+  const props = defineProps({
+    data: {
+      type: Object,
+      default: () => ({}),
     },
-    inheritAttrs: false,
-    props: {
-      data: {
-        type: Object,
-        default: () => ({}),
-      },
-    },
-    data() {
-      return {
-        isLoading: true,
-        stepInfo: {},
-        renderRoleList: [],
-        renderChannel: '',
-      };
-    },
-    created() {
-      this.stepInfo = Object.freeze(this.data.approvalStepInfo);
-      Promise.all([
-        this.fetchRoleList(),
-        this.fetchAllChannel(),
-      ]).finally(() => {
-        this.isLoading = false;
+  });
+
+  const isLoading = ref(true);
+  const stepInfo = shallowRef(props.data.approvalStepInfo);
+  const renderRoleList = shallowRef([]);
+  const renderChannel = ref('');
+
+  const fetchRoleList = () => {
+    NotifyService.fetchRoleList()
+      .then((data) => {
+        const roleMap = {};
+        data.forEach((role) => {
+          roleMap[role.code] = role.name;
+        });
+
+        // 过滤掉已经被删除的角色分组
+        renderRoleList.value = stepInfo.value.approvalUser.roleList.reduce((result, item) => {
+          if (roleMap[item]) {
+            result.push(roleMap[item]);
+          }
+          return result;
+        }, []);
       });
-    },
-    methods: {
-      fetchRoleList() {
-        NotifyService.fetchRoleList()
-          .then((data) => {
-            const roleMap = {};
-            data.forEach((role) => {
-              roleMap[role.code] = role.name;
-            });
-            // 过滤掉已经被删除的角色分组
-            this.renderRoleList = this.stepInfo.approvalUser.roleList.reduce((result, item) => {
-              if (roleMap[item]) {
-                result.push(roleMap[item]);
-              }
-              return result;
-            }, []);
-          });
-      },
-      fetchAllChannel() {
-        if (this.stepInfo.notifyChannel.length < 1) {
-          this.renderChannel = '--';
-          return Promise.resolve();
-        }
-        QueryGlobalSettingService.fetchActiveNotifyChannel()
-          .then((data) => {
-            const channelMap = {};
-            data.forEach((channel) => {
-              channelMap[channel.code] = channel.name;
-            });
-            const channel = this.stepInfo.notifyChannel.reduce((result, item) => {
-              // 过滤掉已经被删除的通知渠道
-              if (channelMap[item]) {
-                result.push(channelMap[item]);
-              }
-              return result;
-            }, []);
-            if (channel.length < 1) {
-              this.renderChannel = '--';
-            }
-            this.renderChannel = channel.join('，');
-          });
-      },
-    },
   };
+  const fetchAllChannel = () => {
+    if (stepInfo.value.notifyChannel.length < 1) {
+      renderChannel.value = '--';
+      return Promise.resolve();
+    }
+    QueryGlobalSettingService.fetchActiveNotifyChannel()
+      .then((data) => {
+        const channelMap = {};
+        data.forEach((channel) => {
+          channelMap[channel.code] = channel.name;
+        });
+        const channel = stepInfo.value.notifyChannel.reduce((result, item) => {
+          // 过滤掉已经被删除的通知渠道
+          if (channelMap[item]) {
+            result.push(channelMap[item]);
+          }
+          return result;
+        }, []);
+        if (channel.length < 1) {
+          renderChannel.value = '--';
+        }
+        renderChannel.value = channel.join('，');
+      });
+  };
+
+  Promise.all([
+    fetchRoleList(),
+    fetchAllChannel(),
+  ]).finally(() => {
+    isLoading.value = false;
+  });
+
 </script>
 <style lang='postcss' scoped>
   .artificial-view {

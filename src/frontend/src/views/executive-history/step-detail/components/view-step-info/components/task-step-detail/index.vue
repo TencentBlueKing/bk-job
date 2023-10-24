@@ -37,14 +37,15 @@
     </detail-item>
     <component
       :is="stepCom"
-      ref="stepCom"
       :data="data"
       :variable="variable">
       <slot />
     </component>
   </detail-layout>
 </template>
-<script>
+<script setup>
+  import { computed } from 'vue';
+
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
 
@@ -60,42 +61,30 @@
     3: I18n.t('template.人工确认'),
   };
 
-  export default {
-    components: {
-      StepDistroFile,
-      StepExecScript,
-      StepApproval,
-      DetailLayout,
-      DetailItem,
+  const props = defineProps({
+    variable: {
+      type: Array,
+      default: () => [],
     },
-    props: {
-      variable: {
-        type: Array,
-        default: () => [],
-      },
-      data: {
-        type: Object,
-        default: () => ({}),
-      },
+    data: {
+      type: Object,
+      default: () => ({}),
     },
-    computed: {
-      stepTypeText() {
-        return STEP_TYPE_LIST[this.data.type];
-      },
-      stepCom() {
-        const taskStepMap = {
-          1: StepExecScript,
-          2: StepDistroFile,
-          3: StepApproval,
-        };
+  });
 
-        if (!Object.prototype.hasOwnProperty.call(taskStepMap, this.data.type)) {
-          return 'div';
-        }
-        return taskStepMap[this.data.type];
-      },
-    },
-  };
+  const stepTypeText = computed(() => STEP_TYPE_LIST[props.data.type]);
+  const stepCom = computed(() => {
+    const taskStepMap = {
+      1: StepExecScript,
+      2: StepDistroFile,
+      3: StepApproval,
+    };
+
+    if (!Object.prototype.hasOwnProperty.call(taskStepMap, props.data.type)) {
+      return 'div';
+    }
+    return taskStepMap[props.data.type];
+  });
 </script>
 <style lang="postcss" scoped>
   .detail-layout-wrapper {

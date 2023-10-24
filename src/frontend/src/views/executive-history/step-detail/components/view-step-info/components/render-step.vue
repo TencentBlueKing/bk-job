@@ -49,7 +49,12 @@
     </task-step-detail>
   </div>
 </template>
-<script>
+<script setup>
+  import {
+    ref,
+    shallowRef,
+  } from 'vue';
+
   import TaskExecuteService from '@service/task-execute';
 
   import GlobalVariableModel from '@model/task/global-variable';
@@ -63,79 +68,55 @@
 
   import TaskStepDetail from './task-step-detail/index.vue';
 
-  export default {
-    name: '',
-    components: {
-      TaskStepDetail,
-      DetailItem,
+  const props = defineProps({
+    taskId: {
+      type: Number,
+      required: true,
     },
-    props: {
-      taskId: {
-        type: Number,
-        required: true,
-      },
-      id: {
-        type: [Number, String],
-      },
+    id: {
+      type: [Number, String],
     },
-    data() {
-      return {
-        isLoading: true,
-        stepInfo: {},
-        rollingConfigExpr: '',
-        rollingModeText: '',
-        variableList: [],
-      };
-    },
-    created() {
-      this.isLoading = true;
-      Promise.all([
-        this.fetchStep(),
-        this.fetchTaskVariables(),
-      ]).finally(() => {
-        this.isLoading = false;
-      });
-    },
-    methods: {
-      /**
-       * @desc 解析滚动配置
-       * @param { String } expr
-       * @returns { String }
-       */
-      rollingExprParse(expr) {
-        return rollingExprParse(expr);
-      },
-      //  步骤详情
-      fetchStep() {
-        return TaskExecuteService.fetchStepInstance({
-          id: this.id,
-        }).then((data) => {
-          if (data.rollingEnabled) {
-            this.rollingConfigExpr = data.rollingConfig.expr;
-            const modeMap = {
-              1: I18n.t('默认（执行失败则暂停）'),
-              2: I18n.t('忽略失败，自动滚动下一批'),
-              3: I18n.t('不自动，每批次都人工确认'),
-            };
-            this.rollingModeText = modeMap[data.rollingConfig.mode];
-          }
+  });
 
-          this.stepInfo = Object.freeze(new TaskStepModel(data));
-        });
-      },
-      fetchTaskVariables() {
-        return TaskExecuteService.fetchStepInstanceParam({
-          id: this.taskId,
-        }).then((data) => {
-          this.variableList = Object.freeze(data.map(({ id, name, type, value, targetValue }) => new GlobalVariableModel({
-            id,
-            name,
-            type,
-            defaultValue: value,
-            defaultTargetValue: targetValue,
-          })));
-        });
-      },
-    },
-  };
+  const isLoading = ref(true);
+  const stepInfo = shallowRef({});
+  const rollingConfigExpr = ref('');
+  const rollingModeText = ref('');
+  const variableList = shallowRef([]);
+
+  //  步骤详情
+  const fetchStep = () => TaskExecuteService.fetchStepInstance({
+    id: props.id,
+  }).then((data) => {
+    if (data.rollingEnabled) {
+      rollingConfigExpr.value = data.rollingConfig.expr;
+      const modeMap = {
+        1: I18n.t('默认（执行失败则暂停）'),
+        2: I18n.t('忽略失败，自动滚动下一批'),
+        3: I18n.t('不自动，每批次都人工确认'),
+      };
+      rollingModeText.value = modeMap[data.rollingConfig.mode];
+    }
+
+    stepInfo.value = new TaskStepModel(data);
+  });
+
+  const fetchTaskVariables = () => TaskExecuteService.fetchStepInstanceParam({
+    id: props.taskId,
+  }).then((data) => {
+    variableList.value = Object.freeze(data.map(({ id, name, type, value, targetValue }) => new GlobalVariableModel({
+      id,
+      name,
+      type,
+      defaultValue: value,
+      defaultTargetValue: targetValue,
+    })));
+  });
+
+  Promise.all([
+    fetchStep(),
+    fetchTaskVariables(),
+  ]).finally(() => {
+    isLoading.value = false;
+  });
 </script>

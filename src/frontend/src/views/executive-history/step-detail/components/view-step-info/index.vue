@@ -47,33 +47,25 @@
     </div>
   </lower-component>
 </template>
-<script>
+<script setup>
+  import { ref } from 'vue';
+
   import RenderStep from './components/render-step.vue';
 
-  export default {
-    name: '',
-    components: {
-      RenderStep,
+  const props = defineProps({
+    taskInstanceId: {
+      type: Number,
+      required: true,
     },
-    props: {
-      taskInstanceId: {
-        type: Number,
-        required: true,
-      },
-      stepInstanceId: {
-        type: Number,
-        required: true,
-      },
+    stepInstanceId: {
+      type: Number,
+      required: true,
     },
-    data() {
-      return {
-        isShow: false,
-      };
-    },
-    methods: {
-      handleShowStepDetail() {
-        this.isShow = true;
-      },
-    },
+  });
+
+  const isShow = ref(false);
+
+  const handleShowStepDetail = () => {
+    isShow.value = true;
   };
 </script>
