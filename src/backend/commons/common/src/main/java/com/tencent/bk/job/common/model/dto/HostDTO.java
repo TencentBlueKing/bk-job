@@ -307,5 +307,6 @@ public class HostDTO implements Cloneable {
         this.alive = host.getAlive();
         this.cloudVendorId = host.getCloudVendorId();
         this.cloudVendorName = host.getCloudVendorName();
+        this.hostname = host.getHostname();
     }
 }

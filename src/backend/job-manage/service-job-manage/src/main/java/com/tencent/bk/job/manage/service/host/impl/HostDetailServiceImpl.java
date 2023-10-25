@@ -78,9 +78,10 @@ public class HostDetailServiceImpl implements HostDetailService {
             host.setCloudAreaName(BkNetClient.getCloudAreaNameFromCache(host.getCloudAreaId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
-                cloudVendorId, JobConstants.UNKNOWN_NAME));
+                cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
             String osTypeId = host.getOsType();
-            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId, JobConstants.UNKNOWN_NAME));
+            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId,
+                osTypeId == null ? null : JobConstants.UNKNOWN_NAME));
         }
     }
 
@@ -90,9 +91,10 @@ public class HostDetailServiceImpl implements HostDetailService {
             host.setBkCloudName(BkNetClient.getCloudAreaNameFromCache(host.getBkCloudId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
-                cloudVendorId, JobConstants.UNKNOWN_NAME));
+                cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
             String osTypeId = host.getOsType();
-            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId, JobConstants.UNKNOWN_NAME));
+            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId,
+                osTypeId == null ? null : JobConstants.UNKNOWN_NAME));
         }
     }
 }
