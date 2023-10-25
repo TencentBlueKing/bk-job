@@ -25,13 +25,11 @@
 package com.tencent.bk.job.manage.service.host;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
-import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 
 import java.util.Collection;
 import java.util.List;
@@ -84,24 +82,6 @@ public interface HostService {
     void deleteHostBeforeLastTime(ApplicationHostDTO hostInfoDTO);
 
     long countHostsByOsType(String osType);
-
-    /**
-     * 查询指定业务的拓扑树
-     *
-     * @param username         用户名
-     * @param appResourceScope 资源范围
-     * @return 拓扑结构树
-     */
-    CcTopologyNodeVO listAppTopologyTree(String username, AppResourceScope appResourceScope);
-
-    /**
-     * 查询带主机数量信息的业务拓扑树
-     *
-     * @param username         用户名
-     * @param appResourceScope 资源范围
-     * @return 带主机数量信息的拓扑结构树
-     */
-    CcTopologyNodeVO listAppTopologyHostCountTree(String username, AppResourceScope appResourceScope);
 
     List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
                                                       Long bizId,

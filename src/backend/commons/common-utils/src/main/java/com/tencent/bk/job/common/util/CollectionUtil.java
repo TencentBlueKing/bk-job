@@ -24,9 +24,15 @@
 
 package com.tencent.bk.job.common.util;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -85,5 +91,29 @@ public class CollectionUtil {
                 .limit(size)
                 .collect(Collectors.toList()))
             .collect(Collectors.toList());
+    }
+
+    /**
+     * 从集合元素中抽取两个字段构成Map
+     *
+     * @param entityCollection 实体集合
+     * @param keyFunc          抽取Key的方法
+     * @param valueFunc        抽取Value的方法
+     * @param <E>              实体类型
+     * @param <K>              Key类型
+     * @param <V>              Value类型
+     * @return HashMap<K, V>，null可以为key或value，entityCollection为null时返回空Map
+     */
+    public static <E, K, V> Map<K, V> convertToMap(List<E> entityCollection,
+                                                   Function<E, K> keyFunc,
+                                                   Function<E, V> valueFunc) {
+        if (CollectionUtils.isEmpty(entityCollection)) {
+            return Collections.emptyMap();
+        }
+        Map<K, V> map = new HashMap<>();
+        for (E entity : entityCollection) {
+            map.put(keyFunc.apply(entity), valueFunc.apply(entity));
+        }
+        return map;
     }
 }

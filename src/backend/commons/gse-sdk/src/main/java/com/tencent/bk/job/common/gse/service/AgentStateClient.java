@@ -24,37 +24,46 @@
 
 package com.tencent.bk.job.common.gse.service;
 
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * 封装Agent状态查询的常用操作：单个查询、批量查询
+ * 封装Agent状态查询的常用操作：判断真实使用的AgentId、单个主机Agent状态查询、批量状态查询
  */
 public interface AgentStateClient {
 
     /**
-     * 根据agentId获取agent状态
+     * 获取用于查询Agent状态的AgentId，来源于cloudIp或agentId字段（会按需查询并填充hostAgentStateQueryList中各元素的相关字段）
      *
-     * @param agentId AgentId
+     * @param hostAgentStateQuery Agent状态查询条件
+     * @return 用于查询Agent状态的AgentId
+     */
+    String getEffectiveAgentId(HostAgentStateQuery hostAgentStateQuery);
+
+    /**
+     * 根据agentId获取agent状态（会按需查询并填充hostAgentStateQueryList中各元素的相关字段）
+     *
+     * @param hostAgentStateQuery Agent状态查询条件
      * @return Agent状态对象
      */
-    AgentState getAgentState(String agentId);
+    AgentState getAgentState(HostAgentStateQuery hostAgentStateQuery);
 
     /**
-     * 根据agentId批量获取agent状态
+     * 根据agentId批量获取agent状态（会按需查询并填充hostAgentStateQueryList中各元素的相关字段）
      *
-     * @param agentIdList agentId列表
+     * @param hostAgentStateQueryList Agent状态查询条件列表
      * @return agentId与Agent状态的Map
      */
-    Map<String, AgentState> batchGetAgentState(List<String> agentIdList);
+    Map<String, AgentState> batchGetAgentState(List<HostAgentStateQuery> hostAgentStateQueryList);
 
     /**
-     * 根据agentId批量获取agent存活状态
+     * 根据agentId批量获取agent存活状态（会按需查询并填充hostAgentStateQueryList中各元素的相关字段）
      *
-     * @param agentIdList agentId列表
+     * @param hostAgentStateQueryList Agent状态查询条件列表
      * @return agentId与Agent存活状态的Map
      */
-    Map<String, Boolean> batchGetAgentAliveStatus(List<String> agentIdList);
+    Map<String, Boolean> batchGetAgentAliveStatus(List<HostAgentStateQuery> hostAgentStateQueryList);
 }

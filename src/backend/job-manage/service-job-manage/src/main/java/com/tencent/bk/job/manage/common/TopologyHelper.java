@@ -25,21 +25,14 @@
 package com.tencent.bk.job.manage.common;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.service.AgentStateClient;
-import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
-import com.tencent.bk.job.manage.model.web.vo.DynamicGroupInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +52,6 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * 拓扑信息缓存、更新工具类
@@ -74,17 +66,11 @@ public class TopologyHelper {
 
     private static final Map<Long, Map<String, Map<Long, String>>> BIZ_NODE_TYPE_NAME_MAP = new ConcurrentHashMap<>();
 
-    private final AgentStateClient agentStateClient;
     private final ApplicationDAO applicationDAO;
-    private final BkNetClient bkNetClient;
 
     @Autowired
-    public TopologyHelper(ApplicationDAO applicationDAO,
-                          AgentStateClient agentStateClient,
-                          BkNetClient bkNetClient) {
+    public TopologyHelper(ApplicationDAO applicationDAO) {
         this.applicationDAO = applicationDAO;
-        this.agentStateClient = agentStateClient;
-        this.bkNetClient = bkNetClient;
     }
 
     /**
@@ -193,34 +179,6 @@ public class TopologyHelper {
         return node;
     }
 
-    /**
-     * 将作业平台内部动态分组信息转换为展示用动态分组信息
-     *
-     * @param dynamicGroupWithHost 作业平台内部动态分组信息
-     * @return 展示用动态分组信息
-     */
-    public static DynamicGroupInfoVO convertToDynamicGroupInfoVO(DynamicGroupWithHost dynamicGroupWithHost) {
-        if (dynamicGroupWithHost == null) {
-            return null;
-        }
-        DynamicGroupInfoVO dynamicGroupInfoVO = new DynamicGroupInfoVO();
-        dynamicGroupInfoVO.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
-        dynamicGroupInfoVO.setScopeId(dynamicGroupWithHost.getBizId().toString());
-        dynamicGroupInfoVO.setScopeName(dynamicGroupWithHost.getBizName());
-        dynamicGroupInfoVO.setId(dynamicGroupWithHost.getId());
-        dynamicGroupInfoVO.setOwner(dynamicGroupWithHost.getOwner());
-        dynamicGroupInfoVO.setOwnerName(dynamicGroupWithHost.getOwnerName());
-        dynamicGroupInfoVO.setName(dynamicGroupWithHost.getName());
-        dynamicGroupInfoVO.setType(dynamicGroupWithHost.getType());
-        if (dynamicGroupWithHost.getIpListStatus() != null) {
-            dynamicGroupInfoVO.setIpListStatus(dynamicGroupWithHost.getIpListStatus().stream()
-                .map(ApplicationHostDTO::toVO).collect(Collectors.toList()));
-        } else {
-            dynamicGroupInfoVO.setIpListStatus(null);
-        }
-        return dynamicGroupInfoVO;
-    }
-
     @PostConstruct
     private void initCache() {
         TopologyNameCacheThread topologyNameCacheThread = new TopologyNameCacheThread();
@@ -257,36 +215,6 @@ public class TopologyHelper {
             );
             throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
         }
-    }
-
-    /**
-     * 根据 IP 地址列表批量获取机器 Agent 状态
-     *
-     * @param bizId       业务 ID
-     * @param cloudIpList IP 地址列表
-     * @return 机器 Agent 状态信息列表
-     */
-    public List<ApplicationHostDTO> getIpStatusListByIps(long bizId, List<String> cloudIpList) {
-        List<ApplicationHostDTO> ipInfoList = new ArrayList<>();
-        if (CollectionUtils.isEmpty(cloudIpList)) {
-            return ipInfoList;
-        }
-
-        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(cloudIpList);
-        for (String cloudIp : cloudIpList) {
-            ApplicationHostDTO ipInfo = new ApplicationHostDTO();
-            ipInfo.setCloudAreaId(Long.valueOf(cloudIp.split(":")[0]));
-            ipInfo.setBizId(bizId);
-            ipInfo.setIp(cloudIp.split(":")[1]);
-            AgentState agentState = agentStateMap.get(cloudIp);
-            if (agentState != null) {
-                ipInfo.setGseAgentStatus(agentState.getStatusCode());
-            } else {
-                log.warn("Cannot find agentState by ip {}", cloudIp);
-            }
-            ipInfoList.add(ipInfo);
-        }
-        return ipInfoList;
     }
 
     /**
@@ -329,6 +257,7 @@ public class TopologyHelper {
     }
 
     class TopologyNameCacheThread extends Thread {
+        @SuppressWarnings("InfiniteLoopStatement")
         @Override
         public void run() {
             this.setName("Topology-Name-Update-Thread");

@@ -43,6 +43,22 @@ public class FeatureToggle {
      * @return 是否开启
      */
     public static boolean checkFeature(String featureId, FeatureExecutionContext ctx) {
+        ensureFeatureManagerInited();
+        return featureManager.checkFeature(featureId, ctx);
+    }
+
+    /**
+     * 判断特性是否开启（只考虑特性本身，忽略策略）
+     *
+     * @param featureId 特性ID
+     * @return 是否开启
+     */
+    public static boolean isFeatureEnabled(String featureId) {
+        ensureFeatureManagerInited();
+        return featureManager.isFeatureEnabled(featureId);
+    }
+
+    private static void ensureFeatureManagerInited() {
         if (featureManager == null) {
             synchronized (FeatureToggle.class) {
                 if (featureManager == null) {
@@ -50,7 +66,5 @@ public class FeatureToggle {
                 }
             }
         }
-
-        return featureManager.checkFeature(featureId, ctx);
     }
 }

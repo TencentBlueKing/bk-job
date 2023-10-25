@@ -125,6 +125,14 @@ public class ServiceHostDTO {
         return cloudAreaId + ":" + ip;
     }
 
+    @JsonIgnore
+    public String getHostIdOrCloudIp() {
+        if (hostId != null && hostId > 0) {
+            return String.valueOf(hostId);
+        }
+        return cloudAreaId + ":" + ip;
+    }
+
     public static ServiceHostDTO fromApplicationHostDTO(ApplicationHostDTO host) {
         return ServiceHostDTO.builder()
             .bizId(host.getBizId())

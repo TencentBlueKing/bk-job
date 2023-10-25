@@ -110,6 +110,14 @@ public class HostSimpleDTO {
         return cloudIp;
     }
 
+    @JsonIgnore
+    public String getHostIdOrCloudIp() {
+        if (hostId != null && hostId > 0) {
+            return String.valueOf(hostId);
+        }
+        return cloudIp;
+    }
+
     public static List<String> buildAgentIdList(List<HostSimpleDTO> hosts) {
         List<String> agentIdList = new ArrayList<>();
         for (HostSimpleDTO host : hosts) {
