@@ -308,6 +308,7 @@ public class ApplicationHostDTO {
         host.setOsName(osName);
         host.setOsType(osType);
         host.setOsTypeName(osTypeName);
+        host.setHostname(hostName);
         return host;
     }
 

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
@@ -186,7 +187,11 @@ public class ServersDTO implements Cloneable {
         TaskHostNodeVO taskHostNodeVO = new TaskHostNodeVO();
         if (CollectionUtils.isNotEmpty(ipList)) {
             List<HostInfoVO> hostVOs = new ArrayList<>();
-            ipList.forEach(host -> hostVOs.add(host.toHostInfoVO()));
+            ipList.forEach(host -> {
+                HostInfoVO hostInfoVO = host.toHostInfoVO();
+                hostInfoVO.setAgentId(AgentUtils.displayAsRealAgentId(host.getAgentId()));
+                hostVOs.add(hostInfoVO);
+            });
             taskHostNodeVO.setHostList(hostVOs);
             targetServer.setHostNodeInfo(taskHostNodeVO);
         }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.sdk.BkNetClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -77,16 +78,9 @@ public class HostDetailServiceImpl implements HostDetailService {
             host.setCloudAreaName(BkNetClient.getCloudAreaNameFromCache(host.getCloudAreaId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
-                cloudVendorId,
-                "Unknown"
-                )
-            );
+                cloudVendorId, JobConstants.UNKNOWN_NAME));
             String osTypeId = host.getOsType();
-            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(
-                osTypeId,
-                "Unknown"
-                )
-            );
+            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId, JobConstants.UNKNOWN_NAME));
         }
     }
 
@@ -96,15 +90,9 @@ public class HostDetailServiceImpl implements HostDetailService {
             host.setBkCloudName(BkNetClient.getCloudAreaNameFromCache(host.getBkCloudId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
-                cloudVendorId,
-                "Unknown"
-                )
-            );
-            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(
-                host.getOsType(),
-                "Unknown"
-                )
-            );
+                cloudVendorId, JobConstants.UNKNOWN_NAME));
+            String osTypeId = host.getOsType();
+            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId, JobConstants.UNKNOWN_NAME));
         }
     }
 }
