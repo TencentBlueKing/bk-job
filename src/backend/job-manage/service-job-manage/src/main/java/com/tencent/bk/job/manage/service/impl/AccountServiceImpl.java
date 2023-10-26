@@ -229,9 +229,12 @@ public class AccountServiceImpl implements AccountService {
     )
     public AccountDTO updateAccount(String username, AccountDTO updateAccount) throws ServiceException {
         authManageAccount(username, updateAccount.getAppId(), updateAccount.getId());
-        checkAccountAliasExist(updateAccount);
 
         AccountDTO originAccount = getAccount(updateAccount.getAppId(), updateAccount.getId());
+
+        checkAccountAliasExist(updateAccount.getAppId(), updateAccount.getId(),
+            originAccount.getCategory(), updateAccount.getAlias());
+
         if (StringUtils.isNotEmpty(updateAccount.getPassword())) {
             updateAccount.setPassword(encryptor.encrypt(updateAccount.getPassword()));
         }
@@ -256,13 +259,9 @@ public class AccountServiceImpl implements AccountService {
         return updatedAccount;
     }
 
-    private void checkAccountAliasExist(AccountDTO account) {
-        AccountDTO existAccount = accountDAO.getAccount(
-            account.getAppId(),
-            account.getCategory(),
-            account.getAlias()
-        );
-        if (existAccount != null && !existAccount.getId().equals(account.getId())) {
+    private void checkAccountAliasExist(long appId, long accountId, AccountCategoryEnum category, String alias) {
+        AccountDTO existAccount = accountDAO.getAccount(appId, category, alias);
+        if (existAccount != null && !existAccount.getId().equals(accountId)) {
             log.info(
                 "Another same alias exists:(appId={}, category={}, alias={})",
                 existAccount.getAppId(),
