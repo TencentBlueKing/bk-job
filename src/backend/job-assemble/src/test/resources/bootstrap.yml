@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: job-assemble
+  profiles:
+    active: test
