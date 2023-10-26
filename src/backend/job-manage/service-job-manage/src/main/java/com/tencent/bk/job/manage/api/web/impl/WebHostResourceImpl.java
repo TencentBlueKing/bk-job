@@ -160,7 +160,7 @@ public class WebHostResourceImpl implements WebHostResource {
             pagePair.getLeft(),
             pagePair.getRight()
         );
-        hostDetailService.fillDetailForHosts(pageHostList.getData());
+        hostDetailService.fillDetailForApplicationHosts(pageHostList.getData());
         return Response.buildSuccessResp(PageUtil.transferPageData(
             pageHostList,
             ApplicationHostDTO::toVO

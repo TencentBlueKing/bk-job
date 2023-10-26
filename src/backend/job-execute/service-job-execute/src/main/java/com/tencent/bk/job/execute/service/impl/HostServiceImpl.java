@@ -24,10 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
@@ -47,13 +43,10 @@ import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -69,7 +62,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 @Service("jobExecuteHostService")
 @Slf4j
@@ -77,49 +69,14 @@ public class HostServiceImpl implements HostService {
     private final ServiceHostResource hostResource;
     private final AppScopeMappingService appScopeMappingService;
     private final ExecutorService getHostsByTopoExecutor;
-    private static final String UNKNOWN_CLOUD_AREA_NAME = "Unknown";
-
-    private final LoadingCache<Long, String> cloudAreaNameCache = Caffeine.newBuilder()
-        .maximumSize(10000)
-        .expireAfterWrite(1, TimeUnit.HOURS)
-        .recordStats()
-        .build(new CacheLoader<Long, String>() {
-            @Override
-            public String load(@NotNull Long bkCloudId) {
-                IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-                CcCloudAreaInfoDTO cloudArea = bizCmdbClient.getCloudAreaByBkCloudId(bkCloudId);
-                // 默认设置为"Unknown",避免本地缓存穿透
-                return cloudArea == null ? UNKNOWN_CLOUD_AREA_NAME : cloudArea.getName();
-            }
-
-            @NotNull
-            @Override
-            public Map<Long, String> loadAll(@NotNull Iterable<? extends Long> bkCloudIds) {
-                IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
-                List<CcCloudAreaInfoDTO> cloudAreaList = bizCmdbClient.getCloudAreaList();
-                Map<Long, String> result = new HashMap<>();
-                // 默认设置为"Unknown",避免本地缓存穿透
-                bkCloudIds.forEach(bkCloudId -> result.put(bkCloudId, UNKNOWN_CLOUD_AREA_NAME));
-
-                if (CollectionUtils.isEmpty(cloudAreaList)) {
-                    log.warn("Get all cloud area return empty!");
-                    return result;
-                }
-
-                cloudAreaList.forEach(cloudArea -> result.put(cloudArea.getId(), cloudArea.getName()));
-                return result;
-            }
-        });
 
     @Autowired
     public HostServiceImpl(ServiceHostResource hostResource,
                            AppScopeMappingService appScopeMappingService,
-                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor,
-                           MeterRegistry meterRegistry) {
+                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor) {
         this.hostResource = hostResource;
         this.appScopeMappingService = appScopeMappingService;
         this.getHostsByTopoExecutor = getHostsByTopoExecutor;
-        CaffeineCacheMetrics.monitor(meterRegistry, cloudAreaNameCache, "cloudAreaNameCache");
     }
 
     @Override
@@ -296,27 +253,6 @@ public class HostServiceImpl implements HostService {
         return result;
     }
 
-    @Override
-    public Map<Long, String> batchGetCloudAreaNames(Collection<Long> bkCloudIds) {
-        if (CollectionUtils.isEmpty(bkCloudIds)) {
-            return Collections.emptyMap();
-        }
-        try {
-            long start = System.currentTimeMillis();
-            Map<Long, String> cloudAreaIdNames = cloudAreaNameCache.getAll(bkCloudIds);
-            long cost = System.currentTimeMillis() - start;
-            if (cost > 1000) {
-                log.warn("Batch get cloud area names slow, cost: {}", cost);
-            }
-            return cloudAreaIdNames;
-        } catch (Exception e) {
-            log.warn("Fail to get cloud area name", e);
-            // 降级实现
-            Map<Long, String> failResult = new HashMap<>();
-            bkCloudIds.forEach(bkCloudId -> failResult.put(bkCloudId, UNKNOWN_CLOUD_AREA_NAME));
-            return failResult;
-        }
-    }
 
     private class GetTopoHostTask implements Callable<Pair<DynamicServerTopoNodeDTO, List<HostDTO>>> {
         private final long appId;
