@@ -33,6 +33,8 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
+import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
@@ -69,8 +71,6 @@ import com.tencent.bk.job.execute.model.web.request.WebStepOperation;
 import com.tencent.bk.job.execute.model.web.request.WebTaskExecuteRequest;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
 import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
@@ -196,7 +196,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                     taskVariableDTO.setValue(webTaskVariable.getValue());
                 }
             } else if (webTaskVariable.getType() == HOST_LIST.getType()) {
-                ExecuteTargetVO webServers = webTaskVariable.getTargetValue();
+                TaskTargetVO webServers = webTaskVariable.getTargetValue();
                 ServersDTO serversDTO = convertToServersDTO(webServers);
                 taskVariableDTO.setTargetServers(serversDTO);
             } else if (webTaskVariable.getType() == NAMESPACE.getType()) {
@@ -275,7 +275,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast execute script, script type is invalid! scriptType={}", request.getScriptLanguage());
             return false;
         }
-        ExecuteTargetVO targetServers = request.getTargetServers();
+        TaskTargetVO targetServers = request.getTargetServers();
         if (targetServers == null || targetServers.getHostNodeInfo() == null) {
             log.warn("Fast execute script, target server is null!");
             return false;
@@ -408,7 +408,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             log.warn("Fast send file, fileDestination is null!");
             return false;
         }
-        ExecuteTargetVO targetServers = fileDestination.getServer();
+        TaskTargetVO targetServers = fileDestination.getServer();
         if (targetServers == null || targetServers.getHostNodeInfo() == null) {
             log.warn("Fast send file, target server is null!");
             return false;
@@ -500,11 +500,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return stepInstance;
     }
 
-    private ServersDTO convertToServersDTO(ExecuteTargetVO target) {
+    private ServersDTO convertToServersDTO(TaskTargetVO target) {
         if (target == null || target.getHostNodeInfo() == null) {
             return null;
         }
-        ExecuteServersVO hostNode = target.getHostNodeInfo();
+        TaskHostNodeVO hostNode = target.getHostNodeInfo();
         ServersDTO serversDTO = new ServersDTO();
         if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
             List<HostDTO> hostList = new ArrayList<>();

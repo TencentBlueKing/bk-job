@@ -136,7 +136,7 @@ public class AgentServiceImpl implements AgentService {
                 log.error("Invalid host for ip: {}", physicalMachineMultiIp);
                 return null;
             }
-            return toHostDTO(host);
+            return ServiceHostDTO.toHostDTO(host);
         }
     }
 

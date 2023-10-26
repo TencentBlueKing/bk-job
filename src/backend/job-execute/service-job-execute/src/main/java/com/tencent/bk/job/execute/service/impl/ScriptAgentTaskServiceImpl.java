@@ -9,7 +9,6 @@ import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,9 +34,8 @@ public class ScriptAgentTaskServiceImpl
     @Autowired
     public ScriptAgentTaskServiceImpl(ScriptAgentTaskDAO scriptAgentTaskDAO,
                                       StepInstanceService stepInstanceService,
-                                      HostService hostService,
                                       GseTaskIpLogDAO gseTaskIpLogDAO) {
-        super(stepInstanceService, hostService);
+        super(stepInstanceService);
         this.scriptAgentTaskDAO = scriptAgentTaskDAO;
         this.gseTaskIpLogDAO = gseTaskIpLogDAO;
     }
