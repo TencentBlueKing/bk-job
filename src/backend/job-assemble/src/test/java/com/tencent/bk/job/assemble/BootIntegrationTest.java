@@ -22,39 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.metrics;
+package com.tencent.bk.job.assemble;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.SqlConfig;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import redis.embedded.RedisServer;
 
-import java.util.Collections;
+import java.io.IOException;
 
-@Slf4j
-@Service("jobCrontabMeasureService")
-@Profile("!test")
-public class MeasureServiceImpl {
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
+@TestPropertySource(locations = "classpath:test.properties")
+@SqlConfig(encoding = "utf-8")
+public class BootIntegrationTest {
+    private static RedisServer redisServer;
 
-    @Autowired
-    public MeasureServiceImpl(MeterRegistry meterRegistry, ThreadPoolTaskExecutor quartzTaskExecutor) {
-        // 同步线程池监控：Agent状态
-        meterRegistry.gauge(
-            CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_POOL_SIZE,
-            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE,
-                CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
-            quartzTaskExecutor,
-            taskExecutor -> taskExecutor.getThreadPoolExecutor().getPoolSize()
-        );
-        meterRegistry.gauge(
-            CronMetricsConstants.NAME_CRON_QUARTZ_TASK_EXECUTOR_QUEUE_SIZE,
-            Collections.singletonList(Tag.of(CronMetricsConstants.TAG_KEY_MODULE,
-                CronMetricsConstants.TAG_VALUE_MODULE_CRON)),
-            quartzTaskExecutor,
-            taskExecutor -> taskExecutor.getThreadPoolExecutor().getQueue().size()
-        );
+    @BeforeAll
+    public static void init() throws IOException {
+        redisServer = new RedisServer(6379);
+        redisServer.start();
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        redisServer.stop();
+    }
+
+    @Test
+    @DisplayName("测试 job-assemble 启动")
+    public void bootTest() {
+        // do nothing
     }
 }
