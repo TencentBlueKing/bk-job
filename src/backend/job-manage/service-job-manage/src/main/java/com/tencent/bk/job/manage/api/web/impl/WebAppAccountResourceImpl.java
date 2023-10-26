@@ -103,7 +103,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
-        AccountDTO updateAccount = buildUpdateAccountDTO(username, accountCreateUpdateReq);
+        AccountDTO updateAccount = buildUpdateAccountDTO(username, appResourceScope.getAppId(), accountCreateUpdateReq);
         AccountDTO savedAccount = accountService.updateAccount(username, updateAccount);
         return Response.buildSuccessResp(savedAccount.toAccountVO());
     }
@@ -123,9 +123,10 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         return true;
     }
 
-    private AccountDTO buildUpdateAccountDTO(String operator, AccountCreateUpdateReq req) {
+    private AccountDTO buildUpdateAccountDTO(String operator, long appId, AccountCreateUpdateReq req) {
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setId(req.getId());
+        accountDTO.setAppId(appId);
         accountDTO.setAlias(req.getAlias());
         accountDTO.setRemark(req.getRemark());
         accountDTO.setGrantees(Utils.concatStringWithSeperator(req.getGrantees(), ","));
