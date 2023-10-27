@@ -1304,8 +1304,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     @Override
     @ActionAuditRecord(
         actionId = ActionId.LAUNCH_JOB_PLAN,
-        content = "Launch a plan [{{" + JobAuditAttributeNames.PLAN_NAME
-            + "}}]({{" + JobAuditAttributeNames.PLAN_ID + "}})",
+        content = EventContentConstants.LAUNCH_JOB_PLAN,
         builder = ExecuteJobAuditEventBuilder.class
     )
     public TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam) {
@@ -1393,6 +1392,24 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("createTaskInstanceForTask is slow, statistics: {}", watch.prettyPrint());
             }
         }
+    }
+
+
+    private TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam) {
+        ActionAuditContext actionAuditContext;
+        if (stepInstance.isFileStep()) {
+            actionAuditContext = ActionAuditContext.builder(ActionId.QUICK_TRANSFER_FILE)
+                .setEventBuilder(ExecuteJobAuditEventBuilder.class)
+                .setContent(EventContentConstants.QUICK_TRANSFER_FILE)
+                .build();
+    }
+
+    @ActionAuditRecord(
+        actionId = ActionId.DEBUG_JOB_TEMPLATE,
+        content = EventContentConstants.DEBUG_JOB_TEMPLATE
+    )
+    private TaskInstanceDTO debugJobTemplate(TaskExecuteParam executeParam) {
+
     }
 
     private void standardizeStepDynamicGroupId(List<StepInstanceDTO> stepInstanceList) {
