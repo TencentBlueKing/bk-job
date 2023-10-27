@@ -608,8 +608,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                     }
                 }
             }
+            taskPlanService.deleteTaskPlanByTemplate(appId, templateId);
         }
-        taskPlanService.deleteTaskPlanByTemplate(appId, templateId);
         taskTemplateDAO.deleteTaskTemplateById(appId, templateId);
         tagService.batchDeleteResourceTags(appId, JobResourceTypeEnum.TEMPLATE.getValue(), String.valueOf(templateId));
         return template;
