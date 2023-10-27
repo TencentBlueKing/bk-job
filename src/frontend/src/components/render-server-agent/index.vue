@@ -123,7 +123,6 @@
     },
     created() {
       this.fetchData();
-      console.log('from hostNodeInfo = ', this.hostNodeInfo);
     },
     methods: {
       fetchData() {
