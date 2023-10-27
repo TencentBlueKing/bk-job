@@ -44,6 +44,7 @@ public class CcTopologyNodeVO {
     private String instanceName;
     private String objectId;
     private String objectName;
+    // 当前层级节点数据是否使用懒加载，作业平台目前不涉及，取值一直为false即可
     private Boolean lazy = false;
     private List<CcTopologyNodeVO> child;
 
