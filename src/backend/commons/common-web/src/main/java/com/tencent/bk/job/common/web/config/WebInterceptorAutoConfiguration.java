@@ -25,11 +25,11 @@
 package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
-import com.tencent.bk.job.common.web.util.ProfileUtil;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,7 +56,7 @@ public class WebInterceptorAutoConfiguration {
     }
 
     @Bean
-    public ServiceSecurityInterceptor serviceSecurityInterceptor(JwtManager jwtManager, ProfileUtil profileUtil) {
-        return new ServiceSecurityInterceptor(jwtManager, profileUtil);
+    public ServiceSecurityInterceptor serviceSecurityInterceptor(JwtManager jwtManager, SpringProfile springProfile) {
+        return new ServiceSecurityInterceptor(jwtManager, springProfile);
     }
 }

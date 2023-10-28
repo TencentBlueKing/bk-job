@@ -22,22 +22,77 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+import java.util.List;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
+/**
+ * 定时任务
+ */
+@Getter
+@Setter
+@ToString
+public class EsbCronInfoV3DTO extends EsbAppScopeDTO {
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
+    /**
+     * 作业模板 ID
+     */
+    @JsonProperty("job_plan_id")
+    private Long planId;
+
+    /**
+     * 定时作业ID
+     */
+    private Long id;
+
+    /**
+     * 定时作业名称
+     */
+    private String name;
+
+    /**
+     * 定时作业状态：1.已启动、2.已暂停
+     */
+    private Integer status;
+
+    /**
+     * 定时任务的 cron 表达式
+     */
+    @JsonProperty("expression")
+    private String cronExpression;
+
+    /**
+     * 定时任务的变量信息
+     */
+    @JsonProperty("global_var_list")
+    private List<EsbGlobalVarV3DTO> globalVarList;
+
+    /**
+     * 作业创建人帐号
+     */
+    private String creator;
+
+    /**
+     * 创建时间，毫秒时间戳
+     */
+    @JsonProperty("create_time")
+    private Long createTime;
+
+    /**
+     * 作业修改人帐号
+     */
+    @JsonProperty("last_modify_user")
+    private String lastModifyUser;
+
+    /**
+     * 最后修改时间，毫秒时间戳
+     */
+    @JsonProperty("last_modify_time")
+    private Long lastModifyTime;
+
 }

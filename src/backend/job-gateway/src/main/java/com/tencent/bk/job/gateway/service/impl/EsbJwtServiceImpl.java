@@ -123,6 +123,11 @@ public class EsbJwtServiceImpl implements EsbJwtService {
 
     @Override
     public EsbJwtInfo extractFromJwt(String token) {
+        return extractFromJwt(token, this.publicKey);
+    }
+
+    @Override
+    public EsbJwtInfo extractFromJwt(String token, PublicKey publicKey) {
         long start = System.currentTimeMillis();
         EsbJwtInfo cacheJwtInfo = tokenCache.getIfPresent(token);
         if (cacheJwtInfo != null) {

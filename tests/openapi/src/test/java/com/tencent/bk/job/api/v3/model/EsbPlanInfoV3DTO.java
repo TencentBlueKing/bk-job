@@ -22,22 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+import java.util.List;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
+/**
+ * @since 17/11/2020 16:25
+ */
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class EsbPlanInfoV3DTO extends EsbPlanBasicInfoV3DTO {
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
+    /**
+     * 步骤信息
+     */
+    @JsonProperty("step_list")
+    private List<EsbStepV3DTO> stepList;
+
+    /**
+     * 全局变量信息
+     */
+    @JsonProperty("global_var_list")
+    private List<EsbGlobalVarV3DTO> globalVarList;
 }

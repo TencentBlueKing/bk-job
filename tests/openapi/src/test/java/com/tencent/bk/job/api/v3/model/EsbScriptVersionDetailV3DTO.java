@@ -22,22 +22,55 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+@Getter
+@Setter
+@ToString
+public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
+    /**
+     * 脚本版本ID
+     */
+    private Long id;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
+    @JsonProperty("script_id")
+    private String scriptId;
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
+    /**
+     * 脚本名称
+     */
+    private String name;
+
+    private String version;
+
+    private String content;
+
+    private Integer status;
+
+    @JsonProperty("version_desc")
+    private String versionDesc;
+
+    private String creator;
+
+    @JsonProperty("create_time")
+    private Long createTime;
+
+    @JsonProperty("last_modify_user")
+    private String lastModifyUser;
+
+    @JsonProperty("last_modify_time")
+    private Long lastModifyTime;
+
+    @JsonProperty("script_language")
+    private Integer type;
+
+    /**
+     * 脚本描述
+     */
+    private String description;
 }

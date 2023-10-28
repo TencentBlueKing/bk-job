@@ -22,22 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+/**
+ * 滚动执行配置
+ */
+@Data
+public class EsbRollingConfigDTO {
+    /**
+     * 滚动分批策略表达式
+     */
+    private String expression;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
+    /**
+     * 滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认
+     *
+     */
+    private Integer mode;
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
 }

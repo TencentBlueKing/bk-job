@@ -22,22 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+/**
+ * 执行方案基础信息
+ *
+ * @since 15/10/2020 17:54
+ */
+@Data
+@NoArgsConstructor
+public class EsbPlanBasicInfoV3DTO extends EsbAppScopeDTO {
+    /**
+     * 执行方案 ID
+     */
+    private Long id;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
+    /**
+     * 作业模版 ID
+     */
+    @JsonProperty("job_template_id")
+    private Long templateId;
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
+    /**
+     * 执行方案名称
+     */
+    private String name;
+
+    /**
+     * 创建人
+     */
+    private String creator;
+
+    /**
+     * 创建时间
+     */
+    @JsonProperty("create_time")
+    private Long createTime;
+
+    /**
+     * 最后更新人
+     */
+    @JsonProperty("last_modify_user")
+    private String lastModifyUser;
+
+    /**
+     * 最后更新时间
+     */
+    @JsonProperty("last_modify_time")
+    private Long lastModifyTime;
 }

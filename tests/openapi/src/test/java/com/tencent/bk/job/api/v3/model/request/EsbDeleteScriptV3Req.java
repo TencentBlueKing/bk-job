@@ -22,22 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model.request;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+/**
+ * 删除脚本请求
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EsbDeleteScriptV3Req extends EsbAppScopeReq {
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
-
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
+    /**
+     * 脚本ID
+     */
+    @JsonProperty("script_id")
+    private String scriptId;
 }

@@ -22,22 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.constant;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+/**
+ * JOB资源状态
+ */
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+public enum JobResourceStatusEnum {
+    /**
+     * 未上线
+     */
+    DRAFT(0),
+    /**
+     * 已上线
+     */
+    ONLINE(1),
+    /**
+     * 已下线
+     */
+    OFFLINE(2),
+    /**
+     * 禁用
+     */
+    DISABLED(3);
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
+    private final int status;
+
+    JobResourceStatusEnum(int status) {
+        this.status = status;
     }
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
+    public int getValue() {
+        return status;
     }
 }

@@ -22,22 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.constant;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+/**
+ * 资源范围类型
+ */
+public enum ResourceScopeTypeEnum {
+    /**
+     * CMDB业务
+     */
+    BIZ("biz"),
+    /**
+     * CMDB业务集
+     */
+    BIZ_SET("biz_set");
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+    /**
+     * 资源范围类型
+     */
+    private final String value;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
+    ResourceScopeTypeEnum(String value) {
+        this.value = value;
     }
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
+    public String getValue() {
+        return value;
     }
 }
