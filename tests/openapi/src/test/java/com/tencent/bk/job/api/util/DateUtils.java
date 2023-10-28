@@ -85,7 +85,8 @@ public class DateUtils {
      * @param zone          时区；如果未传入，默认使用系统时区
      * @return UnixTimestamp
      */
-    public static long convertUnixTimestampFromDateTimeStr(String datetime, String pattern, ChronoUnit convertToUnit, ZoneId zone) {
+    public static long convertUnixTimestampFromDateTimeStr(String datetime, String pattern, ChronoUnit convertToUnit,
+                                                           ZoneId zone) {
         LocalDateTime localDateTime = LocalDateTime.parse(datetime, DateTimeFormatter.ofPattern(pattern));
         return convertUnixTimestampFromLocalDateTime(localDateTime, convertToUnit, zone);
     }
@@ -96,7 +97,8 @@ public class DateUtils {
      * @param zone          时区；如果未传入，默认使用系统时区
      * @return
      */
-    public static long convertUnixTimestampFromLocalDateTime(LocalDateTime datetime, ChronoUnit convertToUnit, ZoneId zone) {
+    public static long convertUnixTimestampFromLocalDateTime(LocalDateTime datetime, ChronoUnit convertToUnit,
+                                                             ZoneId zone) {
         if (convertToUnit != null && (convertToUnit != ChronoUnit.SECONDS && convertToUnit != ChronoUnit.MILLIS)) {
             throw new UnsupportedOperationException("Unsupported conversion with unit:" + convertToUnit.name());
         }
@@ -128,7 +130,8 @@ public class DateUtils {
         Instant now = Instant.now();
         ZoneOffset currentOffsetForMyZone = currentZone.getRules().getOffset(now);
 
-        LocalDateTime localDateTime = LocalDateTime.parse(datetime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime localDateTime = LocalDateTime.parse(datetime,
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         return new Timestamp(localDateTime.toInstant(currentOffsetForMyZone).toEpochMilli());
     }
 
@@ -170,8 +173,9 @@ public class DateUtils {
     }
 
     public static LocalDateTime convertFromMillSeconds(long millSeconds) {
-        return LocalDateTime.ofEpochSecond(millSeconds / 1000, (int) (millSeconds % 1000) * 1_000_000,
-                ZoneOffset.systemDefault().getRules().getOffset(Instant.now()));
+        return LocalDateTime.ofEpochSecond(millSeconds / 1000,
+            (int) (millSeconds % 1000) * 1_000_000,
+            ZoneOffset.systemDefault().getRules().getOffset(Instant.now()));
     }
 
     public static Timestamp to(LocalDateTime u) {
