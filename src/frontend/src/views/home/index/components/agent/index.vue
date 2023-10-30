@@ -37,17 +37,17 @@
     <div class="agent-statistics-detail">
       <div
         class="detail-item normal"
-        @click="handleShowAgentDetail('normal', agentInfo.normalNum)"
+        @click="handleShowAgentDetail('normal', agentInfo.aliveCount)"
         @mouseover="handlePieScale($t('home.正常'))">
         <span>{{ $t('home.正常') }}</span>
-        <span class="detail-value">{{ agentInfo.normalNum }}</span>
+        <span class="detail-value">{{ agentInfo.aliveCount }}</span>
       </div>
       <div
         class="detail-item fail"
-        @click="handleShowAgentDetail('fail', agentInfo.normalNum)"
+        @click="handleShowAgentDetail('fail', agentInfo.notAliveCount)"
         @mouseover="handlePieScale($t('home.异常'))">
         <span>{{ $t('home.异常') }}</span>
-        <span class="detail-value">{{ agentInfo.abnormalNum }}</span>
+        <span class="detail-value">{{ agentInfo.notAliveCount }}</span>
       </div>
     </div>
     <sideslider-box
@@ -110,7 +110,7 @@
         return statusListMap[this.statusType];
       },
       defaultHighlight() {
-        return (this.agentInfo.abnormalNum || !this.agentInfo.normalNum)
+        return (this.agentInfo.notAliveCount || !this.agentInfo.aliveCount)
           ? this.$t('home.异常')
           : this.$t('home.正常');
       },
@@ -215,7 +215,7 @@
               },
               data: [
                 {
-                  value: this.agentInfo.normalNum,
+                  value: this.agentInfo.aliveCount,
                   key: 'normal',
                   name: this.$t('home.正常'),
                   itemStyle: {
@@ -228,7 +228,7 @@
                   },
                 },
                 {
-                  value: this.agentInfo.abnormalNum,
+                  value: this.agentInfo.notAliveCount,
                   key: 'fail',
                   name: this.$t('home.异常'),
                   itemStyle: {
