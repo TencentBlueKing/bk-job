@@ -22,22 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+import java.util.List;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
+/**
+ * 文件分发步骤
+ *
+ */
+@Data
+@NoArgsConstructor
+public class EsbFileStepV3DTO {
+    /**
+     * 源文件列表
+     */
+    @JsonProperty("file_source_list")
+    private List<EsbFileSourceV3DTO> fileSourceList;
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
+    /**
+     * 分发目标信息
+     */
+    @JsonProperty("file_destination")
+    private EsbFileDestinationV3DTO fileDestination;
+
+    /**
+     * 超时
+     */
+    private Long timeout;
+
+    /**
+     * 源机器上传限速
+     */
+    @JsonProperty("source_speed_limit")
+    private Long sourceSpeedLimit;
+
+    /**
+     * 目标机器下载限速
+     */
+    @JsonProperty("destination_speed_limit")
+    private Long destinationSpeedLimit;
+
+    /**
+     * 传输模式
+     */
+    @JsonProperty("transfer_mode")
+    private Integer transferMode;
 }

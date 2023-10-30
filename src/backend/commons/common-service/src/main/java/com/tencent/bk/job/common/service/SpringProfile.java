@@ -24,20 +24,52 @@
 
 package com.tencent.bk.job.common.service;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
+public class SpringProfile implements ApplicationContextAware {
+
+    private static ApplicationContext context = null;
+    private transient Boolean isDevProfile;
+
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext)
+        throws BeansException {
+        context = applicationContext;
     }
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
+    public List<String> getActiveProfiles() {
+        String[] profiles = context.getEnvironment().getActiveProfiles();
+        if (!ArrayUtils.isEmpty(profiles)) {
+            return Arrays.asList(profiles);
+        }
+        return new ArrayList<>();
     }
+
+    public boolean isProfileActive(String profile) {
+        String[] activeProfiles = context.getEnvironment().getActiveProfiles();
+        for (String activeProfile : activeProfiles) {
+            if (activeProfile.equals(profile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isDevProfileActive() {
+        if (isDevProfile != null) {
+            return isDevProfile;
+        }
+        isDevProfile = isProfileActive("dev") || isProfileActive("local");
+        return isDevProfile;
+    }
+
+
 }

@@ -22,22 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.constant;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+@Getter
+public enum ScriptTypeEnum {
+    /**
+     * 脚本类型枚举类
+     */
+    SHELL(1, "shell", ".sh"),
+    BAT(2, "bat", ".bat"),
+    PERL(3, "perl", ".pl"),
+    PYTHON(4, "python", ".py"),
+    POWERSHELL(5, "powershell", ".ps1"),
+    SQL(6, "sql", ".sql");
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
+    private final Integer value;
+    private final String name;
+    private final String ext;
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
+    ScriptTypeEnum(Integer type, String name, String ext) {
+        this.value = type;
+        this.name = name;
+        this.ext = ext;
     }
 }

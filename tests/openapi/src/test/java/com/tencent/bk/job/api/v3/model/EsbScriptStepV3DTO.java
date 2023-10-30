@@ -22,22 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
+@Data
+@NoArgsConstructor
+public class EsbScriptStepV3DTO {
+    @JsonProperty("script_type")
+    private Integer type;
 
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
+    @JsonProperty("script_id")
+    private String scriptId;
 
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
+    @JsonProperty("script_version_id")
+    private Long scriptVersionId;
+
+    @JsonProperty("script_content")
+    private String content;
+
+    @JsonProperty("script_language")
+    private Integer language;
+
+    @JsonProperty("script_param")
+    private String scriptParam;
+
+    @JsonProperty("script_timeout")
+    private Long scriptTimeout;
+
+    private EsbAccountV3BasicDTO account;
+
+    private EsbServerV3DTO server;
+
+    @JsonProperty("is_param_sensitive")
+    private Integer secureParam;
 }

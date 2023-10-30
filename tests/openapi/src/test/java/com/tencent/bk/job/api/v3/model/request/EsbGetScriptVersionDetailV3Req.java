@@ -22,22 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service;
+package com.tencent.bk.job.api.v3.model.request;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Configuration(proxyBeanMethods = false)
-public class CommonServiceAutoConfiguration {
-
-    @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
-    }
-
-    @Bean
-    public SpringProfile springProfile() {
-        return new SpringProfile();
-    }
+/**
+ * 查询脚本详情请求
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EsbGetScriptVersionDetailV3Req extends EsbAppScopeReq {
+    /**
+     * 脚本版本ID，若传入则以此条件为准屏蔽其他条件
+     */
+    private Long id;
+    /**
+     * 脚本ID（可与version一起传入定位某个脚本版本）
+     */
+    @JsonProperty("script_id")
+    private String scriptId;
+    /**
+     * 脚本版本（可与script_id一起传入定位某个脚本版本）
+     */
+    private String version;
 }
