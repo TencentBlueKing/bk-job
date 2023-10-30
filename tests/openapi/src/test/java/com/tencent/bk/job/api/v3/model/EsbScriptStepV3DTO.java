@@ -28,9 +28,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * @since 17/11/2020 20:37
- */
 @Data
 @NoArgsConstructor
 public class EsbScriptStepV3DTO {

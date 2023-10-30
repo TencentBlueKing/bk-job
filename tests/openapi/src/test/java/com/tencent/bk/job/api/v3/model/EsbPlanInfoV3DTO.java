@@ -31,9 +31,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-/**
- * @since 17/11/2020 16:25
- */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
