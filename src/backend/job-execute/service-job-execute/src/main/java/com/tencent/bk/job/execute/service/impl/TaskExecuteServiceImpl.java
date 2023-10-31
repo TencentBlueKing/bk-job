@@ -28,6 +28,7 @@ import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.audit.context.AuditContext;
 import com.tencent.bk.audit.utils.AuditInstanceUtils;
 import com.tencent.bk.job.common.audit.JobAuditAttributeNames;
+import com.tencent.bk.job.common.audit.JobAuditExtendDataKeys;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -319,7 +320,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 审计
             Set<HostDTO> allHosts = extractHosts(Collections.singletonList(stepInstance), null);
             taskInstance.setAllHosts(allHosts);
-            addFastJobExecuteAuditInstance(taskInstance);
+            auditFastJobExecute(taskInstance);
 
             return taskInstance;
         } finally {
@@ -388,6 +389,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return hostAllowActionsMap;
     }
 
+    private void auditFastJobExecute(TaskInstanceDTO taskInstance) {
+        addFastJobExecuteAuditInstance(taskInstance);
+        addJobInstanceInfoToExtendData(taskInstance);
+    }
+
     private void addFastJobExecuteAuditInstance(TaskInstanceDTO taskInstance) {
         setHostAuditInstances(taskInstance.getAllHosts());
         // 快速执行任务，只有单个步骤
@@ -412,11 +418,21 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             );
     }
 
+    private void auditJobPlanExecute(TaskInstanceDTO taskInstance) {
+        addExecuteJobPlanAuditInstance(taskInstance);
+        addJobInstanceInfoToExtendData(taskInstance);
+    }
+
     private void addExecuteJobPlanAuditInstance(TaskInstanceDTO taskInstance) {
         setHostAuditInstances(taskInstance.getAllHosts());
         ActionAuditContext.current()
             .addAttribute(JobAuditAttributeNames.PLAN_ID, taskInstance.getPlanId())
             .addAttribute(JobAuditAttributeNames.PLAN_NAME, taskInstance.getPlan().getName());
+    }
+
+    private void addJobInstanceInfoToExtendData(TaskInstanceDTO taskInstance) {
+        ActionAuditContext.current()
+            .addExtendData(JobAuditExtendDataKeys.JOB_INSTANCE_ID, taskInstance.getId());
     }
 
     private void saveTaskInstanceHosts(long taskInstanceId,
@@ -1333,7 +1349,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return actionAuditContext.wrapActionCallable(() -> {
             TaskInstanceDTO taskInstance = executeJobPlanInternal(watch, executeParam, taskInfo);
             if (!plan.isDebugTask()) {
-                addExecuteJobPlanAuditInstance(taskInstance);
+                auditJobPlanExecute(taskInstance);
+            } else {
+                addJobInstanceInfoToExtendData(taskInstance);
             }
             return taskInstance;
         }).call();
