@@ -45,6 +45,7 @@ import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
@@ -1317,6 +1318,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 作业模版调试
             actionAuditContext = ActionAuditContext.builder(ActionId.DEBUG_JOB_TEMPLATE)
                 .setContent(EventContentConstants.DEBUG_JOB_TEMPLATE)
+                .setResourceType(ResourceTypeId.TEMPLATE)
                 .setInstanceId(String.valueOf(plan.getTaskTemplateId()))
                 .setInstanceName(taskTemplateResource.getTemplateNameById(plan.getTaskTemplateId()).getData())
                 .build();
