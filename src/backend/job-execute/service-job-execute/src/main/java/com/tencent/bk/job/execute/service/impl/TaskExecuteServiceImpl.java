@@ -179,7 +179,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final AppScopeMappingService appScopeMappingService;
     private final WhiteHostCache whiteHostCache;
-    private ServiceTaskTemplateResource taskTemplateResource;
+    private final ServiceTaskTemplateResource taskTemplateResource;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
