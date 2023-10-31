@@ -22,42 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.audit;
-
-import com.tencent.bk.audit.DefaultAuditEventBuilder;
-import com.tencent.bk.audit.context.ActionAuditContext;
-import com.tencent.bk.audit.model.AuditEvent;
-import com.tencent.bk.audit.utils.AuditInstanceUtils;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
-
-import java.util.Collections;
-import java.util.List;
+package com.tencent.bk.job.common.audit;
 
 /**
- * 作业执行事件生成
+ * 审计事件-扩展数据-KEY 定义
  */
-public class ExecuteJobAuditEventBuilder extends DefaultAuditEventBuilder {
-    private final ActionAuditContext actionAuditContext;
-
-    public ExecuteJobAuditEventBuilder() {
-        this.actionAuditContext = ActionAuditContext.current();
-    }
-
-    @Override
-    public List<AuditEvent> build() {
-        AuditEvent auditEvent = buildBasicAuditEvent();
-
-        // 事件实例
-        auditEvent.setResourceTypeId(ResourceTypeId.HOST);
-        auditEvent.setInstanceId(AuditInstanceUtils.extractInstanceIds(actionAuditContext.getInstanceIdList(),
-            instance -> instance));
-        auditEvent.setInstanceName(AuditInstanceUtils.extractInstanceIds(actionAuditContext.getInstanceNameList(),
-            instance -> instance));
-
-        // 事件描述
-        auditEvent.setContent(resolveAttributes(actionAuditContext.getContent(), actionAuditContext.getAttributes()));
-        auditEvent.setExtendData(actionAuditContext.getExtendData());
-
-        return Collections.singletonList(auditEvent);
-    }
+public interface JobAuditExtendDataKeys {
+    /**
+     * 作业实例 ID
+     */
+    String JOB_INSTANCE_ID = "job_instance_id";
 }
