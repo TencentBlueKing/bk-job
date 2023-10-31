@@ -22,54 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.util;
+package com.tencent.bk.job.api.v3.model.request;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.api.model.BaseEsbReq;
+import com.tencent.bk.job.api.v3.model.HostDTO;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class ProfileUtil implements ApplicationContextAware {
+@Getter
+@Setter
+@ToString
+public class EsbBatchGetJobInstanceIpLogV3Request extends BaseEsbReq {
+    /**
+     * 业务 ID
+     */
+    @JsonProperty("bk_biz_id")
+    private Long appId;
 
-    private static ApplicationContext context = null;
-    private transient Boolean isDevProfile;
+    /**
+     * 作业执行实例 ID
+     */
+    @JsonProperty("job_instance_id")
+    private Long taskInstanceId;
 
+    /**
+     * 作业步骤实例ID
+     */
+    @JsonProperty("step_instance_id")
+    private Long stepInstanceId;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext)
-        throws BeansException {
-        context = applicationContext;
-    }
-
-    public List<String> getActiveProfiles() {
-        String[] profiles = context.getEnvironment().getActiveProfiles();
-        if (!ArrayUtils.isEmpty(profiles)) {
-            return Arrays.asList(profiles);
-        }
-        return new ArrayList<>();
-    }
-
-    public boolean isProfileActive(String profile) {
-        String[] activeProfiles = context.getEnvironment().getActiveProfiles();
-        for (String activeProfile : activeProfiles) {
-            if (activeProfile.equals(profile)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean isDevProfileActive() {
-        if (isDevProfile != null) {
-            return isDevProfile;
-        }
-        isDevProfile = isProfileActive("dev") || isProfileActive("local");
-        return isDevProfile;
-    }
-
-
+    /**
+     * 目标服务器IP列表
+     */
+    @JsonProperty("ip_list")
+    private List<HostDTO> ipList;
 }

@@ -25,6 +25,9 @@
 package com.tencent.bk.job.gateway.filter.esb;
 
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.crypto.util.RSAUtils;
+import com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties;
+import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
 import com.tencent.bk.job.gateway.service.EsbJwtService;
@@ -45,12 +48,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class CheckEsbJwtGatewayFilterFactory
     extends AbstractGatewayFilterFactory<CheckEsbJwtGatewayFilterFactory.Config> {
-    private EsbJwtService esbJwtService;
+    private final EsbJwtService esbJwtService;
+    private final SpringProfile springProfile;
+    private final ServiceSecurityProperties securityProperties;
 
     @Autowired
-    public CheckEsbJwtGatewayFilterFactory(EsbJwtService esbJwtService) {
+    public CheckEsbJwtGatewayFilterFactory(EsbJwtService esbJwtService,
+                                           SpringProfile springProfile,
+                                           ServiceSecurityProperties securityProperties) {
         super(Config.class);
         this.esbJwtService = esbJwtService;
+        this.springProfile = springProfile;
+        this.securityProperties = securityProperties;
     }
 
     @Override
@@ -58,13 +67,23 @@ public class CheckEsbJwtGatewayFilterFactory
         return (exchange, chain) -> {
             ServerHttpResponse response = exchange.getResponse();
             ServerHttpRequest request = exchange.getRequest();
+
             String token = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_JWT);
             if (StringUtils.isEmpty(token)) {
                 log.warn("Esb token is empty!");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
-            EsbJwtInfo authInfo = esbJwtService.extractFromJwt(token);
+
+            EsbJwtInfo authInfo;
+            if (isOpenApiTestActive(request)) {
+                // 如果是 OpenApi 测试请求，使用 Job 的 JWT 认证方式，不使用 ESB JWT（避免依赖 ESB)
+                authInfo = esbJwtService.extractFromJwt(token,
+                    RSAUtils.getPublicKey(securityProperties.getPublicKeyBase64()));
+            } else {
+                authInfo = esbJwtService.extractFromJwt(token);
+            }
+
             if (authInfo == null) {
                 log.warn("Untrusted esb request, request-id:{}", RequestUtil.getHeaderValue(request,
                     JobCommonHeaders.BK_GATEWAY_REQUEST_ID));
@@ -77,6 +96,14 @@ public class CheckEsbJwtGatewayFilterFactory
             request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    private boolean isOpenApiTestActive(ServerHttpRequest request) {
+        if (!springProfile.isProfileActive("openApiTestEnv")) {
+            return false;
+        }
+        String value = RequestUtil.getHeaderValue(request, "X-JOB-OPENAPI-TEST");
+        return StringUtils.isNotEmpty(value) && value.equalsIgnoreCase("true");
     }
 
     static class Config {
