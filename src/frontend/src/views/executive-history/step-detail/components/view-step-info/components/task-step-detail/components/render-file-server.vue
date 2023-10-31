@@ -26,18 +26,18 @@
 -->
 
 <template>
-  <div class="render-file-server">
+  <div class="execute-history-file-server">
     <div
       class="server-agent-text"
       @click="handlerView"
       v-html="data.serverDesc" />
     <jb-dialog
       v-model="isShowDetail"
-      class="step-view-server-detail-dialog"
+      class="execute-distory-step-view-server-detail-dialog"
       :ok-text="$t('template.关闭')"
       :width="1020">
       <template #header>
-        <div class="variable-title">
+        <div class="title">
           <span>{{ $t('template.服务器文件-服务器列表') }}</span>
           <i
             class="dialog-close-btn bk-icon icon-close"
@@ -47,9 +47,9 @@
       <div class="content-wraper">
         <scroll-faker>
           <ip-selector
+            :complete-host-list="hostsDetails(hostNodeInfo.hostList)"
             readonly
-            show-view
-            :value="hostNodeInfo" />
+            show-view />
         </scroll-faker>
       </div>
       <template #footer>
@@ -60,43 +60,35 @@
     </jb-dialog>
   </div>
 </template>
-<script>
-  import TaskHostNodeModel from '@model/task-host-node';
+<script setup>
+  import {
+    ref,
+    shallowRef,
+  } from 'vue';
 
+  import { hostsDetails } from '@components/ip-selector/adapter';
   import ScrollFaker from '@components/scroll-faker';
 
-  export default {
-    name: '',
-    components: {
-      ScrollFaker,
+  const props = defineProps({
+    data: {
+      type: Object,
+      required: true,
     },
-    props: {
-      data: {
-        type: Object,
-        required: true,
-      },
-    },
-    data() {
-      const { hostNodeInfo } = new TaskHostNodeModel({});
-      return {
-        isShowDetail: false,
-        hostNodeInfo,
-      };
-    },
+  });
 
-    methods: {
-      handlerView() {
-        this.hostNodeInfo = this.data.host.hostNodeInfo;
-        this.isShowDetail = true;
-      },
-      handleClose() {
-        this.isShowDetail = false;
-      },
-    },
+  const isShowDetail = ref(false);
+  const hostNodeInfo = shallowRef({});
+
+  const handlerView = () => {
+    hostNodeInfo.value = props.data.host.hostNodeInfo;
+    isShowDetail.value = true;
+  };
+  const handleClose = () =>  {
+    isShowDetail.value = false;
   };
 </script>
 <style lang='postcss'>
-  .render-file-server {
+  .execute-history-file-server {
     min-height: 30px;
     padding: 5px;
     margin-left: -10px;
@@ -117,7 +109,11 @@
     }
   }
 
-  .step-view-server-detail-dialog {
+  .execute-distory-step-view-server-detail-dialog {
+    .ip-selector-view-host{
+      margin-top: 0 !important;
+    }
+
     .bk-dialog-tool {
       display: none;
     }
@@ -164,7 +160,7 @@
       display: none;
     }
 
-    .variable-title {
+    .title {
       position: relative;
       height: 68px;
       padding-top: 0;

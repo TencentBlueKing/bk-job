@@ -42,7 +42,9 @@
             {{ stepTypeText }}
           </div>
           <div class="step-name-box">
-            <div class="step-name-text">
+            <div
+              v-bk-overflow-tips
+              class="step-name-text">
               {{ data.name }}
             </div>
             <execution-history-select
@@ -206,7 +208,7 @@
   import TaskStatus from './components/task-status';
   import ViewGlobalVariable from './components/view-global-variable';
   import ViewOperationRecord from './components/view-operation-record';
-  import ViewStepInfo from './components/view-step-info';
+  import ViewStepInfo from './components/view-step-info/index.vue';
 
   const appendURLParams = (params = {}) => {
     const curSearchParams = new URLSearchParams(window.location.search);
@@ -743,12 +745,15 @@
   .executive-history-step {
     .step-info-header {
       display: flex;
+      width: 100%;
       padding: 45px 24px 12px;
+      overflow: hidden;
       background: #f5f6fa;
 
       .step-info-wraper {
         flex: 1;
         margin-top: -25px;
+        overflow: hidden;
 
         .step-type-text {
           font-size: 12px;
