@@ -112,7 +112,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             ExecuteMetricsConstants.TAG_KEY_START_MODE, ExecuteMetricsConstants.TAG_VALUE_START_MODE_WEB,
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_EXECUTE_PLAN
         })
-    @AuditEntry(actionId = ActionId.LAUNCH_JOB_PLAN)
+    @AuditEntry
     public Response<TaskExecuteVO> executeTask(String username,
                                                AppResourceScope appResourceScope,
                                                String scopeType,
