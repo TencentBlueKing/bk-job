@@ -8,3 +8,6 @@ spring:
       discovery:
         enabled: false
       enabled: false
+    kubernetes:
+      discovery:
+        enabled: false
