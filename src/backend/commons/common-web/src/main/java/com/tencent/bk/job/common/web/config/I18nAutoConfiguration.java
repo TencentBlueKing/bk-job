@@ -22,19 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.i18n;
+package com.tencent.bk.job.common.web.config;
 
+import com.tencent.bk.job.common.web.i18n.JobLangHeaderLocaleResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.util.Locale;
 
-@Configuration
+/**
+ * 国际化自动配置。由于需要覆盖 LocaleResolver， 所以必须比 WebMvcAutoConfiguration 先解析
+ */
 @Slf4j
-public class I18nConfig {
-
+@AutoConfigureBefore(WebMvcAutoConfiguration.class)
+public class I18nAutoConfiguration {
     @Bean("localeResolver")
+    @Primary
     public JobLangHeaderLocaleResolver localeResolver() {
         log.info("Init JobLangHeaderLocaleResolver");
         JobLangHeaderLocaleResolver resolver = new JobLangHeaderLocaleResolver();
@@ -42,4 +48,3 @@ public class I18nConfig {
         return resolver;
     }
 }
-
