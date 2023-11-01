@@ -28,8 +28,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.execute.config.GseConfig;
 import com.tencent.bk.job.execute.engine.consts.Consts;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.service.AgentService;
@@ -38,6 +40,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -74,7 +77,8 @@ public class AgentServiceImpl implements AgentService {
             );
 
     @Autowired
-    public AgentServiceImpl(AgentStateClient agentStateClient,
+    public AgentServiceImpl(@Qualifier(GseConfig.EXECUTE_BEAN_AGENT_STATE_CLIENT)
+                                AgentStateClient agentStateClient,
                             HostService hostService) {
         this.agentStateClient = agentStateClient;
         this.hostService = hostService;
@@ -132,7 +136,7 @@ public class AgentServiceImpl implements AgentService {
                 log.error("Invalid host for ip: {}", physicalMachineMultiIp);
                 return null;
             }
-            return toHostDTO(host);
+            return ServiceHostDTO.toHostDTO(host);
         }
     }
 
@@ -151,6 +155,7 @@ public class AgentServiceImpl implements AgentService {
         return aliveHost;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private List<HostDTO> buildHostIps(Long cloudAreaId, String multiIpv4) {
         if (StringUtils.isBlank(multiIpv4)) {
             return Collections.emptyList();
@@ -191,20 +196,36 @@ public class AgentServiceImpl implements AgentService {
      * @return Agent存活的第一个主机或者Null
      */
     private ServiceHostDTO findOneAliveHost(Collection<ServiceHostDTO> serviceHosts) {
-        Map<String, ServiceHostDTO> agentIdToHostMap = new HashMap<>();
+        if (CollectionUtils.isEmpty(serviceHosts)) {
+            return null;
+        }
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(serviceHosts.size());
+        Map<String, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(serviceHosts.size());
+        for (ServiceHostDTO serviceHost : serviceHosts) {
+            if (serviceHost == null) {
+                continue;
+            }
+            HostAgentStateQuery query = new HostAgentStateQuery();
+            query.setHostId(serviceHost.getHostId());
+            query.setBizId(serviceHost.getBizId());
+            query.setCloudIp(serviceHost.getCloudIp());
+            query.setAgentId(serviceHost.getAgentId());
+            hostAgentStateQueryList.add(query);
+            hostAgentStateQueryMap.put(serviceHost.getHostIdOrCloudIp(), query);
+        }
+        Map<String, Boolean> agentStatusMap = agentStateClient.batchGetAgentAliveStatus(hostAgentStateQueryList);
 
-        serviceHosts.forEach(serviceHost -> agentIdToHostMap.put(
-            StringUtils.isNotEmpty(serviceHost.getAgentId()) ? serviceHost.getAgentId()
-                : serviceHost.getCloudIp(),
-            serviceHost)
+        Map<String, ServiceHostDTO> effectiveAgentIdToHostMap = new HashMap<>();
+        serviceHosts.forEach(serviceHost -> {
+                HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(serviceHost.getHostIdOrCloudIp());
+                String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+                effectiveAgentIdToHostMap.put(effectiveAgentId, serviceHost);
+            }
         );
-        Map<String, Boolean> agentStatusMap =
-            agentStateClient.batchGetAgentAliveStatus(new ArrayList<>(agentIdToHostMap.keySet()));
-
         List<ServiceHostDTO> aliveHosts = new ArrayList<>();
-        agentStatusMap.forEach((agentId, status) -> {
+        agentStatusMap.forEach((effectiveAgentId, status) -> {
             if (status != null && status) {
-                aliveHosts.add(agentIdToHostMap.get(agentId));
+                aliveHosts.add(effectiveAgentIdToHostMap.get(effectiveAgentId));
             }
         });
         if (CollectionUtils.isEmpty(aliveHosts)) {

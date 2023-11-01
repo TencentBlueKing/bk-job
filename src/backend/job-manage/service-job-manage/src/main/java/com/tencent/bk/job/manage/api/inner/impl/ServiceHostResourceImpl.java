@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6R
 import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizTopoHostService;
+import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
 import lombok.extern.slf4j.Slf4j;
@@ -67,18 +68,21 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     private final HostService hostService;
     private final BizTopoHostService bizTopoHostService;
     private final BizDynamicGroupHostService bizDynamicGroupHostService;
+    private final HostDetailService hostDetailService;
 
     @Autowired
     public ServiceHostResourceImpl(AppScopeMappingService appScopeMappingService,
                                    ApplicationService applicationService,
                                    HostService hostService,
                                    BizTopoHostService bizTopoHostService,
-                                   BizDynamicGroupHostService bizDynamicGroupHostService) {
+                                   BizDynamicGroupHostService bizDynamicGroupHostService,
+                                   HostDetailService hostDetailService) {
         this.appScopeMappingService = appScopeMappingService;
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.bizTopoHostService = bizTopoHostService;
         this.bizDynamicGroupHostService = bizDynamicGroupHostService;
+        this.hostDetailService = hostDetailService;
     }
 
     @Override
@@ -119,10 +123,10 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             dynamicGroupIdList
         );
         Set<ServiceHostStatusDTO> hostStatusDTOSet = new HashSet<>();
-        hostList.forEach(hostInfoVO -> {
+        hostList.forEach(applicationHostDTO -> {
             ServiceHostStatusDTO serviceHostStatusDTO = new ServiceHostStatusDTO();
-            serviceHostStatusDTO.setHostId(hostInfoVO.getHostId());
-            serviceHostStatusDTO.setAlive(hostInfoVO.getGseAgentAlive() ? 1 : 0);
+            serviceHostStatusDTO.setHostId(applicationHostDTO.getHostId());
+            serviceHostStatusDTO.setAlive(applicationHostDTO.getGseAgentAlive() ? 1 : 0);
             hostStatusDTOSet.add(serviceHostStatusDTO);
         });
         return InternalResponse.buildSuccessResp(new ArrayList<>(hostStatusDTOSet));
@@ -148,8 +152,12 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     public InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(Long appId,
                                                                           ServiceBatchGetAppHostsReq req) {
         req.validate();
-        return InternalResponse.buildSuccessResp(
-            hostService.listAppHostsPreferCache(appId, req.getHosts(), req.isRefreshAgentId()));
+        ServiceListAppHostResultDTO result =
+            hostService.listAppHostsPreferCache(appId, req.getHosts(), req.isRefreshAgentId());
+        if (CollectionUtils.isNotEmpty(result.getValidHosts())) {
+            hostDetailService.fillDetailForHosts(result.getValidHosts());
+        }
+        return InternalResponse.buildSuccessResp(result);
     }
 
     @Override
@@ -159,6 +167,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
+        hostDetailService.fillDetailForApplicationHosts(hosts);
 
         return InternalResponse.buildSuccessResp(
             hosts.stream()
@@ -172,7 +181,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
-
+        hostDetailService.fillDetailForApplicationHosts(hosts);
         return InternalResponse.buildSuccessResp(
             hosts.stream()
                 .map(ServiceHostDTO::fromApplicationHostDTO)

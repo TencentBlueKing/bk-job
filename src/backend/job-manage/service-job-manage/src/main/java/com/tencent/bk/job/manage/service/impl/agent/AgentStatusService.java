@@ -26,19 +26,23 @@ package com.tencent.bk.job.manage.service.impl.agent;
 
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.util.LogUtil;
+import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +56,7 @@ public class AgentStatusService {
     private final AgentStateClient agentStateClient;
 
     @Autowired
-    public AgentStatusService(AgentStateClient agentStateClient) {
+    public AgentStatusService(@Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT) AgentStateClient agentStateClient) {
         this.agentStateClient = agentStateClient;
     }
 
@@ -61,17 +65,27 @@ public class AgentStatusService {
      *
      * @param hosts 主机列表
      */
+    @SuppressWarnings("DuplicatedCode")
     public void fillRealTimeAgentStatus(List<ApplicationHostDTO> hosts) {
+        if (CollectionUtils.isEmpty(hosts)) {
+            return;
+        }
         // 查出节点下主机与Agent状态
-        List<String> agentIdList = ApplicationHostDTO.buildAgentIdList(hosts);
-        // 批量设置agent状态
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
+        Map<String, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
+        hosts.forEach(host -> {
+            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(host);
+            hostAgentStateQueryList.add(hostAgentStateQuery);
+            hostAgentStateQueryMap.put(host.getHostIdOrCloudIp(), hostAgentStateQuery);
+        });
+
         Map<String, AgentState> agentStateMap;
         try {
-            agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+            agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                "Fail to get agentState by agentIdList:{}",
-                LogUtil.buildListLog(agentIdList, 20)
+                "Fail to get agentState by hosts:{}",
+                LogUtil.buildListLog(hostAgentStateQueryList, 20)
             );
             log.warn(msg.getMessage(), e);
             return;
@@ -80,12 +94,14 @@ public class AgentStatusService {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
+        // 批量设置agent状态
         for (ApplicationHostDTO hostInfoDTO : hosts) {
             if (hostInfoDTO == null) {
                 continue;
             }
-            String agentId = hostInfoDTO.getFinalAgentId();
-            AgentState agentState = agentStateMap.get(agentId);
+            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(hostInfoDTO.getHostIdOrCloudIp());
+            String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            AgentState agentState = agentStateMap.get(effectiveAgentId);
             if (agentState == null) {
                 hostInfoDTO.setGseAgentStatus(null);
             } else {
@@ -99,35 +115,43 @@ public class AgentStatusService {
      *
      * @param hosts 主机列表
      */
+    @SuppressWarnings("DuplicatedCode")
     public List<HostSimpleDTO> findStatusChangedHosts(List<HostSimpleDTO> hosts) {
         List<HostSimpleDTO> statusChangedHosts = new ArrayList<>();
         if (hosts.isEmpty()) return statusChangedHosts;
 
-        List<String> agentIdList = HostSimpleDTO.buildAgentIdList(hosts);
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
+        Map<String, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
+        hosts.forEach(hostSimpleDTO -> {
+            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostSimpleDTO);
+            hostAgentStateQueryList.add(hostAgentStateQuery);
+            hostAgentStateQueryMap.put(hostSimpleDTO.getHostIdOrCloudIp(), hostAgentStateQuery);
+        });
         Map<String, AgentState> agentStateMap;
         try {
-            agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+            agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
-                "Fail to get agentState by agentIdList:{}",
-                LogUtil.buildListLog(agentIdList, 20)
+                "Fail to get agentState by hosts:{}",
+                LogUtil.buildListLog(hostAgentStateQueryList, 20)
             );
             log.warn(msg.getMessage(), e);
             return statusChangedHosts;
         }
 
         for (HostSimpleDTO host : hosts) {
-            String agentId = host.getFinalAgentId();
-            AgentState agentState = agentStateMap.get(agentId);
+            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host.getHostIdOrCloudIp());
+            String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            AgentState agentState = agentStateMap.get(effectiveAgentId);
             AgentAliveStatusEnum agentAliveStatus = AgentAliveStatusEnum.fromAgentState(agentState);
             int agentAliveStatusValue = agentAliveStatus.getStatusValue();
             if (host.getAgentAliveStatus() != agentAliveStatusValue) {
                 if (log.isDebugEnabled()) {
-                    log.debug("host {} status changed: {}->{}, agentId={}, agentState={}",
+                    log.debug("host {} status changed: {}->{}, effectiveAgentId={}, agentState={}",
                         host.getHostId(),
                         host.getAgentAliveStatus(),
                         agentAliveStatusValue,
-                        agentId,
+                        effectiveAgentId,
                         agentState
                     );
                 }
@@ -146,16 +170,16 @@ public class AgentStatusService {
      */
     public AgentStatistics calcAgentStatistics(List<ApplicationHostDTO> hosts) {
         fillRealTimeAgentStatus(hosts);
-        int normalNum = 0;
-        int abnormalNum = 0;
+        int aliveCount = 0;
+        int notAliveCount = 0;
         for (ApplicationHostDTO it : hosts) {
             Boolean alive = it.getGseAgentAlive();
             if (alive != null && alive) {
-                normalNum++;
+                aliveCount++;
             } else {
-                abnormalNum++;
+                notAliveCount++;
             }
         }
-        return new AgentStatistics(normalNum, abnormalNum);
+        return new AgentStatistics(aliveCount, notAliveCount);
     }
 }

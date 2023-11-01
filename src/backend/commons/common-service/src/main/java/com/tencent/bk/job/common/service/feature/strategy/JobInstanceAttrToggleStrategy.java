@@ -102,31 +102,34 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
         }
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
         if (requireAllGseV2AgentAvailable != null && requireAllGseV2AgentAvailable) {
+            assertRequiredContextParam(ctx, CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
             boolean isAllAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
             if (!isAllAgentV2Available) {
                 return false;
             }
         }
         if (requireAnyGseV2AgentAvailable != null && requireAnyGseV2AgentAvailable) {
+            assertRequiredContextParam(ctx, CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
             boolean isAnyAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
             if (!isAnyAgentV2Available) {
                 return false;
             }
         }
         if (CollectionUtils.isNotEmpty(startupModes)) {
+            assertRequiredContextParam(ctx, CTX_PARAM_STARTUP_MODE);
             String startupMode = (String) ctx.getParam(CTX_PARAM_STARTUP_MODE);
             if (!startupModes.contains(startupMode)) {
                 return false;
             }
         }
         if (CollectionUtils.isNotEmpty(operators)) {
+            assertRequiredContextParam(ctx, CTX_PARAM_OPERATOR);
             String operator = (String) ctx.getParam(CTX_PARAM_OPERATOR);
-            if (!operators.contains(operator)) {
-                return false;
-            }
+            return operators.contains(operator);
         }
         return true;
     }

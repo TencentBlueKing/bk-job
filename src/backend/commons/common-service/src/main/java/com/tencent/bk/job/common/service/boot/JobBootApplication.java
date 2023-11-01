@@ -49,7 +49,8 @@ import java.lang.annotation.Target;
 @Inherited
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@ComponentScan(nameGenerator = UniqueBeanNameGenerator.class,
+@ComponentScan(
+    nameGenerator = UniqueBeanNameGenerator.class,
     excludeFilters = {
         @ComponentScan.Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
         @ComponentScan.Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class)}

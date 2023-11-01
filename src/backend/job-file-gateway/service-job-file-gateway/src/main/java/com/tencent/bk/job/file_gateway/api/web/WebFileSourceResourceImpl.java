@@ -27,7 +27,6 @@ package com.tencent.bk.job.file_gateway.api.web;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -80,34 +79,8 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         }
     }
 
-    private void confirmIdExists(Integer id) {
-        if (id == null || id <= 0) {
-            throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"id"});
-        }
-    }
-
-    private void checkParam(Long appId, FileSourceCreateUpdateReq fileSourceCreateUpdateReq, boolean forCreate) {
-        Integer id = fileSourceCreateUpdateReq.getId();
-        String code = fileSourceCreateUpdateReq.getCode();
-        checkCodeBlank(code);
-        if (forCreate) {
-            // 创建
-            if (fileSourceService.existsCode(appId, code)) {
-                throw new FailedPreconditionException(
-                    ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS,
-                    new String[]{code}
-                );
-            }
-        } else {
-            // 更新
-            confirmIdExists(id);
-            if (fileSourceService.existsCodeExceptId(appId, code, id)) {
-                throw new FailedPreconditionException(
-                    ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS,
-                    new String[]{code}
-                );
-            }
-        }
+    private void checkParam(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+        checkCodeBlank(fileSourceCreateUpdateReq.getCode());
         if (StringUtils.isBlank(fileSourceCreateUpdateReq.getCredentialId())) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"credentialId"});
         }
@@ -134,8 +107,9 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         try {
             Long appId = appResourceScope.getAppId();
-            checkParam(appId, fileSourceCreateUpdateReq, true);
-            FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
+            checkParam(fileSourceCreateUpdateReq);
+            FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, null,
+                fileSourceCreateUpdateReq);
             FileSourceDTO createdFileSource = fileSourceService.saveFileSource(username, appId, fileSourceDTO);
             boolean registerResult = fileSourceAuthService.registerFileSource(
                 username, createdFileSource.getId(), fileSourceDTO.getAlias());
@@ -156,11 +130,12 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         AppResourceScope appResourceScope,
         String scopeType,
         String scopeId,
+        Integer id,
         @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         Long appId = appResourceScope.getAppId();
         log.info("Input=({},{},{})", username, appId, fileSourceCreateUpdateReq);
-        FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, fileSourceCreateUpdateReq);
-        checkParam(appId, fileSourceCreateUpdateReq, false);
+        FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, id, fileSourceCreateUpdateReq);
+        checkParam(fileSourceCreateUpdateReq);
 
         FileSourceDTO updateFileSource = fileSourceService.updateFileSourceById(username, appId, fileSourceDTO);
         return Response.buildSuccessResp(FileSourceDTO.toVO(updateFileSource));
@@ -263,11 +238,11 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         return Response.buildSuccessResp(fileSourceService.getFileSourceParams(appId, fileSourceTypeCode));
     }
 
-    private FileSourceDTO buildFileSourceDTO(String username, Long appId,
+    private FileSourceDTO buildFileSourceDTO(String username, Long appId, Integer fileSourceId,
                                              FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         FileSourceDTO fileSourceDTO = new FileSourceDTO();
         fileSourceDTO.setAppId(appId);
-        fileSourceDTO.setId(fileSourceCreateUpdateReq.getId());
+        fileSourceDTO.setId(fileSourceId);
         fileSourceDTO.setCode(fileSourceCreateUpdateReq.getCode());
         fileSourceDTO.setAlias(fileSourceCreateUpdateReq.getAlias());
         fileSourceDTO.setStatus(null);

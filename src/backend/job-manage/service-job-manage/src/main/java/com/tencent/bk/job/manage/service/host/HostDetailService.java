@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.host;
 
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,6 +43,13 @@ public interface HostDetailService {
      *
      * @param hostList 主机列表
      */
-    void fillDetailForHosts(List<ApplicationHostDTO> hostList);
+    void fillDetailForApplicationHosts(List<ApplicationHostDTO> hostList);
+
+    /**
+     * 为主机填充云区域、云厂商、系统类型名称等信息
+     *
+     * @param hostList 主机列表
+     */
+    void fillDetailForHosts(List<HostDTO> hostList);
 
 }

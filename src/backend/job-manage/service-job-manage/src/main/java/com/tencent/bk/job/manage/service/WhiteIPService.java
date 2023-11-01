@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
-import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
@@ -46,14 +45,6 @@ public interface WhiteIPService {
     PageData<WhiteIPRecordVO> listWhiteIPRecord(String username, String ipStr, String appIdStr, String appNameStr,
                                                 String actionScopeIdStr, String creator, String lastModifyUser,
                                                 Integer start, Integer pageSize, String orderField, Integer order);
-
-    /**
-     * 查找对业务生效的IP信息
-     *
-     * @param appId 业务Id
-     * @return 对业务生效的IP信息
-     */
-    List<CloudIPDTO> listWhiteIP(Long appId, ActionScopeEnum actionScope);
 
     /**
      * 查找对业务生效的IP对应的主机信息

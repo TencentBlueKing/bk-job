@@ -1,0 +1,73 @@
+buildscript {
+    repositories {
+        repositories {
+            maven { url "https://plugins.gradle.org/m2/" }
+            mavenCentral()
+        }
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
+        classpath "io.freefair.gradle:lombok-plugin:4.1.6"
+    }
+
+}
+
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+apply plugin: "io.freefair.lombok"
+group 'org.tencent.bk.job'
+version '1.0.0'
+
+allprojects {
+    repositories {
+        repositories {
+            mavenLocal()
+            maven { url "https://plugins.gradle.org/m2/" }
+            mavenCentral()
+        }
+    }
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+    tasks.withType(Javadoc) {
+        options.encoding("UTF-8")
+    }
+}
+
+dependencies {
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.10.0'
+    testImplementation 'com.fasterxml.jackson.core:jackson-core:2.9.9'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
+    testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.9'
+    testImplementation 'io.jsonwebtoken:jjwt:0.9.1'
+    testImplementation 'com.google.guava:guava:28.2-jre'
+    testImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    testImplementation 'ch.qos.logback:logback-core:1.2.6'
+    testImplementation 'ch.qos.logback:logback-classic:1.2.6'
+    testImplementation 'org.slf4j:slf4j-api:1.7.30'
+    testImplementation("org.apache.commons:commons-collections4:4.4")
+    testImplementation 'org.bouncycastle:bcprov-jdk15:1.46'
+    testImplementation 'org.projectlombok:lombok:1.18.8'
+    compileOnly 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'io.rest-assured:rest-assured:5.3.2'
+}
+
+test {
+    useJUnitPlatform()
+
+    systemProperty "apiTestPropertyFile", System.getProperty("apiTestPropertyFile")
+
+    testLogging {
+        events 'PASSED', 'FAILED', 'SKIPPED'
+    }
+
+    reports {
+        html.required = true
+    }
+
+    include '**/*Test.class'
+}

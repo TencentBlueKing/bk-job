@@ -28,6 +28,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +36,7 @@ import java.util.Collections;
 
 @Slf4j
 @Service("jobCrontabMeasureService")
+@Profile("!test")
 public class MeasureServiceImpl {
 
     @Autowired

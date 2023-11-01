@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.service.feature.strategy;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 
 import java.util.Map;
 import java.util.StringJoiner;

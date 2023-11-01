@@ -85,7 +85,7 @@ public class ServerDTO implements Cloneable {
         // 聚合通过hostId与IP指定的主机信息
         List<HostInfoVO> hostInfoVOList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(server.getIps())) {
-            hostInfoVOList.addAll(server.getIps().stream().map(HostDTO::toVO).collect(Collectors.toList()));
+            hostInfoVOList.addAll(server.getIps().stream().map(HostDTO::toHostInfoVO).collect(Collectors.toList()));
         }
         if (!hostInfoVOList.isEmpty()) {
             taskHostNode.setHostList(hostInfoVOList);
@@ -111,7 +111,7 @@ public class ServerDTO implements Cloneable {
             TaskHostNodeVO hostNodeInfo = taskTarget.getHostNodeInfo();
             if (CollectionUtils.isNotEmpty(hostNodeInfo.getHostList())) {
                 server.setIps(hostNodeInfo.getHostList().stream()
-                    .map(HostDTO::fromVO).collect(Collectors.toList()));
+                    .map(HostDTO::fromHostInfoVO).collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(hostNodeInfo.getDynamicGroupIdList())) {
                 server.setDynamicGroupIds(hostNodeInfo.getDynamicGroupIdList());

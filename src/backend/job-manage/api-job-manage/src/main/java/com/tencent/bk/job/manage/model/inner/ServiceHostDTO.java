@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.inner;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.AllArgsConstructor;
@@ -60,6 +61,11 @@ public class ServiceHostDTO {
     private Long cloudAreaId;
 
     /**
+     * 云区域名称
+     */
+    private String cloudAreaName;
+
+    /**
      * ipv4
      */
     private String ip;
@@ -79,8 +85,51 @@ public class ServiceHostDTO {
      */
     private Long bizId;
 
+    /**
+     * agent存活状态，0-异常，1-正常
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer alive;
+
+    /**
+     * 操作系统名称
+     */
+    private String osName;
+
+    /**
+     * 操作系统类型
+     */
+    private String osType;
+
+    /**
+     * 操作系统类型名称
+     */
+    private String osTypeName;
+    /**
+     * 主机名称
+     */
+    private String hostname;
+
+    /**
+     * 所属云厂商ID
+     */
+    private String cloudVendorId;
+
+    /**
+     * 所属云厂商名称
+     */
+    private String cloudVendorName;
+
     @JsonIgnore
     public String getCloudIp() {
+        return cloudAreaId + ":" + ip;
+    }
+
+    @JsonIgnore
+    public String getHostIdOrCloudIp() {
+        if (hostId != null && hostId > 0) {
+            return String.valueOf(hostId);
+        }
         return cloudAreaId + ":" + ip;
     }
 
@@ -90,9 +139,16 @@ public class ServiceHostDTO {
             .appId(host.getAppId())
             .hostId(host.getHostId())
             .cloudAreaId(host.getCloudAreaId())
+            .cloudAreaName(host.getCloudAreaName())
             .ip(host.getIp())
             .ipv6(host.getIpv6())
             .agentId(host.getAgentId())
+            .osName(host.getOsName())
+            .osType(host.getOsType())
+            .osTypeName(host.getOsTypeName())
+            .hostname(host.getHostName())
+            .cloudVendorId(host.getCloudVendorId())
+            .cloudVendorName(host.getCloudVendorName())
             .build();
     }
 
@@ -106,6 +162,13 @@ public class ServiceHostDTO {
         hostDTO.setIp(serviceHostDTO.getIp());
         hostDTO.setIpv6(serviceHostDTO.getIpv6());
         hostDTO.setBkCloudId(serviceHostDTO.getCloudAreaId());
+        hostDTO.setBkCloudName(serviceHostDTO.getCloudAreaName());
+        hostDTO.setHostname(serviceHostDTO.getHostname());
+        hostDTO.setCloudVendorId(serviceHostDTO.getCloudVendorId());
+        hostDTO.setCloudVendorName(serviceHostDTO.getCloudVendorName());
+        hostDTO.setOsType(serviceHostDTO.getOsType());
+        hostDTO.setOsTypeName(serviceHostDTO.getOsTypeName());
+        hostDTO.setOsName(serviceHostDTO.getOsName());
         return hostDTO;
     }
 }

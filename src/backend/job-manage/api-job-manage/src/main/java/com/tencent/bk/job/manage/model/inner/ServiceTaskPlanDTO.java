@@ -51,7 +51,7 @@ public class ServiceTaskPlanDTO {
      * 执行方案类型
      */
     @ApiModelProperty(value = "是否调试执行方案")
-    private Boolean debugTask;
+    private boolean debugTask;
 
     /**
      * 执行方案 ID

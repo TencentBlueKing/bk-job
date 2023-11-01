@@ -29,6 +29,14 @@ package com.tencent.bk.job.common.util.feature;
  */
 public interface FeatureManager {
     /**
+     * 判断特性是否开启（只考虑特性本身，忽略策略）
+     *
+     * @param featureId 特性ID
+     * @return 是否开启
+     */
+    boolean isFeatureEnabled(String featureId);
+
+    /**
      * 判断特性是否开启
      *
      * @param featureId 特性ID
