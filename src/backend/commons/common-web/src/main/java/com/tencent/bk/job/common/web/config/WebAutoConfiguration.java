@@ -26,12 +26,19 @@ package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
 import com.tencent.bk.job.common.web.feign.FeignConfiguration;
+import com.tencent.bk.job.common.web.i18n.I18nConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
-@Import({ActuatorSecurityConfig.class, SwaggerAdapterConfig.class, FeignConfiguration.class, FilterConfig.class})
+@Import({
+    ActuatorSecurityConfig.class,
+    SwaggerAdapterConfig.class,
+    FeignConfiguration.class,
+    FilterConfig.class,
+    I18nConfig.class}
+)
 public class WebAutoConfiguration {
 
     @Bean
