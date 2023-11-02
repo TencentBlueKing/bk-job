@@ -193,6 +193,8 @@ public class ErrorCode {
     public static final int HOST_ID_NOT_EXIST_IN_CMDB = 1243053;
     // 脚本被引用不支持删除
     public static final int DELETE_REF_SCRIPT_FAIL = 1243054;
+    // 凭证被引用不支持删除
+    public static final int DELETE_REF_CREDENTIAL_FAIL = 1243055;
     // 作业管理 end
 
     // 作业执行 start

@@ -42,4 +42,10 @@ public interface ServiceFileSourceResource {
     @GetMapping("/service/fileSource/getFileSourceIdByCode/codes/{code}")
     InternalResponse<Integer> getFileSourceIdByCode(
         @ApiParam(value = "文件源标识", required = true) @PathVariable("code") String code);
+
+    @ApiOperation(value = "判断是否存在文件源引用了指定凭证", produces = "application/json")
+    @GetMapping("/service/app/{appId}/fileSource/existsFileSourceUsingCredential/credentialIds/{credentialId}")
+    InternalResponse<Boolean> existsFileSourceUsingCredential(
+        @ApiParam(value = "Job业务ID", required = true) @PathVariable("appId") Long appId,
+        @ApiParam(value = "凭证ID", required = true) @PathVariable("credentialId") String credentialId);
 }

@@ -488,6 +488,14 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
     }
 
     @Override
+    public boolean existsFileSourceUsingCredential(Long appId, String credentialId) {
+        Collection<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        conditions.add(defaultTable.CREDENTIAL_ID.eq(credentialId));
+        return dslContext.fetchExists(defaultTable, conditions);
+    }
+
+    @Override
     public Integer getFileSourceIdByCode(Long appId, String code) {
         List<Condition> conditions = new ArrayList<>();
         if (appId != null) {

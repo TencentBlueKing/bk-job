@@ -368,6 +368,11 @@ public class FileSourceServiceImpl implements FileSourceService {
     }
 
     @Override
+    public boolean existsFileSourceUsingCredential(Long appId, String credentialId) {
+        return fileSourceDAO.existsFileSourceUsingCredential(appId, credentialId);
+    }
+
+    @Override
     public Integer getFileSourceIdByCode(Long appId, String code) {
         return fileSourceDAO.getFileSourceIdByCode(appId, code);
     }
