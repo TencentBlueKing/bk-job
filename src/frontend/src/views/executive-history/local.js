@@ -227,5 +227,6 @@ export default {
     '复制 IPv6': 'Copy IPv6',
     '没有可复制的 IPv4': 'IPv4 address not found',
     '没有可复制的 IPv6': 'IPv6 address not found',
+    'IP 与 IPv6 至少需保留一个': 'At least one of IP or IPv6 must be selected',
   },
 };
