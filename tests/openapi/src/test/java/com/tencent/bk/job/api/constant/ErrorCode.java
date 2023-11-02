@@ -44,6 +44,7 @@ public class ErrorCode {
     public static final int UPLOAD_SCRIPT_FILE_NAME_EMPTY = 1243010;//上传脚本文件名为空
     public static final int UPLOAD_SCRIPT_EXT_TYPE_ILLEGAL = 1243011;//上传脚本文件扩展名不合法
     public static final int UPLOAD_SCRIPT_CONTENT_ILLEGAL = 1243012;//上传脚本文件脚本内容不合法
+    public static final int SCRIPT_VERSION_NAME_EXIST = 1243036;//脚本版本号已存在
 
     public static final int SERVER_EMPTY = 1244001;//主机为空
     public static final int SERVER_UNREGISTERED = 1244002;//主机未注册:{}

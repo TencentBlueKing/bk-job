@@ -25,21 +25,27 @@
 package com.tencent.bk.job.api.v3.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 
 /**
- * 查询公共脚本版本列表请求
+ * 管理脚本版本请求
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class EsbGetPublicScriptVersionListV3Request {
+public class EsbManageScriptVersionV3Req extends EsbAppScopeReq {
+
     /**
      * 脚本ID
      */
     @JsonProperty("script_id")
     private String scriptId;
+
     /**
-     * 是否需要返回脚本内容。true:返回脚本内容；false：不返回脚本内容。默认为false。
+     * 脚本版本ID
      */
-    @JsonProperty("return_script_content")
-    private Boolean returnScriptContent = false;
+    @JsonProperty("script_version_id")
+    private Long scriptVersionId;
 }

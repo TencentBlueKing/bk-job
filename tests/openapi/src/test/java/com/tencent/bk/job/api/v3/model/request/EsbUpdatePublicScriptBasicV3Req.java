@@ -28,18 +28,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
- * 查询公共脚本版本列表请求
+ * 更新公共脚本基础信息请求
  */
 @Data
-public class EsbGetPublicScriptVersionListV3Request {
+public class EsbUpdatePublicScriptBasicV3Req {
+
     /**
      * 脚本ID
      */
     @JsonProperty("script_id")
     private String scriptId;
+
     /**
-     * 是否需要返回脚本内容。true:返回脚本内容；false：不返回脚本内容。默认为false。
+     * 脚本名称
      */
-    @JsonProperty("return_script_content")
-    private Boolean returnScriptContent = false;
+    private String name;
+
+    /**
+     * 脚本描述
+     */
+    private String description;
+
 }
