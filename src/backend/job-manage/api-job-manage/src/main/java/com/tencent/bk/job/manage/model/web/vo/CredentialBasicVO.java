@@ -22,28 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.model.dto.CredentialDTO;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.Collection;
-import java.util.List;
+@ApiModel("凭据")
+@Data
+public class CredentialBasicVO {
+    /**
+     * 主键Id
+     */
+    @ApiModelProperty("主键Id")
+    private String id;
+    /**
+     * 名称
+     */
+    @ApiModelProperty("名称")
+    private String name;
 
-public interface CredentialDAO {
-    String insertCredential(CredentialDTO credentialDTO);
-
-    String updateCredentialById(CredentialDTO credentialDTO);
-
-    int deleteCredentialById(String id);
-
-    CredentialDTO getCredentialById(String id);
-
-    List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids);
-
-    PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
-
-    PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition);
+    @ApiModelProperty("是否可以使用")
+    private Boolean canUse;
 }
