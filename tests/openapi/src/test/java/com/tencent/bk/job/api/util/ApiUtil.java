@@ -78,17 +78,6 @@ public class ApiUtil {
     /**
      * 失败响应通用设置
      */
-    public static ResponseSpecification failResponseSpec() {
-        ResponseSpecBuilder builder = new ResponseSpecBuilder();
-        builder.expectStatusCode(200);
-        builder.expectBody("result", equalTo(false));
-        builder.expectBody("code", equalTo(ErrorCode.BAD_REQUEST));
-        return builder.build();
-    }
-
-    /**
-     * 失败响应通用设置
-     */
     public static ResponseSpecification failResponseSpec(Integer code) {
         ResponseSpecBuilder builder = new ResponseSpecBuilder();
         builder.expectStatusCode(200);
