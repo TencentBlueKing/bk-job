@@ -170,6 +170,7 @@ class ScriptResourceAPITest {
         @DisplayName("测试脚本版本创建")
         void testCreateScriptVersion() {
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
 
             EsbCreateScriptVersionV3Req req = new EsbCreateScriptVersionV3Req();
             req.setContent(Base64Util.base64EncodeContentToStr(createdScript.getContent()));
@@ -203,13 +204,13 @@ class ScriptResourceAPITest {
                     .as(new TypeRef<EsbResp<EsbScriptVersionDetailV3DTO>>() {
                     })
                     .getData();
-            createdScriptList.add(createdScriptNew);
         }
 
         @Test
         @DisplayName("创建脚本版本异常场景测试-比如参数校验，业务逻辑等")
         void givenInvalidCreateScriptVersionParamThenFail() {
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
             EsbCreateScriptVersionV3Req req = new EsbCreateScriptVersionV3Req();
             req.setContent(Base64Util.base64EncodeContentToStr(createdScript.getContent()));
             req.setScopeId(createdScript.getScopeId());
@@ -259,7 +260,6 @@ class ScriptResourceAPITest {
                 .post(APIV3Urls.CREATE_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.SCRIPT_VERSION_NAME_EXIST));
-            createdScriptList.add(createdScript);
         }
     }
 
@@ -269,6 +269,7 @@ class ScriptResourceAPITest {
         @DisplayName("测试获取脚本版本列表")
         void testGetScriptVersionList() {
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
             EsbGetScriptVersionListV3Req req = new EsbGetScriptVersionListV3Req();
             req.setScopeId(createdScript.getScopeId());
             req.setScopeType(createdScript.getScopeType());
@@ -280,7 +281,6 @@ class ScriptResourceAPITest {
                 .spec(ApiUtil.successResponseSpec())
                 .body("data", notNullValue())
                 .body("data.total", greaterThan(0));
-            createdScriptList.add(createdScript);
         }
     }
 
@@ -291,6 +291,7 @@ class ScriptResourceAPITest {
         @DisplayName("测试更新脚本基础信息")
         void testUpdateScriptBasic() {
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
             EsbUpdateScriptBasicV3Req req = new EsbUpdateScriptBasicV3Req();
             req.setScopeId(createdScript.getScopeId());
             req.setScopeType(createdScript.getScopeType());
@@ -311,13 +312,13 @@ class ScriptResourceAPITest {
                 .body("data.create_time", greaterThan(0L))
                 .body("data.last_modify_user", equalTo(TestProps.DEFAULT_TEST_USER))
                 .body("data.last_modify_time", greaterThan(0L));
-            createdScriptList.add(createdScript);
         }
 
         @Test
         @DisplayName("测试更新脚本版本信息")
         void testUpdateScriptVersion() {
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
             EsbUpdateScriptVersionV3Req req = new EsbUpdateScriptVersionV3Req();
             req.setScopeId(createdScript.getScopeId());
             req.setScopeType(createdScript.getScopeType());
@@ -343,7 +344,6 @@ class ScriptResourceAPITest {
                 .body("data.last_modify_time", greaterThan(0L))
                 .body("data.version", notNullValue())
                 .body("data.status", notNullValue());
-            createdScriptList.add(createdScript);
         }
     }
 
@@ -354,6 +354,7 @@ class ScriptResourceAPITest {
         @DisplayName("测试上线脚本版本")
         void testPublishScriptVersion() {
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
             EsbManageScriptVersionV3Req req = new EsbManageScriptVersionV3Req();
             req.setScopeId(createdScript.getScopeId());
             req.setScopeType(createdScript.getScopeType());
@@ -367,13 +368,13 @@ class ScriptResourceAPITest {
                 .body("data.status", equalTo(JobResourceStatusEnum.ONLINE.getValue()))
                 .body("data.id", equalTo(req.getScriptVersionId().intValue()))
                 .body("data.script_id", equalTo(req.getScriptId()));
-            createdScriptList.add(createdScript);
         }
 
         @Test
         @DisplayName("测试禁用脚本版本")
         void testDisableScriptVersion() {
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
             EsbManageScriptVersionV3Req req = new EsbManageScriptVersionV3Req();
             req.setScopeId(createdScript.getScopeId());
             req.setScopeType(createdScript.getScopeType());
@@ -397,7 +398,6 @@ class ScriptResourceAPITest {
                 .body("data.status", equalTo(JobResourceStatusEnum.DISABLED.getValue()))
                 .body("data.id", equalTo(req.getScriptVersionId().intValue()))
                 .body("data.script_id", equalTo(req.getScriptId()));
-            createdScriptList.add(createdScript);
         }
 
         @Test
@@ -405,6 +405,7 @@ class ScriptResourceAPITest {
         void testDisableScriptVersionNotSupport() {
             // 只能禁用已上线、已下线状态的版本，否则返回“不支持的操作”
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
             EsbManageScriptVersionV3Req req = new EsbManageScriptVersionV3Req();
             req.setScopeId(createdScript.getScopeId());
             req.setScopeType(createdScript.getScopeType());
@@ -415,7 +416,6 @@ class ScriptResourceAPITest {
                 .post(APIV3Urls.DISABLE_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.UNSUPPORTED_OPERATION));
-            createdScriptList.add(createdScript);
         }
     }
 
@@ -442,6 +442,7 @@ class ScriptResourceAPITest {
         @DisplayName("测试脚本版本删除")
         void testDeleteScriptVersion() {
             EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
+            createdScriptList.add(createdScript);
             EsbDeleteScriptVersionV3Req req = new EsbDeleteScriptVersionV3Req();
             req.setScopeId(createdScript.getScopeId());
             req.setScopeType(createdScript.getScopeType());
@@ -454,7 +455,6 @@ class ScriptResourceAPITest {
                 .post(APIV3Urls.DELETE_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.successResponseSpec());
-            createdScriptList.add(createdScript);
         }
     }
 }

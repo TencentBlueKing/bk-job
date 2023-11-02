@@ -104,6 +104,7 @@ class PublicScriptResourceAPITest {
         @DisplayName("创建公共脚本异常场景测试-比如参数校验，业务逻辑等")
         void givenInvalidCreatePublicScriptParamThenFail() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbCreatePublicScriptV3Req req = new EsbCreatePublicScriptV3Req();
             req.setContent(Base64Util.base64EncodeContentToStr(createdPublicScript.getContent()));
             req.setDescription(createdPublicScript.getDescription());
@@ -158,13 +159,13 @@ class PublicScriptResourceAPITest {
                 .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
-            createdPublicScriptList.add(createdPublicScript);
         }
 
         @Test
         @DisplayName("测试公共脚本版本创建")
         void testCreatePublicScriptVersion() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbCreatePublicScriptVersionV3Req req = new EsbCreatePublicScriptVersionV3Req();
             req.setContent(Base64Util.base64EncodeContentToStr(createdPublicScript.getContent()));
             req.setVersion("v2");
@@ -193,13 +194,13 @@ class PublicScriptResourceAPITest {
                     .as(new TypeRef<EsbResp<EsbScriptVersionDetailV3DTO>>() {
                     })
                     .getData();
-            createdPublicScriptList.add(createdPublicScript);
         }
 
         @Test
         @DisplayName("创建公共脚本版本异常场景测试-比如参数校验，业务逻辑等")
         void givenInvalidCreatePublicScriptVersionParamThenFail() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbCreatePublicScriptVersionV3Req req = new EsbCreatePublicScriptVersionV3Req();
             req.setContent(Base64Util.base64EncodeContentToStr(createdPublicScript.getContent()));
             req.setVersion("v2");
@@ -247,7 +248,6 @@ class PublicScriptResourceAPITest {
                 .post(APIV3Urls.CREATE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.SCRIPT_VERSION_NAME_EXIST));
-            createdPublicScriptList.add(createdPublicScript);
         }
     }
 
@@ -257,6 +257,7 @@ class PublicScriptResourceAPITest {
         @DisplayName("测试获取公共脚本版本列表")
         void testGetPublicScriptVersionList() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbGetPublicScriptVersionListV3Request req = new EsbGetPublicScriptVersionListV3Request();
             req.setScriptId(createdPublicScript.getScriptId());
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
@@ -266,7 +267,6 @@ class PublicScriptResourceAPITest {
                 .spec(ApiUtil.successResponseSpec())
                 .body("data", notNullValue())
                 .body("data.total", greaterThan(0));
-            createdPublicScriptList.add(createdPublicScript);
         }
     }
 
@@ -277,6 +277,7 @@ class PublicScriptResourceAPITest {
         @DisplayName("测试更新公共脚本基础信息")
         void testUpdatePublicScriptBasic() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbUpdatePublicScriptBasicV3Req req = new EsbUpdatePublicScriptBasicV3Req();
             req.setScriptId(createdPublicScript.getScriptId());
             req.setName(TestValueGenerator.generateUniqueStrValue("shell_script", 50));
@@ -293,13 +294,13 @@ class PublicScriptResourceAPITest {
                 .body("data.create_time", greaterThan(0L))
                 .body("data.last_modify_user", equalTo(TestProps.DEFAULT_TEST_USER))
                 .body("data.last_modify_time", greaterThan(0L));
-            createdPublicScriptList.add(createdPublicScript);
         }
 
         @Test
         @DisplayName("测试更新公共脚本版本信息")
         void testUpdatePublicScriptVersion() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbUpdatePublicScriptVersionV3Req req = new EsbUpdatePublicScriptVersionV3Req();
             req.setScriptId(createdPublicScript.getScriptId());
             req.setScriptVersionId(createdPublicScript.getId());
@@ -321,7 +322,6 @@ class PublicScriptResourceAPITest {
                 .body("data.last_modify_time", greaterThan(0L))
                 .body("data.version", notNullValue())
                 .body("data.status", notNullValue());
-            createdPublicScriptList.add(createdPublicScript);
         }
     }
 
@@ -332,6 +332,7 @@ class PublicScriptResourceAPITest {
         @DisplayName("测试上线公共脚本版本")
         void testPublishPublicScriptVersion() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbManagePublicScriptVersionV3Req req = new EsbManagePublicScriptVersionV3Req();
             req.setScriptId(createdPublicScript.getScriptId());
             req.setScriptVersionId(createdPublicScript.getId());
@@ -343,13 +344,13 @@ class PublicScriptResourceAPITest {
                 .body("data.status", equalTo(JobResourceStatusEnum.ONLINE.getValue()))
                 .body("data.id", equalTo(req.getScriptVersionId().intValue()))
                 .body("data.script_id", equalTo(req.getScriptId()));
-            createdPublicScriptList.add(createdPublicScript);
         }
 
         @Test
         @DisplayName("测试禁用公共脚本版本")
         void testDisablePublicScriptVersion() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbManagePublicScriptVersionV3Req req = new EsbManagePublicScriptVersionV3Req();
             req.setScriptId(createdPublicScript.getScriptId());
             req.setScriptVersionId(createdPublicScript.getId());
@@ -370,13 +371,13 @@ class PublicScriptResourceAPITest {
                 .body("data.status", equalTo(JobResourceStatusEnum.DISABLED.getValue()))
                 .body("data.id", equalTo(req.getScriptVersionId().intValue()))
                 .body("data.script_id", equalTo(req.getScriptId()));
-            createdPublicScriptList.add(createdPublicScript);
         }
 
         @Test
         @DisplayName("测试禁用公共脚本版本-不支持操作")
         void testDisablePublicScriptVersionNotSupport() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbManagePublicScriptVersionV3Req req = new EsbManagePublicScriptVersionV3Req();
             req.setScriptId(createdPublicScript.getScriptId());
             req.setScriptVersionId(createdPublicScript.getId());
@@ -385,7 +386,6 @@ class PublicScriptResourceAPITest {
                 .post(APIV3Urls.DISABLE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.UNSUPPORTED_OPERATION));
-            createdPublicScriptList.add(createdPublicScript);
         }
     }
 
@@ -410,6 +410,7 @@ class PublicScriptResourceAPITest {
         @DisplayName("测试公共脚本版本删除")
         void testDeletePublicScriptVersion() {
             EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
             EsbDeletePublicScriptVersionV3Req req = new EsbDeletePublicScriptVersionV3Req();
             req.setScriptId(createdPublicScript.getScriptId());
             req.setScriptVersionId(createdPublicScript.getId());
@@ -420,7 +421,6 @@ class PublicScriptResourceAPITest {
                 .post(APIV3Urls.DELETE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.successResponseSpec());
-            createdPublicScriptList.add(createdPublicScript);
         }
     }
 }
