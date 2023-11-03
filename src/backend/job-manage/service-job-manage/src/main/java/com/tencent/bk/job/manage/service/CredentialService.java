@@ -37,6 +37,8 @@ public interface CredentialService {
 
     PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
 
+    PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition);
+
     CredentialDTO createCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq);
 
     CredentialDTO updateCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq);

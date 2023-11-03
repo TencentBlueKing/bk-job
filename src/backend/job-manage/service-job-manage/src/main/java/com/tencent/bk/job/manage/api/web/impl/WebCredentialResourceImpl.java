@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.api.web.WebCredentialResource;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.vo.CredentialBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import com.tencent.bk.job.manage.service.CredentialService;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -96,6 +96,31 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     }
 
     @Override
+    public Response<PageData<CredentialBasicVO>> listCredentialBasicInfo(String username,
+                                                                         AppResourceScope appResourceScope,
+                                                                         String scopeType,
+                                                                         String scopeId,
+                                                                         Integer start,
+                                                                         Integer pageSize) {
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(start);
+        baseSearchCondition.setLength(pageSize);
+        PageData<CredentialDTO> pageData = credentialService.listCredentialBasicInfo(
+            appResourceScope.getAppId(),
+            baseSearchCondition
+        );
+        List<CredentialBasicVO> credentialBasicVOList =
+            pageData.getData().stream().map(CredentialDTO::toBasicVO).collect(Collectors.toList());
+        PageData<CredentialBasicVO> finalPageData = new PageData<>();
+        finalPageData.setStart(pageData.getStart());
+        finalPageData.setPageSize(pageData.getPageSize());
+        finalPageData.setTotal(pageData.getTotal());
+        finalPageData.setData(credentialBasicVOList);
+        addPermissionDataForBasicVO(username, appResourceScope, finalPageData);
+        return Response.buildSuccessResp(finalPageData);
+    }
+
+    @Override
     @AuditEntry(actionId = ActionId.CREATE_TICKET)
     public Response<CredentialVO> createCredential(String username,
                                                    AppResourceScope appResourceScope,
@@ -138,7 +163,6 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         // 添加权限数据
         List<String> credentialIdList = credentialVOList.stream()
             .map(CredentialVO::getId)
-            .map(Objects::toString)
             .collect(Collectors.toList());
         List<String> canManageIdList =
             ticketAuthService.batchAuthManageTicket(username, appResourceScope, credentialIdList);
@@ -149,6 +173,21 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
             it.setCanUse(canUseIdList.contains(it.getId()));
         });
         credentialVOPageData.setCanCreate(checkCreateTicketPermission(username, appResourceScope).isPass());
+    }
+
+    private void addPermissionDataForBasicVO(String username, AppResourceScope appResourceScope,
+                                             PageData<CredentialBasicVO> credentialBasicVOPageData) {
+        List<CredentialBasicVO> credentialBasicVOList = credentialBasicVOPageData.getData();
+        // 添加权限数据
+        List<String> credentialIdList = credentialBasicVOList.stream()
+            .map(CredentialBasicVO::getId)
+            .collect(Collectors.toList());
+        List<String> canUseIdList =
+            ticketAuthService.batchAuthUseTicket(username, appResourceScope, credentialIdList);
+        credentialBasicVOList.forEach(it -> {
+            it.setCanUse(canUseIdList.contains(it.getId()));
+        });
+        credentialBasicVOPageData.setCanCreate(checkCreateTicketPermission(username, appResourceScope).isPass());
     }
 
     public AuthResult checkCreateTicketPermission(String username, AppResourceScope appResourceScope) {

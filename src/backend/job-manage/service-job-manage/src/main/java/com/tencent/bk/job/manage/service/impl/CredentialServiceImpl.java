@@ -75,6 +75,11 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
+    public PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition) {
+        return credentialDAO.listCredentialBasicInfo(appId, baseSearchCondition);
+    }
+
+    @Override
     @ActionAuditRecord(
         actionId = ActionId.CREATE_TICKET,
         instance = @AuditInstanceRecord(
