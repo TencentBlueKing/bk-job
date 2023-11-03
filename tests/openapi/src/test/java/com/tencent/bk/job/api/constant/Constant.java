@@ -20,4 +20,11 @@ public class Constant {
      */
     public static String SHELL_SCRIPT_CONTENT_BASE64 = "IyEvYmluL2Jhc2gKZWNobyAnMTIzJwo=";
 
+    /**
+     * shell 高危脚本内容
+     * #!/bin/bash
+     * rm -rf /tmp
+     */
+    public static String SHELL_DANGEROUS_SCRIPT_CONTENT_BASE64 = "IyEvYmluL2Jhc2gKcm0gLXJmIC90bXA=";
+
 }

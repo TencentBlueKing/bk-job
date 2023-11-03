@@ -1,16 +1,19 @@
 package com.tencent.bk.job.api.util;
 
+import com.tencent.bk.job.api.constant.HighRiskGrammarActionEnum;
 import com.tencent.bk.job.api.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.api.constant.ScriptTypeEnum;
 import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbAccountV3BasicDTO;
+import com.tencent.bk.job.api.v3.model.EsbDangerousRuleV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbFileSourceV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
 import com.tencent.bk.job.api.v3.model.HostDTO;
+import com.tencent.bk.job.api.v3.model.request.EsbCreateDangerousRuleV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateScriptV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptV3Req;
@@ -20,10 +23,12 @@ import com.tencent.bk.job.api.v3.model.request.EsbDeleteScriptVersionV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbExecuteJobV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastExecuteScriptV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastTransferFileV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbManageDangerousRuleV3Req;
 import io.restassured.common.mapper.TypeRef;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.tencent.bk.job.api.constant.Constant.SHELL_SCRIPT_CONTENT_BASE64;
@@ -116,6 +121,33 @@ public class Operations {
             .statusCode(200);
     }
 
+    public static void deleteDangerousRule(EsbManageDangerousRuleV3Req req) {
+        given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.DELETE_DANGEROUS_RULE)
+            .then()
+            .statusCode(200);
+    }
+
+    public static EsbDangerousRuleV3DTO createDangerousRule() {
+        EsbCreateDangerousRuleV3Req req = new EsbCreateDangerousRuleV3Req();
+        req.setExpression("rm ");
+        req.setDescription(TestValueGenerator.generateUniqueStrValue("dangerous_rule_desc", 50));
+        req.setScriptTypeList(Arrays.asList(ScriptTypeEnum.SHELL.getValue().byteValue()));
+        req.setAction(HighRiskGrammarActionEnum.SCAN.getCode());
+        return given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.CREATE_DANGEROUS_RULE)
+            .then()
+            .statusCode(200)
+            .extract()
+            .body()
+            .as(new TypeRef<EsbResp<EsbDangerousRuleV3DTO>>() {
+            })
+            .getData();
+    }
 
     public static EsbJobExecuteV3DTO fastExecuteScriptTask() {
         EsbFastExecuteScriptV3Request req = new EsbFastExecuteScriptV3Request();
