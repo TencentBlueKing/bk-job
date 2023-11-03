@@ -188,17 +188,7 @@ data:
     server:
       port: {{ .Values.executeConfig.containerPort }}
     feign:
-      client:
-        config:
-          default:
-            connectTimeout: 5000
-            readTimeout: 20000
-          sync:
-            connectTimeout: 5000
-            readTimeout: 30000
-          log:
-            connectTimeout: 5000
-            readTimeout: 30000
+      {{- toYaml .Values.executeConfig.feign | nindent 6 }}
     job:
       execute:
         log-export:
