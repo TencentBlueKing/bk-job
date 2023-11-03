@@ -58,7 +58,7 @@ class DangerousRuleResourceAPITest {
     }
 
     @Nested
-    class CreateTest {
+    class DangerousRuleCreateTest {
         @Test
         @DisplayName("测试高危语句规则正常创建")
         void testCreateDangerousRule() {
@@ -135,7 +135,7 @@ class DangerousRuleResourceAPITest {
     }
 
     @Nested
-    class GetTest {
+    class DangerousRuleGetTest {
         @Test
         @DisplayName("测试获取高危语句规则列表")
         void testGetDangerousRuleList() {
@@ -175,7 +175,7 @@ class DangerousRuleResourceAPITest {
     }
 
     @Nested
-    class UpdateTest {
+    class DangerousRuleUpdateTest {
         // 更新操作
         @Test
         @DisplayName("测试更新高危语句规则信息")
@@ -212,7 +212,7 @@ class DangerousRuleResourceAPITest {
     }
 
     @Nested
-    class OperationTest {
+    class DangerousRuleOperationTest {
         // 启用、停用等操作
         @Test
         @DisplayName("测试启用高危语句规则")
@@ -249,7 +249,7 @@ class DangerousRuleResourceAPITest {
     }
 
     @Nested
-    class DeleteTest {
+    class DangerousRuleDeleteTest {
         @Test
         @DisplayName("测试高危语句规则删除")
         void testDeleteDangerousRule() {
@@ -266,7 +266,7 @@ class DangerousRuleResourceAPITest {
     }
 
     @Nested
-    class CheckTest {
+    class ScriptCheckTest {
         @Test
         @DisplayName("测试高危脚本检测")
         void testCheckScript() {
