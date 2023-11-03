@@ -596,4 +596,5 @@ export default {
   '复制 IPv6': 'Copy IPv6',
   无该应用的访问权限: 'Do not have access permission for the current application.',
   '所有 IP': 'All IP',
+  '异常 IP': 'Copy abnormal',
 };

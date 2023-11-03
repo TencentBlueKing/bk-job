@@ -98,7 +98,7 @@
         prop="categoryName"
         show-overflow-tooltip
         sortable="custom"
-        width="120" />
+        width="180" />
       <bk-table-column
         v-if="allRenderColumnMap.typeName"
         key="typeName"
