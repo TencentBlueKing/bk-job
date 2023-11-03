@@ -75,6 +75,17 @@ public class ApiUtil {
         return builder.build();
     }
 
+    /**
+     * 失败响应通用设置
+     */
+    public static ResponseSpecification failResponseSpec(Integer code) {
+        ResponseSpecBuilder builder = new ResponseSpecBuilder();
+        builder.expectStatusCode(200);
+        builder.expectBody("result", equalTo(false));
+        builder.expectBody("code", equalTo(code));
+        return builder.build();
+    }
+
     private static Map<String, String> buildRequestHeaders(String username) {
         Map<String, String> headers = new HashMap<>();
         headers.put(HEADER_BK_API_JWT, buildEsbJwt(TestProps.APP_CODE, username));

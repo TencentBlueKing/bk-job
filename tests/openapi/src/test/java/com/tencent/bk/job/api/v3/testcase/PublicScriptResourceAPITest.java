@@ -2,7 +2,6 @@ package com.tencent.bk.job.api.v3.testcase;
 
 import com.tencent.bk.job.api.constant.ErrorCode;
 import com.tencent.bk.job.api.constant.JobResourceStatusEnum;
-import com.tencent.bk.job.api.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.api.constant.ScriptTypeEnum;
 import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
@@ -13,14 +12,14 @@ import com.tencent.bk.job.api.util.Operations;
 import com.tencent.bk.job.api.util.TestValueGenerator;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbScriptVersionDetailV3DTO;
-import com.tencent.bk.job.api.v3.model.request.EsbCreateScriptV3Request;
-import com.tencent.bk.job.api.v3.model.request.EsbCreateScriptVersionV3Req;
-import com.tencent.bk.job.api.v3.model.request.EsbDeleteScriptV3Req;
-import com.tencent.bk.job.api.v3.model.request.EsbDeleteScriptVersionV3Req;
-import com.tencent.bk.job.api.v3.model.request.EsbGetScriptVersionListV3Req;
-import com.tencent.bk.job.api.v3.model.request.EsbManageScriptVersionV3Req;
-import com.tencent.bk.job.api.v3.model.request.EsbUpdateScriptBasicV3Req;
-import com.tencent.bk.job.api.v3.model.request.EsbUpdateScriptVersionV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbCreatePublicScriptV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbCreatePublicScriptVersionV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptVersionV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbGetPublicScriptVersionListV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbManagePublicScriptVersionV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbUpdatePublicScriptBasicV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbUpdatePublicScriptVersionV3Req;
 import io.restassured.common.mapper.TypeRef;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -33,27 +32,27 @@ import java.util.List;
 
 import static com.tencent.bk.job.api.constant.Constant.SHELL_SCRIPT_CONTENT_BASE64;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * 业务脚本管理 API 测试
+ * 公共脚本管理 API 测试
  */
-@DisplayName("v3.ScriptResourceAPITest")
-class ScriptResourceAPITest {
+@DisplayName("v3.PublicScriptResourceAPITest")
+class PublicScriptResourceAPITest {
 
-    private static final List<EsbScriptVersionDetailV3DTO> createdScriptList = new ArrayList<>();
+    private static final List<EsbScriptVersionDetailV3DTO> createdPublicScriptList = new ArrayList<>();
 
     @AfterAll
     static void tearDown() {
         // 清理测试数据
-        if (CollectionUtils.isNotEmpty(createdScriptList)) {
-            createdScriptList.forEach(script -> {
+        if (CollectionUtils.isNotEmpty(createdPublicScriptList)) {
+            createdPublicScriptList.forEach(script -> {
                 // 清理脚本
-                EsbDeleteScriptV3Req req = new EsbDeleteScriptV3Req();
-                req.setScopeId(script.getScopeId());
-                req.setScopeType(script.getScopeType());
+                EsbDeletePublicScriptV3Req req = new EsbDeletePublicScriptV3Req();
                 req.setScriptId(script.getScriptId());
-                Operations.deleteScript(req);
+                Operations.deletePublicScript(req);
             });
         }
     }
@@ -61,12 +60,10 @@ class ScriptResourceAPITest {
     @Nested
     class CreateTest {
         @Test
-        @DisplayName("测试脚本正常创建")
-        void testCreateScript() {
-            EsbCreateScriptV3Request req = new EsbCreateScriptV3Request();
+        @DisplayName("测试公共脚本脚本正常创建")
+        void testCreatePublicScript() {
+            EsbCreatePublicScriptV3Req req = new EsbCreatePublicScriptV3Req();
             req.setContent(SHELL_SCRIPT_CONTENT_BASE64);
-            req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
-            req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
             req.setDescription(TestValueGenerator.generateUniqueStrValue("shell_script_desc", 50));
             req.setName(TestValueGenerator.generateUniqueStrValue("shell_script", 50));
             req.setType(ScriptTypeEnum.SHELL.getValue());
@@ -77,7 +74,7 @@ class ScriptResourceAPITest {
                 given()
                     .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                     .body(JsonUtil.toJson(req))
-                    .post(APIV3Urls.CREATE_SCRIPT)
+                    .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
                     .then()
                     .spec(ApiUtil.successResponseSpec())
                     .body("data", notNullValue())
@@ -85,8 +82,6 @@ class ScriptResourceAPITest {
                     .body("data.script_id", notNullValue())
                     .body("data.name", equalTo(req.getName()))
                     .body("data.script_language", equalTo(req.getType()))
-                    .body("data.bk_scope_type", equalTo(req.getScopeType()))
-                    .body("data.bk_scope_id", equalTo(req.getScopeId()))
                     .body("data.content", equalTo(Base64Util.base64DecodeContentToStr(req.getContent())))
                     .body("data.creator", equalTo(TestProps.DEFAULT_TEST_USER))
                     .body("data.create_time", greaterThan(0L))
@@ -102,25 +97,25 @@ class ScriptResourceAPITest {
                     })
                     .getData();
 
-            createdScriptList.add(createdScript);
+            createdPublicScriptList.add(createdScript);
         }
 
         @Test
-        @DisplayName("创建脚本异常场景测试-比如参数校验，业务逻辑等")
-        void givenInvalidCreateScriptParamThenFail() {
-            EsbCreateScriptV3Request req = new EsbCreateScriptV3Request();
-            req.setContent(SHELL_SCRIPT_CONTENT_BASE64);
-            req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
-            req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
-            req.setDescription(TestValueGenerator.generateUniqueStrValue("shell_script_desc", 50));
-            req.setType(ScriptTypeEnum.SHELL.getValue());
+        @DisplayName("创建公共脚本异常场景测试-比如参数校验，业务逻辑等")
+        void givenInvalidCreatePublicScriptParamThenFail() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbCreatePublicScriptV3Req req = new EsbCreatePublicScriptV3Req();
+            req.setContent(Base64Util.base64EncodeContentToStr(createdPublicScript.getContent()));
+            req.setDescription(createdPublicScript.getDescription());
+            req.setType(createdPublicScript.getType());
             req.setVersion("v2");
             req.setVersionDesc("v2_desc");
             // 脚本名称为空，创建失败
             req.setName(null);
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
 
@@ -128,7 +123,7 @@ class ScriptResourceAPITest {
             req.setName(TestValueGenerator.generateUniqueStrValue("*<>", 50));
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
 
@@ -137,7 +132,7 @@ class ScriptResourceAPITest {
             req.setType(-1);
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
 
@@ -146,14 +141,14 @@ class ScriptResourceAPITest {
             req.setContent(null);
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
             // 版本号为空, 创建失败
             req.setVersion(null);
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
 
@@ -161,36 +156,31 @@ class ScriptResourceAPITest {
             req.setVersion("|");
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
         }
 
         @Test
-        @DisplayName("测试脚本版本创建")
-        void testCreateScriptVersion() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-
-            EsbCreateScriptVersionV3Req req = new EsbCreateScriptVersionV3Req();
-            req.setContent(Base64Util.base64EncodeContentToStr(createdScript.getContent()));
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
+        @DisplayName("测试公共脚本版本创建")
+        void testCreatePublicScriptVersion() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbCreatePublicScriptVersionV3Req req = new EsbCreatePublicScriptVersionV3Req();
+            req.setContent(Base64Util.base64EncodeContentToStr(createdPublicScript.getContent()));
             req.setVersion("v2");
             req.setVersionDesc("v2_desc");
-            req.setScriptId(createdScript.getScriptId());
-            EsbScriptVersionDetailV3DTO createdScriptNew =
+            req.setScriptId(createdPublicScript.getScriptId());
+            EsbScriptVersionDetailV3DTO createdScript =
                 given()
                     .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                     .body(JsonUtil.toJson(req))
-                    .post(APIV3Urls.CREATE_SCRIPT_VERSION)
+                    .post(APIV3Urls.CREATE_PUBLIC_SCRIPT_VERSION)
                     .then()
                     .spec(ApiUtil.successResponseSpec())
                     .body("data", notNullValue())
                     .body("data.id", greaterThan(0))
                     .body("data.script_id", equalTo(req.getScriptId()))
-                    .body("data.bk_scope_type", equalTo(req.getScopeType()))
-                    .body("data.bk_scope_id", equalTo(req.getScopeId()))
                     .body("data.content", equalTo(Base64Util.base64DecodeContentToStr(req.getContent())))
                     .body("data.creator", equalTo(TestProps.DEFAULT_TEST_USER))
                     .body("data.create_time", greaterThan(0L))
@@ -207,14 +197,12 @@ class ScriptResourceAPITest {
         }
 
         @Test
-        @DisplayName("创建脚本版本异常场景测试-比如参数校验，业务逻辑等")
-        void givenInvalidCreateScriptVersionParamThenFail() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-            EsbCreateScriptVersionV3Req req = new EsbCreateScriptVersionV3Req();
-            req.setContent(Base64Util.base64EncodeContentToStr(createdScript.getContent()));
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
+        @DisplayName("创建公共脚本版本异常场景测试-比如参数校验，业务逻辑等")
+        void givenInvalidCreatePublicScriptVersionParamThenFail() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbCreatePublicScriptVersionV3Req req = new EsbCreatePublicScriptVersionV3Req();
+            req.setContent(Base64Util.base64EncodeContentToStr(createdPublicScript.getContent()));
             req.setVersion("v2");
             req.setVersionDesc("v2_desc");
 
@@ -223,25 +211,25 @@ class ScriptResourceAPITest {
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT_VERSION)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
             // 脚本内容为空，创建失败
-            req.setScriptId(createdScript.getScriptId());
+            req.setScriptId(createdPublicScript.getScriptId());
             req.setContent(null);
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT_VERSION)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
             // 版本号为空，创建失败
-            req.setContent(Base64Util.base64EncodeContentToStr(createdScript.getContent()));
+            req.setContent(SHELL_SCRIPT_CONTENT_BASE64);
             req.setVersion(null);
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT_VERSION)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
             // 版本号有特殊字符，创建失败
@@ -249,15 +237,15 @@ class ScriptResourceAPITest {
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT_VERSION)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
             // 同一脚本下，脚本版本号重复，创建失败
-            req.setVersion(createdScript.getVersion());
+            req.setVersion(createdPublicScript.getVersion());
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.CREATE_SCRIPT_VERSION)
+                .post(APIV3Urls.CREATE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.SCRIPT_VERSION_NAME_EXIST));
         }
@@ -266,17 +254,15 @@ class ScriptResourceAPITest {
     @Nested
     class GetTest {
         @Test
-        @DisplayName("测试获取脚本版本列表")
-        void testGetScriptVersionList() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-            EsbGetScriptVersionListV3Req req = new EsbGetScriptVersionListV3Req();
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
-            req.setScriptId(createdScript.getScriptId());
+        @DisplayName("测试获取公共脚本版本列表")
+        void testGetPublicScriptVersionList() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbGetPublicScriptVersionListV3Request req = new EsbGetPublicScriptVersionListV3Request();
+            req.setScriptId(createdPublicScript.getScriptId());
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.GET_SCRIPT_VERSION_LIST)
+                .post(APIV3Urls.GET_PUBLIC_SCRIPT_VERSION_LIST)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
                 .body("data", notNullValue())
@@ -288,26 +274,22 @@ class ScriptResourceAPITest {
     class UpdateTest {
         // 更新操作
         @Test
-        @DisplayName("测试更新脚本基础信息")
-        void testUpdateScriptBasic() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-            EsbUpdateScriptBasicV3Req req = new EsbUpdateScriptBasicV3Req();
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
-            req.setScriptId(createdScript.getScriptId());
+        @DisplayName("测试更新公共脚本基础信息")
+        void testUpdatePublicScriptBasic() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbUpdatePublicScriptBasicV3Req req = new EsbUpdatePublicScriptBasicV3Req();
+            req.setScriptId(createdPublicScript.getScriptId());
             req.setName(TestValueGenerator.generateUniqueStrValue("shell_script", 50));
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.UPDATE_SCRIPT_BASIC)
+                .post(APIV3Urls.UPDATE_PUBLIC_SCRIPT_BASIC)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
                 .body("data", notNullValue())
                 .body("data.id", equalTo(req.getScriptId()))
                 .body("data.name", equalTo(req.getName()))
                 .body("data.script_language", greaterThan(0))
-                .body("data.bk_scope_type", equalTo(req.getScopeType()))
-                .body("data.bk_scope_id", equalTo(req.getScopeId()))
                 .body("data.creator", notNullValue())
                 .body("data.create_time", greaterThan(0L))
                 .body("data.last_modify_user", equalTo(TestProps.DEFAULT_TEST_USER))
@@ -315,19 +297,17 @@ class ScriptResourceAPITest {
         }
 
         @Test
-        @DisplayName("测试更新脚本版本信息")
-        void testUpdateScriptVersion() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-            EsbUpdateScriptVersionV3Req req = new EsbUpdateScriptVersionV3Req();
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
-            req.setScriptId(createdScript.getScriptId());
-            req.setScriptVersionId(createdScript.getId());
+        @DisplayName("测试更新公共脚本版本信息")
+        void testUpdatePublicScriptVersion() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbUpdatePublicScriptVersionV3Req req = new EsbUpdatePublicScriptVersionV3Req();
+            req.setScriptId(createdPublicScript.getScriptId());
+            req.setScriptVersionId(createdPublicScript.getId());
             req.setContent(SHELL_SCRIPT_CONTENT_BASE64);
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.UPDATE_SCRIPT_VERSION)
+                .post(APIV3Urls.UPDATE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
                 .body("data", notNullValue())
@@ -335,8 +315,6 @@ class ScriptResourceAPITest {
                 .body("data.script_id", equalTo(req.getScriptId()))
                 .body("data.name", notNullValue())
                 .body("data.script_language", notNullValue())
-                .body("data.bk_scope_type", equalTo(req.getScopeType()))
-                .body("data.bk_scope_id", equalTo(req.getScopeId()))
                 .body("data.content", equalTo(Base64Util.base64DecodeContentToStr(req.getContent())))
                 .body("data.creator", notNullValue())
                 .body("data.create_time", greaterThan(0L))
@@ -351,18 +329,16 @@ class ScriptResourceAPITest {
     class OperationTest {
         // 上线、下线等操作
         @Test
-        @DisplayName("测试上线脚本版本")
-        void testPublishScriptVersion() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-            EsbManageScriptVersionV3Req req = new EsbManageScriptVersionV3Req();
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
-            req.setScriptId(createdScript.getScriptId());
-            req.setScriptVersionId(createdScript.getId());
+        @DisplayName("测试上线公共脚本版本")
+        void testPublishPublicScriptVersion() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbManagePublicScriptVersionV3Req req = new EsbManagePublicScriptVersionV3Req();
+            req.setScriptId(createdPublicScript.getScriptId());
+            req.setScriptVersionId(createdPublicScript.getId());
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.PUBLISH_SCRIPT_VERSION)
+                .post(APIV3Urls.PUBLISH_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
                 .body("data.status", equalTo(JobResourceStatusEnum.ONLINE.getValue()))
@@ -371,28 +347,25 @@ class ScriptResourceAPITest {
         }
 
         @Test
-        @DisplayName("测试禁用脚本版本")
-        void testDisableScriptVersion() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-            EsbManageScriptVersionV3Req req = new EsbManageScriptVersionV3Req();
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
-            req.setScriptId(createdScript.getScriptId());
-            req.setScriptVersionId(createdScript.getId());
-            // 上线版本
+        @DisplayName("测试禁用公共脚本版本")
+        void testDisablePublicScriptVersion() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbManagePublicScriptVersionV3Req req = new EsbManagePublicScriptVersionV3Req();
+            req.setScriptId(createdPublicScript.getScriptId());
+            req.setScriptVersionId(createdPublicScript.getId());
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.PUBLISH_SCRIPT_VERSION)
+                .post(APIV3Urls.PUBLISH_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
                 .body("data.status", equalTo(JobResourceStatusEnum.ONLINE.getValue()))
                 .body("data.id", equalTo(req.getScriptVersionId().intValue()))
                 .body("data.script_id", equalTo(req.getScriptId()));
-            // 禁用版本
+
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.DISABLE_SCRIPT_VERSION)
+                .post(APIV3Urls.DISABLE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
                 .body("data.status", equalTo(JobResourceStatusEnum.DISABLED.getValue()))
@@ -401,19 +374,16 @@ class ScriptResourceAPITest {
         }
 
         @Test
-        @DisplayName("测试禁用脚本版本-不支持操作")
-        void testDisableScriptVersionNotSupport() {
-            // 只能禁用已上线、已下线状态的版本，否则返回“不支持的操作”
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-            EsbManageScriptVersionV3Req req = new EsbManageScriptVersionV3Req();
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
-            req.setScriptId(createdScript.getScriptId());
-            req.setScriptVersionId(createdScript.getId());
+        @DisplayName("测试禁用公共脚本版本-不支持操作")
+        void testDisablePublicScriptVersionNotSupport() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbManagePublicScriptVersionV3Req req = new EsbManagePublicScriptVersionV3Req();
+            req.setScriptId(createdPublicScript.getScriptId());
+            req.setScriptVersionId(createdPublicScript.getId());
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.DISABLE_SCRIPT_VERSION)
+                .post(APIV3Urls.DISABLE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.UNSUPPORTED_OPERATION));
         }
@@ -422,37 +392,33 @@ class ScriptResourceAPITest {
     @Nested
     class DeleteTest {
         @Test
-        @DisplayName("测试脚本删除")
-        void testDeleteScript() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            EsbDeleteScriptV3Req req = new EsbDeleteScriptV3Req();
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
-            req.setScriptId(createdScript.getScriptId());
+        @DisplayName("测试公共脚本删除")
+        void testDeletePublicScript() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            EsbDeletePublicScriptV3Req req = new EsbDeletePublicScriptV3Req();
+            req.setScriptId(createdPublicScript.getScriptId());
 
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.DELETE_SCRIPT)
+                .post(APIV3Urls.DELETE_PUBLIC_SCRIPT)
                 .then()
                 .spec(ApiUtil.successResponseSpec());
         }
 
         @Test
-        @DisplayName("测试脚本版本删除")
-        void testDeleteScriptVersion() {
-            EsbScriptVersionDetailV3DTO createdScript = Operations.createScript();
-            createdScriptList.add(createdScript);
-            EsbDeleteScriptVersionV3Req req = new EsbDeleteScriptVersionV3Req();
-            req.setScopeId(createdScript.getScopeId());
-            req.setScopeType(createdScript.getScopeType());
-            req.setScriptId(createdScript.getScriptId());
-            req.setScriptVersionId(createdScript.getId());
+        @DisplayName("测试公共脚本版本删除")
+        void testDeletePublicScriptVersion() {
+            EsbScriptVersionDetailV3DTO createdPublicScript = Operations.createPublicScript();
+            createdPublicScriptList.add(createdPublicScript);
+            EsbDeletePublicScriptVersionV3Req req = new EsbDeletePublicScriptVersionV3Req();
+            req.setScriptId(createdPublicScript.getScriptId());
+            req.setScriptVersionId(createdPublicScript.getId());
 
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.DELETE_SCRIPT_VERSION)
+                .post(APIV3Urls.DELETE_PUBLIC_SCRIPT_VERSION)
                 .then()
                 .spec(ApiUtil.successResponseSpec());
         }

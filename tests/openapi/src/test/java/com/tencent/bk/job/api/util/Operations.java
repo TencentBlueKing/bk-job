@@ -11,8 +11,12 @@ import com.tencent.bk.job.api.v3.model.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
 import com.tencent.bk.job.api.v3.model.HostDTO;
+import com.tencent.bk.job.api.v3.model.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateScriptV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptVersionV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbDeleteScriptV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbDeleteScriptVersionV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbExecuteJobV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastExecuteScriptV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastTransferFileV3Request;
@@ -54,12 +58,60 @@ public class Operations {
             .getData();
     }
 
+    public static EsbScriptVersionDetailV3DTO createPublicScript() {
+        EsbCreatePublicScriptV3Req req = new EsbCreatePublicScriptV3Req();
+        req.setContent(SHELL_SCRIPT_CONTENT_BASE64);
+        req.setDescription(TestValueGenerator.generateUniqueStrValue("shell_script_desc", 50));
+        req.setName(TestValueGenerator.generateUniqueStrValue("shell_script", 50));
+        req.setType(ScriptTypeEnum.SHELL.getValue());
+        req.setVersion("v1");
+        req.setVersionDesc("v1_desc");
+
+        return given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
+            .then()
+            .statusCode(200)
+            .extract()
+            .body()
+            .as(new TypeRef<EsbResp<EsbScriptVersionDetailV3DTO>>() {
+            })
+            .getData();
+    }
 
     public static void deleteScript(EsbDeleteScriptV3Req req) {
         given()
             .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.DELETE_SCRIPT)
+            .then()
+            .statusCode(200);
+    }
+
+    public static void deleteScriptVersion(EsbDeleteScriptVersionV3Req req) {
+        given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.DELETE_SCRIPT_VERSION)
+            .then()
+            .statusCode(200);
+    }
+
+    public static void deletePublicScript(EsbDeletePublicScriptV3Req req) {
+        given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.DELETE_PUBLIC_SCRIPT)
+            .then()
+            .statusCode(200);
+    }
+
+    public static void deletePublicScriptVersion(EsbDeletePublicScriptVersionV3Req req) {
+        given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.DELETE_PUBLIC_SCRIPT_VERSION)
             .then()
             .statusCode(200);
     }
