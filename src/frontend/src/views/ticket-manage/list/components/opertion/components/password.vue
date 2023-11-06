@@ -36,12 +36,12 @@
       property="value1"
       required>
       <bk-input
-        v-model="formData.value1"
+        v-model.trim="formData.value1"
         type="password" />
     </jb-form-item>
     <jb-form-item :label="$t('ticket.描述')">
       <bk-input
-        v-model="formData.description"
+        v-model.trim="formData.description"
         maxlength="100"
         type="textarea" />
     </jb-form-item>
