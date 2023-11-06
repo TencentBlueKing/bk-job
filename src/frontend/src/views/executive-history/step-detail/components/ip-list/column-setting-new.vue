@@ -56,7 +56,7 @@
               v-if="item.name === 'ipv4'"
               :key="`ip_${item.name}`"
               v-bk-tooltips="{
-                content: 'IP 与 IPv6 至少需保留一个',
+                content: $t('history.IP 与 IPv6 至少需保留一个'),
                 disabled: tempAllShowColumn.includes('ipv6'),
               }"
               class="select-column">
@@ -71,7 +71,7 @@
               v-else-if="item.name === 'ipv6'"
               :key="`ipv6_${item.name}`"
               v-bk-tooltips="{
-                content: 'IP 与 IPv6 至少需保留一个',
+                content: $t('history.IP 与 IPv6 至少需保留一个'),
                 disabled: tempAllShowColumn.includes('ipv4'),
               }"
               class="select-column">
