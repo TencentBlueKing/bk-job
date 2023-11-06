@@ -87,14 +87,14 @@
         value1: [
           {
             required: true,
-            message: I18n.t('ticket.密码必填'),
+            message: I18n.t('ticket.用户名必填'),
             trigger: 'blur',
           },
         ],
         value2: [
           {
             required: true,
-            message: I18n.t('ticket.用户名必填'),
+            message: I18n.t('ticket.密码必填'),
             trigger: 'blur',
           },
         ],
