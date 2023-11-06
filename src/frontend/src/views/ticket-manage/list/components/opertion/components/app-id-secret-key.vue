@@ -35,17 +35,17 @@
       :label="$t('ticket.AppId')"
       property="value1"
       required>
-      <bk-input v-model="formData.value1" />
+      <bk-input v-model.trim="formData.value1" />
     </jb-form-item>
     <jb-form-item
       :label="$t('ticket.SecretKey')"
       property="value2"
       required>
-      <bk-input v-model="formData.value2" />
+      <bk-input v-model.trim="formData.value2" />
     </jb-form-item>
     <jb-form-item :label="$t('ticket.描述')">
       <bk-input
-        v-model="formData.description"
+        v-model.trim="formData.description"
         maxlength="100"
         type="textarea" />
     </jb-form-item>
