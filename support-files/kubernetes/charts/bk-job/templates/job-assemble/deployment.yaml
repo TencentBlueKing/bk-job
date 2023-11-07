@@ -123,6 +123,11 @@ spec:
           resources:
             {{- toYaml .Values.assembleConfig.resources | nindent 12 }}
           volumeMounts:
+            {{- if .Values.crontabConfig.database.host }}
+            - name: crontabdb
+              mountPath: /etc/secrets/crontabdb
+              readOnly: true
+            {{- end }}
             - name: distribute-volume
               mountPath: {{ .Values.fileDistribute.hostPath }}
             - name: job-storage
@@ -144,6 +149,11 @@ spec:
               readOnly: true
       terminationGracePeriodSeconds: 120
       volumes:
+        {{- if .Values.crontabConfig.database.host }}
+        - name: crontabdb
+          secret:
+            secretName: {{ include "job.crontabdb.secretName" . }}
+        {{- end }}
         - name: distribute-volume
           hostPath:
             path: {{ .Values.fileDistribute.hostPath }}

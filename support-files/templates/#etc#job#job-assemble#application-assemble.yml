@@ -269,24 +269,6 @@ spring:
     jdbc:
       # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
       initialize-schema: never
-    thread-pool:
-      thread-name-prefix: QuartzThreadPoolTaskExecutor-
-      thread-priority: 5
-      daemon: false
-      thread-group-name: QuartzThreadPoolTaskExecutorGroup
-      core-pool-size: 150
-      max-pool-size: 300
-      keep-alive-seconds: 60
-      queue-capacity: 150
-      allow-core-thread-timeout: false
-      waitfor-tasks-tocomplete-onshutdown: true
-      await-termination-seconds: 900
-    scheduler:
-      scheduler-name: quartz-scheduler
-      application-context-scheduler-contextkey: applicationContext
-      overwrite-existing-jobs: true
-      auto-startup: true
-      startup-delay: 10
     properties:
       org:
         quartz:
@@ -313,7 +295,7 @@ spring:
             batchTriggerAcquisitionMaxCount: 50
           threadPool:
             class: org.quartz.simpl.SimpleThreadPool
-            threadCount: 300
+            threadCount: 50
 
 ## 其他框架组件配置 ##
 server:

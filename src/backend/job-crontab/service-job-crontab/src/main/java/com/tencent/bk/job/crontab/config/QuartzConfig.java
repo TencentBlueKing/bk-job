@@ -24,14 +24,11 @@
 
 package com.tencent.bk.job.crontab.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.quartz.SchedulerFactoryBeanCustomizer;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.sql.DataSource;
 
@@ -40,54 +37,15 @@ import javax.sql.DataSource;
  */
 @Configuration
 @Profile("!test")
-@EnableConfigurationProperties({JobQuartzProperties.class})
 public class QuartzConfig {
-
-    private final JobQuartzProperties jobQuartzProperties;
-
-    @Autowired
-    public QuartzConfig(JobQuartzProperties quartzProperties) {
-        this.jobQuartzProperties = quartzProperties;
-    }
-
-    @Bean("quartzTaskExecutor")
-    public ThreadPoolTaskExecutor quartzTaskExecutor() {
-        JobQuartzProperties.ThreadPool threadPoolConfig = jobQuartzProperties.getThreadPool();
-        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setThreadNamePrefix(threadPoolConfig.getThreadNamePrefix());
-        threadPoolTaskExecutor.setThreadGroupName(threadPoolConfig.getThreadGroupName());
-        threadPoolTaskExecutor.setDaemon(threadPoolConfig.isDaemon());
-        threadPoolTaskExecutor.setThreadPriority(threadPoolConfig.getThreadPriority());
-        threadPoolTaskExecutor.setCorePoolSize(threadPoolConfig.getCorePoolSize());
-        threadPoolTaskExecutor.setMaxPoolSize(threadPoolConfig.getMaxPoolSize());
-        threadPoolTaskExecutor.setQueueCapacity(threadPoolConfig.getQueueCapacity());
-        threadPoolTaskExecutor.setKeepAliveSeconds(threadPoolConfig.getKeepAliveSeconds());
-        threadPoolTaskExecutor.setAllowCoreThreadTimeOut(threadPoolConfig.isAllowCoreThreadTimeOut());
-        threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(
-            threadPoolConfig.isWaitForTasksToCompleteOnShutdown());
-        threadPoolTaskExecutor.setAwaitTerminationSeconds(
-            threadPoolConfig.getAwaitTerminationSeconds());
-
-        return threadPoolTaskExecutor;
-    }
 
     @Bean
     public SchedulerFactoryBeanCustomizer schedulerFactoryBeanCustomizer(
-        @Qualifier("quartzTaskExecutor") ThreadPoolTaskExecutor quartzTaskExecutor,
         @Qualifier("job-crontab-data-source") DataSource dataSource) {
         return schedulerFactoryBean -> {
-            // 自定义taskExecutor
-            schedulerFactoryBean.setTaskExecutor(quartzTaskExecutor);
-
-            // 自定义scheduler
-            schedulerFactoryBean.setSchedulerName(jobQuartzProperties.getScheduler().getSchedulerName());
-            schedulerFactoryBean.setApplicationContextSchedulerContextKey(
-                jobQuartzProperties.getScheduler().getApplicationContextSchedulerContextKey());
-            schedulerFactoryBean.setOverwriteExistingJobs(jobQuartzProperties.getScheduler().isOverwriteExistingJobs());
-            schedulerFactoryBean.setAutoStartup(jobQuartzProperties.getScheduler().isAutoStartup());
-            schedulerFactoryBean.setStartupDelay(jobQuartzProperties.getScheduler().getStartupDelay());
+            schedulerFactoryBean.setOverwriteExistingJobs(true);
+            schedulerFactoryBean.setStartupDelay(10);
             schedulerFactoryBean.setDataSource(dataSource);
         };
-
     }
 }
