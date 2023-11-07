@@ -54,7 +54,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastExecuteSQLRequest;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -74,17 +73,13 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
 
     private final MessageI18nService i18nService;
 
-    private final ScriptService scriptService;
-
     @Autowired
     public EsbFastExecuteSQLResourceImpl(TaskExecuteService taskExecuteService,
                                          AccountService accountService,
-                                         MessageI18nService i18nService,
-                                         ScriptService scriptService) {
+                                         MessageI18nService i18nService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.i18nService = i18nService;
-        this.scriptService = scriptService;
     }
 
     @Override
@@ -95,7 +90,11 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_SQL
         })
     @AuditEntry
-    public EsbResp<EsbJobExecuteDTO> fastExecuteSQL(@AuditRequestBody EsbFastExecuteSQLRequest request) {
+    public EsbResp<EsbJobExecuteDTO> fastExecuteSQL(String username,
+                                                    String appCode,
+                                                    @AuditRequestBody EsbFastExecuteSQLRequest request) {
+
+
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
             log.warn("Fast execute SQL request is illegal!");
@@ -104,8 +103,8 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
 
         request.trimIps();
 
-        TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(request);
-        StepInstanceDTO stepInstance = buildFastSQLStepInstance(request);
+        TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(username, appCode, request);
+        StepInstanceDTO stepInstance = buildFastSQLStepInstance(username, request);
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
             FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
         );
@@ -149,7 +148,9 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
     }
 
 
-    private TaskInstanceDTO buildFastSQLTaskInstance(EsbFastExecuteSQLRequest request) {
+    private TaskInstanceDTO buildFastSQLTaskInstance(String username,
+                                                     String appCode,
+                                                     EsbFastExecuteSQLRequest request) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         if (StringUtils.isNotBlank(request.getName())) {
             taskInstance.setName(request.getName());
@@ -158,7 +159,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         }
         taskInstance.setCronTaskId(-1L);
         taskInstance.setAppId(request.getAppId());
-        taskInstance.setOperator(request.getUserName());
+        taskInstance.setOperator(username);
         taskInstance.setPlanId(-1L);
         taskInstance.setTaskTemplateId(-1L);
         taskInstance.setDebugTask(false);
@@ -167,13 +168,13 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
-        taskInstance.setAppCode(request.getAppCode());
+        taskInstance.setAppCode(appCode);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
         return taskInstance;
     }
 
 
-    private StepInstanceDTO buildFastSQLStepInstance(EsbFastExecuteSQLRequest request)
+    private StepInstanceDTO buildFastSQLStepInstance(String username, EsbFastExecuteSQLRequest request)
         throws ServiceException {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setAppId(request.getAppId());
@@ -211,7 +212,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         }
         stepInstance.setAccountId(account.getDbSystemAccountId());
         stepInstance.setDbAccountId(account.getId());
-        stepInstance.setOperator(request.getUserName());
+        stepInstance.setOperator(username);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
         return stepInstance;
     }

@@ -92,7 +92,10 @@ public class EsbFastExecuteScriptResourceImpl
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_SCRIPT
         })
     @AuditEntry
-    public EsbResp<EsbJobExecuteDTO> fastExecuteScript(@AuditRequestBody EsbFastExecuteScriptRequest request) {
+    public EsbResp<EsbJobExecuteDTO> fastExecuteScript(String username,
+                                                       String appCode,
+                                                       @AuditRequestBody EsbFastExecuteScriptRequest request) {
+
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast execute script request is illegal!");
@@ -101,8 +104,8 @@ public class EsbFastExecuteScriptResourceImpl
 
         request.trimIps();
 
-        TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(request);
-        StepInstanceDTO stepInstance = buildFastScriptStepInstance(request);
+        TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appCode, request);
+        StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, request);
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
             FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
         );
@@ -113,7 +116,6 @@ public class EsbFastExecuteScriptResourceImpl
         jobExecuteInfo.setStepInstanceId(stepInstance.getId());
         return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
-
 
 
     private String generateDefaultFastTaskName() {
@@ -153,7 +155,9 @@ public class EsbFastExecuteScriptResourceImpl
     }
 
 
-    private TaskInstanceDTO buildFastScriptTaskInstance(EsbFastExecuteScriptRequest request) {
+    private TaskInstanceDTO buildFastScriptTaskInstance(String username,
+                                                        String appCode,
+                                                        EsbFastExecuteScriptRequest request) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         if (StringUtils.isNotBlank(request.getName())) {
             taskInstance.setName(request.getName());
@@ -167,17 +171,17 @@ public class EsbFastExecuteScriptResourceImpl
         taskInstance.setAppId(request.getAppId());
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setStatus(RunStatusEnum.BLANK);
-        taskInstance.setOperator(request.getUserName());
+        taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
         taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
-        taskInstance.setAppCode(request.getAppCode());
+        taskInstance.setAppCode(appCode);
         return taskInstance;
     }
 
 
-    private StepInstanceDTO buildFastScriptStepInstance(EsbFastExecuteScriptRequest request)
+    private StepInstanceDTO buildFastScriptStepInstance(String username, EsbFastExecuteScriptRequest request)
         throws ServiceException {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setAppId(request.getAppId());
@@ -219,7 +223,7 @@ public class EsbFastExecuteScriptResourceImpl
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(request.getAccount()));
         }
         stepInstance.setAccountId(account.getId());
-        stepInstance.setOperator(request.getUserName());
+        stepInstance.setOperator(username);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
         // ESB接口默认为手工录入的本地脚本
         stepInstance.setScriptSource(1);

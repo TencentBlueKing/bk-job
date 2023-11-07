@@ -64,6 +64,8 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_list"})
     public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceListUsingPost(
+        String username,
+        String appCode,
         EsbGetJobInstanceListV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -174,8 +176,6 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
                                                                            Integer start,
                                                                            Integer length) {
         EsbGetJobInstanceListV3Request request = new EsbGetJobInstanceListV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
@@ -190,6 +190,6 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         request.setIp(ip);
         request.setStart(start);
         request.setLength(length);
-        return getJobInstanceListUsingPost(request);
+        return getJobInstanceListUsingPost(username, appCode, request);
     }
 }

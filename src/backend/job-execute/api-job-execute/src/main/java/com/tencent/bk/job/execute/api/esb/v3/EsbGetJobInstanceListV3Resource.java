@@ -49,6 +49,8 @@ public interface EsbGetJobInstanceListV3Resource {
 
     @PostMapping("/get_job_instance_list")
     EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetJobInstanceListV3Request request
