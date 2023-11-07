@@ -378,22 +378,22 @@ public class WebHostResourceImpl implements WebHostResource {
         }
         List<String> ipOrCloudIpList = req.getIpList();
         if (CollectionUtils.isNotEmpty(ipOrCloudIpList)) {
-            Pair<List<String>, List<String>> pair = IpUtils.separateIpAndCloudIps(ipOrCloudIpList);
-            List<String> ipList = pair.getLeft();
-            List<String> cloudIpList = pair.getRight();
+            Pair<Set<String>, Set<String>> pair = IpUtils.parseCleanIpv4AndCloudIpv4s(ipOrCloudIpList);
+            Set<String> ipSet = pair.getLeft();
+            Set<String> cloudIpSet = pair.getRight();
             // 根据ip地址查资源范围及白名单内的主机详情
-            if (CollectionUtils.isNotEmpty(ipList)) {
+            if (CollectionUtils.isNotEmpty(ipSet)) {
                 hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByIp(
                     appResourceScope,
                     req.getActionScope(),
-                    ipList
+                    ipSet
                 ));
             }
-            if (CollectionUtils.isNotEmpty(cloudIpList)) {
+            if (CollectionUtils.isNotEmpty(cloudIpSet)) {
                 hostDTOList.addAll(whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByCloudIp(
                     appResourceScope,
                     req.getActionScope(),
-                    cloudIpList
+                    cloudIpSet
                 ));
             }
         }
