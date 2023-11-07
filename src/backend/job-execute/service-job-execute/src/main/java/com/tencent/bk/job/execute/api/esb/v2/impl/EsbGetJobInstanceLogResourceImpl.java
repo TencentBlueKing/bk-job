@@ -35,7 +35,6 @@ import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -62,20 +61,17 @@ import java.util.List;
 public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final AppScopeMappingService appScopeMappingService;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
-                                            AppScopeMappingService appScopeMappingService,
                                             ScriptAgentTaskService scriptAgentTaskService,
                                             FileAgentTaskService fileAgentTaskService,
                                             LogService logService,
                                             TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.taskInstanceService = taskInstanceService;
-        this.appScopeMappingService = appScopeMappingService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.logService = logService;
@@ -87,7 +83,6 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(
         @AuditRequestBody EsbGetJobInstanceLogRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
 
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {

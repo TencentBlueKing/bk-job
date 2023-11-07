@@ -40,7 +40,6 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
@@ -82,18 +81,13 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
 
     private final AccountService accountService;
 
-    private final AppScopeMappingService appScopeMappingService;
-
-
     @Autowired
     public EsbFastPushFileResourceImpl(TaskExecuteService taskExecuteService,
                                        MessageI18nService i18nService,
-                                       AccountService accountService,
-                                       AppScopeMappingService appScopeMappingService) {
+                                       AccountService accountService) {
         this.taskExecuteService = taskExecuteService;
         this.i18nService = i18nService;
         this.accountService = accountService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -105,8 +99,6 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         })
     @AuditEntry(actionId = ActionId.QUICK_TRANSFER_FILE)
     public EsbResp<EsbJobExecuteDTO> fastPushFile(@AuditRequestBody EsbFastPushFileRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkFastPushFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");

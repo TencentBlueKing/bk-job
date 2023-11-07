@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceGlobalVarValueResource;
 import com.tencent.bk.job.execute.api.esb.v3.EsbGetJobInstanceGlobalVarValueV3Resource;
 import com.tencent.bk.job.execute.model.esb.v2.EsbTaskInstanceGlobalVarValueDTO;
@@ -52,13 +51,10 @@ import java.util.List;
 public class EsbGetJobInstanceGlobalVarValueResourceImpl implements EsbGetJobInstanceGlobalVarValueResource {
 
     private final EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbGetJobInstanceGlobalVarValueResourceImpl(
-        EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService,
-        AppScopeMappingService appScopeMappingService) {
-        this.appScopeMappingService = appScopeMappingService;
+        EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService) {
         this.proxyGetJobInstanceGlobalVarService = proxyGetJobInstanceGlobalVarService;
     }
 
@@ -66,9 +62,6 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl implements EsbGetJobIns
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_global_var_value"})
     public EsbResp<EsbTaskInstanceGlobalVarValueDTO> getJobInstanceGlobalVarValue(
         EsbGetJobInstanceGlobalVarValueRequest request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");

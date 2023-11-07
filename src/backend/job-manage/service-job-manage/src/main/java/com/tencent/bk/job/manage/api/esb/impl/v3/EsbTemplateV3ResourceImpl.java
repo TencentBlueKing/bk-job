@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbTemplateV3Resource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetTemplateListV3Request;
@@ -51,13 +50,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     private final TaskTemplateService taskTemplateService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbTemplateV3ResourceImpl(TaskTemplateService taskTemplateService,
-                                     AppScopeMappingService appScopeMappingService) {
+    public EsbTemplateV3ResourceImpl(TaskTemplateService taskTemplateService) {
         this.taskTemplateService = taskTemplateService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -97,7 +93,6 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_template_list"})
     public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateListUsingPost(
         EsbGetTemplateListV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get template list, request is illegal!");

@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
@@ -65,15 +64,12 @@ public class EsbFastExecuteSQLV3ResourceImpl
 
     private final TaskExecuteService taskExecuteService;
     private final MessageI18nService i18nService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbFastExecuteSQLV3ResourceImpl(TaskExecuteService taskExecuteService,
-                                           MessageI18nService i18nService,
-                                           AppScopeMappingService appScopeMappingService) {
+                                           MessageI18nService i18nService) {
         this.taskExecuteService = taskExecuteService;
         this.i18nService = i18nService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -85,8 +81,6 @@ public class EsbFastExecuteSQLV3ResourceImpl
         })
     @AuditEntry
     public EsbResp<EsbJobExecuteV3DTO> fastExecuteSQL(@AuditRequestBody EsbFastExecuteSQLV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
             log.warn("Fast execute sql request is illegal!");
