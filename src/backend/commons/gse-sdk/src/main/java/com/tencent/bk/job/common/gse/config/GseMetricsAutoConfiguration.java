@@ -22,25 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.constants;
+package com.tencent.bk.job.common.gse.config;
 
-public interface GseConstants {
-    /**
-     * 直连云区域ID
-     */
-    int DEFAULT_CLOUD_ID = 0;
+import com.tencent.bk.job.common.gse.constants.GseMetricNames;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-    /**
-     * GSE 获取文件任务执行结果协议版本V2 - 解除valuekey依赖版本
-     */
-    int GSE_FILE_PROTOCOL_VERSION_V2 = 2;
-
-    /**
-     * GSE 公钥证书BASE64，固定值
-     */
-    String publicKeyPermBase64 =
-        "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FETEVXZk9" +
-            "YU2VvMXpNQ1JpRVNFTWs3OXo0cwpHYkw4VmIvZXg5K1RaR2VyN255bEh5Y0Vtb2o5aWE4K2daTmVQOFRRVmRyTExhSz" +
-            "IzektiT3lja2FiVE5QS0VZCmhQY0NlellEQVdleTZBS2ZHSCtYZGV0MnJDOWtzRWhrM1BqcDVuZDk4QW1KZ0VJeSt6S" +
-            "0FhaVZEazFvdG5Jc0EKRWxucUdXL24zaWVuN0hmSXN3SURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo=";
+/**
+ * GSE 监控指标配置
+ */
+@Configuration
+public class GseMetricsAutoConfiguration {
+    @Bean("gseApiMeterFilter")
+    public MeterFilter distributionMeterFilter() {
+        return new MeterFilter() {
+            @Override
+            public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+                String metricName = id.getName();
+                if (metricName.startsWith(GseMetricNames.GSE_API_METRICS_NAME_PREFIX)
+                    || metricName.startsWith(GseMetricNames.GSE_V2_API_METRICS_NAME_PREFIX)) {
+                    return DistributionStatisticConfig.builder().percentilesHistogram(true)
+                        // [10ms,1s]
+                        .minimumExpectedValue(10_000_000.0).maximumExpectedValue(1_000_000_000.0)
+                        .build().merge(config);
+                } else {
+                    return config;
+                }
+            }
+        };
+    }
 }

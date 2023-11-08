@@ -1,3 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 com.tencent.bk.job.common.cc.config.CmdbAutoConfiguration,\
-com.tencent.bk.job.common.cc.config.CmdbFlowControlAutoConfiguration
+com.tencent.bk.job.common.cc.config.CmdbFlowControlAutoConfiguration,\
+com.tencent.bk.job.common.cc.config.CmdbMetricsAutoConfiguration
