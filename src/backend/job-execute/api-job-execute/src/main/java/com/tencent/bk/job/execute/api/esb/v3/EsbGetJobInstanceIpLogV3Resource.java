@@ -48,6 +48,8 @@ public interface EsbGetJobInstanceIpLogV3Resource {
 
     @PostMapping("/get_job_instance_ip_log")
     EsbResp<EsbIpLogV3DTO> getJobInstanceIpLogUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetJobInstanceIpLogV3Request request

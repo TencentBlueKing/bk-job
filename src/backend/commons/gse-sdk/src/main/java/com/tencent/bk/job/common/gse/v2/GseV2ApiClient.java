@@ -1,8 +1,11 @@
 package com.tencent.bk.job.common.gse.v2;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
+import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.esb.sdk.BkApiContext;
@@ -37,15 +40,15 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     private static final String URI_LIST_AGENT_STATE = "/api/v2/cluster/list_agent_state";
     private static final String URI_ASYNC_TRANSFER_FILE = "/api/v2/task/async_transfer_file";
     private static final String URI_GET_TRANSFER_FILE_RESULT = "/api/v2/task/async/get_transfer_file_result";
+    private final BkApiAuthorization gseBkApiAuthorization;
 
     public GseV2ApiClient(MeterRegistry meterRegistry,
                           AppProperties appProperties,
                           BkApiGatewayProperties bkApiGatewayProperties) {
         super(meterRegistry,
             GseConstants.GSE_V2_API_METRICS_NAME_PREFIX,
-            bkApiGatewayProperties.getGse().getUrl(),
-            appProperties.getCode(),
-            appProperties.getSecret());
+            bkApiGatewayProperties.getGse().getUrl());
+        gseBkApiAuthorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());
         log.info("Init GseV2ApiClient, bkGseApiGatewayUrl: {}, appCode: {}",
             bkApiGatewayProperties.getGse().getUrl(), appProperties.getCode());
     }
@@ -53,11 +56,28 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     @Override
     public GseTaskResponse asyncExecuteScript(ExecuteScriptRequest request) {
         EsbResp<AsyncGseTaskResult> resp =
-            doHttpPost(URI_ASYNC_EXECUTE_SCRIPT,
-                request, new TypeReference<EsbResp<AsyncGseTaskResult>>() {
-                });
+            requestGseApi(
+                URI_ASYNC_EXECUTE_SCRIPT,
+                request,
+                new TypeReference<EsbResp<AsyncGseTaskResult>>() {
+                },
+                null);
 
         return buildGseTaskResponse(resp);
+    }
+
+    private <R> EsbResp<R> requestGseApi(String uri,
+                                         Object reqBody,
+                                         TypeReference<EsbResp<R>> typeReference,
+                                         BkApiLogStrategy logStrategy) {
+        ApiRequestInfo<Object> requestInfo = ApiRequestInfo
+            .builder()
+            .method(HttpMethodEnum.POST)
+            .uri(uri)
+            .body(reqBody)
+            .authorization(gseBkApiAuthorization)
+            .build();
+        return doRequest(requestInfo, typeReference, logStrategy);
     }
 
     private GseTaskResponse buildGseTaskResponse(EsbResp<AsyncGseTaskResult> resp) {
@@ -72,11 +92,11 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     @Override
     public ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request) {
         EsbResp<ScriptTaskResult> resp =
-            doHttpPost(URI_GET_EXECUTE_SCRIPT_RESULT,
+            requestGseApi(
+                URI_GET_EXECUTE_SCRIPT_RESULT,
                 request,
                 new TypeReference<EsbResp<ScriptTaskResult>>() {
                 },
-                null,
                 new BkApiLogStrategy() {
                     @Override
                     public <T, R> void logResp(Logger log, BkApiContext<T, R> context) {
@@ -98,18 +118,24 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
-        EsbResp<List<AgentState>> resp = doHttpPost(URI_LIST_AGENT_STATE,
-            req, new TypeReference<EsbResp<List<AgentState>>>() {
-            });
+        EsbResp<List<AgentState>> resp = requestGseApi(
+            URI_LIST_AGENT_STATE,
+            req,
+            new TypeReference<EsbResp<List<AgentState>>>() {
+            },
+            null);
         return resp.getData();
     }
 
     @Override
     public GseTaskResponse asyncTransferFile(TransferFileRequest request) {
         EsbResp<AsyncGseTaskResult> resp =
-            doHttpPost(URI_ASYNC_TRANSFER_FILE,
-                request, new TypeReference<EsbResp<AsyncGseTaskResult>>() {
-                }, null);
+            requestGseApi(
+                URI_ASYNC_TRANSFER_FILE,
+                request,
+                new TypeReference<EsbResp<AsyncGseTaskResult>>() {
+                },
+                null);
 
         return buildGseTaskResponse(resp);
     }
@@ -117,9 +143,12 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     @Override
     public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
         EsbResp<FileTaskResult> resp =
-            doHttpPost(URI_GET_TRANSFER_FILE_RESULT,
-                request, new TypeReference<EsbResp<FileTaskResult>>() {
-                }, null);
+            requestGseApi(
+                URI_GET_TRANSFER_FILE_RESULT,
+                request,
+                new TypeReference<EsbResp<FileTaskResult>>() {
+                },
+                null);
         FileTaskResult fileTaskResult = resp.getData();
         if (fileTaskResult != null && CollectionUtils.isNotEmpty(fileTaskResult.getAtomicFileTaskResults())) {
             fileTaskResult.getAtomicFileTaskResults().forEach(atomicFileTaskResult -> {
@@ -135,18 +164,22 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     @Override
     public GseTaskResponse terminateGseFileTask(TerminateGseTaskRequest request) {
         EsbResp<AsyncGseTaskResult> resp =
-            doHttpPost("/api/v2/task/async_terminate_transfer_file",
-                request, new TypeReference<EsbResp<AsyncGseTaskResult>>() {
-                }, null);
+            requestGseApi("/api/v2/task/async_terminate_transfer_file",
+                request,
+                new TypeReference<EsbResp<AsyncGseTaskResult>>() {
+                },
+                null);
         return buildGseTaskResponse(resp);
     }
 
     @Override
     public GseTaskResponse terminateGseScriptTask(TerminateGseTaskRequest request) {
         EsbResp<AsyncGseTaskResult> resp =
-            doHttpPost("/api/v2/task/async_terminate_execute_script",
-                request, new TypeReference<EsbResp<AsyncGseTaskResult>>() {
-                }, null);
+            requestGseApi("/api/v2/task/async_terminate_execute_script",
+                request,
+                new TypeReference<EsbResp<AsyncGseTaskResult>>() {
+                },
+                null);
         return buildGseTaskResponse(resp);
     }
 }

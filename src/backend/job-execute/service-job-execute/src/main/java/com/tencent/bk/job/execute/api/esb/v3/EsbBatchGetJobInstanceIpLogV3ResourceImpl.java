@@ -82,6 +82,8 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_batch_get_job_instance_ip_log"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbIpLogsV3DTO> batchGetJobInstanceIpLogs(
+        String username,
+        String appCode,
         @AuditRequestBody EsbBatchGetJobInstanceIpLogV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -90,7 +92,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+        taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());

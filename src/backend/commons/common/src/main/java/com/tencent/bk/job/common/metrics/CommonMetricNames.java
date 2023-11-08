@@ -33,9 +33,17 @@ public class CommonMetricNames {
      */
     public static final String ESB_BK_LOGIN_API_HTTP = "job.client.bk.login.api.http";
     /**
+     * 仅统计调用ESB BK-LOGIN API的整个过程，含反序列化
+     */
+    public static final String ESB_BK_LOGIN_API = "job.client.bk.login.api";
+    /**
      * 仅统计调用ESB USER-MANAGE API的HTTP请求过程
      */
     public static final String ESB_USER_MANAGE_API_HTTP = "job.client.user.manage.api.http";
+    /**
+     * 统计调用ESB 用户管理 API的整个过程，含反序列化
+     */
+    public static final String ESB_USER_MANAGE_API = "job.client.user.manage.api";
     /**
      * 仅统计调用ESB CMSI API的HTTP请求过程
      */
@@ -44,10 +52,6 @@ public class CommonMetricNames {
      * 统计调用ESB CMSI API的整个过程，含反序列化
      */
     public static final String ESB_CMSI_API = "job.client.cmsi.api";
-    /**
-     * 仅统计调用ESB IAM API的HTTP请求过程
-     */
-    public static final String ESB_IAM_API_HTTP = "job.client.iam.api.http";
     /**
      * 仅统计调用ESB CMDB API的HTTP请求过程
      */

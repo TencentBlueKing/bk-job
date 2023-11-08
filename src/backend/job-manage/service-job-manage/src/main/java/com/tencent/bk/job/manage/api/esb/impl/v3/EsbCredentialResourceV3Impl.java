@@ -58,11 +58,13 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         actionId = ActionId.CREATE_TICKET
     )
     public EsbResp<EsbCredentialSimpleInfoV3DTO> createCredential(
+        String username,
+        String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
         checkCreateParam(req);
 
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
-        CredentialDTO createCredential = credentialService.createCredential(req.getUserName(), req.getAppId(),
+        CredentialDTO createCredential = credentialService.createCredential(username, req.getAppId(),
             createUpdateReq);
 
         return EsbResp.buildSuccessResp(createCredential.toEsbCredentialSimpleInfoV3DTO());
@@ -86,11 +88,13 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         actionId = ActionId.MANAGE_TICKET
     )
     public EsbResp<EsbCredentialSimpleInfoV3DTO> updateCredential(
+        String username,
+        String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
         checkUpdateParam(req);
 
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
-        CredentialDTO updateCredential = credentialService.updateCredential(req.getUserName(), req.getAppId(),
+        CredentialDTO updateCredential = credentialService.updateCredential(username, req.getAppId(),
             createUpdateReq);
 
         return EsbResp.buildSuccessResp(updateCredential.toEsbCredentialSimpleInfoV3DTO());

@@ -26,21 +26,27 @@ package com.tencent.bk.job.common.paas.login;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
+import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
+import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
 import com.tencent.bk.job.common.paas.model.EsbUserDto;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.HttpGet;
+
+import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_BK_LOGIN_API;
 
 @Slf4j
-public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient {
+public class StandardLoginClient extends AbstractBkApiClient implements ILoginClient {
 
     // 用户认证失败，即用户登录态无效
     private static final Integer ESB_CODE_USER_NOT_LOGIN = 1302100;
@@ -51,47 +57,39 @@ public class EELoginClient extends AbstractEsbSdkClient implements ILoginClient 
 
     private static final String API_GET_USER_INFO = "/api/c/compapi/v2/bk_login/get_user/";
 
-    public EELoginClient(String esbHostUrl, String appCode, String appSecret, String lang) {
-        super(esbHostUrl, appCode, appSecret, lang);
-    }
+    private final AppProperties appProperties;
 
-    public EELoginClient(String esbHostUrl, String appCode, String appSecret) {
-        super(esbHostUrl, appCode, appSecret, "en");
+    public StandardLoginClient(EsbProperties esbProperties, AppProperties appProperties, MeterRegistry meterRegistry) {
+        super(meterRegistry, ESB_BK_LOGIN_API, esbProperties.getService().getUrl());
+        this.appProperties = appProperties;
     }
 
     /**
      * 获取指定用户信息
      *
-     * @param bkToken
-     * @return
+     * @param bkToken 用户登录 token
+     * @return 用户信息
      */
     @Override
     public BkUserDTO getUserInfoByToken(String bkToken) {
-        EsbReq esbReq = makeBaseReqByWeb(EsbReq.class, bkToken);
-        return getUserInfo(esbReq);
-    }
-
-    @Override
-    public BkUserDTO getUserInfoByUserName(String userName) {
-        EsbReq esbReq = makeBaseReqByWeb(EsbReq.class, null, userName, null);
-        return getUserInfo(esbReq);
-    }
-
-    private BkUserDTO getUserInfo(EsbReq esbReq) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_BK_LOGIN_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(
                 Tag.of("api_name", API_GET_USER_INFO)
             );
-            EsbResp<EsbUserDto> esbResp = getEsbRespByReq(
-                HttpGet.METHOD_NAME,
-                API_GET_USER_INFO,
-                esbReq,
+            EsbResp<EsbUserDto> esbResp = doRequest(
+                ApiRequestInfo.builder()
+                    .method(HttpMethodEnum.GET)
+                    .uri(API_GET_USER_INFO)
+                    .addQueryParam("bk_token", bkToken)
+                    .authorization(BkApiAuthorization.userAuthorization(
+                        appProperties.getCode(), appProperties.getSecret(), bkToken))
+                    .build(),
                 new TypeReference<EsbResp<EsbUserDto>>() {
                 }
             );
             Integer code = esbResp.getCode();
-            if (ESB_CODE_OK.equals(code)) {
+            if (ErrorCode.RESULT_OK == code) {
                 return convertToBkUserDTO(esbResp.getData());
             } else {
                 handleNotOkResp(esbResp);

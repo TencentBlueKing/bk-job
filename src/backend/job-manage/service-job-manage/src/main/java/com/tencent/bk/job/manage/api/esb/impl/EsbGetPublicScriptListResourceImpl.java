@@ -64,7 +64,9 @@ public class EsbGetPublicScriptListResourceImpl implements EsbGetPublicScriptLis
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_public_script_list"})
-    public EsbResp<EsbPageData<EsbScriptDTO>> getPublicScriptList(EsbGetPublicScriptListRequest request) {
+    public EsbResp<EsbPageData<EsbScriptDTO>> getPublicScriptList(String username,
+                                                                  String appCode,
+                                                                  EsbGetPublicScriptListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get public script list, request is illegal!");

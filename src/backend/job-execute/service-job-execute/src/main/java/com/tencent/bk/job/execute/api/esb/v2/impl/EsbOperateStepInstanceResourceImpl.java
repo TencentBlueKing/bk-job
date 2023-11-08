@@ -50,7 +50,9 @@ public class EsbOperateStepInstanceResourceImpl implements EsbOperateStepInstanc
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_operate_step_instance"})
-    public EsbResp<EsbJobExecuteDTO> operateStepInstance(EsbOperateStepInstanceRequest request) {
+    public EsbResp<EsbJobExecuteDTO> operateStepInstance(String username,
+                                                         String appCode,
+                                                         EsbOperateStepInstanceRequest request) {
         log.info("Operate step instance, request={}", JsonUtils.toJson(request));
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -59,7 +61,7 @@ public class EsbOperateStepInstanceResourceImpl implements EsbOperateStepInstanc
         StepOperationDTO stepOperation = new StepOperationDTO();
         stepOperation.setStepInstanceId(request.getStepInstanceId());
         stepOperation.setOperation(operationEnum);
-        taskExecuteService.doStepOperation(request.getAppId(), request.getUserName(), stepOperation);
+        taskExecuteService.doStepOperation(request.getAppId(), username, stepOperation);
         EsbJobExecuteDTO result = new EsbJobExecuteDTO();
         result.setTaskInstanceId(request.getTaskInstanceId());
         result.setStepInstanceId(request.getStepInstanceId());

@@ -25,12 +25,14 @@
 package com.tencent.bk.job.manage.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGenLocalFileUploadUrlV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbUploadUrlV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,6 +46,8 @@ public interface EsbLocalFileV3Resource {
 
     @PostMapping("/generate_local_file_upload_url")
     EsbResp<EsbUploadUrlV3DTO> generateLocalFileUploadUrl(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGenLocalFileUploadUrlV3Req req

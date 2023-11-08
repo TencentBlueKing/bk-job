@@ -78,6 +78,8 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_status"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatusUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceStatusRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -86,7 +88,7 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getUserName(),
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(username,
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
@@ -197,19 +199,17 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_status"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatus(String appCode,
-                                                                 String username,
+    public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatus(String username,
+                                                                 String appCode,
                                                                  Long bizId,
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  Long taskInstanceId) {
         EsbGetJobInstanceStatusRequest req = new EsbGetJobInstanceStatusRequest();
-        req.setAppCode(appCode);
-        req.setUserName(username);
         req.setBizId(bizId);
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
-        return getJobInstanceStatusUsingPost(req);
+        return getJobInstanceStatusUsingPost(username, appCode, req);
     }
 }

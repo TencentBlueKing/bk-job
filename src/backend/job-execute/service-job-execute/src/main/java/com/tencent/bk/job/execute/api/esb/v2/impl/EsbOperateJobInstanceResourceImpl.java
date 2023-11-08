@@ -49,13 +49,15 @@ public class EsbOperateJobInstanceResourceImpl implements EsbOperateJobInstanceR
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_operate_job_instance"})
-    public EsbResp<EsbJobExecuteDTO> operateJobInstance(EsbOperateJobInstanceRequest request) {
+    public EsbResp<EsbJobExecuteDTO> operateJobInstance(String username,
+                                                        String appCode,
+                                                        EsbOperateJobInstanceRequest request) {
         log.info("Operate task instance, request={}", JsonUtils.toJson(request));
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskOperationEnum taskOperation = TaskOperationEnum.getTaskOperation(request.getOperationCode());
-        taskExecuteService.doTaskOperation(request.getAppId(), request.getUserName(),
+        taskExecuteService.doTaskOperation(request.getAppId(), username,
             request.getTaskInstanceId(), taskOperation);
         EsbJobExecuteDTO result = new EsbJobExecuteDTO();
         result.setTaskInstanceId(request.getTaskInstanceId());

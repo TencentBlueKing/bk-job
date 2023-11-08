@@ -95,7 +95,9 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_detail"})
     @AuditEntry(actionId = ActionId.VIEW_JOB_PLAN)
-    public EsbResp<EsbJobDetailDTO> getJobDetail(@AuditRequestBody EsbGetJobDetailRequest request) {
+    public EsbResp<EsbJobDetailDTO> getJobDetail(String username,
+                                                 String appCode,
+                                                 @AuditRequestBody EsbGetJobDetailRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job detail, request is illegal!");
@@ -104,7 +106,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         Long appId = request.getAppId();
         Long jobId = request.getPlanId();
 
-        TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlan(request.getUserName(), appId, jobId);
+        TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlan(username, appId, jobId);
 
         return EsbResp.buildSuccessResp(buildJobDetail(taskPlan));
     }

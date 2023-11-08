@@ -72,8 +72,6 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
                                                                              Integer start,
                                                                              Integer length) {
         EsbGetTemplateListV3Request request = new EsbGetTemplateListV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
@@ -86,12 +84,14 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         request.setLastModifyTimeStart(lastModifyTimeStart);
         request.setStart(start);
         request.setLength(length);
-        return getTemplateListUsingPost(request);
+        return getTemplateListUsingPost(username, appCode, request);
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_template_list"})
     public EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateListUsingPost(
+        String username,
+        String appCode,
         EsbGetTemplateListV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {

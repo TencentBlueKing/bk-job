@@ -22,36 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.api.esb.v2;
+package com.tencent.bk.job.common.paas.config;
 
-import com.tencent.bk.job.common.annotation.EsbAPI;
-import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
-import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 根据步骤实例 ID 查询步骤执行状态API-V2
- */
-@RequestMapping("/esb/api/v2")
-@RestController
-@EsbAPI
-public interface EsbGetStepInstanceStatusResource {
+@Configuration(proxyBeanMethods = false)
+@Slf4j
+public class UserMgrAutoConfiguration {
 
-    @PostMapping("/get_step_instance_status")
-    EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(
-        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestBody
-        @Validated
-            EsbGetStepInstanceStatusRequest request
-    );
-
+    @Bean
+    public UserMgrApiClient userMgrApiClient(AppProperties appProperties,
+                                             EsbProperties esbProperties,
+                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+        log.info("Init UserMgrApiClient");
+        return new UserMgrApiClient(esbProperties, appProperties, meterRegistryObjectProvider.getIfAvailable());
+    }
 
 }

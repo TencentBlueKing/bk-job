@@ -11,6 +11,7 @@ import lombok.Data;
  */
 @Data
 public class BkApiContext<T, R> {
+
     /**
      * HTTP 请求方法
      */

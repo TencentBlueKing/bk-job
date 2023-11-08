@@ -60,7 +60,9 @@ public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResou
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_own_db_account_list"})
-    public EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(EsbGetDBAccountListRequest request) {
+    public EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(String username,
+                                                                  String appCode,
+                                                                  EsbGetDBAccountListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get db account list, request is illegal!");
@@ -74,7 +76,7 @@ public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResou
                 grantedDbAccounts.add(dbAccount);
             } else {
                 List<String> grantees = Arrays.asList(dbAccount.getGrantees().split(","));
-                if (grantees.contains(request.getUserName())) {
+                if (grantees.contains(username)) {
                     grantedDbAccounts.add(dbAccount);
                 }
             }

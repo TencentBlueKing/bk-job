@@ -22,29 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.upgrader.iam;
 
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.iam.client.EsbIamClient;
+import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.Properties;
 
-/**
- * PaaS服务
- */
-public interface PaaSService {
+public class ApiClientUtils {
 
-    List<BkUserDTO> getAllUserList(String bkToken, String uin);
+    public static EsbIamClient buildEsbIamClient(Properties properties) {
+        EsbProperties esbProperties = new EsbProperties();
+        EsbProperties.EsbServiceConfig esbServiceConfig = new EsbProperties.EsbServiceConfig();
+        esbServiceConfig.setUrl((String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL));
+        esbProperties.setService(esbServiceConfig);
 
-    List<EsbNotifyChannelDTO> getAllChannelList(String bkToken, String uin) throws IOException;
+        return new EsbIamClient(
+            null,
+            new AppProperties(
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE),
+                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET)
+            ),
+            esbProperties
+        );
+    }
 
-    void sendMsg(
-        String msgType,
-        String sender,
-        Set<String> receivers,
-        String title,
-        String content
-    );
 }

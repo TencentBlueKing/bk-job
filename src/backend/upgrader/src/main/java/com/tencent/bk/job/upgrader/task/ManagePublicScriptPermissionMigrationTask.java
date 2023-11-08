@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.client.IamClient;
+import com.tencent.bk.job.upgrader.iam.ApiClientUtils;
 import com.tencent.bk.job.upgrader.model.ActionPolicies;
 import com.tencent.bk.job.upgrader.model.Policy;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
@@ -76,15 +77,10 @@ public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
     }
 
     private EsbIamClient getEsbIamClient() {
-        Properties properties = getProperties();
-        if (esbIamClient == null) {
-            esbIamClient = new EsbIamClient(
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL),
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE),
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET)
-            );
+        if (this.esbIamClient == null) {
+            this.esbIamClient = ApiClientUtils.buildEsbIamClient(getProperties());
         }
-        return esbIamClient;
+        return this.esbIamClient;
     }
 
     private List<Policy> queryAuthorizedPolicies(String actionId) {

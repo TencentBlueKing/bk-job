@@ -49,6 +49,8 @@ public interface EsbGetJobInstanceGlobalVarValueV3Resource {
 
     @PostMapping("/get_job_instance_global_var_value")
     EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValueUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetJobInstanceGlobalVarValueV3Request request

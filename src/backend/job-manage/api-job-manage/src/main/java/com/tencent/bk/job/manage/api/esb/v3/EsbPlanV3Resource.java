@@ -78,6 +78,8 @@ public interface EsbPlanV3Resource {
 
     @PostMapping("/get_job_plan_list")
     EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>> getPlanListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetPlanListV3Request request
@@ -85,6 +87,8 @@ public interface EsbPlanV3Resource {
 
     @PostMapping("/get_job_plan_detail")
     EsbResp<EsbPlanInfoV3DTO> getPlanDetailUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetPlanDetailV3Request request

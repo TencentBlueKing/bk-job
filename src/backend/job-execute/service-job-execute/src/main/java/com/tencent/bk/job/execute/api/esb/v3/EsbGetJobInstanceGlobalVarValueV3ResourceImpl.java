@@ -68,6 +68,8 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_var_value"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValueUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceGlobalVarValueV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -76,7 +78,7 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+        taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
         EsbJobInstanceGlobalVarValueV3DTO result = new EsbJobInstanceGlobalVarValueV3DTO();
@@ -125,12 +127,10 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
                                                                                    String scopeId,
                                                                                    Long taskInstanceId) {
         EsbGetJobInstanceGlobalVarValueV3Request request = new EsbGetJobInstanceGlobalVarValueV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
-        return getJobInstanceGlobalVarValueUsingPost(request);
+        return getJobInstanceGlobalVarValueUsingPost(username, appCode, request);
     }
 }

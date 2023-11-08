@@ -26,9 +26,12 @@ package com.tencent.bk.job.common.esb.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.http.BasicHttpReq;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * ESB API 通用请求参数
@@ -52,5 +55,27 @@ public class EsbReq extends BasicHttpReq {
     @JsonProperty("bk_supplier_account")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String bkSupplierAccount;
+
+    /**
+     * 构造请求
+     *
+     * @param reqClass          要构建返回的请求 class
+     * @param bkSupplierAccount 开发商code
+     * @return EsbReq
+     */
+    public static <T extends EsbReq> T buildRequest(Class<T> reqClass, String bkSupplierAccount) {
+        T esbReq;
+        try {
+            esbReq = reqClass.newInstance();
+            if (StringUtils.isEmpty(bkSupplierAccount)) {
+                esbReq.setBkSupplierAccount("0");
+            } else {
+                esbReq.setBkSupplierAccount(bkSupplierAccount);
+            }
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
+        }
+        return esbReq;
+    }
 
 }
