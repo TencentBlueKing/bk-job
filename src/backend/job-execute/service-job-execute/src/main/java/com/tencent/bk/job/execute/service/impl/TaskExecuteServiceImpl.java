@@ -771,52 +771,71 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private ServiceListAppHostResultDTO acquireAndSetHosts(TaskInstanceDTO taskInstance,
                                                            List<StepInstanceDTO> stepInstances,
                                                            Collection<TaskVariableDTO> variables) {
-        long appId = taskInstance.getAppId();
+        StopWatch watch = new StopWatch("AcquireAndSetHosts");
+        try {
+            long appId = taskInstance.getAppId();
 
-        // 提取动态分组/topo节点
-        Set<DynamicServerGroupDTO> groups = new HashSet<>();
-        Set<DynamicServerTopoNodeDTO> topoNodes = new HashSet<>();
-        stepInstances.forEach(stepInstance -> extractDynamicGroupsAndTopoNodes(stepInstance, groups, topoNodes));
-        if (CollectionUtils.isNotEmpty(variables)) {
-            variables.forEach(variable -> {
-                if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                    extractDynamicGroupsAndTopoNodes(variable.getTargetServers(), groups, topoNodes);
-                }
-            });
+            // 提取动态分组/topo节点
+            Set<DynamicServerGroupDTO> groups = new HashSet<>();
+            Set<DynamicServerTopoNodeDTO> topoNodes = new HashSet<>();
+            stepInstances.forEach(stepInstance -> extractDynamicGroupsAndTopoNodes(stepInstance, groups, topoNodes));
+            if (CollectionUtils.isNotEmpty(variables)) {
+                variables.forEach(variable -> {
+                    if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
+                        extractDynamicGroupsAndTopoNodes(variable.getTargetServers(), groups, topoNodes);
+                    }
+                });
+            }
+
+            // 获取动态分组的主机并设置
+            fillDynamicGroupHosts(watch, appId, groups, stepInstances, variables);
+
+            // 获取topo节点的主机并设置
+            fillTopoNodeHosts(watch, appId, topoNodes, stepInstances, variables);
+
+            // 提取作业包含的主机列表
+            watch.start("extractHosts");
+            Set<HostDTO> queryHosts = extractHosts(stepInstances, variables);
+            watch.stop();
+
+            if (CollectionUtils.isEmpty(queryHosts)) {
+                return ServiceListAppHostResultDTO.EMPTY;
+            }
+
+            watch.start("batchGetAppHosts");
+            ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts,
+                needRefreshHostBkAgentId(taskInstance));
+            watch.stop();
+
+            if (CollectionUtils.isNotEmpty(queryHostsResult.getNotExistHosts())) {
+                // 如果主机在cmdb不存在，直接报错
+                throwHostInvalidException(queryHostsResult.getNotExistHosts());
+            }
+
+            watch.start("fillTaskInstanceHostDetail");
+            fillTaskInstanceHostDetail(taskInstance, stepInstances, variables, queryHostsResult);
+            watch.stop();
+
+            return queryHostsResult;
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 1000) {
+                log.warn("AcquireAndSetHosts slow, watch: {}", watch.prettyPrint());
+            }
         }
 
-        // 获取动态分组的主机并设置
-        fillDynamicGroupHosts(appId, groups, stepInstances, variables);
-
-        // 获取topo节点的主机并设置
-        fillTopoNodeHosts(appId, topoNodes, stepInstances, variables);
-
-        // 提取作业包含的主机列表
-        Set<HostDTO> queryHosts = extractHosts(stepInstances, variables);
-
-        if (CollectionUtils.isEmpty(queryHosts)) {
-            return ServiceListAppHostResultDTO.EMPTY;
-        }
-
-        ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts,
-            needRefreshHostBkAgentId(taskInstance));
-
-        if (CollectionUtils.isNotEmpty(queryHostsResult.getNotExistHosts())) {
-            // 如果主机在cmdb不存在，直接报错
-            throwHostInvalidException(queryHostsResult.getNotExistHosts());
-        }
-
-        fillTaskInstanceHostDetail(taskInstance, stepInstances, variables, queryHostsResult);
-
-        return queryHostsResult;
     }
 
-    private void fillDynamicGroupHosts(long appId,
+    private void fillDynamicGroupHosts(StopWatch watch,
+                                       long appId,
                                        Set<DynamicServerGroupDTO> groups,
                                        List<StepInstanceDTO> stepInstances,
                                        Collection<TaskVariableDTO> variables) {
         // 获取动态分组的主机并设置
         if (CollectionUtils.isNotEmpty(groups)) {
+            watch.start("fillDynamicGroupHosts");
             Map<DynamicServerGroupDTO, List<HostDTO>> dynamicGroupHosts =
                 hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
             stepInstances.forEach(stepInstance -> {
@@ -839,14 +858,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     }
                 });
             }
+            watch.stop();
         }
     }
 
-    private void fillTopoNodeHosts(long appId,
+    private void fillTopoNodeHosts(StopWatch watch,
+                                   long appId,
                                    Set<DynamicServerTopoNodeDTO> topoNodes,
                                    List<StepInstanceDTO> stepInstances,
                                    Collection<TaskVariableDTO> variables) {
         if (CollectionUtils.isNotEmpty(topoNodes)) {
+            watch.start("fillTopoNodeHosts");
             Map<DynamicServerTopoNodeDTO, List<HostDTO>> topoNodeHosts =
                 hostService.getAndGroupHostsByTopoNodes(appId, topoNodes);
             stepInstances.forEach(stepInstance -> {
@@ -869,6 +891,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     }
                 });
             }
+            watch.stop();
         }
     }
 
@@ -2217,6 +2240,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
+        long start = System.currentTimeMillis();
+
         List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
         Map<HostDTO, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
         hosts.forEach(hostDTO -> {
@@ -2241,6 +2266,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             } else {
                 host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
             }
+        }
+
+        long cost = System.currentTimeMillis() - start;
+        if (cost > 1000) {
+            log.warn("SetAgentStatus slow, hostSize: {}, cost:{} ms", hosts.size(), cost);
         }
     }
 
