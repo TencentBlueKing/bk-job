@@ -474,8 +474,10 @@ gse:
     rootPath: "/tmp/bkjob"
   query:
     threads:
-      # 向GSE查询Agent状态的并发数
+      # 向GSE查询Agent状态的核心并发数
       num: 5
+      # 向GSE查询Agent状态的最大并发数
+      maxNum: 20
     # 单次向GSE查询状态的Agent数量
     batchSize: 5000
 

@@ -40,6 +40,9 @@ public class AgentStateQueryConfig {
     @Value("${gse.query.threads.num:5}")
     private int gseQueryThreadsNum;
 
+    @Value("${gse.query.threads.maxNum:20}")
+    private int gseQueryThreadsMaxNum;
+
     @Value("${gse.query.batchSize:5000}")
     private int gseQueryBatchSize;
 
