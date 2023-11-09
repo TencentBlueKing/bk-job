@@ -65,9 +65,7 @@ data:
           connect:
             string: {{ .Values.gse.server.zookeeper.connect.string }}
       query:
-        threads:
-          num: {{ .Values.gse.query.threads.num }}
-        batchSize: {{ .Values.gse.query.batchSize }}
+        {{- toYaml .Values.gse.query | nindent 8 }}
       script:
         rootPath: {{ .Values.gse.script.rootPath }}
     iam:

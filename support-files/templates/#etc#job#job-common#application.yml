@@ -57,6 +57,7 @@ gse:
   query:
     threads:
       num: 5
+      maxNum: 20
     batchSize: 5000
   script:
     rootPath: "/tmp/bkjob"   
