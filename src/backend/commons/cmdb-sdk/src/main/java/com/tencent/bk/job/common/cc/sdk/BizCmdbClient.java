@@ -30,6 +30,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.constants.CmdbMetricNames;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
@@ -356,7 +357,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
-            meterRegistry.timer(CommonMetricNames.ESB_CMDB_API, "api_name", uri, "status", status)
+            meterRegistry.timer(CmdbMetricNames.CMDB_API_PREFIX, "api_name", uri, "status", status)
                 .record(end - start, TimeUnit.NANOSECONDS);
         }
     }

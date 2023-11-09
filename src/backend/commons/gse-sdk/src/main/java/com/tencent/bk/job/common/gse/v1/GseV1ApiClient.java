@@ -27,6 +27,7 @@ import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.constants.AgentStateStatusEnum;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
+import com.tencent.bk.job.common.gse.constants.GseMetricNames;
 import com.tencent.bk.job.common.gse.constants.GseTaskTypeEnum;
 import com.tencent.bk.job.common.gse.util.WindowsHelper;
 import com.tencent.bk.job.common.gse.v1.model.AgentStatusDTO;
@@ -362,7 +363,7 @@ public class GseV1ApiClient implements IGseClient {
             long end = System.currentTimeMillis();
             log.info("BatchGetAgentStatus {} agentIds, cost: {}ms", agentIds.size(), (end - start));
             if (this.meterRegistry != null) {
-                meterRegistry.timer(GseConstants.GSE_API_METRICS_NAME_PREFIX, "api_name", "quireAgentStatus",
+                meterRegistry.timer(GseMetricNames.GSE_API_METRICS_NAME_PREFIX, "api_name", "quireAgentStatus",
                     "status", status).record(end - start, TimeUnit.MICROSECONDS);
             }
             gseClient.tearDown();
@@ -820,7 +821,7 @@ public class GseV1ApiClient implements IGseClient {
                 status = "error";
             } finally {
                 long end = System.nanoTime();
-                meterRegistry.timer(GseConstants.GSE_API_METRICS_NAME_PREFIX, "api_name", caller.getApiName(),
+                meterRegistry.timer(GseMetricNames.GSE_API_METRICS_NAME_PREFIX, "api_name", caller.getApiName(),
                     "status", status).record(end - start, TimeUnit.NANOSECONDS);
             }
         } while (retry-- > 0); //重试1次

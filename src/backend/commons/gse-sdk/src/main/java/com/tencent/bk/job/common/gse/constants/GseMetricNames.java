@@ -24,23 +24,14 @@
 
 package com.tencent.bk.job.common.gse.constants;
 
-public interface GseConstants {
+public interface GseMetricNames {
     /**
-     * 直连云区域ID
+     * GSE V1 API 度量指标名称前缀
      */
-    int DEFAULT_CLOUD_ID = 0;
+    String GSE_API_METRICS_NAME_PREFIX = "job.client.gse.api";
 
     /**
-     * GSE 获取文件任务执行结果协议版本V2 - 解除valuekey依赖版本
+     * GSE V2 API 度量指标名称前缀
      */
-    int GSE_FILE_PROTOCOL_VERSION_V2 = 2;
-
-    /**
-     * GSE 公钥证书BASE64，固定值
-     */
-    String publicKeyPermBase64 =
-        "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FETEVXZk9" +
-            "YU2VvMXpNQ1JpRVNFTWs3OXo0cwpHYkw4VmIvZXg5K1RaR2VyN255bEh5Y0Vtb2o5aWE4K2daTmVQOFRRVmRyTExhSz" +
-            "IzektiT3lja2FiVE5QS0VZCmhQY0NlellEQVdleTZBS2ZHSCtYZGV0MnJDOWtzRWhrM1BqcDVuZDk4QW1KZ0VJeSt6S" +
-            "0FhaVZEazFvdG5Jc0EKRWxucUdXL24zaWVuN0hmSXN3SURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo=";
+    String GSE_V2_API_METRICS_NAME_PREFIX = "job.client.gse.v2.api";
 }
