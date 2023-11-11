@@ -116,7 +116,8 @@ public class FilePrepareServiceImpl implements FilePrepareService {
                     resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
                     latch.countDown();
                 }
-            });
+            }
+        );
     }
 
     private void startPrepareThirdFileTask(StepInstanceDTO stepInstance,
