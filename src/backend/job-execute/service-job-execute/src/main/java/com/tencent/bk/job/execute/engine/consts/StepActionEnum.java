@@ -83,7 +83,11 @@ public enum StepActionEnum {
     /**
      * 刷新步骤状态
      */
-    REFRESH(14);
+    REFRESH(14),
+    /**
+     * 文件准备过程在发布时被取消后通知其他实例重新准备文件
+     */
+    PREPARE_FILE_AGAIN(15);
 
     private final int value;
 
