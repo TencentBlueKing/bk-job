@@ -22,28 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.config;
+package com.tencent.bk.job.common.cc.constants;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+public interface CmdbMetricNames {
 
-/**
- * GSE Agent状态查询配置
- */
-@Configuration
-@Getter
-@Setter
-public class AgentStateQueryConfig {
-
-    @Value("${gse.query.threads.num:5}")
-    private int gseQueryThreadsNum;
-
-    @Value("${gse.query.threads.maxNum:20}")
-    private int gseQueryThreadsMaxNum;
-
-    @Value("${gse.query.batchSize:5000}")
-    private int gseQueryBatchSize;
-
+    String CMDB_API_PREFIX = "job.client.cmdb.api";
 }

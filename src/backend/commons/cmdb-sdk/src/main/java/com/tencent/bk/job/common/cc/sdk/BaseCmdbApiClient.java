@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.cc.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.constants.CmdbMetricNames;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
@@ -109,7 +110,7 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
                                 String lang) {
-        super(meterRegistry, CommonMetricNames.ESB_CMDB_API, esbProperties.getService().getUrl(), lang);
+        super(meterRegistry, CmdbMetricNames.CMDB_API_PREFIX, esbProperties.getService().getUrl(), lang);
         this.globalFlowController = flowController;
         this.cmdbConfig = cmdbConfig;
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();

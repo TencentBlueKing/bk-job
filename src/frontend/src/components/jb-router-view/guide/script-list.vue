@@ -78,7 +78,7 @@
         <div>
           <span>{{ $t('脚本的版本管理功能有哪些？点击') }} </span>
           <a
-            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Features/Scripts.md`"
+            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Features/Scripts.md`"
             target="_blank">
             <span>{{ $t('脚本功能介绍') }}</span>
             <icon type="link" />
@@ -88,7 +88,7 @@
         <div style="margin-top: 10px;">
           <span>{{ $t('想要 “禁用” 脚本使其他调用方无法使用怎么做？') }}</span>
           <a
-            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Best-Practices/How-to-stop-the-spread-of-the-problem-script-immediately.md`"
+            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Best-Practices/How-to-stop-the-spread-of-the-problem-script-immediately.md`"
             target="_blank">
             <span>{{ $t('立即查看') }}</span>
             <icon type="link" />

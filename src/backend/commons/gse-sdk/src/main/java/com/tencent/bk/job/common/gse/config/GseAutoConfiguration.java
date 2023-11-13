@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.gse.v1.config.GseV1AutoConfiguration;
 import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
 import com.tencent.bk.job.common.gse.v2.GseV2AutoConfiguration;
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -52,7 +53,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-
+@Slf4j
 @Configuration(proxyBeanMethods = false)
 @Import(
     {
@@ -78,12 +79,16 @@ public class GseAutoConfiguration {
         return new WatchableThreadPoolExecutor(
             meterRegistry,
             "agentStatusQueryExecutor",
-            agentStateQueryConfig.getGseQueryBatchSize(),
-            agentStateQueryConfig.getGseQueryBatchSize(),
+            agentStateQueryConfig.getGseQueryThreadsNum(),
+            agentStateQueryConfig.getGseQueryThreadsMaxNum(),
             60,
             TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            threadFactory
+            new LinkedBlockingQueue<>(agentStateQueryConfig.getGseQueryThreadsNum()),
+            threadFactory,
+            (r, executor) -> {
+                log.warn("agentStatusQueryExecutor busy, use current thread to query");
+                r.run();
+            }
         );
     }
 

@@ -22,28 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.config;
+package com.tencent.bk.job.common.gse.constants;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+public interface GseMetricNames {
+    /**
+     * GSE V1 API 度量指标名称前缀
+     */
+    String GSE_API_METRICS_NAME_PREFIX = "job.client.gse.api";
 
-/**
- * GSE Agent状态查询配置
- */
-@Configuration
-@Getter
-@Setter
-public class AgentStateQueryConfig {
-
-    @Value("${gse.query.threads.num:5}")
-    private int gseQueryThreadsNum;
-
-    @Value("${gse.query.threads.maxNum:20}")
-    private int gseQueryThreadsMaxNum;
-
-    @Value("${gse.query.batchSize:5000}")
-    private int gseQueryBatchSize;
-
+    /**
+     * GSE V2 API 度量指标名称前缀
+     */
+    String GSE_V2_API_METRICS_NAME_PREFIX = "job.client.gse.v2.api";
 }

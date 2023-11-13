@@ -24,26 +24,34 @@
 
 package com.tencent.bk.job.common.gse.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
+import com.tencent.bk.job.common.gse.constants.GseMetricNames;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * GSE Agent状态查询配置
+ * GSE 监控指标配置
  */
 @Configuration
-@Getter
-@Setter
-public class AgentStateQueryConfig {
-
-    @Value("${gse.query.threads.num:5}")
-    private int gseQueryThreadsNum;
-
-    @Value("${gse.query.threads.maxNum:20}")
-    private int gseQueryThreadsMaxNum;
-
-    @Value("${gse.query.batchSize:5000}")
-    private int gseQueryBatchSize;
-
+public class GseMetricsAutoConfiguration {
+    @Bean("gseApiMeterFilter")
+    public MeterFilter distributionMeterFilter() {
+        return new MeterFilter() {
+            @Override
+            public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
+                String metricName = id.getName();
+                if (metricName.startsWith(GseMetricNames.GSE_API_METRICS_NAME_PREFIX)
+                    || metricName.startsWith(GseMetricNames.GSE_V2_API_METRICS_NAME_PREFIX)) {
+                    return DistributionStatisticConfig.builder().percentilesHistogram(true)
+                        // [10ms,1s]
+                        .minimumExpectedValue(10_000_000.0).maximumExpectedValue(1_000_000_000.0)
+                        .build().merge(config);
+                } else {
+                    return config;
+                }
+            }
+        };
+    }
 }

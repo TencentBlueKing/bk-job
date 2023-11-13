@@ -22,65 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.cc.config;
 
-import com.tencent.bk.job.common.gse.constants.GseConstants;
-import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
-import com.tencent.bk.job.execute.monitor.ExecuteMetricTags;
+import com.tencent.bk.job.common.cc.constants.CmdbMetricNames;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.MeterFilter;
-import io.micrometer.core.instrument.config.MeterFilterReply;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * cmdb 监控指标配置
+ */
 @Configuration
-public class MetricsAutoConfig {
-    @Bean
+public class CmdbMetricsAutoConfiguration {
+    @Bean("cmdbMeterFilter")
     public MeterFilter distributionMeterFilter() {
         return new MeterFilter() {
             @Override
             public DistributionStatisticConfig configure(Meter.Id id, DistributionStatisticConfig config) {
                 String metricName = id.getName();
-                if (metricName.startsWith("http.server.request") || metricName.startsWith(CommonMetricNames.ESB_API)) {
-                    return DistributionStatisticConfig.builder().percentilesHistogram(true)
-                        // [10ms,3s]
-                        .minimumExpectedValue(10_000_000.0).maximumExpectedValue(3_000_000_000.0)
-                        .build().merge(config);
-                } else if (metricName.startsWith(GseConstants.GSE_API_METRICS_NAME_PREFIX)) {
+                if (metricName.startsWith(CmdbMetricNames.CMDB_API_PREFIX)) {
                     return DistributionStatisticConfig.builder().percentilesHistogram(true)
                         // [10ms,1s]
                         .minimumExpectedValue(10_000_000.0).maximumExpectedValue(1_000_000_000.0)
                         .build().merge(config);
-                } else if (metricName.startsWith(ExecuteMetricNames.RESULT_HANDLE_TASK_SCHEDULE_PREFIX)) {
-                    return DistributionStatisticConfig.builder().percentilesHistogram(true)
-                        // [10ms,5s]
-                        .minimumExpectedValue(10_000_000.0).maximumExpectedValue(5_000_000_000.0)
-                        .build().merge(config);
                 } else {
                     return config;
-                }
-            }
-        };
-    }
-
-    @Bean
-    public MeterFilter denyIgnoreHttpRequestMeterFilter() {
-        return new MeterFilter() {
-            @Override
-            public MeterFilterReply accept(Meter.Id id) {
-                String metricName = id.getName();
-                if (metricName.startsWith("http.server.request")) {
-                    String ignore = id.getTag(ExecuteMetricTags.IGNORE_TAG);
-                    if (StringUtils.isNotEmpty(ignore) && ExecuteMetricTags.BOOLEAN_TRUE_TAG_VALUE.equals(ignore)) {
-                        return MeterFilterReply.DENY;
-                    } else {
-                        return MeterFilterReply.NEUTRAL;
-                    }
-                } else {
-                    return MeterFilterReply.NEUTRAL;
                 }
             }
         };
