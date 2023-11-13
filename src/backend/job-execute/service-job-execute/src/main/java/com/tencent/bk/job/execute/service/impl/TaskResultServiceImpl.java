@@ -482,8 +482,11 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             if (stepInstance.isFileStep()) {
                 watch.start("involveFileSourceTaskLog");
-                FileSourceTaskLogDTO fileSourceTaskLog = fileSourceTaskLogDAO.getFileSourceTaskLog(stepInstance.getId(),
-                    queryExecuteCount);
+                FileSourceTaskLogDTO fileSourceTaskLog =
+                    fileSourceTaskLogDAO.getFileSourceTaskLog(
+                        stepInstance.getId(),
+                        queryExecuteCount
+                    );
                 if (fileSourceTaskLog != null) {
                     involveFileSourceTaskLog(stepExecutionDetail, fileSourceTaskLog);
                 }
