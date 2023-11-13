@@ -39,7 +39,6 @@ import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
-import com.tencent.bk.job.common.paas.metrics.PaaSMetricTags;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
@@ -50,7 +49,6 @@ import org.slf4j.helpers.MessageFormatter;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
 
@@ -60,21 +58,15 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
 @Slf4j
 public class CmsiApiClient extends AbstractBkApiClient {
 
-
-    private static final Integer ESB_CODE_RATE_LIMIT_RESTRICTION_BY_STAGE = 1642902;
-    private static final Integer ESB_CODE_RATE_LIMIT_RESTRICTION_BY_RESOURCE = 1642903;
-
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
 
-    private final MeterRegistry meterRegistry;
     private final BkApiAuthorization authorization;
 
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
                          MeterRegistry meterRegistry) {
         super(meterRegistry, ESB_CMSI_API, esbProperties.getService().getUrl());
-        this.meterRegistry = meterRegistry;
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
@@ -110,8 +102,6 @@ public class CmsiApiClient extends AbstractBkApiClient {
                         String title,
                         String content) {
         PostSendMsgReq req = buildSendMsgReq(msgType, sender, receivers, title, content);
-        long start = System.nanoTime();
-        String status = EsbMetricTags.VALUE_STATUS_NONE;
         String uri = API_POST_SEND_MSG;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
@@ -128,7 +118,6 @@ public class CmsiApiClient extends AbstractBkApiClient {
             );
 
             if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
-                status = checkRespAndGetStatus(uri, esbResp);
                 throw new PaasException(
                     ErrorType.INTERNAL,
                     ErrorCode.CMSI_FAIL_TO_SEND_MSG,
@@ -137,7 +126,6 @@ public class CmsiApiClient extends AbstractBkApiClient {
                         esbResp.getMessage()
                     });
             }
-            status = EsbMetricTags.VALUE_STATUS_SUCCESS;
         } catch (PaasException e) {
             throw e;
         } catch (Exception e) {
@@ -146,29 +134,9 @@ public class CmsiApiClient extends AbstractBkApiClient {
                 uri
             ).getMessage();
             log.error(msg, e);
-            status = EsbMetricTags.VALUE_STATUS_ERROR;
             throw new PaasException(e, ErrorType.INTERNAL, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
         } finally {
             HttpMetricUtil.clearHttpMetric();
-            recordMetrics(start, status, msgType);
-        }
-    }
-
-    private String checkRespAndGetStatus(String uri, EsbResp<?> esbResp) {
-        Integer code = esbResp.getCode();
-        log.warn(
-            "{}|requestId={}|result={}|code={}|msg={}|esbResp.getCode() != 0",
-            uri,
-            esbResp.getRequestId(),
-            esbResp.getResult(),
-            esbResp.getCode(),
-            esbResp.getMessage()
-        );
-        if (code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_STAGE)
-            || code.equals(ESB_CODE_RATE_LIMIT_RESTRICTION_BY_RESOURCE)) {
-            return EsbMetricTags.VALUE_STATUS_OVER_RATE;
-        } else {
-            return EsbMetricTags.VALUE_STATUS_FAIL;
         }
     }
 
@@ -187,15 +155,5 @@ public class CmsiApiClient extends AbstractBkApiClient {
         req.setTitle(title);
         req.setContent(content);
         return req;
-    }
-
-    private void recordMetrics(long startTimeNanos, String status, String msgType) {
-        long end = System.nanoTime();
-        meterRegistry.timer(
-            CommonMetricNames.ESB_CMSI_API,
-            EsbMetricTags.KEY_API_NAME, API_POST_SEND_MSG,
-            EsbMetricTags.KEY_STATUS, status,
-            PaaSMetricTags.KEY_MSG_TYPE, msgType
-        ).record(end - startTimeNanos, TimeUnit.NANOSECONDS);
     }
 }

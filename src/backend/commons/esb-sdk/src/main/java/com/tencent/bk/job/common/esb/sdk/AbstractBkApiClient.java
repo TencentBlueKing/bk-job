@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
+import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -37,6 +38,9 @@ import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
@@ -44,13 +48,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import static com.tencent.bk.job.common.constant.HttpHeader.HDR_BK_LANG;
 import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
- * 蓝鲸API调用客户端
+ * 蓝鲸API（组件 API（ESB）、网关 API（蓝鲸 ApiGateway)）调用客户端
  */
 public abstract class AbstractBkApiClient {
 
@@ -141,7 +147,7 @@ public abstract class AbstractBkApiClient {
         String uri = apiContext.getUri();
         EsbResp<R> esbResp;
         String respStr;
-        String status = "ok";
+        String status = EsbMetricTags.VALUE_STATUS_OK;
         HttpMethodEnum httpMethod = requestInfo.getMethod();
         long start = System.currentTimeMillis();
         try {
@@ -152,7 +158,7 @@ public abstract class AbstractBkApiClient {
                 String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
                     + uri + ", error: " + "Response is blank";
                 log.error(errorMsg);
-                status = "error";
+                status = EsbMetricTags.VALUE_STATUS_ERROR;
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
 
@@ -170,7 +176,7 @@ public abstract class AbstractBkApiClient {
                     apiContext.getReq() != null ? JsonUtils.toJsonWithoutSkippedFields(apiContext.getReq()) : null,
                     respStr
                 );
-                status = "error";
+                status = EsbMetricTags.VALUE_STATUS_ERROR;
             }
             if (esbResp.getData() == null) {
                 log.warn(
@@ -192,16 +198,25 @@ public abstract class AbstractBkApiClient {
                 + "|uri=" + uri;
             log.error(errorMsg, e);
             apiContext.setSuccess(false);
-            status = "error";
+            status = EsbMetricTags.VALUE_STATUS_ERROR;
             throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
         } finally {
             long cost = System.currentTimeMillis() - start;
             apiContext.setCostTime(cost);
             if (meterRegistry != null) {
-                meterRegistry.timer(metricName, "api_name", apiContext.getUri(),
-                    "status", status).record(cost, TimeUnit.MILLISECONDS);
+                meterRegistry.timer(metricName, buildMetricTags(uri, status))
+                    .record(cost, TimeUnit.MILLISECONDS);
             }
         }
+    }
+
+    private Iterable<Tag> buildMetricTags(String uri, String status) {
+        Tags tags = Tags.of(EsbMetricTags.KEY_API_NAME, uri).and(EsbMetricTags.KEY_STATUS, status);
+        Collection<Tag> extraTags = getExtraMetricsTags();
+        if (CollectionUtils.isNotEmpty(extraTags)) {
+            extraTags.forEach(tags::and);
+        }
+        return tags;
     }
 
     private <T> String requestApi(ApiRequestInfo<T> requestInfo,
@@ -214,8 +229,16 @@ public abstract class AbstractBkApiClient {
                 respStr = postForString(url, requestInfo.getBody(),
                     requestInfo.getAuthorization(), httpHelper);
                 break;
+            case PUT:
+                respStr = putForString(url, requestInfo.getBody(),
+                    requestInfo.getAuthorization(), httpHelper);
+                break;
             case GET:
                 respStr = getForString(url, requestInfo.getAuthorization(), httpHelper);
+                break;
+            case DELETE:
+                respStr = deleteForString(url, requestInfo.getAuthorization(), httpHelper);
+                break;
             default:
                 log.warn("Unimplemented http method: {}", httpMethod.name());
                 break;
@@ -232,7 +255,20 @@ public abstract class AbstractBkApiClient {
         }
         String responseBody;
         Header[] header = buildBkApiRequestHeaders(authorization);
-        responseBody = httpHelper.post(url, "UTF-8", JsonUtils.toJson(body), header);
+        responseBody = httpHelper.post(url, JsonUtils.toJson(body), header);
+        return responseBody;
+    }
+
+    private <T> String putForString(String url,
+                                    T body,
+                                    BkApiAuthorization authorization,
+                                    ExtHttpHelper httpHelper) {
+        if (httpHelper == null) {
+            httpHelper = defaultHttpHelper;
+        }
+        String responseBody;
+        Header[] header = buildBkApiRequestHeaders(authorization);
+        responseBody = httpHelper.put(url, "UTF-8", JsonUtils.toJson(body), Arrays.asList(header));
         return responseBody;
     }
 
@@ -244,6 +280,16 @@ public abstract class AbstractBkApiClient {
         }
         Header[] header = buildBkApiRequestHeaders(authorization);
         return httpHelper.get(url, header);
+    }
+
+    private String deleteForString(String url,
+                                   BkApiAuthorization authorization,
+                                   ExtHttpHelper httpHelper) {
+        if (httpHelper == null) {
+            httpHelper = defaultHttpHelper;
+        }
+        Header[] header = buildBkApiRequestHeaders(authorization);
+        return httpHelper.delete(url, Arrays.asList(header));
     }
 
     private String buildApiUrl(String uri) {
@@ -284,6 +330,15 @@ public abstract class AbstractBkApiClient {
         } catch (Throwable ignore) {
             return EsbLang.EN;
         }
+    }
+
+    /**
+     * 额外的监控指标 tag
+     *
+     * @return tag
+     */
+    protected Collection<Tag> getExtraMetricsTags() {
+        return null;
     }
 
 }

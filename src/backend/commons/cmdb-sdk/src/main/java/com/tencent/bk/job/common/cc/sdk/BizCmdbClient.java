@@ -416,8 +416,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         EsbResp<FindModuleHostRelationResult> esbResp = requestCmdbApi(
             HttpMethodEnum.POST,
             FIND_MODULE_HOST_RELATION,
-            req.toUrlParams(),
             null,
+            req,
             new TypeReference<EsbResp<FindModuleHostRelationResult>>() {
             });
         return esbResp.getData();
