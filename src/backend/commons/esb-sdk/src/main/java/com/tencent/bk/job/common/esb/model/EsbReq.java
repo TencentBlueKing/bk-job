@@ -39,15 +39,6 @@ import org.apache.commons.lang3.StringUtils;
 @Setter
 @Getter
 public class EsbReq extends BasicHttpReq {
-//    @JsonProperty("bk_app_code")
-//    private String appCode;
-//
-//    @SkipLogFields("bk_app_secret")
-//    @JsonProperty("bk_app_secret")
-//    private String appSecret;
-//
-//    @JsonProperty("bk_username")
-//    private String userName;
 
     /**
      * 租户账号 - 除了 cmdb 之外，其他平台暂未使用

@@ -93,6 +93,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
             EsbResp<SearchBizSetResp> resp = requestCmdbApi(
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
+                null,
                 req,
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
                 });
@@ -144,6 +145,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
             EsbResp<SearchBizSetResp> resp = requestCmdbApi(
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
+                null,
                 req,
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
                 });
@@ -174,6 +176,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
             EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
+                null,
                 req,
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {
                 });
@@ -217,6 +220,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
             EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
+                null,
                 req,
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {
                 });
@@ -256,6 +260,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
             EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApi(
                 HttpMethodEnum.POST,
                 RESOURCE_WATCH,
+                null,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetEventDetail>>>() {
                 },
@@ -280,6 +285,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
             EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApi(
                 HttpMethodEnum.POST,
                 RESOURCE_WATCH,
+                null,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetRelationEventDetail>>>() {
                 },

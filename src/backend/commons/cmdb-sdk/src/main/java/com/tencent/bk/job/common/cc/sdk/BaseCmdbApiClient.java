@@ -124,13 +124,15 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
 
     protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
                                             String uri,
+                                            String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(method, uri, reqBody, typeReference, null);
+        return requestCmdbApi(method, uri, queryParams, reqBody, typeReference, null);
     }
 
     protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
                                             String uri,
+                                            String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference,
                                             ExtHttpHelper httpHelper) {
@@ -158,13 +160,15 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
                 .builder()
                 .method(method)
                 .uri(uri)
+                .queryParams(queryParams)
                 .body(reqBody)
                 .authorization(cmdbBkApiAuthorization)
                 .build();
             return doRequest(requestInfo, typeReference, httpHelper);
         } catch (Throwable e) {
-            String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
-            String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
+            String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|queryParams="
+                + queryParams + "|body="
+                + JsonUtils.toJsonWithoutSkippedFields(JsonUtils.toJsonWithoutSkippedFields(reqBody));
             log.error(errorMsg, e);
             throw new InternalCmdbException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
