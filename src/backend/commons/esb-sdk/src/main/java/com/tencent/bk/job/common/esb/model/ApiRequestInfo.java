@@ -129,7 +129,11 @@ public class ApiRequestInfo<T> {
         String result = uri;
         String queryParamUrl = buildQueryParamUrl();
         if (StringUtils.isNotBlank(queryParamUrl)) {
-            result += "?" + queryParamUrl;
+            if (queryParamUrl.startsWith("?")) {
+                result += queryParamUrl;
+            } else {
+                result += "?" + queryParamUrl;
+            }
         }
         return result;
     }
