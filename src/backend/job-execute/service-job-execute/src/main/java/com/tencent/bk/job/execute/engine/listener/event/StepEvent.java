@@ -213,15 +213,15 @@ public class StepEvent extends Event {
     }
 
     /**
-     * 构造`重新准备文件`事件
+     * 构造`准备文件`事件
      *
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent prepareFileAgain(long stepInstanceId) {
+    public static StepEvent prepareFile(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
-        stepEvent.setAction(StepActionEnum.PREPARE_FILE_AGAIN.getValue());
+        stepEvent.setAction(StepActionEnum.PREPARE_FILE.getValue());
         stepEvent.setTime(LocalDateTime.now());
         return stepEvent;
     }

@@ -65,36 +65,48 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
-    public void saveFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog) {
+    public void insertOrUpdateFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        defaultContext.insertInto(t, t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME, t.TOTAL_TIME,
-            t.STATUS, t.FILE_SOURCE_BATCH_TASK_ID)
-            .values(fileSourceTaskLog.getStepInstanceId(),
-                fileSourceTaskLog.getExecuteCount(),
-                fileSourceTaskLog.getStartTime(),
-                fileSourceTaskLog.getEndTime(),
-                fileSourceTaskLog.getTotalTime(),
-                JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus()),
-                fileSourceTaskLog.getFileSourceBatchTaskId())
-            .onDuplicateKeyUpdate()
+        defaultContext.insertInto(
+            t,
+            t.STEP_INSTANCE_ID,
+            t.EXECUTE_COUNT,
+            t.START_TIME,
+            t.END_TIME,
+            t.TOTAL_TIME,
+            t.STATUS,
+            t.FILE_SOURCE_BATCH_TASK_ID
+        ).values(
+            fileSourceTaskLog.getStepInstanceId(),
+            fileSourceTaskLog.getExecuteCount(),
+            fileSourceTaskLog.getStartTime(),
+            fileSourceTaskLog.getEndTime(),
+            fileSourceTaskLog.getTotalTime(),
+            JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus()),
+            fileSourceTaskLog.getFileSourceBatchTaskId()
+        ).onDuplicateKeyUpdate()
             .set(t.START_TIME, fileSourceTaskLog.getStartTime())
             .set(t.END_TIME, fileSourceTaskLog.getEndTime())
             .set(t.TOTAL_TIME, fileSourceTaskLog.getTotalTime())
-            .set(t.STATUS, JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus())).set(t.FILE_SOURCE_BATCH_TASK_ID,
-            fileSourceTaskLog.getFileSourceBatchTaskId())
+            .set(t.STATUS, JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus()))
+            .set(t.FILE_SOURCE_BATCH_TASK_ID, fileSourceTaskLog.getFileSourceBatchTaskId())
             .execute();
     }
 
     @Override
-    public FileSourceTaskLogDTO getLatestFileSourceTaskLog(long stepInstanceId, int executeCount) {
+    public FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        Record record = defaultContext.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME,
+        Record record = defaultContext.select(
+            t.STEP_INSTANCE_ID,
+            t.EXECUTE_COUNT,
+            t.START_TIME,
+            t.END_TIME,
             t.TOTAL_TIME,
-            t.STATUS, t.FILE_SOURCE_BATCH_TASK_ID).from(t)
+            t.STATUS,
+            t.FILE_SOURCE_BATCH_TASK_ID
+        ).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
-            .orderBy(t.ID.desc())
-            .limit(1)
             .fetchOne();
         return extractInfo(record);
     }

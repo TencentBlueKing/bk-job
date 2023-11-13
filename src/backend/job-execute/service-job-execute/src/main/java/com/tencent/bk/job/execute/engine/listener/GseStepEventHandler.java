@@ -139,8 +139,8 @@ public class GseStepEventHandler implements StepEventHandler {
                 case CONTINUE_FILE_PUSH:
                     continueGseFileStep(stepInstance);
                     break;
-                case PREPARE_FILE_AGAIN:
-                    prepareFileAgain(stepInstance);
+                case PREPARE_FILE:
+                    prepareFile(stepInstance);
                     break;
                 case CLEAR:
                     clearStep(stepInstance);
@@ -228,7 +228,7 @@ public class GseStepEventHandler implements StepEventHandler {
      *
      * @param stepInstance 步骤实例
      */
-    private void prepareFileAgain(StepInstanceDTO stepInstance) {
+    private void prepareFile(StepInstanceDTO stepInstance) {
         filePrepareService.prepareFileForGseTask(stepInstance);
     }
 

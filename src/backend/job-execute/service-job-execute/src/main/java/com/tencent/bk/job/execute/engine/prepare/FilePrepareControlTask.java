@@ -157,8 +157,8 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
             log.info("gracefulStop begin:{}", getTaskId());
             // 1.停止正在进行的所有文件准备任务
             filePrepareService.stopPrepareFile(stepInstance);
-            // 2.MQ消息通知其他实例重新准备文件
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.prepareFileAgain(stepInstance.getId()));
+            // 2.MQ消息通知其他实例准备文件
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.prepareFile(stepInstance.getId()));
             this.isStopped = true;
             StopTaskCounter.getInstance().decrement(getTaskId());
             log.info("gracefulStop end:{}", getTaskId());

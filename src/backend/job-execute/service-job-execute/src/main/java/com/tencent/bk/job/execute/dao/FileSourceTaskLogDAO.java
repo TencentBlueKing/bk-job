@@ -28,9 +28,9 @@ import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 
 public interface FileSourceTaskLogDAO {
 
-    void saveFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
+    void insertOrUpdateFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
 
-    FileSourceTaskLogDTO getLatestFileSourceTaskLog(long stepInstanceId, int executeCount);
+    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
 
     FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
 

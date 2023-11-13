@@ -144,7 +144,7 @@ public class ClearFileTask {
     private void doCheckVolumeAndClear() {
         long maxSizeBytes = workerConfig.getMaxSizeGB() * 1024L * 1024L * 1024L;
         File workDirFile = new File(workerConfig.getWorkspaceDirPath());
-        if (!workDirFile.exists()) {
+        if (!workDirFile.exists() && log.isDebugEnabled()) {
             log.debug("Workspace({}) not exists yet, ignore clear", workerConfig.getWorkspaceDirPath());
             return;
         }
