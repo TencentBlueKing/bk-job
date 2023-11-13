@@ -62,7 +62,7 @@ public abstract class AbstractBkApiClient {
 
     private String lang;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final String bkApiGatewayUrl;
+    private final String baseAccessUrl;
     private final ExtHttpHelper defaultHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final MeterRegistry meterRegistry;
     private static final String BK_API_AUTH_HEADER = "X-Bkapi-Authorization";
@@ -71,21 +71,26 @@ public abstract class AbstractBkApiClient {
      */
     private final String metricName;
 
+    /**
+     * @param meterRegistry MeterRegistry
+     * @param metricName    API http 请求指标名称
+     * @param baseAccessUrl API 服务访问地址
+     */
     public AbstractBkApiClient(MeterRegistry meterRegistry,
                                String metricName,
-                               String bkApiGatewayUrl) {
+                               String baseAccessUrl) {
         this.meterRegistry = meterRegistry;
         this.metricName = metricName;
-        this.bkApiGatewayUrl = bkApiGatewayUrl;
+        this.baseAccessUrl = baseAccessUrl;
     }
 
     public AbstractBkApiClient(MeterRegistry meterRegistry,
                                String metricName,
-                               String bkApiGatewayUrl,
+                               String baseAccessUrl,
                                String lang) {
         this.meterRegistry = meterRegistry;
         this.metricName = metricName;
-        this.bkApiGatewayUrl = bkApiGatewayUrl;
+        this.baseAccessUrl = baseAccessUrl;
         this.lang = lang;
     }
 
@@ -294,10 +299,10 @@ public abstract class AbstractBkApiClient {
 
     private String buildApiUrl(String uri) {
         String url;
-        if (!bkApiGatewayUrl.endsWith("/") && !uri.startsWith("/")) {
-            url = bkApiGatewayUrl + "/" + uri;
+        if (!baseAccessUrl.endsWith("/") && !uri.startsWith("/")) {
+            url = baseAccessUrl + "/" + uri;
         } else {
-            url = bkApiGatewayUrl + uri;
+            url = baseAccessUrl + uri;
         }
         return url;
     }
