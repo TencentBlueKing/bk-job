@@ -28,6 +28,7 @@ import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
+import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.UpdateSetFirstStep;
@@ -39,25 +40,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     FileSourceTaskLog defaultTable = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-    private DSLContext defaultContext;
+    private final DSLContext defaultContext;
 
     @Autowired
     public FileSourceTaskLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext defaultContext) {
         this.defaultContext = defaultContext;
-    }
-
-    @Override
-    public FileSourceTaskLogDTO getStepLastExecuteLog(long stepInstanceId) {
-        FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        Record record = defaultContext.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME,
-            t.TOTAL_TIME,
-            t.STATUS, t.FILE_SOURCE_BATCH_TASK_ID)
-            .from(t)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .orderBy(t.EXECUTE_COUNT.desc())
-            .limit(1)
-            .fetchOne();
-        return extractInfo(record);
     }
 
     private FileSourceTaskLogDTO extractInfo(Record record) {
@@ -93,18 +80,21 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
             .set(t.START_TIME, fileSourceTaskLog.getStartTime())
             .set(t.END_TIME, fileSourceTaskLog.getEndTime())
             .set(t.TOTAL_TIME, fileSourceTaskLog.getTotalTime())
-            .set(t.STATUS, JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus())).set(t.FILE_SOURCE_BATCH_TASK_ID, fileSourceTaskLog.getFileSourceBatchTaskId())
+            .set(t.STATUS, JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus())).set(t.FILE_SOURCE_BATCH_TASK_ID,
+            fileSourceTaskLog.getFileSourceBatchTaskId())
             .execute();
     }
 
     @Override
-    public FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount) {
+    public FileSourceTaskLogDTO getLatestFileSourceTaskLog(long stepInstanceId, int executeCount) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
         Record record = defaultContext.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.START_TIME, t.END_TIME,
             t.TOTAL_TIME,
             t.STATUS, t.FILE_SOURCE_BATCH_TASK_ID).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
+            .orderBy(t.ID.desc())
+            .limit(1)
             .fetchOne();
         return extractInfo(record);
     }
@@ -122,8 +112,8 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     @Override
     public int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime,
                                                 Long totalTime) {
-        UpdateSetFirstStep firstStep = defaultContext.update(defaultTable);
-        UpdateSetMoreStep moreStep = null;
+        UpdateSetFirstStep<FileSourceTaskLogRecord> firstStep = defaultContext.update(defaultTable);
+        UpdateSetMoreStep<?> moreStep = null;
         if (startTime != null) {
             moreStep = firstStep.set(defaultTable.START_TIME, startTime);
         }
@@ -147,14 +137,6 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
         } else {
             return 0;
         }
-    }
-
-    @Override
-    public void deleteFileSourceTaskLog(long stepInstanceId, int executeCount) {
-        FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        defaultContext.deleteFrom(t).where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(t.EXECUTE_COUNT.eq(executeCount))
-            .execute();
     }
 
 }
