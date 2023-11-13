@@ -42,13 +42,6 @@ public interface FilePrepareService {
     void stopPrepareFile(StepInstanceDTO stepInstance);
 
     /**
-     * 重新为分发准备文件
-     *
-     * @param stepInstanceId 步骤实例Id
-     */
-    void retryPrepareFile(long stepInstanceId);
-
-    /**
      * 清理已准备完成的临时文件
      *
      * @param stepInstanceId 步骤实例Id
