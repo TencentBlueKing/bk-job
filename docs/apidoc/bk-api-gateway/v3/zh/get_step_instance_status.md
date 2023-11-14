@@ -1,0 +1,124 @@
+### 功能描述
+
+根据步骤实例 ID 查询步骤执行状态
+
+### 请求参数说明
+
+{{ bkapi_authorization_description }}
+
+#### Header参数
+
+| 字段      |  类型      | 必选   |  描述      |
+|-----------|------------|--------|------------|
+| X-Bkapi-Authorization       |  string    | 是     | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
+| Accept       |  string    | 是     | 固定值。application/json|
+| Content-Type |  string    | 是     | 固定值。application/json|
+
+#### Query参数
+
+| 字段                    |  类型      | 必选   |  描述      |
+|------------------------|-----------|-------|------------|
+| bk_scope_type          | string    | 是     | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
+| bk_scope_id            | string    | 是     | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
+| step_instance_id       | long      | 是     | 步骤实例ID |
+| execute_count          | int       | 否     | 步骤重试次数，从0开始计数，默认值为0。 |
+| batch                  | int       | 否     | 滚动批次，从0开始计数，默认值为0。 |
+| max_host_num_per_group | int       | 否     | 每个分组（按照status与tag进行分组，分组键可参考返回值字段中的group_key字段）里的最大主机数量，不传则返回全量数据。 |
+| keyword                | string    | 否     | 日志搜索关键字，只返回日志中包含该关键字的主机执行状态数据 |
+| search_ip              | string    | 否     | 主机IP搜索关键字，只返回主机IP包含该关键字的主机执行状态数据 |
+| status                 | int       | 否     | 执行状态，对应返回值中的status字段。可能的取值：0-未知错误，1-Agent异常，2-无效主机，3-上次已成功，5-等待执行，7-正在执行，9-执行成功，11-执行失败，12-任务下发失败，13-任务超时，15-任务日志错误，16-GSE脚本日志超时，17-GSE文件日志超时，101-脚本执行失败，102-脚本执行超时，103-脚本执行被终止，104-脚本返回码非零，202-文件传输失败，203-源文件不存在，301-文件任务系统错误-未分类的，303-文件任务超时，310-Agent异常，311-用户名不存在，312-用户密码错误，320-文件获取失败，321-文件超出限制，329-文件传输错误，399-任务执行出错，403-任务强制终止成功，404-任务强制终止失败，500-未知状态|
+| tag                    | string    | 否     | 结果标签，对应返回值中的tag字段 |
+
+### 请求参数示例
+
+- GET
+```json
+/api/v3/get_step_instance_status?bk_scope_type=biz&bk_scope_id=1&step_instance_id=100&execute_count=0&batch=0&max_host_num_per_group=1&keyword=aaa&search_ip=&status=9&tag=
+```
+
+### 返回结果示例
+
+```json
+{
+    "result": true,
+    "code": 0,
+    "message": "",
+    "data": {
+        "status": 4,
+        "total_time": 1000,
+        "name": "API Quick execution scriptxxx",
+        "step_instance_id": 75,
+        "execute_count": 0,
+        "create_time": 1605064271000,
+        "end_time": 1605064272000,
+        "type": 1,
+        "start_time": 1605064271000,
+        "step_ip_result_list": [
+            {
+                "bk_host_id": 101,
+                "ip": "10.0.0.1",
+                "bk_cloud_id": 0,
+                "status": 9,
+                "tag": "tag1",
+                "group_key": "9_tag1",
+                "exit_code": 0,
+                "start_time": 1605064271000,
+                "end_time": 1605064272000,
+                "total_time": 1000
+            },
+            {
+                "bk_host_id": 102,
+                "ip": "10.0.0.2",
+                "bk_cloud_id": 0,
+                "status": 9,
+                "tag": "tag2",
+                "group_key": "9_tag2",
+                "exit_code": 0,
+                "start_time": 1605064271000,
+                "end_time": 1605064272000,
+                "total_time": 1000
+            }
+        ]
+    }
+}
+```
+### 返回结果说明
+
+| 字段      | 类型      | 描述      |
+|-----------|-----------|-----------|
+| result       | bool   | 请求成功与否。true:请求成功；false请求失败 |
+| code         | int    | 错误编码。 0表示success，>0表示失败错误 |
+| message      | string | 请求失败返回的错误信息|
+| data         | object | 请求返回的数据|
+| permission   | object | 权限信息|
+
+##### data
+
+| 字段                   | 类型                      | 描述      |
+|-----------------------|--------------------------|-----------|
+| status                | int                      | 作业步骤状态码: 1-未执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常，10-步骤强制终止中，11-步骤强制终止成功，12-步骤强制终止失败 |
+| total_time            | int                      | 总耗时，单位毫秒 |
+| name                  | string                   | 步骤名称 |
+| step_instance_id      | long                     | 作业步骤实例ID |
+| execute_count         | int                      | 步骤重试次数 |
+| create_time           | long                     | 作业步骤实例创建时间，Unix时间戳，单位毫秒 |
+| end_time              | long                     | 执行结束时间，Unix时间戳，单位毫秒 |
+| type                  | int                      | 步骤类型：1-脚本步骤；2-文件步骤；4-SQL步骤 |
+| start_time            | long                     | 开始执行时间，Unix时间戳，单位毫秒 |
+| step_host_result_list | list<step_host_result>   | 每个主机的任务执行结果，定义见step_host_result |
+
+
+##### step_host_result
+
+| 字段         | 类型       | 描述      |
+|-------------|-----------|-----------|
+| bk_host_id  | long      | 主机ID     |
+| ip          | string    | IP        |
+| bk_cloud_id | long      | 管控区域ID  |
+| status      | int       | 任务状态：0-未知错误，1-Agent异常，2-无效主机，3-上次已成功，5-等待执行，7-正在执行，9-执行成功，11-执行失败，12-任务下发失败，13-任务超时，15-任务日志错误，16-GSE脚本日志超时，17-GSE文件日志超时，101-脚本执行失败，102-脚本执行超时，103-脚本执行被终止，104-脚本返回码非零，202-文件传输失败，203-源文件不存在，301-文件任务系统错误-未分类的，303-文件任务超时，310-Agent异常，311-用户名不存在，312-用户密码错误，320-文件获取失败，321-文件超出限制，329-文件传输错误，399-任务执行出错，403-任务强制终止成功，404-任务强制终止失败，500-未知状态 |
+| tag         | string    | 用户通过job_success/job_fail函数模板自定义输出的结果。仅脚本任务存在该参数 |
+| group_key   | string    | 基于status与tag字段的分组键，仅用于调用方验证分组内数据数量是否正确，请勿强依赖该字段 |
+| exit_code   | int       | 脚本任务exit code |
+| start_time  | long      | 开始执行时间，Unix时间戳，单位毫秒 |
+| end_time    | long      | 执行结束时间，Unix时间戳，单位毫秒 |
+| total_time  | int       | 总耗时，单位毫秒 |
