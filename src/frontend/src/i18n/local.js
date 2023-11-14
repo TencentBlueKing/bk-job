@@ -597,4 +597,7 @@ export default {
   无该应用的访问权限: 'Do not have access permission for the current application.',
   '所有 IP': 'All IP',
   '异常 IP': 'Copy abnormal',
+  返回上一级: 'Back',
+  'Job 小贴士：': 'JOB Tips:',
+  '想要再次查阅「版本日志」也可以从此处进入喔～': 'Click here to access all the \'Release notes\', to stay updated on all changes and improvements.',
 };
