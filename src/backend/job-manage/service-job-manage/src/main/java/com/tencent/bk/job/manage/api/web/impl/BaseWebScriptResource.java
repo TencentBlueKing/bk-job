@@ -182,12 +182,13 @@ public class BaseWebScriptResource {
 
     protected void setScriptCiteCount(List<ScriptVO> scriptVOS) {
         for (ScriptVO scriptVO : scriptVOS) {
-            String resultScriptId = scriptVO.getId();
+            String scriptId = scriptVO.getId();
+            Long scriptVersionId = scriptVO.getScriptVersionId();
             Integer taskTemplateCiteCount = scriptManager.getScriptTemplateCiteCount(
-                resultScriptId, null);
+                scriptId, scriptVersionId);
             scriptVO.setRelatedTaskTemplateNum(taskTemplateCiteCount);
             Integer taskPlanCiteCount = scriptManager.getScriptTaskPlanCiteCount(
-                resultScriptId, null);
+                scriptId, scriptVersionId);
             scriptVO.setRelatedTaskPlanNum(taskPlanCiteCount);
         }
     }
