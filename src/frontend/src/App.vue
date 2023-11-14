@@ -253,12 +253,12 @@
        */
       handleToggleLang(lang) {
         Cookie.remove('blueking_language', { path: '' });
-        Cookie.set('blueking_language', lang, {
+        Cookie.set('blueking_language', lang.toLocaleLowerCase(), {
           expires: 3600,
           domain: this.envConfig.bkDomain,
         });
         setLocale(lang);
-        jsonp(`${this.envConfig['esb.url']}/api/c/compapi/v2/usermanage/fe_update_user_language/?language=${lang}`);
+        jsonp(`${this.envConfig['esb.url']}/api/c/compapi/v2/usermanage/fe_update_user_language/?language=${lang.toLocaleLowerCase()}`);
       },
       /**
        * @desc 显示版本更新日志
