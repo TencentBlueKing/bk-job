@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateDangerousRuleV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetDangerousRuleV3Req;
@@ -34,6 +35,7 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,6 +51,8 @@ public interface EsbDangerousRuleV3Resource {
 
     @PostMapping("/create_dangerous_rule")
     EsbResp<EsbDangerousRuleV3DTO> createDangerousRule(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbCreateDangerousRuleV3Req request
@@ -56,6 +60,8 @@ public interface EsbDangerousRuleV3Resource {
 
     @PostMapping("/update_dangerous_rule")
     EsbResp<EsbDangerousRuleV3DTO> updateDangerousRule(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbUpdateDangerousRuleV3Req request
@@ -63,6 +69,8 @@ public interface EsbDangerousRuleV3Resource {
 
     @PostMapping("/delete_dangerous_rule")
     EsbResp deleteDangerousRule(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbManageDangerousRuleV3Req request
@@ -70,6 +78,8 @@ public interface EsbDangerousRuleV3Resource {
 
     @PostMapping("/get_dangerous_rule_list")
     EsbResp<List<EsbDangerousRuleV3DTO>> getDangerousRuleListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetDangerousRuleV3Req request
@@ -77,6 +87,8 @@ public interface EsbDangerousRuleV3Resource {
 
     @PostMapping("/enable_dangerous_rule")
     EsbResp<EsbDangerousRuleV3DTO> enableDangerousRule(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbManageDangerousRuleV3Req request
@@ -84,6 +96,8 @@ public interface EsbDangerousRuleV3Resource {
 
     @PostMapping("/disable_dangerous_rule")
     EsbResp<EsbDangerousRuleV3DTO> disableDangerousRule(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbManageDangerousRuleV3Req request
