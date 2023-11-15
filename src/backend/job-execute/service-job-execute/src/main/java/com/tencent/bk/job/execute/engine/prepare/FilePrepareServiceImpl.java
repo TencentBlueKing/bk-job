@@ -24,23 +24,17 @@
 
 package com.tencent.bk.job.execute.engine.prepare;
 
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.listener.event.EventSource;
-import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
-import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
+import com.tencent.bk.job.execute.engine.prepare.local.DefaultLocalFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareService;
-import com.tencent.bk.job.execute.engine.prepare.local.LocalFilePrepareTaskResultHandler;
+import com.tencent.bk.job.execute.engine.prepare.third.DefaultThirdFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareService;
-import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareTaskResultHandler;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.helpers.FormattingTuple;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -77,11 +71,6 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     }
 
     @Override
-    public void retryPrepareFile(long stepInstanceId) {
-        // TODO
-    }
-
-    @Override
     public void clearPreparedTmpFile(long stepInstanceId) {
         localFilePrepareService.clearPreparedTmpFile(stepInstanceId);
         thirdFilePrepareService.clearPreparedTmpFile(stepInstanceId);
@@ -95,28 +84,8 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         localFilePrepareService.prepareLocalFilesAsync(
             stepInstance,
             fileSourceList,
-            new LocalFilePrepareTaskResultHandler() {
-                @Override
-                public void onSuccess(JobTaskContext taskContext) {
-                    log.info("[{}]:LocalFilePrepareTask success", stepInstance.getUniqueKey());
-                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
-                    latch.countDown();
-                }
-
-                @Override
-                public void onStopped(JobTaskContext taskContext) {
-                    log.info("[{}]:LocalFilePrepareTask stopped", stepInstance.getUniqueKey());
-                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
-                    latch.countDown();
-                }
-
-                @Override
-                public void onFailed(JobTaskContext taskContext) {
-                    log.warn("[{}]:LocalFilePrepareTask failed", stepInstance.getUniqueKey());
-                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
-                    latch.countDown();
-                }
-            });
+            new DefaultLocalFilePrepareTaskResultHandler(stepInstance, resultList, latch)
+        );
     }
 
     private void startPrepareThirdFileTask(StepInstanceDTO stepInstance,
@@ -125,29 +94,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     ) {
         thirdFilePrepareService.prepareThirdFileAsync(
             stepInstance,
-            new ThirdFilePrepareTaskResultHandler() {
-
-                @Override
-                public void onSuccess(JobTaskContext taskContext) {
-                    log.info("[{}]: ThirdFilePrepareTask success", stepInstance.getUniqueKey());
-                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_SUCCESS, taskContext));
-                    latch.countDown();
-                }
-
-                @Override
-                public void onStopped(JobTaskContext taskContext) {
-                    log.info("[{}]: ThirdFilePrepareTask stopped", stepInstance.getUniqueKey());
-                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_STOPPED, taskContext));
-                    latch.countDown();
-                }
-
-                @Override
-                public void onFailed(JobTaskContext taskContext) {
-                    log.warn("[{}]: ThirdFilePrepareTask failed", stepInstance.getUniqueKey());
-                    resultList.add(new FilePrepareTaskResult(FilePrepareTaskResult.STATUS_FAILED, taskContext));
-                    latch.countDown();
-                }
-            }
+            new DefaultThirdFilePrepareTaskResultHandler(stepInstance, resultList, latch)
         );
     }
 
@@ -194,34 +141,15 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             startPrepareThirdFileTask(stepInstance, resultList, latch);
         }
         // 文件准备任务结果处理
-        FilePrepareTaskResultHandler filePrepareTaskResultHandler = new FilePrepareTaskResultHandler() {
-            @Override
-            public void onFinished(StepInstanceDTO stepInstance, List<FilePrepareTaskResult> resultList) {
-                log.info("[{}]: prepareTask finished", stepInstance.getUniqueKey());
-                handleFinalTaskResult(resultList, stepInstance);
-            }
-
-            @Override
-            public void onTimeout(StepInstanceDTO stepInstance) {
-                log.info("[{}]: prepareTask timeout", stepInstance.getUniqueKey());
-                onFailed(stepInstance, null);
-            }
-
-            @Override
-            public void onException(StepInstanceDTO stepInstance, Throwable t) {
-                FormattingTuple msg = MessageFormatter.format(
-                    "[{}]: prepareTask exception",
-                    stepInstance.getUniqueKey()
-                );
-                log.error(msg.getMessage(), t);
-                onFailed(stepInstance, null);
-            }
-        };
+        FilePrepareTaskResultHandler filePrepareTaskResultHandler = new DefaultFilePrepareTaskResultHandler(
+            taskInstanceService,
+            taskExecuteMQEventDispatcher
+        );
         FilePrepareControlTask filePrepareControlTask =
             new FilePrepareControlTask(
                 this,
                 taskInstanceService,
-                stepInstance,
+                taskExecuteMQEventDispatcher, stepInstance,
                 latch,
                 resultList,
                 filePrepareTaskResultHandler
@@ -251,61 +179,6 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     public void stopPrepareFile(StepInstanceDTO stepInstance) {
         localFilePrepareService.stopPrepareLocalFilesAsync(stepInstance);
         thirdFilePrepareService.stopPrepareThirdFileAsync(stepInstance);
-    }
-
-    private FilePrepareTaskResult combineTaskResult(List<FilePrepareTaskResult> resultList) {
-        int size = resultList.size();
-        if (size == 0) return null;
-        if (size == 1) return resultList.get(0);
-        for (FilePrepareTaskResult filePrepareTaskResult : resultList) {
-            if (filePrepareTaskResult.status == FilePrepareTaskResult.STATUS_FAILED) {
-                return filePrepareTaskResult;
-            }
-        }
-        for (FilePrepareTaskResult filePrepareTaskResult : resultList) {
-            if (filePrepareTaskResult.status == FilePrepareTaskResult.STATUS_STOPPED) {
-                return filePrepareTaskResult;
-            }
-        }
-        return resultList.get(0);
-    }
-
-    private void handleFinalTaskResult(List<FilePrepareTaskResult> resultList, StepInstanceDTO stepInstance) {
-        FilePrepareTaskResult finalResult = combineTaskResult(resultList);
-        if (finalResult == null) return;
-        if (finalResult.status == FilePrepareTaskResult.STATUS_SUCCESS) {
-            onSuccess(stepInstance, finalResult);
-        } else if (finalResult.status == FilePrepareTaskResult.STATUS_STOPPED) {
-            onStopped(stepInstance, finalResult);
-        } else if (finalResult.status == FilePrepareTaskResult.STATUS_FAILED) {
-            onFailed(stepInstance, finalResult);
-        } else {
-            log.warn("Unknown status:{}", finalResult.status);
-        }
-    }
-
-    private void onSuccess(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
-        if (!finalResult.getTaskContext().isForRetry()) {
-            // 直接进行下一步
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
-        }
-    }
-
-    private void onStopped(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
-        // 步骤状态变更
-        taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
-        // 任务状态变更
-        taskExecuteMQEventDispatcher.dispatchJobEvent(
-            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                EventSource.buildStepEventSource(stepInstance.getId())));
-    }
-
-    private void onFailed(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
-        // 文件源文件下载失败
-        taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-        taskExecuteMQEventDispatcher.dispatchJobEvent(
-            JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                EventSource.buildStepEventSource(stepInstance.getId())));
     }
 
     @Override

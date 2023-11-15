@@ -52,11 +52,6 @@ public class CommonMetricNames {
      * 仅统计调用ESB CMDB API的HTTP请求过程
      */
     public static final String ESB_CMDB_API_HTTP = "job.client.cmdb.api.http";
-    /**
-     * 统计调用CMDB API整个过程，含反序列化
-     */
-    public static final String ESB_CMDB_API = "job.client.cmdb.api";
-
 
     /**
      * 仅统计调用制品库 API的HTTP请求过程

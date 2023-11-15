@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
 import java.util.List;
@@ -39,20 +41,28 @@ public class EsbApprovalStepV3DTO {
     /**
      * 确认类型
      */
+    @JsonProperty("approval_type")
+    @JsonPropertyDescription("Approval type")
     private Integer approvalType;
 
     /**
      * 确认角色
      */
+    @JsonPropertyDescription("Approval user info")
+    @JsonProperty("approval_user")
     private EsbUserRoleInfoV3DTO approvalUser;
 
     /**
      * 确认消息
      */
+    @JsonPropertyDescription("Approval message")
+    @JsonProperty("approval_message")
     private String approvalMessage;
 
     /**
      * 通知渠道列表
      */
+    @JsonPropertyDescription("Notify channel")
+    @JsonProperty("notify_channel")
     private List<String> notifyChannel;
 }

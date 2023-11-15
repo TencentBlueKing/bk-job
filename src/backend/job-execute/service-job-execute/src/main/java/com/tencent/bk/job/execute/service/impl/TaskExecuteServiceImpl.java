@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.audit.context.AuditContext;
 import com.tencent.bk.audit.utils.AuditInstanceUtils;
 import com.tencent.bk.job.common.audit.JobAuditAttributeNames;
+import com.tencent.bk.job.common.audit.JobAuditExtendDataKeys;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -40,10 +40,13 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
+import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
@@ -51,7 +54,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
-import com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.ListUtil;
@@ -59,6 +61,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -105,6 +108,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.execute.util.LoggerFactory;
+import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
@@ -134,6 +138,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -161,7 +166,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final AgentStateClient agentStateClient;
+    private final AgentStateClient preferV2AgentStateClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
     private final StepInstanceService stepInstanceService;
@@ -174,6 +179,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final AppScopeMappingService appScopeMappingService;
     private final WhiteHostCache whiteHostCache;
+    private final ServiceTaskTemplateResource taskTemplateResource;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -183,7 +189,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
-                                  AgentStateClient agentStateClient,
+                                  @Qualifier(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
+                                      AgentStateClient preferV2AgentStateClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
                                   StepInstanceService stepInstanceService,
@@ -195,13 +202,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   RollingConfigService rollingConfigService,
                                   AppScopeMappingService appScopeMappingService,
-                                  WhiteHostCache whiteHostCache) {
+                                  WhiteHostCache whiteHostCache,
+                                  ServiceTaskTemplateResource taskTemplateResource) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.agentStateClient = agentStateClient;
+        this.preferV2AgentStateClient = preferV2AgentStateClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
         this.stepInstanceService = stepInstanceService;
@@ -214,6 +222,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.appScopeMappingService = appScopeMappingService;
         this.whiteHostCache = whiteHostCache;
+        this.taskTemplateResource = taskTemplateResource;
     }
 
     @Override
@@ -311,7 +320,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 审计
             Set<HostDTO> allHosts = extractHosts(Collections.singletonList(stepInstance), null);
-            addExecuteAuditInstance(taskInstance, allHosts);
+            taskInstance.setAllHosts(allHosts);
+            auditFastJobExecute(taskInstance);
 
             return taskInstance;
         } finally {
@@ -380,34 +390,50 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return hostAllowActionsMap;
     }
 
-    private void addExecuteAuditInstance(TaskInstanceDTO taskInstance, Collection<HostDTO> hosts) {
-        try {
-            ActionAuditContext.current()
-                .setInstanceIdList(
-                    AuditInstanceUtils.mapInstanceList(hosts, host -> String.valueOf(host.getHostId()))
-                )
-                .setInstanceNameList(
-                    AuditInstanceUtils.mapInstanceList(hosts, HostDTO::getPrimaryIp)
-                );
-            if (taskInstance.isPlanInstance()) {
-                ActionAuditContext.current()
-                    .addAttribute(JobAuditAttributeNames.PLAN_ID, taskInstance.getPlanId())
-                    .addAttribute(JobAuditAttributeNames.PLAN_NAME, taskInstance.getPlan().getName());
-            } else {
-                // 快速执行任务，只有单个步骤
-                StepInstanceDTO stepInstance = taskInstance.getStepInstances().get(0);
-                if (stepInstance.getScriptVersionId() != null) {
-                    ActionAuditContext.current().addAttribute(JobAuditAttributeNames.SCRIPT_VERSION_ID,
-                        stepInstance.getScriptVersionId());
-                }
-                if (StringUtils.isNotBlank(stepInstance.getScriptName())) {
-                    ActionAuditContext.current().addAttribute(JobAuditAttributeNames.SCRIPT_NAME,
-                        stepInstance.getScriptName());
-                }
-            }
-        } catch (Throwable e) {
-            log.error("Execute audit caught exception", e);
+    private void auditFastJobExecute(TaskInstanceDTO taskInstance) {
+        addFastJobExecuteAuditInstance(taskInstance);
+        addJobInstanceInfoToExtendData(taskInstance);
+    }
+
+    private void addFastJobExecuteAuditInstance(TaskInstanceDTO taskInstance) {
+        setHostAuditInstances(taskInstance.getAllHosts());
+        // 快速执行任务，只有单个步骤
+        StepInstanceDTO stepInstance = taskInstance.getStepInstances().get(0);
+        if (stepInstance.getScriptVersionId() != null) {
+            ActionAuditContext.current().addAttribute(JobAuditAttributeNames.SCRIPT_VERSION_ID,
+                stepInstance.getScriptVersionId());
         }
+        if (StringUtils.isNotBlank(stepInstance.getScriptName())) {
+            ActionAuditContext.current().addAttribute(JobAuditAttributeNames.SCRIPT_NAME,
+                stepInstance.getScriptName());
+        }
+    }
+
+    private void setHostAuditInstances(Collection<HostDTO> hosts) {
+        ActionAuditContext.current()
+            .setInstanceIdList(
+                AuditInstanceUtils.mapInstanceList(hosts, host -> String.valueOf(host.getHostId()))
+            )
+            .setInstanceNameList(
+                AuditInstanceUtils.mapInstanceList(hosts, HostDTO::getPrimaryIp)
+            );
+    }
+
+    private void auditJobPlanExecute(TaskInstanceDTO taskInstance) {
+        addExecuteJobPlanAuditInstance(taskInstance);
+        addJobInstanceInfoToExtendData(taskInstance);
+    }
+
+    private void addExecuteJobPlanAuditInstance(TaskInstanceDTO taskInstance) {
+        setHostAuditInstances(taskInstance.getAllHosts());
+        ActionAuditContext.current()
+            .addAttribute(JobAuditAttributeNames.PLAN_ID, taskInstance.getPlanId())
+            .addAttribute(JobAuditAttributeNames.PLAN_NAME, taskInstance.getPlan().getName());
+    }
+
+    private void addJobInstanceInfoToExtendData(TaskInstanceDTO taskInstance) {
+        ActionAuditContext.current()
+            .addExtendData(JobAuditExtendDataKeys.JOB_INSTANCE_ID, taskInstance.getId());
     }
 
     private void saveTaskInstanceHosts(long taskInstanceId,
@@ -745,52 +771,71 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private ServiceListAppHostResultDTO acquireAndSetHosts(TaskInstanceDTO taskInstance,
                                                            List<StepInstanceDTO> stepInstances,
                                                            Collection<TaskVariableDTO> variables) {
-        long appId = taskInstance.getAppId();
+        StopWatch watch = new StopWatch("AcquireAndSetHosts");
+        try {
+            long appId = taskInstance.getAppId();
 
-        // 提取动态分组/topo节点
-        Set<DynamicServerGroupDTO> groups = new HashSet<>();
-        Set<DynamicServerTopoNodeDTO> topoNodes = new HashSet<>();
-        stepInstances.forEach(stepInstance -> extractDynamicGroupsAndTopoNodes(stepInstance, groups, topoNodes));
-        if (CollectionUtils.isNotEmpty(variables)) {
-            variables.forEach(variable -> {
-                if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                    extractDynamicGroupsAndTopoNodes(variable.getTargetServers(), groups, topoNodes);
-                }
-            });
+            // 提取动态分组/topo节点
+            Set<DynamicServerGroupDTO> groups = new HashSet<>();
+            Set<DynamicServerTopoNodeDTO> topoNodes = new HashSet<>();
+            stepInstances.forEach(stepInstance -> extractDynamicGroupsAndTopoNodes(stepInstance, groups, topoNodes));
+            if (CollectionUtils.isNotEmpty(variables)) {
+                variables.forEach(variable -> {
+                    if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
+                        extractDynamicGroupsAndTopoNodes(variable.getTargetServers(), groups, topoNodes);
+                    }
+                });
+            }
+
+            // 获取动态分组的主机并设置
+            fillDynamicGroupHosts(watch, appId, groups, stepInstances, variables);
+
+            // 获取topo节点的主机并设置
+            fillTopoNodeHosts(watch, appId, topoNodes, stepInstances, variables);
+
+            // 提取作业包含的主机列表
+            watch.start("extractHosts");
+            Set<HostDTO> queryHosts = extractHosts(stepInstances, variables);
+            watch.stop();
+
+            if (CollectionUtils.isEmpty(queryHosts)) {
+                return ServiceListAppHostResultDTO.EMPTY;
+            }
+
+            watch.start("batchGetAppHosts");
+            ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts,
+                needRefreshHostBkAgentId(taskInstance));
+            watch.stop();
+
+            if (CollectionUtils.isNotEmpty(queryHostsResult.getNotExistHosts())) {
+                // 如果主机在cmdb不存在，直接报错
+                throwHostInvalidException(queryHostsResult.getNotExistHosts());
+            }
+
+            watch.start("fillTaskInstanceHostDetail");
+            fillTaskInstanceHostDetail(taskInstance, stepInstances, variables, queryHostsResult);
+            watch.stop();
+
+            return queryHostsResult;
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 1000) {
+                log.warn("AcquireAndSetHosts slow, watch: {}", watch.prettyPrint());
+            }
         }
 
-        // 获取动态分组的主机并设置
-        fillDynamicGroupHosts(appId, groups, stepInstances, variables);
-
-        // 获取topo节点的主机并设置
-        fillTopoNodeHosts(appId, topoNodes, stepInstances, variables);
-
-        // 提取作业包含的主机列表
-        Set<HostDTO> queryHosts = extractHosts(stepInstances, variables);
-
-        if (CollectionUtils.isEmpty(queryHosts)) {
-            return ServiceListAppHostResultDTO.EMPTY;
-        }
-
-        ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts,
-            needRefreshHostBkAgentId(taskInstance));
-
-        if (CollectionUtils.isNotEmpty(queryHostsResult.getNotExistHosts())) {
-            // 如果主机在cmdb不存在，直接报错
-            throwHostInvalidException(queryHostsResult.getNotExistHosts());
-        }
-
-        fillTaskInstanceHostDetail(taskInstance, stepInstances, variables, queryHostsResult);
-
-        return queryHostsResult;
     }
 
-    private void fillDynamicGroupHosts(long appId,
+    private void fillDynamicGroupHosts(StopWatch watch,
+                                       long appId,
                                        Set<DynamicServerGroupDTO> groups,
                                        List<StepInstanceDTO> stepInstances,
                                        Collection<TaskVariableDTO> variables) {
         // 获取动态分组的主机并设置
         if (CollectionUtils.isNotEmpty(groups)) {
+            watch.start("fillDynamicGroupHosts");
             Map<DynamicServerGroupDTO, List<HostDTO>> dynamicGroupHosts =
                 hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
             stepInstances.forEach(stepInstance -> {
@@ -813,14 +858,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     }
                 });
             }
+            watch.stop();
         }
     }
 
-    private void fillTopoNodeHosts(long appId,
+    private void fillTopoNodeHosts(StopWatch watch,
+                                   long appId,
                                    Set<DynamicServerTopoNodeDTO> topoNodes,
                                    List<StepInstanceDTO> stepInstances,
                                    Collection<TaskVariableDTO> variables) {
         if (CollectionUtils.isNotEmpty(topoNodes)) {
+            watch.start("fillTopoNodeHosts");
             Map<DynamicServerTopoNodeDTO, List<HostDTO>> topoNodeHosts =
                 hostService.getAndGroupHostsByTopoNodes(appId, topoNodes);
             stepInstances.forEach(stepInstance -> {
@@ -843,6 +891,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     }
                 });
             }
+            watch.stop();
         }
     }
 
@@ -1171,12 +1220,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 } else {
                     hostDetail = hostMap.get("hostIp:" + host.toCloudIp());
                 }
-                host.setHostId(hostDetail.getHostId());
-                host.setAgentId(hostDetail.getAgentId());
-                host.setBkCloudId(hostDetail.getBkCloudId());
-                host.setIp(hostDetail.getIp());
-                host.setIpv6(hostDetail.getIpv6());
-                host.setBkCloudName(hostDetail.getBkCloudName());
+                host.updateByHost(hostDetail);
             });
         }
     }
@@ -1303,18 +1347,43 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    @ActionAuditRecord(
-        actionId = ActionId.LAUNCH_JOB_PLAN,
-        content = "Launch a plan [{{" + JobAuditAttributeNames.PLAN_NAME
-            + "}}]({{" + JobAuditAttributeNames.PLAN_ID + "}})",
-        builder = ExecuteJobAuditEventBuilder.class
-    )
     public TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam) {
         StopWatch watch = new StopWatch("createTaskInstanceForTask");
+        TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
+        ServiceTaskPlanDTO plan = taskInfo.getJobPlan();
+        ActionAuditContext actionAuditContext;
 
+        if (plan.isDebugTask()) {
+            // 作业模版调试
+            actionAuditContext = ActionAuditContext.builder(ActionId.DEBUG_JOB_TEMPLATE)
+                .setContent(EventContentConstants.DEBUG_JOB_TEMPLATE)
+                .setResourceType(ResourceTypeId.TEMPLATE)
+                .setInstanceId(String.valueOf(plan.getTaskTemplateId()))
+                .setInstanceName(taskTemplateResource.getTemplateNameById(plan.getTaskTemplateId()).getData())
+                .build();
+        } else {
+            // 执行方案执行
+            actionAuditContext = ActionAuditContext.builder(ActionId.LAUNCH_JOB_PLAN)
+                .setEventBuilder(ExecuteJobAuditEventBuilder.class)
+                .setContent(EventContentConstants.LAUNCH_JOB_PLAN)
+                .build();
+        }
+
+        AuditContext.current().updateActionId(actionAuditContext.getActionId());
+
+        return actionAuditContext.wrapActionCallable(() -> {
+            TaskInstanceDTO taskInstance = executeJobPlanInternal(watch, executeParam, taskInfo);
+            if (!plan.isDebugTask()) {
+                auditJobPlanExecute(taskInstance);
+            } else {
+                addJobInstanceInfoToExtendData(taskInstance);
+            }
+            return taskInstance;
+        }).call();
+    }
+
+    private TaskInstanceDTO executeJobPlanInternal(StopWatch watch, TaskExecuteParam executeParam, TaskInfo taskInfo) {
         try {
-            TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
-
             ServiceTaskPlanDTO jobPlan = taskInfo.getJobPlan();
             TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
             taskInstance.setPlan(jobPlan);
@@ -1366,6 +1435,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.stop();
 
             Set<HostDTO> allHosts = extractHosts(taskInstance.getStepInstances(), null);
+            taskInstance.setAllHosts(allHosts);
 
             // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
             watch.start("saveTaskInstanceHosts");
@@ -1381,9 +1451,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.start("startJob");
             startTask(taskInstance.getId());
             watch.stop();
-
-            // 审计
-            addExecuteAuditInstance(taskInstance, allHosts);
 
             return taskInstance;
         } finally {
@@ -1499,7 +1566,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             return;
         }
 
-        boolean isDebugTask = plan.getDebugTask();
+        boolean isDebugTask = plan.isDebugTask();
         ServersDTO authServers = new ServersDTO();
         Set<Long> accountIds = new HashSet<>();
         for (StepInstanceDTO stepInstance : stepInstanceList) {
@@ -1663,7 +1730,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstance.setPlanId(taskPlan.getId());
         taskInstance.setTaskTemplateId(taskPlan.getTaskTemplateId());
         taskInstance.setCurrentStepInstanceId(-1L);
-        taskInstance.setDebugTask(taskPlan.getDebugTask());
+        taskInstance.setDebugTask(taskPlan.isDebugTask());
         taskInstance.setCallbackUrl(executeParam.getCallbackUrl());
         taskInstance.setAppCode(executeParam.getAppCode());
         return taskInstance;
@@ -2173,24 +2240,37 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
-        List<String> agentIdList = hosts.stream()
-            .map(HostDTO::getAgentId)
-            .filter(StringUtils::isNotEmpty)
-            .distinct()
-            .collect(Collectors.toList());
-        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(agentIdList);
+        long start = System.currentTimeMillis();
+
+        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
+        Map<HostDTO, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
+        hosts.forEach(hostDTO -> {
+            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostDTO);
+            hostAgentStateQueryList.add(hostAgentStateQuery);
+            hostAgentStateQueryMap.put(hostDTO, hostAgentStateQuery);
+        });
+
+        // 此处用于记录下发任务时的Agent状态快照数据，因此使用最终真实下发任务的agentId获取状态
+        Map<String, AgentState> agentStateMap = preferV2AgentStateClient.batchGetAgentState(hostAgentStateQueryList);
 
         for (HostDTO host : hosts) {
-            if (StringUtils.isEmpty(host.getAgentId())) {
+            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host);
+            String effectiveAgentId = preferV2AgentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            if (StringUtils.isEmpty(effectiveAgentId)) {
                 host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
-            } else {
-                AgentState agentState = agentStateMap.get(host.getAgentId());
-                if (agentState != null) {
-                    host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
-                } else {
-                    host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
-                }
+                continue;
             }
+            AgentState agentState = agentStateMap.get(effectiveAgentId);
+            if (agentState != null) {
+                host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
+            } else {
+                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
+            }
+        }
+
+        long cost = System.currentTimeMillis() - start;
+        if (cost > 1000) {
+            log.warn("SetAgentStatus slow, hostSize: {}, cost:{} ms", hosts.size(), cost);
         }
     }
 

@@ -1000,11 +1000,7 @@ public class ScriptManagerImpl implements ScriptManager {
         }
         if (citeCount > 0 && scriptVersionId != null) {
             ScriptDTO scriptVersion = getScriptVersion(scriptVersionId);
-            if (scriptVersion != null && scriptVersion.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
-                return true;
-            } else {
-                return false;
-            }
+            return scriptVersion != null && scriptVersion.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue());
         }
         return citeCount > 0;
     }

@@ -50,7 +50,7 @@
         "script_language": 1,
         "bk_scope_type": "biz",
         "bk_scope_id": "2",
-        "content": "IyEvYmluL2Jhc2gKZGF0ZQo=",
+        "content": "#!/bin/bash\ndate\n",
         "creator": "admin",
         "create_time": 1691741073000,
         "last_modify_user": "admin",

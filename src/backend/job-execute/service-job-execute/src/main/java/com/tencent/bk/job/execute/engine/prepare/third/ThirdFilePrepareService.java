@@ -220,7 +220,7 @@ public class ThirdFilePrepareService {
         log.debug("[{}]: fileSourceList={}", stepInstance.getUniqueKey(), fileSourceList);
         // 放进文件源下载任务进度表中
         FileSourceTaskLogDTO fileSourceTaskLogDTO = buildInitFileSourceTaskLog(stepInstance, batchTaskInfoDTO);
-        fileSourceTaskLogDAO.saveFileSourceTaskLog(fileSourceTaskLogDTO);
+        fileSourceTaskLogDAO.insertOrUpdateFileSourceTaskLog(fileSourceTaskLogDTO);
         // 更新文件源任务状态
         taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         // 异步轮询文件下载任务

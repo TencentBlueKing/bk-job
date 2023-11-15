@@ -90,10 +90,39 @@ public class HostDTO implements Cloneable {
     private String ipv6;
 
     /**
-     * agent状态，0-异常，1-正常
+     * agent存活状态，0-异常，1-正常
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer alive;
+
+    /**
+     * 操作系统名称
+     */
+    private String osName;
+
+    /**
+     * 操作系统类型
+     */
+    private String osType;
+
+    /**
+     * 操作系统类型名称
+     */
+    private String osTypeName;
+    /**
+     * 主机名称
+     */
+    private String hostname;
+
+    /**
+     * 所属云厂商ID
+     */
+    private String cloudVendorId;
+
+    /**
+     * 所属云厂商名称
+     */
+    private String cloudVendorName;
 
     @Deprecated
     public HostDTO(Long bkCloudId, String ip) {
@@ -159,23 +188,22 @@ public class HostDTO implements Cloneable {
         }
     }
 
-    public static HostInfoVO toVO(HostDTO hostDTO) {
-        if (hostDTO == null) {
-            return null;
-        }
+    public HostInfoVO toHostInfoVO() {
         HostInfoVO hostInfoVO = new HostInfoVO();
-        hostInfoVO.setHostId(hostDTO.getHostId());
-        hostInfoVO.setIp(hostDTO.getIp());
-        hostInfoVO.setIpv6(hostDTO.getIpv6());
-        hostInfoVO.setAgentStatus(hostDTO.getAlive());
-        CloudAreaInfoVO cloudAreaInfo = new CloudAreaInfoVO();
-        cloudAreaInfo.setId(hostDTO.getBkCloudId());
-        cloudAreaInfo.setName(hostDTO.getBkCloudName());
-        hostInfoVO.setCloudArea(cloudAreaInfo);
+        hostInfoVO.setHostId(hostId);
+        hostInfoVO.setCloudArea(new CloudAreaInfoVO(bkCloudId, bkCloudName));
+        hostInfoVO.setIp(ip);
+        hostInfoVO.setIpv6(ipv6);
+        hostInfoVO.setHostName(hostname);
+        hostInfoVO.setOsName(osName);
+        hostInfoVO.setOsTypeName(osTypeName);
+        hostInfoVO.setAlive(alive);
+        hostInfoVO.setAgentId(agentId);
+        hostInfoVO.setCloudVendorName(cloudVendorName);
         return hostInfoVO;
     }
 
-    public static HostDTO fromVO(HostInfoVO hostInfoVO) {
+    public static HostDTO fromHostInfoVO(HostInfoVO hostInfoVO) {
         if (hostInfoVO == null) {
             return null;
         }
@@ -189,6 +217,8 @@ public class HostDTO implements Cloneable {
             hostDTO.setBkCloudName(cloudAreaInfo.getName());
         }
         hostDTO.setAlive(hostInfoVO.getAgentStatus());
+        hostDTO.setOsName(hostInfoVO.getOsName());
+        hostDTO.setOsTypeName(hostInfoVO.getOsTypeName());
         return hostDTO;
     }
 
@@ -262,5 +292,21 @@ public class HostDTO implements Cloneable {
             .add("ip='" + ip + "'")
             .add("ipv6='" + ipv6 + "'")
             .toString();
+    }
+
+    public void updateByHost(HostDTO host) {
+        this.hostId = host.getHostId();
+        this.agentId = host.getAgentId();
+        this.bkCloudId = host.getBkCloudId();
+        this.bkCloudName = host.getBkCloudName();
+        this.ip = host.getIp();
+        this.ipv6 = host.getIpv6();
+        this.osName = host.getOsName();
+        this.osType = host.getOsType();
+        this.osTypeName = host.getOsTypeName();
+        this.alive = host.getAlive();
+        this.cloudVendorId = host.getCloudVendorId();
+        this.cloudVendorName = host.getCloudVendorName();
+        this.hostname = host.getHostname();
     }
 }

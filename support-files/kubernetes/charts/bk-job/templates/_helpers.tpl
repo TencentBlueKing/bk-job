@@ -669,7 +669,6 @@ Return the Archive MariaDB secret name
 {{ printf "%s-%s" (include "job.fullname" .) "archive-mariadb" }}
 {{- end -}}
 
-
 {{/*
 Return the storage PVC name
 */}}
@@ -682,4 +681,31 @@ Return the job pod terminationGracePeriodSeconds
 */}}
 {{- define "job.podTerminationGracePeriodSeconds" -}}
 terminationGracePeriodSeconds: {{ .Values.podTerminationGracePeriodSeconds }}
+{{- end -}}
+
+{{/*
+Return the Crontab DB secret name
+*/}}
+{{- define "job.crontabdb.secretName" -}}
+{{ printf "%s-%s" (include "job.fullname" .) "crontab-db" }}
+{{- end -}}
+
+
+{{/*
+Return the job crontab database config
+*/}}
+{{- define "job.crontab.databaseConfig" -}}
+{{- if .Values.crontabConfig.database.host -}}
+jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- .Values.crontabConfig.database.host }}:{{- .Values.crontabConfig.database.port }}/job_crontab{{- .Values.crontabConfig.database.connection.properties }}
+username: {{ .Values.crontabConfig.database.username }}
+password: ${crontab-db-password}
+{{- else -}}
+jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab{{ include "job.mariadb.connection.properties" . }}
+username: {{ include "job.mariadb.username" . }}
+    {{- if .Values.externalMariaDB.existingPasswordSecret }}
+password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+    {{- else }}
+password: ${mariadb-password}
+    {{- end }}
+{{- end }}
 {{- end -}}

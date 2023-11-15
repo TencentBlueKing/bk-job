@@ -58,7 +58,8 @@ public class LocalFilePrepareService {
     private final TaskInstanceService taskInstanceService;
     private final ArtifactoryClient artifactoryClient;
     private final Map<String, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
-    private final ThreadPoolExecutor localFilePrepareExecutor;
+    private final ThreadPoolExecutor localFileDownloadExecutor;
+    private final ThreadPoolExecutor localFileWatchExecutor;
 
     @Autowired
     public LocalFilePrepareService(FileDistributeConfig fileDistributeConfig,
@@ -67,14 +68,16 @@ public class LocalFilePrepareService {
                                    AgentService agentService,
                                    TaskInstanceService taskInstanceService,
                                    @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
-                                   @Qualifier("localFilePrepareExecutor") ThreadPoolExecutor localFilePrepareExecutor) {
+                                   @Qualifier("localFileDownloadExecutor") ThreadPoolExecutor localFileDownloadExecutor,
+                                   @Qualifier("localFileWatchExecutor") ThreadPoolExecutor localFileWatchExecutor) {
         this.fileDistributeConfig = fileDistributeConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.agentService = agentService;
         this.taskInstanceService = taskInstanceService;
         this.artifactoryClient = artifactoryClient;
-        this.localFilePrepareExecutor = localFilePrepareExecutor;
+        this.localFileDownloadExecutor = localFileDownloadExecutor;
+        this.localFileWatchExecutor = localFileWatchExecutor;
     }
 
     public void stopPrepareLocalFilesAsync(
@@ -109,7 +112,8 @@ public class LocalFilePrepareService {
             artifactoryConfig.getArtifactoryJobProject(),
             localFileConfigForExecute.getLocalUploadRepo(),
             fileDistributeConfig.getJobDistributeRootPath(),
-            localFilePrepareExecutor
+            localFileDownloadExecutor,
+            localFileWatchExecutor
         );
         taskMap.put(stepInstance.getUniqueKey(), task);
         task.execute();

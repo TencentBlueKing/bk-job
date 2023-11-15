@@ -25,7 +25,12 @@
 package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -90,6 +95,34 @@ public class IpUtilsTest {
 
         result = IpUtils.extractIp(null);
         assertThat(result).isNull();
+    }
+
+    @Test
+    void testParseCleanIpAndCloudIps() {
+        Pair<Set<String>, Set<String>> emptyPair = IpUtils.parseCleanIpv4AndCloudIpv4s(null);
+        assertThat(emptyPair.getLeft().size()).isEqualTo(0);
+        assertThat(emptyPair.getRight().size()).isEqualTo(0);
+
+        emptyPair = IpUtils.parseCleanIpv4AndCloudIpv4s(new ArrayList<>());
+        assertThat(emptyPair.getLeft().size()).isEqualTo(0);
+        assertThat(emptyPair.getRight().size()).isEqualTo(0);
+
+        List<String> ipv4OrCloudIpv4List = new ArrayList<>();
+        ipv4OrCloudIpv4List.add("127.0.0.1");
+        ipv4OrCloudIpv4List.add(" 127.0.0.1");
+        ipv4OrCloudIpv4List.add("0:127 .0.0.1");
+        ipv4OrCloudIpv4List.add("127.0.0.2");
+        ipv4OrCloudIpv4List.add("  127.0.0.2  \n");
+        ipv4OrCloudIpv4List.add("1:127.0.0.1 \r\n");
+        Pair<Set<String>, Set<String>> pair = IpUtils.parseCleanIpv4AndCloudIpv4s(ipv4OrCloudIpv4List);
+        Set<String> ipv4Set = pair.getLeft();
+        Set<String> cloudIpv4Set = pair.getRight();
+        assertThat(ipv4Set.size()).isEqualTo(2);
+        assertThat(ipv4Set.contains("127.0.0.1")).isTrue();
+        assertThat(ipv4Set.contains("127.0.0.2")).isTrue();
+        assertThat(cloudIpv4Set.size()).isEqualTo(2);
+        assertThat(cloudIpv4Set.contains("0:127.0.0.1")).isTrue();
+        assertThat(cloudIpv4Set.contains("1:127.0.0.1")).isTrue();
     }
 
     @Test

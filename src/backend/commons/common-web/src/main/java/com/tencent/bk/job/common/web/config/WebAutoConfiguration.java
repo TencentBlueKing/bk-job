@@ -26,19 +26,22 @@ package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
 import com.tencent.bk.job.common.web.feign.FeignConfiguration;
-import com.tencent.bk.job.common.web.util.ProfileUtil;
+import com.tencent.bk.job.common.web.validation.ValidationConfiguration;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-@Import({ActuatorSecurityConfig.class, SwaggerAdapterConfig.class, FeignConfiguration.class, FilterConfig.class})
+@Import({
+    ActuatorSecurityConfig.class,
+    SwaggerAdapterConfig.class,
+    FeignConfiguration.class,
+    FilterConfig.class,
+    ValidationConfiguration.class
+})
+@Configuration(proxyBeanMethods = false)
 public class WebAutoConfiguration {
-    
-    @Bean
-    public ProfileUtil profileUtil() {
-        return new ProfileUtil();
-    }
 
     @Bean
     public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {

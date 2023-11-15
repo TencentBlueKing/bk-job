@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -45,8 +44,7 @@ public class CcTopologyNodeVO {
     private String instanceName;
     private String objectId;
     private String objectName;
-    @CompatibleImplementation(name = "ipv6", deprecatedVersion = "3.8.0", explain = "仅用于发布期间兼容")
-    private Boolean expanded = true;
+    // 当前层级节点数据是否使用懒加载，作业平台目前不涉及，取值一直为false即可
     private Boolean lazy = false;
     private List<CcTopologyNodeVO> child;
 

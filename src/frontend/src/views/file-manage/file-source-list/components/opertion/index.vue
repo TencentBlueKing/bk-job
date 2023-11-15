@@ -410,7 +410,7 @@
        * @desc 获取身份凭证列表数据
        */
       fetchTicketList() {
-        return TicketManageService.fetchList()
+        return TicketManageService.getBasicInfoList()
           .then((res) => {
             this.fileFourceTicketList = Object.freeze(res.data);
           });

@@ -35,13 +35,7 @@ data:
         job-crontab:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab{{ include "job.mariadb.connection.properties" . }}
-          username: {{ include "job.mariadb.username" . }}
-          {{ if .Values.externalMariaDB.existingPasswordSecret }}
-          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-          {{- else -}}
-          password: ${mariadb-password}
-          {{- end }}
+          {{- include "job.crontab.databaseConfig" . | nindent 10 }}
           maximum-pool-size: 20
           minimum-idle: 5
           idle-timeout: 600000
@@ -63,24 +57,6 @@ data:
         jdbc:
           # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
           initialize-schema: never
-        thread-pool:
-          thread-name-prefix: QuartzThreadPoolTaskExecutor-
-          thread-priority: 5
-          daemon: false
-          thread-group-name: QuartzThreadPoolTaskExecutorGroup
-          core-pool-size: 150
-          max-pool-size: 300
-          keep-alive-seconds: 60
-          queue-capacity: 150
-          allow-core-thread-timeout: false
-          waitfor-tasks-tocomplete-onshutdown: true
-          await-termination-seconds: 900
-        scheduler:
-          scheduler-name: quartz-scheduler
-          application-context-scheduler-contextkey: applicationContext
-          overwrite-existing-jobs: true
-          auto-startup: true
-          startup-delay: 10
         properties:
           org:
             quartz:
@@ -104,21 +80,17 @@ data:
                 # 调度器实例编号自动生成
                 instanceId: AUTO
                 skipUpdateCheck: true
-                batchTriggerAcquisitionMaxCount: 50
+                batchTriggerAcquisitionMaxCount: {{ .Values.crontabConfig.quartz.scheduler.batchTriggerAcquisitionMaxCount }}
               threadPool:
                 class: org.quartz.simpl.SimpleThreadPool
-                threadCount: 300
+                threadCount: {{ .Values.crontabConfig.quartz.threadPool.threadCount }}
     ribbon:
       ReadTimeout: 120000
       ConnectTimeout: 10000
       eureka:
         enabled: false
     feign:
-      client:
-        config:
-          default:
-            connectTimeout: 5000
-            readTimeout: 20000
+      {{- toYaml .Values.crontabConfig.feign | nindent 6 }}
     job:
       crontab:
         notification-policy:

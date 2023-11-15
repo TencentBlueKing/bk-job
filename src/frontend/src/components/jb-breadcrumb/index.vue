@@ -28,6 +28,8 @@
 <script>
   import _ from 'lodash';
 
+  import I18n from '@/i18n';
+
   export default {
     name: '',
     props: {
@@ -104,7 +106,7 @@
             },
           },
           attrs: {
-            'tippy-tips': '返回上一级',
+            'tippy-tips': I18n.t('返回上一级'),
           },
           style: {
             cursor: 'pointer',

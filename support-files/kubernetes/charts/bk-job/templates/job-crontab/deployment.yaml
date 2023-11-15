@@ -102,9 +102,15 @@ spec:
           resources:
             {{- toYaml .Values.crontabConfig.resources | nindent 12 }}
           volumeMounts:
+            {{- if .Values.crontabConfig.database.host }}
+            - name: crontabdb
+              mountPath: /etc/secrets/crontabdb
+              readOnly: true
+            {{- else }}
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
+            {{- end }}
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
@@ -112,9 +118,15 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
       volumes:
+        {{- if .Values.crontabConfig.database.host }}
+        - name: crontabdb
+          secret:
+            secretName: {{ include "job.crontabdb.secretName" . }}
+        {{- else }}
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
+        {{- end }}
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}

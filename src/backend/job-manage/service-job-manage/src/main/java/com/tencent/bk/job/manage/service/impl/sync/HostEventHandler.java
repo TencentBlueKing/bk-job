@@ -28,17 +28,19 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.host.HostService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.BlockingQueue;
@@ -53,7 +55,8 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                      CmdbEventSampler cmdbEventSampler,
                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,
                      HostService hostService,
-                     AgentStateClient agentStateClient) {
+                     @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
+                         AgentStateClient agentStateClient) {
         super(queue, tracer, cmdbEventSampler);
         this.hostService = hostService;
         this.agentStateClient = agentStateClient;
@@ -117,9 +120,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
 
     private void tryToUpdateAgentStatus(ApplicationHostDTO hostInfoDTO) {
         try {
-            String agentId = StringUtils.isNotBlank(hostInfoDTO.getAgentId()) ?
-                hostInfoDTO.getAgentId() : hostInfoDTO.getCloudIp();
-            AgentState agentState = agentStateClient.getAgentState(agentId);
+            AgentState agentState = agentStateClient.getAgentState(HostAgentStateQuery.from(hostInfoDTO));
             if (agentState != null) {
                 hostInfoDTO.setGseAgentStatus(agentState.getStatusCode());
             }

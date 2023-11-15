@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.vo.CredentialBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -86,6 +87,29 @@ public interface WebCredentialResource {
         @RequestParam(value = "start", required = false)
             Integer start,
         @ApiParam("分页-每页大小")
+        @RequestParam(value = "pageSize", required = false)
+            Integer pageSize
+    );
+
+    @ApiOperation(value = "分页获取凭据基础信息", produces = "application/json")
+    @GetMapping("/basicInfo/list")
+    Response<PageData<CredentialBasicVO>> listCredentialBasicInfo(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam("分页-开始，不传默认为0")
+        @RequestParam(value = "start", required = false)
+            Integer start,
+        @ApiParam("分页-每页大小，不传默认拉取全量数据")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize
     );

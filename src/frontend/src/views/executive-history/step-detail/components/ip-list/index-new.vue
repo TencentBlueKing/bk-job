@@ -113,10 +113,11 @@
         </template>
       </bk-table-column>
       <bk-table-column
+        fixed="right"
         label-class-name="setting-column"
         :render-header="renderSettingHeader"
         :resizable="false"
-        :width="45">
+        :width="46">
         <template slot-scope="{ row }">
           <icon
             v-if="row.key === selectRowKey"
@@ -279,6 +280,12 @@
   const selectRowKey = ref('');
 
   const styles = computed(() => {
+    if (!listRef.value) {
+      return {};
+    }
+    const { left } = listRef.value.getBoundingClientRect();
+    const windowInnerWidth = window.innerWidth;
+    const maxWidth = windowInnerWidth - left - 800 - 24;
     const allShowColumnMap = makeMap(allShowColumn.value);
     const allShowColumnWidth = columnList.value.reduce((result, item) => {
       if (allShowColumnMap[item.name]) {
@@ -288,7 +295,7 @@
     }, 65);
 
     return {
-      width: `${Math.max(allShowColumnWidth, 217)}px`,
+      width: `${Math.min(Math.max(allShowColumnWidth, 217), maxWidth)}px`,
     };
   });
 
@@ -472,6 +479,17 @@
 
         .cell{
           color: #63656e;
+        }
+      }
+
+      .bk-table-fixed-right{
+        bottom: 0 !important;
+        width: 45px !important;
+
+        .bk-table-row-last{
+          td.is-last{
+            border-bottom: 1px solid #dfe0e5;
+          }
         }
       }
     }

@@ -27,8 +27,8 @@ package com.tencent.bk.job.common.web.interceptor;
 import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.web.exception.ServiceNoAuthException;
-import com.tencent.bk.job.common.web.util.ProfileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +44,12 @@ import javax.servlet.http.HttpServletResponse;
 @JobInterceptor(pathPatterns = "/**", order = InterceptorOrder.Init.CHECK_VALID)
 public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
     private final JwtManager jwtManager;
-    private final ProfileUtil profileUtil;
+    private final SpringProfile springProfile;
 
     @Autowired
-    public ServiceSecurityInterceptor(JwtManager jwtManager, ProfileUtil profileUtil) {
+    public ServiceSecurityInterceptor(JwtManager jwtManager, SpringProfile springProfile) {
         this.jwtManager = jwtManager;
-        this.profileUtil = profileUtil;
+        this.springProfile = springProfile;
     }
 
 
@@ -72,7 +72,7 @@ public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
 
     private boolean shouldFilter(HttpServletRequest request) {
         // dev环境需要支持swagger，请求无需认证
-        if (profileUtil.isDevProfileActive()) {
+        if (springProfile.isDevProfileActive()) {
             return false;
         }
 

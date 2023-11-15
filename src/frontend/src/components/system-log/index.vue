@@ -80,6 +80,8 @@
 
   import ScrollFaker from '@components/scroll-faker';
 
+  import I18n from '@/i18n';
+
   export default {
     name: 'SystemVersionLog',
     components: {
@@ -158,8 +160,8 @@
         }
         this.popperInstance.setContent(`
                     <div style="width: 220px; font-size: 12px; line-height: 20px; color: #63656E;">
-                        <div style="color: #979BA5">Job 小贴士：</div>
-                        <div> 想要再次查阅「版本日志」也可以从此处进入喔～</div>
+                        <div style="color: #979BA5">${I18n.t('Job 小贴士：')}</div>
+                        <div>${I18n.t('想要再次查阅「版本日志」也可以从此处进入喔～')}</div>
                     </div>
                 `);
         this.popperInstance.show();

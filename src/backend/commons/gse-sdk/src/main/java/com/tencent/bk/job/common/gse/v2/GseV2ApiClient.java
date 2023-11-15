@@ -9,6 +9,7 @@ import com.tencent.bk.job.common.esb.sdk.BkApiContext;
 import com.tencent.bk.job.common.esb.sdk.BkApiLogStrategy;
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
+import com.tencent.bk.job.common.gse.constants.GseMetricNames;
 import com.tencent.bk.job.common.gse.v2.model.AsyncGseTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
@@ -42,7 +43,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                           AppProperties appProperties,
                           BkApiGatewayProperties bkApiGatewayProperties) {
         super(meterRegistry,
-            GseConstants.GSE_V2_API_METRICS_NAME_PREFIX,
+            GseMetricNames.GSE_V2_API_METRICS_NAME_PREFIX,
             bkApiGatewayProperties.getGse().getUrl(),
             appProperties.getCode(),
             appProperties.getSecret());

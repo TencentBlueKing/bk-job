@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -48,7 +49,7 @@ public class ExecuteFileSourceInfoVO {
     private String fileSize;
 
     @ApiModelProperty(value = "主机列表")
-    private ExecuteTargetVO host;
+    private TaskTargetVO host;
 
     @ApiModelProperty(value = "主机账号")
     @JsonProperty("account")

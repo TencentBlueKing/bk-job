@@ -36,7 +36,7 @@
         :label="$t('ticket.名称')"
         property="name"
         required>
-        <bk-input v-model="formData.name" />
+        <bk-input v-model.trim="formData.name" />
       </jb-form-item>
       <jb-form-item :label="$t('ticket.类型.label')">
         <div class="ticket-type-wraper">

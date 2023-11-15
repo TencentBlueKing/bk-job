@@ -474,8 +474,10 @@ gse:
     rootPath: "/tmp/bkjob"
   query:
     threads:
-      # 向GSE查询Agent状态的并发数
+      # 向GSE查询Agent状态的核心并发数
       num: 5
+      # 向GSE查询Agent状态的最大并发数
+      maxNum: 20
     # 单次向GSE查询状态的Agent数量
     batchSize: 5000
 
@@ -885,7 +887,17 @@ executeConfig:
     port: 80
   # 运行时JVM参数
   jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
-
+  # Feign相关配置块
+  feign:
+    # 客户端配置
+    client:
+      config:
+        # 默认Client实例配置
+        default:
+          # 连接超时，单位：毫秒
+          connectTimeout: 5000
+          # 读取超时，单位：毫秒
+          readTimeout: 20000
 
 ## job-crontab定时任务配置
 crontabConfig:
@@ -931,6 +943,12 @@ crontabConfig:
     maxReplicas: 5
     targetCPU: 50
     targetMemory: 50
+  service:
+    port: 80
+    type: ClusterIP
+  containerPort: 19805
+  # 运行时JVM参数
+  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
   # 连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
   notificationPolicy:
     failed:
@@ -941,12 +959,41 @@ crontabConfig:
         frequency: 5
         # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
         total: -1
-  containerPort: 19805
-  service:
-    port: 80
-    type: ClusterIP
-  # 运行时JVM参数
-  jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 定时任务服务独立数据库配置，若不配置该项则使用与其他服务共用的公共数据库
+  database:
+    host: ""
+    port: 3306
+    connection:
+      properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    username: "job"
+    password: "job"
+  # Quartz相关配置
+  quartz:
+    # 调度器配置
+    scheduler:
+      # 单次获取触发任务量的最大值
+      batchTriggerAcquisitionMaxCount: 50
+    # 线程池配置
+    threadPool:
+      # 用于执行触发任务的线程池工作线程数量
+      threadCount: 50
+  # Feign相关配置块
+  feign:
+    # Http类型的客户端配置
+    httpclient:
+      # 最大连接数
+      maxConnections: 300
+      # 单个路由地址的最大连接数
+      maxConnectionsPerRoute: 300
+    # 客户端配置
+    client:
+      config:
+        # 默认Client实例配置
+        default:
+          # 连接超时，单位：毫秒
+          connectTimeout: 5000
+          # 读取超时，单位：毫秒
+          readTimeout: 20000
 
 ## job-logsvr日志服务配置
 logsvrConfig:
@@ -1129,6 +1176,17 @@ analysisConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # Feign相关配置块
+  feign:
+    # 客户端配置
+    client:
+      config:
+        # 默认Client实例配置
+        default:
+          # 连接超时，单位：毫秒
+          connectTimeout: 5000
+          # 读取超时，单位：毫秒
+          readTimeout: 300000
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1514,6 +1572,17 @@ assembleConfig:
     port: 80
   # 运行时JVM参数
   jvmOptions: "-Xms512m -Xmx1024m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # Feign相关配置块
+  feign:
+    # 客户端配置
+    client:
+      config:
+        # 默认Client实例配置
+        default:
+          # 连接超时，单位：毫秒
+          connectTimeout: 5000
+          # 读取超时，单位：毫秒
+          readTimeout: 300000
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 40

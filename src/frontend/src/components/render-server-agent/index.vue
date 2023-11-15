@@ -59,7 +59,7 @@
           <div class="variable-title">
             <span>{{ title }}</span>
             <i
-              class="global-variable-dialog-close bk-icon icon-close"
+              class="dialog-close-btn bk-icon icon-close"
               @click="handleClose" />
           </div>
         </template>
@@ -71,6 +71,11 @@
               :value="hostNodeInfo" />
           </scroll-faker>
         </div>
+        <template #footer>
+          <bk-button @click="handleClose">
+            {{ $t('关闭') }}
+          </bk-button>
+        </template>
       </jb-dialog>
     </lower-component>
   </div>
@@ -217,9 +222,7 @@
     }
 
     .content-wraper {
-      height: 450px;
-      max-height: 450px;
-      min-height: 450px;
+      height: 550px;
       margin-top: -1px;
     }
 
@@ -240,17 +243,23 @@
       border-bottom: 1px solid #dcdee5;
     }
 
-    .global-variable-dialog-close {
+    .dialog-close-btn {
       position: absolute;
-      top: 0;
-      right: 0;
-      font-size: 32px;
-      color: #c4c6cc;
+      top: 5px;
+      right: 5px;
+      z-index: 1;
+      width: 26px;
+      height: 26px;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 26px;
+      color: #979ba5;
+      text-align: center;
       cursor: pointer;
-      transition: all 0.15s;
+      border-radius: 50%;
 
       &:hover {
-        transform: rotateZ(90deg);
+        background-color: #f0f1f5;
       }
     }
   }
