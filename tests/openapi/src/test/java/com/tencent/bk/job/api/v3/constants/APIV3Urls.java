@@ -25,6 +25,14 @@ public interface APIV3Urls {
     String DISABLE_SCRIPT_VERSION = "/api/job/v3/job-manage/disable_script_version";
     String DISABLE_PUBLIC_SCRIPT_VERSION = "/api/job/v3/job-manage/disable_public_script_version";
 
+    String CREATE_DANGEROUS_RULE = "/api/job/v3/job-manage/create_dangerous_rule";
+    String DELETE_DANGEROUS_RULE = "/api/job/v3/job-manage/delete_dangerous_rule";
+    String GET_DANGEROUS_RULE_LIST = "/api/job/v3/job-manage/get_dangerous_rule_list";
+    String UPDATE_DANGEROUS_RULE = "/api/job/v3/job-manage/update_dangerous_rule";
+    String ENABLE_DANGEROUS_RULE = "/api/job/v3/job-manage/enable_dangerous_rule";
+    String DISABLE_DANGEROUS_RULE = "/api/job/v3/job-manage/disable_dangerous_rule";
+    String CHECK_SCRIPT = "/api/job/v3/job-manage/check_script";
+
     String FAST_EXECUTE_SCRIPT = "/api/job/v3/job-execute/get_script_list";
     String FAST_TRANSFER_FILE = "/api/job/v3/job-execute/get_script_list";
     String EXECUTE_JOB_PLAN = "/api/job/v3/job-execute/get_script_list";

@@ -22,32 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.model.esb.v3.request;
 
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
-import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
-import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbJobReq;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.util.List;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
-public interface DangerousRuleService {
+/**
+ * 高危脚本检测请求
+ */
+@Data
+@ApiModel("高危脚本检测请求报文")
+@EqualsAndHashCode(callSuper = true)
+public class EsbCheckScriptV3Req extends EsbJobReq {
+    /**
+     * 脚本类型
+     * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
+     */
+    @JsonProperty("script_language")
+    @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
+    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
+        message = "{validation.constraints.ScriptType_illegal.message}")
+    private Integer type;
 
-    List<DangerousRuleVO> listDangerousRules(String username);
-
-    DangerousRuleDTO getDangerousRuleById(Long id);
-
-    DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
-
-    DangerousRuleDTO updateDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
-
-    Integer moveDangerousRule(String username, MoveDangerousRuleReq req);
-
-    Integer deleteDangerousRuleById(String username, Long id);
-
-    List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query);
-
-    DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status);
+    /**
+     * 脚本内容，需Base64编码
+     */
+    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
+    private String content;
 }

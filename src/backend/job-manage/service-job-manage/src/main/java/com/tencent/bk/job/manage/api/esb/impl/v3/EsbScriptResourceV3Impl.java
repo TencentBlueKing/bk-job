@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -45,7 +46,9 @@ import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCheckScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteScriptV3Req;
@@ -56,15 +59,19 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3R
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbManageScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptBasicV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbCheckScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
+import com.tencent.bk.job.manage.service.ScriptCheckService;
 import com.tencent.bk.job.manage.service.ScriptService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -75,13 +82,19 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     private final ScriptService scriptService;
     private final ScriptAuthService scriptAuthService;
     private final ScriptDTOBuilder scriptDTOBuilder;
+    private final ScriptCheckService scriptCheckService;
+    protected final MessageI18nService i18nService;
 
     public EsbScriptResourceV3Impl(ScriptService scriptService,
                                    ScriptAuthService scriptAuthService,
-                                   ScriptDTOBuilder scriptDTOBuilder) {
+                                   ScriptDTOBuilder scriptDTOBuilder,
+                                   ScriptCheckService scriptCheckService,
+                                   MessageI18nService i18nService) {
         this.scriptService = scriptService;
         this.scriptAuthService = scriptAuthService;
         this.scriptDTOBuilder = scriptDTOBuilder;
+        this.scriptCheckService = scriptCheckService;
+        this.i18nService = i18nService;
     }
 
 
@@ -422,6 +435,34 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         scriptService.updateScriptVersion(username, scriptVersionDTO);
         ScriptDTO scriptDTO = scriptService.getScriptVersion(request.getScriptVersionId());
         return EsbResp.buildSuccessResp(scriptDTO.toEsbCreateScriptV3DTO());
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_check_script"})
+    public EsbResp<List<EsbCheckScriptV3DTO>> checkScript(EsbCheckScriptV3Req request) {
+        String content = new String(Base64.decodeBase64(request.getContent()), StandardCharsets.UTF_8);
+        List<ScriptCheckResultItemDTO> checkResultItems =
+            scriptCheckService.check(ScriptTypeEnum.valueOf(request.getType()), content);
+        List<EsbCheckScriptV3DTO> checkScriptDTOS = new ArrayList<>();
+        if (checkResultItems != null) {
+            for (ScriptCheckResultItemDTO checkResultItem : checkResultItems) {
+                EsbCheckScriptV3DTO checkScriptDTO = new EsbCheckScriptV3DTO();
+                checkScriptDTO.setLine(checkResultItem.getLine());
+                checkScriptDTO.setLineContent(checkResultItem.getLineContent());
+                checkScriptDTO.setMatchContent(checkResultItem.getMatchContent());
+                checkScriptDTO.setLevel(checkResultItem.getLevel().getValue());
+                if (StringUtils.isNotBlank(checkResultItem.getCheckItemCode())) {
+                    String desc = i18nService.getI18n(checkResultItem.getCheckItemCode());
+                    if (StringUtils.isNotBlank(desc) && !checkResultItem.getCheckItemCode().equals(desc)) {
+                        checkScriptDTO.setDescription(desc);
+                    }
+                } else {
+                    checkScriptDTO.setDescription(checkResultItem.getDescription());
+                }
+                checkScriptDTOS.add(checkScriptDTO);
+            }
+        }
+        return EsbResp.buildSuccessResp(checkScriptDTOS);
     }
 
     private void checkEsbGetScriptVersionDetailV3Req(EsbGetScriptVersionDetailV3Req request) {

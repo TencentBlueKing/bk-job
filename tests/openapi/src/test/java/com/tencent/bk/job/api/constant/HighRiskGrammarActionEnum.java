@@ -22,32 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.api.constant;
 
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
-import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
-import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
+import lombok.Getter;
 
-import java.util.List;
+/**
+ * 处理动作枚举,1:扫描,2:拦截
+ */
+@Getter
+public enum HighRiskGrammarActionEnum {
+    SCAN(1, "scan"), INTERCEPT(2, "intercept");
 
-public interface DangerousRuleService {
+    private final Integer code;
+    private final String name;
 
-    List<DangerousRuleVO> listDangerousRules(String username);
+    HighRiskGrammarActionEnum(Integer code, String name) {
+        this.code = code;
+        this.name = name;
+    }
 
-    DangerousRuleDTO getDangerousRuleById(Long id);
+    public static String getName(Integer type) {
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : values()) {
+            if (highRiskGrammarActionEnum.code.equals(type)) {
+                return highRiskGrammarActionEnum.getName();
+            }
+        }
+        return "";
+    }
 
-    DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
+    public static HighRiskGrammarActionEnum valueOf(Integer type) {
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : values()) {
+            if (highRiskGrammarActionEnum.code.equals(type)) {
+                return highRiskGrammarActionEnum;
+            }
+        }
+        return null;
+    }
 
-    DangerousRuleDTO updateDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
+    /**
+     * 判断参数合法性
+     */
+    public static boolean isValid(Integer code) {
+        for (HighRiskGrammarActionEnum highRiskGrammarActionEnum : HighRiskGrammarActionEnum.values()) {
+            if (highRiskGrammarActionEnum.getCode().equals(code)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-    Integer moveDangerousRule(String username, MoveDangerousRuleReq req);
-
-    Integer deleteDangerousRuleById(String username, Long id);
-
-    List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query);
-
-    DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status);
 }

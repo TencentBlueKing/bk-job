@@ -22,32 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.api.constant;
 
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
-import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
-import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
+/**
+ * 启用状态
+ */
+public enum EnableStatusEnum {
+    /**
+     * 启用
+     */
+    ENABLED(1),
+    /**
+     * 停用
+     */
+    DISABLED(0);
 
-import java.util.List;
+    private final int value;
 
-public interface DangerousRuleService {
+    EnableStatusEnum(int val) {
+        this.value = val;
+    }
 
-    List<DangerousRuleVO> listDangerousRules(String username);
-
-    DangerousRuleDTO getDangerousRuleById(Long id);
-
-    DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
-
-    DangerousRuleDTO updateDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
-
-    Integer moveDangerousRule(String username, MoveDangerousRuleReq req);
-
-    Integer deleteDangerousRuleById(String username, Long id);
-
-    List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query);
-
-    DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status);
+    public int getValue() {
+        return value;
+    }
 }

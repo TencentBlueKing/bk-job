@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
 import com.tencent.bk.job.manage.common.consts.RuleMatchHandleActionEnum;
 import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -177,5 +178,27 @@ public class DangerousRuleDTO {
         dangerousRuleDO.setStatus(this.status);
         dangerousRuleDO.setDescription(this.description);
         return dangerousRuleDO;
+    }
+
+    public EsbDangerousRuleV3DTO toEsbDangerousRuleV3DTO() {
+        EsbDangerousRuleV3DTO esbDangerousRuleV3DTO = new EsbDangerousRuleV3DTO();
+        esbDangerousRuleV3DTO.setId(id);
+        esbDangerousRuleV3DTO.setExpression(expression);
+        esbDangerousRuleV3DTO.setScriptTypeList(decodeScriptType(scriptType));
+        esbDangerousRuleV3DTO.setDescription(description);
+        esbDangerousRuleV3DTO.setAction(action);
+        esbDangerousRuleV3DTO.setStatus(status);
+        esbDangerousRuleV3DTO.setCreator(creator);
+        esbDangerousRuleV3DTO.setCreateTime(createTime);
+        esbDangerousRuleV3DTO.setLastModifyUser(lastModifier);
+        esbDangerousRuleV3DTO.setLastModifyTime(lastModifyTime);
+        return esbDangerousRuleV3DTO;
+    }
+
+    public EsbDangerousRuleV3DTO toEsbManageDangerousRuleV3DTO() {
+        EsbDangerousRuleV3DTO esbManageDangerousRuleV3DTO = new EsbDangerousRuleV3DTO();
+        esbManageDangerousRuleV3DTO.setId(id);
+        esbManageDangerousRuleV3DTO.setStatus(status);
+        return esbManageDangerousRuleV3DTO;
     }
 }

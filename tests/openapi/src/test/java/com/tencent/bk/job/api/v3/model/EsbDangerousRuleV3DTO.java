@@ -22,32 +22,67 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.api.v3.model;
 
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
-import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
-import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 import java.util.List;
 
-public interface DangerousRuleService {
+@Data
+public class EsbDangerousRuleV3DTO {
+    /**
+     * 高危语句规则ID
+     */
+    private Long id;
 
-    List<DangerousRuleVO> listDangerousRules(String username);
+    /**
+     * 表达式
+     */
+    private String expression;
 
-    DangerousRuleDTO getDangerousRuleById(Long id);
+    /**
+     * 脚本语言列表
+     */
+    @JsonProperty("script_language_list")
+    private List<Byte> scriptTypeList;
 
-    DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
+    /**
+     * 规则描述
+     */
+    private String description;
 
-    DangerousRuleDTO updateDangerousRule(String username, AddOrUpdateDangerousRuleReq req);
+    /**
+     * 处理动作: 1 - 扫描, 2 - 拦截
+     */
+    private Integer action;
 
-    Integer moveDangerousRule(String username, MoveDangerousRuleReq req);
+    /**
+     * 启用状态: 0 - 停用, 1 - 启用
+     */
+    private Integer status;
 
-    Integer deleteDangerousRuleById(String username, Long id);
+    /**
+     * 创建人
+     */
+    private String creator;
 
-    List<DangerousRuleVO> listDangerousRules(DangerousRuleQuery query);
+    /**
+     * 创建时间Unix时间戳（ms）
+     */
+    @JsonProperty("create_time")
+    private Long createTime;
 
-    DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status);
+    /**
+     * 最近一次修改人
+     */
+    @JsonProperty("last_modify_user")
+    private String lastModifyUser;
+
+    /**
+     * 最近一次修改时间Unix时间戳（ms）
+     */
+    @JsonProperty("last_modify_time")
+    private Long lastModifyTime;
+
 }
