@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,19 +40,21 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CloudVendorService {
 
-    private final LoadingCache<String, Map<String, String>> cloudVendorMapCache = CacheBuilder.newBuilder()
-        .maximumSize(2).expireAfterWrite(30, TimeUnit.MINUTES).
-            build(new CacheLoader<String, Map<String, String>>() {
-                      @Override
-                      public Map<String, String> load(String lang) {
-                          IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
-                          return bizCmdbClient.getCloudVendorIdNameMap();
-                      }
-                  }
-            );
+    private final LoadingCache<String, Map<String, String>> cloudVendorMapCache =
+        Caffeine.newBuilder()
+            .maximumSize(2)
+            .expireAfterWrite(30, TimeUnit.MINUTES)
+            .recordStats()
+            .build(lang -> {
+                IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
+                return bizCmdbClient.getCloudVendorIdNameMap();
+            });
 
-    private String getCloudVendorNameById(String cloudVendorId) throws Exception {
+    private String getCloudVendorNameById(String cloudVendorId) {
         Map<String, String> cloudVendorIdNameMap = cloudVendorMapCache.get(JobContextUtil.getUserLang());
+        if (cloudVendorIdNameMap == null) {
+            return JobConstants.UNKNOWN_NAME;
+        }
         return cloudVendorIdNameMap.get(cloudVendorId);
     }
 

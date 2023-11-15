@@ -377,13 +377,13 @@ public class ResultHandleManager implements SmartLifecycle {
 
         @Override
         public void run() {
-            Span span = null;
-            try {
-                span = tracer1.nextSpan(task.getTraceContext()).name("stop-task");
+            Span span = tracer1.nextSpan(task.getTraceContext()).name("stop-task");
+            try (Tracer.SpanInScope ignored = tracer1.withSpan(span.start())) {
                 log.info("Begin to stop task, task: {}", task.getResultHandleTask());
                 task.getResultHandleTask().stop();
                 log.info("Stop task successfully, task: {}", task.getResultHandleTask());
             } catch (Throwable e) {
+                span.error(e);
                 String errorMsg = "Stop task caught exception, task: {}" + task;
                 log.warn(errorMsg, e);
             } finally {

@@ -121,7 +121,6 @@
 .bk-form-textarea {
   &:focus {
     background-color: #fff !important;
-    border: 1px solid #3a84ff !important;
   }
 
   &.only-bottom-border {
@@ -299,4 +298,15 @@
  */
 .bk-button-text {
   line-height: 22px;
+}
+
+/**
+    覆盖 ip-selector dialog 样式
+ */
+.bk-ip-selector .bk-dialog-wrapper .bk-dialog,
+.bk-ip-selector-box .bk-dialog-wrapper .bk-dialog,
+.bk-ip-selector-preview-dialog .bk-dialog-wrapper .bk-dialog,
+.host-table-column-setting-popover .bk-dialog-wrapper .bk-dialog,
+[data-bkpop-container="true"] .bk-dialog-wrapper .bk-dialog{
+  top: initial !important;
 }

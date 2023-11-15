@@ -414,6 +414,10 @@ public class AccountDAOImpl implements AccountDAO {
      */
     private long getPageAccountCount(AccountDTO accountQuery, BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildConditionList(accountQuery, baseSearchCondition);
+        return countAccountByConditions(conditions);
+    }
+
+    private long countAccountByConditions(List<Condition> conditions) {
         Long count = ctx.selectCount().from(TB_ACCOUNT).where(conditions).fetchOne(0, Long.class);
         assert count != null;
         return count;
@@ -469,7 +473,7 @@ public class AccountDAOImpl implements AccountDAO {
         return conditions;
     }
 
-    private List<Condition> genBaseConditions(Long appId, AccountCategoryEnum category) {
+    private List<Condition> genBaseConditions(Long appId, AccountCategoryEnum category, String account, String alias) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)));
         if (appId != null) {
@@ -478,19 +482,28 @@ public class AccountDAOImpl implements AccountDAO {
         if (category != null) {
             conditions.add(TB_ACCOUNT.CATEGORY.eq(JooqDataTypeUtil.getByteFromInteger(category.getValue())));
         }
+        if (StringUtils.isNotBlank(account)) {
+            conditions.add(TB_ACCOUNT.ACCOUNT_.eq(account));
+        }
+        if (StringUtils.isNotBlank(alias)) {
+            conditions.add(TB_ACCOUNT.ALIAS.eq(alias));
+        }
         return conditions;
     }
 
     @Override
-    public List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category,
-                                              BaseSearchCondition baseSearchCondition) {
-        List<Condition> conditions = genBaseConditions(appId, category);
+    public List<AccountDTO> listAppAccount(Long appId,
+                                           AccountCategoryEnum category,
+                                           String account,
+                                           String alias,
+                                           BaseSearchCondition baseSearchCondition) {
+        List<Condition> conditions = genBaseConditions(appId, category, account, alias);
         return listAllAppAccount(conditions, baseSearchCondition);
     }
 
     @Override
-    public Integer countAllAppAccount(Long appId, AccountCategoryEnum category) {
-        List<Condition> conditions = genBaseConditions(appId, category);
+    public Integer countAppAccount(Long appId, AccountCategoryEnum category, String account, String alias) {
+        List<Condition> conditions = genBaseConditions(appId, category, account, alias);
         return countAllAppAccount(conditions);
     }
 
@@ -545,15 +558,9 @@ public class AccountDAOImpl implements AccountDAO {
     @Override
     public AccountDTO getAccount(Long appId, AccountCategoryEnum category, AccountTypeEnum type, String account,
                                  String alias) {
-        List<Condition> conditions = genBaseConditions(appId, category);
+        List<Condition> conditions = genBaseConditions(appId, category, account, alias);
         if (type != null) {
             conditions.add(TB_ACCOUNT.TYPE.eq(JooqDataTypeUtil.getByteFromInteger(type.getType())));
-        }
-        if (StringUtils.isNotBlank(account)) {
-            conditions.add(TB_ACCOUNT.ACCOUNT_.eq(account));
-        }
-        if (StringUtils.isNotBlank(alias)) {
-            conditions.add(TB_ACCOUNT.ALIAS.eq(alias));
         }
         Record record = ctx.select(ALL_FILED)
             .from(TB_ACCOUNT)

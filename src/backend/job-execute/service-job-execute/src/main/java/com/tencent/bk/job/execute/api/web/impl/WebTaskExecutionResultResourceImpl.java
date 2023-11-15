@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
+import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -575,9 +576,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 for (AgentTaskDetailDTO agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
                     agentTaskVO.setHostId(agentTask.getHostId());
-                    agentTaskVO.setAgentId(agentTask.getAgentId());
+                    agentTaskVO.setAgentId(AgentUtils.displayAsRealAgentId(agentTask.getAgentId()));
                     agentTaskVO.setIp(agentTask.getCloudIp());
-                    agentTaskVO.setDisplayIp(agentTask.getIp());
                     agentTaskVO.setIpv4(agentTask.getIp());
                     agentTaskVO.setIpv6(agentTask.getIpv6());
                     agentTaskVO.setEndTime(agentTask.getEndTime());
@@ -628,13 +628,12 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                     String scopeId,
                                                                     Long stepInstanceId,
                                                                     Integer executeCount,
-                                                                    String ip,
                                                                     Long hostId,
                                                                     Integer batch) {
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstanceId);
 
         ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount,
-            batch, HostDTO.fromHostIdOrCloudIp(hostId, ip));
+            batch, HostDTO.fromHostId(hostId));
         IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
         if (scriptHostLogContent != null) {
             ipScriptLogContentVO.setDisplayIp(scriptHostLogContent.getCloudIp());
@@ -642,17 +641,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             ipScriptLogContentVO.setFinished(scriptHostLogContent.isFinished());
         }
         return Response.buildSuccessResp(ipScriptLogContentVO);
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public Response<List<ExecuteVariableVO>> getStepVariableByIp(String username,
-                                                                 AppResourceScope appResourceScope,
-                                                                 String scopeType,
-                                                                 String scopeId,
-                                                                 Long stepInstanceId,
-                                                                 String ip) {
-        return getStepVariableByHost(username, appResourceScope, scopeType, scopeId, stepInstanceId, null, ip);
     }
 
     @Override

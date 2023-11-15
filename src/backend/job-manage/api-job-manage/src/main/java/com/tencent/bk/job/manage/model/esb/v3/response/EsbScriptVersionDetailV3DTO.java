@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,34 +38,45 @@ public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
     /**
      * 脚本版本ID
      */
+    @JsonPropertyDescription("Script version ID")
     private Long id;
 
     @JsonProperty("script_id")
+    @JsonPropertyDescription("Script ID")
     private String scriptId;
 
     /**
      * 脚本名称
      */
+    @JsonPropertyDescription("Script name")
     private String name;
 
+    @JsonPropertyDescription("Script version")
     private String version;
 
+    @JsonPropertyDescription("Script content")
     private String content;
 
     // 脚本版本状态（0：未上线，1：已上线，2：已下线，3：已禁用）
+    @JsonPropertyDescription("Script status")
     private Integer status;
 
+    @JsonPropertyDescription("Script version description")
     @JsonProperty("version_desc")
     private String versionDesc;
 
+    @JsonPropertyDescription("Creator")
     private String creator;
 
     @JsonProperty("create_time")
+    @JsonPropertyDescription("Create time")
     private Long createTime;
 
     @JsonProperty("last_modify_user")
+    @JsonPropertyDescription("Last modify user")
     private String lastModifyUser;
 
+    @JsonPropertyDescription("Last modify time")
     @JsonProperty("last_modify_time")
     private Long lastModifyTime;
 
@@ -72,16 +84,12 @@ public class EsbScriptVersionDetailV3DTO extends EsbAppScopeDTO {
      * 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell
      */
     @JsonProperty("script_language")
+    @JsonPropertyDescription("Script language")
     private Integer type;
-
-    /**
-     * 是否公共脚本
-     */
-    @JsonProperty("public_script")
-    private Boolean publicScript;
 
     /**
      * 脚本描述
      */
+    @JsonPropertyDescription("Script description")
     private String description;
 }

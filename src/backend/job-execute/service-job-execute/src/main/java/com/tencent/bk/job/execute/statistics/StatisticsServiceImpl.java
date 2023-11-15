@@ -122,7 +122,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             log.warn("startupMode is null, ignore");
             return;
         }
-        if (startupMode == TaskStartupModeEnum.NORMAL.getValue()) {
+        if (startupMode == TaskStartupModeEnum.WEB.getValue()) {
             StatisticsKey keyStartupNormalTaskCount = new StatisticsKey(taskInstanceDTO.getAppId(),
                 StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_TASK_STARTUP_MODE,
                 StatisticsConstants.DIMENSION_VALUE_TASK_STARTUP_MODE_NORMAL);

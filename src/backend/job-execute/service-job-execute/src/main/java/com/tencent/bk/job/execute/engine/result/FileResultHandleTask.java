@@ -35,7 +35,8 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContextBuilder;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -383,9 +384,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private boolean isSupportProtocolBeforeV2() {
         return FeatureToggle.checkFeature(
             FeatureIdConstants.GSE_FILE_PROTOCOL_BEFORE_V2,
-            FeatureExecutionContextBuilder.builder()
-                .resourceScope(GlobalAppScopeMappingService.get().getScopeByAppId(appId))
-                .build()
+            FeatureExecutionContext.builder()
+                .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
+                    GlobalAppScopeMappingService.get().getScopeByAppId(appId))
         );
     }
 

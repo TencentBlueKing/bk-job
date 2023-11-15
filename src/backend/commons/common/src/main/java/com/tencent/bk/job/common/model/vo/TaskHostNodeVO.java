@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -52,18 +51,12 @@ public class TaskHostNodeVO {
 
     @ApiModelProperty("机器列表")
     private List<HostInfoVO> hostList;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    @ApiModelProperty("机器IP列表")
-    private List<HostInfoVO> ipList;
 
     @ApiModelProperty("节点 ID")
     private List<TargetNodeVO> nodeList;
-    @CompatibleImplementation(name = "ipv6", explain = "兼容字段，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    @ApiModelProperty("节点 ID")
-    private List<TargetNodeVO> topoNodeList;
 
     @ApiModelProperty("动态分组")
-    private List<Object> dynamicGroupList;
+    private List<DynamicGroupIdWithMeta> dynamicGroupList;
 
     public void validate(boolean isCreate) throws InvalidParamException {
         boolean allEmpty = true;
@@ -94,58 +87,28 @@ public class TaskHostNodeVO {
         }
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setHostList(List<HostInfoVO> hostList) {
-        this.hostList = hostList;
-        this.ipList = hostList;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setIpList(List<HostInfoVO> ipList) {
-        this.ipList = ipList;
-        this.hostList = ipList;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setNodeList(List<TargetNodeVO> nodeList) {
-        this.nodeList = nodeList;
-        this.topoNodeList = nodeList;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本删除", deprecatedVersion = "3.8.0")
-    public void setTopoNodeList(List<TargetNodeVO> topoNodeList) {
-        this.topoNodeList = topoNodeList;
-        this.nodeList = topoNodeList;
-    }
-
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", deprecatedVersion = "3.8.0")
     @JsonIgnore
     public List<String> getDynamicGroupIdList() {
         if (org.springframework.util.CollectionUtils.isEmpty(dynamicGroupList)) {
             return Collections.emptyList();
         }
         List<String> dynamicGroupIdList = new ArrayList<>();
-        for (Object dynamicGroup : dynamicGroupList) {
-            if (dynamicGroup instanceof String) {
-                dynamicGroupIdList.add((String) dynamicGroup);
-            } else {
-                DynamicGroupIdWithMeta dynamicGroupIdWithMeta = JsonUtils.fromJson(
-                    JsonUtils.toJson(dynamicGroup),
-                    new TypeReference<DynamicGroupIdWithMeta>() {
-                    }
-                );
-                dynamicGroupIdList.add(dynamicGroupIdWithMeta.getId());
-            }
+        for (DynamicGroupIdWithMeta dynamicGroup : dynamicGroupList) {
+            DynamicGroupIdWithMeta dynamicGroupIdWithMeta = JsonUtils.fromJson(
+                JsonUtils.toJson(dynamicGroup),
+                new TypeReference<DynamicGroupIdWithMeta>() {
+                }
+            );
+            dynamicGroupIdList.add(dynamicGroupIdWithMeta.getId());
         }
         return dynamicGroupIdList;
     }
 
-    @CompatibleImplementation(name = "ipv6", explain = "兼容方法，保证发布过程中无损变更，下个版本修改实现", deprecatedVersion = "3.8.0")
     public void setDynamicGroupIdList(List<String> dynamicGroupIdList) {
         if (dynamicGroupIdList == null) {
             return;
         }
-        List<Object> dynamicGroupList = new ArrayList<>();
+        List<DynamicGroupIdWithMeta> dynamicGroupList = new ArrayList<>();
         for (String id : dynamicGroupIdList) {
             dynamicGroupList.add(new DynamicGroupIdWithMeta(id, null));
         }

@@ -251,7 +251,7 @@ class TaskInstanceDAOImplIntegrationTest {
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setAppId(2L);
         taskQuery.setOperator("admin");
-        taskQuery.setStartupModes(Collections.singletonList(TaskStartupModeEnum.NORMAL));
+        taskQuery.setStartupModes(Collections.singletonList(TaskStartupModeEnum.WEB));
         taskQuery.setTaskType(TaskTypeEnum.SCRIPT);
         taskQuery.setStatus(RunStatusEnum.SUCCESS);
         taskQuery.setStartTime(1572865200000L);

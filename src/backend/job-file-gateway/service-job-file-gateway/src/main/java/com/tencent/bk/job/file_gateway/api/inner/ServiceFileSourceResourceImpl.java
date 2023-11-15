@@ -53,4 +53,10 @@ public class ServiceFileSourceResourceImpl implements ServiceFileSourceResource 
         }
         return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
     }
+
+    @Override
+    public InternalResponse<Boolean> existsFileSourceUsingCredential(Long appId, String credentialId) {
+        boolean result = fileSourceService.existsFileSourceUsingCredential(appId, credentialId);
+        return InternalResponse.buildSuccessResp(result);
+    }
 }

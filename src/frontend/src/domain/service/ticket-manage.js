@@ -38,6 +38,10 @@ export default {
         return data;
       });
   },
+  getBasicInfoList(params) {
+    return TicketSource.getBasicInfoList(params)
+      .then(({ data }) => data);
+  },
   fetchListWithRelate(params) {
     return TicketSource.getAll(params)
       .then(({ data }) => {

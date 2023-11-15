@@ -1,5 +1,21 @@
 # chart values 更新日志
 
+## 0.5.4
+1. 增加定时任务服务独立数据库配置（若不配置该项则使用与其他服务共用的公共数据库），默认无需配置
+
+```yaml
+## job-crontab定时任务配置
+crontabConfig:
+  # 定时任务服务独立数据库配置，若不配置该项则使用与其他服务共用的公共数据库
+  database:
+    host: ""
+    port: 3306
+    connection:
+      properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    username: "job"
+    password: "job"
+```
+
 ## 0.5.3
 1. 增加操作审计相关配置
 
@@ -10,6 +26,12 @@ audit:
   enabled: true
   # 作业平台系统ID
   systemId: bk_job
+```
+2. 增加pod删除时等待优雅关闭的最大时间配置
+
+```yaml
+# pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
+podTerminationGracePeriodSeconds: 40
 ```
 
 ## 0.5.2

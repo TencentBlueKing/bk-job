@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.audit.JobAuditAttributeNames;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
@@ -141,10 +142,18 @@ public class FileSourceServiceImpl implements FileSourceService {
     public FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSource) {
         authCreate(username, appId);
 
+        if (existsCode(appId, fileSource.getCode())) {
+            throw new FailedPreconditionException(
+                ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS,
+                new String[]{fileSource.getCode()}
+            );
+        }
+
         if (fileSourceDAO.checkFileSourceExists(fileSource.getAppId(), fileSource.getAlias())) {
             throw new AlreadyExistsException(ErrorCode.FILE_SOURCE_ALIAS_ALREADY_EXISTS,
                 new String[]{fileSource.getAlias()});
         }
+
         Integer id = fileSourceDAO.insertFileSource(fileSource);
         fileSource.setId(id);
 
@@ -182,6 +191,13 @@ public class FileSourceServiceImpl implements FileSourceService {
     )
     public FileSourceDTO updateFileSourceById(String username, Long appId, FileSourceDTO fileSource) {
         authManage(username, appId, fileSource.getId());
+
+        if (existsCodeExceptId(appId, fileSource.getCode(), fileSource.getId())) {
+            throw new FailedPreconditionException(
+                ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS,
+                new String[]{fileSource.getCode()}
+            );
+        }
 
         FileSourceDTO originFileSource = getFileSourceById(fileSource.getId());
         if (originFileSource == null) {
@@ -349,6 +365,11 @@ public class FileSourceServiceImpl implements FileSourceService {
     @Override
     public boolean existsFileSource(Long appId, Integer id) {
         return fileSourceDAO.existsFileSource(appId, id);
+    }
+
+    @Override
+    public boolean existsFileSourceUsingCredential(Long appId, String credentialId) {
+        return fileSourceDAO.existsFileSourceUsingCredential(appId, credentialId);
     }
 
     @Override

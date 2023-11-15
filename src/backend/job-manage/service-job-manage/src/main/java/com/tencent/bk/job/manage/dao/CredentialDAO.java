@@ -44,4 +44,6 @@ public interface CredentialDAO {
     List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids);
 
     PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
+
+    PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition);
 }

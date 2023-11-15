@@ -35,7 +35,7 @@ import com.tencent.bk.job.manage.api.inner.ServiceScriptResource;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptConverter;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
-import com.tencent.bk.job.manage.model.web.request.ScriptCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -103,12 +103,12 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
     public InternalResponse<Pair<String, Long>> createScriptWithVersionId(String username, Long createTime,
                                                                           Long lastModifyTime, String lastModifyUser,
                                                                           Integer scriptStatus, Long appId,
-                                                                          ScriptCreateUpdateReq scriptCreateUpdateReq) {
+                                                                          ScriptCreateReq scriptCreateReq) {
         if (log.isDebugEnabled()) {
             log.debug("createScriptWithVersionId,operator={},appId={},script={},status={}", username, appId,
-                scriptCreateUpdateReq, scriptStatus);
+                scriptCreateReq, scriptStatus);
         }
-        ScriptDTO script = scriptDTOBuilder.buildFromCreateUpdateReq(scriptCreateUpdateReq);
+        ScriptDTO script = scriptDTOBuilder.buildFromScriptCreateReq(scriptCreateReq);
         script.setAppId(appId);
         script.setCreator(username);
         if (StringUtils.isNotBlank(lastModifyUser)) {

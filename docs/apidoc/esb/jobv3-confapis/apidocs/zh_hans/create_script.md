@@ -48,10 +48,9 @@
         "script_id": "4a350b0e0707450e93326f6ace921072",
         "name": "script test",
         "script_language": 1,
-        "public_script": false,
         "bk_scope_type": "biz",
         "bk_scope_id": "2",
-        "content": "IyEvYmluL2Jhc2gKZGF0ZQo=",
+        "content": "#!/bin/bash\ndate\n",
         "creator": "admin",
         "create_time": 1691741073000,
         "last_modify_user": "admin",
@@ -83,7 +82,6 @@
 | script_id         | string | 脚本ID                                                       |
 | name              | string | 脚本名称                                                     |
 | script_language   | int    | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell |
-| public_script     | bool   | 是否公共脚本                                                 |
 | bk_scope_type     | string | 资源范围类型。可选值: biz - 业务，biz_set - 业务集           |
 | bk_scope_id       | string | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID      |
 | content           | string | 脚本版本内容                                                 |

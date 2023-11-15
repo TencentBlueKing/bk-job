@@ -155,7 +155,7 @@ public interface AccountService {
      * @param category 账号类型，如果传入null，表示所有类型
      * @return 账号列表
      */
-    List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category);
+    List<AccountDTO> listAppAccount(Long appId, AccountCategoryEnum category);
 
     /**
      * 获取业务下账号列表
@@ -164,10 +164,13 @@ public interface AccountService {
      * @param category 账号类型，如果传入null，表示所有类型
      * @return 账号列表
      */
-    List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category,
-                                       BaseSearchCondition baseSearchCondition);
+    List<AccountDTO> listAppAccount(Long appId,
+                                    AccountCategoryEnum category,
+                                    String account,
+                                    String alias,
+                                    BaseSearchCondition baseSearchCondition);
 
-    Integer countAllAppAccount(Long appId, AccountCategoryEnum category);
+    Integer countAppAccount(Long appId, AccountCategoryEnum category, String account, String alias);
 
     boolean isAccountRefByAnyStep(Long accountId);
 

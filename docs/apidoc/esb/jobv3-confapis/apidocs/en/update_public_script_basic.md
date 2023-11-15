@@ -35,10 +35,9 @@ Update basic information of public scripts
     "code": 0,
     "result": true,
     "data": {
-        "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
+        "id": "4537fb49ec0840a1b91cef4179c99f9c",
         "name": "public script test",
         "script_language": 1,
-        "public_script": true,
         "creator": "admin",
         "create_time": 1691739630000,
         "last_modify_user": "admin",
@@ -64,10 +63,9 @@ Update basic information of public scripts
 
 | Fields           | Type   | Description                                                  |
 | ---------------- | ------ | ------------------------------------------------------------ |
-| script_id        | string | Script id                                                    |
+| id               | string | Script id                                                    |
 | name             | string | Script name                                                  |
 | script_language  | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| public_script    | bool   | Public script or not                                         |
 | creator          | string | Creator                                                      |
 | create_time      | long   | Created time, Unix timestamp                                 |
 | last_modify_user | string | Last modify user                                             |

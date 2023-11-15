@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -68,13 +69,13 @@ public class ExecutorConfiguration {
         );
     }
 
-    @Bean("localFilePrepareExecutor")
-    public ThreadPoolExecutor localFilePrepareExecutor(LocalFileConfigForExecute localFileConfigForExecute,
-                                                       MeterRegistry meterRegistry) {
+    @Bean("localFileDownloadExecutor")
+    public ThreadPoolExecutor localFileDownloadExecutor(LocalFileConfigForExecute localFileConfigForExecute,
+                                                        MeterRegistry meterRegistry) {
         int concurrency = localFileConfigForExecute.getDownloadConcurrency();
         return new WatchableThreadPoolExecutor(
             meterRegistry,
-            "localFilePrepareExecutor",
+            "localFileDownloadExecutor",
             concurrency,
             concurrency,
             180L,
@@ -85,6 +86,27 @@ public class ExecutorConfiguration {
                 log.error(
                     "download localupload file from artifactory runnable rejected," +
                         " use current thread({}), plz add more threads",
+                    Thread.currentThread().getName());
+                r.run();
+            }
+        );
+    }
+
+    @Bean("localFileWatchExecutor")
+    public ThreadPoolExecutor localFileWatchExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "localFileWatchExecutor",
+            0,
+            50,
+            60L,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            (r, executor) -> {
+                //使用请求的线程直接拉取数据
+                log.error(
+                    "watch localupload file from artifactory runnable rejected," +
+                        " use current thread({}), plz add more job-execute instances",
                     Thread.currentThread().getName());
                 r.run();
             }

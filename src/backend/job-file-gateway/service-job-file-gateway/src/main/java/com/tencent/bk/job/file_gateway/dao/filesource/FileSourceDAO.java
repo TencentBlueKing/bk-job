@@ -72,5 +72,7 @@ public interface FileSourceDAO {
 
     boolean existsFileSource(Long appId, Integer id);
 
+    boolean existsFileSourceUsingCredential(Long appId, String credentialId);
+
     Integer getFileSourceIdByCode(Long appId, String code);
 }

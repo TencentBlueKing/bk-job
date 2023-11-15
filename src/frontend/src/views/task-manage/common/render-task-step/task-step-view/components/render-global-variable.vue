@@ -58,6 +58,11 @@
             :value="hostNodeInfo" />
         </scroll-faker>
       </div>
+      <template #footer>
+        <bk-button @click="handleClose">
+          {{ $t('关闭') }}
+        </bk-button>
+      </template>
     </jb-dialog>
   </div>
 </template>
@@ -73,7 +78,6 @@
     name: 'StepViewGlobalVariable',
     components: {
       ScrollFaker,
-      // ServerPanel,
       Empty,
     },
     props: {
@@ -159,10 +163,7 @@
     }
 
     .content-wraper {
-      height: 450px;
-      max-height: 450px;
-      min-height: 450px;
-      margin-top: 12px;
+      height: 550px;
     }
   }
 </style>

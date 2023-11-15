@@ -38,13 +38,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobUUID;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
-import com.tencent.bk.job.common.util.check.MaxLengthChecker;
-import com.tencent.bk.job.common.util.check.NotEmptyChecker;
-import com.tencent.bk.job.common.util.check.StringCheckHelper;
-import com.tencent.bk.job.common.util.check.TrimChecker;
-import com.tencent.bk.job.common.util.check.WhiteCharChecker;
-import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -292,7 +285,6 @@ public class ScriptManagerImpl implements ScriptManager {
         log.info("Begin to  create script: {}", script);
         long appId = script.getAppId();
 
-        checkScript(script);
         boolean isNameDuplicate = scriptDAO.isExistDuplicateName(appId, script.getName());
         if (isNameDuplicate) {
             log.warn("The script name:{} is exist for app:{}", script.getName(), appId);
@@ -311,26 +303,6 @@ public class ScriptManagerImpl implements ScriptManager {
         saveScriptTags(appId, script);
 
         return getScriptVersion(scriptVersionId);
-    }
-
-    private void checkScript(ScriptDTO script) {
-        try {
-            StringCheckHelper scriptNameCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
-                new IlegalCharChecker(), new MaxLengthChecker(60));
-            script.setName(scriptNameCheckHelper.checkAndGetResult(script.getName()));
-        } catch (StringCheckException e) {
-            log.warn("Script name [{}] is invalid", script.getName());
-            throw new InvalidParamException(ErrorCode.SCRIPT_NAME_INVALID);
-        }
-        try {
-            StringCheckHelper scriptVersionCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
-                new WhiteCharChecker("A-Za-z0-9_\\-#@\\."), new MaxLengthChecker(60));
-            script
-                .setVersion(scriptVersionCheckHelper.checkAndGetResult(script.getVersion()));
-        } catch (StringCheckException e) {
-            log.warn("Script version [{}] is invalid", script.getVersion());
-            throw new InvalidParamException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
-        }
     }
 
     private void saveScriptTags(Long appId, ScriptDTO script) {
@@ -362,8 +334,6 @@ public class ScriptManagerImpl implements ScriptManager {
     public ScriptDTO createScriptVersion(ScriptDTO scriptVersion) {
         log.info("Begin to save scriptVersion: {}", scriptVersion);
 
-        // 检查
-        checkScript(scriptVersion);
         if (scriptDAO.isExistDuplicateVersion(scriptVersion.getId(), scriptVersion.getVersion())) {
             log.warn("Script version:{} is exist, scriptId:{}", scriptVersion.getVersion(), scriptVersion.getId());
             throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
@@ -383,8 +353,6 @@ public class ScriptManagerImpl implements ScriptManager {
     public ScriptDTO updateScriptVersion(ScriptDTO scriptVersion) {
         log.info("Begin to update scriptVersion: {}", scriptVersion);
 
-        // 检查
-        checkScript(scriptVersion);
         ScriptDTO scriptVersionToBeUpdate = scriptDAO.getScriptVersionById(scriptVersion.getScriptVersionId());
         if (scriptVersionToBeUpdate == null) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
@@ -1032,11 +1000,7 @@ public class ScriptManagerImpl implements ScriptManager {
         }
         if (citeCount > 0 && scriptVersionId != null) {
             ScriptDTO scriptVersion = getScriptVersion(scriptVersionId);
-            if (scriptVersion != null && scriptVersion.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
-                return true;
-            } else {
-                return false;
-            }
+            return scriptVersion != null && scriptVersion.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue());
         }
         return citeCount > 0;
     }

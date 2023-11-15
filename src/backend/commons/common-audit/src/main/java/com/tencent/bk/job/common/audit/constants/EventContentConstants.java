@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.audit.constants;
 
+import com.tencent.bk.job.common.audit.JobAuditAttributeNames;
+
 import static com.tencent.bk.audit.constants.AuditAttributeNames.INSTANCE_ID;
 import static com.tencent.bk.audit.constants.AuditAttributeNames.INSTANCE_NAME;
 import static com.tencent.bk.job.common.audit.JobAuditAttributeNames.OPERATION;
@@ -96,12 +98,15 @@ public interface EventContentConstants {
     String CREATE_JOB_TEMPLATE = "Create job template " + INSTANCE_INFO;
     String EDIT_JOB_TEMPLATE = "Modify job template " + INSTANCE_INFO;
     String DELETE_JOB_TEMPLATE = "Delete job template " + INSTANCE_INFO;
+    String DEBUG_JOB_TEMPLATE = "Debug job template " + INSTANCE_INFO;
 
     String CREATE_JOB_PLAN = "Create job plan " + INSTANCE_INFO;
     String VIEW_JOB_PLAN = "View job plan " + INSTANCE_INFO;
     String EDIT_JOB_PLAN = "Modify job plan " + INSTANCE_INFO;
     String DELETE_JOB_PLAN = "Delete job plan " + INSTANCE_INFO;
     String SYNC_JOB_PLAN = "Sync job plan " + INSTANCE_INFO;
+    String LAUNCH_JOB_PLAN = "Launch a plan [{{" + JobAuditAttributeNames.PLAN_NAME
+        + "}}]({{" + JobAuditAttributeNames.PLAN_ID + "}})";
 
     String CREATE_HIGH_RISK_DETECT_RULE = "Create a new high-risk detect rule";
     String VIEW_HIGH_RISK_DETECT_RULE = "View high-risk detect rule settings";

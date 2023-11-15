@@ -42,6 +42,8 @@ import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record2;
+import org.jooq.Result;
 import org.jooq.SortField;
 import org.jooq.UpdateConditionStep;
 import org.jooq.conf.ParamType;
@@ -208,6 +210,13 @@ public class CredentialDAOImpl implements CredentialDAO {
      */
     private long getPageCredentialCount(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildConditionList(credentialQuery, baseSearchCondition);
+        return getPageCredentialCount(conditions);
+    }
+
+    /**
+     * 查询符合条件的凭据数量
+     */
+    private long getPageCredentialCount(Collection<Condition> conditions) {
         Long count = dslContext
             .selectCount()
             .from(defaultTable)
@@ -231,9 +240,55 @@ public class CredentialDAOImpl implements CredentialDAO {
         return listPageCredentialByConditions(baseSearchCondition, conditions, count);
     }
 
+    @Override
+    public PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition) {
+        Collection<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        long count = getPageCredentialCount(conditions);
+        return listPageCredentialBasicInfoByConditions(baseSearchCondition, conditions, count);
+    }
+
+    public PageData<CredentialDTO> listPageCredentialBasicInfoByConditions(
+        BaseSearchCondition baseSearchCondition,
+        Collection<Condition> conditions,
+        long count
+    ) {
+        Integer start = baseSearchCondition.getStart();
+        Integer length = baseSearchCondition.getLength();
+        val query =
+            dslContext.select(
+                defaultTable.ID,
+                defaultTable.NAME
+            ).from(defaultTable)
+                .where(conditions)
+                .orderBy(defaultTable.LAST_MODIFY_TIME.desc());
+        Result<Record2<String, String>> records;
+        if (length != null && length > 0) {
+            records = query.limit(start, length).fetch();
+        } else {
+            records = query.offset(start).fetch();
+        }
+        List<CredentialDTO> credentials = new ArrayList<>();
+        if (records.size() != 0) {
+            records.forEach(record -> {
+                CredentialDTO credentialDTO = new CredentialDTO();
+                credentialDTO.setId(record.get(defaultTable.ID));
+                credentialDTO.setName(record.get(defaultTable.NAME));
+                credentials.add(credentialDTO);
+            });
+        }
+
+        PageData<CredentialDTO> credentialPageData = new PageData<>();
+        credentialPageData.setTotal(count);
+        credentialPageData.setPageSize(length);
+        credentialPageData.setData(credentials);
+        credentialPageData.setStart(start);
+        return credentialPageData;
+    }
+
     public PageData<CredentialDTO> listPageCredentialByConditions(
         BaseSearchCondition baseSearchCondition,
-        List<Condition> conditions,
+        Collection<Condition> conditions,
         long count
     ) {
         Collection<SortField<?>> orderFields = new ArrayList<>();

@@ -24,18 +24,27 @@
 
 package com.tencent.bk.job.manage.api.esb.impl.v3;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.audit.annotations.AuditRequestBody;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.v3.EsbAccountV3Resource;
+import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateAccountV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -60,26 +69,47 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
     public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountListUsingPost(EsbGetAccountListV3Req request) {
         request.fillAppResourceScope(appScopeMappingService);
         long appId = request.getAppId();
+        BaseSearchCondition baseSearchCondition = buildBaseSearchCondition(request.getStart(), request.getLength());
+        AccountCategoryEnum category = AccountCategoryEnum.valOf(request.getCategory());
+        List<AccountDTO> accountList = accountService.listAppAccount(
+            appId,
+            category,
+            request.getAccount(),
+            request.getAlias(),
+            baseSearchCondition
+        );
+        List<EsbAccountV3DTO> accountV3DTOList = convertToEsbAccountV3DTOList(accountList);
+        Integer accountCount = accountService.countAppAccount(
+            appId,
+            category,
+            request.getAccount(),
+            request.getAlias()
+        );
+        EsbPageDataV3<EsbAccountV3DTO> esbPageData = new EsbPageDataV3<>();
+        esbPageData.setTotal(accountCount.longValue());
+        esbPageData.setStart(baseSearchCondition.getStart());
+        esbPageData.setLength(baseSearchCondition.getLength());
+        esbPageData.setData(accountV3DTOList);
+        return EsbResp.buildSuccessResp(esbPageData);
+    }
+
+    private BaseSearchCondition buildBaseSearchCondition(Integer rawStart, Integer rawLength) {
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         int start = 0;
-        if (request.getStart() != null && request.getStart() > 0) {
-            start = request.getStart();
+        if (rawStart != null && rawStart > 0) {
+            start = rawStart;
         }
         baseSearchCondition.setStart(start);
         int length = 20;
-        if (request.getLength() != null && request.getLength() > 0) {
-            length = request.getLength();
+        if (rawLength != null && rawLength > 0) {
+            length = rawLength;
+        }
+        int maxLength = 1000;
+        if (length > maxLength) {
+            length = maxLength;
         }
         baseSearchCondition.setLength(length);
-        List<AccountDTO> accountList = accountService.listAllAppAccount(appId, null, baseSearchCondition);
-        List<EsbAccountV3DTO> accountV3DTOList = convertToEsbAccountV3DTOList(accountList);
-        Integer accountCount = accountService.countAllAppAccount(appId, null);
-        EsbPageDataV3<EsbAccountV3DTO> esbPageData = new EsbPageDataV3<>();
-        esbPageData.setTotal(accountCount.longValue());
-        esbPageData.setStart(start);
-        esbPageData.setLength(length);
-        esbPageData.setData(accountV3DTOList);
-        return EsbResp.buildSuccessResp(esbPageData);
+        return baseSearchCondition;
     }
 
     private List<EsbAccountV3DTO> convertToEsbAccountV3DTOList(List<AccountDTO> accounts) {
@@ -101,6 +131,8 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
                                                                   String scopeType,
                                                                   String scopeId,
                                                                   Integer category,
+                                                                  String account,
+                                                                  String alias,
                                                                   Integer start,
                                                                   Integer length) {
         EsbGetAccountListV3Req request = new EsbGetAccountListV3Req();
@@ -110,8 +142,60 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setCategory(category);
+        request.setAccount(account);
+        request.setAlias(alias);
         request.setStart(start);
         request.setLength(length);
         return getAccountListUsingPost(request);
+    }
+
+    @Override
+    @AuditEntry(actionId = ActionId.CREATE_ACCOUNT)
+    public EsbResp<EsbAccountV3DTO> createAccount(@AuditRequestBody EsbCreateAccountV3Req req) {
+        req.fillAppResourceScope(appScopeMappingService);
+        AccountDTO accountDTO = buildCreateAccountDTO(req.getUserName(), req.getAppId(), req);
+        AccountDTO createdAccountDTO = accountService.createAccount(req.getUserName(), accountDTO);
+        return EsbResp.buildSuccessResp(createdAccountDTO.toEsbAccountV3DTO());
+    }
+
+    @SuppressWarnings("DuplicatedCode")
+    public AccountDTO buildCreateAccountDTO(String operator, long appId, EsbCreateAccountV3Req req) {
+        AccountDTO accountDTO = new AccountDTO();
+        accountDTO.setAppId(appId);
+        accountDTO.setAccount(req.getAccount());
+        accountDTO.setCategory(AccountCategoryEnum.valOf(req.getCategory()));
+        accountDTO.setType(AccountTypeEnum.valueOf(req.getType()));
+        if (StringUtils.isBlank(req.getAlias())) {
+            accountDTO.setAlias(req.getAccount());
+        } else {
+            accountDTO.setAlias(req.getAlias());
+        }
+        accountDTO.setRemark(req.getRemark());
+
+        if (AccountCategoryEnum.SYSTEM.getValue().equals(req.getCategory())) {
+            if (AccountTypeEnum.WINDOW.getType().equals(req.getType())) {
+                accountDTO.setOs("Windows");
+            } else {
+                accountDTO.setOs("Linux");
+            }
+            accountDTO.setPassword(req.getPassword());
+        }
+
+        accountDTO.setCreator(operator);
+        accountDTO.setCreateTime(DateUtils.currentTimeMillis());
+        accountDTO.setLastModifyUser(operator);
+        accountDTO.setLastModifyTime(DateUtils.currentTimeMillis());
+
+        return accountDTO;
+    }
+
+    @Override
+    @AuditEntry(actionId = ActionId.MANAGE_ACCOUNT)
+    public EsbResp<EsbAccountV3DTO> deleteAccountUsingPost(@AuditRequestBody EsbDeleteAccountV3Req req) {
+        req.fillAppResourceScope(appScopeMappingService);
+        Long appId = appScopeMappingService.getAppIdByScope(req.getScopeType(), req.getScopeId());
+        AccountDTO accountDTO = accountService.getAccount(appId, req.getId());
+        accountService.deleteAccount(req.getUserName(), appId, req.getId());
+        return EsbResp.buildSuccessResp(accountDTO.toEsbAccountV3DTO());
     }
 }

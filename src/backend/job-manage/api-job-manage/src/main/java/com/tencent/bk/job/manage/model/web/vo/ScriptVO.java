@@ -48,12 +48,6 @@ public class ScriptVO extends BasicScriptVO {
     @ApiModelProperty(value = "脚本内容")
     private String content;
 
-    /**
-     * 脚本标签
-     */
-    @ApiModelProperty(value = "脚本标签")
-    private List<TagVO> tags;
-
     @ApiModelProperty(value = "脚本版本列表")
     private List<ScriptVO> scriptVersions;
 
@@ -64,36 +58,40 @@ public class ScriptVO extends BasicScriptVO {
     private Integer relatedTaskPlanNum;
 
     /**
-     * 脚本版本描述
-     */
-    @ApiModelProperty(value = "脚本版本描述")
-    private String versionDesc;
-
-    /**
-     * 脚本描述
-     */
-    @ApiModelProperty(value = "脚本描述")
-    private String description;
-
-    /**
      * 是否支持同步
      */
     @ApiModelProperty(value = "是否支持同步")
     private Boolean syncEnabled = false;
 
-
     @Override
     public String toString() {
         return new StringJoiner(", ", ScriptVO.class.getSimpleName() + "[", "]")
-            .add(super.toString())
-            .add("content='******'")
-            .add("tags=" + tags)
+            .add("content=******")
             .add("scriptVersions=" + scriptVersions)
             .add("relatedTaskTemplateNum=" + relatedTaskTemplateNum)
             .add("relatedTaskPlanNum=" + relatedTaskPlanNum)
+            .add("syncEnabled=" + syncEnabled)
+            .add("scriptVersionId=" + scriptVersionId)
+            .add("id='" + id + "'")
+            .add("name='" + name + "'")
+            .add("type=" + type)
+            .add("typeName='" + typeName + "'")
+            .add("publicScript=" + publicScript)
+            .add("scopeType='" + scopeType + "'")
+            .add("scopeId='" + scopeId + "'")
+            .add("category=" + category)
+            .add("version='" + version + "'")
+            .add("status=" + status)
+            .add("statusDesc='" + statusDesc + "'")
+            .add("canManage=" + canManage)
+            .add("canClone=" + canClone)
+            .add("creator='" + creator + "'")
+            .add("createTime=" + createTime)
+            .add("lastModifyUser='" + lastModifyUser + "'")
+            .add("lastModifyTime=" + lastModifyTime)
+            .add("tags=" + tags)
             .add("versionDesc='" + versionDesc + "'")
             .add("description='" + description + "'")
-            .add("syncEnabled=" + syncEnabled)
             .toString();
     }
 }

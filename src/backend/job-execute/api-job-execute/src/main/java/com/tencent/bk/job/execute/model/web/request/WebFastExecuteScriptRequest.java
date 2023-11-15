@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.model.web.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
+import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -94,7 +94,7 @@ public class WebFastExecuteScriptRequest {
     /**
      * 目标服务器
      */
-    private ExecuteTargetVO targetServers;
+    private TaskTargetVO targetServers;
 
     /**
      * 是否敏感参数 0-否，1-是

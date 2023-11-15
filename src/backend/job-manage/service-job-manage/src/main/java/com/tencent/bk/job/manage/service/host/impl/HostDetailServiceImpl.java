@@ -25,17 +25,22 @@
 package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.sdk.BkNetClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -66,26 +71,54 @@ public class HostDetailServiceImpl implements HostDetailService {
         );
         // 填充实时agent状态
         agentStatusService.fillRealTimeAgentStatus(scopeHostList);
-        fillDetailForHosts(scopeHostList);
+        fillDetailForApplicationHosts(scopeHostList);
         return scopeHostList;
     }
 
     @Override
-    public void fillDetailForHosts(List<ApplicationHostDTO> hostList) {
-        for (ApplicationHostDTO host : hostList) {
+    public void fillDetailForApplicationHosts(List<ApplicationHostDTO> hostList) {
+        fillHostsDetail(hostList, host -> {
             host.setCloudAreaName(BkNetClient.getCloudAreaNameFromCache(host.getCloudAreaId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
-                cloudVendorId,
-                cloudVendorId == null ? null : "ID=" + cloudVendorId
-                )
-            );
+                cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
             String osTypeId = host.getOsType();
-            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(
-                osTypeId,
-                osTypeId == null ? null : "ID=" + osTypeId
-                )
-            );
+            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId,
+                osTypeId == null ? null : JobConstants.UNKNOWN_NAME));
+        });
+    }
+
+    @Override
+    public void fillDetailForHosts(List<HostDTO> hostList) {
+        fillHostsDetail(hostList, host -> {
+            host.setBkCloudName(BkNetClient.getCloudAreaNameFromCache(host.getBkCloudId()));
+            String cloudVendorId = host.getCloudVendorId();
+            host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
+                cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
+            String osTypeId = host.getOsType();
+            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId,
+                osTypeId == null ? null : JobConstants.UNKNOWN_NAME));
+        });
+    }
+
+    private <T> void fillHostsDetail(Collection<T> hosts, Consumer<T> consumer) {
+        if (CollectionUtils.isEmpty(hosts)) {
+            return;
+        }
+        StopWatch watch = new StopWatch("FillDetailForHosts");
+        try {
+            watch.start();
+            for (T host : hosts) {
+                consumer.accept(host);
+            }
+            watch.stop();
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 100) {
+                log.warn("FillDetailForHosts slow, watch: {}", watch.prettyPrint());
+            }
         }
     }
 }

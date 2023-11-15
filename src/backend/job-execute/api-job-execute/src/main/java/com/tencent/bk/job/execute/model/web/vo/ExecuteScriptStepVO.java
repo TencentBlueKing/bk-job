@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -62,7 +63,7 @@ public class ExecuteScriptStepVO {
     private String accountName;
 
     @ApiModelProperty("执行目标")
-    private ExecuteTargetVO executeTarget;
+    private TaskTargetVO executeTarget;
 
     @ApiModelProperty("敏感参数")
     private Integer secureParam;

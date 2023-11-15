@@ -144,7 +144,9 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersion:" + bkjobVersion
     }
-    set('bkAuditJavaSdkVersion', "1.0.6-SNAPSHOT")
+    set('bkAuditJavaSdkVersion', "1.0.7-SNAPSHOT")
+    set('mockitoVersion', "4.0.0")
+    set('embeddedRedisVersion', "0.6")
 }
 
 group "com.tencent.bk.job"
@@ -336,6 +338,8 @@ subprojects {
             dependency "com.beust:jcommander:$jcommanderVersion"
             dependency "com.tencent.bk.sdk:crypto-java-sdk:$cryptoJavaSDKVersion"
             dependency "com.tencent.bk.sdk:spring-boot-bk-audit-starter:$bkAuditJavaSdkVersion"
+            dependency "org.mockito:mockito-inline:$mockitoVersion"
+            dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
         }
     }
     dependencies {

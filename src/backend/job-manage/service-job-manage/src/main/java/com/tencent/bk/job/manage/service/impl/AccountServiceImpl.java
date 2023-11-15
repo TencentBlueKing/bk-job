@@ -194,7 +194,7 @@ public class AccountServiceImpl implements AccountService {
             log.info("Account is not exist, accountId={}", accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
         }
-        if (!account.getAppId().equals(accountId)) {
+        if (!account.getAppId().equals(appId)) {
             log.info("Account is not in app, appId={}, accountId={}", appId, accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST, ArrayUtil.toArray(accountId));
         }
@@ -229,9 +229,12 @@ public class AccountServiceImpl implements AccountService {
     )
     public AccountDTO updateAccount(String username, AccountDTO updateAccount) throws ServiceException {
         authManageAccount(username, updateAccount.getAppId(), updateAccount.getId());
-        checkAccountAliasExist(updateAccount);
 
         AccountDTO originAccount = getAccount(updateAccount.getAppId(), updateAccount.getId());
+
+        checkAccountAliasExist(updateAccount.getAppId(), updateAccount.getId(),
+            originAccount.getCategory(), updateAccount.getAlias());
+
         if (StringUtils.isNotEmpty(updateAccount.getPassword())) {
             updateAccount.setPassword(encryptor.encrypt(updateAccount.getPassword()));
         }
@@ -256,13 +259,9 @@ public class AccountServiceImpl implements AccountService {
         return updatedAccount;
     }
 
-    private void checkAccountAliasExist(AccountDTO account) {
-        AccountDTO existAccount = accountDAO.getAccount(
-            account.getAppId(),
-            account.getCategory(),
-            account.getAlias()
-        );
-        if (existAccount != null && !existAccount.getId().equals(account.getId())) {
+    private void checkAccountAliasExist(long appId, long accountId, AccountCategoryEnum category, String alias) {
+        AccountDTO existAccount = accountDAO.getAccount(appId, category, alias);
+        if (existAccount != null && !existAccount.getId().equals(accountId)) {
             log.info(
                 "Another same alias exists:(appId={}, category={}, alias={})",
                 existAccount.getAppId(),
@@ -325,19 +324,22 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category) {
-        return accountDAO.listAllAppAccount(appId, category, null);
+    public List<AccountDTO> listAppAccount(Long appId, AccountCategoryEnum category) {
+        return accountDAO.listAppAccount(appId, category, null, null, null);
     }
 
     @Override
-    public List<AccountDTO> listAllAppAccount(Long appId, AccountCategoryEnum category,
-                                              BaseSearchCondition baseSearchCondition) {
-        return accountDAO.listAllAppAccount(appId, category, baseSearchCondition);
+    public List<AccountDTO> listAppAccount(Long appId,
+                                           AccountCategoryEnum category,
+                                           String account,
+                                           String alias,
+                                           BaseSearchCondition baseSearchCondition) {
+        return accountDAO.listAppAccount(appId, category, account, alias, baseSearchCondition);
     }
 
     @Override
-    public Integer countAllAppAccount(Long appId, AccountCategoryEnum category) {
-        return accountDAO.countAllAppAccount(appId, category);
+    public Integer countAppAccount(Long appId, AccountCategoryEnum category, String account, String alias) {
+        return accountDAO.countAppAccount(appId, category, account, alias);
     }
 
     @Override

@@ -57,7 +57,10 @@ public class GseClient implements IGseClient {
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
-        return chooseGseApiClientByAgentId(req.getAgentIdList().get(0)).listAgentState(req);
+        List<String> agentIdList = req.getAgentIdList();
+        String firstAgentId = agentIdList.get(0);
+        IGseClient gseClient = chooseGseApiClientByAgentId(firstAgentId);
+        return gseClient.listAgentState(req);
     }
 
     private IGseClient chooseGseApiClientByAgentId(String agentId) {

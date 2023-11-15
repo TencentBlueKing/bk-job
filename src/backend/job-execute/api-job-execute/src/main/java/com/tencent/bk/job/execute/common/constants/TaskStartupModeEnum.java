@@ -28,7 +28,7 @@ package com.tencent.bk.job.execute.common.constants;
  * 作业启动方式
  */
 public enum TaskStartupModeEnum {
-    NORMAL(1, "页面执行"), API(2, "API调用"), CRON(3, "定时执行");
+    WEB(1, "web"), API(2, "api"), CRON(3, "cron");
 
     private final int value;
     private final String name;
@@ -56,7 +56,7 @@ public enum TaskStartupModeEnum {
     }
 
     public String getI18nKey() {
-        if (this == NORMAL) {
+        if (this == WEB) {
             return "task.startup.mode.normal";
         } else if (this == API) {
             return "task.startup.mode.api";
