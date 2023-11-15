@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting;
 
+import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 
@@ -49,4 +50,6 @@ public interface DangerousRuleDAO {
     int getMaxPriority();
 
     int getMinPriority();
+
+    int updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status);
 }
