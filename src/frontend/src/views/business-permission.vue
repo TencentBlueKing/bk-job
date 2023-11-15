@@ -112,7 +112,7 @@
           <span>{{ $t('第一次使用作业平台？点击查阅') }}  </span>
           <!-- eslint-disable-next-line  max-len -->
           <a
-            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/作业平台/产品白皮书/Quick-Starts/1.Create-system-account.md`"
+            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Quick-Starts/1.Create-system-account.md`"
             target="_blank">
             <span>{{ $t('快速入门技巧') }}</span>
             <icon type="link" />
@@ -121,7 +121,7 @@
         <div style="margin-top: 10px;">
           <span>{{ $t('了解更多关于作业平台产品的功能介绍，点击前往') }}</span>
           <a
-            :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/markdown/作业平台/产品白皮书/Introduction/What-is-Job.md`"
+            :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/markdown/JOB/UserGuide/Introduction/What-is-Job.md`"
             target="_blank">
             <span>{{ $t('产品文档') }}</span>
             <icon type="link" />

@@ -38,7 +38,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -58,11 +58,8 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteApprovalStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileStepVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteHostVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteScriptStepVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteServersVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
-import com.tencent.bk.job.execute.model.web.vo.ExecuteTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
@@ -190,7 +187,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 });
                 fileSourceVO.setFileLocation(files);
             }
-            fileSourceVO.setHost(convertToExecuteTargetVO(fileSource.getServers()));
+            fileSourceVO.setHost(fileSource.getServers().convertToTaskTargetVO());
             fileSources.add(fileSourceVO);
         }
         fileStepVO.setFileSourceList(fileSources);
@@ -227,7 +224,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             scriptStepVO.setScriptSource(stepInstance.getScriptSource());
             scriptStepVO.setScriptId(stepInstance.getScriptId());
             scriptStepVO.setScriptVersionId(stepInstance.getScriptVersionId());
-            scriptStepVO.setExecuteTarget(convertToExecuteTargetVO(stepInstance.getTargetServers()));
+            scriptStepVO.setExecuteTarget(stepInstance.getTargetServers().convertToTaskTargetVO());
             scriptStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
             stepVO.setScriptStepInfo(scriptStepVO);
         } else if (stepType == StepExecuteTypeEnum.SEND_FILE) {
@@ -242,7 +239,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             } else {
                 fileDestinationInfoVO.setPath(stepInstance.getFileTargetPath());
             }
-            fileDestinationInfoVO.setServer(convertToExecuteTargetVO(stepInstance.getTargetServers()));
+            fileDestinationInfoVO.setServer(stepInstance.getTargetServers().convertToTaskTargetVO());
             fileStepVO.setFileDestination(fileDestinationInfoVO);
 
             fileStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
@@ -268,30 +265,6 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             stepVO.setApprovalStepInfo(approvalStepVO);
         }
         return stepVO;
-    }
-
-    private ExecuteTargetVO convertToExecuteTargetVO(ServersDTO serversDTO) {
-        if (serversDTO == null) {
-            return null;
-        }
-        ExecuteTargetVO targetServer = new ExecuteTargetVO();
-        targetServer.setVariable(serversDTO.getVariable());
-        ExecuteServersVO taskHostNodeVO = new ExecuteServersVO();
-        if (serversDTO.getIpList() != null) {
-            List<ExecuteHostVO> hostVOs = new ArrayList<>();
-            for (HostDTO host : serversDTO.getIpList()) {
-                ExecuteHostVO hostVO = new ExecuteHostVO();
-                hostVO.setHostId(host.getHostId());
-                hostVO.setIp(host.getIp());
-                hostVO.setIpv6(host.getIpv6());
-                hostVO.setAlive(host.getAlive());
-                hostVO.setCloudId(host.getBkCloudId());
-                hostVOs.add(hostVO);
-            }
-            taskHostNodeVO.setHostList(hostVOs);
-            targetServer.setHostNodeInfo(taskHostNodeVO);
-        }
-        return targetServer;
     }
 
     @Override
@@ -323,8 +296,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         vo.setRequired(variable.isRequired() ? 1 : 0);
         if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
             ServersDTO servers = variable.getTargetServers();
-            if (servers.getIpList() != null) {
-                ExecuteTargetVO taskTargetVO = convertToExecuteTargetVO(servers);
+            if (servers != null && servers.getIpList() != null) {
+                TaskTargetVO taskTargetVO = servers.convertToTaskTargetVO();
                 vo.setTargetValue(taskTargetVO);
             }
         } else if (variable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {

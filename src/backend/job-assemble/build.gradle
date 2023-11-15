@@ -42,7 +42,10 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     runtimeOnly 'mysql:mysql-connector-java'
 
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation("com.h2database:h2")
+    testImplementation 'com.github.kstyrc:embedded-redis'
 }
 springBoot {
     getMainClass().set("com.tencent.bk.job.assemble.JobAssembleBootApplication")

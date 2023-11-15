@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -37,6 +38,7 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -71,7 +73,8 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
                             CmdbEventSampler cmdbEventSampler,
                             BizCmdbClient bizCmdbClient,
                             HostService hostService,
-                            AgentStateClient agentStateClient,
+                            @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
+                                AgentStateClient agentStateClient,
                             JobManageConfig jobManageConfig) {
         super("host", redisTemplate, tracer, cmdbEventSampler);
         this.tracer = tracer;

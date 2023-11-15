@@ -116,13 +116,4 @@ public interface HostService {
         long appId,
         Collection<DynamicServerTopoNodeDTO> topoNodes
     );
-
-
-    /**
-     * 批量获取主机云区域名称
-     *
-     * @param bkCloudIds 云区域ID集合
-     * @return 云区域ID/名称
-     */
-    Map<Long, String> batchGetCloudAreaNames(Collection<Long> bkCloudIds);
 }

@@ -4,4 +4,5 @@ com.tencent.bk.job.common.web.config.WebAutoConfiguration,\
 com.tencent.bk.job.common.web.config.ExceptionAdviceAutoConfiguration,\
 com.tencent.bk.job.common.web.config.WebInterceptorAutoConfiguration,\
 com.tencent.bk.job.common.web.config.WebInterceptorRegisterAutoConfiguration,\
+com.tencent.bk.job.common.web.config.I18nAutoConfiguration,\
 com.tencent.bk.job.common.web.config.EsbAppReqAspectAutoConfiguration

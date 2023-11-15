@@ -45,7 +45,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
 
-import static com.tencent.bk.job.common.service.feature.strategy.ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE;
+import static com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

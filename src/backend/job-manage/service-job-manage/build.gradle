@@ -29,6 +29,7 @@ dependencies {
     api project(":job-manage:model-job-manage")
     api project(":job-crontab:api-job-crontab")
     api project(":job-analysis:api-job-analysis")
+    api project(":job-file-gateway:api-job-file-gateway")
     api project(":commons:common")
     api project(":commons:common-crypto")
     api project(":commons:common-security")

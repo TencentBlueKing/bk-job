@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,19 +40,20 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OsTypeService {
 
-    private final LoadingCache<String, Map<String, String>> osTypeMapCache = CacheBuilder.newBuilder()
-        .maximumSize(2).expireAfterWrite(30, TimeUnit.MINUTES).
-            build(new CacheLoader<String, Map<String, String>>() {
-                      @Override
-                      public Map<String, String> load(String lang) {
-                          IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
-                          return bizCmdbClient.getOsTypeIdNameMap();
-                      }
-                  }
-            );
+    private final LoadingCache<String, Map<String, String>> osTypeMapCache = Caffeine.newBuilder()
+        .maximumSize(2)
+        .expireAfterWrite(30, TimeUnit.MINUTES)
+        .recordStats()
+        .build(lang -> {
+            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
+            return bizCmdbClient.getOsTypeIdNameMap();
+        });
 
-    private String getOsTypeNameById(String osTypeId) throws Exception {
+    private String getOsTypeNameById(String osTypeId) {
         Map<String, String> osTypeIdNameMap = osTypeMapCache.get(JobContextUtil.getUserLang());
+        if (osTypeIdNameMap == null) {
+            return JobConstants.UNKNOWN_NAME;
+        }
         return osTypeIdNameMap.get(osTypeId);
     }
 

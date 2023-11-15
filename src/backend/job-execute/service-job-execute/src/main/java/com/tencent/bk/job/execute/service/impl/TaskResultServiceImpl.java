@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -411,10 +412,8 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
         // 批量添加云区域名称
         if (CollectionUtils.isNotEmpty(agentTasks)) {
-            Set<Long> bkCloudIds = agentTasks.stream().map(AgentTaskDetailDTO::getBkCloudId)
-                .collect(Collectors.toSet());
-            Map<Long, String> cloudAreaNames = hostService.batchGetCloudAreaNames(bkCloudIds);
-            agentTasks.forEach(agentTask -> agentTask.setBkCloudName(cloudAreaNames.get(agentTask.getBkCloudId())));
+            agentTasks.forEach(agentTask -> agentTask.setBkCloudName(
+                BkNetClient.getCloudAreaNameFromCache(agentTask.getBkCloudId())));
         }
         resultGroup.setAgentTasks(agentTasks);
         resultGroups.add(resultGroup);
@@ -483,8 +482,11 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             if (stepInstance.isFileStep()) {
                 watch.start("involveFileSourceTaskLog");
-                FileSourceTaskLogDTO fileSourceTaskLog = fileSourceTaskLogDAO.getFileSourceTaskLog(stepInstance.getId(),
-                    queryExecuteCount);
+                FileSourceTaskLogDTO fileSourceTaskLog =
+                    fileSourceTaskLogDAO.getFileSourceTaskLog(
+                        stepInstance.getId(),
+                        queryExecuteCount
+                    );
                 if (fileSourceTaskLog != null) {
                     involveFileSourceTaskLog(stepExecutionDetail, fileSourceTaskLog);
                 }

@@ -84,13 +84,12 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
     }
 
 
-
     public void assertRequiredContextParam(FeatureExecutionContext context, String paramName) {
         if (context.getParam(paramName) == null) {
             String msg = MessageFormatter.format(
                 "Context param {} is required for evaluate", paramName).getMessage();
             log.error(msg);
-            throw new FeatureConfigParseException(msg);
+            throw new FeatureParamMissingException(msg);
         }
     }
 }

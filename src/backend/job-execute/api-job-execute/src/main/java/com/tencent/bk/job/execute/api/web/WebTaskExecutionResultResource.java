@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.api.web;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
@@ -229,11 +228,8 @@ public interface WebTaskExecutionResultResource {
             Integer order
     );
 
-    @CompatibleImplementation(name = "ipv6", explain = "考虑到历史记录只有ip数据，所以需要同时兼容hostId/ip两种方式",
-        deprecatedVersion = "3.7.x")
     @ApiOperation(value = "获取主机对应的脚本日志内容", produces = "application/json")
-    @GetMapping(value = {"/step-execution-result/log-content/{stepInstanceId}/{executeCount}/{ip}",
-        "/step-execution-result/log-content/{stepInstanceId}/{executeCount}/host/{hostId}"})
+    @GetMapping(value = {"/step-execution-result/log-content/{stepInstanceId}/{executeCount}/host/{hostId}"})
     Response<IpScriptLogContentVO> getScriptLogContentByHost(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -253,19 +249,14 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
         @PathVariable("executeCount")
             Integer executeCount,
-        @ApiParam(value = "主机ip(云区域ID:ip)，兼容历史版本数据，后续会删除；建议使用hostId", name = "ip")
-        @PathVariable(value = "ip", required = false) String ip,
         @ApiParam(value = "主机ID,优先级比ip参数高", name = "hostId")
         @PathVariable(value = "hostId", required = false) Long hostId,
         @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
         @RequestParam(value = "batch", required = false) Integer batch
     );
 
-    @CompatibleImplementation(name = "ipv6", explain = "考虑到历史记录只有ip数据，所以需要同时兼容hostId/ip两种方式",
-        deprecatedVersion = "3.7.x")
     @ApiOperation(value = "获取文件分发步骤主机对应的日志", produces = "application/json")
-    @GetMapping(value = {"/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/{ip}",
-        "/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/host/{hostId}"})
+    @GetMapping(value = {"/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/host/{hostId}"})
     Response<IpFileLogContentVO> getFileLogContentByHost(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -324,31 +315,6 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "文件任务ID列表", name = "taskIds", required = true)
         @RequestBody
             List<String> taskIds
-    );
-
-    @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")
-    @GetMapping(value = {"/step-execution-result/variable/{stepInstanceId}/{ip}"})
-    @CompatibleImplementation(name = "ipv6", explain = "兼容IPv6版本之前的使用并保存ip的执行历史数据，ipv6发布之后可删除")
-    @Deprecated
-    Response<List<ExecuteVariableVO>> getStepVariableByIp(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
-        @PathVariable("stepInstanceId")
-            Long stepInstanceId,
-        @ApiParam(value = "ip", name = "ip", required = true)
-        @PathVariable("ip")
-            String ip
     );
 
     @ApiOperation(value = "获取执行步骤-主机对应的变量列表", produces = "application/json")

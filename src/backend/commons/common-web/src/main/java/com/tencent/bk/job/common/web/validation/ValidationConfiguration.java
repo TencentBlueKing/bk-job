@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -55,12 +54,11 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Slf4j
 public class ValidationConfiguration {
 
-    @Bean
-    @Primary
+    @Bean("jobLocalValidatorFactoryBean")
     public LocalValidatorFactoryBean localValidatorFactoryBean(
         @Qualifier("messageSource") MessageSource messageSource) {
         LocalValidatorFactoryBean localValidatorFactoryBean = new JobLocalValidatorFactoryBean(messageSource);

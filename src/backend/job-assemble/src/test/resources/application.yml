@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: job-assemble
+  cloud:
+    consul:
+      enabled: false
+    config:
+      discovery:
+        enabled: false
+      enabled: false
+    kubernetes:
+      discovery:
+        enabled: false

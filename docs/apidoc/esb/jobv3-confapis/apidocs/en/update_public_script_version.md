@@ -41,7 +41,7 @@ Update public script version
         "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
         "name": "public script test",
         "script_language": 1,
-        "content": "IyEvYmluL2Jhc2gKbHM=",
+        "content": "#!/bin/bash\nls",
         "creator": "admin",
         "create_time": 1691739630000,
         "last_modify_user": "admin",

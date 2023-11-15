@@ -35,4 +35,9 @@ public class CommonServiceAutoConfiguration {
     public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
         return new ConfigRefreshEventListener(featureStore);
     }
+
+    @Bean
+    public SpringProfile springProfile() {
+        return new SpringProfile();
+    }
 }

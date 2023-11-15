@@ -29,18 +29,21 @@ import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceResource;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,12 +55,15 @@ public class CredentialServiceImpl implements CredentialService {
 
     private final CredentialDAO credentialDAO;
     private final TicketAuthService ticketAuthService;
+    private final ServiceFileSourceResource fileSourceService;
 
     @Autowired
     public CredentialServiceImpl(CredentialDAO credentialDAO,
-                                 TicketAuthService ticketAuthService) {
+                                 TicketAuthService ticketAuthService,
+                                 ServiceFileSourceResource fileSourceService) {
         this.credentialDAO = credentialDAO;
         this.ticketAuthService = ticketAuthService;
+        this.fileSourceService = fileSourceService;
     }
 
     @Override
@@ -66,6 +72,11 @@ public class CredentialServiceImpl implements CredentialService {
         BaseSearchCondition baseSearchCondition
     ) {
         return credentialDAO.listCredentials(credentialQuery, baseSearchCondition);
+    }
+
+    @Override
+    public PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition) {
+        return credentialDAO.listCredentialBasicInfo(appId, baseSearchCondition);
     }
 
     @Override
@@ -161,6 +172,17 @@ public class CredentialServiceImpl implements CredentialService {
 
         // 审计
         ActionAuditContext.current().setInstanceName(credential.getName());
+
+        // 检查是否被引用
+        Boolean isCredentialReferenced = fileSourceService.existsFileSourceUsingCredential(appId, id).getData();
+        if (isCredentialReferenced) {
+            String msg = MessageFormatter.format(
+                "Credential ({},{}) is referenced, cannot delete",
+                appId,
+                id
+            ).getMessage();
+            throw new FailedPreconditionException(msg, ErrorCode.DELETE_REF_CREDENTIAL_FAIL);
+        }
 
         return credentialDAO.deleteCredentialById(id);
     }

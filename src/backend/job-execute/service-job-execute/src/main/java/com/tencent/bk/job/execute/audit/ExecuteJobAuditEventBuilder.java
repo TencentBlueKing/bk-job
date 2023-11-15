@@ -56,6 +56,7 @@ public class ExecuteJobAuditEventBuilder extends DefaultAuditEventBuilder {
 
         // 事件描述
         auditEvent.setContent(resolveAttributes(actionAuditContext.getContent(), actionAuditContext.getAttributes()));
+        auditEvent.setExtendData(actionAuditContext.getExtendData());
 
         return Collections.singletonList(auditEvent);
     }

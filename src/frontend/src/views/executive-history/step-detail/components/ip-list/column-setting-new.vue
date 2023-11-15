@@ -26,14 +26,19 @@
 -->
 
 <template>
-  <div>
+  <bk-popover
+    ref="popoverRef"
+    placement="bottom-start"
+    theme="light"
+    trigger="click"
+    :width="450">
     <div
       id="stepDetailIpListSettingBtn"
       class="select-btn">
       <i class="bk-icon icon-cog-shape" />
     </div>
     <div
-      ref="settingRef"
+      slot="content"
       class="list-column-setting">
       <div class="select-body">
         <div class="title">
@@ -51,7 +56,7 @@
               v-if="item.name === 'ipv4'"
               :key="`ip_${item.name}`"
               v-bk-tooltips="{
-                content: 'IP 与 IPv6 至少需保留一个',
+                content: $t('history.IP 与 IPv6 至少需保留一个'),
                 disabled: tempAllShowColumn.includes('ipv6'),
               }"
               class="select-column">
@@ -66,7 +71,7 @@
               v-else-if="item.name === 'ipv6'"
               :key="`ipv6_${item.name}`"
               v-bk-tooltips="{
-                content: 'IP 与 IPv6 至少需保留一个',
+                content: $t('history.IP 与 IPv6 至少需保留一个'),
                 disabled: tempAllShowColumn.includes('ipv4'),
               }"
               class="select-column">
@@ -99,14 +104,11 @@
         </bk-button>
       </div>
     </div>
-  </div>
+  </bk-popover>
 </template>
 <script setup>
-  import Tippy from 'bk-magic-vue/lib/utils/tippy';
   import {
     computed,
-    onBeforeUnmount,
-    onMounted,
     ref,
   } from 'vue';
 
@@ -125,9 +127,7 @@
     'close',
   ]);
 
-  let settingPopover;
-
-  const settingRef = ref();
+  const popoverRef = ref();
   const tempAllShowColumn = ref([...props.value]);
 
   const isIndeterminate = computed(() => tempAllShowColumn.value.length !== props.columnList.length);
@@ -149,31 +149,12 @@
 
   const handleSubmitSetting = () => {
     emits('change', [...tempAllShowColumn.value]);
-    settingPopover.hide();
+    popoverRef.value.hideHandler();
   };
 
   const handleHideSetting = () => {
-    settingPopover.hide();
+    popoverRef.value.hideHandler();
   };
-
-  onMounted(() => {
-    settingPopover = Tippy(document.querySelector('#stepDetailIpListSettingBtn'), {
-      theme: 'light step-execution-history-ip-list-setting',
-      arrow: true,
-      interactive: true,
-      placement: 'bottom-start',
-      content: settingRef.value,
-      animation: 'slide-toggle',
-      trigger: 'click',
-      width: '450px',
-    });
-
-    onBeforeUnmount(() => {
-      settingPopover.destroy();
-      settingPopover.hide();
-      settingPopover = null;
-    });
-  });
 </script>
 <style lang="postcss" scoped>
   .select-btn{
@@ -223,3 +204,4 @@
     }
   }
 </style>
+

@@ -26,13 +26,24 @@ package com.tencent.bk.job.gateway.service;
 
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
 
+import java.security.PublicKey;
+
 public interface EsbJwtService {
 
     /**
      * 从jwt提取数据
      *
      * @param token token
-     * @return
+     * @return 解析 JWT 结果
      */
     EsbJwtInfo extractFromJwt(String token);
+
+    /**
+     * 从jwt提取数据
+     *
+     * @param token     token
+     * @param publicKey 公钥
+     * @return 解析 JWT 结果
+     */
+    EsbJwtInfo extractFromJwt(String token, PublicKey publicKey);
 }

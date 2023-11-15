@@ -28,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -36,7 +35,6 @@ import lombok.NoArgsConstructor;
  * @since 13/12/2019 17:31
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @ApiModel("云区域信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -49,6 +47,11 @@ public class CloudAreaInfoVO {
 
     @ApiModelProperty("云区域名称")
     private String name;
+
+    public CloudAreaInfoVO(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
     public boolean validate(boolean isCreate) {
         if (id != null && id >= 0) {
