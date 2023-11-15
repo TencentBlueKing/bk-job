@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -67,4 +68,19 @@ public class DangerousRuleVO {
     @JsonDeserialize(using = LongTimestampDeserializer.class)
     @ApiModelProperty("最近更新时间")
     private Long lastModifyTime;
+
+    public EsbDangerousRuleV3DTO toEsbDangerousRuleV3DTO() {
+        EsbDangerousRuleV3DTO esbDangerousRuleV3DTO = new EsbDangerousRuleV3DTO();
+        esbDangerousRuleV3DTO.setId(id);
+        esbDangerousRuleV3DTO.setExpression(expression);
+        esbDangerousRuleV3DTO.setScriptTypeList(scriptTypeList);
+        esbDangerousRuleV3DTO.setDescription(description);
+        esbDangerousRuleV3DTO.setAction(action);
+        esbDangerousRuleV3DTO.setStatus(status);
+        esbDangerousRuleV3DTO.setCreator(creator);
+        esbDangerousRuleV3DTO.setCreateTime(createTime);
+        esbDangerousRuleV3DTO.setLastModifyUser(lastModifier);
+        esbDangerousRuleV3DTO.setLastModifyTime(lastModifyTime);
+        return esbDangerousRuleV3DTO;
+    }
 }

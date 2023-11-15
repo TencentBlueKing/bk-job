@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.common.validation.Delete;
 import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbCheckScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteScriptV3Req;
@@ -41,6 +42,7 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetScriptVersionListV3R
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbManageScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptBasicV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbCheckScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
 import org.springframework.validation.annotation.Validated;
@@ -51,6 +53,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 脚本相关API-V3
@@ -171,5 +175,12 @@ public interface EsbScriptV3Resource {
         @RequestBody
         @Validated(Update.class)
             EsbUpdateScriptVersionV3Req request
+    );
+
+    @PostMapping("/check_script")
+    EsbResp<List<EsbCheckScriptV3DTO>> checkScript(
+        @RequestBody
+        @Validated
+            EsbCheckScriptV3Req request
     );
 }

@@ -512,3 +512,78 @@
   dest_path: /api/job/v3/job-manage/delete_account/
   dest_http_method: POST
 
+
+- path: /v2/jobv3/create_dangerous_rule/
+  name: create_dangerous_rule
+  label: 创建高危语句规则
+  label_en: Create dangerous rule
+  suggest_method: POST
+  api_type: operate
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-manage/create_dangerous_rule/
+  dest_http_method: POST
+
+
+- path: /v2/jobv3/update_dangerous_rule/
+  name: update_dangerous_rule
+  label: 修改高危语句规则
+  label_en: Update dangerous rule
+  suggest_method: POST
+  api_type: operate
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-manage/update_dangerous_rule/
+  dest_http_method: POST
+
+
+- path: /v2/jobv3/delete_dangerous_rule/
+  name: delete_dangerous_rule
+  label: 删除高危语句规则
+  label_en: Delete dangerous rule
+  suggest_method: POST
+  api_type: operate
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-manage/delete_dangerous_rule/
+  dest_http_method: POST
+
+- path: /v2/jobv3/get_dangerous_rule_list/
+  name: get_dangerous_rule_list
+  label: 查看高危语句规则列表
+  label_en: Get dangerous rule list
+  suggest_method: GET
+  api_type: query
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-manage/get_dangerous_rule_list/
+  dest_http_method: POST
+
+
+- path: /v2/jobv3/enable_dangerous_rule/
+  name: enable_dangerous_rule
+  label: 启用高危语句规则
+  label_en: Enable dangerous rule
+  suggest_method: POST
+  api_type: operate
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-manage/enable_dangerous_rule/
+  dest_http_method: POST
+
+
+- path: /v2/jobv3/disable_dangerous_rule/
+  name: disable_dangerous_rule
+  label: 停用高危语句规则
+  label_en: Disable dangerous rule
+  suggest_method: POST
+  api_type: operate
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-manage/disable_dangerous_rule/
+  dest_http_method: POST
+
+
+- path: /v2/jobv3/check_script/
+  name: check_script
+  label: 高危脚本检测
+  label_en: Check script
+  suggest_method: POST
+  api_type: operate
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-manage/check_script/
+  dest_http_method: POST
