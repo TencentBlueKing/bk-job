@@ -272,13 +272,23 @@ class DangerousRuleResourceAPITest {
         void testCheckScript() {
             EsbDangerousRuleV3DTO createdDangerousRule = Operations.createDangerousRule();
             createdDangerousRuleList.add(createdDangerousRule);
+            // 创建的高危语句规则默认未启用，先开启，再检测
+            EsbManageDangerousRuleV3Req req = new EsbManageDangerousRuleV3Req();
+            req.setId(createdDangerousRule.getId());
+            given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+                .body(JsonUtil.toJson(req))
+                .post(APIV3Urls.ENABLE_DANGEROUS_RULE)
+                .then()
+                .spec(ApiUtil.successResponseSpec())
+                .body("data.status", equalTo(EnableStatusEnum.ENABLED.getValue()))
+                .body("data.id", equalTo(req.getId().intValue()));
 
-            EsbCheckScriptV3Req req = new EsbCheckScriptV3Req();
-            req.setContent(Constant.SHELL_DANGEROUS_SCRIPT_CONTENT_BASE64);
-            req.setType(ScriptTypeEnum.SHELL.getValue());
+            EsbCheckScriptV3Req checkReq = new EsbCheckScriptV3Req();
+            checkReq.setContent(Constant.SHELL_DANGEROUS_SCRIPT_CONTENT_BASE64);
+            checkReq.setType(ScriptTypeEnum.SHELL.getValue());
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
+                .body(JsonUtil.toJson(checkReq))
                 .post(APIV3Urls.CHECK_SCRIPT)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
