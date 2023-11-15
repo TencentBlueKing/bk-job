@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -64,16 +63,13 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
 
     private final TaskInstanceService taskInstanceService;
     private final LogService logService;
-    private final AppScopeMappingService appScopeMappingService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
     public EsbGetJobInstanceIpLogV3ResourceImpl(LogService logService,
                                                 TaskInstanceService taskInstanceService,
-                                                AppScopeMappingService appScopeMappingService,
                                                 TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.logService = logService;
         this.taskInstanceService = taskInstanceService;
-        this.appScopeMappingService = appScopeMappingService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
     }
 
@@ -82,8 +78,6 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbIpLogV3DTO> getJobInstanceIpLogUsingPost(
         @AuditRequestBody EsbGetJobInstanceIpLogV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance ip log request is illegal!");

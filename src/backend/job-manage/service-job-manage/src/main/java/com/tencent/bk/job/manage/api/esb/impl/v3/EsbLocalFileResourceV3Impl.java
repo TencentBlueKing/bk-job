@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.constants.EsbConsts;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.check.ParamCheckUtil;
@@ -58,22 +57,18 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ArtifactoryClient artifactoryClient;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbLocalFileResourceV3Impl(ArtifactoryConfig artifactoryConfig,
                                       LocalFileConfigForManage localFileConfigForManage,
-                                      @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
-                                      AppScopeMappingService appScopeMappingService) {
+                                      @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient) {
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForManage = localFileConfigForManage;
         this.artifactoryClient = artifactoryClient;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     public EsbResp<EsbUploadUrlV3DTO> generateLocalFileUploadUrl(EsbGenLocalFileUploadUrlV3Req req) {
-        req.fillAppResourceScope(appScopeMappingService);
         // 参数检查
         // fileNameList
         List<String> fileNameList = req.getFileNameList();

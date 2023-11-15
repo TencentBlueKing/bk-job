@@ -42,7 +42,6 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -88,20 +87,15 @@ public class EsbFastTransferFileV3ResourceImpl
 
     private final ArtifactoryLocalFileService artifactoryLocalFileService;
 
-    private final AppScopeMappingService appScopeMappingService;
-
-
     @Autowired
     public EsbFastTransferFileV3ResourceImpl(TaskExecuteService taskExecuteService,
                                              ServiceFileSourceResource fileSourceResource,
                                              MessageI18nService i18nService,
-                                             ArtifactoryLocalFileService artifactoryLocalFileService,
-                                             AppScopeMappingService appScopeMappingService) {
+                                             ArtifactoryLocalFileService artifactoryLocalFileService) {
         this.taskExecuteService = taskExecuteService;
         this.fileSourceResource = fileSourceResource;
         this.i18nService = i18nService;
         this.artifactoryLocalFileService = artifactoryLocalFileService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -113,8 +107,6 @@ public class EsbFastTransferFileV3ResourceImpl
         })
     @AuditEntry(actionId = ActionId.QUICK_TRANSFER_FILE)
     public EsbResp<EsbJobExecuteV3DTO> fastTransferFile(@AuditRequestBody EsbFastTransferFileV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkFastTransferFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
