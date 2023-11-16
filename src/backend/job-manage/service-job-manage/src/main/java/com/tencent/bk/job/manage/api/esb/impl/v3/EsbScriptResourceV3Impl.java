@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.esb.v3.EsbScriptV3Resource;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
@@ -84,17 +85,20 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     private final ScriptDTOBuilder scriptDTOBuilder;
     private final ScriptCheckService scriptCheckService;
     protected final MessageI18nService i18nService;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbScriptResourceV3Impl(ScriptService scriptService,
                                    ScriptAuthService scriptAuthService,
                                    ScriptDTOBuilder scriptDTOBuilder,
                                    ScriptCheckService scriptCheckService,
-                                   MessageI18nService i18nService) {
+                                   MessageI18nService i18nService,
+                                   AppScopeMappingService appScopeMappingService) {
         this.scriptService = scriptService;
         this.scriptAuthService = scriptAuthService;
         this.scriptDTOBuilder = scriptDTOBuilder;
         this.scriptCheckService = scriptCheckService;
         this.i18nService = i18nService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
 
@@ -119,6 +123,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         request.setScriptLanguage(scriptLanguage);
         request.setStart(start);
         request.setLength(length);
+        request.fillAppResourceScope(appScopeMappingService);
         return getScriptListUsingPost(request);
     }
 
@@ -144,6 +149,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         request.setReturnScriptContent(returnScriptContent);
         request.setStart(start);
         request.setLength(length);
+        request.fillAppResourceScope(appScopeMappingService);
         return getScriptVersionListUsingPost(request);
     }
 
@@ -167,6 +173,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         request.setId(scriptVersionId);
         request.setScriptId(scriptId);
         request.setVersion(version);
+        request.fillAppResourceScope(appScopeMappingService);
         return getScriptVersionDetailUsingPost(request);
     }
 

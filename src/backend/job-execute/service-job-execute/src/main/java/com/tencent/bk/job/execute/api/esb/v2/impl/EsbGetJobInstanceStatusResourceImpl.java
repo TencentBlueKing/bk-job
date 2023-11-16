@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceStatusResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
@@ -65,13 +66,16 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
     private final TaskInstanceService taskInstanceService;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceStatusResourceImpl(TaskInstanceService taskInstanceService,
                                                ScriptAgentTaskService scriptAgentTaskService,
-                                               FileAgentTaskService fileAgentTaskService) {
+                                               FileAgentTaskService fileAgentTaskService,
+                                               AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -210,6 +214,7 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
+        req.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceStatusUsingPost(req);
     }
 }

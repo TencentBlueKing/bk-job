@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPlanV3Resource;
 import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.manager.variable.StepRefVariableParser;
@@ -58,12 +59,15 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
 
     private final TaskPlanService taskPlanService;
     private final PlanAuthService planAuthService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPlanV3ResourceImpl(TaskPlanService taskPlanService,
-                                 PlanAuthService planAuthService) {
+                                 PlanAuthService planAuthService,
+                                 AppScopeMappingService appScopeMappingService) {
         this.taskPlanService = taskPlanService;
         this.planAuthService = planAuthService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -99,6 +103,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
         request.setLastModifyTimeEnd(lastModifyTimeEnd);
         request.setStart(start);
         request.setLength(length);
+        request.fillAppResourceScope(appScopeMappingService);
         return getPlanListUsingPost(request);
     }
 
@@ -113,6 +118,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setPlanId(planId);
+        request.fillAppResourceScope(appScopeMappingService);
         return getPlanDetailUsingPost(request);
     }
 
