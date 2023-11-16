@@ -116,7 +116,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         actionId = ActionId.VIEW_HISTORY,
         instance = @AuditInstanceRecord(
             instanceIds = "#taskInstanceId",
-            instanceNames = "$?.name"
+            instanceNames = "#$?.name"
         ),
         content = EventContentConstants.VIEW_JOB_INSTANCE
     )
