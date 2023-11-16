@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO.EsbStepInstanceGlobalVarValuesV3DTO;
@@ -55,13 +56,16 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
 
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final AppScopeMappingService appScopeMappingService;
 
 
     public EsbGetJobInstanceGlobalVarValueV3ResourceImpl(
         StepInstanceVariableValueService stepInstanceVariableValueService,
-        TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+        TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+        AppScopeMappingService appScopeMappingService) {
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -131,6 +135,7 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
+        request.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceGlobalVarValueUsingPost(request);
     }
 }

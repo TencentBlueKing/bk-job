@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -64,13 +65,16 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
     private final TaskInstanceService taskInstanceService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceIpLogV3ResourceImpl(LogService logService,
                                                 TaskInstanceService taskInstanceService,
-                                                TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+                                                TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                                AppScopeMappingService appScopeMappingService) {
         this.logService = logService;
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -240,6 +244,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
         request.setHostId(hostId);
         request.setCloudAreaId(cloudAreaId);
         request.setIp(ip);
+        request.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceIpLogUsingPost(request);
     }
 }
