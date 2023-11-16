@@ -170,7 +170,7 @@ public class CronJobServiceImpl implements CronJobService {
         instance = @AuditInstanceRecord(
             resourceType = ResourceTypeId.CRON,
             instanceIds = "#cronJobId",
-            instanceNames = "$?.name"
+            instanceNames = "#$?.name"
         ),
         content = EventContentConstants.VIEW_CRON_JOB
     )
