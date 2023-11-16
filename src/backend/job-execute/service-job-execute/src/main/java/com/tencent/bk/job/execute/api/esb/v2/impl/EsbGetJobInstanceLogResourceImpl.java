@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -65,17 +66,20 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     private final FileAgentTaskService fileAgentTaskService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
                                             ScriptAgentTaskService scriptAgentTaskService,
                                             FileAgentTaskService fileAgentTaskService,
                                             LogService logService,
-                                            TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+                                            TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                            AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.logService = logService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -193,6 +197,7 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
+        req.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceLogUsingPost(username, appCode, req);
     }
 }

@@ -145,6 +145,7 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         request.setAlias(alias);
         request.setStart(start);
         request.setLength(length);
+        request.fillAppResourceScope(appScopeMappingService);
         return getAccountListUsingPost(username, appCode, request);
     }
 

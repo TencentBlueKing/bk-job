@@ -114,7 +114,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
             .expression(request.getExpression())
             .description(request.getDescription())
             .scriptTypeList(request.getScriptTypeList())
-            .action(Collections.singletonList(request.getAction().byteValue()))
+            .action(request.getAction() != null ? Collections.singletonList(request.getAction().byteValue()) : null)
             .build();
         List<DangerousRuleVO> dangerousRuleVOS = dangerousRuleService.listDangerousRules(query);
         List<EsbDangerousRuleV3DTO> esbDangerousRuleV3DTOList = dangerousRuleVOS.stream()

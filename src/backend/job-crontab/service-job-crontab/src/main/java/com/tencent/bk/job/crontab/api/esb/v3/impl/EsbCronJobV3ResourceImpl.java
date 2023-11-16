@@ -43,6 +43,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
@@ -80,14 +81,17 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     private final CronJobService cronJobService;
     private final CronAuthService cronAuthService;
     private final ServiceTaskPlanResource taskPlanResource;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbCronJobV3ResourceImpl(CronJobService cronJobService,
                                     CronAuthService cronAuthService,
-                                    ServiceTaskPlanResource taskPlanResource) {
+                                    ServiceTaskPlanResource taskPlanResource,
+                                    AppScopeMappingService appScopeMappingService) {
         this.cronJobService = cronJobService;
         this.cronAuthService = cronAuthService;
         this.taskPlanResource = taskPlanResource;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -122,6 +126,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         request.setLastModifyTimeStart(lastModifyTimeStart);
         request.setStart(start);
         request.setLength(length);
+        request.fillAppResourceScope(appScopeMappingService);
         return getCronListUsingPost(username, appCode, request);
     }
 
@@ -137,6 +142,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setId(id);
+        request.fillAppResourceScope(appScopeMappingService);
         return getCronDetailUsingPost(username, appCode, request);
     }
 

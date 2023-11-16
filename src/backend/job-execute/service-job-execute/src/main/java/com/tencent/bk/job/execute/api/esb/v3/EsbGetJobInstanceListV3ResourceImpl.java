@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -56,9 +57,12 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceListV3Resource {
 
     private final TaskResultService taskResultService;
+    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbGetJobInstanceListV3ResourceImpl(TaskResultService taskResultService) {
+    public EsbGetJobInstanceListV3ResourceImpl(TaskResultService taskResultService,
+                                    AppScopeMappingService appScopeMappingService) {
         this.taskResultService = taskResultService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -190,6 +194,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         request.setIp(ip);
         request.setStart(start);
         request.setLength(length);
+        request.fillAppResourceScope(appScopeMappingService);
         return getJobInstanceListUsingPost(username, appCode, request);
     }
 }
