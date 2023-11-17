@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -70,6 +71,7 @@ public abstract class AbstractBkApiClient {
      * API调用度量指标名称
      */
     private final String metricName;
+    private JsonMapper jsonMapper = JsonMapper.nonEmptyMapper();
 
     /**
      * @param meterRegistry MeterRegistry
@@ -92,6 +94,15 @@ public abstract class AbstractBkApiClient {
         this.metricName = metricName;
         this.baseAccessUrl = baseAccessUrl;
         this.lang = lang;
+    }
+
+    /**
+     * 配置自定义的 JsonMapper, 用于序列化 Json 数据
+     *
+     * @param jsonMapper jsonMapper
+     */
+    public void setJsonMapper(JsonMapper jsonMapper) {
+        this.jsonMapper = jsonMapper;
     }
 
     public <T, R> EsbResp<R> doRequest(ApiRequestInfo<T> requestInfo,
@@ -166,7 +177,7 @@ public abstract class AbstractBkApiClient {
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
 
-            esbResp = JsonUtils.fromJson(respStr, typeReference);
+            esbResp = jsonMapper.fromJson(respStr, typeReference);
             apiContext.setResp(esbResp);
             if (!esbResp.isSuccess()) {
                 log.warn(
@@ -259,7 +270,7 @@ public abstract class AbstractBkApiClient {
         }
         String responseBody;
         Header[] header = buildBkApiRequestHeaders(authorization);
-        responseBody = httpHelper.post(url, JsonUtils.toJson(body), header);
+        responseBody = httpHelper.post(url, jsonMapper.toJson(body), header);
         return responseBody;
     }
 
@@ -272,7 +283,7 @@ public abstract class AbstractBkApiClient {
         }
         String responseBody;
         Header[] header = buildBkApiRequestHeaders(authorization);
-        responseBody = httpHelper.put(url, "UTF-8", JsonUtils.toJson(body), Arrays.asList(header));
+        responseBody = httpHelper.put(url, "UTF-8", jsonMapper.toJson(body), Arrays.asList(header));
         return responseBody;
     }
 
@@ -319,7 +330,7 @@ public abstract class AbstractBkApiClient {
     }
 
     private Header buildBkApiAuthorizationHeader(BkApiAuthorization authorization) {
-        return new BasicHeader(BK_API_AUTH_HEADER, JsonUtils.toJson(authorization));
+        return new BasicHeader(BK_API_AUTH_HEADER, jsonMapper.toJson(authorization));
     }
 
     private String getLangFromRequest() {
