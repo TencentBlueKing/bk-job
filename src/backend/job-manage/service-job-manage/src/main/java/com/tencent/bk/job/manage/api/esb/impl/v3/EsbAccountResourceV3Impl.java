@@ -66,7 +66,9 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_account_list"})
-    public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountListUsingPost(EsbGetAccountListV3Req request) {
+    public EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountListUsingPost(String username,
+                                                                           String appCode,
+                                                                           EsbGetAccountListV3Req request) {
         long appId = request.getAppId();
         BaseSearchCondition baseSearchCondition = buildBaseSearchCondition(request.getStart(), request.getLength());
         AccountCategoryEnum category = AccountCategoryEnum.valOf(request.getCategory());
@@ -135,8 +137,6 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
                                                                   Integer start,
                                                                   Integer length) {
         EsbGetAccountListV3Req request = new EsbGetAccountListV3Req();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
@@ -146,14 +146,16 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         request.setStart(start);
         request.setLength(length);
         request.fillAppResourceScope(appScopeMappingService);
-        return getAccountListUsingPost(request);
+        return getAccountListUsingPost(username, appCode, request);
     }
 
     @Override
     @AuditEntry(actionId = ActionId.CREATE_ACCOUNT)
-    public EsbResp<EsbAccountV3DTO> createAccount(@AuditRequestBody EsbCreateAccountV3Req req) {
-        AccountDTO accountDTO = buildCreateAccountDTO(req.getUserName(), req.getAppId(), req);
-        AccountDTO createdAccountDTO = accountService.createAccount(req.getUserName(), accountDTO);
+    public EsbResp<EsbAccountV3DTO> createAccount(String username,
+                                                  String appCode,
+                                                  @AuditRequestBody EsbCreateAccountV3Req req) {
+        AccountDTO accountDTO = buildCreateAccountDTO(username, req.getAppId(), req);
+        AccountDTO createdAccountDTO = accountService.createAccount(username, accountDTO);
         return EsbResp.buildSuccessResp(createdAccountDTO.toEsbAccountV3DTO());
     }
 
@@ -190,10 +192,12 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
 
     @Override
     @AuditEntry(actionId = ActionId.MANAGE_ACCOUNT)
-    public EsbResp<EsbAccountV3DTO> deleteAccountUsingPost(@AuditRequestBody EsbDeleteAccountV3Req req) {
+    public EsbResp<EsbAccountV3DTO> deleteAccountUsingPost(String username,
+                                                           String appCode,
+                                                           @AuditRequestBody EsbDeleteAccountV3Req req) {
         Long appId = appScopeMappingService.getAppIdByScope(req.getScopeType(), req.getScopeId());
         AccountDTO accountDTO = accountService.getAccount(appId, req.getId());
-        accountService.deleteAccount(req.getUserName(), appId, req.getId());
+        accountService.deleteAccount(username, appId, req.getId());
         return EsbResp.buildSuccessResp(accountDTO.toEsbAccountV3DTO());
     }
 }

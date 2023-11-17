@@ -44,6 +44,8 @@ import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.service.TokenService;
 import com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl;
 import com.tencent.bk.sdk.iam.service.impl.TokenServiceImpl;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -104,8 +106,10 @@ public class IamAutoConfiguration {
     public AuthService authService(AuthHelper authHelper,
                                    IamConfiguration iamConfiguration,
                                    EsbProperties esbProperties,
-                                   MessageI18nService i18nService) {
-        return new AuthServiceImpl(authHelper, iamConfiguration, esbProperties, i18nService);
+                                   MessageI18nService i18nService,
+                                   ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+        return new AuthServiceImpl(authHelper, iamConfiguration, esbProperties, i18nService,
+            meterRegistryObjectProvider.getIfAvailable());
     }
 
     @Bean
@@ -113,8 +117,10 @@ public class IamAutoConfiguration {
                                          BusinessAuthHelper businessAuthHelper,
                                          IamConfiguration iamConfiguration,
                                          PolicyService policyService,
-                                         EsbProperties esbProperties) {
-        return new AppAuthServiceImpl(authHelper, businessAuthHelper, iamConfiguration, policyService, esbProperties);
+                                         EsbProperties esbProperties,
+                                         ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+        return new AppAuthServiceImpl(authHelper, businessAuthHelper, iamConfiguration, policyService, esbProperties,
+            meterRegistryObjectProvider.getIfAvailable());
     }
 
 }

@@ -48,6 +48,8 @@ public interface EsbGetJobInstanceStatusV3Resource {
 
     @PostMapping("/get_job_instance_status")
     EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatusUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetJobInstanceStatusV3Request request

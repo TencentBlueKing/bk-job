@@ -56,7 +56,9 @@ public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_os_account"})
-    public EsbResp<List<EsbAccountDTO>> getAppOsAccountList(EsbGetOSAccountListRequest request) {
+    public EsbResp<List<EsbAccountDTO>> getAppOsAccountList(String username,
+                                                            String appCode,
+                                                            EsbGetOSAccountListRequest request) {
         long appId = request.getAppId();
         List<AccountDTO> systemAccounts = accountService.listAppAccount(appId, AccountCategoryEnum.SYSTEM);
         return EsbResp.buildSuccessResp(convertToEsbAccountDTOList(systemAccounts));

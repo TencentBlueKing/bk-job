@@ -81,6 +81,8 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_ip_log"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbIpLogV3DTO> getJobInstanceIpLogUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceIpLogV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -89,7 +91,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+        taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
@@ -234,8 +236,6 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
                                                       Long cloudAreaId,
                                                       String ip) {
         EsbGetJobInstanceIpLogV3Request request = new EsbGetJobInstanceIpLogV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
@@ -245,6 +245,6 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
         request.setCloudAreaId(cloudAreaId);
         request.setIp(ip);
         request.fillAppResourceScope(appScopeMappingService);
-        return getJobInstanceIpLogUsingPost(request);
+        return getJobInstanceIpLogUsingPost(username, appCode, request);
     }
 }

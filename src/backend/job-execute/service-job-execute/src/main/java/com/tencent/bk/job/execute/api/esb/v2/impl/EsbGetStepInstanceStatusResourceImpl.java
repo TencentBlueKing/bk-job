@@ -80,6 +80,8 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_step_instance_status"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetStepInstanceStatusRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -91,7 +93,7 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
             .stepInstanceId(request.getStepInstanceId()).build();
-        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(request.getUserName(),
+        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(username,
             request.getAppId(), query);
 
         resultData.setIsFinished(stepExecutionDetail.isFinished());

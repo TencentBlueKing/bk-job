@@ -45,6 +45,7 @@ import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTaskInputParam;
 import com.tencent.bk.job.upgrader.client.IamClient;
 import com.tencent.bk.job.upgrader.client.JobClient;
+import com.tencent.bk.job.upgrader.iam.ApiClientUtils;
 import com.tencent.bk.job.upgrader.iam.JobIamHelper;
 import com.tencent.bk.job.upgrader.model.ActionPolicies;
 import com.tencent.bk.job.upgrader.model.BasicAppInfo;
@@ -137,15 +138,10 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
     }
 
     private EsbIamClient getEsbIamClient() {
-        Properties properties = getProperties();
-        if (esbIamClient == null) {
-            esbIamClient = new EsbIamClient(
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL),
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE),
-                (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET)
-            );
+        if (this.esbIamClient == null) {
+            this.esbIamClient = ApiClientUtils.buildEsbIamClient(getProperties());
         }
-        return esbIamClient;
+        return this.esbIamClient;
     }
 
     private List<Policy> queryAuthorizedPolicies(String actionId) {

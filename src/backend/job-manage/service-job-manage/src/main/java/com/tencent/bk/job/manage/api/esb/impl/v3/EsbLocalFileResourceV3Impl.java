@@ -68,7 +68,9 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
     }
 
     @Override
-    public EsbResp<EsbUploadUrlV3DTO> generateLocalFileUploadUrl(EsbGenLocalFileUploadUrlV3Req req) {
+    public EsbResp<EsbUploadUrlV3DTO> generateLocalFileUploadUrl(String username,
+                                                                 String appCode,
+                                                                 EsbGenLocalFileUploadUrlV3Req req) {
         // 参数检查
         // fileNameList
         List<String> fileNameList = req.getFileNameList();
@@ -88,7 +90,7 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
             sb.append(File.separatorChar);
             sb.append(Utils.getUUID());
             sb.append(File.separator);
-            sb.append(req.getUserName());
+            sb.append(username);
             sb.append(File.separatorChar);
             sb.append(fileName);
             String filePath = sb.toString();

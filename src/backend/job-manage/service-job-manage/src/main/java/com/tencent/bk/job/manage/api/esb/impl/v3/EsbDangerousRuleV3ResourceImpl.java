@@ -63,20 +63,24 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_create_dangerous_rule"})
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
-    public EsbResp<EsbDangerousRuleV3DTO> createDangerousRule(@AuditRequestBody EsbCreateDangerousRuleV3Req request) {
+    public EsbResp<EsbDangerousRuleV3DTO> createDangerousRule(String username,
+                                                              String appCode,
+                                                              @AuditRequestBody EsbCreateDangerousRuleV3Req request) {
         AddOrUpdateDangerousRuleReq req = new AddOrUpdateDangerousRuleReq();
         req.setExpression(request.getExpression());
         req.setScriptTypeList(request.getScriptTypeList());
         req.setDescription(request.getDescription());
         req.setAction(request.getAction());
-        DangerousRuleDTO dangerousRule = dangerousRuleService.createDangerousRule(request.getUserName(), req);
+        DangerousRuleDTO dangerousRule = dangerousRuleService.createDangerousRule(username, req);
         return EsbResp.buildSuccessResp(dangerousRule.toEsbDangerousRuleV3DTO());
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_update_dangerous_rule"})
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
-    public EsbResp<EsbDangerousRuleV3DTO> updateDangerousRule(@AuditRequestBody EsbUpdateDangerousRuleV3Req request) {
+    public EsbResp<EsbDangerousRuleV3DTO> updateDangerousRule(String username,
+                                                              String appCode,
+                                                              @AuditRequestBody EsbUpdateDangerousRuleV3Req request) {
         AddOrUpdateDangerousRuleReq req = new AddOrUpdateDangerousRuleReq();
         DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.getDangerousRuleById(request.getId());
         req.setId(request.getId());
@@ -85,15 +89,17 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
         req.setDescription(request.getDescription());
         req.setAction(request.getAction());
         req.setStatus(dangerousRuleDTO.getStatus());
-        DangerousRuleDTO updateDangerousRuleDTO = dangerousRuleService.updateDangerousRule(request.getUserName(), req);
+        DangerousRuleDTO updateDangerousRuleDTO = dangerousRuleService.updateDangerousRule(username, req);
         return EsbResp.buildSuccessResp(updateDangerousRuleDTO.toEsbDangerousRuleV3DTO());
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_dangerous_rule"})
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
-    public EsbResp deleteDangerousRule(@AuditRequestBody EsbManageDangerousRuleV3Req request) {
-        dangerousRuleService.deleteDangerousRuleById(request.getUserName(), request.getId());
+    public EsbResp deleteDangerousRule(String username,
+                                       String appCode,
+                                       @AuditRequestBody EsbManageDangerousRuleV3Req request) {
+        dangerousRuleService.deleteDangerousRuleById(username, request.getId());
         return EsbResp.buildSuccessResp(null);
     }
 
@@ -101,6 +107,8 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_dangerous_rule_list"})
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
     public EsbResp<List<EsbDangerousRuleV3DTO>> getDangerousRuleListUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetDangerousRuleV3Req request) {
         DangerousRuleQuery query = DangerousRuleQuery.builder()
             .expression(request.getExpression())
@@ -118,8 +126,10 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_enable_dangerous_rule"})
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
-    public EsbResp<EsbDangerousRuleV3DTO> enableDangerousRule(@AuditRequestBody EsbManageDangerousRuleV3Req request) {
-        DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(request.getUserName(),
+    public EsbResp<EsbDangerousRuleV3DTO> enableDangerousRule(String username,
+                                                              String appCode,
+                                                              @AuditRequestBody EsbManageDangerousRuleV3Req request) {
+        DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(username,
             request.getId(),
             EnableStatusEnum.ENABLED);
         return EsbResp.buildSuccessResp(dangerousRuleDTO.toEsbManageDangerousRuleV3DTO());
@@ -128,8 +138,10 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_disable_dangerous_rule"})
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
-    public EsbResp<EsbDangerousRuleV3DTO> disableDangerousRule(@AuditRequestBody EsbManageDangerousRuleV3Req request) {
-        DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(request.getUserName(),
+    public EsbResp<EsbDangerousRuleV3DTO> disableDangerousRule(String username,
+                                                               String appCode,
+                                                               @AuditRequestBody EsbManageDangerousRuleV3Req request) {
+        DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(username,
             request.getId(),
             EnableStatusEnum.DISABLED);
         return EsbResp.buildSuccessResp(dangerousRuleDTO.toEsbManageDangerousRuleV3DTO());

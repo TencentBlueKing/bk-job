@@ -50,6 +50,8 @@ public interface EsbGetJobInstanceLogResource {
 
     @PostMapping("/get_job_instance_log")
     EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetJobInstanceLogRequest request
@@ -57,8 +59,8 @@ public interface EsbGetJobInstanceLogResource {
 
     @GetMapping("/get_job_instance_log")
     EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(
-        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,

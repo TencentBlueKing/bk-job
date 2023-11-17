@@ -77,6 +77,8 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_status"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatusUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceStatusV3Request request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -87,7 +89,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
         long taskInstanceId = request.getTaskInstanceId();
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(
-            request.getUserName(), request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
+            username, request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         if (stepInstances == null || stepInstances.isEmpty()) {
@@ -191,14 +193,12 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
                                                                    Long taskInstanceId,
                                                                    boolean returnIpResult) {
         EsbGetJobInstanceStatusV3Request request = new EsbGetJobInstanceStatusV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
         request.setReturnIpResult(returnIpResult);
         request.fillAppResourceScope(appScopeMappingService);
-        return getJobInstanceStatusUsingPost(request);
+        return getJobInstanceStatusUsingPost(username, appCode, request);
     }
 }

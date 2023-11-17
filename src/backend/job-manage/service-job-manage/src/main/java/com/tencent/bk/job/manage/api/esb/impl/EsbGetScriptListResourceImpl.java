@@ -74,7 +74,9 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_script_list"})
-    public EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(EsbGetScriptListRequest request) {
+    public EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(String username,
+                                                            String appCode,
+                                                            EsbGetScriptListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script list, request is illegal!");
@@ -118,7 +120,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
                 return it.getId();
             }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
-                EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
+                EsbResp authFailResp = authService.batchAuthJobResources(username, ActionId.VIEW_SCRIPT,
                     request.getAppResourceScope(), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;

@@ -25,12 +25,14 @@
 package com.tencent.bk.job.file_gateway.api.esb;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,6 +46,8 @@ public interface EsbFileSourceV3Resource {
 
     @PostMapping("/create_file_source")
     EsbResp<EsbFileSourceSimpleInfoV3DTO> createFileSource(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbCreateOrUpdateFileSourceV3Req req
@@ -51,6 +55,8 @@ public interface EsbFileSourceV3Resource {
 
     @PostMapping("/update_file_source")
     EsbResp<EsbFileSourceSimpleInfoV3DTO> updateFileSource(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbCreateOrUpdateFileSourceV3Req req

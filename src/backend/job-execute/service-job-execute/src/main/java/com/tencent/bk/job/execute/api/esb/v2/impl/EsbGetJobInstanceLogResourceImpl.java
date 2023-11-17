@@ -86,6 +86,8 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_log"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceLogRequest request) {
 
         ValidateResult checkResult = checkRequest(request);
@@ -94,7 +96,7 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
             throw new InvalidParamException(checkResult);
         }
 
-        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+        taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstanceList =
@@ -184,20 +186,18 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_log"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String appCode,
-                                                                        String username,
+    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String username,
+                                                                        String appCode,
                                                                         Long appId,
                                                                         String scopeType,
                                                                         String scopeId,
                                                                         Long taskInstanceId) {
         EsbGetJobInstanceLogRequest req = new EsbGetJobInstanceLogRequest();
-        req.setAppCode(appCode);
-        req.setUserName(username);
         req.setBizId(appId);
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
         req.fillAppResourceScope(appScopeMappingService);
-        return getJobInstanceLogUsingPost(req);
+        return getJobInstanceLogUsingPost(username, appCode, req);
     }
 }

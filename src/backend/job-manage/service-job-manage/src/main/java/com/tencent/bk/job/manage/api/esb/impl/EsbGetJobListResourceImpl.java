@@ -65,7 +65,9 @@ public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_list"})
-    public EsbResp<List<EsbJobBasicInfoDTO>> getJobList(EsbGetJobListRequest request) {
+    public EsbResp<List<EsbJobBasicInfoDTO>> getJobList(String username,
+                                                        String appCode,
+                                                        EsbGetJobListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job list, request is illegal!");

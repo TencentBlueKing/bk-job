@@ -89,6 +89,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/get_public_script_list")
     EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetPublicScriptListV3Request request
@@ -96,6 +98,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/get_public_script_version_list")
     EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetPublicScriptVersionListV3Request request
@@ -103,6 +107,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/get_public_script_version_detail")
     EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetailUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetPublicScriptVersionDetailV3Request request
@@ -110,6 +116,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/create_public_script")
     EsbResp<EsbScriptVersionDetailV3DTO> createPublicScript(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated(Create.class)
             EsbCreatePublicScriptV3Req request
@@ -117,6 +125,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/create_public_script_version")
     EsbResp<EsbScriptVersionDetailV3DTO> createPublicScriptVersion(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated(Create.class)
             EsbCreatePublicScriptVersionV3Req request
@@ -124,6 +134,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/delete_public_script")
     EsbResp deletePublicScript(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated(Delete.class)
             EsbDeletePublicScriptV3Req request
@@ -131,6 +143,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/delete_public_script_version")
     EsbResp deletePublicScriptVersion(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated(Delete.class)
             EsbDeletePublicScriptVersionV3Req request
@@ -138,6 +152,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/disable_public_script_version")
     EsbResp<EsbScriptVersionDetailV3DTO> disablePublicScriptVersion(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated(Update.class)
             EsbManagePublicScriptVersionV3Req request
@@ -145,6 +161,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/publish_public_script_version")
     EsbResp<EsbScriptVersionDetailV3DTO> publishPublicScriptVersion(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated(Update.class)
             EsbManagePublicScriptVersionV3Req request
@@ -152,6 +170,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/update_public_script_basic")
     EsbResp<EsbScriptV3DTO> updatePublicScriptBasic(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated(Update.class)
             EsbUpdatePublicScriptBasicV3Req request
@@ -159,6 +179,8 @@ public interface EsbPublicScriptV3Resource {
 
     @PostMapping("/update_public_script_version")
     EsbResp<EsbScriptVersionDetailV3DTO> updatePublicScriptVersion(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated(Update.class)
             EsbUpdatePublicScriptVersionV3Req request

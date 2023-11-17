@@ -54,6 +54,8 @@ public interface EsbAccountV3Resource {
 
     @PostMapping("/get_account_list")
     EsbResp<EsbPageDataV3<EsbAccountV3DTO>> getAccountListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetAccountListV3Req request
@@ -77,6 +79,8 @@ public interface EsbAccountV3Resource {
 
     @PostMapping("/create_account")
     EsbResp<EsbAccountV3DTO> createAccount(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbCreateAccountV3Req req
@@ -84,6 +88,8 @@ public interface EsbAccountV3Resource {
 
     @PostMapping("/delete_account")
     EsbResp<EsbAccountV3DTO> deleteAccountUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbDeleteAccountV3Req req

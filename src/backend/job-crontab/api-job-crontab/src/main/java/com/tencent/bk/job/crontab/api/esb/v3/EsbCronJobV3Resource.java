@@ -85,6 +85,8 @@ public interface EsbCronJobV3Resource {
      */
     @PostMapping("/get_cron_list")
     EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetCronListV3Request request
@@ -98,6 +100,8 @@ public interface EsbCronJobV3Resource {
      */
     @PostMapping("/get_cron_detail")
     EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetCronDetailV3Request request
@@ -111,6 +115,8 @@ public interface EsbCronJobV3Resource {
      */
     @PostMapping(value = "/update_cron_status")
     EsbResp<EsbCronInfoV3DTO> updateCronStatus(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbUpdateCronStatusV3Request request
@@ -124,6 +130,8 @@ public interface EsbCronJobV3Resource {
      */
     @PostMapping(value = "/save_cron")
     EsbResp<EsbCronInfoV3DTO> saveCron(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbSaveCronV3Request request
