@@ -20,6 +20,7 @@
 |------------------------|-----------|-------|------------|
 | bk_scope_type          | string    | 是     | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
 | bk_scope_id            | string    | 是     | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
+| job_instance_id        | long      | 是     | 作业实例ID |
 | step_instance_id       | long      | 是     | 步骤实例ID |
 
 
@@ -27,7 +28,7 @@
 
 - GET
 ```json
-/api/v3/get_step_instance_detail?bk_scope_type=biz&bk_scope_id=1&step_instance_id=100
+/api/v3/get_step_instance_detail?bk_scope_type=biz&bk_scope_id=1&job_instance_id=100&step_instance_id=100
 ```
 
 ### 返回结果示例
@@ -48,7 +49,25 @@
           "timeout": 1000,
           "account_id": 123,
           "account_name": "root",
-          "secure_param": 0
+          "execute_target": {
+            "variable": null,
+            "server": {
+              "host_list": [{
+                "bk_host_id": 1,
+                "ip": "192.168.1.1",
+                "ipv6": null
+              }],
+              "topo_node_list": [{
+                "node_type": "set",
+                "id": 123
+              }],
+              "dynamic_group_list": [{
+                "id": "07f99504-7bcb-11eb-980b-5254008ed702"
+              }]
+            }
+          },
+          "secure_param": 0,
+          "ignore_error": 0
         },
         "file_step_info": {
           "file_source_list": [
@@ -60,6 +79,23 @@
               ],
               "file_hash": "68b329da9893e34099c7d8ad5cb9c940",
               "file_size": 10240,
+              "host": {
+                "variable": null,
+                "server": {
+                  "host_list": [{
+                    "bk_host_id": 1,
+                    "ip": "192.168.1.1",
+                    "ipv6": null
+                  }],
+                  "topo_node_list": [{
+                    "node_type": "set",
+                    "id": 123
+                  }],
+                  "dynamic_group_list": [{
+                    "id": "07f99504-7bcb-11eb-980b-5254008ed702"
+                  }]
+                }
+              },
               "account_id": 1,
               "account_name": "root",
               "file_source_id": 1,
@@ -69,7 +105,24 @@
           "file_destination": {
             "path": "/tmp",
             "account_id": 1,
-            "account_name": "root"
+            "account_name": "root",
+            "target_server": {
+              "variable": null,
+              "server": {
+                "host_list": [{
+                  "bk_host_id": 1,
+                  "ip": "192.168.1.1",
+                  "ipv6": null
+                }],
+                "topo_node_list": [{
+                  "node_type": "set",
+                  "id": 123
+                }],
+                "dynamic_group_list": [{
+                  "id": "07f99504-7bcb-11eb-980b-5254008ed702"
+                }]
+              }
+            }
           },
           "timeout": 1000,
           "upload_speed_limit": 10,
@@ -118,7 +171,45 @@
 | timeout            | int       | 脚本超时时间，单位为秒 |
 | account_id         | long      | 执行账号ID   |
 | account_name       | string    | 执行账号名称  |
+| execute_target     | object    | 执行目标机器，详情见variable_server对象定义  |
 | secure_param       | int       | 参数是否为敏感参数：0-不敏感，1-敏感 |
+| ignore_error       | int       | 是否忽略错误：0-不忽略，1-忽略 |
+
+##### variable_server
+
+| 字段                  | 类型        | 描述       |
+|----------------------|------------|-----------|
+| variable             | string     | 引用的全局变量名称 |
+| server               | object     | 机器信息，详情见server对象定义 |
+
+##### server
+
+| 字段                  | 类型                  | 描述       |
+|----------------------|----------------------|-----------|
+| host_list            | list<host>           | 主机列表，元素详情见host对象定义 |
+| topo_node_list       | list<topo_node>      | 拓扑节点列表，元素详情见topo_node对象定义 |
+| dynamic_group_list   | list<dynamic_group>  | 动态分组列表，元素详情见dynamic_group对象定义 |
+
+##### host
+
+| 字段         | 类型       | 描述      |
+|-------------|-----------|-----------|
+| bk_host_id  | long      | 主机ID     |
+| ip          | string    | IP        |
+| ipv6        | string    | IPv6      |
+
+##### topo_node
+
+| 字段         | 类型       | 描述      |
+|-------------|-----------|-----------|
+| node_type   | string    | 动态topo节点类型，对应CMDB API中的 bk_obj_id，例如module、set等     |
+| id          | int       | 动态topo节点ID，对应CMDB API中的 bk_inst_id        |
+
+##### dynamic_group
+
+| 字段         | 类型       | 描述          |
+|-------------|-----------|---------------|
+| id          | string    | CMDB动态分组ID |
 
 
 ##### file_step_info
@@ -141,6 +232,7 @@
 | file_location     | list<string> | 文件路径列表 |
 | file_hash         | string       | 文件Hash值，仅本地文件该字段有值 |
 | file_size         | int          | 文件大小，单位为字节，仅本地文件该字段有值 |
+| host              | object       | 源文件所在机器，详情见variable_server对象定义  |
 | account_id        | long         | 执行账号ID |
 | account_name      | string       | 执行账号名称 |
 | file_source_id    | long         | 第三方文件源ID |
@@ -153,6 +245,7 @@
 | path            | string    | 目标路径   |
 | account_id      | long      | 执行账号ID |
 | account_name    | string    | 执行账号名称 |
+| target_server   | object    | 分发目标机器，详情见variable_server对象定义  |
 
 
 ##### approval_step_info
