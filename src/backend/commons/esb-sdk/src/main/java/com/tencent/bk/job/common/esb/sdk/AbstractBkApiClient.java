@@ -116,8 +116,7 @@ public abstract class AbstractBkApiClient {
                                        ExtHttpHelper httpHelper,
                                        BkApiLogStrategy logStrategy) {
         HttpMethodEnum httpMethod = requestInfo.getMethod();
-        BkApiContext<T, R> apiContext
-            = new BkApiContext<>(httpMethod.name(), requestInfo.getUri(),
+        BkApiContext<T, R> apiContext = new BkApiContext<>(httpMethod.name(), requestInfo.getUri(),
             requestInfo.getBody(), null, null, 0, false);
 
         if (logStrategy != null) {

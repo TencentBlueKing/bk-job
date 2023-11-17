@@ -1123,8 +1123,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
     @Override
     public List<CcObjAttributeDTO> getObjAttributeList(String objId) {
-        GetObjAttributeReq req = makeCmdbBaseReq(
-            GetObjAttributeReq.class);
+        GetObjAttributeReq req = makeCmdbBaseReq(GetObjAttributeReq.class);
         req.setObjId(objId);
         EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(
             HttpMethodEnum.POST,
@@ -1295,8 +1294,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
     @Override
     public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
-        ResourceWatchReq req = makeCmdbBaseReq(
-            ResourceWatchReq.class);
+        ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
             "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id", "bk_cloud_vendor", "last_time"));
         req.setResource("host");
@@ -1315,8 +1313,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
     @Override
     public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor) {
-        ResourceWatchReq req = makeCmdbBaseReq(
-            ResourceWatchReq.class);
+        ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_host_id", "bk_biz_id", "bk_set_id", "bk_module_id", "last_time"));
         req.setResource("host_relation");
         req.setCursor(cursor);
@@ -1334,8 +1331,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
     @Override
     public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
-        ResourceWatchReq req = makeCmdbBaseReq(
-            ResourceWatchReq.class);
+        ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
             "time_zone", "language"));
         req.setResource("biz");
