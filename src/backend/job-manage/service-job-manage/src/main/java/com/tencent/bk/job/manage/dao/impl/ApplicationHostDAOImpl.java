@@ -724,7 +724,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         String finalModuleTypeStr = applicationHostDTO.getModuleTypeStr();
         ULong bizId = ULong.valueOf(applicationHostDTO.getBizId());
         String ip = applicationHostDTO.getIp();
-        String ipv6 = applicationHostDTO.getIpv6();
+        String ipv6 = applicationHostDTO.preferFullIpv6();
         String agentId = applicationHostDTO.getAgentId();
         String ipDesc = applicationHostDTO.getHostName();
         ULong cloudAreaId = ULong.valueOf(applicationHostDTO.getCloudAreaId());
@@ -856,7 +856,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId()),
                     JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()),
                     applicationHostDTO.getIp(),
-                    applicationHostDTO.getIpv6(),
+                    applicationHostDTO.preferFullIpv6(),
                     applicationHostDTO.getAgentId(),
                     applicationHostDTO.getHostName(),
                     applicationHostDTO.getSetIdsStr(),
@@ -912,7 +912,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         val query = context.update(TABLE)
             .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
             .set(TABLE.IP, applicationHostDTO.getIp())
-            .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+            .set(TABLE.IP_V6, applicationHostDTO.preferFullIpv6())
             .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
@@ -936,7 +936,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return context.update(TABLE)
             .set(TABLE.APP_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()))
             .set(TABLE.IP, applicationHostDTO.getIp())
-            .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+            .set(TABLE.IP_V6, applicationHostDTO.preferFullIpv6())
             .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
             .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
             .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
