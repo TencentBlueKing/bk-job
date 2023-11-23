@@ -408,4 +408,9 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                       Collection<HostDTO> hosts) {
         taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
     }
+
+    @Override
+    public Long getTaskInstanceId(long appId, long stepInstanceId) {
+        return stepInstanceDAO.getTaskInstanceId(appId, stepInstanceId);
+    }
 }

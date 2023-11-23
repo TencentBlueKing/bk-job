@@ -23,7 +23,7 @@
 | job_instance_id        | long      | 是     | 作业实例ID |
 | step_instance_id       | long      | 是     | 步骤实例ID |
 | execute_count          | int       | 否     | 步骤重试次数，从0开始计数，默认值为0。 |
-| batch                  | int       | 否     | 滚动批次，从0开始计数，默认值为0。 |
+| batch                  | int       | 否     | 滚动批次，从0开始计数，默认值为null表示获取所有批次的数据。 |
 | max_host_num_per_group | int       | 否     | 每个分组（按照status与tag进行分组，分组键可参考返回值字段中的group_key字段）里的最大主机数量，不传则返回全量数据。 |
 | keyword                | string    | 否     | 日志搜索关键字，只返回日志中包含该关键字的主机执行状态数据（注意：仅脚本步骤支持） |
 | search_ip              | string    | 否     | 主机IP/IPv6搜索关键字，只返回主机IP/IPv6地址包含该关键字的主机执行状态数据 |
@@ -45,19 +45,20 @@
     "code": 0,
     "message": "",
     "data": {
-        "status": 4,
-        "total_time": 1000,
-        "name": "API Quick execution scriptxxx",
         "step_instance_id": 75,
         "execute_count": 0,
-        "create_time": 1605064271000,
-        "end_time": 1605064272000,
+        "name": "API Quick execution scriptxxx",
         "type": 1,
+        "status": 4,
+        "create_time": 1605064271000,
         "start_time": 1605064271000,
-        "step_ip_result_list": [
+        "end_time": 1605064272000,
+        "total_time": 1000,
+        "step_host_result_list": [
             {
                 "bk_host_id": 101,
                 "ip": "10.0.0.1",
+                "ipv6": null,
                 "bk_cloud_id": 0,
                 "status": 9,
                 "tag": "tag1",
@@ -70,6 +71,7 @@
             {
                 "bk_host_id": 102,
                 "ip": "10.0.0.2",
+                "ipv6": null,
                 "bk_cloud_id": 0,
                 "status": 9,
                 "tag": "tag2",
@@ -97,15 +99,15 @@
 
 | 字段                   | 类型                      | 描述      |
 |-----------------------|--------------------------|-----------|
-| status                | int                      | 作业步骤状态码: 1-未执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常，10-步骤强制终止中，11-步骤强制终止成功，12-步骤强制终止失败 |
-| total_time            | int                      | 总耗时，单位毫秒 |
-| name                  | string                   | 步骤名称 |
 | step_instance_id      | long                     | 作业步骤实例ID |
 | execute_count         | int                      | 步骤重试次数 |
-| create_time           | long                     | 作业步骤实例创建时间，Unix时间戳，单位毫秒 |
-| end_time              | long                     | 执行结束时间，Unix时间戳，单位毫秒 |
+| name                  | string                   | 步骤名称 |
 | type                  | int                      | 步骤类型：1-脚本步骤；2-文件步骤；4-SQL步骤 |
+| status                | int                      | 作业步骤状态码: 1-未执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户，8-手动结束，9-状态异常，10-步骤强制终止中，11-步骤强制终止成功，12-步骤强制终止失败 |
+| create_time           | long                     | 作业步骤实例创建时间，Unix时间戳，单位毫秒 |
 | start_time            | long                     | 开始执行时间，Unix时间戳，单位毫秒 |
+| end_time              | long                     | 执行结束时间，Unix时间戳，单位毫秒 |
+| total_time            | int                      | 总耗时，单位毫秒 |
 | step_host_result_list | list<step_host_result>   | 每个主机的任务执行结果，定义见step_host_result |
 
 

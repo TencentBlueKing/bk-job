@@ -25,9 +25,7 @@
 package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
-import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -65,6 +63,7 @@ import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
+import com.tencent.bk.job.execute.service.FileTransferModeService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -92,6 +91,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final BusinessAuthService businessAuthService;
     private final RollingConfigService rollingConfigService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final FileTransferModeService fileTransferModeService;
 
     @Autowired
     public WebTaskInstanceResourceImpl(TaskInstanceService taskInstanceService,
@@ -100,7 +100,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                        MessageI18nService i18nService,
                                        BusinessAuthService businessAuthService,
                                        RollingConfigService rollingConfigService,
-                                       TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+                                       TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                       FileTransferModeService fileTransferModeService) {
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.taskOperationLogService = taskOperationLogService;
@@ -108,6 +109,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         this.businessAuthService = businessAuthService;
         this.rollingConfigService = rollingConfigService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.fileTransferModeService = fileTransferModeService;
     }
 
     @Override
@@ -243,9 +245,11 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             fileStepVO.setFileDestination(fileDestinationInfoVO);
 
             fileStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
-            fileStepVO.setTransferMode(
-                ExecuteFileStepVO.getTransferMode(DuplicateHandlerEnum.valueOf(stepInstance.getFileDuplicateHandle()),
-                    NotExistPathHandlerEnum.valueOf(stepInstance.getNotExistPathHandler())));
+            Integer transferMode = fileTransferModeService.getTransferMode(
+                stepInstance.getFileDuplicateHandle(),
+                stepInstance.getNotExistPathHandler()
+            ).getValue();
+            fileStepVO.setTransferMode(transferMode);
             if (stepInstance.getFileDownloadSpeedLimit() != null) {
                 fileStepVO.setTargetSpeedLimit(stepInstance.getFileDownloadSpeedLimit() >> 10);
             }

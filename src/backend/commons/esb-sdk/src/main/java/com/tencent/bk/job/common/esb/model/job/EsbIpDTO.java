@@ -60,6 +60,10 @@ public class EsbIpDTO {
     @JsonPropertyDescription("ip")
     private String ip;
 
+    @JsonProperty("ipv6")
+    @JsonPropertyDescription("ipv6")
+    private String ipv6;
+
     public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
         this.hostId = hostId;
         this.bkCloudId = bkCloudId;

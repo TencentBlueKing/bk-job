@@ -22,44 +22,65 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbFileDestinationV3DTO;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 文件分发步骤
+ *
+ * @since 17/11/2020 20:37
+ */
 @Data
-@ApiModel("步骤文件信息")
-public class ExecuteFileStepVO {
+public class EsbFileStepV3DTO {
+    /**
+     * 源文件列表
+     */
+    @JsonProperty("file_source_list")
+    @JsonPropertyDescription("File source list")
+    private List<EsbFileSourceV3DTO> fileSourceList;
 
-    @ApiModelProperty("源文件列表")
-    @JsonProperty("fileSourceList")
-    private List<ExecuteFileSourceInfoVO> fileSourceList;
+    /**
+     * 分发目标信息
+     */
+    @JsonProperty("file_destination")
+    @JsonPropertyDescription("File destination")
+    private EsbFileDestinationV3DTO fileDestination;
 
-    @ApiModelProperty("目标信息")
-    @JsonProperty("fileDestination")
-    private ExecuteFileDestinationInfoVO fileDestination;
+    /**
+     * 超时
+     */
+    @JsonPropertyDescription("timeout")
+    private Long timeout;
 
-    @ApiModelProperty("超时")
-    private Integer timeout;
+    /**
+     * 源机器上传限速
+     */
+    @JsonProperty("source_speed_limit")
+    @JsonPropertyDescription("Upload speed limit")
+    private Long sourceSpeedLimit;
 
-    @ApiModelProperty("上传文件限速")
-    @JsonProperty("uploadSpeedLimit")
-    private Integer originSpeedLimit;
-
-    @ApiModelProperty("下载文件限速")
-    @JsonProperty("downloadSpeedLimit")
-    private Integer targetSpeedLimit;
+    /**
+     * 目标机器下载限速
+     */
+    @JsonProperty("destination_speed_limit")
+    @JsonPropertyDescription("Download speed limit")
+    private Long destinationSpeedLimit;
 
     /**
      * 传输模式
      */
-    @ApiModelProperty(value = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式", required = true)
+    @JsonProperty("transfer_mode")
+    @JsonPropertyDescription("Transfer mode")
     private Integer transferMode;
 
-    @ApiModelProperty("忽略错误 0 - 不忽略 1 - 忽略")
+    @JsonProperty("is_ignore_error")
+    @JsonPropertyDescription("Is ignore error")
     private Integer ignoreError;
 }

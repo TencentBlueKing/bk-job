@@ -40,50 +40,53 @@
     "message": "",
     "data": {
         "id": 4,
-        "type": 1,
         "name": "Step 1",
-        "script_step_info": {
-          "content": "IyEvYmluL2Jhc2gKCmFueW5vd3RpbWU9ImRhdGUgKyclWS0lbS0lZCAl",
+        "type": 1,
+        "script_info": {
+          "script_type": 1,
+          "script_id": null,
+          "script_version_id": null,
+          "script_content": "IyEvYmluL2Jhc2gKCmFueW5vd3RpbWU9ImRhdGUgKyclWS0lbS0lZCAl",
           "script_language": 1,
           "script_param": "1 2 3",
-          "timeout": 1000,
-          "account_id": 123,
-          "account_name": "root",
-          "execute_target": {
-            "variable": null,
-            "server": {
-              "host_list": [{
-                "bk_host_id": 1,
-                "ip": "192.168.1.1",
-                "ipv6": null
-              }],
-              "topo_node_list": [{
-                "node_type": "set",
-                "id": 123
-              }],
-              "dynamic_group_list": [{
-                "id": "07f99504-7bcb-11eb-980b-5254008ed702"
-              }]
-            }
+          "script_timeout": 1000,
+          "account": {
+            "id": 123,
+            "name": "root"
           },
-          "secure_param": 0,
-          "ignore_error": 0
+          "server": {
+            "variable": null,
+            "ip_list": [{
+              "bk_host_id": 1,
+              "bk_cloud_id": 0,
+              "ip": "192.168.1.1",
+              "ipv6": null
+            }],
+            "topo_node_list": [{
+              "node_type": "set",
+              "id": 123
+            }],
+            "dynamic_group_list": [{
+              "id": "07f99504-7bcb-11eb-980b-5254008ed702"
+            }]
+          },
+          "is_param_sensitive": 0,
+          "is_ignore_error": 0
         },
-        "file_step_info": {
+        "file_info": {
           "file_source_list": [
             {
               "file_type": 1,
-              "file_location": [
+              "file_list": [
                 "/tmp/1.txt",
                 "/tmp/2.txt"
               ],
-              "file_hash": "68b329da9893e34099c7d8ad5cb9c940",
-              "file_size": 10240,
-              "host": {
+              "server": {
                 "variable": null,
                 "server": {
-                  "host_list": [{
+                  "ip_list": [{
                     "bk_host_id": 1,
+                    "bk_cloud_id": 0,
                     "ip": "192.168.1.1",
                     "ipv6": null
                   }],
@@ -96,41 +99,43 @@
                   }]
                 }
               },
-              "account_id": 1,
-              "account_name": "root",
-              "file_source_id": 1,
-              "file_source_name": "测试用蓝鲸制品库"
+              "account": {
+                "id": 1,
+                "name": "root"
+              },
+              "file_source_id": 1
             }
           ],
           "file_destination": {
             "path": "/tmp",
-            "account_id": 1,
-            "account_name": "root",
-            "target_server": {
+            "account": {
+              "id": 1,
+              "name": "root"
+            },
+            "server": {
               "variable": null,
-              "server": {
-                "host_list": [{
-                  "bk_host_id": 1,
-                  "ip": "192.168.1.1",
-                  "ipv6": null
-                }],
-                "topo_node_list": [{
-                  "node_type": "set",
-                  "id": 123
-                }],
-                "dynamic_group_list": [{
-                  "id": "07f99504-7bcb-11eb-980b-5254008ed702"
-                }]
-              }
+              "ip_list": [{
+                "bk_host_id": 1,
+                "bk_cloud_id": 0,
+                "ip": "192.168.1.1",
+                "ipv6": null
+              }],
+              "topo_node_list": [{
+                "node_type": "set",
+                "id": 123
+              }],
+              "dynamic_group_list": [{
+                "id": "07f99504-7bcb-11eb-980b-5254008ed702"
+              }]
             }
           },
           "timeout": 1000,
-          "upload_speed_limit": 10,
-          "download_speed_limit": 10,
+          "source_speed_limit": 10,
+          "destination_speed_limit": 10,
           "transfer_mode": 2,
-          "ignore_error": 0
+          "is_ignore_error": 0
         },
-        "approval_step_info": {
+        "approval_info": {
           "approval_message": "Pass"
         }
     }
@@ -151,42 +156,42 @@
 | 字段                  | 类型      | 描述      |
 |----------------------|-----------|-----------|
 | id                   | long      | 作业步骤ID |
-| type                 | int       | 步骤类型：1-脚本，2-文件，3-人工确认 |
 | name                 | string    | 步骤名称 |
-| script_step_info     | object    | 脚本步骤信息 |
-| file_step_info       | object    | 文件步骤信息 |
-| approval_step_info   | object    | 审批步骤信息 |
+| type                 | int       | 步骤类型：1-脚本，2-文件，3-人工确认 |
+| script_info          | object    | 脚本步骤信息 |
+| file_info            | object    | 文件步骤信息 |
+| approval_info        | object    | 审批步骤信息 |
 
 
-##### script_step_info
+##### script_info
 
 | 字段                | 类型      | 描述      |
 |--------------------|-----------|-----------|
-| script_source      | int       | 脚本类型：1-本地脚本，2-引用业务脚本，3-引用公共脚本 |
+| script_type        | int       | 脚本类型：1-本地脚本，2-引用业务脚本，3-引用公共脚本 |
 | script_id          | string    | 脚本ID |
 | script_version_id  | long      | 脚本版本ID |
-| content            | string    | BASE64编码的脚本内容 |
+| script_content     | string    | BASE64编码的脚本内容 |
 | script_language    | int       | 脚本语言：1-shell，2-bat，3-perl，4-python，5-powershell，6-sql |
 | script_param       | string    | 脚本参数 |
-| timeout            | int       | 脚本超时时间，单位为秒 |
-| account_id         | long      | 执行账号ID   |
-| account_name       | string    | 执行账号名称  |
-| execute_target     | object    | 执行目标机器，详情见variable_server对象定义  |
-| secure_param       | int       | 参数是否为敏感参数：0-不敏感，1-敏感 |
-| ignore_error       | int       | 是否忽略错误：0-不忽略，1-忽略 |
+| script_timeout     | int       | 脚本超时时间，单位为秒 |
+| account            | object    | 执行账号，详情见account对象定义   |
+| server             | object    | 执行目标机器，详情见server对象定义  |
+| is_param_sensitive | int       | 参数是否为敏感参数：0-不敏感，1-敏感 |
+| is_ignore_error    | int       | 是否忽略错误：0-不忽略，1-忽略 |
 
-##### variable_server
+##### account
 
-| 字段                  | 类型        | 描述       |
-|----------------------|------------|-----------|
-| variable             | string     | 引用的全局变量名称 |
-| server               | object     | 机器信息，详情见server对象定义 |
+| 字段                | 类型      | 描述      |
+|--------------------|-----------|-----------|
+| id                 | long      | 账号ID   |
+| name               | string    | 账号名称  |
 
 ##### server
 
 | 字段                  | 类型                  | 描述       |
 |----------------------|----------------------|-----------|
-| host_list            | list<host>           | 主机列表，元素详情见host对象定义 |
+| variable             | string               | 引用的全局变量名称 |
+| ip_list              | list<host>           | 主机列表，元素详情见host对象定义 |
 | topo_node_list       | list<topo_node>      | 拓扑节点列表，元素详情见topo_node对象定义 |
 | dynamic_group_list   | list<dynamic_group>  | 动态分组列表，元素详情见dynamic_group对象定义 |
 
@@ -195,6 +200,7 @@
 | 字段         | 类型       | 描述      |
 |-------------|-----------|-----------|
 | bk_host_id  | long      | 主机ID     |
+| bk_cloud_id | long      | 管控区域ID  |
 | ip          | string    | IP        |
 | ipv6        | string    | IPv6      |
 
@@ -212,43 +218,38 @@
 | id          | string    | CMDB动态分组ID |
 
 
-##### file_step_info
+##### file_info
 
-| 字段                  | 类型               | 描述       |
-|----------------------|-------------------|-----------|
-| file_source_list     | list<file_source> | 源文件列表，元素详情见file_source对象定义 |
-| file_destination     | object            | 目标信息，详情见file_destination对象定义 |
-| timeout              | int               | 超时，单位为秒 |
-| upload_speed_limit   | int               | 上传文件限速，单位为MB/s，没有值表示不限速 |
-| download_speed_limit | int               | 下载文件限速，单位为MB/s，没有值表示不限速 |
-| transfer_mode        | int               | 传输模式： 1-严谨模式，2-强制模式，3-安全模式 |
-| ignore_error         | int               | 是否忽略错误：0-不忽略，1-忽略 |
+| 字段                     | 类型               | 描述       |
+|-------------------------|-------------------|-----------|
+| file_source_list        | list<file_source> | 源文件列表，元素详情见file_source对象定义 |
+| file_destination        | object            | 目标信息，详情见file_destination对象定义 |
+| timeout                 | int               | 超时，单位为秒 |
+| source_speed_limit      | int               | 上传文件限速，单位为MB/s，没有值表示不限速 |
+| destination_speed_limit | int               | 下载文件限速，单位为MB/s，没有值表示不限速 |
+| transfer_mode           | int               | 传输模式： 1-严谨模式，2-强制模式，3-安全模式 |
+| is_ignore_error         | int               | 是否忽略错误：0-不忽略，1-忽略 |
 
 ##### file_source
 
 | 字段               | 类型         | 描述       |
 |-------------------|--------------|-----------|
 | file_type         | int          | 文件类型：1-服务器文件，2-本地文件，3-文件源文件 |
-| file_location     | list<string> | 文件路径列表 |
-| file_hash         | string       | 文件Hash值，仅本地文件该字段有值 |
-| file_size         | int          | 文件大小，单位为字节，仅本地文件该字段有值 |
-| host              | object       | 源文件所在机器，详情见variable_server对象定义  |
-| account_id        | long         | 执行账号ID |
-| account_name      | string       | 执行账号名称 |
+| file_list         | list<string> | 文件路径列表 |
+| server            | object       | 源文件所在机器，详情见server对象定义  |
+| account           | object       | 执行账号，详情见account对象定义  |
 | file_source_id    | long         | 第三方文件源ID |
-| file_source_name  | string       | 第三方文件源名称 |
 
 ##### file_destination
 
 | 字段             | 类型      | 描述      |
 |-----------------|-----------|-----------|
 | path            | string    | 目标路径   |
-| account_id      | long      | 执行账号ID |
-| account_name    | string    | 执行账号名称 |
-| target_server   | object    | 分发目标机器，详情见variable_server对象定义  |
+| account         | object    | 执行账号，详情见account对象定义  |
+| server          | object    | 分发目标机器，详情见server对象定义  |
 
 
-##### approval_step_info
+##### approval_info
 
 | 字段               | 类型       | 描述      |
 |-------------------|-----------|-----------|

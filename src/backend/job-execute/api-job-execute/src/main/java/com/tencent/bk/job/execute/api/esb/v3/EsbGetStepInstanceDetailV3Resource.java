@@ -22,43 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.execute.api.esb.v3;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
-import lombok.Data;
-
-import java.util.List;
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbStepV3DTO;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 用户、角色信息
- *
- * @since 17/11/2020 21:51
+ * 根据步骤实例 ID 查询步骤执行详情API-V3
  */
-@Data
-public class EsbUserRoleInfoV3DTO {
-    /**
-     * 用户名列表
-     */
-    @JsonProperty("user_list")
-    @JsonPropertyDescription("User list")
-    private List<String> userList;
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbGetStepInstanceDetailV3Resource {
 
-    /**
-     * 角色 ID 列表
-     */
-    @JsonProperty("role_list")
-    @JsonPropertyDescription("Job role list ")
-    private List<String> roleList;
+    @GetMapping("/get_step_instance_detail")
+    EsbResp<EsbStepV3DTO> getStepInstanceStatus(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @RequestParam(value = "job_instance_id") Long taskInstanceId,
+        @RequestParam(value = "step_instance_id") Long stepInstanceId);
 
-    public static EsbUserRoleInfoV3DTO fromUserRoleInfo(UserRoleInfoDTO approvalUser) {
-        if (approvalUser == null) {
-            return null;
-        }
-        EsbUserRoleInfoV3DTO esbUserRoleInfo = new EsbUserRoleInfoV3DTO();
-        esbUserRoleInfo.setUserList(approvalUser.getUserList());
-        esbUserRoleInfo.setRoleList(approvalUser.getRoleList());
-        return esbUserRoleInfo;
-    }
 }

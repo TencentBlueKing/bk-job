@@ -22,61 +22,58 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbFileDestinationV3DTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * 文件分发步骤
- *
  * @since 17/11/2020 20:37
  */
 @Data
-public class EsbFileStepV3DTO {
-    /**
-     * 源文件列表
-     */
-    @JsonProperty("file_source_list")
-    @JsonPropertyDescription("File source list")
-    private List<EsbFileSourceV3DTO> fileSourceList;
+public class EsbScriptStepV3DTO {
+    @JsonProperty("script_type")
+    @JsonPropertyDescription("Script type")
+    private Integer type;
 
-    /**
-     * 分发目标信息
-     */
-    @JsonProperty("file_destination")
-    @JsonPropertyDescription("File destination")
-    private EsbFileDestinationV3DTO fileDestination;
+    @JsonProperty("script_id")
+    @JsonPropertyDescription("Script id")
+    private String scriptId;
 
-    /**
-     * 超时
-     */
-    @JsonPropertyDescription("timeout")
-    private Long timeout;
+    @JsonProperty("script_version_id")
+    @JsonPropertyDescription("Script version id")
+    private Long scriptVersionId;
 
-    /**
-     * 源机器上传限速
-     */
-    @JsonProperty("source_speed_limit")
-    @JsonPropertyDescription("Upload speed limit")
-    private Long sourceSpeedLimit;
+    @JsonProperty("script_content")
+    @JsonPropertyDescription("Script content")
+    private String content;
 
-    /**
-     * 目标机器下载限速
-     */
-    @JsonProperty("destination_speed_limit")
-    @JsonPropertyDescription("Download speed limit")
-    private Long destinationSpeedLimit;
+    @JsonProperty("script_language")
+    @JsonPropertyDescription("Script language")
+    private Integer language;
 
-    /**
-     * 传输模式
-     */
-    @JsonProperty("transfer_mode")
-    @JsonPropertyDescription("Transfer mode")
-    private Integer transferMode;
+    @JsonProperty("script_param")
+    @JsonPropertyDescription("Script params")
+    private String scriptParam;
+
+    @JsonProperty("script_timeout")
+    @JsonPropertyDescription("Timeout")
+    private Long scriptTimeout;
+
+    @JsonPropertyDescription("Account")
+    private EsbAccountV3BasicDTO account;
+
+    @JsonPropertyDescription("Hosts")
+    private EsbServerV3DTO server;
+
+    @JsonProperty("is_param_sensitive")
+    @JsonPropertyDescription("Is script params sensitive")
+    private Integer secureParam;
+
+    @JsonProperty("is_ignore_error")
+    @JsonPropertyDescription("Is ignore error")
+    private Integer ignoreError;
 }
