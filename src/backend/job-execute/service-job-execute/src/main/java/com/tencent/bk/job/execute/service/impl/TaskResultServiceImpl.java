@@ -322,10 +322,11 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                StepInstanceBaseDTO stepInstance,
                                                int executeCount,
                                                Integer batch,
-                                               Integer maxAgentTasksForResultGroup) {
+                                               Integer maxAgentTasksForResultGroup,
+                                               boolean fetchAllGroupData) {
         boolean isAgentTaskSet = false;
         for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
-            if (!isAgentTaskSet) {
+            if (!isAgentTaskSet || fetchAllGroupData) {
                 isAgentTaskSet = fillAgentTasksForResultGroup(resultGroup, stepInstance, executeCount,
                     batch, resultGroup.getStatus(), resultGroup.getTag(), maxAgentTasksForResultGroup);
             } else {
@@ -533,7 +534,9 @@ public class TaskResultServiceImpl implements TaskResultService {
                 filterAgentTasksByMatchIp(resultGroups, query.getMatchHostIds());
             }
 
-            removeAgentTasksForNotSpecifiedResultGroup(resultGroups, query.getStatus(), query.getTag());
+            if (!query.isFetchAllGroupData()) {
+                removeAgentTasksForNotSpecifiedResultGroup(resultGroups, query.getStatus(), query.getTag());
+            }
             watch.stop();
 
 
@@ -725,11 +728,11 @@ public class TaskResultServiceImpl implements TaskResultService {
                 setAgentTasksForSpecifiedResultType(resultGroups, status, tag, tasks);
             } else {
                 setAgentTasksForAnyResultType(resultGroups, stepInstance, queryExecuteCount,
-                    query.getBatch(), query.getMaxAgentTasksForResultGroup());
+                    query.getBatch(), query.getMaxAgentTasksForResultGroup(), query.isFetchAllGroupData());
             }
         } else {
             setAgentTasksForAnyResultType(resultGroups, stepInstance, queryExecuteCount,
-                query.getBatch(), query.getMaxAgentTasksForResultGroup());
+                query.getBatch(), query.getMaxAgentTasksForResultGroup(), query.isFetchAllGroupData());
         }
         watch.stop();
 

@@ -143,6 +143,7 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
             .logKeyword(keyword)
             .searchIp(searchIp)
             .maxAgentTasksForResultGroup(maxHostNumPerGroup)
+            .fetchAllGroupData(status == null)
             .build();
 
         StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(username, appId, query);
