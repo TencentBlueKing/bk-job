@@ -46,8 +46,8 @@ public interface EsbGetStepInstanceDetailV3Resource {
     EsbResp<EsbStepV3DTO> getStepInstanceStatus(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
-        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @RequestParam(value = "bk_scope_type") String scopeType,
+        @RequestParam(value = "bk_scope_id") String scopeId,
         @RequestParam(value = "job_instance_id") Long taskInstanceId,
         @RequestParam(value = "step_instance_id") Long stepInstanceId);
 

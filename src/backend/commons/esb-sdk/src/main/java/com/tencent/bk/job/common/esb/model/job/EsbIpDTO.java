@@ -88,6 +88,7 @@ public class EsbIpDTO {
         EsbIpDTO esbIp = new EsbIpDTO();
         esbIp.setBkCloudId(host.getBkCloudId());
         esbIp.setIp(host.getIp());
+        esbIp.setIpv6(host.getIpv6());
         esbIp.setHostId(host.getHostId());
         return esbIp;
     }

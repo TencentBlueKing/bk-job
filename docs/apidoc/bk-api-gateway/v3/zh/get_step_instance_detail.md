@@ -46,7 +46,7 @@
           "script_type": 1,
           "script_id": null,
           "script_version_id": null,
-          "script_content": "IyEvYmluL2Jhc2gKCmFueW5vd3RpbWU9ImRhdGUgKyclWS0lbS0lZCAl",
+          "script_content": "#!/bin/bash\n\nanynowtime=\"date +'%Y-%m-%d %H:%M:%S'\"\nNOW=\"echo [\\`$anynowtime\\`][PID:$$]\"\n\n##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\nfunction job_start\n{\n echo \"`eval $NOW` job_starts\"\n}\n\n##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \nfunction job_success\n{\n MSG=\"$*\"\n echo \"`eval $NOW` job_success:[$MSG]\"\n exit 0\n}\n\n##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\nfunction job_fail\n{\n MSG=\"$*\"\n echo \"`eval $NOW` job_fail:[$MSG]\"\n exit 1\n}\n\njob_start\n\n###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n###### 可在此处开始编写您的脚本逻辑代码\n\necho 1",
           "script_language": 1,
           "script_param": "1 2 3",
           "script_timeout": 1000,
@@ -170,7 +170,7 @@
 | script_type        | int       | 脚本类型：1-本地脚本，2-引用业务脚本，3-引用公共脚本 |
 | script_id          | string    | 脚本ID |
 | script_version_id  | long      | 脚本版本ID |
-| script_content     | string    | BASE64编码的脚本内容 |
+| script_content     | string    | 脚本内容 |
 | script_language    | int       | 脚本语言：1-shell，2-bat，3-perl，4-python，5-powershell，6-sql |
 | script_param       | string    | 脚本参数 |
 | script_timeout     | int       | 脚本超时时间，单位为秒 |
