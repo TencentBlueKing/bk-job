@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -56,13 +57,16 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
     private final StepInstanceValidateService stepInstanceValidateService;
     private final AppScopeMappingService appScopeMappingService;
     private final TaskResultService taskResultService;
+    private final MessageI18nService messageI18nService;
 
     public EsbGetStepInstanceStatusV3ResourceImpl(StepInstanceValidateService stepInstanceValidateService,
                                                   AppScopeMappingService appScopeMappingService,
-                                                  TaskResultService taskResultService) {
+                                                  TaskResultService taskResultService,
+                                                  MessageI18nService messageI18nService) {
         this.stepInstanceValidateService = stepInstanceValidateService;
         this.appScopeMappingService = appScopeMappingService;
         this.taskResultService = taskResultService;
+        this.messageI18nService = messageI18nService;
     }
 
     private EsbStepInstanceStatusV3DTO buildEsbStepInstanceStatusV3DTO(StepExecutionDetailDTO executionResult) {
@@ -92,6 +96,7 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
                 stepHostResult.setIpv6(agentTask.getIpv6());
                 stepHostResult.setCloudAreaId(agentTask.getBkCloudId());
                 stepHostResult.setStatus(agentTask.getStatus().getValue());
+                stepHostResult.setStatusDesc(messageI18nService.getI18n(agentTask.getStatus().getI18nKey()));
                 stepHostResult.setTag(agentTask.getTag());
                 stepHostResult.setGroupKey(resultGroup.getGroupKey());
                 stepHostResult.setExitCode(agentTask.getExitCode());
