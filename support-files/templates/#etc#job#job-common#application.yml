@@ -65,6 +65,7 @@ gseV2:
   # 是否初始化 GSE2.0 Client
   enabled: true 
 iam:
+  web-url: __BK_IAM_PUBLIC_URL__
   base-url: __BK_IAM_PRIVATE_URL__
   system-id: bk_job
 audit:
