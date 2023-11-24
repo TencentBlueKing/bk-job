@@ -42,7 +42,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * 主机通用表示-内部服务使用
+ * 作业执行对象-主机模型
  */
 @Setter
 @Getter

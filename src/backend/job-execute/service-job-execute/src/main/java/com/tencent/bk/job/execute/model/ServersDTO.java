@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
+import com.tencent.bk.job.common.model.dto.ExecuteObject;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
@@ -52,7 +53,13 @@ public class ServersDTO implements Cloneable {
     /**
      * 用户选择的服务器ip列表（静态）
      */
+    @Deprecated
     private List<HostDTO> staticIpList;
+
+    /**
+     * 用户选择的执行对象列表（静态）
+     */
+    private List<ExecuteObject> staticExecuteObjectList;
 
     /**
      * 服务器动态分组列表
@@ -67,7 +74,13 @@ public class ServersDTO implements Cloneable {
     /**
      * 服务器（动态分组、静态ip、动态topo节点）等对应的所有ip的集合
      */
+    @Deprecated
     private List<HostDTO> ipList;
+
+    /**
+     * 执行对象列表
+     */
+    private List<ExecuteObject> executeObjects;
 
     public static ServersDTO emptyInstance() {
         ServersDTO serversDTO = new ServersDTO();
