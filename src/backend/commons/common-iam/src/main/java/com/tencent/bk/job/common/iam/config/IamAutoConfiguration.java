@@ -119,7 +119,7 @@ public class IamAutoConfiguration {
                                          PolicyService policyService,
                                          EsbProperties esbProperties,
                                          ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
-        return new AppAuthServiceImpl(authHelper, businessAuthHelper, iamConfiguration, policyService, esbProperties,
+        return new AppAuthServiceImpl(authHelper, businessAuthHelper, iamConfiguration, policyService, jobIamProperties, esbProperties,
             meterRegistryObjectProvider.getIfAvailable());
     }
 
