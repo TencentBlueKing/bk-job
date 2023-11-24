@@ -1,9 +1,8 @@
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.execute.util;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
-import com.tencent.bk.job.execute.service.FileTransferModeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -15,18 +14,17 @@ import static com.tencent.bk.job.common.constant.NotExistPathHandlerEnum.STEP_FA
 
 @Slf4j
 @Service
-public class FileTransferModeServiceImpl implements FileTransferModeService {
+public class FileTransferModeUtil {
 
-    @Override
-    public FileTransferModeEnum getTransferMode(Integer duplicateHandler, Integer notExistPathHandler) {
+    public static FileTransferModeEnum getTransferMode(Integer duplicateHandler, Integer notExistPathHandler) {
         return getTransferMode(
             DuplicateHandlerEnum.valueOf(duplicateHandler),
             NotExistPathHandlerEnum.valueOf(notExistPathHandler)
         );
     }
 
-    private FileTransferModeEnum getTransferMode(DuplicateHandlerEnum duplicateHandlerEnum,
-                                                NotExistPathHandlerEnum notExistPathHandlerEnum) {
+    private static FileTransferModeEnum getTransferMode(DuplicateHandlerEnum duplicateHandlerEnum,
+                                                        NotExistPathHandlerEnum notExistPathHandlerEnum) {
         if (duplicateHandlerEnum == null) {
             // 默认覆盖
             duplicateHandlerEnum = OVERWRITE;

@@ -37,7 +37,7 @@ import java.util.List;
 public class EsbStepInstanceDetailV3DTO {
 
     /**
-     * 作业步骤ID
+     * 步骤实例ID
      */
     private Long id;
 
@@ -56,21 +56,21 @@ public class EsbStepInstanceDetailV3DTO {
      * 脚本步骤信息
      */
     @JsonProperty("script_step_info")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private ScriptStepInfo scriptStepInfo;
 
     /**
      * 文件步骤信息
      */
     @JsonProperty("file_step_info")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private FileStepInfo fileStepInfo;
 
     /**
      * 审批步骤信息
      */
     @JsonProperty("approval_step_info")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private ApprovalStepInfo approvalStepInfo;
 
     @Setter
@@ -96,7 +96,7 @@ public class EsbStepInstanceDetailV3DTO {
         private Long scriptVersionId;
 
         /**
-         * BASE64编码的脚本内容
+         * 脚本内容
          */
         private String content;
 

@@ -36,7 +36,7 @@ import java.util.List;
 public class EsbStepInstanceStatusV3DTO {
 
     /**
-     * id
+     * 步骤实例id
      */
     @JsonProperty("step_instance_id")
     private Long id;

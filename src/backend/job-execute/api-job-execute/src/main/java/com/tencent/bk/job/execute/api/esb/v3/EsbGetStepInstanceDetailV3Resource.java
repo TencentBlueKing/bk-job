@@ -28,27 +28,38 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbStepV3DTO;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+
 /**
  * 根据步骤实例 ID 查询步骤执行详情API-V3
  */
+@Validated
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
 public interface EsbGetStepInstanceDetailV3Resource {
 
     @GetMapping("/get_step_instance_detail")
-    EsbResp<EsbStepV3DTO> getStepInstanceStatus(
+    EsbResp<EsbStepV3DTO> getStepInstanceDetail(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestParam(value = "bk_scope_type") String scopeType,
         @RequestParam(value = "bk_scope_id") String scopeId,
-        @RequestParam(value = "job_instance_id") Long taskInstanceId,
-        @RequestParam(value = "step_instance_id") Long stepInstanceId);
+        @RequestParam(value = "job_instance_id")
+        @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+        @Positive(message = "{validation.constraints.InvalidJobInstanceId.message}")
+            Long taskInstanceId,
+        @RequestParam(value = "step_instance_id")
+        @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
+        @Positive(message = "{validation.constraints.InvalidStepInstanceId.message}")
+            Long stepInstanceId);
 
 }

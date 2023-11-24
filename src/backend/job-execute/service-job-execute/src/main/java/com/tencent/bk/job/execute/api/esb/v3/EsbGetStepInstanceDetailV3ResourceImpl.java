@@ -40,10 +40,10 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.FileTransferModeService;
 import com.tencent.bk.job.execute.service.StepInstanceValidateService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.util.FileTransferModeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -61,23 +61,20 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
     private final AppScopeMappingService appScopeMappingService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceValidateService stepInstanceValidateService;
-    private final FileTransferModeService fileTransferModeService;
 
     public EsbGetStepInstanceDetailV3ResourceImpl(TaskInstanceService taskInstanceService,
                                                   AppScopeMappingService appScopeMappingService,
                                                   TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                                  StepInstanceValidateService stepInstanceValidateService,
-                                                  FileTransferModeService fileTransferModeService) {
+                                                  StepInstanceValidateService stepInstanceValidateService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceValidateService = stepInstanceValidateService;
-        this.fileTransferModeService = fileTransferModeService;
     }
 
     @Override
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public EsbResp<EsbStepV3DTO> getStepInstanceStatus(String username,
+    public EsbResp<EsbStepV3DTO> getStepInstanceDetail(String username,
                                                        String appCode,
                                                        String scopeType,
                                                        String scopeId,
@@ -149,7 +146,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                 if (downloadSpeedLimit != null) {
                     fileStepInfo.setDestinationSpeedLimit(downloadSpeedLimit >> 10);
                 }
-                Integer transferMode = fileTransferModeService.getTransferMode(
+                Integer transferMode = FileTransferModeUtil.getTransferMode(
                     stepInstance.getFileDuplicateHandle(),
                     stepInstance.getNotExistPathHandler()
                 ).getValue();

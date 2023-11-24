@@ -20,14 +20,6 @@ public class StepInstanceValidateServiceImpl implements StepInstanceValidateServ
 
     @Override
     public ValidateResult checkStepInstance(long appId, Long taskInstanceId, Long stepInstanceId) {
-        if (taskInstanceId == null || taskInstanceId < 1) {
-            log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", taskInstanceId);
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
-        }
-        if (stepInstanceId == null || stepInstanceId < 1) {
-            log.warn("StepInstanceId is empty or illegal, stepInstanceId={}", stepInstanceId);
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "step_instance_id");
-        }
         // 检查taskInstanceId与stepInstanceId关联关系的正确性
         Long realTaskInstanceId = taskInstanceService.getTaskInstanceId(appId, stepInstanceId);
         if (realTaskInstanceId == null) {

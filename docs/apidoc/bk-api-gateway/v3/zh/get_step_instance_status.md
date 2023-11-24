@@ -22,7 +22,7 @@
 | bk_scope_id            | string    | 是     | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
 | job_instance_id        | long      | 是     | 作业实例ID |
 | step_instance_id       | long      | 是     | 步骤实例ID |
-| execute_count          | int       | 否     | 步骤重试次数，从0开始计数，默认值为0。 |
+| execute_count          | int       | 否     | 步骤重试次数，从0开始计数，不传表示获取最近一次重试的数据。 |
 | batch                  | int       | 否     | 滚动批次，从0开始计数，默认值为null表示获取所有批次的数据。 |
 | max_host_num_per_group | int       | 否     | 每个分组（按照status与tag进行分组，分组键可参考返回值字段中的group_key字段）里的最大主机数量，不传则返回全量数据。 |
 | keyword                | string    | 否     | 日志搜索关键字，只返回日志中包含该关键字的主机执行状态数据（注意：仅脚本步骤支持） |
