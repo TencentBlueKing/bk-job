@@ -46,7 +46,7 @@ export default class ScriptRelated extends BaseModel {
   get statusHtml() {
     let styles = 'display: inline-block; padding: 0 8px; line-height: 18px; font-size: 12px; border-radius: 2px;';
 
-    switch (this.status) {
+    switch (this.scriptStatus) {
       case ScriptRelated.STATUS_INVALID:
         styles += 'background: #F4E3C7; color: #FF9C01';
         break;
@@ -57,7 +57,7 @@ export default class ScriptRelated extends BaseModel {
         styles += 'background: #F0F1F5; color: #979BA5';
     }
     return [
-      `<span style="${styles}" data-script-status="${this.status}">`,
+      `<span style="${styles}" data-script-status="${this.scriptStatus}">`,
       ScriptRelated.STATUS_TEXT_MAP[this.scriptStatus],
       '</span>',
     ].join('');

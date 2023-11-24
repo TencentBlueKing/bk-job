@@ -845,7 +845,6 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-        overflow: auto;
         background: #fff;
         border: 1px solid #dcdee5;
         border-bottom-left-radius: 2px;

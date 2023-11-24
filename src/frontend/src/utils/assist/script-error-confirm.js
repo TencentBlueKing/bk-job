@@ -47,6 +47,7 @@ const sacnDialog = (resolve, reject) => {
     title: I18n.t('脚本中出现高危语句'),
     showFooter: false,
     width: 450,
+    maskClose: false,
     subHeader: (h => (
       <div>
         <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
@@ -93,6 +94,7 @@ const preventDialog = (resolve, reject) => {
   confirmInfo = vm.$bkInfo({
     title: I18n.t('脚本中出现高危语句'),
     showFooter: false,
+    maskClose: false,
     width: 450,
     subHeader: (h => (
       <div>
