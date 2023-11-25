@@ -40,7 +40,7 @@ import static org.hamcrest.Matchers.notNullValue;
  * 公共脚本管理 API 测试
  */
 @DisplayName("v3.PublicScriptResourceAPITest")
-class PublicScriptResourceAPITest {
+class PublicScriptResourceAPITest extends BaseTest {
 
     private static final List<EsbScriptVersionDetailV3DTO> createdPublicScriptList = new ArrayList<>();
 

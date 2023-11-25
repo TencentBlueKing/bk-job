@@ -42,6 +42,7 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.core:jackson-core:2.9.9'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
     testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.9'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.9.9'
     testImplementation 'io.jsonwebtoken:jjwt:0.9.1'
     testImplementation 'com.google.guava:guava:28.2-jre'
     testImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
