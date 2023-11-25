@@ -75,7 +75,7 @@ public class ExecuteTaskServiceImpl implements ExecuteTaskService {
                 log.debug("Sending request to executor|{}", request);
             }
 
-            InternalResponse<ServiceTaskExecuteResult> taskExecuteResult =
+            InternalResponse<ServiceTaskExecuteResult> resp =
                 executeTaskResource.executeTask(request);
             log.info(
                 "Get execute task by cron|appId={}|taskId={}|cronTaskId={}|cronName={}|operator={}|result={}",
@@ -84,9 +84,9 @@ public class ExecuteTaskServiceImpl implements ExecuteTaskService {
                 cronTaskId,
                 cronName,
                 operator,
-                JsonUtils.toJson(taskExecuteResult)
+                JsonUtils.toJson(resp)
             );
-            return taskExecuteResult;
+            return resp;
         } catch (Throwable e) {
             String msg = MessageFormatter.arrayFormat(
                 "Get execute task by cron caught exception|appId={}|taskId={}|cronTaskId={}|cronName={}|operator={}",
