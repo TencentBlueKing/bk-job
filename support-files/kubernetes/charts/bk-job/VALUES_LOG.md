@@ -1,5 +1,13 @@
 # chart values 更新日志
 
+## 0.5.5
+1. 增加权限中心web地址配置
+
+```yaml
+# 蓝鲸 IAM url
+bkIamUrl: "http://bkiam.example.com"
+```
+
 ## 0.5.4
 1. 增加定时任务服务独立数据库配置（若不配置该项则使用与其他服务共用的公共数据库），默认无需配置
 
