@@ -35,8 +35,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
 /**
  * 根据步骤实例 ID 查询步骤执行状态API-V3
@@ -54,10 +54,10 @@ public interface EsbGetStepInstanceStatusV3Resource {
         @RequestParam(value = "bk_scope_type") String scopeType,
         @RequestParam(value = "bk_scope_id") String scopeId,
         @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
-        @Positive(message = "{validation.constraints.InvalidJobInstanceId.message}")
+        @Min(message = "{validation.constraints.InvalidJobInstanceId.message}", value = 1L)
         @RequestParam(value = "job_instance_id") Long taskInstanceId,
         @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
-        @Positive(message = "{validation.constraints.InvalidStepInstanceId.message}")
+        @Min(message = "{validation.constraints.InvalidStepInstanceId.message}", value = 1L)
         @RequestParam(value = "step_instance_id") Long stepInstanceId,
         @RequestParam(value = "execute_count", required = false) Integer executeCount,
         @RequestParam(value = "batch", required = false) Integer batch,
