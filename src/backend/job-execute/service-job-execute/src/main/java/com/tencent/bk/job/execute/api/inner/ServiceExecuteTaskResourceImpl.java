@@ -88,6 +88,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
         ServiceTaskExecuteResult result = new ServiceTaskExecuteResult();
         result.setTaskInstanceId(taskInstanceDTO.getId());
         result.setName(taskInstanceDTO.getName());
+        result.setCreateTime(taskInstanceDTO.getCreateTime());
         return InternalResponse.buildSuccessResp(result);
     }
 
