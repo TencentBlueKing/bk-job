@@ -189,7 +189,7 @@ data:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
           {{- include "job.crontab.databaseConfig" . | nindent 10 }}
-          maximum-pool-size: 100
+          maximum-pool-size: {{ .Values.crontabConfig.database.maxPoolSize }}
           minimum-idle: 20
           idle-timeout: 600000
           poolName: "job-crontab"

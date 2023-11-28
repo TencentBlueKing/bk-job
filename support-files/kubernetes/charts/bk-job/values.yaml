@@ -969,6 +969,7 @@ crontabConfig:
       properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
     username: "job"
     password: "job"
+    maxPoolSize: 100
   # Quartz相关配置
   quartz:
     # 调度器配置
