@@ -26,6 +26,7 @@ package com.tencent.bk.job.crontab.dao;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobWithVarsDTO;
 
@@ -137,6 +138,7 @@ public interface CronJobDAO {
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
 
+    List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit);
 
     // 新增
 
