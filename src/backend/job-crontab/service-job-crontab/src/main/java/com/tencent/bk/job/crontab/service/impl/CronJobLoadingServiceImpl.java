@@ -66,7 +66,8 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
     private void loadAllCronJobToQuartz() {
         int start = 0;
         int limit = 100;
-        int fetchNum = 0;
+        int currentFetchNum;
+        int allFetchNum = 0;
         int successNum = 0;
         int failedNum = 0;
         List<CronJobBasicInfoDTO> failedCronList = new ArrayList<>();
@@ -75,17 +76,18 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
                 start,
                 limit
             );
-            fetchNum += loadResult.getFetchNum();
+            currentFetchNum = loadResult.getFetchNum();
+            allFetchNum += currentFetchNum;
             successNum += loadResult.getSuccessNum();
             failedNum += loadResult.getFailedNum();
             if (CollectionUtils.isNotEmpty(loadResult.getFailedCronList())) {
                 failedCronList.addAll(loadResult.getFailedCronList());
             }
             start += limit;
-        } while (fetchNum > 0);
+        } while (currentFetchNum > 0);
         log.info(
             "CronJobs load from db finished: fetchNum={}, successNum={}, failedNum={}, failedCronList={}",
-            fetchNum,
+            allFetchNum,
             successNum,
             failedNum,
             failedCronList
