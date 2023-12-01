@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.crontab.service;
 
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
+import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceInnerCronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequestDTO;
@@ -249,4 +251,10 @@ public interface CronJobService {
     boolean isExistAnyAppCronJob(Long appId);
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
+
+    boolean addJobToQuartz(long appId, long cronJobId) throws ServiceException;
+
+    boolean deleteJobFromQuartz(long appId, long cronJobId);
+
+    List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit);
 }
