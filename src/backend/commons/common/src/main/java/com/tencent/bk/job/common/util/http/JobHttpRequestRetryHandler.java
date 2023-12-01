@@ -90,16 +90,17 @@ public class JobHttpRequestRetryHandler implements HttpRequestRetryHandler {
             // 部分 InterruptedIOException 的子类型需要重试
             // ConnectTimeoutException 建立连接超时/从连接池获取连接超时
             // SocketTimeoutException Socket读取超时(相应超时）
-            if (!(exception instanceof ConnectTimeoutException || exception instanceof SocketTimeoutException)) {
-                return false;
-            } else {
+            if (exception instanceof ConnectTimeoutException || exception instanceof SocketTimeoutException) {
                 if (log.isDebugEnabled()) {
                     log.debug("Retryable exception : {}", exception.getClass().getName());
                 }
-                // 其他异常可以重试
                 return true;
+            } else {
+                // 其他类型的InterruptedIOException异常不可以重试
+                return false;
             }
         } else {
+            // 其他 IOException 可以重试，比如 NoHttpResponseException
             return true;
         }
     }

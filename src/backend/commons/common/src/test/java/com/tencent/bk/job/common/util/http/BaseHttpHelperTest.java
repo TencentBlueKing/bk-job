@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.common.util.http;
 
-import org.apache.http.client.methods.HttpGet;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.exception.InternalException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.HttpContext;
 import org.junit.jupiter.api.DisplayName;
@@ -55,8 +56,10 @@ public class BaseHttpHelperTest {
                     throw new SocketTimeoutException();
                 });
             }));
-        HttpGet get = new HttpGet("http://localhost:8080/test");
-        assertThrows(SocketTimeoutException.class, () -> retryableHttpClient.execute(get));
+        HttpHelper httpHelper = new BaseHttpHelper(retryableHttpClient);
+        assertThrows(InternalException.class,
+            () -> httpHelper.request(HttpRequest.builder(HttpMethodEnum.GET, "http://localhost:8080/test")
+                .build()));
 
         // GET + SocketTimeoutException 会被重试
         Mockito.verify(mockedRetryHandler, Mockito.times(4))
