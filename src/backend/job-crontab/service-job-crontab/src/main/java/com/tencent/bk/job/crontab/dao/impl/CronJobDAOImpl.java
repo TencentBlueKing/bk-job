@@ -39,6 +39,7 @@ import com.tencent.bk.job.crontab.model.tables.records.CronJobRecord;
 import com.tencent.bk.job.crontab.util.DbRecordMapper;
 import com.tencent.bk.job.crontab.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
@@ -52,6 +53,7 @@ import org.jooq.Record5;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
+import org.jooq.conf.ParamType;
 import org.jooq.types.UByte;
 import org.jooq.types.UInteger;
 import org.jooq.types.ULong;
@@ -534,14 +536,22 @@ public class CronJobDAOImpl implements CronJobDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
         conditions.add(TABLE.IS_ENABLE.eq(UByte.valueOf(1)));
-        Result<Record3<ULong, ULong, String>> records = context
+        val query = context
             .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME)
             .from(TABLE)
             .where(conditions)
             .orderBy(TABLE.ID)
             .limit(start, limit)
-            .forUpdate()
-            .fetch();
+            .forUpdate();
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "start={},limit={},SQL={}",
+                start,
+                limit,
+                query.getSQL(ParamType.INLINED)
+            );
+        }
+        Result<Record3<ULong, ULong, String>> records = query.fetch();
         return records.map(record -> {
             CronJobBasicInfoDTO cronJobBasicInfoDTO = new CronJobBasicInfoDTO();
             cronJobBasicInfoDTO.setId(record.get(TABLE.ID).longValue());
