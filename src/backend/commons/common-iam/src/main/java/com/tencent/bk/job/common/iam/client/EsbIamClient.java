@@ -29,10 +29,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.exception.InternalIamException;
 import com.tencent.bk.job.common.iam.dto.AuthByPathReq;
@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
@@ -78,7 +79,7 @@ public class EsbIamClient extends AbstractBkApiClient implements IIamClient {
     public EsbIamClient(MeterRegistry meterRegistry,
                         AppProperties appProperties,
                         EsbProperties esbProperties) {
-        super(meterRegistry, IAM_API, esbProperties.getService().getUrl());
+        super(meterRegistry, IAM_API, esbProperties.getService().getUrl(), HttpHelperFactory.getDefaultHttpHelper());
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
@@ -181,7 +182,7 @@ public class EsbIamClient extends AbstractBkApiClient implements IIamClient {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            ApiRequestInfo<Object> requestInfo = ApiRequestInfo
+            OpenApiRequestInfo<Object> requestInfo = OpenApiRequestInfo
                 .builder()
                 .method(method)
                 .uri(uri)

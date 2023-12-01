@@ -29,13 +29,14 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
-import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.HttpHelper;
+import com.tencent.bk.job.common.util.http.HttpRequest;
+import com.tencent.bk.job.common.util.http.HttpResponse;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -49,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
@@ -64,7 +64,7 @@ public abstract class AbstractBkApiClient {
     private String lang;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final String baseAccessUrl;
-    private final ExtHttpHelper defaultHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final HttpHelper defaultHttpHelper;
     private final MeterRegistry meterRegistry;
     private static final String BK_API_AUTH_HEADER = "X-Bkapi-Authorization";
     /**
@@ -74,25 +74,27 @@ public abstract class AbstractBkApiClient {
     private JsonMapper jsonMapper = JsonMapper.nonEmptyMapper();
 
     /**
-     * @param meterRegistry MeterRegistry
-     * @param metricName    API http 请求指标名称
-     * @param baseAccessUrl API 服务访问地址
+     * @param meterRegistry     MeterRegistry
+     * @param metricName        API http 请求指标名称
+     * @param baseAccessUrl     API 服务访问地址
+     * @param defaultHttpHelper http 请求处理客户端
      */
     public AbstractBkApiClient(MeterRegistry meterRegistry,
                                String metricName,
-                               String baseAccessUrl) {
+                               String baseAccessUrl,
+                               HttpHelper defaultHttpHelper) {
         this.meterRegistry = meterRegistry;
         this.metricName = metricName;
         this.baseAccessUrl = baseAccessUrl;
+        this.defaultHttpHelper = defaultHttpHelper;
     }
 
     public AbstractBkApiClient(MeterRegistry meterRegistry,
                                String metricName,
                                String baseAccessUrl,
+                               HttpHelper defaultHttpHelper,
                                String lang) {
-        this.meterRegistry = meterRegistry;
-        this.metricName = metricName;
-        this.baseAccessUrl = baseAccessUrl;
+        this(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper);
         this.lang = lang;
     }
 
@@ -105,27 +107,21 @@ public abstract class AbstractBkApiClient {
         this.jsonMapper = jsonMapper;
     }
 
-    public <T, R> EsbResp<R> doRequest(ApiRequestInfo<T> requestInfo,
+    public <T, R> EsbResp<R> doRequest(OpenApiRequestInfo<T> requestInfo,
+                                       TypeReference<EsbResp<R>> typeReference,
+                                       HttpHelper httpHelper) {
+        return doRequest(requestInfo, typeReference, null, httpHelper);
+    }
+
+    public <T, R> EsbResp<R> doRequest(OpenApiRequestInfo<T> requestInfo,
                                        TypeReference<EsbResp<R>> typeReference) {
-        return doRequest(requestInfo, typeReference, defaultHttpHelper, null);
+        return doRequest(requestInfo, typeReference, null);
     }
 
-    public <T, R> EsbResp<R> doRequest(ApiRequestInfo<T> requestInfo,
+    public <T, R> EsbResp<R> doRequest(OpenApiRequestInfo<T> requestInfo,
                                        TypeReference<EsbResp<R>> typeReference,
-                                       ExtHttpHelper httpHelper) {
-        return doRequest(requestInfo, typeReference, httpHelper, null);
-    }
-
-    public <T, R> EsbResp<R> doRequest(ApiRequestInfo<T> requestInfo,
-                                       TypeReference<EsbResp<R>> typeReference,
-                                       BkApiLogStrategy logStrategy) {
-        return doRequest(requestInfo, typeReference, defaultHttpHelper, logStrategy);
-    }
-
-    public <T, R> EsbResp<R> doRequest(ApiRequestInfo<T> requestInfo,
-                                       TypeReference<EsbResp<R>> typeReference,
-                                       ExtHttpHelper httpHelper,
-                                       BkApiLogStrategy logStrategy) {
+                                       BkApiLogStrategy logStrategy,
+                                       HttpHelper httpHelper) {
         HttpMethodEnum httpMethod = requestInfo.getMethod();
         BkApiContext<T, R> apiContext = new BkApiContext<>(httpMethod.name(), requestInfo.getUri(),
             requestInfo.getBody(), null, null, 0, false);
@@ -155,10 +151,10 @@ public abstract class AbstractBkApiClient {
         }
     }
 
-    private <T, R> EsbResp<R> requestApiAndWrapResponse(ApiRequestInfo<T> requestInfo,
+    private <T, R> EsbResp<R> requestApiAndWrapResponse(OpenApiRequestInfo<T> requestInfo,
                                                         BkApiContext<T, R> apiContext,
                                                         TypeReference<EsbResp<R>> typeReference,
-                                                        ExtHttpHelper httpHelper) {
+                                                        HttpHelper httpHelper) {
         String uri = apiContext.getUri();
         EsbResp<R> esbResp;
         String respStr;
@@ -166,7 +162,7 @@ public abstract class AbstractBkApiClient {
         HttpMethodEnum httpMethod = requestInfo.getMethod();
         long start = System.currentTimeMillis();
         try {
-            respStr = requestApi(requestInfo, httpHelper);
+            respStr = requestApi(httpHelper, requestInfo);
             apiContext.setOriginResp(respStr);
 
             if (StringUtils.isBlank(respStr)) {
@@ -234,77 +230,23 @@ public abstract class AbstractBkApiClient {
         return tags;
     }
 
-    private <T> String requestApi(ApiRequestInfo<T> requestInfo,
-                                  ExtHttpHelper httpHelper) {
-        String respStr = null;
-        HttpMethodEnum httpMethod = requestInfo.getMethod();
+    private <T> String requestApi(HttpHelper httpHelper, OpenApiRequestInfo<T> requestInfo) {
         String url = buildApiUrl(requestInfo.buildFinalUri());
-        switch (httpMethod) {
-            case POST:
-                respStr = postForString(url, requestInfo.getBody(),
-                    requestInfo.getAuthorization(), httpHelper);
-                break;
-            case PUT:
-                respStr = putForString(url, requestInfo.getBody(),
-                    requestInfo.getAuthorization(), httpHelper);
-                break;
-            case GET:
-                respStr = getForString(url, requestInfo.getAuthorization(), httpHelper);
-                break;
-            case DELETE:
-                respStr = deleteForString(url, requestInfo.getAuthorization(), httpHelper);
-                break;
-            default:
-                log.warn("Unimplemented http method: {}", httpMethod.name());
-                break;
-        }
-        return respStr;
+
+        Header[] headers = buildBkApiRequestHeaders(requestInfo.getAuthorization());
+        HttpRequest httpRequest = HttpRequest.builder(requestInfo.getMethod(), url)
+            .setHeaders(headers)
+            .setKeepAlive(true)
+            .setRetryMode(requestInfo.getRetryMode())
+            .setStringEntity(requestInfo.getBody() != null ? jsonMapper.toJson(requestInfo.getBody()) : null)
+            .build();
+
+        HttpResponse httpResponse = chooseHttpHelper(httpHelper).request(httpRequest);
+        return httpResponse.getEntity();
     }
 
-    private <T> String postForString(String url,
-                                     T body,
-                                     BkApiAuthorization authorization,
-                                     ExtHttpHelper httpHelper) {
-        if (httpHelper == null) {
-            httpHelper = defaultHttpHelper;
-        }
-        String responseBody;
-        Header[] header = buildBkApiRequestHeaders(authorization);
-        responseBody = httpHelper.post(url, jsonMapper.toJson(body), header);
-        return responseBody;
-    }
-
-    private <T> String putForString(String url,
-                                    T body,
-                                    BkApiAuthorization authorization,
-                                    ExtHttpHelper httpHelper) {
-        if (httpHelper == null) {
-            httpHelper = defaultHttpHelper;
-        }
-        String responseBody;
-        Header[] header = buildBkApiRequestHeaders(authorization);
-        responseBody = httpHelper.put(url, "UTF-8", jsonMapper.toJson(body), Arrays.asList(header));
-        return responseBody;
-    }
-
-    private String getForString(String url,
-                                BkApiAuthorization authorization,
-                                ExtHttpHelper httpHelper) {
-        if (httpHelper == null) {
-            httpHelper = defaultHttpHelper;
-        }
-        Header[] header = buildBkApiRequestHeaders(authorization);
-        return httpHelper.get(url, header);
-    }
-
-    private String deleteForString(String url,
-                                   BkApiAuthorization authorization,
-                                   ExtHttpHelper httpHelper) {
-        if (httpHelper == null) {
-            httpHelper = defaultHttpHelper;
-        }
-        Header[] header = buildBkApiRequestHeaders(authorization);
-        return httpHelper.delete(url, Arrays.asList(header));
+    private HttpHelper chooseHttpHelper(HttpHelper httpHelper) {
+        return httpHelper != null ? httpHelper : defaultHttpHelper;
     }
 
     private String buildApiUrl(String uri) {

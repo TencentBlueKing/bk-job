@@ -31,16 +31,17 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -110,7 +111,12 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
                                 String lang) {
-        super(meterRegistry, CmdbMetricNames.CMDB_API_PREFIX, esbProperties.getService().getUrl(), lang);
+        super(meterRegistry,
+            CmdbMetricNames.CMDB_API_PREFIX,
+            esbProperties.getService().getUrl(),
+            HttpHelperFactory.getRetryableHttpHelper(),
+            lang
+        );
         this.globalFlowController = flowController;
         this.cmdbConfig = cmdbConfig;
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
@@ -129,13 +135,12 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
                                             TypeReference<EsbResp<R>> typeReference) {
         return requestCmdbApi(method, uri, queryParams, reqBody, typeReference, null);
     }
-
     protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference,
-                                            ExtHttpHelper httpHelper) {
+                                            HttpHelper httpHelper) {
 
         String apiName = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
         if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
@@ -156,7 +161,7 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMDB_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", apiName));
-            ApiRequestInfo<Object> requestInfo = ApiRequestInfo
+            OpenApiRequestInfo<Object> requestInfo = OpenApiRequestInfo
                 .builder()
                 .method(method)
                 .uri(uri)

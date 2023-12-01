@@ -25,11 +25,13 @@
 package com.tencent.bk.job.common.iam.http;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.exception.InternalIamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.constants.HttpHeader;
@@ -39,14 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Slf4j
 public class IamHttpClientServiceImpl implements HttpClientService {
 
     private final String DEFAULT_CHARSET = "UTF-8";
-    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final IamConfiguration iamConfiguration;
 
     public IamHttpClientServiceImpl(IamConfiguration iamConfiguration) {
@@ -59,7 +58,11 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.get(buildUrl(uri), buildAuthHeader());
+            return httpHelper.request(
+                HttpRequest.builder(HttpMethodEnum.GET, buildUrl(uri))
+                    .setHeaders(buildAuthHeader())
+                    .build())
+                .getEntity();
         } catch (Exception e) {
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
@@ -72,7 +75,12 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.post(buildUrl(uri), DEFAULT_CHARSET, JsonUtils.toJson(body), buildAuthHeader());
+            return httpHelper.request(
+                HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
+                    .setHeaders(buildAuthHeader())
+                    .setStringEntity(JsonUtils.toJson(body))
+                    .build())
+                .getEntity();
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
@@ -86,7 +94,12 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.put(buildUrl(uri), DEFAULT_CHARSET, JsonUtils.toJson(body), buildAuthHeader());
+            return httpHelper.request(
+                HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
+                    .setHeaders(buildAuthHeader())
+                    .setStringEntity(JsonUtils.toJson(body))
+                    .build())
+                .getEntity();
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
@@ -100,7 +113,11 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.delete(buildUrl(uri), buildAuthHeader());
+            return httpHelper.request(
+                HttpRequest.builder(HttpMethodEnum.DELETE, buildUrl(uri))
+                    .setHeaders(buildAuthHeader())
+                    .build())
+                .getEntity();
         } catch (Exception e) {
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
@@ -112,11 +129,11 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         return iamConfiguration.getIamBaseUrl() + uri;
     }
 
-    private List<Header> buildAuthHeader() {
-        List<Header> headerList = new ArrayList<>();
-        headerList.add(new BasicHeader(HttpHeader.BK_APP_CODE, iamConfiguration.getAppCode()));
-        headerList.add(new BasicHeader(HttpHeader.BK_APP_SECRET, iamConfiguration.getAppSecret()));
-        return headerList;
+    private Header[] buildAuthHeader() {
+        Header[] headers = new Header[2];
+        headers[0] = new BasicHeader(HttpHeader.BK_APP_CODE, iamConfiguration.getAppCode());
+        headers[1] = new BasicHeader(HttpHeader.BK_APP_SECRET, iamConfiguration.getAppSecret());
+        return headers;
     }
 
 }

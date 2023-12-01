@@ -24,23 +24,40 @@
 
 package com.tencent.bk.job.common.util.http;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.Header;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-
 /**
- * Job http 调用基础实现
+ * http 请求重试方式
  */
-public interface HttpHelper {
-
-    Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header);
-
+public enum RetryModeEnum {
     /**
-     * 发起 http 请求
-     *
-     * @param request 请求
-     * @return 响应
+     * 失败重试
      */
-    HttpResponse request(HttpRequest request);
+    ALWAYS(1),
+    /**
+     * 从不重试
+     */
+    NEVER(2),
+    /**
+     * 使用 Job 定义的默认重试方式
+     */
+    DEFAULT(3);
+
+
+    private final int value;
+
+    RetryModeEnum(int value) {
+        this.value = value;
+    }
+
+    public static RetryModeEnum valOf(int val) {
+        for (RetryModeEnum modeEnum : values()) {
+            if (modeEnum.value == val) {
+                return modeEnum;
+            }
+        }
+        throw new IllegalArgumentException("No RetryModeEnum constant: " + val);
+    }
+
+    public int getValue() {
+        return value;
+    }
 }

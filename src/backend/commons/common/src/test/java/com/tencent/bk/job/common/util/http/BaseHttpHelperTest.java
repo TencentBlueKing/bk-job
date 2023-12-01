@@ -24,23 +24,42 @@
 
 package com.tencent.bk.job.common.util.http;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.Header;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.protocol.HttpContext;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-/**
- * Job http 调用基础实现
- */
-public interface HttpHelper {
+import java.net.SocketTimeoutException;
 
-    Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header);
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-    /**
-     * 发起 http 请求
-     *
-     * @param request 请求
-     * @return 响应
-     */
-    HttpResponse request(HttpRequest request);
+public class BaseHttpHelperTest {
+    @Test
+    @DisplayName("测试 BaseHttpHelper 异常重试")
+    void whenGetThrowSocketTimeoutExceptionThenRetry() {
+        JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
+
+        CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
+            15000,
+            15000,
+            15000,
+            1,
+            2,
+            60,
+            true,
+            mockedRetryHandler,
+            (httpClientBuilder -> {
+                httpClientBuilder.addInterceptorFirst((org.apache.http.HttpRequest request, HttpContext context) -> {
+                    throw new SocketTimeoutException();
+                });
+            }));
+        HttpGet get = new HttpGet("http://localhost:8080/test");
+        assertThrows(SocketTimeoutException.class, () -> retryableHttpClient.execute(get));
+
+        // GET + SocketTimeoutException 会被重试
+        Mockito.verify(mockedRetryHandler, Mockito.times(4))
+            .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
+    }
 }
