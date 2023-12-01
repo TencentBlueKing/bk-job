@@ -114,6 +114,10 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         if (log.isDebugEnabled()) {
             log.debug("Get cronjob info return|{}", cronJobInfo);
         }
+        if (!cronJobInfo.getEnable()) {
+            log.error("cronJob {} scheduled unexpectedly, do not execute", cronJobInfo);
+            return;
+        }
 
         List<CronJobVariableDTO> variables = cronJobInfo.getVariableValue();
         List<ServiceTaskVariable> taskVariables = null;

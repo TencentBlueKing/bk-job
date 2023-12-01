@@ -26,6 +26,7 @@ package com.tencent.bk.job.crontab.timer;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.crontab.metrics.CronMetricsConstants;
 import com.tencent.bk.job.crontab.metrics.ScheduleMeasureService;
 import io.micrometer.core.instrument.Tag;
@@ -85,17 +86,21 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
             if (redisLockGotten) {
                 executeInternalInternal(context);
             } else {
-                log.warn("{}|Job {} key {} execute aborted. Acquire lock failed!", executeId, name(),
-                    getLockKey(context));
+                if (log.isDebugEnabled()) {
+                    log.debug(
+                        "{}|Job {} key {} execute aborted. Acquire lock failed!",
+                        executeId,
+                        name(),
+                        getLockKey(context)
+                    );
+                }
             }
-
             if (log.isDebugEnabled()) {
                 log.debug("{}|Job {} key {} execute finished.", executeId, name(), getLockKey(context));
             }
         } catch (JobExecutionException e) {
             log.error("fail to executeInternal", e);
         } finally {
-            LockUtils.releaseDistributedLock(getLockKey(context), executeId);
             recordCronTimeConsuming(context, redisLockGotten, startTimeMills);
             span.end();
         }
@@ -105,6 +110,17 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
                                          boolean redisLockGotten,
                                          long startTimeMills) {
         long timeConsumingMills = System.currentTimeMillis() - startTimeMills;
+        String timeFormat = "yyyy-MM-dd HH:mm:ss.SSS";
+        log.info(
+            "CronJob finished: {}, " +
+                "redisLockGotten={}, scheduledFireTime={}, fireTime={}, fireDelay={}ms, executeDuration={}ms",
+            getLockKey(context),
+            redisLockGotten,
+            TimeUtil.formatTime(context.getScheduledFireTime().getTime(), timeFormat),
+            TimeUtil.formatTime(context.getFireTime().getTime(), timeFormat),
+            context.getFireTime().getTime() - context.getScheduledFireTime().getTime(),
+            timeConsumingMills
+        );
         scheduleMeasureService.recordCronTimeConsuming(
             name(),
             context,
