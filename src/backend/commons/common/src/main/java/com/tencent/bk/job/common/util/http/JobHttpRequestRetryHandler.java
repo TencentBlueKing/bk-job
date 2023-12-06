@@ -26,19 +26,18 @@ package com.tencent.bk.job.common.util.http;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpRequest;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.protocol.HttpContext;
 
-import javax.net.ssl.SSLException;
 import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.net.ConnectException;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -51,12 +50,21 @@ public class JobHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
     private final Map<String, Boolean> retryMethods;
 
+    private final Set<Class<? extends IOException>> retryableExceptions;
+
     public JobHttpRequestRetryHandler() {
         this.retryCount = 3;
         this.retryMethods = new ConcurrentHashMap<>();
         // 蓝鲸各平台仅能保证 GET、DELETE 是幂等的，跟 RESTful API 规范有差异
         this.retryMethods.put("GET", Boolean.TRUE);
         this.retryMethods.put("DELETE", Boolean.TRUE);
+        retryableExceptions = new HashSet<>();
+        // ConnectTimeoutException 建立连接超时/从连接池获取连接超时
+        // SocketTimeoutException Socket连接/读取超时
+        // NoHttpResponseException 服务器端关闭连接或者服务端负载太高无法响应，以及网络连接问题
+        retryableExceptions.add(ConnectTimeoutException.class);
+        retryableExceptions.add(SocketTimeoutException.class);
+        retryableExceptions.add(NoHttpResponseException.class);
     }
 
     @Override
@@ -82,27 +90,7 @@ public class JobHttpRequestRetryHandler implements HttpRequestRetryHandler {
         if (log.isDebugEnabled()) {
             log.debug("Http exception : {}", exception.getClass().getName());
         }
-        // 异常重试机制参考默认的 org.apache.http.impl.client.DefaultHttpRequestRetryHandler，略有差异
-        if (exception instanceof UnknownHostException || exception instanceof SSLException
-            || exception instanceof ConnectException) {
-            return false;
-        } else if (exception instanceof InterruptedIOException) {
-            // 部分 InterruptedIOException 的子类型需要重试
-            // ConnectTimeoutException 建立连接超时/从连接池获取连接超时
-            // SocketTimeoutException Socket读取超时(相应超时）
-            if (exception instanceof ConnectTimeoutException || exception instanceof SocketTimeoutException) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Retryable exception : {}", exception.getClass().getName());
-                }
-                return true;
-            } else {
-                // 其他类型的InterruptedIOException异常不可以重试
-                return false;
-            }
-        } else {
-            // 其他 IOException 可以重试，比如 NoHttpResponseException
-            return true;
-        }
+        return retryableExceptions.contains(exception.getClass());
     }
 
     private boolean checkByRetryMode(HttpContext context) {

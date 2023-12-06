@@ -169,12 +169,12 @@ public class BaseHttpHelper implements HttpHelper {
         String respStr = null;
         try (CloseableHttpResponse httpResponse = httpClient.execute(httpClientRequest, context)) {
             httpStatusCode = httpResponse.getStatusLine().getStatusCode();
+            HttpEntity entity = httpResponse.getEntity();
+            if (entity != null && entity.getContent() != null) {
+                respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
+            }
             if (httpStatusCode != HttpStatus.SC_OK) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
-                HttpEntity entity = httpResponse.getEntity();
-                if (entity != null && entity.getContent() != null) {
-                    respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
-                }
                 log.warn(
                     "Request fail, method: {}, url={}, httpStatusCode={}, errorReason={}, body={},",
                     httpClientRequest.getMethod(),
@@ -184,8 +184,9 @@ public class BaseHttpHelper implements HttpHelper {
                     respStr
                 );
                 throw new InternalException(message, ErrorCode.API_ERROR);
+            } else {
+                return new HttpResponse(httpStatusCode, respStr);
             }
-            return new HttpResponse(httpStatusCode, respStr);
         } catch (IOException e) {
             log.error("Request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);

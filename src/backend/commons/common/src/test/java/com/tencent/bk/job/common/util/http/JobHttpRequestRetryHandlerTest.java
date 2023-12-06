@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -123,6 +124,34 @@ public class JobHttpRequestRetryHandlerTest {
 
 
         Mockito.verify(mockedRetryHandler, Mockito.times(4))
+            .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
+    }
+
+    @Test
+    @DisplayName("其他异常不重试")
+    void whenThrowNotRetryableExceptionThenDoNotRetry() {
+        JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
+
+        CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
+            15000,
+            15000,
+            15000,
+            1,
+            2,
+            60,
+            true,
+            mockedRetryHandler,
+            (httpClientBuilder -> {
+                httpClientBuilder.addInterceptorFirst((org.apache.http.HttpRequest request, HttpContext context) -> {
+                    throw new UnknownHostException("");
+                });
+            }));
+
+        HttpGet get = new HttpGet("http://127.0.0.1:8080/test");
+        assertThrows(UnknownHostException.class, () -> retryableHttpClient.execute(get));
+
+
+        Mockito.verify(mockedRetryHandler, Mockito.times(1))
             .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
     }
 

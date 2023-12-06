@@ -65,7 +65,7 @@ public abstract class AbstractHttpClient {
         boolean error = false;
         long start = System.currentTimeMillis();
         String responseBody = null;
-        String url = hostUrl;
+        String url;
         try {
             if (!hostUrl.endsWith("/") && !uri.startsWith("/")) {
                 url = hostUrl + "/" + uri + params.toUrlParams();
