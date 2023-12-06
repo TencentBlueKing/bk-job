@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptListResource;
 import com.tencent.bk.job.manage.auth.EsbAuthService;
@@ -65,21 +64,19 @@ import java.util.stream.Collectors;
 public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
     private final ScriptService scriptService;
     private final EsbAuthService authService;
-    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetScriptListResourceImpl(ScriptService scriptService,
-                                        EsbAuthService authService,
-                                        AppScopeMappingService appScopeMappingService) {
+                                        EsbAuthService authService) {
         this.scriptService = scriptService;
         this.authService = authService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_script_list"})
-    public EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(EsbGetScriptListRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
+    public EsbResp<EsbPageData<EsbScriptDTO>> getScriptList(String username,
+                                                            String appCode,
+                                                            EsbGetScriptListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script list, request is illegal!");
@@ -123,7 +120,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
                 return it.getId();
             }).collect(Collectors.toList());
             if (!resourceIds.isEmpty()) {
-                EsbResp authFailResp = authService.batchAuthJobResources(request.getUserName(), ActionId.VIEW_SCRIPT,
+                EsbResp authFailResp = authService.batchAuthJobResources(username, ActionId.VIEW_SCRIPT,
                     request.getAppResourceScope(), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;

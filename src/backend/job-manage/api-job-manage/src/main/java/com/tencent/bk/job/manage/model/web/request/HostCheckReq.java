@@ -49,10 +49,10 @@ public class HostCheckReq {
     @ApiModelProperty(value = "hostId列表", required = true)
     List<Long> hostIdList = new ArrayList<>();
 
-    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:ip或ip")
+    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:[ip]或cloudAreaId:ip或ip")
     List<String> ipList = new ArrayList<>();
 
-    @ApiModelProperty(value = "IPv6列表，单个IPv6格式：cloudAreaId:ipv6或ipv6")
+    @ApiModelProperty(value = "IPv6列表，单个IPv6格式：cloudAreaId:[ipv6]或ipv6")
     List<String> ipv6List = new ArrayList<>();
 
     @ApiModelProperty(value = "关键字列表，可匹配主机名称")

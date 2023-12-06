@@ -41,7 +41,6 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptDetailResource;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
@@ -60,14 +59,11 @@ import java.time.temporal.ChronoUnit;
 public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResource {
     private final ScriptManager scriptManager;
     private final ScriptAuthService scriptAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetScriptDetailResourceImpl(ScriptManager scriptManager,
-                                          ScriptAuthService scriptAuthService,
-                                          AppScopeMappingService appScopeMappingService) {
+                                          ScriptAuthService scriptAuthService) {
         this.scriptManager = scriptManager;
         this.scriptAuthService = scriptAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -80,8 +76,9 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
         ),
         content = EventContentConstants.VIEW_SCRIPT
     )
-    public EsbResp<EsbScriptDTO> getScriptDetail(EsbGetScriptDetailRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
+    public EsbResp<EsbScriptDTO> getScriptDetail(String username,
+                                                 String appCode,
+                                                 EsbGetScriptDetailRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get script detail, request is illegal!");
@@ -104,7 +101,7 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
         // 非公共脚本鉴权
         if (!scriptVersion.isPublicScript()) {
             AuthResult authResult =
-                scriptAuthService.authViewScript(request.getUserName(), request.getAppResourceScope(), scriptId, null);
+                scriptAuthService.authViewScript(username, request.getAppResourceScope(), scriptId, null);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }

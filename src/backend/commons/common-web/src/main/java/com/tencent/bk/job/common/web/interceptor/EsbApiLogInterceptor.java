@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.web.interceptor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
@@ -48,8 +47,6 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
 
     private static final String ATTR_REQUEST_START = "request-start";
     private static final String ATTR_API_NAME = "api-name";
-    private static final String ATTR_USERNAME = "username";
-    private static final String ATTR_APP_CODE = "app-code";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -59,8 +56,8 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
         RepeatableReadWriteHttpServletRequest wrapperRequest = (RepeatableReadWriteHttpServletRequest) request;
         String desensitizedBody = "";
         String desensitizedQueryParams = "";
-        String username = "";
-        String appCode = "";
+        String username = request.getHeader(JobCommonHeaders.USERNAME);
+        String appCode = request.getHeader(JobCommonHeaders.APP_CODE);
         String apiName = "";
         String lang = request.getHeader(JobCommonHeaders.BK_GATEWAY_LANG);
         String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
@@ -70,34 +67,34 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             apiName = getAPIName(wrapperRequest.getRequestURI());
             request.setAttribute(ATTR_API_NAME, apiName);
             desensitizedQueryParams = desensitizeQueryParams(request.getQueryString());
-            if (request.getMethod().equals(HttpMethod.POST.name())
-                || request.getMethod().equals(HttpMethod.PUT.name())) {
-                if (StringUtils.isNotBlank(wrapperRequest.getBody())) {
-                    ObjectNode jsonBody = (ObjectNode) JsonUtils.toJsonNode(wrapperRequest.getBody());
-                    if (jsonBody == null) {
-                        return true;
-                    }
-                    username = jsonBody.get("bk_username") == null ? null : jsonBody.get("bk_username").asText();
-                    appCode = jsonBody.get("bk_app_code") == null ? null : jsonBody.get("bk_app_code").asText();
-
-                    // hidden sensitive data
-                    jsonBody.set("bk_app_secret", TextNode.valueOf("***"));
-                    desensitizedBody = jsonBody.toString();
-                }
-            } else if (request.getMethod().equals(HttpMethod.GET.name())) {
-                username = request.getParameter("bk_username");
-                appCode = request.getParameter("bk_app_code");
-                request.setAttribute(ATTR_USERNAME, username);
-                request.setAttribute(ATTR_APP_CODE, appCode);
-            }
-        } catch (Throwable e) {
-            return true;
+            desensitizedBody = desensitizeRequestBody(wrapperRequest);
+        } catch (Throwable ignore) {
+            // do nothing
         } finally {
             log.info("request-id: {}|lang: {}|API: {}|uri: {}|appCode: {}|username: {}|body: {}|queryParams: {}",
                 requestId, lang, apiName, request.getRequestURI(), appCode, username, desensitizedBody,
                 desensitizedQueryParams);
         }
         return true;
+    }
+
+    private String desensitizeRequestBody(RepeatableReadWriteHttpServletRequest request) {
+        if (request.getMethod().equals(HttpMethod.POST.name())
+            || request.getMethod().equals(HttpMethod.PUT.name())) {
+            if (StringUtils.isNotBlank(request.getBody())) {
+                ObjectNode jsonBody = (ObjectNode) JsonUtils.toJsonNode(request.getBody());
+                if (jsonBody == null) {
+                    return null;
+                }
+
+                // 由于历史原因，ESB API 的调用方会在 Body 中直接传入 bk_app_secret 这个敏感参数，需要在日志记录的时候脱敏
+                if (jsonBody.get("bk_app_secret") != null) {
+                    jsonBody.remove("bk_app_secret");
+                }
+                return jsonBody.toString();
+            }
+        }
+        return null;
     }
 
     private String desensitizeQueryParams(String queryParams) {
@@ -138,8 +135,8 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
         try {
             Long startTimeInMills = (Long) request.getAttribute(ATTR_REQUEST_START);
             String apiName = (String) request.getAttribute(ATTR_API_NAME);
-            String appCode = (String) request.getAttribute(ATTR_APP_CODE);
-            String username = (String) request.getAttribute(ATTR_USERNAME);
+            String username = request.getHeader(JobCommonHeaders.USERNAME);
+            String appCode = request.getHeader(JobCommonHeaders.APP_CODE);
             String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
             int respStatus = response.getStatus();
             long cost = System.currentTimeMillis() - startTimeInMills;

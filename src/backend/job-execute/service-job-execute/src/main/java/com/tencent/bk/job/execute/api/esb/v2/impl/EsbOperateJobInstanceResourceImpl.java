@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbOperateJobInstanceResource;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
@@ -43,24 +42,22 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbOperateJobInstanceResourceImpl implements EsbOperateJobInstanceResource {
     private final TaskExecuteService taskExecuteService;
-    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbOperateJobInstanceResourceImpl(TaskExecuteService taskExecuteService,
-                                             AppScopeMappingService appScopeMappingService) {
+    public EsbOperateJobInstanceResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_operate_job_instance"})
-    public EsbResp<EsbJobExecuteDTO> operateJobInstance(EsbOperateJobInstanceRequest request) {
+    public EsbResp<EsbJobExecuteDTO> operateJobInstance(String username,
+                                                        String appCode,
+                                                        EsbOperateJobInstanceRequest request) {
         log.info("Operate task instance, request={}", JsonUtils.toJson(request));
-        request.fillAppResourceScope(appScopeMappingService);
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskOperationEnum taskOperation = TaskOperationEnum.getTaskOperation(request.getOperationCode());
-        taskExecuteService.doTaskOperation(request.getAppId(), request.getUserName(),
+        taskExecuteService.doTaskOperation(request.getAppId(), username,
             request.getTaskInstanceId(), taskOperation);
         EsbJobExecuteDTO result = new EsbJobExecuteDTO();
         result.setTaskInstanceId(request.getTaskInstanceId());

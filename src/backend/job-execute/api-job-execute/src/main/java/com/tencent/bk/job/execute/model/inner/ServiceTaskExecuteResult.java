@@ -30,4 +30,5 @@ import lombok.Data;
 public class ServiceTaskExecuteResult {
     private long taskInstanceId;
     private String name;
+    private Long createTime;
 }

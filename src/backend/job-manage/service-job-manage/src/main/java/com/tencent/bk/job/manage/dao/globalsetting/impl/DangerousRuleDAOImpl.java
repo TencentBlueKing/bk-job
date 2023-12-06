@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
+import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
@@ -240,6 +241,22 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             return 0;
         } else {
             return record.value1();
+        }
+    }
+
+    @Override
+    public int updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status) {
+        val query = dslContext.update(T)
+            .set(T.LAST_MODIFY_USER, userName)
+            .set(T.LAST_MODIFY_TIME, ULong.valueOf(System.currentTimeMillis()))
+            .set(T.STATUS, (byte) status.getValue())
+            .where(T.ID.eq(id));
+        try {
+            return query.execute();
+        } catch (Exception e) {
+            val sql = query.getSQL(ParamType.INLINED);
+            log.error(sql);
+            throw e;
         }
     }
 

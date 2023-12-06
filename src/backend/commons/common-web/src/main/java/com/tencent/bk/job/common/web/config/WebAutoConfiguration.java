@@ -48,5 +48,9 @@ public class WebAutoConfiguration {
         return new EsbApiTimedAspect(meterRegistry);
     }
 
+    @Bean
+    public ApiTypeTagsContributor apiTypeTagsContributor() {
+        return new ApiTypeTagsContributor();
+    }
 
 }

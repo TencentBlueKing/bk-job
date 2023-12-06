@@ -36,15 +36,11 @@ public class EsbMetricTags {
     /**
      * 接口调用状态：初始值
      */
-    public static final String VALUE_STATUS_NONE = "none";
+    public static final String VALUE_NONE = "none";
     /**
      * 接口调用状态：成功
      */
-    public static final String VALUE_STATUS_SUCCESS = "success";
-    /**
-     * 接口调用状态：失败
-     */
-    public static final String VALUE_STATUS_FAIL = "fail";
+    public static final String VALUE_STATUS_OK = "ok";
     /**
      * 接口调用状态：超频
      */

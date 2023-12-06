@@ -66,6 +66,8 @@ public interface EsbTemplateV3Resource {
 
     @PostMapping("/get_job_template_list")
     EsbResp<EsbPageDataV3<EsbTemplateBasicInfoV3DTO>> getTemplateListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetTemplateListV3Request request

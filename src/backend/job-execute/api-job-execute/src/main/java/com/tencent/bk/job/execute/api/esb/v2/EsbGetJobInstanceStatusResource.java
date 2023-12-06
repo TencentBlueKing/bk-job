@@ -48,6 +48,8 @@ public interface EsbGetJobInstanceStatusResource {
 
     @PostMapping("/get_job_instance_status")
     EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatusUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetJobInstanceStatusRequest request
@@ -55,8 +57,8 @@ public interface EsbGetJobInstanceStatusResource {
 
     @GetMapping("/get_job_instance_status")
     EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatus(
-        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,

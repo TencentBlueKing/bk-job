@@ -29,4 +29,16 @@ public class CronMetricsConstants {
      * 定时任务调度延迟指标
      */
     public static final String NAME_JOB_CRON_SCHEDULE_DELAY = "job.cron.schedule.delay";
+    /**
+     * 定时任务执行延迟指标
+     */
+    public static final String NAME_JOB_CRON_EXECUTE_DELAY = "job.cron.execute.delay";
+    /**
+     * 定时任务执行耗时指标
+     */
+    public static final String NAME_JOB_CRON_TIME_CONSUMING = "job.cron.time.consuming";
+    /**
+     * 标签：定时任务是否真正执行（抢到分布式锁）
+     */
+    public static final String TAG_KEY_JOB_CRON_EXECUTE_ACTUALLY = "execute_actually";
 }

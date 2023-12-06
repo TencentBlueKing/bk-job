@@ -62,32 +62,33 @@ import java.util.List;
 public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final AppScopeMappingService appScopeMappingService;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
-                                            AppScopeMappingService appScopeMappingService,
                                             ScriptAgentTaskService scriptAgentTaskService,
                                             FileAgentTaskService fileAgentTaskService,
                                             LogService logService,
-                                            TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+                                            TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                            AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
-        this.appScopeMappingService = appScopeMappingService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.logService = logService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_log"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLogUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceLogRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
 
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
@@ -95,7 +96,7 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
             throw new InvalidParamException(checkResult);
         }
 
-        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+        taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstanceList =
@@ -185,19 +186,18 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_log"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String appCode,
-                                                                        String username,
+    public EsbResp<List<EsbStepInstanceResultAndLog>> getJobInstanceLog(String username,
+                                                                        String appCode,
                                                                         Long appId,
                                                                         String scopeType,
                                                                         String scopeId,
                                                                         Long taskInstanceId) {
         EsbGetJobInstanceLogRequest req = new EsbGetJobInstanceLogRequest();
-        req.setAppCode(appCode);
-        req.setUserName(username);
         req.setBizId(appId);
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
-        return getJobInstanceLogUsingPost(req);
+        req.fillAppResourceScope(appScopeMappingService);
+        return getJobInstanceLogUsingPost(username, appCode, req);
     }
 }

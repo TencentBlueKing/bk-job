@@ -64,27 +64,27 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceStatusResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final AppScopeMappingService appScopeMappingService;
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
+    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceStatusResourceImpl(TaskInstanceService taskInstanceService,
-                                               AppScopeMappingService appScopeMappingService,
                                                ScriptAgentTaskService scriptAgentTaskService,
-                                               FileAgentTaskService fileAgentTaskService) {
+                                               FileAgentTaskService fileAgentTaskService,
+                                               AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
-        this.appScopeMappingService = appScopeMappingService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_status"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatusUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceStatusRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance status request is illegal!");
@@ -92,7 +92,7 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(request.getUserName(),
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(username,
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
@@ -203,19 +203,18 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_status"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatus(String appCode,
-                                                                 String username,
+    public EsbResp<EsbJobInstanceStatusDTO> getJobInstanceStatus(String username,
+                                                                 String appCode,
                                                                  Long bizId,
                                                                  String scopeType,
                                                                  String scopeId,
                                                                  Long taskInstanceId) {
         EsbGetJobInstanceStatusRequest req = new EsbGetJobInstanceStatusRequest();
-        req.setAppCode(appCode);
-        req.setUserName(username);
         req.setBizId(bizId);
         req.setScopeType(scopeType);
         req.setScopeId(scopeId);
         req.setTaskInstanceId(taskInstanceId);
-        return getJobInstanceStatusUsingPost(req);
+        req.fillAppResourceScope(appScopeMappingService);
+        return getJobInstanceStatusUsingPost(username, appCode, req);
     }
 }

@@ -25,13 +25,20 @@
 package com.tencent.bk.job.common.esb.config;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties(prefix = "app")
+@NoArgsConstructor
 public class AppProperties {
 
     private String code;
 
     private String secret;
+
+    public AppProperties(String code, String secret) {
+        this.code = code;
+        this.secret = secret;
+    }
 }

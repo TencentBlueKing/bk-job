@@ -26,8 +26,12 @@ package com.tencent.bk.job.crontab.timer;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.crontab.metrics.CronMetricsConstants;
 import com.tencent.bk.job.crontab.metrics.ScheduleMeasureService;
+import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +43,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 @Slf4j
 public abstract class AbstractQuartzJobBean extends QuartzJobBean {
 
@@ -46,7 +51,7 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
         DateTimeFormatter.ofPattern("yyyyMMddHHmmssX").withZone(ZoneOffset.UTC);
 
     @Autowired
-    ScheduleMeasureService scheduleMeasureService;
+    public ScheduleMeasureService scheduleMeasureService;
 
     @Autowired
     Tracer tracer;
@@ -66,31 +71,62 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
     public abstract String name();
 
     @Override
-    protected void executeInternal(JobExecutionContext context) {
+    protected void executeInternal(@NotNull JobExecutionContext context) {
         scheduleMeasureService.recordCronScheduleDelay(name(), context);
         ScopedSpan span = tracer.startScopedSpan("executeCronJob");
         JobContextUtil.setRequestId(span.context().traceId());
         String executeId = JobContextUtil.getRequestId();
+        long startTimeMills = System.currentTimeMillis();
+        boolean redisLockGotten = false;
         try {
             if (log.isDebugEnabled()) {
                 log.debug("{}|Job {} key {} start execute ...", executeId, name(), getLockKey(context));
             }
-            if (LockUtils.tryGetDistributedLock(getLockKey(context), executeId, 1000L)) {
+            redisLockGotten = LockUtils.tryGetDistributedLock(getLockKey(context), executeId, 90000L);
+            if (redisLockGotten) {
                 executeInternalInternal(context);
             } else {
-                log.warn("{}|Job {} key {} execute aborted. Acquire lock failed!", executeId, name(),
-                    getLockKey(context));
+                if (log.isDebugEnabled()) {
+                    log.debug(
+                        "{}|Job {} key {} execute aborted. Acquire lock failed!",
+                        executeId,
+                        name(),
+                        getLockKey(context)
+                    );
+                }
             }
-
             if (log.isDebugEnabled()) {
                 log.debug("{}|Job {} key {} execute finished.", executeId, name(), getLockKey(context));
             }
         } catch (JobExecutionException e) {
             log.error("fail to executeInternal", e);
         } finally {
-            LockUtils.releaseDistributedLock(getLockKey(context), executeId);
+            recordCronTimeConsuming(context, redisLockGotten, startTimeMills);
             span.end();
         }
+    }
+
+    private void recordCronTimeConsuming(JobExecutionContext context,
+                                         boolean redisLockGotten,
+                                         long startTimeMills) {
+        long timeConsumingMills = System.currentTimeMillis() - startTimeMills;
+        String timeFormat = "yyyy-MM-dd HH:mm:ss.SSS";
+        log.info(
+            "CronJob finished: {}, " +
+                "redisLockGotten={}, scheduledFireTime={}, fireTime={}, fireDelay={}ms, executeDuration={}ms",
+            getLockKey(context),
+            redisLockGotten,
+            TimeUtil.formatTime(context.getScheduledFireTime().getTime(), timeFormat),
+            TimeUtil.formatTime(context.getFireTime().getTime(), timeFormat),
+            context.getFireTime().getTime() - context.getScheduledFireTime().getTime(),
+            timeConsumingMills
+        );
+        scheduleMeasureService.recordCronTimeConsuming(
+            name(),
+            context,
+            timeConsumingMills,
+            Tag.of(CronMetricsConstants.TAG_KEY_JOB_CRON_EXECUTE_ACTUALLY, String.valueOf(redisLockGotten))
+        );
     }
 
     protected abstract void executeInternalInternal(JobExecutionContext context) throws JobExecutionException;

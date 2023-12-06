@@ -165,6 +165,7 @@
   import _ from 'lodash';
   import {
     computed,
+    onBeforeUnmount,
     onMounted,
     reactive,
     ref,
@@ -278,14 +279,13 @@
   });
   const tableMaxHeight = ref(0);
   const selectRowKey = ref('');
+  const windowInnerWidth = ref(window.innerWidth);
+  const positionLeftOffset = ref(0);
 
   const styles = computed(() => {
-    if (!listRef.value) {
-      return {};
-    }
-    const { left } = listRef.value.getBoundingClientRect();
-    const windowInnerWidth = window.innerWidth;
-    const maxWidth = windowInnerWidth - left - 800 - 24;
+    const rightLogWidth = 800;
+    const paddingLeft = 24;
+    const maxWidth = windowInnerWidth.value - positionLeftOffset.value - rightLogWidth - paddingLeft;
     const allShowColumnMap = makeMap(allShowColumn.value);
     const allShowColumnWidth = columnList.value.reduce((result, item) => {
       if (allShowColumnMap[item.name]) {
@@ -315,6 +315,9 @@
   };
 
   watch(() => props.data, () => {
+    if (listRef.value) {
+      positionLeftOffset.value = listRef.value.getBoundingClientRect().left;
+    }
     // 切换分组时最新的分组数据一定来自API返回数据
     // listLoading为false说明是本地切换不更新列表
     if (!props.listLoading) {
@@ -435,9 +438,18 @@
     emits('on-clear-search');
   };
 
+  const handleWindowResize = _.throttle(() => {
+    windowInnerWidth.value = window.innerWidth;
+  }, 60);
+
   onMounted(() => {
     calcPageSize();
     tableMaxHeight.value = listRef.value.getBoundingClientRect().height;
+
+    window.addEventListener('resize', handleWindowResize);
+    onBeforeUnmount(() => {
+      window.removeEventListener('resize', handleWindowResize);
+    });
   });
 </script>
 <style lang='postcss'>

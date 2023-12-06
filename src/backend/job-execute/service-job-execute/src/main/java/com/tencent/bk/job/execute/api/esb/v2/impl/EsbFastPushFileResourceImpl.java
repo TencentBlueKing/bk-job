@@ -40,7 +40,6 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
@@ -82,18 +81,13 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
 
     private final AccountService accountService;
 
-    private final AppScopeMappingService appScopeMappingService;
-
-
     @Autowired
     public EsbFastPushFileResourceImpl(TaskExecuteService taskExecuteService,
                                        MessageI18nService i18nService,
-                                       AccountService accountService,
-                                       AppScopeMappingService appScopeMappingService) {
+                                       AccountService accountService) {
         this.taskExecuteService = taskExecuteService;
         this.i18nService = i18nService;
         this.accountService = accountService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -104,9 +98,9 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_FILE
         })
     @AuditEntry(actionId = ActionId.QUICK_TRANSFER_FILE)
-    public EsbResp<EsbJobExecuteDTO> fastPushFile(@AuditRequestBody EsbFastPushFileRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
+    public EsbResp<EsbJobExecuteDTO> fastPushFile(String username,
+                                                  String appCode,
+                                                  @AuditRequestBody EsbFastPushFileRequest request) {
         ValidateResult checkResult = checkFastPushFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -117,8 +111,8 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
             request.setName(generateDefaultFastTaskName());
         }
 
-        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
-        StepInstanceDTO stepInstance = buildFastFileStepInstance(request);
+        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appCode, request);
+        StepInstanceDTO stepInstance = buildFastFileStepInstance(username, request);
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
             FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
         );
@@ -189,7 +183,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         return ValidateResult.pass();
     }
 
-    private TaskInstanceDTO buildFastFileTaskInstance(EsbFastPushFileRequest request) {
+    private TaskInstanceDTO buildFastFileTaskInstance(String username, String appCode, EsbFastPushFileRequest request) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         taskInstance.setType(TaskTypeEnum.FILE.getValue());
         taskInstance.setName(request.getName());
@@ -199,12 +193,12 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         taskInstance.setAppId(request.getAppId());
         taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
-        taskInstance.setOperator(request.getUserName());
+        taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
-        taskInstance.setAppCode(request.getAppCode());
+        taskInstance.setAppCode(appCode);
         return taskInstance;
     }
 
@@ -213,7 +207,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
             + DateUtils.formatLocalDateTime(LocalDateTime.now(), "yyyyMMddHHmmssSSS");
     }
 
-    private StepInstanceDTO buildFastFileStepInstance(EsbFastPushFileRequest request) {
+    private StepInstanceDTO buildFastFileStepInstance(String username, EsbFastPushFileRequest request) {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setName(request.getName());
         AccountDTO account = checkAndGetOsAccount(request.getAppId(), request.getAccount());
@@ -226,7 +220,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
-        stepInstance.setOperator(request.getUserName());
+        stepInstance.setOperator(username);
         stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
         stepInstance.setTimeout(request.getTimeout() == null ?

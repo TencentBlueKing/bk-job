@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbCredentialV3Resource;
 import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
@@ -48,13 +47,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
     private final CredentialService credentialService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbCredentialResourceV3Impl(CredentialService credentialService,
-                                       AppScopeMappingService appScopeMappingService) {
+    public EsbCredentialResourceV3Impl(CredentialService credentialService) {
         this.credentialService = credentialService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -62,12 +58,13 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         actionId = ActionId.CREATE_TICKET
     )
     public EsbResp<EsbCredentialSimpleInfoV3DTO> createCredential(
+        String username,
+        String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
-        req.fillAppResourceScope(appScopeMappingService);
         checkCreateParam(req);
 
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
-        CredentialDTO createCredential = credentialService.createCredential(req.getUserName(), req.getAppId(),
+        CredentialDTO createCredential = credentialService.createCredential(username, req.getAppId(),
             createUpdateReq);
 
         return EsbResp.buildSuccessResp(createCredential.toEsbCredentialSimpleInfoV3DTO());
@@ -91,12 +88,13 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         actionId = ActionId.MANAGE_TICKET
     )
     public EsbResp<EsbCredentialSimpleInfoV3DTO> updateCredential(
+        String username,
+        String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
-        req.fillAppResourceScope(appScopeMappingService);
         checkUpdateParam(req);
 
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
-        CredentialDTO updateCredential = credentialService.updateCredential(req.getUserName(), req.getAppId(),
+        CredentialDTO updateCredential = credentialService.updateCredential(username, req.getAppId(),
             createUpdateReq);
 
         return EsbResp.buildSuccessResp(updateCredential.toEsbCredentialSimpleInfoV3DTO());

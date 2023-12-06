@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
+import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobWithVarsDTO;
@@ -38,6 +39,7 @@ import com.tencent.bk.job.crontab.model.tables.records.CronJobRecord;
 import com.tencent.bk.job.crontab.util.DbRecordMapper;
 import com.tencent.bk.job.crontab.util.DbUtils;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
@@ -45,11 +47,13 @@ import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record1;
 import org.jooq.Record21;
+import org.jooq.Record3;
 import org.jooq.Record4;
 import org.jooq.Record5;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
+import org.jooq.conf.ParamType;
 import org.jooq.types.UByte;
 import org.jooq.types.UInteger;
 import org.jooq.types.ULong;
@@ -525,6 +529,36 @@ public class CronJobDAOImpl implements CronJobDAO {
             .where(conditions).fetchOne();
         assert record != null;
         return record.value1();
+    }
+
+    @Override
+    public List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
+        conditions.add(TABLE.IS_ENABLE.eq(UByte.valueOf(1)));
+        val query = context
+            .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME)
+            .from(TABLE)
+            .where(conditions)
+            .orderBy(TABLE.ID)
+            .limit(start, limit)
+            .forUpdate();
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "start={},limit={},SQL={}",
+                start,
+                limit,
+                query.getSQL(ParamType.INLINED)
+            );
+        }
+        Result<Record3<ULong, ULong, String>> records = query.fetch();
+        return records.map(record -> {
+            CronJobBasicInfoDTO cronJobBasicInfoDTO = new CronJobBasicInfoDTO();
+            cronJobBasicInfoDTO.setId(record.get(TABLE.ID).longValue());
+            cronJobBasicInfoDTO.setAppId(record.get(TABLE.APP_ID).longValue());
+            cronJobBasicInfoDTO.setName(record.get(TABLE.NAME));
+            return cronJobBasicInfoDTO;
+        });
     }
 
     private CronJobInfoDTO convertToCronJobDTO(Record21<ULong, ULong, String, String, ULong, ULong, String, ULong,

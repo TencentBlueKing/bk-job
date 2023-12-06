@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceGlobalVarValueResource;
 import com.tencent.bk.job.execute.api.esb.v3.EsbGetJobInstanceGlobalVarValueV3Resource;
 import com.tencent.bk.job.execute.model.esb.v2.EsbTaskInstanceGlobalVarValueDTO;
@@ -52,23 +51,19 @@ import java.util.List;
 public class EsbGetJobInstanceGlobalVarValueResourceImpl implements EsbGetJobInstanceGlobalVarValueResource {
 
     private final EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbGetJobInstanceGlobalVarValueResourceImpl(
-        EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService,
-        AppScopeMappingService appScopeMappingService) {
-        this.appScopeMappingService = appScopeMappingService;
+        EsbGetJobInstanceGlobalVarValueV3Resource proxyGetJobInstanceGlobalVarService) {
         this.proxyGetJobInstanceGlobalVarService = proxyGetJobInstanceGlobalVarService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_instance_global_var_value"})
     public EsbResp<EsbTaskInstanceGlobalVarValueDTO> getJobInstanceGlobalVarValue(
+        String username,
+        String appCode,
         EsbGetJobInstanceGlobalVarValueRequest request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");
@@ -78,7 +73,7 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl implements EsbGetJobIns
         EsbGetJobInstanceGlobalVarValueV3Request newRequest =
             convertToEsbGetJobInstanceGlobalVarValueV3Request(request);
         EsbResp<EsbJobInstanceGlobalVarValueV3DTO> esbResp =
-            proxyGetJobInstanceGlobalVarService.getJobInstanceGlobalVarValueUsingPost(newRequest);
+            proxyGetJobInstanceGlobalVarService.getJobInstanceGlobalVarValueUsingPost(username, appCode, newRequest);
 
         return EsbResp.convertData(esbResp, this::convertToEsbJobInstanceGlobalVarValueDTO);
     }
@@ -86,8 +81,6 @@ public class EsbGetJobInstanceGlobalVarValueResourceImpl implements EsbGetJobIns
     private EsbGetJobInstanceGlobalVarValueV3Request convertToEsbGetJobInstanceGlobalVarValueV3Request
         (EsbGetJobInstanceGlobalVarValueRequest request) {
         EsbGetJobInstanceGlobalVarValueV3Request newRequest = new EsbGetJobInstanceGlobalVarValueV3Request();
-        newRequest.setAppCode(request.getAppCode());
-        newRequest.setUserName(request.getUserName());
         newRequest.setBizId(request.getBizId());
         newRequest.setScopeType(request.getScopeType());
         newRequest.setScopeId(request.getScopeId());

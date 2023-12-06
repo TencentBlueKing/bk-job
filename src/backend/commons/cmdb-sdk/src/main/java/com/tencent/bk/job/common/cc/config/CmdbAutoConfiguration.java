@@ -132,8 +132,16 @@ public class CmdbAutoConfiguration {
     @Bean
     public BizSetCmdbClient bizSetCmdbClient(AppProperties appProperties,
                                              EsbProperties esbProperties,
-                                             CmdbConfig cmdbConfig) {
-        return new BizSetCmdbClient(appProperties, esbProperties, cmdbConfig);
+                                             CmdbConfig cmdbConfig,
+                                             MeterRegistry meterRegistry,
+                                             ObjectProvider<FlowController> flowControllerProvider) {
+        return new BizSetCmdbClient(
+            appProperties,
+            esbProperties,
+            cmdbConfig,
+            flowControllerProvider.getIfAvailable(),
+            meterRegistry
+        );
     }
 
     @Bean

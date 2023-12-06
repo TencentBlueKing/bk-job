@@ -22,29 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.crontab.config;
 
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-/**
- * PaaS服务
- */
-public interface PaaSService {
-
-    List<BkUserDTO> getAllUserList(String bkToken, String uin);
-
-    List<EsbNotifyChannelDTO> getAllChannelList(String bkToken, String uin) throws IOException;
-
-    void sendMsg(
-        String msgType,
-        String sender,
-        Set<String> receivers,
-        String title,
-        String content
-    );
+//设定一个长度5的定时任务线程池
+@Slf4j
+@Configuration
+public class ScheduleConfig implements SchedulingConfigurer {
+    @Override
+    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+        taskRegistrar.setScheduler(
+            new ScheduledThreadPoolExecutor(
+                5, (r, executor) ->
+                log.error("ScheduledThreadPoolExecutor rejected a runnable")
+            )
+        );
+    }
 }

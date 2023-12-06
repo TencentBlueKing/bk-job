@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbOperateStepInstanceResource;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -44,19 +43,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbOperateStepInstanceResourceImpl implements EsbOperateStepInstanceResource {
     private final TaskExecuteService taskExecuteService;
-    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbOperateStepInstanceResourceImpl(TaskExecuteService taskExecuteService,
-                                              AppScopeMappingService appScopeMappingService) {
+    public EsbOperateStepInstanceResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_operate_step_instance"})
-    public EsbResp<EsbJobExecuteDTO> operateStepInstance(EsbOperateStepInstanceRequest request) {
+    public EsbResp<EsbJobExecuteDTO> operateStepInstance(String username,
+                                                         String appCode,
+                                                         EsbOperateStepInstanceRequest request) {
         log.info("Operate step instance, request={}", JsonUtils.toJson(request));
-        request.fillAppResourceScope(appScopeMappingService);
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -64,7 +61,7 @@ public class EsbOperateStepInstanceResourceImpl implements EsbOperateStepInstanc
         StepOperationDTO stepOperation = new StepOperationDTO();
         stepOperation.setStepInstanceId(request.getStepInstanceId());
         stepOperation.setOperation(operationEnum);
-        taskExecuteService.doStepOperation(request.getAppId(), request.getUserName(), stepOperation);
+        taskExecuteService.doStepOperation(request.getAppId(), username, stepOperation);
         EsbJobExecuteDTO result = new EsbJobExecuteDTO();
         result.setTaskInstanceId(request.getTaskInstanceId());
         result.setStepInstanceId(request.getStepInstanceId());

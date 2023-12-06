@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.v2.EsbExecuteTaskResource;
@@ -65,13 +64,10 @@ import java.util.List;
 public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implements EsbExecuteTaskResource {
 
     private final TaskExecuteService taskExecuteService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                      AppScopeMappingService appScopeMappingService) {
+    public EsbExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -82,8 +78,10 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_EXECUTE_PLAN
         })
     @AuditEntry(actionId = ActionId.LAUNCH_JOB_PLAN)
-    public EsbResp<EsbJobExecuteDTO> executeJob(@AuditRequestBody EsbExecuteJobRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
+    public EsbResp<EsbJobExecuteDTO> executeJob(
+        String username,
+        String appCode,
+        @AuditRequestBody EsbExecuteJobRequest request) {
 
         log.info("Execute task, request={}", JsonUtils.toJson(request));
         ValidateResult checkResult = checkExecuteTaskRequest(request);
@@ -116,11 +114,11 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
                 .builder()
                 .appId(request.getAppId())
                 .planId(request.getTaskId())
-                .operator(request.getUserName())
+                .operator(username)
                 .executeVariableValues(executeVariableValues)
                 .startupMode(TaskStartupModeEnum.API)
                 .callbackUrl(request.getCallbackUrl())
-                .appCode(request.getAppCode())
+                .appCode(appCode)
                 .build());
 
         EsbJobExecuteDTO result = new EsbJobExecuteDTO();

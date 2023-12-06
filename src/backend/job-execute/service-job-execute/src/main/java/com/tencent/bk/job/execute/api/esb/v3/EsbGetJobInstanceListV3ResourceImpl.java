@@ -60,7 +60,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
     private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceListV3ResourceImpl(TaskResultService taskResultService,
-                                               AppScopeMappingService appScopeMappingService) {
+                                    AppScopeMappingService appScopeMappingService) {
         this.taskResultService = taskResultService;
         this.appScopeMappingService = appScopeMappingService;
     }
@@ -68,10 +68,9 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_list"})
     public EsbResp<EsbPageDataV3<EsbTaskInstanceV3DTO>> getJobInstanceListUsingPost(
+        String username,
+        String appCode,
         EsbGetJobInstanceListV3Request request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance ip log request is illegal!");
@@ -181,8 +180,6 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
                                                                            Integer start,
                                                                            Integer length) {
         EsbGetJobInstanceListV3Request request = new EsbGetJobInstanceListV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
@@ -197,6 +194,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         request.setIp(ip);
         request.setStart(start);
         request.setLength(length);
-        return getJobInstanceListUsingPost(request);
+        request.fillAppResourceScope(appScopeMappingService);
+        return getJobInstanceListUsingPost(username, appCode, request);
     }
 }

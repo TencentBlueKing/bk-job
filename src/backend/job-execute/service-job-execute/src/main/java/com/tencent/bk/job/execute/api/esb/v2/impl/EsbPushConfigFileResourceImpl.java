@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
@@ -77,19 +76,16 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
     private final AccountService accountService;
     private final FileDistributeConfig fileDistributeConfig;
     private final AgentService agentService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbPushConfigFileResourceImpl(TaskExecuteService taskExecuteService,
                                          AccountService accountService,
                                          FileDistributeConfig fileDistributeConfig,
-                                         AgentService agentService,
-                                         AppScopeMappingService appScopeMappingService) {
+                                         AgentService agentService) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.fileDistributeConfig = fileDistributeConfig;
         this.agentService = agentService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -100,9 +96,9 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_CONFIG_FILE
         })
     @AuditEntry(actionId = ActionId.QUICK_TRANSFER_FILE)
-    public EsbResp<EsbJobExecuteDTO> pushConfigFile(@AuditRequestBody EsbPushConfigFileRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
+    public EsbResp<EsbJobExecuteDTO> pushConfigFile(String username,
+                                                    String appCode,
+                                                    @AuditRequestBody EsbPushConfigFileRequest request) {
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -111,8 +107,8 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
 
         request.trimIps();
 
-        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(request);
-        StepInstanceDTO stepInstance = buildFastFileStepInstance(request, request.getFileList());
+        TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appCode, request);
+        StepInstanceDTO stepInstance = buildFastFileStepInstance(username, request, request.getFileList());
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
             FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
         );
@@ -123,7 +119,9 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
 
-    private TaskInstanceDTO buildFastFileTaskInstance(EsbPushConfigFileRequest request) {
+    private TaskInstanceDTO buildFastFileTaskInstance(String username,
+                                                      String appCode,
+                                                      EsbPushConfigFileRequest request) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         taskInstance.setType(TaskTypeEnum.FILE.getValue());
         if (StringUtils.isNotEmpty(request.getName())) {
@@ -137,15 +135,16 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         taskInstance.setAppId(request.getAppId());
         taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
-        taskInstance.setOperator(request.getUserName());
+        taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setDebugTask(false);
-        taskInstance.setAppCode(request.getAppCode());
+        taskInstance.setAppCode(appCode);
         return taskInstance;
     }
 
-    private StepInstanceDTO buildFastFileStepInstance(EsbPushConfigFileRequest request,
+    private StepInstanceDTO buildFastFileStepInstance(String username,
+                                                      EsbPushConfigFileRequest request,
                                                       List<EsbPushConfigFileRequest.EsbConfigFileDTO> configFileList) {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         if (StringUtils.isNotEmpty(request.getName())) {
@@ -159,10 +158,10 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
         stepInstance.setFileTargetPath(request.getTargetPath());
-        stepInstance.setFileSourceList(convertConfigFileSource(request.getUserName(), configFileList));
+        stepInstance.setFileSourceList(convertConfigFileSource(username, configFileList));
         stepInstance.setAppId(request.getAppId());
         stepInstance.setTargetServers(convertToStandardServers(null, request.getIpList(), null));
-        stepInstance.setOperator(request.getUserName());
+        stepInstance.setOperator(username);
         stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
         stepInstance.setTimeout(JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS);

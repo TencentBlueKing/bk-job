@@ -30,16 +30,15 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
-import com.tencent.bk.job.manage.service.PaaSService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +49,7 @@ import java.util.stream.Collectors;
 public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(NotifyEsbChannelDAOImpl.class);
-    private final PaaSService paaSService;
+    private final CmsiApiClient cmsiApiClient;
     private final LoadingCache<String, List<NotifyEsbChannelDTO>> esbChannelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
             build(new CacheLoader<String, List<NotifyEsbChannelDTO>>() {
@@ -58,29 +57,24 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
                       public List<NotifyEsbChannelDTO> load(@NonNull String searchKey) {
                           logger.info("esbChannelCache searchKey=" + searchKey);
                           List<NotifyEsbChannelDTO> channelDtoList;
-                          try {
-                              //新增渠道默认为已启用
-                              channelDtoList =
-                                  paaSService.getAllChannelList("", "100").stream().map(it -> new NotifyEsbChannelDTO(
-                                      it.getType(),
-                                      it.getLabel(),
-                                      it.isActive(),
-                                      true,
-                                      it.getIcon(),
-                                      LocalDateTime.now()
-                                  )).collect(Collectors.toList());
-                              logger.info(String.format("result.size=%d", channelDtoList.size()));
-                              return channelDtoList;
-                          } catch (IOException e) {
-                              logger.error("updateNotifyEsbChannel: Fail to fetch remote notifyChannel, return", e);
-                              return null;
-                          }
+                          //新增渠道默认为已启用
+                          channelDtoList =
+                              cmsiApiClient.getNotifyChannelList().stream().map(it -> new NotifyEsbChannelDTO(
+                                  it.getType(),
+                                  it.getLabel(),
+                                  it.isActive(),
+                                  true,
+                                  it.getIcon(),
+                                  LocalDateTime.now()
+                              )).collect(Collectors.toList());
+                          logger.info(String.format("result.size=%d", channelDtoList.size()));
+                          return channelDtoList;
                       }
                   }
             );
 
-    public NotifyEsbChannelDAOImpl(PaaSService paaSService) {
-        this.paaSService = paaSService;
+    public NotifyEsbChannelDAOImpl(CmsiApiClient cmsiApiClient) {
+        this.cmsiApiClient = cmsiApiClient;
     }
 
     @Override

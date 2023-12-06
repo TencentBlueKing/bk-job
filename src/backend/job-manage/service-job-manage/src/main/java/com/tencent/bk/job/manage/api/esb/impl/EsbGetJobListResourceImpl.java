@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetJobListResource;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
@@ -56,21 +55,19 @@ import java.util.List;
 public class EsbGetJobListResourceImpl implements EsbGetJobListResource {
     private final TaskPlanService taskPlanService;
     private final BusinessAuthService businessAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobListResourceImpl(TaskPlanService taskPlanService,
-                                     BusinessAuthService businessAuthService,
-                                     AppScopeMappingService appScopeMappingService) {
+                                     BusinessAuthService businessAuthService) {
         this.taskPlanService = taskPlanService;
         this.businessAuthService = businessAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_list"})
-    public EsbResp<List<EsbJobBasicInfoDTO>> getJobList(EsbGetJobListRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
+    public EsbResp<List<EsbJobBasicInfoDTO>> getJobList(String username,
+                                                        String appCode,
+                                                        EsbGetJobListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job list, request is illegal!");

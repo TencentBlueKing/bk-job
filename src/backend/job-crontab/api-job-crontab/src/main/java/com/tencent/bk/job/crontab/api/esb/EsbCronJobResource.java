@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.api.esb;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.crontab.model.esb.request.EsbGetCronListRequest;
 import com.tencent.bk.job.crontab.model.esb.request.EsbSaveCronRequest;
@@ -33,6 +34,7 @@ import com.tencent.bk.job.crontab.model.esb.response.EsbCronInfoResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,6 +50,8 @@ public interface EsbCronJobResource {
 
     @PostMapping("/get_cron_list")
     EsbResp<List<EsbCronInfoResponse>> getCronList(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetCronListRequest request
@@ -55,6 +59,8 @@ public interface EsbCronJobResource {
 
     @PostMapping(value = "/update_cron_status")
     EsbResp<EsbCronInfoResponse> updateCronStatus(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbUpdateCronStatusRequest request
@@ -62,6 +68,8 @@ public interface EsbCronJobResource {
 
     @PostMapping(value = "/save_cron")
     EsbResp<EsbCronInfoResponse> saveCron(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbSaveCronRequest request

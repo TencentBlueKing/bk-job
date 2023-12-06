@@ -30,7 +30,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
-import com.tencent.bk.job.common.cc.constants.CmdbMetricNames;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
@@ -82,38 +81,30 @@ import com.tencent.bk.job.common.cc.model.result.SearchCloudAreaResult;
 import com.tencent.bk.job.common.cc.model.result.SearchDynamicGroupResult;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.PageDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
-import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.Utils;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
-import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -139,25 +130,8 @@ import java.util.stream.Collectors;
  * ESB-CMDB接口调用客户端
  */
 @Slf4j
-public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClient {
+public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
-    private static final String SEARCH_BIZ_INST_TOPO = "/api/c/compapi/v2/cc/search_biz_inst_topo/";
-    private static final String GET_BIZ_INTERNAL_MODULE = "/api/c/compapi/v2/cc/get_biz_internal_module/";
-    private static final String LIST_BIZ_HOSTS = "/api/c/compapi/v2/cc/list_biz_hosts/";
-    private static final String LIST_HOSTS_WITHOUT_BIZ = "/api/c/compapi/v2/cc/list_hosts_without_biz/";
-    private static final String FIND_HOST_BIZ_RELATIONS = "/api/c/compapi/v2/cc/find_host_biz_relations/";
-    private static final String LIST_BIZ_HOSTS_TOPO = "/api/c/compapi/v2/cc/list_biz_hosts_topo/";
-    private static final String FIND_MODULE_HOST_RELATION = "/api/c/compapi/v2/cc/find_module_host_relation/";
-    private static final String RESOURCE_WATCH = "/api/c/compapi/v2/cc/resource_watch/";
-    private static final String SEARCH_BUSINESS = "/api/c/compapi/v2/cc/search_business/";
-    private static final String GET_CLOUD_AREAS = "/api/c/compapi/v2/cc/search_cloud_area/";
-    private static final String GET_OBJ_ATTRIBUTES = "/api/c/compapi/v2/cc/search_object_attribute/";
-    private static final String GET_TOPO_NODE_PATHS = "/api/c/compapi/v2/cc/find_topo_node_paths/";
-    private static final String SEARCH_DYNAMIC_GROUP = "/api/c/compapi/v2/cc/search_dynamic_group/";
-    private static final String EXECUTE_DYNAMIC_GROUP = "/api/c/compapi/v2/cc/execute_dynamic_group/";
-    private static final String GET_BIZ_BRIEF_CACHE_TOPO = "/api/c/compapi/v2/cc/get_biz_brief_cache_topo/";
-
-    private static final Map<String, String> interfaceNameMap = new HashMap<>();
     private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInstTopoMap =
         new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, ReentrantLock> bizInstTopoLockMap = new ConcurrentHashMap<>();
@@ -166,33 +140,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     private static final ConcurrentHashMap<Long, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
     private final ThreadPoolExecutor threadPoolExecutor;
     private final ThreadPoolExecutor longTermThreadPoolExecutor;
-    private final CmdbConfig cmdbConfig;
-    /**
-     * 对整个应用中所有的CMDB调用进行限流
-     */
-    private final FlowController globalFlowController;
 
-    static {
-        interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
-        interfaceNameMap.put(GET_BIZ_INTERNAL_MODULE, "get_biz_internal_module");
-        interfaceNameMap.put(LIST_BIZ_HOSTS, "list_biz_hosts");
-        interfaceNameMap.put(LIST_HOSTS_WITHOUT_BIZ, "list_hosts_without_biz");
-        interfaceNameMap.put(FIND_HOST_BIZ_RELATIONS, "find_host_biz_relations");
-        interfaceNameMap.put(LIST_BIZ_HOSTS_TOPO, "list_biz_hosts_topo");
-        interfaceNameMap.put(FIND_MODULE_HOST_RELATION, "find_module_host_relation");
-        interfaceNameMap.put(RESOURCE_WATCH, "resource_watch");
-        interfaceNameMap.put(SEARCH_BUSINESS, "search_business");
-        interfaceNameMap.put(GET_CLOUD_AREAS, "search_cloud_area");
-        interfaceNameMap.put(GET_OBJ_ATTRIBUTES, "search_object_attribute");
-        interfaceNameMap.put(GET_TOPO_NODE_PATHS, "find_topo_node_paths");
-        interfaceNameMap.put(SEARCH_DYNAMIC_GROUP, "search_dynamic_group");
-        interfaceNameMap.put(EXECUTE_DYNAMIC_GROUP, "execute_dynamic_group");
-        interfaceNameMap.put(GET_BIZ_BRIEF_CACHE_TOPO, "get_biz_brief_cache_topo");
-    }
-
-    protected String defaultSupplierAccount;
-    protected String defaultUin = "admin";
-    private final MeterRegistry meterRegistry;
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
             build(new CacheLoader<Long, InstanceTopologyDTO>() {
@@ -212,17 +160,15 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                          FlowController flowController,
                          MeterRegistry meterRegistry) {
         super(
-            esbProperties.getService().getUrl(),
-            appProperties.getCode(),
-            appProperties.getSecret(),
+            flowController,
+            appProperties,
+            esbProperties,
+            cmdbConfig,
+            meterRegistry,
             lang
         );
-        this.cmdbConfig = cmdbConfig;
-        this.defaultSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
         this.threadPoolExecutor = threadPoolExecutor;
         this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;
-        this.globalFlowController = flowController;
-        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -290,19 +236,27 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     public InstanceTopologyDTO getBriefCacheTopo(long bizId) {
-        GetBriefCacheTopoReq req = makeBaseReq(GetBriefCacheTopoReq.class, defaultUin, defaultSupplierAccount);
+        GetBriefCacheTopoReq req = makeCmdbBaseReq(GetBriefCacheTopoReq.class);
         req.setBizId(bizId);
-        EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, GET_BIZ_BRIEF_CACHE_TOPO, req,
+        EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(
+            HttpMethodEnum.GET,
+            GET_BIZ_BRIEF_CACHE_TOPO,
+            req.toUrlParams(),
+            null,
             new TypeReference<EsbResp<BriefTopologyDTO>>() {
             });
         return TopologyUtil.convert(esbResp.getData());
     }
 
     public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoFromCMDB(long bizId) {
-        GetBizInstTopoReq req = makeBaseReq(GetBizInstTopoReq.class, defaultUin, defaultSupplierAccount);
+        GetBizInstTopoReq req = makeCmdbBaseReq(GetBizInstTopoReq.class);
         req.setBizId(bizId);
-        EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(HttpGet.METHOD_NAME, SEARCH_BIZ_INST_TOPO,
-            req, new TypeReference<EsbResp<List<InstanceTopologyDTO>>>() {
+        EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(
+            HttpMethodEnum.GET,
+            SEARCH_BIZ_INST_TOPO,
+            req.toUrlParams(),
+            null,
+            new TypeReference<EsbResp<List<InstanceTopologyDTO>>>() {
             });
         if (esbResp.getData().size() > 0) {
             return esbResp.getData().get(0);
@@ -311,56 +265,6 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         }
     }
 
-    public <R> EsbResp<R> requestCmdbApi(String method,
-                                         String uri,
-                                         EsbReq reqBody,
-                                         TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(method, uri, reqBody, typeReference, null);
-    }
-
-    public <R> EsbResp<R> requestCmdbApi(String method,
-                                         String uri,
-                                         EsbReq reqBody,
-                                         TypeReference<EsbResp<R>> typeReference,
-                                         ExtHttpHelper httpHelper) {
-
-        String resourceId = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
-        if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
-            if (globalFlowController != null && globalFlowController.isReady()) {
-                log.debug("Flow control resourceId={}", resourceId);
-                long startTime = System.currentTimeMillis();
-                globalFlowController.acquire(resourceId);
-                long duration = System.currentTimeMillis() - startTime;
-                if (duration >= 5000) {
-                    log.warn("Request resource {} wait flowControl for {}ms", resourceId, duration);
-                } else if (duration >= 1000) {
-                    log.info("Request resource {} wait flowControl for {}ms", resourceId, duration);
-                }
-            } else {
-                log.debug("globalFlowController not set or not ready, ignore this time");
-            }
-        }
-        long start = System.nanoTime();
-        String status = "none";
-        try {
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMDB_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            EsbResp<R> esbResp = getEsbRespByReq(method, uri, reqBody, typeReference, httpHelper);
-            status = "ok";
-            return esbResp;
-        } catch (Throwable e) {
-            String reqStr = JsonUtils.toJsonWithoutSkippedFields(reqBody);
-            String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|reqStr=" + reqStr;
-            log.error(errorMsg, e);
-            status = "error";
-            throw new InternalCmdbException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
-        } finally {
-            HttpMetricUtil.clearHttpMetric();
-            long end = System.nanoTime();
-            meterRegistry.timer(CmdbMetricNames.CMDB_API_PREFIX, "api_name", uri, "status", status)
-                .record(end - start, TimeUnit.NANOSECONDS);
-        }
-    }
 
     @Override
     public InstanceTopologyDTO getBizInternalModule(long bizId) {
@@ -398,10 +302,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     public InstanceTopologyDTO getBizInternalModuleFromCMDB(long bizId) {
-        GetBizInternalModuleReq req = makeBaseReq(GetBizInternalModuleReq.class, defaultUin, defaultSupplierAccount);
+        GetBizInternalModuleReq req = makeCmdbBaseReq(GetBizInternalModuleReq.class);
         req.setBizId(bizId);
-        EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(HttpGet.METHOD_NAME,
-            GET_BIZ_INTERNAL_MODULE, req, new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
+        EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(
+            HttpMethodEnum.GET,
+            GET_BIZ_INTERNAL_MODULE,
+            req.toUrlParams(),
+            null,
+            new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
             });
         GetBizInternalModuleResult setInfo = esbResp.getData();
         //将结果转换为拓扑树
@@ -505,16 +413,19 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     }
 
     private FindModuleHostRelationResult getHostsByReq(FindModuleHostRelationReq req) {
-        EsbResp<FindModuleHostRelationResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
-            FIND_MODULE_HOST_RELATION, req, new TypeReference<EsbResp<FindModuleHostRelationResult>>() {
+        EsbResp<FindModuleHostRelationResult> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            FIND_MODULE_HOST_RELATION,
+            null,
+            req,
+            new TypeReference<EsbResp<FindModuleHostRelationResult>>() {
             });
         return esbResp.getData();
     }
 
     private FindModuleHostRelationReq genFindModuleHostRelationReq(long bizId, List<Long> moduleIdList, int start,
                                                                    int limit) {
-        FindModuleHostRelationReq req = makeBaseReq(FindModuleHostRelationReq.class, defaultUin,
-            defaultSupplierAccount);
+        FindModuleHostRelationReq req = makeCmdbBaseReq(FindModuleHostRelationReq.class);
         req.setBizId(bizId);
         req.setModuleIdList(moduleIdList);
         Page page = new Page(start, limit);
@@ -714,10 +625,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         boolean isLastPage = false;
         String orderField = "bk_biz_id";
         while (!isLastPage) {
-            GetAppReq req = makeBaseReq(GetAppReq.class, defaultUin, defaultSupplierAccount);
+            GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
             PageDTO page = new PageDTO(start, limit, orderField);
             req.setPage(page);
-            EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+            EsbResp<SearchAppResult> esbResp = requestCmdbApi(
+                HttpMethodEnum.POST,
+                SEARCH_BUSINESS,
+                null,
+                req,
                 new TypeReference<EsbResp<SearchAppResult>>() {
                 });
             SearchAppResult data = esbResp.getData();
@@ -754,11 +669,15 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public ApplicationDTO getBizAppById(long bizId) {
-        GetAppReq req = makeBaseReq(GetAppReq.class, defaultUin, defaultSupplierAccount);
+        GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
         Map<String, Object> conditionMap = new HashMap<>();
         conditionMap.put("bk_biz_id", bizId);
         req.setCondition(conditionMap);
-        EsbResp<SearchAppResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+        EsbResp<SearchAppResult> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            SEARCH_BUSINESS,
+            null,
+            req,
             new TypeReference<EsbResp<SearchAppResult>>() {
             });
         SearchAppResult data = esbResp.getData();
@@ -774,8 +693,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<CcDynamicGroupDTO> getDynamicGroupList(long bizId) {
-        SearchHostDynamicGroupReq req = makeBaseReq(SearchHostDynamicGroupReq.class, defaultUin,
-            defaultSupplierAccount);
+        SearchHostDynamicGroupReq req = makeCmdbBaseReq(SearchHostDynamicGroupReq.class);
         req.setBizId(bizId);
         int start = 0;
         int limit = 200;
@@ -786,8 +704,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         while (!isLastPage) {
             req.getPage().setStart(start);
 
-            EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
-                SEARCH_DYNAMIC_GROUP, req, new TypeReference<EsbResp<SearchDynamicGroupResult>>() {
+            EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApi(
+                HttpMethodEnum.POST,
+                SEARCH_DYNAMIC_GROUP,
+                null,
+                req,
+                new TypeReference<EsbResp<SearchDynamicGroupResult>>() {
                 });
             if (!esbResp.getResult()) {
                 // 由于参数问题导致的CMDB返回数据异常
@@ -831,7 +753,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<DynamicGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId) {
-        ExecuteDynamicGroupReq req = makeBaseReq(ExecuteDynamicGroupReq.class, defaultUin, defaultSupplierAccount);
+        ExecuteDynamicGroupReq req = makeCmdbBaseReq(ExecuteDynamicGroupReq.class);
         req.setBizId(bizId);
         req.setGroupId(groupId);
         int limit = 200;
@@ -842,8 +764,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         boolean isLastPage = false;
         while (!isLastPage) {
             req.getPage().setStart(start);
-            EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
-                EXECUTE_DYNAMIC_GROUP, req, new TypeReference<EsbResp<ExecuteDynamicGroupHostResult>>() {
+            EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApi(
+                HttpMethodEnum.POST,
+                EXECUTE_DYNAMIC_GROUP,
+                null,
+                req,
+                new TypeReference<EsbResp<ExecuteDynamicGroupHostResult>>() {
                 });
             ExecuteDynamicGroupHostResult ccRespData = esbResp.getData();
             if (!esbResp.getResult()) {
@@ -906,7 +832,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         int limit = 200;
         int start = 0;
         while (!isLastPage) {
-            GetCloudAreaInfoReq req = makeBaseReq(GetCloudAreaInfoReq.class, defaultUin, defaultSupplierAccount);
+            GetCloudAreaInfoReq req = makeCmdbBaseReq(GetCloudAreaInfoReq.class);
             PageDTO page = new PageDTO(start, limit, null);
             req.setPage(page);
             if (fieldConditions != null && !fieldConditions.isEmpty()) {
@@ -914,7 +840,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             } else {
                 req.setCondition(Collections.emptyMap());
             }
-            EsbResp<SearchCloudAreaResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_CLOUD_AREAS, req,
+            EsbResp<SearchCloudAreaResult> esbResp = requestCmdbApi(
+                HttpMethodEnum.POST,
+                GET_CLOUD_AREAS,
+                null,
+                req,
                 new TypeReference<EsbResp<SearchCloudAreaResult>>() {
                 });
             SearchCloudAreaResult data = esbResp.getData();
@@ -952,10 +882,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<HostBizRelationDTO> findHostBizRelations(String uin, List<Long> hostIdList) {
-        FindHostBizRelationsReq req = makeBaseReq(FindHostBizRelationsReq.class, defaultUin, defaultSupplierAccount);
+        FindHostBizRelationsReq req = makeCmdbBaseReq(FindHostBizRelationsReq.class);
         req.setHostIdList(hostIdList);
-        EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
-            FIND_HOST_BIZ_RELATIONS, req, new TypeReference<EsbResp<List<HostBizRelationDTO>>>() {
+        EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            FIND_HOST_BIZ_RELATIONS,
+            null,
+            req,
+            new TypeReference<EsbResp<List<HostBizRelationDTO>>>() {
             });
         List<HostBizRelationDTO> results = esbResp.getData();
         if (esbResp.getData() == null) {
@@ -967,7 +901,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     @Override
     public List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input) {
         List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
-        ListBizHostReq req = makeBaseReq(ListBizHostReq.class, defaultUin, defaultSupplierAccount);
+        ListBizHostReq req = makeCmdbBaseReq(ListBizHostReq.class);
         req.setBizId(input.getBizId());
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("AND");
@@ -985,7 +919,11 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         while (!isLastPage) {
             PageDTO page = new PageDTO(start, limit, "");
             req.setPage(page);
-            EsbResp<ListBizHostResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_BIZ_HOSTS, req,
+            EsbResp<ListBizHostResult> esbResp = requestCmdbApi(
+                HttpMethodEnum.POST,
+                LIST_BIZ_HOSTS,
+                null,
+                req,
                 new TypeReference<EsbResp<ListBizHostResult>>() {
                 });
             ListBizHostResult pageData = esbResp.getData();
@@ -1009,7 +947,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip) {
-        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("AND");
         BaseRuleDTO ipRule = new BaseRuleDTO();
@@ -1033,7 +971,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         if (CollectionUtils.isEmpty(cloudIps)) {
             return Collections.emptyList();
         }
-        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");
         Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIps);
@@ -1060,7 +998,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         if (CollectionUtils.isEmpty(cloudIpv6s)) {
             return Collections.emptyList();
         }
-        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("OR");
         Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIpv6s);
@@ -1103,8 +1041,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
         do {
             PageDTO page = new PageDTO(start, limit, "");
             req.setPage(page);
-            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, LIST_HOSTS_WITHOUT_BIZ,
-                req, new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
+            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(
+                HttpMethodEnum.POST,
+                LIST_HOSTS_WITHOUT_BIZ,
+                null,
+                req,
+                new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
                 });
             ListHostsWithoutBizResult pageData = esbResp.getData();
             total = pageData.getCount();
@@ -1167,7 +1109,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             return Collections.emptyList();
         }
 
-        ListHostsWithoutBizReq req = makeBaseReq(ListHostsWithoutBizReq.class, defaultUin, defaultSupplierAccount);
+        ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
         condition.setCondition("AND");
         BaseRuleDTO ipRule = new BaseRuleDTO();
@@ -1181,10 +1123,13 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<CcObjAttributeDTO> getObjAttributeList(String objId) {
-        GetObjAttributeReq req = makeBaseReqByWeb(
-            GetObjAttributeReq.class, null, defaultUin, defaultSupplierAccount);
+        GetObjAttributeReq req = makeCmdbBaseReq(GetObjAttributeReq.class);
         req.setObjId(objId);
-        EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_OBJ_ATTRIBUTES, req,
+        EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            GET_OBJ_ATTRIBUTES,
+            null,
+            req,
             new TypeReference<EsbResp<List<CcObjAttributeDTO>>>() {
             });
         return esbResp.getData();
@@ -1193,12 +1138,16 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
     @Override
     public Set<String> listUsersByRole(Long bizId, String role) {
         CcCountInfo searchResult;
-        GetAppReq req = makeBaseReqByWeb(GetAppReq.class, null, defaultUin, defaultSupplierAccount);
+        GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
         Map<String, Object> condition = new HashMap<>();
         condition.put("bk_biz_id", bizId);
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
-        EsbResp<CcCountInfo> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, SEARCH_BUSINESS, req,
+        EsbResp<CcCountInfo> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            SEARCH_BUSINESS,
+            null,
+            req,
             new TypeReference<EsbResp<CcCountInfo>>() {
             });
         searchResult = esbResp.getData();
@@ -1287,7 +1236,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public List<InstanceTopologyDTO> getTopoInstancePath(GetTopoNodePathReq getTopoNodePathReq) {
-        GetTopoNodePathReq req = makeBaseReq(GetTopoNodePathReq.class, defaultUin, defaultSupplierAccount);
+        GetTopoNodePathReq req = makeCmdbBaseReq(GetTopoNodePathReq.class);
 
         // 由于cmdb传入业务节点(topo根节点)会报错，所以job自己处理
         List<InstanceTopologyDTO> nonAppNodes = new ArrayList<>();
@@ -1305,8 +1254,12 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
         List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
         if (!nonAppNodes.isEmpty()) {
-            EsbResp<List<TopoNodePathDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, GET_TOPO_NODE_PATHS,
-                req, new TypeReference<EsbResp<List<TopoNodePathDTO>>>() {
+            EsbResp<List<TopoNodePathDTO>> esbResp = requestCmdbApi(
+                HttpMethodEnum.POST,
+                GET_TOPO_NODE_PATHS,
+                null,
+                req,
+                new TypeReference<EsbResp<List<TopoNodePathDTO>>>() {
                 });
             if (esbResp == null || esbResp.getData() == null || esbResp.getData().isEmpty()) {
                 return Collections.emptyList();
@@ -1341,45 +1294,57 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     @Override
     public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
-        ResourceWatchReq req = makeBaseReqByWeb(
-            ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
+        ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
             "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id", "bk_cloud_vendor", "last_time"));
         req.setResource("host");
         req.setCursor(cursor);
         req.setStartTime(startTime);
-        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
-            req, new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
-            }, HttpHelperFactory.getLongRetryableHttpHelper());
+        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            RESOURCE_WATCH,
+            null,
+            req,
+            new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
+            },
+            HttpHelperFactory.getLongRetryableHttpHelper());
         return esbResp.getData();
     }
 
     @Override
     public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor) {
-        ResourceWatchReq req = makeBaseReqByWeb(
-            ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
+        ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_host_id", "bk_biz_id", "bk_set_id", "bk_module_id", "last_time"));
         req.setResource("host_relation");
         req.setCursor(cursor);
         req.setStartTime(startTime);
-        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
-            RESOURCE_WATCH, req, new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
-            }, HttpHelperFactory.getLongRetryableHttpHelper());
+        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            RESOURCE_WATCH,
+            null,
+            req,
+            new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
+            },
+            HttpHelperFactory.getLongRetryableHttpHelper());
         return esbResp.getData();
     }
 
     @Override
     public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
-        ResourceWatchReq req = makeBaseReqByWeb(
-            ResourceWatchReq.class, null, defaultUin, defaultSupplierAccount);
+        ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
             "time_zone", "language"));
         req.setResource("biz");
         req.setCursor(cursor);
         req.setStartTime(startTime);
-        EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME, RESOURCE_WATCH,
-            req, new TypeReference<EsbResp<ResourceWatchResult<BizEventDetail>>>() {
-            }, HttpHelperFactory.getLongRetryableHttpHelper());
+        EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            RESOURCE_WATCH,
+            null,
+            req,
+            new TypeReference<EsbResp<ResourceWatchResult<BizEventDetail>>>() {
+            },
+            HttpHelperFactory.getLongRetryableHttpHelper());
         return esbResp.getData();
     }
 

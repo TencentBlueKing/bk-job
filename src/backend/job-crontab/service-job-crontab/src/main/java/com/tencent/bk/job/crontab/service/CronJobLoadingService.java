@@ -22,37 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.crontab.service;
 
-
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
-
-import java.util.List;
-import java.util.Set;
-
-/**
- * Paas客户端
- */
-public interface IPaasClient {
-
-    /**
-     * 重置当天的统计数据
-     */
-    void resetTodayStatistics();
-
-    /**
-     * 获取用户列表
-     */
-    List<BkUserDTO> getUserList(String fields, String bkToken, String uin);
-
-    /**
-     * 获取消息通知渠道
-     */
-    List<EsbNotifyChannelDTO> getNotifyChannelList(String uin);
-
-    /**
-     * ESB发通知信息接口
-     */
-    void sendMsg(String msgType, String sender, Set<String> receivers, String title, String content);
+public interface CronJobLoadingService {
+    void loadAllCronJob();
 }

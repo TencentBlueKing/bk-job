@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
+import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.PaaSService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -43,13 +43,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class WatchableSendMsgService {
 
-    private final PaaSService paaSService;
+    private final CmsiApiClient cmsiApiClient;
     private final MeterRegistry meterRegistry;
 
     @Autowired
-    public WatchableSendMsgService(PaaSService paaSService,
+    public WatchableSendMsgService(CmsiApiClient cmsiApiClient,
                                    MeterRegistry meterRegistry) {
-        this.paaSService = paaSService;
+        this.cmsiApiClient = cmsiApiClient;
         this.meterRegistry = meterRegistry;
     }
 
@@ -65,7 +65,7 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
-            paaSService.sendMsg(msgType, sender, receivers, title, content);
+            cmsiApiClient.sendMsg(msgType, sender, receivers, title, content);
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
         } finally {
             long delayMillis = System.currentTimeMillis() - createTimeMillis;

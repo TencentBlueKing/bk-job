@@ -38,7 +38,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.EsbCronJobResource;
@@ -71,21 +70,19 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
 
     private final CronJobService cronJobService;
     private final CronAuthService cronAuthService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbCronJobResourceImpl(CronJobService cronJobService,
-                                  CronAuthService cronAuthService,
-                                  AppScopeMappingService appScopeMappingService) {
+                                  CronAuthService cronAuthService) {
         this.cronJobService = cronJobService;
         this.cronAuthService = cronAuthService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_cron_list"})
-    public EsbResp<List<EsbCronInfoResponse>> getCronList(EsbGetCronListRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
+    public EsbResp<List<EsbCronInfoResponse>> getCronList(String username,
+                                                          String appCode,
+                                                          EsbGetCronListRequest request) {
         if (request.validate()) {
             if (request.getId() != null && request.getId() > 0) {
                 CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
@@ -134,14 +131,14 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_update_cron_status"})
     @AuditEntry(actionId = ActionId.MANAGE_CRON)
-    public EsbResp<EsbCronInfoResponse> updateCronStatus(@AuditRequestBody EsbUpdateCronStatusRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-        String username = request.getUserName();
+    public EsbResp<EsbCronInfoResponse> updateCronStatus(String username,
+                                                         String appCode,
+                                                         @AuditRequestBody EsbUpdateCronStatusRequest request) {
         Long appId = request.getAppId();
         if (request.validate()) {
 
             AuthResult authResult = cronAuthService.authManageCron(
-                request.getUserName(), request.getAppResourceScope(), request.getId(), null
+                username, request.getAppResourceScope(), request.getId(), null
             );
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
@@ -182,9 +179,9 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_save_cron"})
     @AuditEntry
-    public EsbResp<EsbCronInfoResponse> saveCron(@AuditRequestBody EsbSaveCronRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
+    public EsbResp<EsbCronInfoResponse> saveCron(String username,
+                                                 String appCode,
+                                                 @AuditRequestBody EsbSaveCronRequest request) {
         boolean isUpdate = request.getId() != null && request.getId() > 0;
         // 判断审计操作
         AuditContext.current().updateActionId(isUpdate ? ActionId.MANAGE_CRON : ActionId.CREATE_CRON);
@@ -200,18 +197,18 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
         cronJobInfo.setTaskPlanId(request.getPlanId());
         cronJobInfo.setCronExpression(CronExpressionUtil.fixExpressionForQuartz(request.getCronExpression()));
         if (!isUpdate) {
-            cronJobInfo.setCreator(request.getUserName());
+            cronJobInfo.setCreator(username);
             cronJobInfo.setDelete(false);
         }
         cronJobInfo.setEnable(false);
-        cronJobInfo.setLastModifyUser(request.getUserName());
+        cronJobInfo.setLastModifyUser(username);
         cronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
 
         CronJobInfoDTO result;
         if (isUpdate) {
-            result = cronJobService.updateCronJobInfo(request.getUserName(), cronJobInfo);
+            result = cronJobService.updateCronJobInfo(username, cronJobInfo);
         } else {
-            result = cronJobService.createCronJobInfo(request.getUserName(), cronJobInfo);
+            result = cronJobService.createCronJobInfo(username, cronJobInfo);
         }
         if (result.getId() > 0) {
             esbCronInfoResponse = CronJobInfoDTO.toEsbCronInfo(cronJobService.getCronJobInfoById(result.getId()));

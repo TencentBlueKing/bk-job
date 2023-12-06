@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
@@ -69,14 +68,11 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
 
     private final TaskInstanceService taskInstanceService;
     private final LogService logService;
-    private final AppScopeMappingService appScopeMappingService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
     public EsbBatchGetJobInstanceIpLogV3ResourceImpl(LogService logService,
                                                      TaskInstanceService taskInstanceService,
-                                                     AppScopeMappingService appScopeMappingService,
                                                      TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
-        this.appScopeMappingService = appScopeMappingService;
         this.logService = logService;
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
@@ -86,8 +82,9 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_batch_get_job_instance_ip_log"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbIpLogsV3DTO> batchGetJobInstanceIpLogs(
+        String username,
+        String appCode,
         @AuditRequestBody EsbBatchGetJobInstanceIpLogV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Batch get job instance ip log request is illegal!");
@@ -95,7 +92,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+        taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());

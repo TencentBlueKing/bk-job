@@ -145,8 +145,8 @@
         <template slot-scope="{ row }">
           <bk-button
             v-bk-tooltips.right.allowHtml="`
-                                    <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
-                                    <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
+              <div>${$t('script.作业模板引用')}: ${row.relatedTaskTemplateNum}</div>
+              <div>${$t('script.执行方案引用')}: ${row.relatedTaskPlanNum}</div>`"
             class="mr20"
             text
             @click="handleShowRelated(row)">

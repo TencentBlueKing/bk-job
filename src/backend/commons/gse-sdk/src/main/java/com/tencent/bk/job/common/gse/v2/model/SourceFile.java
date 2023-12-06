@@ -14,7 +14,7 @@ public class SourceFile {
      * 文件名
      */
     @JsonProperty("file_name")
-    private String fileName;
+    private String fileName = "";
 
     /**
      * 文件所在目录

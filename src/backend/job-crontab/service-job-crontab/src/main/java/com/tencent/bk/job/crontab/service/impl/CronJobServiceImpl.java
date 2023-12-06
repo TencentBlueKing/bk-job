@@ -42,7 +42,6 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -50,7 +49,9 @@ import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.constant.CronConstants;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
+import com.tencent.bk.job.crontab.listener.event.CrontabEvent;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
+import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.model.dto.InnerCronJobInfoDTO;
@@ -58,6 +59,7 @@ import com.tencent.bk.job.crontab.model.dto.QuartzJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.ServerDTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceInnerCronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequestDTO;
+import com.tencent.bk.job.crontab.mq.CrontabMQEventDispatcher;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.HostService;
@@ -110,6 +112,7 @@ public class CronJobServiceImpl implements CronJobService {
     private final CronAuthService cronAuthService;
     private final ExecuteTaskService executeTaskService;
     private final HostService hostService;
+    private final CrontabMQEventDispatcher crontabMQEventDispatcher;
 
     @Autowired
     public CronJobServiceImpl(CronJobDAO cronJobDAO,
@@ -117,13 +120,15 @@ public class CronJobServiceImpl implements CronJobService {
                               TaskPlanService taskPlanService,
                               CronAuthService cronAuthService,
                               ExecuteTaskService executeTaskService,
-                              HostService hostService) {
+                              HostService hostService,
+                              CrontabMQEventDispatcher crontabMQEventDispatcher) {
         this.cronJobDAO = cronJobDAO;
         this.quartzTaskHandler = quartzTaskHandler;
         this.taskPlanService = taskPlanService;
         this.cronAuthService = cronAuthService;
         this.executeTaskService = executeTaskService;
         this.hostService = hostService;
+        this.crontabMQEventDispatcher = crontabMQEventDispatcher;
     }
 
     private static String getJobName(long appId, long cronJobId) {
@@ -170,7 +175,7 @@ public class CronJobServiceImpl implements CronJobService {
         instance = @AuditInstanceRecord(
             resourceType = ResourceTypeId.CRON,
             instanceIds = "#cronJobId",
-            instanceNames = "$?.name"
+            instanceNames = "#$?.name"
         ),
         content = EventContentConstants.VIEW_CRON_JOB
     )
@@ -255,7 +260,7 @@ public class CronJobServiceImpl implements CronJobService {
                 executeTaskService.authExecuteTask(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId(),
                     cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
                 if (cronJobDAO.updateCronJobById(cronJobInfo)) {
-                    addJob(cronJobInfo.getAppId(), cronJobInfo.getId());
+                    informAllToAddJobToQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
                 } else {
                     throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
                 }
@@ -265,7 +270,7 @@ public class CronJobServiceImpl implements CronJobService {
             }
         } else {
             if (cronJobDAO.updateCronJobById(cronJobInfo)) {
-                deleteJob(cronJobInfo.getAppId(), cronJobInfo.getId());
+                informAllToDeleteJobFromQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
             } else {
                 throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
             }
@@ -381,7 +386,7 @@ public class CronJobServiceImpl implements CronJobService {
         ActionAuditContext.current().setInstanceName(cron.getName());
 
         if (cronJobDAO.deleteCronJobById(appId, cronJobId)) {
-            deleteJob(appId, cronJobId);
+            informAllToDeleteJobFromQuartz(appId, cronJobId);
             return true;
         }
         return false;
@@ -428,7 +433,7 @@ public class CronJobServiceImpl implements CronJobService {
                 executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
                     cronJobId, originCronJobInfo.getName(), taskVariables, username);
                 if (cronJobDAO.updateCronJobById(cronJobInfo)) {
-                    return addJob(appId, cronJobId);
+                    return informAllToAddJobToQuartz(appId, cronJobId);
                 } else {
                     return false;
                 }
@@ -438,7 +443,7 @@ public class CronJobServiceImpl implements CronJobService {
             }
         } else {
             if (cronJobDAO.updateCronJobById(cronJobInfo)) {
-                return deleteJob(appId, cronJobId);
+                return informAllToDeleteJobFromQuartz(appId, cronJobId);
             } else {
                 return false;
             }
@@ -456,7 +461,7 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfo.setLastModifyTime(lastModifyTime);
         cronJobInfo.setEnable(false);
         if (cronJobDAO.updateCronJobById(cronJobInfo)) {
-            return deleteJob(appId, cronJobId);
+            return informAllToDeleteJobFromQuartz(appId, cronJobId);
         } else {
             return false;
         }
@@ -627,7 +632,7 @@ public class CronJobServiceImpl implements CronJobService {
                             cronJobInfo.getId(), originCronJobInfo.getName(), taskVariables,
                             JobContextUtil.getUsername());
                         if (cronJobDAO.updateCronJobById(cronJobInfoFromReq)) {
-                            addJob(appId, cronJobInfo.getId());
+                            informAllToAddJobToQuartz(appId, cronJobInfo.getId());
                         }
                     } catch (TaskExecuteAuthFailedException e) {
                         log.error("Error while pre auth cron execute!", e);
@@ -635,7 +640,7 @@ public class CronJobServiceImpl implements CronJobService {
                     }
                 } else {
                     if (cronJobDAO.updateCronJobById(cronJobInfoFromReq)) {
-                        deleteJob(appId, cronJobInfo.getId());
+                        informAllToDeleteJobFromQuartz(appId, cronJobInfo.getId());
                     }
                 }
                 CronJobInfoDTO updateCronJobInfo = getCronJobInfoById(appId, cronJobInfo.getId());
@@ -715,123 +720,13 @@ public class CronJobServiceImpl implements CronJobService {
         return innerCronJobInfoDTO;
     }
 
-    private boolean addJob(long appId, long cronJobId) throws ServiceException {
-        if (appId <= 0 || cronJobId <= 0) {
+    private boolean informAllToAddJobToQuartz(long appId, long cronJobId) throws ServiceException {
+        try {
+            crontabMQEventDispatcher.broadCastCrontabEvent(CrontabEvent.addCron(appId, cronJobId));
+            return true;
+        } catch (Exception e) {
+            log.error("Fail to broadCast addCronEvent", e);
             return false;
-        }
-        String lockKey = appId + ":" + cronJobId;
-        if (LockUtils.tryGetDistributedLock(lockKey, JobContextUtil.getRequestId(), 60_000)) {
-            try {
-                CronJobInfoDTO cronJobInfo = getCronJobInfoById(appId, cronJobId);
-                if (StringUtils.isBlank(cronJobInfo.getCronExpression())
-                    && cronJobInfo.getExecuteTime() < DateUtils.currentTimeSeconds()) {
-                    throw new FailedPreconditionException(ErrorCode.CRON_JOB_TIME_PASSED);
-                }
-                checkCronRelatedPlan(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId());
-                QuartzTrigger trigger = null;
-                if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
-                    QuartzTriggerBuilder cronTriggerBuilder =
-                        QuartzTriggerBuilder.newTrigger().ofType(QuartzTrigger.TriggerType.CRON)
-                            .withIdentity(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
-                            .withCronExpression(cronJobInfo.getCronExpression())
-                            .withMisfireInstruction(CronTrigger.MISFIRE_INSTRUCTION_DO_NOTHING);
-                    if (cronJobInfo.getEndTime() > 0) {
-                        if (cronJobInfo.getEndTime() < DateUtils.currentTimeSeconds()) {
-                            throw new FailedPreconditionException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);
-                        } else {
-                            cronTriggerBuilder =
-                                cronTriggerBuilder.endAt(Date.from(Instant.ofEpochSecond(cronJobInfo.getEndTime())));
-                        }
-                    }
-                    trigger = cronTriggerBuilder.build();
-                } else if (cronJobInfo.getExecuteTime() > DateUtils.currentTimeSeconds()) {
-                    trigger = QuartzTriggerBuilder.newTrigger().ofType(QuartzTrigger.TriggerType.SIMPLE)
-                        .withIdentity(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
-                        .startAt(Date.from(Instant.ofEpochSecond(cronJobInfo.getExecuteTime()))).withRepeatCount(0)
-                        .withIntervalInHours(1)
-                        .withMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT)
-                        .build();
-                }
-                if (trigger == null) {
-                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-                }
-
-                QuartzJob job =
-                    QuartzJobBuilder.newJob().withIdentity(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
-                        .forJob(SimpleJobExecutor.class)
-                        .usingJobData(CronConstants.JOB_DATA_KEY_APP_ID_STR, String.valueOf(appId))
-                        .usingJobData(CronConstants.JOB_DATA_KEY_CRON_JOB_ID_STR, String.valueOf(cronJobId))
-                        .withTrigger(trigger)
-                        .build();
-
-                try {
-                    quartzTaskHandler
-                        .deleteJob(JobKey.jobKey(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
-                    quartzTaskHandler.addJob(job);
-                } catch (SchedulerException e) {
-                    log.error("Error while add job to quartz!", e);
-                    throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
-                }
-
-                if (cronJobInfo.getNotifyOffset() > 0) {
-                    long notifyTime = 0L;
-                    if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
-                        if (cronJobInfo.getEndTime() > 0) {
-                            notifyTime = cronJobInfo.getEndTime() - cronJobInfo.getNotifyOffset();
-                        }
-                    } else {
-                        notifyTime = cronJobInfo.getExecuteTime() - cronJobInfo.getNotifyOffset();
-                    }
-                    if (notifyTime < DateUtils.currentTimeSeconds()) {
-                        throw new FailedPreconditionException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);
-                    }
-
-                    QuartzTrigger notifyTrigger = QuartzTriggerBuilder.newTrigger()
-                        .ofType(QuartzTrigger.TriggerType.SIMPLE)
-                        .withIdentity(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
-                        .startAt(Date.from(Instant.ofEpochSecond(notifyTime))).withRepeatCount(0).withIntervalInHours(1)
-                        .withMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT)
-                        .build();
-
-                    QuartzJob notifyJob = QuartzJobBuilder.newJob()
-                        .withIdentity(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
-                        .forJob(NotifyJobExecutor.class)
-                        .usingJobData(CronConstants.JOB_DATA_KEY_APP_ID_STR, String.valueOf(appId))
-                        .usingJobData(CronConstants.JOB_DATA_KEY_CRON_JOB_ID_STR, String.valueOf(cronJobId))
-                        .withTrigger(notifyTrigger)
-                        .build();
-
-                    try {
-                        quartzTaskHandler.deleteJob(
-                            JobKey.jobKey(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
-                        quartzTaskHandler.addJob(notifyJob);
-                    } catch (SchedulerException e) {
-                        log.error("Error while add job to quartz!", e);
-                        throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
-                    }
-                } else {
-                    try {
-                        quartzTaskHandler.deleteJob(
-                            JobKey.jobKey(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
-                    } catch (SchedulerException e) {
-                        log.error("Error while add job to quartz!", e);
-                        throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
-                    }
-                }
-                return true;
-            } catch (ServiceException e) {
-                deleteJob(appId, cronJobId);
-                log.debug("Error while schedule job", e);
-                throw e;
-            } catch (Exception e) {
-                deleteJob(appId, cronJobId);
-                log.error("Unknown exception while process cron status change!", e);
-                throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
-            } finally {
-                LockUtils.releaseDistributedLock(lockKey, JobContextUtil.getRequestId());
-            }
-        } else {
-            throw new InternalException(ErrorCode.ACQUIRE_CRON_JOB_LOCK_FAILED);
         }
     }
 
@@ -841,23 +736,148 @@ public class CronJobServiceImpl implements CronJobService {
         }
     }
 
-    private boolean deleteJob(long appId, long cronJobId) {
+    private boolean informAllToDeleteJobFromQuartz(long appId, long cronJobId) {
+        try {
+            crontabMQEventDispatcher.broadCastCrontabEvent(CrontabEvent.deleteCron(appId, cronJobId));
+            return true;
+        } catch (Exception e) {
+            log.error("Fail to broadCast deleteCronEvent", e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean addJobToQuartz(long appId, long cronJobId) throws ServiceException {
         if (appId <= 0 || cronJobId <= 0) {
             return false;
         }
-        String lockKey = appId + ":" + cronJobId;
-        if (LockUtils.tryGetDistributedLock(lockKey, JobContextUtil.getRequestId(), 60_000)) {
-            try {
-                quartzTaskHandler.deleteJob(JobKey.jobKey(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
-                quartzTaskHandler
-                    .deleteJob(JobKey.jobKey(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
-                return true;
-            } catch (SchedulerException e) {
-                log.error("Error while delete job!", e);
-            } finally {
-                LockUtils.releaseDistributedLock(lockKey, JobContextUtil.getRequestId());
+        try {
+            CronJobInfoDTO cronJobInfo = getCronJobInfoById(appId, cronJobId);
+            if (StringUtils.isBlank(cronJobInfo.getCronExpression())
+                && cronJobInfo.getExecuteTime() < DateUtils.currentTimeSeconds()) {
+                throw new FailedPreconditionException(ErrorCode.CRON_JOB_TIME_PASSED);
             }
+            checkCronRelatedPlan(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId());
+            QuartzTrigger trigger = null;
+            if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
+                QuartzTriggerBuilder cronTriggerBuilder =
+                    QuartzTriggerBuilder.newTrigger().ofType(QuartzTrigger.TriggerType.CRON)
+                        .withIdentity(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
+                        .withCronExpression(cronJobInfo.getCronExpression())
+                        .withMisfireInstruction(CronTrigger.MISFIRE_INSTRUCTION_DO_NOTHING);
+                if (cronJobInfo.getEndTime() > 0) {
+                    if (cronJobInfo.getEndTime() < DateUtils.currentTimeSeconds()) {
+                        throw new FailedPreconditionException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);
+                    } else {
+                        cronTriggerBuilder =
+                            cronTriggerBuilder.endAt(Date.from(Instant.ofEpochSecond(cronJobInfo.getEndTime())));
+                    }
+                }
+                trigger = cronTriggerBuilder.build();
+            } else if (cronJobInfo.getExecuteTime() > DateUtils.currentTimeSeconds()) {
+                trigger = QuartzTriggerBuilder.newTrigger().ofType(QuartzTrigger.TriggerType.SIMPLE)
+                    .withIdentity(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
+                    .startAt(Date.from(Instant.ofEpochSecond(cronJobInfo.getExecuteTime()))).withRepeatCount(0)
+                    .withIntervalInHours(1)
+                    .withMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT)
+                    .build();
+            }
+            if (trigger == null) {
+                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+            }
+
+            QuartzJob job =
+                QuartzJobBuilder.newJob().withIdentity(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
+                    .forJob(SimpleJobExecutor.class)
+                    .usingJobData(CronConstants.JOB_DATA_KEY_APP_ID_STR, String.valueOf(appId))
+                    .usingJobData(CronConstants.JOB_DATA_KEY_CRON_JOB_ID_STR, String.valueOf(cronJobId))
+                    .withTrigger(trigger)
+                    .build();
+
+            try {
+                quartzTaskHandler
+                    .deleteJob(JobKey.jobKey(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
+                quartzTaskHandler.addJob(job);
+            } catch (SchedulerException e) {
+                log.error("Error while add job to quartz!", e);
+                throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
+            }
+
+            if (cronJobInfo.getNotifyOffset() > 0) {
+                long notifyTime = 0L;
+                if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
+                    if (cronJobInfo.getEndTime() > 0) {
+                        notifyTime = cronJobInfo.getEndTime() - cronJobInfo.getNotifyOffset();
+                    }
+                } else {
+                    notifyTime = cronJobInfo.getExecuteTime() - cronJobInfo.getNotifyOffset();
+                }
+                if (notifyTime < DateUtils.currentTimeSeconds()) {
+                    throw new FailedPreconditionException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);
+                }
+
+                QuartzTrigger notifyTrigger = QuartzTriggerBuilder.newTrigger()
+                    .ofType(QuartzTrigger.TriggerType.SIMPLE)
+                    .withIdentity(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
+                    .startAt(Date.from(Instant.ofEpochSecond(notifyTime))).withRepeatCount(0).withIntervalInHours(1)
+                    .withMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT)
+                    .build();
+
+                QuartzJob notifyJob = QuartzJobBuilder.newJob()
+                    .withIdentity(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId))
+                    .forJob(NotifyJobExecutor.class)
+                    .usingJobData(CronConstants.JOB_DATA_KEY_APP_ID_STR, String.valueOf(appId))
+                    .usingJobData(CronConstants.JOB_DATA_KEY_CRON_JOB_ID_STR, String.valueOf(cronJobId))
+                    .withTrigger(notifyTrigger)
+                    .build();
+
+                try {
+                    quartzTaskHandler.deleteJob(
+                        JobKey.jobKey(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
+                    quartzTaskHandler.addJob(notifyJob);
+                } catch (SchedulerException e) {
+                    log.error("Error while add job to quartz!", e);
+                    throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
+                }
+            } else {
+                try {
+                    quartzTaskHandler.deleteJob(
+                        JobKey.jobKey(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
+                } catch (SchedulerException e) {
+                    log.error("Error while add job to quartz!", e);
+                    throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
+                }
+            }
+            return true;
+        } catch (ServiceException e) {
+            informAllToDeleteJobFromQuartz(appId, cronJobId);
+            log.debug("Error while schedule job", e);
+            throw e;
+        } catch (Exception e) {
+            informAllToDeleteJobFromQuartz(appId, cronJobId);
+            log.error("Unknown exception while process cron status change!", e);
+            throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
+        }
+    }
+
+    @Override
+    public boolean deleteJobFromQuartz(long appId, long cronJobId) {
+        if (appId <= 0 || cronJobId <= 0) {
+            return false;
+        }
+        try {
+            quartzTaskHandler.deleteJob(JobKey.jobKey(getJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
+            quartzTaskHandler
+                .deleteJob(JobKey.jobKey(getNotifyJobName(appId, cronJobId), getJobGroup(appId, cronJobId)));
+            return true;
+        } catch (SchedulerException e) {
+            log.error("Error while delete job!", e);
         }
         return false;
+    }
+
+    @Override
+    public List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit) {
+        return cronJobDAO.listEnabledCronBasicInfoForUpdate(start, limit);
     }
 }
