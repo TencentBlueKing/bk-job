@@ -25,9 +25,7 @@
 package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
-import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -70,6 +68,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
+import com.tencent.bk.job.execute.util.FileTransferModeUtil;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -243,9 +242,11 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             fileStepVO.setFileDestination(fileDestinationInfoVO);
 
             fileStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
-            fileStepVO.setTransferMode(
-                ExecuteFileStepVO.getTransferMode(DuplicateHandlerEnum.valueOf(stepInstance.getFileDuplicateHandle()),
-                    NotExistPathHandlerEnum.valueOf(stepInstance.getNotExistPathHandler())));
+            Integer transferMode = FileTransferModeUtil.getTransferMode(
+                stepInstance.getFileDuplicateHandle(),
+                stepInstance.getNotExistPathHandler()
+            ).getValue();
+            fileStepVO.setTransferMode(transferMode);
             if (stepInstance.getFileDownloadSpeedLimit() != null) {
                 fileStepVO.setTargetSpeedLimit(stepInstance.getFileDownloadSpeedLimit() >> 10);
             }

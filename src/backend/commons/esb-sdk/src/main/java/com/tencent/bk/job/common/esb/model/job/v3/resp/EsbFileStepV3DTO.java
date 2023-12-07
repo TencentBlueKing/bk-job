@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -79,4 +79,8 @@ public class EsbFileStepV3DTO {
     @JsonProperty("transfer_mode")
     @JsonPropertyDescription("Transfer mode")
     private Integer transferMode;
+
+    @JsonProperty("is_ignore_error")
+    @JsonPropertyDescription("Is ignore error")
+    private Integer ignoreError;
 }

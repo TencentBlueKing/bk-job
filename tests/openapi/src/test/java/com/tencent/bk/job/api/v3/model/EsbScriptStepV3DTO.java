@@ -58,4 +58,7 @@ public class EsbScriptStepV3DTO {
 
     @JsonProperty("is_param_sensitive")
     private Integer secureParam;
+
+    @JsonProperty("is_ignore_error")
+    private Integer ignoreError;
 }

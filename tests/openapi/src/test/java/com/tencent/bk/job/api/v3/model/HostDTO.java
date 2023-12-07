@@ -17,13 +17,15 @@ import lombok.ToString;
 @ToString
 public class HostDTO {
 
-    @JsonProperty("host_id")
+    @JsonProperty("bk_host_id")
     private Long hostId;
 
     @JsonProperty("bk_cloud_id")
     private Long bkCloudId;
 
     private String ip;
+
+    private String ipv6;
 
     public HostDTO(Long hostId) {
         this.hostId = hostId;

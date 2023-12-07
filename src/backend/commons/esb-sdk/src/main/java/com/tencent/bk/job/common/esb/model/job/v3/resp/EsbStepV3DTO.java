@@ -22,54 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import lombok.Data;
 
 /**
- * @since 17/11/2020 20:37
+ * @since 17/11/2020 16:41
  */
 @Data
-public class EsbScriptStepV3DTO {
-    @JsonProperty("script_type")
-    @JsonPropertyDescription("Script type")
+public class EsbStepV3DTO {
+    @JsonPropertyDescription("Step id")
+    private Long id;
+
+    @JsonPropertyDescription("Step name")
+    private String name;
+
+    @JsonPropertyDescription("Step type")
     private Integer type;
 
-    @JsonProperty("script_id")
-    @JsonPropertyDescription("Script id")
-    private String scriptId;
+    @JsonProperty("script_info")
+    @JsonPropertyDescription("Script step info")
+    private EsbScriptStepV3DTO scriptInfo;
 
-    @JsonProperty("script_version_id")
-    @JsonPropertyDescription("Script version id")
-    private Long scriptVersionId;
+    @JsonProperty("file_info")
+    @JsonPropertyDescription("File step info")
+    private EsbFileStepV3DTO fileInfo;
 
-    @JsonProperty("script_content")
-    @JsonPropertyDescription("Script content")
-    private String content;
-
-    @JsonProperty("script_language")
-    @JsonPropertyDescription("Script language")
-    private Integer language;
-
-    @JsonProperty("script_param")
-    @JsonPropertyDescription("Script params")
-    private String scriptParam;
-
-    @JsonProperty("script_timeout")
-    @JsonPropertyDescription("Timeout")
-    private Long scriptTimeout;
-
-    @JsonPropertyDescription("Account")
-    private EsbAccountV3BasicDTO account;
-
-    @JsonPropertyDescription("Hosts")
-    private EsbServerV3DTO server;
-
-    @JsonProperty("is_param_sensitive")
-    @JsonPropertyDescription("Is script params sensitive")
-    private Integer secureParam;
+    @JsonProperty("approval_info")
+    @JsonPropertyDescription("Approval step info")
+    private EsbApprovalStepV3DTO approvalInfo;
 }

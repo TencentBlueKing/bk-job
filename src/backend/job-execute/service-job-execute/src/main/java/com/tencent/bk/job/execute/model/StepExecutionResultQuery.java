@@ -90,6 +90,10 @@ public class StepExecutionResultQuery {
      */
     private Integer maxAgentTasksForResultGroup;
     /**
+     * 是否获取所有分组下的所有主机执行数据（默认为false，只获取第一个分组中的数据）
+     */
+    private boolean fetchAllGroupData;
+    /**
      * 排序字段
      */
     private String orderField;

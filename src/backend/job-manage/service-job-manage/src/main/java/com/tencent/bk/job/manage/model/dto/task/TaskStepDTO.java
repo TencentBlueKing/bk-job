@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.model.dto.task;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbStepV3DTO;
+import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbStepV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
 import lombok.AllArgsConstructor;

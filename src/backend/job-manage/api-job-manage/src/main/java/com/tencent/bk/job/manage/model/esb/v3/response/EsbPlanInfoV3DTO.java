@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.model.esb.v3.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
+import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbStepV3DTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

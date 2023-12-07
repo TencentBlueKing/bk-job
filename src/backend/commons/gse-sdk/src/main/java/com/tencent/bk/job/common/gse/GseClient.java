@@ -18,6 +18,7 @@ import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StopWatch;
 
 import java.util.List;
 
@@ -57,10 +58,23 @@ public class GseClient implements IGseClient {
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
+        StopWatch watch = new StopWatch("listAgentState");
         List<String> agentIdList = req.getAgentIdList();
         String firstAgentId = agentIdList.get(0);
+
+        watch.start("chooseGseApiClientByAgentId");
         IGseClient gseClient = chooseGseApiClientByAgentId(firstAgentId);
-        return gseClient.listAgentState(req);
+        watch.stop();
+
+        watch.start("gseClient.listAgentState");
+        List<AgentState> resultList = gseClient.listAgentState(req);
+        watch.stop();
+
+        if (watch.getTotalTimeMillis() > 3000) {
+            log.warn("listAgentState slow, statistics: " + watch.prettyPrint());
+        }
+
+        return resultList;
     }
 
     private IGseClient chooseGseApiClientByAgentId(String agentId) {

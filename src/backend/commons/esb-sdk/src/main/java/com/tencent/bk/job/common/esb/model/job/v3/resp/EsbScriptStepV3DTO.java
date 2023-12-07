@@ -22,47 +22,58 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * 人工确认步骤
- *
- * @since 17/11/2020 20:38
+ * @since 17/11/2020 20:37
  */
 @Data
-public class EsbApprovalStepV3DTO {
+public class EsbScriptStepV3DTO {
+    @JsonProperty("script_type")
+    @JsonPropertyDescription("Script type")
+    private Integer type;
 
-    /**
-     * 确认类型
-     */
-    @JsonProperty("approval_type")
-    @JsonPropertyDescription("Approval type")
-    private Integer approvalType;
+    @JsonProperty("script_id")
+    @JsonPropertyDescription("Script id")
+    private String scriptId;
 
-    /**
-     * 确认角色
-     */
-    @JsonPropertyDescription("Approval user info")
-    @JsonProperty("approval_user")
-    private EsbUserRoleInfoV3DTO approvalUser;
+    @JsonProperty("script_version_id")
+    @JsonPropertyDescription("Script version id")
+    private Long scriptVersionId;
 
-    /**
-     * 确认消息
-     */
-    @JsonPropertyDescription("Approval message")
-    @JsonProperty("approval_message")
-    private String approvalMessage;
+    @JsonProperty("script_content")
+    @JsonPropertyDescription("Script content")
+    private String content;
 
-    /**
-     * 通知渠道列表
-     */
-    @JsonPropertyDescription("Notify channel")
-    @JsonProperty("notify_channel")
-    private List<String> notifyChannel;
+    @JsonProperty("script_language")
+    @JsonPropertyDescription("Script language")
+    private Integer language;
+
+    @JsonProperty("script_param")
+    @JsonPropertyDescription("Script params")
+    private String scriptParam;
+
+    @JsonProperty("script_timeout")
+    @JsonPropertyDescription("Timeout")
+    private Long scriptTimeout;
+
+    @JsonPropertyDescription("Account")
+    private EsbAccountV3BasicDTO account;
+
+    @JsonPropertyDescription("Hosts")
+    private EsbServerV3DTO server;
+
+    @JsonProperty("is_param_sensitive")
+    @JsonPropertyDescription("Is script params sensitive")
+    private Integer secureParam;
+
+    @JsonProperty("is_ignore_error")
+    @JsonPropertyDescription("Is ignore error")
+    private Integer ignoreError;
 }
