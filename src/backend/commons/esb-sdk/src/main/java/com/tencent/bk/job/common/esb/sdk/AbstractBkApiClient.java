@@ -238,6 +238,7 @@ public abstract class AbstractBkApiClient {
             .setHeaders(headers)
             .setKeepAlive(true)
             .setRetryMode(requestInfo.getRetryMode())
+            .setIdempotent(requestInfo.getIdempotent())
             .setStringEntity(requestInfo.getBody() != null ? jsonMapper.toJson(requestInfo.getBody()) : null)
             .build();
 

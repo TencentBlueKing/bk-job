@@ -57,6 +57,10 @@ public class OpenApiRequestInfo<T> {
      * 请求重试模式
      */
     private final RetryModeEnum retryMode;
+    /**
+     * 请求是否幂等
+     */
+    private final Boolean idempotent;
 
     public OpenApiRequestInfo(Builder<T> builder) {
         this.method = builder.method;
@@ -66,6 +70,7 @@ public class OpenApiRequestInfo<T> {
         this.body = builder.body;
         this.authorization = builder.authorization;
         this.retryMode = builder.retryMode;
+        this.idempotent = builder.idempotent;
     }
 
     public static <T> Builder<T> builder() {
@@ -79,7 +84,8 @@ public class OpenApiRequestInfo<T> {
         private Map<String, String> queryParamsMap;
         private T body;
         private BkApiAuthorization authorization;
-        private RetryModeEnum retryMode = RetryModeEnum.DEFAULT;
+        private RetryModeEnum retryMode = RetryModeEnum.SAFE_GUARANTEED;
+        private Boolean idempotent;
 
         public Builder<T> method(HttpMethodEnum method) {
             this.method = method;
@@ -131,6 +137,11 @@ public class OpenApiRequestInfo<T> {
 
         public Builder<T> setRetryMode(RetryModeEnum retryMode) {
             this.retryMode = retryMode;
+            return this;
+        }
+
+        public Builder<T> setIdempotent(Boolean idempotent) {
+            this.idempotent = idempotent;
             return this;
         }
 

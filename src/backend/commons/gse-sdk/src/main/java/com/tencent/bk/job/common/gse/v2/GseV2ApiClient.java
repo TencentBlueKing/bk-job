@@ -27,7 +27,6 @@ import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
-import com.tencent.bk.job.common.util.http.RetryModeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +77,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
                 null,
-                RetryModeEnum.DEFAULT);
+                false);
 
         return buildGseTaskResponse(resp);
     }
@@ -87,14 +86,14 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                                          Object reqBody,
                                          TypeReference<EsbResp<R>> typeReference,
                                          BkApiLogStrategy logStrategy,
-                                         RetryModeEnum retryMode) {
+                                         boolean isRequestIdempotent) {
         OpenApiRequestInfo<Object> requestInfo = OpenApiRequestInfo
             .builder()
             .method(HttpMethodEnum.POST)
             .uri(uri)
             .body(reqBody)
             .authorization(gseBkApiAuthorization)
-            .setRetryMode(retryMode)
+            .setIdempotent(isRequestIdempotent)
             .build();
         return doRequest(requestInfo, typeReference, logStrategy, null);
     }
@@ -131,7 +130,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                         }
                     }
                 },
-                RetryModeEnum.ALWAYS);
+                true);
         return resp.getData();
     }
 
@@ -144,7 +143,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
             new TypeReference<EsbResp<List<AgentState>>>() {
             },
             null,
-            RetryModeEnum.ALWAYS);
+            true);
         return resp.getData();
     }
 
@@ -157,7 +156,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
                 null,
-                RetryModeEnum.DEFAULT);
+                false);
 
         return buildGseTaskResponse(resp);
     }
@@ -171,7 +170,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 new TypeReference<EsbResp<FileTaskResult>>() {
                 },
                 null,
-                RetryModeEnum.ALWAYS);
+                true);
         FileTaskResult fileTaskResult = resp.getData();
         if (fileTaskResult != null && CollectionUtils.isNotEmpty(fileTaskResult.getAtomicFileTaskResults())) {
             fileTaskResult.getAtomicFileTaskResults().forEach(atomicFileTaskResult -> {
@@ -192,7 +191,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
                 null,
-                RetryModeEnum.ALWAYS);
+                true);
         return buildGseTaskResponse(resp);
     }
 
@@ -204,7 +203,7 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
                 null,
-                RetryModeEnum.ALWAYS);
+                true);
         return buildGseTaskResponse(resp);
     }
 }

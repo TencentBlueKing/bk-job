@@ -45,8 +45,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class JobHttpRequestRetryHandlerTest {
     @Test
-    @DisplayName("测试 http client ConnectTimeoutException 异常重试")
-    void testRetryConnectTimeoutException() {
+    @DisplayName("验证ConnectTimeoutException在非幂等请求下能够重试")
+    void givenNotIdempotentRequestThrowConnectionTimeoutExceptionThenRetry() {
         JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
 
         CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
@@ -64,17 +64,43 @@ public class JobHttpRequestRetryHandlerTest {
                 });
             }));
 
-        HttpGet get = new HttpGet("http://127.0.0.1:8080/test");
-        assertThrows(ConnectTimeoutException.class, () -> retryableHttpClient.execute(get));
-
+        HttpPost post = new HttpPost("http://127.0.0.1:8080/test");
+        assertThrows(ConnectTimeoutException.class, () -> retryableHttpClient.execute(post));
 
         Mockito.verify(mockedRetryHandler, Mockito.times(4))
             .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
     }
 
     @Test
-    @DisplayName("测试 http client SocketTimeoutException 异常重试")
-    void testRetrySocketTimeoutException() {
+    @DisplayName("验证NoHttpResponseException在非幂等请求下能够重试")
+    void givenNotIdempotentRequestThrowNoHttpResponseExceptionThenRetry() {
+        JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
+
+        CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
+            15000,
+            15000,
+            15000,
+            1,
+            2,
+            60,
+            true,
+            mockedRetryHandler,
+            (httpClientBuilder -> {
+                httpClientBuilder.addInterceptorFirst((org.apache.http.HttpRequest request, HttpContext context) -> {
+                    throw new NoHttpResponseException("");
+                });
+            }));
+
+        HttpPost post = new HttpPost("http://127.0.0.1:8080/test");
+        assertThrows(NoHttpResponseException.class, () -> retryableHttpClient.execute(post));
+
+        Mockito.verify(mockedRetryHandler, Mockito.times(4))
+            .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
+    }
+
+    @Test
+    @DisplayName("验证SocketTimeoutException在非幂等请求下不会被重试")
+    void givenNotIdempotentRequestThrowSocketTimeoutExceptionThenDoNotRetry() {
         JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
 
         CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
@@ -91,45 +117,17 @@ public class JobHttpRequestRetryHandlerTest {
                     throw new SocketTimeoutException();
                 });
             }));
-        HttpGet get = new HttpGet("http://127.0.0.1:8080/test");
-        assertThrows(SocketTimeoutException.class, () -> retryableHttpClient.execute(get));
 
+        HttpPost post = new HttpPost("http://127.0.0.1:8080/test");
+        assertThrows(SocketTimeoutException.class, () -> retryableHttpClient.execute(post));
 
-        Mockito.verify(mockedRetryHandler, Mockito.times(4))
+        Mockito.verify(mockedRetryHandler, Mockito.times(1))
             .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
     }
 
     @Test
-    @DisplayName("测试 http client NoHttpResponseException 异常重试")
-    void whenNoHttpResponseExceptionThenRetry() {
-        JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
-
-        CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
-            15000,
-            15000,
-            15000,
-            1,
-            2,
-            60,
-            true,
-            mockedRetryHandler,
-            (httpClientBuilder -> {
-                httpClientBuilder.addInterceptorFirst((org.apache.http.HttpRequest request, HttpContext context) -> {
-                    throw new NoHttpResponseException("error");
-                });
-            }));
-
-        HttpGet get = new HttpGet("http://127.0.0.1:8080/test");
-        assertThrows(NoHttpResponseException.class, () -> retryableHttpClient.execute(get));
-
-
-        Mockito.verify(mockedRetryHandler, Mockito.times(4))
-            .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
-    }
-
-    @Test
-    @DisplayName("其他异常不重试")
-    void whenThrowNotRetryableExceptionThenDoNotRetry() {
+    @DisplayName("验证抛出其他不可重试的异常，不会被重试")
+    void givenThrowNotRetryableExceptionThenDoNotRetry() {
         JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
 
         CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
@@ -150,14 +148,13 @@ public class JobHttpRequestRetryHandlerTest {
         HttpGet get = new HttpGet("http://127.0.0.1:8080/test");
         assertThrows(UnknownHostException.class, () -> retryableHttpClient.execute(get));
 
-
         Mockito.verify(mockedRetryHandler, Mockito.times(1))
             .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
     }
 
     @Test
-    @DisplayName("测试 http client 指定重试模式为RetryModeEnum.ALWAYS, 虽然 POST 不是幂等方法，但是仍然能够重试")
-    void whenRetryModeAlwaysAndPostThenRetry() {
+    @DisplayName("测试指定重试模式为RetryModeEnum.ALWAYS, 虽然 POST 不是幂等方法，但是仍然能够重试")
+    void givenRetryModeAlwaysAndPostThenRetry() {
         JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
 
         CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
@@ -177,7 +174,7 @@ public class JobHttpRequestRetryHandlerTest {
 
         HttpPost post = new HttpPost("http://127.0.0.1:8080/test");
         HttpCoreContext httpContext = HttpCoreContext.create();
-        httpContext.setAttribute(HttpConstants.RETRY_MODE, RetryModeEnum.ALWAYS.getValue());
+        httpContext.setAttribute(HttpContextAttributeNames.RETRY_MODE, RetryModeEnum.ALWAYS.getValue());
         assertThrows(SocketTimeoutException.class, () -> retryableHttpClient.execute(post, httpContext));
 
 
@@ -187,8 +184,8 @@ public class JobHttpRequestRetryHandlerTest {
     }
 
     @Test
-    @DisplayName("测试 http client 指定重试模式为RetryModeEnum.NEVER, 虽然 GET 是幂等方法，但是仍然不能够重试")
-    void whenRetryModeNeverAndPostThenRetry() {
+    @DisplayName("测试指定重试模式为RetryModeEnum.NEVER, 虽然 GET 是幂等方法，但是仍然不能够重试")
+    void givenRetryModeNeverAndPostThenRetry() {
         JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
 
         CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
@@ -208,7 +205,7 @@ public class JobHttpRequestRetryHandlerTest {
 
         HttpGet get = new HttpGet("http://127.0.0.1:8080/test");
         HttpCoreContext httpContext = HttpCoreContext.create();
-        httpContext.setAttribute(HttpConstants.RETRY_MODE, RetryModeEnum.NEVER.getValue());
+        httpContext.setAttribute(HttpContextAttributeNames.RETRY_MODE, RetryModeEnum.NEVER.getValue());
         assertThrows(SocketTimeoutException.class, () -> retryableHttpClient.execute(get, httpContext));
 
 
@@ -218,8 +215,8 @@ public class JobHttpRequestRetryHandlerTest {
     }
 
     @Test
-    @DisplayName("测试 http client 默认策略，非幂等方法比如 POST 不会被重试")
-    void whenPostThenDoNotRetry() {
+    @DisplayName("测试使用默认的重试模式RetryModeEnum.SAFE_GUARANTEED，非幂等方法比如 POST 不会被重试")
+    void givenNotIdempotentRequestThenDoNotRetry() {
         JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
 
         CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
@@ -246,6 +243,32 @@ public class JobHttpRequestRetryHandlerTest {
             .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
     }
 
+    @Test
+    @DisplayName("测试使用默认的重试模式RetryModeEnum.SAFE_GUARANTEED，幂等方法比如 GET 会被重试")
+    void givenIdempotentRequestThenRetry() {
+        JobHttpRequestRetryHandler mockedRetryHandler = Mockito.spy(new JobHttpRequestRetryHandler());
+
+        CloseableHttpClient retryableHttpClient = JobHttpClientFactory.createHttpClient(
+            15000,
+            15000,
+            15000,
+            1,
+            2,
+            60,
+            true,
+            mockedRetryHandler,
+            (httpClientBuilder -> {
+                httpClientBuilder.addInterceptorFirst((org.apache.http.HttpRequest request, HttpContext context) -> {
+                    throw new SocketTimeoutException();
+                });
+            }));
+        HttpGet get = new HttpGet("http://127.0.0.1:8080/test");
+        HttpCoreContext httpContext = HttpCoreContext.create();
+        assertThrows(SocketTimeoutException.class, () -> retryableHttpClient.execute(get, httpContext));
 
 
+        // GET 幂等的方法，所以会重试
+        Mockito.verify(mockedRetryHandler, Mockito.times(4))
+            .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
+    }
 }

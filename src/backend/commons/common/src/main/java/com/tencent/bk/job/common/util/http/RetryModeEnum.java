@@ -29,18 +29,17 @@ package com.tencent.bk.job.common.util.http;
  */
 public enum RetryModeEnum {
     /**
-     * 失败重试
+     * 总是重试
      */
     ALWAYS(1),
     /**
-     * 从不重试
+     * 禁止重试
      */
     NEVER(2),
     /**
-     * 使用 Job 定义的默认重试方式
+     * 在保证安全的情况下尽可能重试
      */
-    DEFAULT(3);
-
+    SAFE_GUARANTEED(3);
 
     private final int value;
 

@@ -153,7 +153,7 @@ public class BaseHttpHelper implements HttpHelper {
 
     private HttpContext buildHttpContext(HttpRequest request) {
         HttpCoreContext httpContext = HttpCoreContext.create();
-        httpContext.setAttribute(HttpConstants.RETRY_MODE, request.getRetryMode().getValue());
+        httpContext.setAttribute(HttpContextAttributeNames.RETRY_MODE, request.getRetryMode().getValue());
         return httpContext;
     }
 

@@ -45,7 +45,14 @@ public class HttpRequest {
      */
     private HttpEntity httpEntity;
     private Header[] headers;
+    /**
+     * 请求重试模式
+     */
     private RetryModeEnum retryMode;
+    /**
+     * 请求是否幂等
+     */
+    private final Boolean idempotent;
 
     private boolean keepAlive;
 
@@ -56,6 +63,7 @@ public class HttpRequest {
         this.httpEntity = builder.httpEntity;
         this.headers = builder.headers;
         this.retryMode = builder.retryMode;
+        this.idempotent = builder.idempotent;
         this.keepAlive = builder.keepAlive;
     }
 
@@ -69,7 +77,8 @@ public class HttpRequest {
         private String stringEntity;
         private HttpEntity httpEntity;
         private Header[] headers;
-        private RetryModeEnum retryMode = RetryModeEnum.DEFAULT;
+        private RetryModeEnum retryMode = RetryModeEnum.SAFE_GUARANTEED;
+        private Boolean idempotent;
         /**
          * 按照 http1.1 之后的标准，默认都使用长连接
          */
@@ -97,6 +106,11 @@ public class HttpRequest {
 
         public Builder setRetryMode(RetryModeEnum retryMode) {
             this.retryMode = retryMode;
+            return this;
+        }
+
+        public Builder setIdempotent(Boolean idempotent) {
+            this.idempotent = idempotent;
             return this;
         }
 

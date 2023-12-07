@@ -26,13 +26,12 @@ package com.tencent.bk.job.common.util.http;
 
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.exception.InternalException;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.HttpContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
-import java.net.SocketTimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -53,7 +52,7 @@ public class BaseHttpHelperTest {
             mockedRetryHandler,
             (httpClientBuilder -> {
                 httpClientBuilder.addInterceptorFirst((org.apache.http.HttpRequest request, HttpContext context) -> {
-                    throw new SocketTimeoutException();
+                    throw new NoHttpResponseException("");
                 });
             }));
         HttpHelper httpHelper = new BaseHttpHelper(retryableHttpClient);
@@ -61,7 +60,7 @@ public class BaseHttpHelperTest {
             () -> httpHelper.request(HttpRequest.builder(HttpMethodEnum.GET, "http://localhost:8080/test")
                 .build()));
 
-        // GET + SocketTimeoutException 会被重试
+        // GET + NoHttpResponseException 会被重试
         Mockito.verify(mockedRetryHandler, Mockito.times(4))
             .retryRequest(Mockito.any(), Mockito.anyInt(), Mockito.any());
     }

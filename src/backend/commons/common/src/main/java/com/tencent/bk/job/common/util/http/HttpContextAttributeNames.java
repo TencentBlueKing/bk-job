@@ -24,6 +24,16 @@
 
 package com.tencent.bk.job.common.util.http;
 
-public interface HttpConstants {
+/**
+ * HTTP Client Context 属性名称定义
+ */
+public interface HttpContextAttributeNames {
+    /**
+     * 重试模式
+     */
     String RETRY_MODE = "RETRY_MODE";
+    /**
+     * 请求是否幂等
+     */
+    String IS_IDEMPOTENT = "IS_IDEMPOTENT";
 }
