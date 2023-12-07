@@ -33,13 +33,15 @@ import java.util.List;
 
 import static com.tencent.bk.job.api.constant.Constant.SHELL_SCRIPT_CONTENT_BASE64;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * 业务脚本管理 API 测试
  */
 @DisplayName("v3.ScriptResourceAPITest")
-class ScriptResourceAPITest {
+class ScriptResourceAPITest extends BaseTest {
 
     private static final List<EsbScriptVersionDetailV3DTO> createdScriptList = new ArrayList<>();
 

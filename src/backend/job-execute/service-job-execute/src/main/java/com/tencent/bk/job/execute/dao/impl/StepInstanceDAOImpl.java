@@ -677,6 +677,21 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
+    public Long getTaskInstanceId(long appId, long stepInstanceId) {
+        Result<Record1<Long>> records = CTX.select(T_STEP_INSTANCE.TASK_INSTANCE_ID)
+            .from(T_STEP_INSTANCE)
+            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+            .and(T_STEP_INSTANCE.APP_ID.eq(appId))
+            .limit(1)
+            .fetch();
+        if (records.isEmpty()) {
+            return null;
+        } else {
+            return records.get(0).get(T_STEP_INSTANCE.TASK_INSTANCE_ID);
+        }
+    }
+
+    @Override
     public Byte getScriptTypeByStepInstanceId(long stepInstanceId) {
         Result<Record1<Byte>> records = CTX.select(TABLE_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE)
             .from(TABLE_STEP_INSTANCE_SCRIPT)

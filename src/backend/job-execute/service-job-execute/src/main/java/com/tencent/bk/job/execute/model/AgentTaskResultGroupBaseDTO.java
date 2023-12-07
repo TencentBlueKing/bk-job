@@ -96,4 +96,8 @@ public class AgentTaskResultGroupBaseDTO implements Comparable<AgentTaskResultGr
         String tag2 = that.tag == null ? "" : that.tag;
         return tag1.compareTo(tag2);
     }
+
+    public String getGroupKey() {
+        return status + "_" + tag;
+    }
 }

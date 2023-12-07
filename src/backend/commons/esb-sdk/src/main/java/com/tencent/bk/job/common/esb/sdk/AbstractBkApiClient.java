@@ -71,7 +71,7 @@ public abstract class AbstractBkApiClient {
      * API调用度量指标名称
      */
     private final String metricName;
-    private JsonMapper jsonMapper = JsonMapper.nonEmptyMapper();
+    private JsonMapper jsonMapper = JsonMapper.nonNullMapper();
 
     /**
      * @param meterRegistry     MeterRegistry

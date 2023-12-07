@@ -33,7 +33,9 @@ public interface APIV3Urls {
     String DISABLE_DANGEROUS_RULE = "/api/job/v3/job-manage/disable_dangerous_rule";
     String CHECK_SCRIPT = "/api/job/v3/job-manage/check_script";
 
-    String FAST_EXECUTE_SCRIPT = "/api/job/v3/job-execute/get_script_list";
-    String FAST_TRANSFER_FILE = "/api/job/v3/job-execute/get_script_list";
-    String EXECUTE_JOB_PLAN = "/api/job/v3/job-execute/get_script_list";
+    String FAST_EXECUTE_SCRIPT = "/api/job/v3/job-execute/fast_execute_script";
+    String FAST_TRANSFER_FILE = "/api/job/v3/job-execute/fast_transfer_file";
+    String EXECUTE_JOB_PLAN = "/api/job/v3/job-execute/execute_job_plan";
+    String GET_STEP_INSTANCE_DETAIL = "/api/job/v3/job-execute/get_step_instance_detail";
+    String GET_STEP_INSTANCE_STATUS = "/api/job/v3/job-execute/get_step_instance_status";
 }

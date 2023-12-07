@@ -160,6 +160,7 @@ public class Operations {
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
         List<HostDTO> ips = new ArrayList<>();
         ips.add(TestProps.HOST_1_DEFAULT_BIZ);
+        ips.add(TestProps.HOST_2_DEFAULT_BIZ);
         targetServer.setIps(ips);
         req.setTargetServer(targetServer);
 
