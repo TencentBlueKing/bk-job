@@ -25,6 +25,10 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.dto.ExecuteObject;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -209,5 +213,32 @@ public class ServersDTO implements Cloneable {
             targetServer.setHostNodeInfo(taskHostNodeVO);
         }
         return targetServer;
+    }
+
+    public EsbServerV3DTO toEsbServerV3DTO() {
+        EsbServerV3DTO esbServerV3DTO = new EsbServerV3DTO();
+        esbServerV3DTO.setVariable(variable);
+        if (!CollectionUtils.isEmpty(staticIpList)) {
+            List<EsbIpDTO> ips = staticIpList.stream().map(EsbIpDTO::fromHost).collect(Collectors.toList());
+            esbServerV3DTO.setIps(ips);
+        }
+        if (!CollectionUtils.isEmpty(topoNodes)) {
+            List<EsbCmdbTopoNodeDTO> esbTopoNodes = topoNodes.stream().map(topoNode -> {
+                EsbCmdbTopoNodeDTO esbCmdbTopoNodeDTO = new EsbCmdbTopoNodeDTO();
+                esbCmdbTopoNodeDTO.setId(topoNode.getTopoNodeId());
+                esbCmdbTopoNodeDTO.setNodeType(topoNode.getNodeType());
+                return esbCmdbTopoNodeDTO;
+            }).collect(Collectors.toList());
+            esbServerV3DTO.setTopoNodes(esbTopoNodes);
+        }
+        if (!CollectionUtils.isEmpty(dynamicServerGroups)) {
+            List<EsbDynamicGroupDTO> dynamicGroups = dynamicServerGroups.stream().map(dynamicServerGroup -> {
+                EsbDynamicGroupDTO esbDynamicGroupDTO = new EsbDynamicGroupDTO();
+                esbDynamicGroupDTO.setId(dynamicServerGroup.getGroupId());
+                return esbDynamicGroupDTO;
+            }).collect(Collectors.toList());
+            esbServerV3DTO.setDynamicGroups(dynamicGroups);
+        }
+        return esbServerV3DTO;
     }
 }

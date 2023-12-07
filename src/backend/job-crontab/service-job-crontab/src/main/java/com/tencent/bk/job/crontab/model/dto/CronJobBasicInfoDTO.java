@@ -22,61 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.crontab.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbFileDestinationV3DTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-/**
- * 文件分发步骤
- *
- * @since 17/11/2020 20:37
- */
 @Data
-public class EsbFileStepV3DTO {
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class CronJobBasicInfoDTO {
     /**
-     * 源文件列表
+     * 定时任务 ID
      */
-    @JsonProperty("file_source_list")
-    @JsonPropertyDescription("File source list")
-    private List<EsbFileSourceV3DTO> fileSourceList;
+    private Long id;
 
     /**
-     * 分发目标信息
+     * 业务 ID
      */
-    @JsonProperty("file_destination")
-    @JsonPropertyDescription("File destination")
-    private EsbFileDestinationV3DTO fileDestination;
+    private Long appId;
 
     /**
-     * 超时
+     * 定时任务名称
      */
-    @JsonPropertyDescription("timeout")
-    private Long timeout;
-
-    /**
-     * 源机器上传限速
-     */
-    @JsonProperty("source_speed_limit")
-    @JsonPropertyDescription("Upload speed limit")
-    private Long sourceSpeedLimit;
-
-    /**
-     * 目标机器下载限速
-     */
-    @JsonProperty("destination_speed_limit")
-    @JsonPropertyDescription("Download speed limit")
-    private Long destinationSpeedLimit;
-
-    /**
-     * 传输模式
-     */
-    @JsonProperty("transfer_mode")
-    @JsonPropertyDescription("Transfer mode")
-    private Integer transferMode;
+    private String name;
 }

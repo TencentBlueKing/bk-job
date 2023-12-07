@@ -182,6 +182,15 @@ public interface StepInstanceDAO {
     Long getStepInstanceId(long taskInstanceId);
 
     /**
+     * 根据 appId,stepInstanceId 获取所属任务实例ID
+     *
+     * @param appId          Job业务ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 任务实例ID
+     */
+    Long getTaskInstanceId(long appId, long stepInstanceId);
+
+    /**
      * 根据stepInstanceId获取脚本类型
      *
      * @param stepInstanceId 步骤实例ID

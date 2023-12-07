@@ -22,35 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.crontab.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
-/**
- * @since 17/11/2020 16:41
- */
-@Data
-public class EsbStepV3DTO {
-    @JsonPropertyDescription("Step id")
-    private Long id;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-    @JsonPropertyDescription("Step name")
-    private String name;
-
-    @JsonPropertyDescription("Step type")
-    private Integer type;
-
-    @JsonProperty("script_info")
-    @JsonPropertyDescription("Script step info")
-    private EsbScriptStepV3DTO scriptInfo;
-
-    @JsonProperty("file_info")
-    @JsonPropertyDescription("File step info")
-    private EsbFileStepV3DTO fileInfo;
-
-    @JsonProperty("approval_info")
-    @JsonPropertyDescription("Approval step info")
-    private EsbApprovalStepV3DTO approvalInfo;
+//设定一个长度5的定时任务线程池
+@Slf4j
+@Configuration
+public class ScheduleConfig implements SchedulingConfigurer {
+    @Override
+    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+        taskRegistrar.setScheduler(
+            new ScheduledThreadPoolExecutor(
+                5, (r, executor) ->
+                log.error("ScheduledThreadPoolExecutor rejected a runnable")
+            )
+        );
+    }
 }

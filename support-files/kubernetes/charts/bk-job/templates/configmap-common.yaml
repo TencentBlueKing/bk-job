@@ -69,6 +69,7 @@ data:
       script:
         rootPath: {{ .Values.gse.script.rootPath }}
     iam:
+      web-url: {{ .Values.bkIamUrl }}
       base-url: {{ .Values.bkIamApiUrl }}
       system-id: {{ .Values.iam.systemId }}
     audit:

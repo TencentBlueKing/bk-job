@@ -22,47 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * 人工确认步骤
- *
- * @since 17/11/2020 20:38
+ * @since 17/11/2020 16:41
  */
 @Data
-public class EsbApprovalStepV3DTO {
+public class EsbStepV3DTO {
+    @JsonPropertyDescription("Step id")
+    private Long id;
 
-    /**
-     * 确认类型
-     */
-    @JsonProperty("approval_type")
-    @JsonPropertyDescription("Approval type")
-    private Integer approvalType;
+    @JsonPropertyDescription("Step name")
+    private String name;
 
-    /**
-     * 确认角色
-     */
-    @JsonPropertyDescription("Approval user info")
-    @JsonProperty("approval_user")
-    private EsbUserRoleInfoV3DTO approvalUser;
+    @JsonPropertyDescription("Step type")
+    private Integer type;
 
-    /**
-     * 确认消息
-     */
-    @JsonPropertyDescription("Approval message")
-    @JsonProperty("approval_message")
-    private String approvalMessage;
+    @JsonProperty("script_info")
+    @JsonPropertyDescription("Script step info")
+    private EsbScriptStepV3DTO scriptInfo;
 
-    /**
-     * 通知渠道列表
-     */
-    @JsonPropertyDescription("Notify channel")
-    @JsonProperty("notify_channel")
-    private List<String> notifyChannel;
+    @JsonProperty("file_info")
+    @JsonPropertyDescription("File step info")
+    private EsbFileStepV3DTO fileInfo;
+
+    @JsonProperty("approval_info")
+    @JsonPropertyDescription("Approval step info")
+    private EsbApprovalStepV3DTO approvalInfo;
 }

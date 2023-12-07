@@ -45,7 +45,11 @@ const sacnDialog = (resolve, reject) => {
   const h = vm.$createElement;
   confirmInfo = vm.$bkInfo({
     title: I18n.t('脚本中出现高危语句'),
+    maskClose: false,
+    escClose: false,
+    draggable: false,
     showFooter: false,
+    closeIcon: false,
     width: 450,
     subHeader: (h => (
       <div>
@@ -92,7 +96,11 @@ const preventDialog = (resolve, reject) => {
   const h = vm.$createElement;
   confirmInfo = vm.$bkInfo({
     title: I18n.t('脚本中出现高危语句'),
+    maskClose: false,
+    escClose: false,
+    draggable: false,
     showFooter: false,
+    closeIcon: false,
     width: 450,
     subHeader: (h => (
       <div>

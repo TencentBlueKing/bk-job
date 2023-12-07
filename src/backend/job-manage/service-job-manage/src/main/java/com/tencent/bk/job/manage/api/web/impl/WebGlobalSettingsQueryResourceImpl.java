@@ -43,6 +43,7 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.PublicScriptService;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -211,6 +212,9 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
 
     @Override
     public Response<String> getApplyBusinessUrl(String username, String scopeType, String scopeId) {
+        if (StringUtils.isBlank(scopeType) || StringUtils.isBlank(scopeId)) {
+            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(null));
+        }
         AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO != null) {

@@ -25,18 +25,11 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
-import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.List;
-
-import static com.tencent.bk.job.common.constant.DuplicateHandlerEnum.GROUP_BY_IP;
-import static com.tencent.bk.job.common.constant.DuplicateHandlerEnum.OVERWRITE;
-import static com.tencent.bk.job.common.constant.NotExistPathHandlerEnum.CREATE_DIR;
-import static com.tencent.bk.job.common.constant.NotExistPathHandlerEnum.STEP_FAIL;
 
 @Data
 @ApiModel("步骤文件信息")
@@ -69,33 +62,4 @@ public class ExecuteFileStepVO {
 
     @ApiModelProperty("忽略错误 0 - 不忽略 1 - 忽略")
     private Integer ignoreError;
-
-    public static Integer getTransferMode(DuplicateHandlerEnum duplicateHandlerEnum,
-                                          NotExistPathHandlerEnum notExistPathHandlerEnum) {
-        if (duplicateHandlerEnum == null) {
-            // 默认覆盖
-            duplicateHandlerEnum = OVERWRITE;
-        }
-        if (notExistPathHandlerEnum == null) {
-            // 默认直接创建
-            notExistPathHandlerEnum = CREATE_DIR;
-        }
-        if (OVERWRITE == duplicateHandlerEnum && STEP_FAIL == notExistPathHandlerEnum) {
-            return 1;
-        } else if (OVERWRITE == duplicateHandlerEnum && CREATE_DIR == notExistPathHandlerEnum) {
-            return 2;
-        } else if (GROUP_BY_IP == duplicateHandlerEnum && CREATE_DIR == notExistPathHandlerEnum) {
-            return 3;
-        } else {
-            return 1;
-        }
-    }
-
-    public Integer getNotExistPathHandler() {
-        if (transferMode == 1) {
-            return STEP_FAIL.getValue();
-        } else {
-            return CREATE_DIR.getValue();
-        }
-    }
 }

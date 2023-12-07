@@ -63,6 +63,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
+import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -308,19 +309,27 @@ public class GseV1ApiClient implements IGseClient {
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
+        StopWatch watch = new StopWatch("listAgentState");
+
+        watch.start("queryAgentStatusFromCacheApi");
         List<String> cloudIps = req.getAgentIdList();
         AgentStatusResponse agentStatusResponse = queryAgentStatusFromCacheApi(cloudIps);
+        watch.stop();
 
+        watch.start("parseResult");
         List<AgentState> agentStates = new ArrayList<>();
         if (agentStatusResponse.getResult() != null && !agentStatusResponse.getResult().isEmpty()) {
             agentStatusResponse.getResult().forEach((agentId, stateStr) -> {
-
                 AgentState agentState = new AgentState();
                 agentState.setStatusCode(parseCacheAgentStatus(stateStr).getValue());
                 agentState.setAgentId(agentId);
                 agentStates.add(agentState);
             });
+        }
+        watch.stop();
 
+        if (watch.getTotalTimeMillis() > 1000) {
+            log.warn("listAgentState slow, statistics: " + watch.prettyPrint());
         }
         return agentStates;
     }
@@ -338,7 +347,11 @@ public class GseV1ApiClient implements IGseClient {
     }
 
     private AgentStatusResponse queryAgentStatusFromCacheApi(Collection<String> agentIds) {
+        StopWatch watch = new StopWatch("queryAgentStatusFromCacheApi");
+
+        watch.start("gseCacheClientFactory.getClient");
         GseCacheClient gseClient = gseCacheClientFactory.getClient();
+        watch.stop();
         if (null == gseClient) {
             log.error("Get GSE cache client connection failed");
             throw new InternalException(ErrorCode.GSE_API_DATA_ERROR,
@@ -352,7 +365,9 @@ public class GseV1ApiClient implements IGseClient {
             AgentStatusRequestInfo request = buildQueryAgentStatusRequest(agentIds);
 
             log.debug("QueryAgentStatus request: {}", request);
+            watch.start("quireAgentStatus");
             AgentStatusResponse response = gseClient.getCacheClient().quireAgentStatus(request);
+            watch.stop();
             log.debug("QueryAgentStatus response: {}", response);
             return response;
         } catch (Throwable e) {
@@ -363,10 +378,21 @@ public class GseV1ApiClient implements IGseClient {
             long end = System.currentTimeMillis();
             log.info("BatchGetAgentStatus {} agentIds, cost: {}ms", agentIds.size(), (end - start));
             if (this.meterRegistry != null) {
+                watch.start("reportMetric");
                 meterRegistry.timer(GseMetricNames.GSE_API_METRICS_NAME_PREFIX, "api_name", "quireAgentStatus",
                     "status", status).record(end - start, TimeUnit.MICROSECONDS);
+                watch.stop();
             }
+
+            watch.start("gseClient.tearDown");
             gseClient.tearDown();
+            watch.stop();
+
+            if (watch.getTotalTimeMillis() > 1000) {
+                log.warn("queryAgentStatusFromCacheApi slow, statistics: " + watch.prettyPrint());
+            } else {
+                log.info("queryAgentStatusFromCacheApi end");
+            }
         }
     }
 

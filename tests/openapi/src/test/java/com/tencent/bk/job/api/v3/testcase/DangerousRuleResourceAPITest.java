@@ -40,7 +40,7 @@ import static org.hamcrest.Matchers.notNullValue;
  * 高危语句规则管理 API 测试
  */
 @DisplayName("v3.DangerousRuleResourceAPITest")
-class DangerousRuleResourceAPITest {
+class DangerousRuleResourceAPITest extends BaseTest {
 
     private static final List<EsbDangerousRuleV3DTO> createdDangerousRuleList = new ArrayList<>();
 

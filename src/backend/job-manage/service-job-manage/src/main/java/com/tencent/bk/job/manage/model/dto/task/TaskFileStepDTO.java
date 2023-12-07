@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileDestinationV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbFileStepV3DTO;
+import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbFileStepV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskFileStepDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskFileDestinationInfoVO;

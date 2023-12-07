@@ -28,6 +28,7 @@
 <template>
   <div>
     <jb-search-select
+      ref="searchSelect"
       :data="searchSelect"
       :placeholder="$t('script.搜索名称，版本号')"
       :popover-zindex="99999"
@@ -61,6 +62,25 @@
             <span v-html="row.statusHtml" />
           </template>
         </bk-table-column>
+        <empty
+          v-if="isSearching"
+          slot="empty"
+          type="search">
+          <div>
+            <div style="font-size: 14px; color: #63656e;">
+              {{ $t('搜索结果为空') }}
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; line-height: 16px; color: #979ba5;">
+              <span>{{ $t('可以尝试调整关键词') }}</span>
+              <span>{{ $t('或') }}</span>
+              <bk-button
+                text
+                @click="handleClearSearch">
+                {{ $t('清空搜索条件') }}
+              </bk-button>
+            </div>
+          </div>
+        </empty>
       </bk-table>
     </div>
   </div>
@@ -74,6 +94,7 @@
     encodeRegexp,
   } from '@utils/assist';
 
+  import Empty from '@components/empty';
   import JbSearchSelect from '@components/jb-search-select';
 
   import I18n from '@/i18n';
@@ -92,6 +113,7 @@
     data() {
       return {
         isLoading: false,
+        isSearching: false,
         wholeList: [],
         renderList: [],
       };
@@ -143,7 +165,12 @@
           }
           list = list.filter(item => reg.test(item[realKey]));
         });
+        this.isSearching = Object.keys(payload).length > 0;
         this.renderList = Object.freeze(list);
+      },
+      handleClearSearch() {
+        this.$refs.searchSelect.reset();
+        this.handleSearch({});
       },
       /**
        * @desc 查看引用脚本的作业模板详情

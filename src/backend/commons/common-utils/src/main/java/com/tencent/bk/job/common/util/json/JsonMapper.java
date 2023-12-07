@@ -67,6 +67,10 @@ public class JsonMapper {
         return new JsonMapper(Include.NON_EMPTY);
     }
 
+    public static JsonMapper nonNullMapper() {
+        return new JsonMapper(Include.NON_NULL);
+    }
+
 
     public static JsonMapper nonDefaultMapper() {
         return new JsonMapper(Include.NON_DEFAULT);
