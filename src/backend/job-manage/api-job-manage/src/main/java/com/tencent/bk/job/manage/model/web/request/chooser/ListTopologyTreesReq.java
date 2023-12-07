@@ -22,20 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.host;
+package com.tencent.bk.job.manage.model.web.request.chooser;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
 
-/**
- * 业务拓扑相关的主机服务，根据拓扑节点查主机等
- */
-public interface BizTopoHostService {
+@Data
+@ApiModel("获取拓扑树请求")
+public class ListTopologyTreesReq {
 
-    List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node);
+    @ApiModelProperty(value = "是否获取所有资源范围的拓扑结构，默认为false", required = true)
+    Boolean allScope = false;
 
-    List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes);
+    @ApiModelProperty(value = "要获取拓扑树的资源范围列表")
+    List<Scope> scopeList;
 
 }

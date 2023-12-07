@@ -22,20 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.request.chooser.container;
 
-import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@ApiModel("批量获取动态分组请求体")
-public class ListDynamicGroupsReq {
+@ApiModel("容器详情请求报文")
+public class ContainerDetailReq {
 
-    @ApiModelProperty(value = "要获取的动态分组ID及元数据列表，不传表示获取所有")
-    List<DynamicGroupIdWithMeta> dynamicGroupList;
+    @ApiModelProperty(value = "containerId及元数据列表", required = true)
+    List<ContainerIdWithMeta> containerList = new ArrayList<>();
 
 }
+
+

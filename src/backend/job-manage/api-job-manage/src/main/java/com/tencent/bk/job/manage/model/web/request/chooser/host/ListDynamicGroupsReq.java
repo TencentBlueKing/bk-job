@@ -22,23 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
-import com.tencent.bk.job.common.model.vo.TargetNodeVO;
+import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-@ApiModel("通过拓扑节点集合获取主机Agent状态统计信息")
-public class GetHostAgentStatisticsByNodesReq {
+@ApiModel("批量获取动态分组请求体")
+public class ListDynamicGroupsReq {
 
-    @ApiModelProperty(value = "拓扑节点列表", required = true)
-    List<TargetNodeVO> nodeList;
+    @ApiModelProperty(value = "要获取的动态分组ID及元数据列表，不传表示获取所有")
+    List<DynamicGroupIdWithMeta> dynamicGroupList;
+
 }

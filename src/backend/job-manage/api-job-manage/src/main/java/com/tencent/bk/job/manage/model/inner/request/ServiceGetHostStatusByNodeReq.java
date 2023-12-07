@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner.request;
 
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

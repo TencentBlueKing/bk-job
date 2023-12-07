@@ -22,20 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.host;
+package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import com.tencent.bk.job.common.model.vo.TargetNodeVO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-/**
- * 业务拓扑相关的主机服务，根据拓扑节点查主机等
- */
-public interface BizTopoHostService {
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@ApiModel("通过拓扑节点集合获取主机Agent状态统计信息")
+public class GetHostAgentStatisticsByNodesReq {
 
-    List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node);
-
-    List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes);
-
+    @ApiModelProperty(value = "拓扑节点列表", required = true)
+    List<TargetNodeVO> nodeList;
 }

@@ -22,27 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.vo.chooser.container;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
 /**
- * @Description
- * @Date 2020/3/23
- * @Version 1.0
+ * 容器拓扑节点
  */
-@Data
-@ApiModel("获取含主机数量的拓扑树")
-public class ListTopologyHostCountTreesReq {
+@Getter
+@Setter
+@ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@ApiModel("容器拓扑节点")
+public class ContainerTopologyNodeVO {
+    @ApiModelProperty("节点实例 ID")
+    private Long instanceId;
 
-    @ApiModelProperty(value = "是否获取所有资源范围的拓扑结构，默认为false", required = true)
-    Boolean allScope = false;
+    @ApiModelProperty("节点实例名称")
+    private String instanceName;
 
-    @ApiModelProperty(value = "要获取拓扑树的资源范围列表")
-    List<Scope> scopeList;
+    @ApiModelProperty("节点类型 ID")
+    private String objectId;
 
+    @ApiModelProperty("节点类型名称")
+    private String objectName;
+
+    // 当前层级节点数据是否使用懒加载，作业平台目前不涉及，取值一直为false即可
+    @ApiModelProperty("当前层级节点数据是否使用懒加载")
+    private Boolean lazy = false;
+
+    @ApiModelProperty("子节点")
+    private List<ContainerTopologyNodeVO> child;
+
+    @ApiModelProperty("节点包含的容器数量")
+    private int count;
 }

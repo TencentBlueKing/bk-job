@@ -22,20 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.host;
+package com.tencent.bk.job.manage.model.web.request.chooser.container;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.List;
+import java.util.Map;
 
-/**
- * 业务拓扑相关的主机服务，根据拓扑节点查主机等
- */
-public interface BizTopoHostService {
+@Data
+@ApiModel("容器ID及元数据")
+public class ContainerIdWithMeta {
+    @ApiModelProperty(value = "容器资源 ID", required = true)
+    private Long containerId;
 
-    List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node);
-
-    List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes);
-
+    @ApiModelProperty(value = "容器元数据；Job不支持")
+    Map<String, Object> meta;
 }

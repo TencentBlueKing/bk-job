@@ -22,9 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
-import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -32,54 +31,42 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Objects;
 
+/**
+ * @Description
+ * @Date 2020/3/23
+ * @Version 1.0
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("业务拓扑节点信息")
-public class BizTopoNode {
-    @ApiModelProperty(value = "节点类型Id", required = true)
-    private String objectId;
-    @ApiModelProperty(value = "节点类型名称")
-    private String objectName;
-    @ApiModelProperty(value = "节点实例Id", required = true)
-    private Long instanceId;
-    @ApiModelProperty(value = "节点实例名称")
-    private String instanceName;
-    @ApiModelProperty(value = "子节点列表")
-    private List<BizTopoNode> childs;
+@ApiModel("通过拓扑节点集合获取主机集合")
+public class ListHostByBizTopologyNodesReq {
 
-    public static BizTopoNode fromTargetNodeVO(TargetNodeVO targetNodeVO) {
-        BizTopoNode node = new BizTopoNode();
-        node.setObjectId(targetNodeVO.getObjectId());
-        node.setInstanceId(targetNodeVO.getInstanceId());
-        return node;
-    }
+    @ApiModelProperty(value = "拓扑节点列表", required = true)
+    List<BizTopoNode> nodeList;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BizTopoNode)) return false;
-        BizTopoNode that = (BizTopoNode) o;
-        return Objects.equals(objectId, that.objectId) &&
-            Objects.equals(instanceId, that.instanceId);
-    }
+    @ApiModelProperty(value = "搜索内容（同时对主机IP/IPv6/主机名称/操作系统名称/云区域名称进行模糊搜索）")
+    String searchContent;
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(objectId, instanceId);
-    }
+    @ApiModelProperty(value = "筛选条件：ip关键字列表，ip与列表中任意一个关键字相似即命中")
+    List<String> ipKeyList;
 
-    public String getSimpleDesc() {
-        return "(" + objectId + "," + instanceId + ")";
-    }
+    @ApiModelProperty(value = "筛选条件：ipv6关键字列表，ipv6与列表中任意一个关键字相似即命中")
+    List<String> ipv6KeyList;
 
-    @Override
-    public String toString() {
-        return "BizTopoNode{" +
-            "objectId='" + objectId + '\'' +
-            ", instanceId=" + instanceId +
-            '}';
-    }
+    @ApiModelProperty(value = "筛选条件：主机名称关键字列表，主机名称与列表中任意一个关键字相似即命中")
+    List<String> hostNameKeyList;
+
+    @ApiModelProperty(value = "筛选条件：操作系统名称关键字列表，操作系统名称与列表中任意一个关键字相似即命中")
+    List<String> osNameKeyList;
+
+    @ApiModelProperty(value = "筛选条件：alive：0为Agent异常，1为Agent正常，不传则不筛选")
+    Integer alive;
+
+    @ApiModelProperty(value = "数据起始位置")
+    Long start;
+
+    @ApiModelProperty(value = "拉取数量")
+    Long pageSize;
 }

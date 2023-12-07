@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.model.query.HostQuery;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;

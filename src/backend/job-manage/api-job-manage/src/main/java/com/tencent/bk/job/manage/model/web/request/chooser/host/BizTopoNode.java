@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import io.swagger.annotations.ApiModel;
@@ -32,13 +32,54 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Objects;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("查询多个拓扑节点的拓扑路径")
-public class QueryNodesPathReq {
+@ApiModel("业务拓扑节点信息")
+public class BizTopoNode {
+    @ApiModelProperty(value = "节点类型Id", required = true)
+    private String objectId;
+    @ApiModelProperty(value = "节点类型名称")
+    private String objectName;
+    @ApiModelProperty(value = "节点实例Id", required = true)
+    private Long instanceId;
+    @ApiModelProperty(value = "节点实例名称")
+    private String instanceName;
+    @ApiModelProperty(value = "子节点列表")
+    private List<BizTopoNode> childs;
 
-    @ApiModelProperty(value = "需要查询拓扑路径的节点列表(将拓扑树节点中的objectId与instanceId传入)", required = true)
-    List<TargetNodeVO> nodeList;
+    public static BizTopoNode fromTargetNodeVO(TargetNodeVO targetNodeVO) {
+        BizTopoNode node = new BizTopoNode();
+        node.setObjectId(targetNodeVO.getObjectId());
+        node.setInstanceId(targetNodeVO.getInstanceId());
+        return node;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BizTopoNode)) return false;
+        BizTopoNode that = (BizTopoNode) o;
+        return Objects.equals(objectId, that.objectId) &&
+            Objects.equals(instanceId, that.instanceId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(objectId, instanceId);
+    }
+
+    public String getSimpleDesc() {
+        return "(" + objectId + "," + instanceId + ")";
+    }
+
+    @Override
+    public String toString() {
+        return "BizTopoNode{" +
+            "objectId='" + objectId + '\'' +
+            ", instanceId=" + instanceId +
+            '}';
+    }
 }

@@ -22,22 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.request.chooser;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.Map;
-
-@AllArgsConstructor
 @Data
-@ApiModel("主机ID及元数据")
-public class HostIdWithMeta {
-    @ApiModelProperty(value = "主机HostId", required = true)
-    Long hostId;
+@ApiModel("资源范围")
+public class Scope {
+    @ApiModelProperty(value = "资源范围类型", required = true)
+    String scopeType;
 
-    @ApiModelProperty(value = "主机元数据")
-    Map<String, Object> meta;
+    @ApiModelProperty(value = "资源范围Id", required = true)
+    String scopeId;
 }

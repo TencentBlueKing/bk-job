@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
 import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import io.swagger.annotations.ApiModel;

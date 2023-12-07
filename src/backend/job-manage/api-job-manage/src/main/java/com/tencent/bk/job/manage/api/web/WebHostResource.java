@@ -31,15 +31,15 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.HostDetailReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.ListDynamicGroupsReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.ListTopologyHostCountTreesReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.PageListHostsByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.QueryNodesPathReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.ListTopologyTreesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.GetHostAgentStatisticsByDynamicGroupsReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.GetHostAgentStatisticsByNodesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.HostDetailReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.ListDynamicGroupsReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.ListHostByBizTopologyNodesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.PageListHostsByDynamicGroupReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.QueryNodesPathReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
@@ -126,7 +126,7 @@ public interface WebHostResource {
             String scopeId,
         @ApiParam(value = "资源范围信息")
         @RequestBody(required = false)
-            ListTopologyHostCountTreesReq req
+            ListTopologyTreesReq req
     );
 
     // 标准接口2

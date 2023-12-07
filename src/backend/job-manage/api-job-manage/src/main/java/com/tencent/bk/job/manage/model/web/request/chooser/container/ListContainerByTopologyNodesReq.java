@@ -22,27 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.ipchooser;
+package com.tencent.bk.job.manage.model.web.request.chooser.container;
 
+import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * @Description
- * @Date 2020/3/23
- * @Version 1.0
- */
+import java.util.List;
+import java.util.Map;
+
+
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
-@ApiModel("通过拓扑节点获取子节点")
-public class ListNodeChildrenReq {
+@ApiModel("通过拓扑节点集合获取容器集合")
+public class ListContainerByTopologyNodesReq {
 
-    @ApiModelProperty(value = "业务拓扑节点", required = true)
-    BizTopoNode appTopoNode;
+    @ApiModelProperty(value = "拓扑节点列表", required = true)
+    private List<ContainerTopologyNodeVO> nodeList;
 
-    @ApiModelProperty(value = "数据起始位置", required = false)
-    Long offset;
+    @ApiModelProperty(value = "筛选条件：容器ID")
+    private String containerUid;
 
-    @ApiModelProperty(value = "拉取数量", required = false)
-    Long limit;
+    @ApiModelProperty(value = "筛选条件：容器名称")
+    private String name;
+
+    @ApiModelProperty(value = "筛选条件：Pod名称")
+    private String podName;
+
+    @ApiModelProperty(value = "筛选条件：Pod lable")
+    private Map<String, String> podLabels;
+
+    @ApiModelProperty(value = "数据起始位置")
+    private Long start;
+
+    @ApiModelProperty(value = "拉取数量")
+    private Long pageSize;
 }
