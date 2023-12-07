@@ -102,6 +102,7 @@ public class EsbStepInstanceStatusV3DTO {
 
         private Integer status;
 
+        @JsonProperty("status_desc")
         private String statusDesc;
 
         private String tag;
