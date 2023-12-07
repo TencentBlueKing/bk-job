@@ -57,7 +57,7 @@
         "step_host_result_list": [
             {
                 "bk_host_id": 101,
-                "ip": "10.0.0.1",
+                "ip": "127.0.0.1",
                 "ipv6": null,
                 "bk_cloud_id": 0,
                 "status": 9,
@@ -71,7 +71,7 @@
             },
             {
                 "bk_host_id": 102,
-                "ip": "10.0.0.2",
+                "ip": "127.0.0.2",
                 "ipv6": null,
                 "bk_cloud_id": 0,
                 "status": 9,
