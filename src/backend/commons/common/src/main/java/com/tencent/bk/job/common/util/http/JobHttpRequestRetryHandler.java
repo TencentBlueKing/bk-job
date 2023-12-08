@@ -107,7 +107,7 @@ public class JobHttpRequestRetryHandler implements HttpRequestRetryHandler {
                 log.info("[{}] Retry rejected. Retry mode is NEVER", exception.getClass().getSimpleName());
                 return false;
             case SAFE_GUARANTEED:
-                // 判断方法使用幂等
+                // 判断重试请求是否安全
                 boolean isRetryable = checkIsRetrySafe(context, exception);
                 if (isRetryable) {
                     log.info("[{}] Retry accepted. Retry is safe", exception.getClass().getSimpleName());
