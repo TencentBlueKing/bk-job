@@ -24,23 +24,16 @@
 
 package com.tencent.bk.job.common.util.http;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.Header;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
-
 /**
- * Job http 调用基础实现
+ * HTTP Client Context 属性名称定义
  */
-public interface HttpHelper {
-
-    Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header);
-
+public interface HttpContextAttributeNames {
     /**
-     * 发起 http 请求
-     *
-     * @param request 请求
-     * @return 响应
+     * 重试模式
      */
-    HttpResponse request(HttpRequest request);
+    String RETRY_MODE = "RETRY_MODE";
+    /**
+     * 请求是否幂等
+     */
+    String IS_IDEMPOTENT = "IS_IDEMPOTENT";
 }

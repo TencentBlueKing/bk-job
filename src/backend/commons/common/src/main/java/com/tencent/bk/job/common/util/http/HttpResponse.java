@@ -24,23 +24,25 @@
 
 package com.tencent.bk.job.common.util.http;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.Header;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * Job http 调用基础实现
- */
-public interface HttpHelper {
-
-    Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header);
-
+@NoArgsConstructor
+@Getter
+@Setter
+public class HttpResponse {
     /**
-     * 发起 http 请求
-     *
-     * @param request 请求
-     * @return 响应
+     * http status
      */
-    HttpResponse request(HttpRequest request);
+    private int statusCode;
+    /**
+     * response entity
+     */
+    private String entity;
+
+    public HttpResponse(int statusCode, String entity) {
+        this.statusCode = statusCode;
+        this.entity = entity;
+    }
 }

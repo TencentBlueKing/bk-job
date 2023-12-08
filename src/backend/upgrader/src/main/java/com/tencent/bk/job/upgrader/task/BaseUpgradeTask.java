@@ -26,12 +26,14 @@ package com.tencent.bk.job.upgrader.task;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.http.BaseHttpHelper;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelper;
+import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
@@ -58,10 +60,10 @@ import java.util.Properties;
 public abstract class BaseUpgradeTask implements IUpgradeTask {
 
     private Properties properties;
-    private static final ExtHttpHelper HTTP_HELPER;
+    private static final HttpHelper HTTP_HELPER;
 
     static {
-        HTTP_HELPER = new ExtHttpHelper(new BaseHttpHelper(getHttpClient()));
+        HTTP_HELPER = new BaseHttpHelper(getHttpClient());
     }
 
     BaseUpgradeTask() {
@@ -97,7 +99,9 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
         headers[1] = new BasicHeader("Content-Type", "application/json");
 
         try {
-            String respStr = HTTP_HELPER.post(url, content, headers);
+            String respStr = HTTP_HELPER.request(
+                HttpRequest.builder(HttpMethodEnum.POST, url).setStringEntity(content).setHeaders(headers).build())
+                .getEntity();
             log.info("Post {}, content: {}, response: {}", url, content, respStr);
             if (StringUtils.isBlank(respStr)) {
                 String errorMsg =

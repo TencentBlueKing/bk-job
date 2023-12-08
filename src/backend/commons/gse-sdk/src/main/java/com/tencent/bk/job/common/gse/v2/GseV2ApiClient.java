@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.esb.sdk.BkApiContext;
 import com.tencent.bk.job.common.esb.sdk.BkApiLogStrategy;
@@ -25,6 +25,8 @@ import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -46,9 +48,21 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     public GseV2ApiClient(MeterRegistry meterRegistry,
                           AppProperties appProperties,
                           BkApiGatewayProperties bkApiGatewayProperties) {
+
         super(meterRegistry,
             GseMetricNames.GSE_V2_API_METRICS_NAME_PREFIX,
-            bkApiGatewayProperties.getGse().getUrl());
+            bkApiGatewayProperties.getGse().getUrl(),
+            HttpHelperFactory.createHttpHelper(
+                15000,
+                15000,
+                15000,
+                1000,
+                2000,
+                60,
+                true,
+                new JobHttpRequestRetryHandler()
+            )
+        );
         gseBkApiAuthorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());
         log.info("Init GseV2ApiClient, bkGseApiGatewayUrl: {}, appCode: {}",
             bkApiGatewayProperties.getGse().getUrl(), appProperties.getCode());
@@ -62,7 +76,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 request,
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
-                null);
+                null,
+                false);
 
         return buildGseTaskResponse(resp);
     }
@@ -70,15 +85,17 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
     private <R> EsbResp<R> requestGseApi(String uri,
                                          Object reqBody,
                                          TypeReference<EsbResp<R>> typeReference,
-                                         BkApiLogStrategy logStrategy) {
-        ApiRequestInfo<Object> requestInfo = ApiRequestInfo
+                                         BkApiLogStrategy logStrategy,
+                                         boolean isRequestIdempotent) {
+        OpenApiRequestInfo<Object> requestInfo = OpenApiRequestInfo
             .builder()
             .method(HttpMethodEnum.POST)
             .uri(uri)
             .body(reqBody)
             .authorization(gseBkApiAuthorization)
+            .setIdempotent(isRequestIdempotent)
             .build();
-        return doRequest(requestInfo, typeReference, logStrategy);
+        return doRequest(requestInfo, typeReference, logStrategy, null);
     }
 
     private GseTaskResponse buildGseTaskResponse(EsbResp<AsyncGseTaskResult> resp) {
@@ -112,7 +129,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                                     StringUtil.substring(context.getOriginResp(), 10000));
                         }
                     }
-                });
+                },
+                true);
         return resp.getData();
     }
 
@@ -124,7 +142,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
             req,
             new TypeReference<EsbResp<List<AgentState>>>() {
             },
-            null);
+            null,
+            true);
         return resp.getData();
     }
 
@@ -136,7 +155,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 request,
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
-                null);
+                null,
+                false);
 
         return buildGseTaskResponse(resp);
     }
@@ -149,7 +169,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 request,
                 new TypeReference<EsbResp<FileTaskResult>>() {
                 },
-                null);
+                null,
+                true);
         FileTaskResult fileTaskResult = resp.getData();
         if (fileTaskResult != null && CollectionUtils.isNotEmpty(fileTaskResult.getAtomicFileTaskResults())) {
             fileTaskResult.getAtomicFileTaskResults().forEach(atomicFileTaskResult -> {
@@ -169,7 +190,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 request,
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
-                null);
+                null,
+                true);
         return buildGseTaskResponse(resp);
     }
 
@@ -180,7 +202,8 @@ public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
                 request,
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
-                null);
+                null,
+                true);
         return buildGseTaskResponse(resp);
     }
 }
