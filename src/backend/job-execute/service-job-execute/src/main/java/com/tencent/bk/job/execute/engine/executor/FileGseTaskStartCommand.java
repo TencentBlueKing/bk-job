@@ -41,7 +41,7 @@ import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileDest;
@@ -52,7 +52,7 @@ import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveMana
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -103,7 +103,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     /**
      * GSE 源 Agent 任务, Map<AgentId,AgentTask>
      */
-    protected Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
+    protected Map<String, ExecuteObjectTask> sourceAgentTaskMap = new HashMap<>();
     /**
      * 源文件与目标文件路径映射关系
      */
@@ -279,18 +279,18 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 }
             }
         }
-        List<AgentTaskDTO> fileSourceGseAgentTasks = new ArrayList<>();
+        List<ExecuteObjectTask> fileSourceGseAgentTasks = new ArrayList<>();
         for (HostDTO sourceHost : sourceHosts) {
-            AgentTaskDTO agentTask = new AgentTaskDTO(stepInstanceId, executeCount, batch, sourceHost.getHostId(),
+            ExecuteObjectTask agentTask = new ExecuteObjectTask(stepInstanceId, executeCount, batch, sourceHost.getHostId(),
                 sourceHost.getAgentId());
             agentTask.setActualExecuteCount(executeCount);
             agentTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
             agentTask.setGseTaskId(gseTask.getId());
             if (StringUtils.isNotEmpty(sourceHost.getAgentId())) {
-                agentTask.setStatus(AgentTaskStatusEnum.WAITING);
+                agentTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
                 sourceAgentTaskMap.put(sourceHost.getAgentId(), agentTask);
             } else {
-                agentTask.setStatus(AgentTaskStatusEnum.FAILED);
+                agentTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
             }
             fileSourceGseAgentTasks.add(agentTask);
         }
@@ -392,7 +392,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void addInitialFileDownloadTaskLogs(Map<Long, ServiceHostLogDTO> logs) {
         // 每个目标IP从每个要分发的源文件下载的一条下载日志
         agentTasks.stream()
-            .filter(AgentTaskDTO::isTarget)
+            .filter(ExecuteObjectTask::isTarget)
             .forEach(targetAgentTask -> {
                 HostDTO targetHost = hostIdHostMap.get(targetAgentTask.getHostId());
                 boolean isTargetAgentInstalled = isAgentInstalled(targetHost.getAgentId());

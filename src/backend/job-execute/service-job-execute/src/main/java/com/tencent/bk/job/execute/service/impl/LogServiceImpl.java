@@ -30,9 +30,9 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.JobFile;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -148,14 +148,14 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch, host);
+        ExecuteObjectTask agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch, host);
         if (agentTask == null) {
             return null;
         }
 
         if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
             actualExecuteCount = agentTask.getActualExecuteCount();
-        } else if (agentTask.getStatus() == AgentTaskStatusEnum.LAST_SUCCESS) {
+        } else if (agentTask.getStatus() == ExecuteObjectTaskStatusEnum.LAST_SUCCESS) {
             // 兼容历史数据
             actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
         }
@@ -182,7 +182,7 @@ public class LogServiceImpl implements LogService {
     private ScriptHostLogContent convertToScriptHostLogContent(long stepInstanceId,
                                                                int executeCount,
                                                                ServiceHostLogDTO logDTO,
-                                                               AgentTaskDTO agentTask) {
+                                                               ExecuteObjectTask agentTask) {
         // 日志是否拉取完成
         boolean isFinished = agentTask.getStatus().isFinished();
         String scriptContent = logDTO != null && logDTO.getScriptLog() != null ?
@@ -269,14 +269,14 @@ public class LogServiceImpl implements LogService {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        AgentTaskDTO agentTask = fileAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch,
+        ExecuteObjectTask agentTask = fileAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch,
             FileTaskModeEnum.getFileTaskMode(mode), host);
         if (agentTask == null) {
             return null;
         }
         if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
             actualExecuteCount = agentTask.getActualExecuteCount();
-        } else if (agentTask.getStatus() == AgentTaskStatusEnum.LAST_SUCCESS) {
+        } else if (agentTask.getStatus() == ExecuteObjectTaskStatusEnum.LAST_SUCCESS) {
             // 兼容历史数据
             actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
         }
@@ -299,7 +299,7 @@ public class LogServiceImpl implements LogService {
             throw new InternalException(resp.getCode());
         }
         List<ServiceFileTaskLogDTO> fileTaskLogs = (resp.getData() == null) ? null : resp.getData().getFileTaskLogs();
-        AgentTaskStatusEnum agentTaskStatus = agentTask.getStatus();
+        ExecuteObjectTaskStatusEnum agentTaskStatus = agentTask.getStatus();
         boolean isFinished = agentTaskStatus.isFinished() || isAllFileTasksFinished(fileTaskLogs);
         return new FileIpLogContent(stepInstanceId, executeCount, null, fileTaskLogs, isFinished);
     }

@@ -43,12 +43,12 @@ import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
@@ -240,11 +240,11 @@ public class TaskResultServiceImpl implements TaskResultService {
             if (resultGroup == null) {
                 continue;
             }
-            List<AgentTaskDetailDTO> agentTaskExecutionDetailList = resultGroup.getAgentTasks();
+            List<ExecuteObjectTaskDetail> agentTaskExecutionDetailList = resultGroup.getAgentTasks();
             if (agentTaskExecutionDetailList == null) {
                 continue;
             }
-            for (AgentTaskDTO agentTaskDetail : agentTaskExecutionDetailList) {
+            for (ExecuteObjectTask agentTaskDetail : agentTaskExecutionDetailList) {
                 if (agentTaskDetail == null) {
                     continue;
                 }
@@ -308,7 +308,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     private void setAgentTasksForSpecifiedResultType(List<AgentTaskResultGroupDTO> resultGroups,
                                                      Integer status,
                                                      String tag,
-                                                     List<AgentTaskDetailDTO> agentTasksForResultType) {
+                                                     List<ExecuteObjectTaskDetail> agentTasksForResultType) {
         for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
             if (status.equals(resultGroup.getStatus()) && (
                 (StringUtils.isEmpty(tag) ? StringUtils.isEmpty(resultGroup.getTag()) :
@@ -342,7 +342,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                  Integer status,
                                                  String tag,
                                                  Integer maxAgentTasksForResultGroup) {
-        List<AgentTaskDetailDTO> agentTasks = listAgentTaskByResultGroup(stepInstance,
+        List<ExecuteObjectTaskDetail> agentTasks = listAgentTaskByResultGroup(stepInstance,
             executeCount, batch, status, tag, maxAgentTasksForResultGroup, null, null);
         if (CollectionUtils.isEmpty(agentTasks)) {
             return false;
@@ -372,12 +372,12 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
         AgentTaskResultGroupDTO resultGroup = new AgentTaskResultGroupDTO();
-        resultGroup.setStatus(AgentTaskStatusEnum.WAITING.getValue());
+        resultGroup.setStatus(ExecuteObjectTaskStatusEnum.WAITING.getValue());
         resultGroup.setTag(null);
 
         List<HostDTO> targetHosts = filterTargetHostsByBatch(stepInstance, batch);
 
-        List<AgentTaskDetailDTO> agentTasks = new ArrayList<>();
+        List<ExecuteObjectTaskDetail> agentTasks = new ArrayList<>();
         // 如果需要根据IP过滤，那么需要重新计算Agent任务总数
         boolean fuzzyFilterByIp = StringUtils.isNotEmpty(fuzzySearchIp);
         int agentTaskSize = targetHosts.size();
@@ -396,13 +396,13 @@ public class TaskResultServiceImpl implements TaskResultService {
                     continue;
                 }
                 if (maxAgentTasks-- > 0) {
-                    AgentTaskDetailDTO agentTask = new AgentTaskDetailDTO();
+                    ExecuteObjectTaskDetail agentTask = new ExecuteObjectTaskDetail();
                     agentTask.setHostId(targetHost.getHostId());
                     agentTask.setIp(targetHost.getIp());
                     agentTask.setCloudIp(targetHost.toCloudIp());
                     agentTask.setIpv6(targetHost.getIpv6());
                     agentTask.setBkCloudId(targetHost.getBkCloudId());
-                    agentTask.setStatus(AgentTaskStatusEnum.WAITING);
+                    agentTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
                     agentTask.setTag(null);
                     agentTask.setErrorCode(0);
                     agentTask.setExitCode(0);
@@ -587,7 +587,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             .forEach(resultGroup -> {
                 // 排序
                 if (StringUtils.isNotEmpty(query.getOrderField())) {
-                    List<AgentTaskDetailDTO> agentTasks = resultGroup.getAgentTasks();
+                    List<ExecuteObjectTaskDetail> agentTasks = resultGroup.getAgentTasks();
                     if (StepExecutionResultQuery.ORDER_FIELD_TOTAL_TIME.equals(query.getOrderField())) {
                         agentTasks.sort(Comparator.comparingLong(task -> task.getTotalTime() == null ? 0L :
                             task.getTotalTime()));
@@ -670,7 +670,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private void filterAgentTasksByMatchIp(List<AgentTaskResultGroupDTO> resultGroups, Set<Long> matchHostIds) {
         for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
-            List<AgentTaskDetailDTO> agentTasks = resultGroup.getAgentTasks();
+            List<ExecuteObjectTaskDetail> agentTasks = resultGroup.getAgentTasks();
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 agentTasks = agentTasks.stream()
                     .filter(agentTask -> matchHostIds.contains(agentTask.getHostId()))
@@ -721,7 +721,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             .map(AgentTaskResultGroupDTO::new)
             .collect(Collectors.toList());
         if (status != null) {
-            List<AgentTaskDetailDTO> tasks = listAgentTaskByResultGroup(stepInstance, queryExecuteCount,
+            List<ExecuteObjectTaskDetail> tasks = listAgentTaskByResultGroup(stepInstance, queryExecuteCount,
                 query.getBatch(), status, tag, query.getMaxAgentTasksForResultGroup(), query.getOrderField(),
                 query.getOrder());
             if (CollectionUtils.isNotEmpty(tasks)) {
@@ -753,15 +753,15 @@ public class TaskResultServiceImpl implements TaskResultService {
         return resultGroups;
     }
 
-    private List<AgentTaskDetailDTO> listAgentTaskByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                                int queryExecuteCount,
-                                                                Integer batch,
-                                                                Integer status,
-                                                                String tag,
-                                                                Integer maxAgentTasksForResultGroup,
-                                                                String orderField,
-                                                                Order order) {
-        List<AgentTaskDetailDTO> tasks = null;
+    private List<ExecuteObjectTaskDetail> listAgentTaskByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                                     int queryExecuteCount,
+                                                                     Integer batch,
+                                                                     Integer status,
+                                                                     String tag,
+                                                                     Integer maxAgentTasksForResultGroup,
+                                                                     String orderField,
+                                                                     Order order) {
+        List<ExecuteObjectTaskDetail> tasks = null;
         if (stepInstance.isScriptStep()) {
             tasks = scriptAgentTaskService.listAgentTaskDetailByResultGroup(stepInstance, queryExecuteCount,
                 batch, status, tag, maxAgentTasksForResultGroup, orderField, order);
@@ -772,12 +772,12 @@ public class TaskResultServiceImpl implements TaskResultService {
         return tasks;
     }
 
-    private List<AgentTaskDetailDTO> listAgentTaskByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                                int queryExecuteCount,
-                                                                Integer batch,
-                                                                Integer status,
-                                                                String tag) {
-        List<AgentTaskDetailDTO> tasks = null;
+    private List<ExecuteObjectTaskDetail> listAgentTaskByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                                     int queryExecuteCount,
+                                                                     Integer batch,
+                                                                     Integer status,
+                                                                     String tag) {
+        List<ExecuteObjectTaskDetail> tasks = null;
         if (stepInstance.isScriptStep()) {
             tasks = scriptAgentTaskService.listAgentTaskDetailByResultGroup(stepInstance, queryExecuteCount,
                 batch, status, tag);
@@ -947,13 +947,13 @@ public class TaskResultServiceImpl implements TaskResultService {
             return filterTargetHostsByBatch(stepInstance, query.getBatch());
         }
 
-        List<AgentTaskDetailDTO> agentTaskGroupByResultType = listAgentTaskByResultGroup(stepInstance,
+        List<ExecuteObjectTaskDetail> agentTaskGroupByResultType = listAgentTaskByResultGroup(stepInstance,
             executeCount, batch, resultType, tag);
         if (CollectionUtils.isEmpty(agentTaskGroupByResultType)) {
             return Collections.emptyList();
         }
         List<HostDTO> hosts = agentTaskGroupByResultType.stream()
-            .map(AgentTaskDetailDTO::getHost)
+            .map(ExecuteObjectTaskDetail::getHost)
             .collect(Collectors.toList());
         if (filterByKeyword && CollectionUtils.isNotEmpty(matchHostIds)) {
             List<HostDTO> finalHosts = new ArrayList<>();

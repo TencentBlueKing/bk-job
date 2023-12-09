@@ -37,7 +37,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
@@ -144,7 +144,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<AgentTaskDetailDTO> agentTaskList = null;
+                List<ExecuteObjectTaskDetail> agentTaskList = null;
                 if (stepInstance.isScriptStep()) {
                     agentTaskList = scriptAgentTaskService.listAgentTaskDetail(stepInstance,
                         stepInstance.getExecuteCount(), null);
@@ -159,7 +159,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
                     }
                 }
                 if (CollectionUtils.isNotEmpty(agentTaskList)) {
-                    for (AgentTaskDetailDTO agentTask : agentTaskList) {
+                    for (ExecuteObjectTaskDetail agentTask : agentTaskList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
                         stepIpResult.setHostId(agentTask.getHostId());
                         stepIpResult.setCloudAreaId(agentTask.getBkCloudId());

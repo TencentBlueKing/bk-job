@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
@@ -40,7 +40,7 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
@@ -91,7 +91,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     /**
      * GSE 目标 Agent 任务, Map<AgentId,AgentTask>
      */
-    protected Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
+    protected Map<String, ExecuteObjectTask> targetAgentTaskMap = new HashMap<>();
     /**
      * 全局参数分析结果
      */
@@ -115,7 +115,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     /**
      * Agent tasks
      */
-    protected List<AgentTaskDTO> agentTasks;
+    protected List<ExecuteObjectTask> agentTasks;
 
 
     AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
@@ -248,19 +248,19 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         updateUninstalledAgentTasks(this.agentTasks);
 
         agentTasks.stream()
-            .filter(AgentTaskDTO::isTarget)
+            .filter(ExecuteObjectTask::isTarget)
             .filter(agentTask -> !agentTask.isAgentIdEmpty())
             .forEach(agentTask -> this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask));
     }
 
-    private void updateUninstalledAgentTasks(Collection<AgentTaskDTO> agentTasks) {
-        List<AgentTaskDTO> invalidAgentTasks = agentTasks.stream()
-            .filter(AgentTaskDTO::isAgentIdEmpty)
+    private void updateUninstalledAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
+        List<ExecuteObjectTask> invalidAgentTasks = agentTasks.stream()
+            .filter(ExecuteObjectTask::isAgentIdEmpty)
             .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(invalidAgentTasks)) {
             log.warn("{} contains invalid agent tasks: {}", gseTaskInfo, invalidAgentTasks);
             invalidAgentTasks.forEach(agentTask -> {
-                agentTask.setStatus(AgentTaskStatusEnum.AGENT_NOT_INSTALLED);
+                agentTask.setStatus(ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED);
                 agentTask.setStartTime(System.currentTimeMillis());
                 agentTask.setEndTime(System.currentTimeMillis());
                 agentTask.calculateTotalTime();

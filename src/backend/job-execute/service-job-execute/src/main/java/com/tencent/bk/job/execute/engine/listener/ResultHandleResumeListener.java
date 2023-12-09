@@ -40,7 +40,7 @@ import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -170,8 +170,8 @@ public class ResultHandleResumeListener {
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                   GseTaskDTO gseTask,
                                   String requestId) {
-        Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        Map<String, ExecuteObjectTask> agentTaskMap = new HashMap<>();
+        List<ExecuteObjectTask> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.stream()
             .filter(agentTask -> !agentTask.isAgentIdEmpty())
             .forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
@@ -209,9 +209,9 @@ public class ResultHandleResumeListener {
         Map<JobFile, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
             sendFiles, targetDir, stepInstance.getFileTargetName());
 
-        Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
-        Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        Map<String, ExecuteObjectTask> sourceAgentTaskMap = new HashMap<>();
+        Map<String, ExecuteObjectTask> targetAgentTaskMap = new HashMap<>();
+        List<ExecuteObjectTask> agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         agentTasks.stream()
             .filter(agentTask -> !agentTask.isAgentIdEmpty())
             .forEach(agentTask -> {

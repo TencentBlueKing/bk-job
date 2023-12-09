@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 
 import java.util.Collection;
@@ -41,14 +41,14 @@ public interface FileAgentTaskDAO {
      *
      * @param agentTasks Agent任务列表
      */
-    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
+    void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks);
+    void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 获取步骤成功执行的Agent任务数量
@@ -78,10 +78,10 @@ public interface FileAgentTaskDAO {
      * @param status         任务状态
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch,
-                                                  Integer status);
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                       Integer executeCount,
+                                                       Integer batch,
+                                                       Integer status);
 
     /**
      * 根据执行结果查询Agent任务(排序、限制返回数量)
@@ -95,13 +95,13 @@ public interface FileAgentTaskDAO {
      * @param order          排序方式
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch,
-                                                  Integer status,
-                                                  Integer limit,
-                                                  String orderField,
-                                                  Order order);
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                       Integer executeCount,
+                                                       Integer batch,
+                                                       Integer status,
+                                                       Integer limit,
+                                                       String orderField,
+                                                       Order order);
 
     /**
      * 获取agent任务
@@ -112,10 +112,10 @@ public interface FileAgentTaskDAO {
      * @param fileTaskMode   文件分发任务模式;传入null表示忽略该过滤条件
      * @return agent任务
      */
-    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
-                                      Integer executeCount,
-                                      Integer batch,
-                                      FileTaskModeEnum fileTaskMode);
+    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
+                                           Integer executeCount,
+                                           Integer batch,
+                                           FileTaskModeEnum fileTaskMode);
 
     /**
      * 根据GSE任务ID获取agent任务
@@ -123,7 +123,7 @@ public interface FileAgentTaskDAO {
      * @param gseTaskId GSE任务ID
      * @return agent任务
      */
-    List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId);
+    List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId);
 
     /**
      * 根据hostId查询Agent任务
@@ -135,8 +135,8 @@ public interface FileAgentTaskDAO {
      * @param hostId         主机ID
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
-                                      FileTaskModeEnum mode, long hostId);
+    ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
+                                           FileTaskModeEnum mode, long hostId);
 
     /**
      * 判断步骤实例的Agent Task 记录是否存在

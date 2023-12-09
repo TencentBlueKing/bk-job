@@ -22,59 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.engine.result;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTypeEnum;
+
+import java.util.Objects;
 
 /**
- * GSE Agent 任务详情，包含主机的详细信息
+ * 执行对象逻辑 Key
  */
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-public class AgentTaskDetailDTO extends AgentTaskDTO {
-    /**
-     * 云区域ID
-     */
-    private Long bkCloudId;
-    /**
-     * 云区域名称
-     */
-    private String bkCloudName;
-    /**
-     * 主机 ipv4
-     */
-    private String ip;
-    /**
-     * 主机ipv6
-     */
-    private String ipv6;
+public class ExecuteObjectKey {
+    private final String key;
 
-    public AgentTaskDetailDTO(AgentTaskDTO agentTask) {
-        super(agentTask);
-        if (StringUtils.isNotEmpty(agentTask.getCloudIp())) {
-            HostDTO host = HostDTO.fromCloudIp(agentTask.getCloudIp());
-            this.ip = host.getIp();
-            this.bkCloudId = host.getBkCloudId();
-        }
+    private ExecuteObjectKey(String key) {
+        this.key = key;
     }
 
-    public HostDTO getHost() {
-        HostDTO host = new HostDTO();
-        host.setHostId(getHostId());
-        host.setIp(getIp());
-        host.setIpv6(getIpv6());
-        host.setBkCloudId(getBkCloudId());
-        host.setBkCloudName(getBkCloudName());
-        host.setAgentId(getAgentId());
-        return host;
+    public static ExecuteObjectKey ofHostKey(String agentId) {
+        return new ExecuteObjectKey(ExecuteObjectTypeEnum.HOST.getValue() + ":" + agentId);
     }
 
+    public static ExecuteObjectKey ofContainerKey(String containerId) {
+        return new ExecuteObjectKey(ExecuteObjectTypeEnum.CONTAINER.getValue() + ":" + containerId);
+    }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ExecuteObjectKey that = (ExecuteObjectKey) o;
+        return key.equals(that.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(key);
+    }
 }

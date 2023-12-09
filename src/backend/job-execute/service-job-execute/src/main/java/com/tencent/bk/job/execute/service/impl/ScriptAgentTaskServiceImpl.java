@@ -4,10 +4,10 @@ import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -41,7 +41,7 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+    public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
@@ -49,7 +49,7 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
@@ -66,8 +66,8 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount, Integer batch) {
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch);
+    public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId, Integer executeCount, Integer batch) {
+        List<ExecuteObjectTask> agentTasks = scriptAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch);
         if (CollectionUtils.isEmpty(agentTasks)) {
             // 兼容历史数据
             agentTasks = gseTaskIpLogDAO.listAgentTasks(stepInstanceId, executeCount);
@@ -76,16 +76,16 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId) {
+    public List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId) {
         return scriptAgentTaskDAO.listAgentTasksByGseTaskId(gseTaskId);
     }
 
     @Override
-    public AgentTaskDTO getAgentTaskByHost(StepInstanceBaseDTO stepInstance,
-                                           Integer executeCount,
-                                           Integer batch,
-                                           HostDTO host) {
-        AgentTaskDTO agentTask = null;
+    public ExecuteObjectTask getAgentTaskByHost(StepInstanceBaseDTO stepInstance,
+                                                Integer executeCount,
+                                                Integer batch,
+                                                HostDTO host) {
+        ExecuteObjectTask agentTask = null;
         Long hostId = host.getHostId();
         if (hostId != null) {
             // 根据hostId查询
@@ -122,12 +122,12 @@ public class ScriptAgentTaskServiceImpl
                                                                 int executeCount,
                                                                 Integer batch) {
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
-        List<AgentTaskDTO> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch);
+        List<ExecuteObjectTask> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch);
         if (CollectionUtils.isEmpty(agentTasks)) {
             return resultGroups;
         }
 
-        List<AgentTaskDetailDTO> agentTaskDetailList = fillHostDetail(stepInstance, agentTasks);
+        List<ExecuteObjectTaskDetail> agentTaskDetailList = fillHostDetail(stepInstance, agentTasks);
         resultGroups = groupAgentTasks(agentTaskDetailList);
 
         return resultGroups.stream().sorted().collect(Collectors.toList());
@@ -147,12 +147,12 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                                     Integer executeCount,
-                                                                     Integer batch,
-                                                                     Integer status,
-                                                                     String tag) {
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
+    public List<ExecuteObjectTaskDetail> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                                          Integer executeCount,
+                                                                          Integer batch,
+                                                                          Integer status,
+                                                                          String tag) {
+        List<ExecuteObjectTask> agentTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
             executeCount, batch, status, tag);
         if (CollectionUtils.isEmpty(agentTasks)) {
             // 兼容历史数据
@@ -163,15 +163,15 @@ public class ScriptAgentTaskServiceImpl
 
 
     @Override
-    public List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                                     Integer executeCount,
-                                                                     Integer batch,
-                                                                     Integer status,
-                                                                     String tag,
-                                                                     Integer limit,
-                                                                     String orderField,
-                                                                     Order order) {
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
+    public List<ExecuteObjectTaskDetail> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                                          Integer executeCount,
+                                                                          Integer batch,
+                                                                          Integer status,
+                                                                          String tag,
+                                                                          Integer limit,
+                                                                          String orderField,
+                                                                          Order order) {
+        List<ExecuteObjectTask> agentTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
             executeCount, batch, status, tag, limit, orderField, order);
         if (CollectionUtils.isEmpty(agentTasks)) {
             // 兼容历史数据
@@ -182,10 +182,10 @@ public class ScriptAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDetailDTO> listAgentTaskDetail(StepInstanceBaseDTO stepInstance,
-                                                        Integer executeCount,
-                                                        Integer batch) {
-        List<AgentTaskDTO> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch);
+    public List<ExecuteObjectTaskDetail> listAgentTaskDetail(StepInstanceBaseDTO stepInstance,
+                                                             Integer executeCount,
+                                                             Integer batch) {
+        List<ExecuteObjectTask> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch);
         return fillHostDetail(stepInstance, agentTasks);
     }
 

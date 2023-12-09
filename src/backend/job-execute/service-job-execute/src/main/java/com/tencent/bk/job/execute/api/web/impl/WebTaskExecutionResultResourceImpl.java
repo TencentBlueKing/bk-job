@@ -56,10 +56,10 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepExecutionDTO;
@@ -567,13 +567,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             ExecutionResultGroupVO executionResultGroupVO = new ExecutionResultGroupVO();
             executionResultGroupVO.setResultType(resultGroup.getStatus());
             executionResultGroupVO.setResultTypeDesc(
-                i18nService.getI18n(AgentTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(ExecuteObjectTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
             executionResultGroupVO.setTag(resultGroup.getTag());
             executionResultGroupVO.setAgentTaskSize(resultGroup.getTotalAgentTasks());
 
             List<AgentTaskExecutionVO> agentTaskExecutionVOS = new ArrayList<>();
             if (resultGroup.getAgentTasks() != null) {
-                for (AgentTaskDetailDTO agentTask : resultGroup.getAgentTasks()) {
+                for (ExecuteObjectTaskDetail agentTask : resultGroup.getAgentTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
                     agentTaskVO.setHostId(agentTask.getHostId());
                     agentTaskVO.setAgentId(AgentUtils.displayAsRealAgentId(agentTask.getAgentId()));

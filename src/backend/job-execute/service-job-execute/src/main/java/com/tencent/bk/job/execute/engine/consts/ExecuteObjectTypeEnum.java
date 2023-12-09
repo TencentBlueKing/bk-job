@@ -22,27 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
-
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+package com.tencent.bk.job.execute.engine.consts;
 
 /**
- * GSE Agent 脚本任务 Service
+ * 执行对象类型
  */
-public interface ScriptAgentTaskService extends AgentTaskService {
+public enum ExecuteObjectTypeEnum {
     /**
-     * 根据主机ID获取Agent任务
-     *
-     * @param stepInstance 步骤实例
-     * @param executeCount 执行次数
-     * @param batch        滚动执行批次；传入null或者0将忽略该参数
-     * @param host         主机
-     * @return Agent任务
+     * 主机
      */
-    ExecuteObjectTask getAgentTaskByHost(StepInstanceBaseDTO stepInstance,
-                                         Integer executeCount,
-                                         Integer batch,
-                                         HostDTO host);
+    HOST(1),
+    /**
+     * 容器
+     */
+    CONTAINER(2);
+
+
+    private final int value;
+
+    ExecuteObjectTypeEnum(int value) {
+        this.value = value;
+    }
+
+    public static ExecuteObjectTypeEnum valueOf(Integer value) {
+        if (value == null) {
+            return null;
+        }
+        for (ExecuteObjectTypeEnum type : values()) {
+            if (type.value == value) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("No ExecuteObjectTypeEnum constant: " + value);
+    }
+
+    public final int getValue() {
+        return value;
+    }
+
 }

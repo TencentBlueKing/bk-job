@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -68,9 +68,9 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
     @Override
     public void execute() {
         log.info("Stop gse file task, gseTask:" + gseTaskInfo);
-        List<AgentTaskDTO> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        List<ExecuteObjectTask> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
         List<String> agentIds = agentTasks.stream()
-            .map(AgentTaskDTO::getAgentId)
+            .map(ExecuteObjectTask::getAgentId)
             .distinct()
             .collect(Collectors.toList());
 

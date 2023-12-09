@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.GseLogBatchPullResult;
@@ -47,7 +47,7 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -153,10 +153,10 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                  Map<String, AgentTaskDTO> agentTaskMap,
+                                  Map<String, ExecuteObjectTask> agentTaskMap,
                                   GseTaskDTO gseTask,
                                   String requestId,
-                                  List<AgentTaskDTO> agentTasks) {
+                                  List<ExecuteObjectTask> agentTasks) {
         super(taskInstanceService,
             gseTaskService,
             logService,
@@ -178,7 +178,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         initLogPullProcess(agentTaskMap.values());
     }
 
-    private void initLogPullProcess(Collection<AgentTaskDTO> agentTasks) {
+    private void initLogPullProcess(Collection<ExecuteObjectTask> agentTasks) {
         agentTasks.forEach(agentTask -> {
             LogPullProgress process = new LogPullProgress();
             process.setAgentId(agentTask.getAgentId());
@@ -290,7 +290,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                 continue;
             }
 
-            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
+            ExecuteObjectTask agentTask = targetAgentTasks.get(agentId);
             if (agentTask == null) {
                 log.warn("[{}] No agent task found for agentId {}. result: {}", gseTaskInfo, agentId,
                     JsonUtils.toJson(agentTaskResult));
@@ -352,7 +352,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     private void addScriptLogsAndRefreshPullProgress(List<ServiceScriptLogDTO> logs,
                                                      ScriptAgentTaskResult agentTaskResult,
                                                      String agentId,
-                                                     AgentTaskDTO agentTask,
+                                                     ExecuteObjectTask agentTask,
                                                      long currentTime) {
         HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
         if (GSECode.AtomicErrorCode.getErrorCode(agentTaskResult.getErrorCode()) == GSECode.AtomicErrorCode.ERROR) {
@@ -380,7 +380,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             stepInstance.getBatch(), logs);
     }
 
-    private void analyseAgentResult(ScriptAgentTaskResult agentResult, AgentTaskDTO agentTask, String agentId,
+    private void analyseAgentResult(ScriptAgentTaskResult agentResult, ExecuteObjectTask agentTask, String agentId,
                                     boolean isUserScriptResult, long currentTime) {
         boolean isShellScript = (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue()));
         if (agentTask.getStartTime() == null) {
@@ -394,7 +394,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         } else if (GSECode.AtomicErrorCode.getErrorCode(agentResult.getErrorCode())
             == GSECode.AtomicErrorCode.TERMINATE) {
             dealAgentFinish(agentId, agentResult, agentTask);
-            agentTask.setStatus(AgentTaskStatusEnum.GSE_TASK_TERMINATE_SUCCESS);
+            agentTask.setStatus(ExecuteObjectTaskStatusEnum.GSE_TASK_TERMINATE_SUCCESS);
             this.isTerminatedSuccess = true;
         } else {
             // 分析GSE的返回状态
@@ -404,7 +404,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                     // 0：原子任务已派发；
                 case RUNNING:
                     // 1：原子任务执行中；
-                    agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
+                    agentTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
                     break;
                 case SUCCESS:
                     if (isShellScript && isUserScriptResult) {
@@ -412,12 +412,12 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                             && (taskVariablesAnalyzeResult.isExistChangeableGlobalVar()
                             || taskVariablesAnalyzeResult.isExistNamespaceVar())) {
                             //对于包含云参或者上下文参数的任务，下发任务的时候包含了2个任务；第一个是执行用户脚本；第二个获取参数的值
-                            agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
+                            agentTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
                             refreshPullLogProgress("", agentId, 1);
                         } else {
                             //普通任务，拉取日志，设置为成功
                             dealAgentFinish(agentId, agentResult, agentTask);
-                            agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
+                            agentTask.setStatus(ExecuteObjectTaskStatusEnum.SUCCESS);
                             if (this.targetAgentIds.contains(agentId)) {
                                 successTargetAgentIds.add(agentId);
                             }
@@ -425,7 +425,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                     } else {
                         //获取输出参数的任务执行完成，需要分析日志
                         dealAgentFinish(agentId, agentResult, agentTask);
-                        agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
+                        agentTask.setStatus(ExecuteObjectTaskStatusEnum.SUCCESS);
                         if (this.targetAgentIds.contains(agentId)) {
                             successTargetAgentIds.add(agentId);
                         }
@@ -437,11 +437,11 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                     break;
                 case TIMEOUT:
                     dealAgentFinish(agentId, agentResult, agentTask);
-                    agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_TIMEOUT);
+                    agentTask.setStatus(ExecuteObjectTaskStatusEnum.SCRIPT_TIMEOUT);
                     break;
                 case DISCARD:
                     dealAgentFinish(agentId, agentResult, agentTask);
-                    agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_TERMINATE);
+                    agentTask.setStatus(ExecuteObjectTaskStatusEnum.SCRIPT_TERMINATE);
                     break;
                 default:
                     dealAgentFinish(agentId, agentResult, agentTask);
@@ -449,9 +449,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                     int exitCode = agentResult.getExitCode();
                     if (errCode == 0) {
                         if (exitCode != 0) {
-                            agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_NOT_ZERO_EXIT_CODE);
+                            agentTask.setStatus(ExecuteObjectTaskStatusEnum.SCRIPT_NOT_ZERO_EXIT_CODE);
                         } else {
-                            agentTask.setStatus(AgentTaskStatusEnum.SCRIPT_FAILED);
+                            agentTask.setStatus(ExecuteObjectTaskStatusEnum.SCRIPT_FAILED);
                         }
                         agentTask.setTag(agentResult.getTag());
                     }
@@ -576,7 +576,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         return variableValues;
     }
 
-    private void dealAgentFinish(String agentId, ScriptAgentTaskResult agentTaskResult, AgentTaskDTO agentTask) {
+    private void dealAgentFinish(String agentId, ScriptAgentTaskResult agentTaskResult, ExecuteObjectTask agentTask) {
         dealTargetAgentFinish(agentId, agentTaskResult.getStartTime(), agentTaskResult.getEndTime(), agentTask);
         agentTask.setExitCode(getExitCode(agentTaskResult.getExitCode()));
     }
@@ -634,12 +634,12 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     @Override
-    protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
+    protected void saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum status, String errorMsg) {
         super.saveFailInfoForUnfinishedAgentTask(status, errorMsg);
         long endTime = System.currentTimeMillis();
         if (StringUtils.isNotEmpty(errorMsg)) {
             List<ServiceScriptLogDTO> scriptLogs = notFinishedTargetAgentIds.stream().map(agentId -> {
-                AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
+                ExecuteObjectTask agentTask = targetAgentTasks.get(agentId);
                 HostDTO host = agentIdHostMap.get(agentId);
                 return logService.buildSystemScriptLog(host, errorMsg, agentTask.getScriptLogOffset(), endTime);
             }).collect(Collectors.toList());

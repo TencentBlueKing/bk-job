@@ -22,27 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.engine.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * GSE Agent 脚本任务 Service
+ * 作业执行对象通用模型
  */
-public interface ScriptAgentTaskService extends AgentTaskService {
+@Setter
+@Getter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@ToString
+@PersistenceObject
+@Slf4j
+public class ExecuteObject implements Cloneable {
     /**
-     * 根据主机ID获取Agent任务
-     *
-     * @param stepInstance 步骤实例
-     * @param executeCount 执行次数
-     * @param batch        滚动执行批次；传入null或者0将忽略该参数
-     * @param host         主机
-     * @return Agent任务
+     * 作业实例 ID
      */
-    ExecuteObjectTask getAgentTaskByHost(StepInstanceBaseDTO stepInstance,
-                                         Integer executeCount,
-                                         Integer batch,
-                                         HostDTO host);
+    private Long jobInstanceId;
+
+    /**
+     * 执行对象 ID
+     */
+    private Long id;
+
+    /**
+     * 执行对象类型
+     *
+     * @see com.tencent.bk.job.common.constant.ExecutionObjectTypeEnum
+     */
+    private int type;
+
+    /**
+     * 容器
+     */
+    private Container container;
+    /**
+     * 主机
+     */
+    private HostDTO host;
 }

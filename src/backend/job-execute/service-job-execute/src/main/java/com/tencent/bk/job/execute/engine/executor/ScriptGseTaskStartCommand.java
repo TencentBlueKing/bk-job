@@ -37,7 +37,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -52,7 +52,7 @@ import com.tencent.bk.job.execute.engine.variable.VariableResolveContext;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveResult;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -674,7 +674,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         int errorMsgLength = errorMsg.length();
 
         List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>(targetAgentTaskMap.size());
-        for (AgentTaskDTO agentTask : targetAgentTaskMap.values()) {
+        for (ExecuteObjectTask agentTask : targetAgentTaskMap.values()) {
             HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
             // 日志输出
             ServiceScriptLogDTO scriptLog = logService.buildSystemScriptLog(
@@ -689,7 +689,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             agentTask.setStartTime(gseTask.getStartTime());
             agentTask.setEndTime(now);
             agentTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
-            agentTask.setStatus(AgentTaskStatusEnum.SUBMIT_FAILED);
+            agentTask.setStatus(ExecuteObjectTaskStatusEnum.SUBMIT_FAILED);
         }
         logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
         scriptAgentTaskService.batchUpdateAgentTasks(targetAgentTaskMap.values());

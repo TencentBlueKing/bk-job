@@ -28,9 +28,9 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.tables.GseTaskIpLog;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -68,8 +68,8 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
 
         return CTX.selectCount().from(t)
-            .where(t.STATUS.in(AgentTaskStatusEnum.LAST_SUCCESS.getValue(),
-                AgentTaskStatusEnum.SUCCESS.getValue()))
+            .where(t.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
+                ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
             .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
             .and(t.IS_TARGET.eq(Bool.TRUE.byteValue()))
@@ -99,10 +99,10 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                         Integer executeCount,
-                                                         Integer status,
-                                                         String tag) {
+    public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                              Integer executeCount,
+                                                              Integer status,
+                                                              String tag) {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
         Result result = CTX.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.IP, t.STATUS, t.START_TIME, t.END_TIME,
             t.TOTAL_TIME, t.ERROR_CODE, t.EXIT_CODE, t.TAG, t.LOG_OFFSET, t.DISPLAY_IP, t.IS_TARGET, t.IS_SOURCE)
@@ -114,7 +114,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             .and(t.IS_TARGET.eq(Bool.TRUE.byteValue()))
             .fetch();
 
-        List<AgentTaskDTO> agentTasks = new ArrayList<>();
+        List<ExecuteObjectTask> agentTasks = new ArrayList<>();
         if (result.size() > 0) {
             result.into(record -> agentTasks.add(extract(record)));
         }
@@ -122,13 +122,13 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                         Integer executeCount,
-                                                         Integer status,
-                                                         String tag,
-                                                         Integer limit,
-                                                         String orderField,
-                                                         Order order) {
+    public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                              Integer executeCount,
+                                                              Integer status,
+                                                              String tag,
+                                                              Integer limit,
+                                                              String orderField,
+                                                              Order order) {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
 
         List<Condition> conditions = new ArrayList<>();
@@ -159,7 +159,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             }
         }
 
-        List<AgentTaskDTO> agentTasks = new ArrayList<>();
+        List<ExecuteObjectTask> agentTasks = new ArrayList<>();
         Result result;
         if (selectLimitPercentStep != null) {
             result = selectLimitPercentStep.fetch();
@@ -205,7 +205,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
 
 
     @Override
-    public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount) {
+    public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId, Integer executeCount) {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
         Result<? extends Record> result = CTX.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.IP, t.STATUS,
             t.START_TIME, t.END_TIME,
@@ -214,7 +214,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.EXECUTE_COUNT.eq(executeCount))
             .fetch();
-        List<AgentTaskDTO> agentTaskList = new ArrayList<>();
+        List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
         if (result.size() != 0) {
             result.map(record -> {
                 agentTaskList.add(extract(record));
@@ -224,17 +224,17 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         return agentTaskList;
     }
 
-    private AgentTaskDTO extract(Record record) {
+    private ExecuteObjectTask extract(Record record) {
         if (record == null) {
             return null;
         }
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
-        AgentTaskDTO agentTask = new AgentTaskDTO();
+        ExecuteObjectTask agentTask = new ExecuteObjectTask();
         agentTask.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(t.EXECUTE_COUNT));
         agentTask.setCloudIp(record.get(t.IP));
         agentTask.setAgentId(record.get(t.IP));
-        agentTask.setStatus(AgentTaskStatusEnum.valueOf(record.get(t.STATUS)));
+        agentTask.setStatus(ExecuteObjectTaskStatusEnum.valueOf(record.get(t.STATUS)));
         agentTask.setStartTime(record.get(t.START_TIME));
         agentTask.setEndTime(record.get(t.END_TIME));
         agentTask.setTotalTime(record.get(t.TOTAL_TIME));
@@ -248,7 +248,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
     }
 
     @Override
-    public AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip) {
+    public ExecuteObjectTask getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip) {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
         Record record = CTX.select(t.STEP_INSTANCE_ID, t.EXECUTE_COUNT, t.IP, t.STATUS, t.START_TIME, t.END_TIME,
             t.TOTAL_TIME, t.ERROR_CODE, t.EXIT_CODE, t.TAG, t.LOG_OFFSET, t.DISPLAY_IP, t.IS_TARGET, t.IS_SOURCE)
@@ -265,7 +265,7 @@ public class GseTaskIpLogDAOImpl implements GseTaskIpLogDAO {
         GseTaskIpLog t = GseTaskIpLog.GSE_TASK_IP_LOG;
         Record record = CTX.select(t.EXECUTE_COUNT).from(t).where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(t.IP.eq(cloudIp))
-            .and(t.STATUS.eq(AgentTaskStatusEnum.SUCCESS.getValue()))
+            .and(t.STATUS.eq(ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
             .orderBy(t.EXECUTE_COUNT.desc())
             .limit(1)
             .fetchOne();

@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.engine.variable;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.consts.JobBuildInVariables;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileAgentTaskService;
 import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
@@ -95,21 +95,21 @@ public class JobLastHostsVariableResolver implements VariableResolver {
                 hosts = extractAllHosts(preStepInstance);
                 break;
             case JobBuildInVariables.JOB_LAST_SUCCESS: {
-                List<AgentTaskDetailDTO> agentTasks = listAgentTasks(preStepInstance);
+                List<ExecuteObjectTaskDetail> agentTasks = listAgentTasks(preStepInstance);
                 if (CollectionUtils.isNotEmpty(agentTasks)) {
                     hosts = agentTasks.stream()
-                        .filter(AgentTaskDTO::isSuccess)
-                        .map(AgentTaskDTO::getHost)
+                        .filter(ExecuteObjectTask::isSuccess)
+                        .map(ExecuteObjectTask::getHost)
                         .collect(Collectors.toSet());
                 }
                 break;
             }
             case JobBuildInVariables.JOB_LAST_FAIL: {
-                List<AgentTaskDetailDTO> agentTasks = listAgentTasks(preStepInstance);
+                List<ExecuteObjectTaskDetail> agentTasks = listAgentTasks(preStepInstance);
                 if (CollectionUtils.isNotEmpty(agentTasks)) {
                     hosts = agentTasks.stream()
-                        .filter(not(AgentTaskDTO::isSuccess))
-                        .map(AgentTaskDTO::getHost)
+                        .filter(not(ExecuteObjectTask::isSuccess))
+                        .map(ExecuteObjectTask::getHost)
                         .collect(Collectors.toSet());
                 }
                 break;
@@ -122,9 +122,9 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         return value;
     }
 
-    private List<AgentTaskDetailDTO> listAgentTasks(StepInstanceDTO stepInstance) {
+    private List<ExecuteObjectTaskDetail> listAgentTasks(StepInstanceDTO stepInstance) {
         TaskStepTypeEnum stepType = stepInstance.getStepType();
-        List<AgentTaskDetailDTO> agentTasks = null;
+        List<ExecuteObjectTaskDetail> agentTasks = null;
         if (stepType == TaskStepTypeEnum.SCRIPT) {
             agentTasks = scriptAgentTaskService.listAgentTaskDetail(stepInstance, stepInstance.getExecuteCount(), null);
         } else if (stepType == TaskStepTypeEnum.FILE) {

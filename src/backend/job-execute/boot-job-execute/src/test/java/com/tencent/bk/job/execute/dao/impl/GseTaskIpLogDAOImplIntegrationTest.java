@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,12 +56,12 @@ public class GseTaskIpLogDAOImplIntegrationTest {
         String ip = "0:127.0.0.1";
         long stepInstanceId = 1L;
         int executeCount = 0;
-        AgentTaskDTO agentTask = gseTaskIpLogDAO.getAgentTaskByIp(stepInstanceId, executeCount, ip);
+        ExecuteObjectTask agentTask = gseTaskIpLogDAO.getAgentTaskByIp(stepInstanceId, executeCount, ip);
 
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
         assertThat(agentTask.getCloudIp()).isEqualTo(ip);
-        assertThat(agentTask.getStatus()).isEqualTo(AgentTaskStatusEnum.SUCCESS);
+        assertThat(agentTask.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.SUCCESS);
         Long expectStartTime = 1565767148000L;
         Long expectEndTime = 1565767149000L;
         assertThat(agentTask.getStartTime()).isEqualTo(expectStartTime);
@@ -81,7 +81,7 @@ public class GseTaskIpLogDAOImplIntegrationTest {
 
     @Test
     public void testListAgentTaskByResultGroup() {
-        List<AgentTaskDTO> agentTasks = gseTaskIpLogDAO.listAgentTaskByResultGroup(1L, 0, 9, "succ");
+        List<ExecuteObjectTask> agentTasks = gseTaskIpLogDAO.listAgentTaskByResultGroup(1L, 0, 9, "succ");
         assertThat(agentTasks.size()).isEqualTo(2);
         assertThat(agentTasks).extracting("tag").containsOnly("succ", "succ");
         assertThat(agentTasks).extracting("stepInstanceId").containsOnly(1L, 1L);

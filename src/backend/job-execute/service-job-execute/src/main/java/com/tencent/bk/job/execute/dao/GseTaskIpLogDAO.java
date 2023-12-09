@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 
 import java.util.List;
 
@@ -65,10 +65,10 @@ public interface GseTaskIpLogDAO {
      * @param tag            用户自定义分组标签
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer status,
-                                                  String tag);
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                       Integer executeCount,
+                                                       Integer status,
+                                                       String tag);
 
     /**
      * 根据执行结果查询Agent任务(排序、限制返回数量)
@@ -82,13 +82,13 @@ public interface GseTaskIpLogDAO {
      * @param order          排序方式
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer status,
-                                                  String tag,
-                                                  Integer limit,
-                                                  String orderField,
-                                                  Order order);
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                       Integer executeCount,
+                                                       Integer status,
+                                                       String tag,
+                                                       Integer limit,
+                                                       String orderField,
+                                                       Order order);
 
     /**
      * 获取Agent任务
@@ -97,8 +97,8 @@ public interface GseTaskIpLogDAO {
      * @param executeCount   执行次数
      * @return Agent任务信息
      */
-    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
-                                      Integer executeCount);
+    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
+                                           Integer executeCount);
 
     /**
      * 根据hostId查询Agent任务
@@ -108,7 +108,7 @@ public interface GseTaskIpLogDAO {
      * @param ip             主机ip
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip);
+    ExecuteObjectTask getAgentTaskByIp(Long stepInstanceId, Integer executeCount, String ip);
 
     /**
      * 获取Agent任务实际执行成功的executeCount值(重试场景)

@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
@@ -44,7 +44,7 @@ import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -134,11 +134,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * Agent 任务
      */
-    protected List<AgentTaskDTO> agentTasks;
+    protected List<ExecuteObjectTask> agentTasks;
     /**
      * GSE 目标主机任务执行结果，Map<AgentId, AgentTaskDTO>
      */
-    protected Map<String, AgentTaskDTO> targetAgentTasks;
+    protected Map<String, ExecuteObjectTask> targetAgentTasks;
     /**
      * 全局参数分析结果
      */
@@ -230,10 +230,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                       Map<String, AgentTaskDTO> targetAgentTasks,
+                                       Map<String, ExecuteObjectTask> targetAgentTasks,
                                        GseTaskDTO gseTask,
                                        String requestId,
-                                       List<AgentTaskDTO> agentTasks) {
+                                       List<ExecuteObjectTask> agentTasks) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
@@ -442,11 +442,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private void saveStatusWhenSkip() {
-        List<AgentTaskDTO> notFinishedGseAgentTasks =
-            targetAgentTasks.values().stream().filter(not(AgentTaskDTO::isFinished)).collect(Collectors.toList());
+        List<ExecuteObjectTask> notFinishedGseAgentTasks =
+            targetAgentTasks.values().stream().filter(not(ExecuteObjectTask::isFinished)).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(notFinishedGseAgentTasks)) {
             notFinishedGseAgentTasks.forEach(agentTask -> {
-                agentTask.setStatus(AgentTaskStatusEnum.UNKNOWN);
+                agentTask.setStatus(ExecuteObjectTaskStatusEnum.UNKNOWN);
                 agentTask.setEndTime(System.currentTimeMillis());
             });
         }
@@ -471,7 +471,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.warn("[{}]: Task execution timeout! runDuration: {}ms, timeout: {}s", gseTaskInfo,
                 runDuration, stepInstance.getTimeout());
             this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR,
+            saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
                 "Task execution may be abnormal or timeout.");
             finishGseTask(GseTaskExecuteResult.FAILED, true);
             isTimeout = true;
@@ -493,7 +493,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS) {
                 log.warn("[{}]: Execution result log always empty!", gseTaskInfo);
                 this.executeResult = GseTaskExecuteResult.FAILED;
-                saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR, "Execution result log always empty.");
+                saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum.LOG_ERROR, "Execution result log always empty.");
                 finishGseTask(GseTaskExecuteResult.FAILED, true);
                 isAbnormal = true;
             }
@@ -508,7 +508,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.error("[{}] Pull gse task result error, errorMsg: {}", gseTaskInfo,
                 gseLogBatchPullResult.getErrorMsg());
             this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR, gseLogBatchPullResult.getErrorMsg());
+            saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum.LOG_ERROR, gseLogBatchPullResult.getErrorMsg());
             finishGseTask(GseTaskExecuteResult.FAILED, true);
             return false;
         }
@@ -524,7 +524,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @param endTime   终止时间
      * @param agentTask 日志
      */
-    protected void dealTargetAgentFinish(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
+    protected void dealTargetAgentFinish(String agentId, Long startTime, Long endTime, ExecuteObjectTask agentTask) {
         log.info("[{}]: Deal target agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
             gseTaskInfo, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
@@ -599,22 +599,22 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      *
      * @param agentTasks agent任务列表
      */
-    protected void batchSaveChangedGseAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+    protected void batchSaveChangedGseAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isNotEmpty(agentTasks)) {
-            List<AgentTaskDTO> changedGseAgentTasks =
-                agentTasks.stream().filter(AgentTaskDTO::isChanged).collect(Collectors.toList());
+            List<ExecuteObjectTask> changedGseAgentTasks =
+                agentTasks.stream().filter(ExecuteObjectTask::isChanged).collect(Collectors.toList());
             agentTaskService.batchUpdateAgentTasks(changedGseAgentTasks);
             changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
         }
     }
 
-    protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
+    protected void saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum status, String errorMsg) {
         log.info("[{}]: Deal unfinished agent result| notFinishedTargetAgentIds : {}",
             gseTaskInfo, notFinishedTargetAgentIds);
         long startTime = (gseTask != null && gseTask.getStartTime() != null) ?
             gseTask.getStartTime() : System.currentTimeMillis();
         for (String agentId : notFinishedTargetAgentIds) {
-            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
+            ExecuteObjectTask agentTask = targetAgentTasks.get(agentId);
             agentTask.setStartTime(startTime);
             agentTask.setEndTime(System.currentTimeMillis());
             agentTask.setStatus(status);

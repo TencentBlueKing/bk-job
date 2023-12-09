@@ -25,9 +25,9 @@
 package com.tencent.bk.job.execute.engine.consts;
 
 /**
- * Agent 任务状态
+ * 执行对象任务状态
  */
-public enum AgentTaskStatusEnum {
+public enum ExecuteObjectTaskStatusEnum {
     /**
      * 未知错误
      */
@@ -160,15 +160,15 @@ public enum AgentTaskStatusEnum {
 
     private final int status;
 
-    AgentTaskStatusEnum(int status) {
+    ExecuteObjectTaskStatusEnum(int status) {
         this.status = status;
     }
 
-    public static AgentTaskStatusEnum valueOf(Integer status) {
+    public static ExecuteObjectTaskStatusEnum valueOf(Integer status) {
         if (status == null) {
             return null;
         }
-        for (AgentTaskStatusEnum agentTaskStatus : values()) {
+        for (ExecuteObjectTaskStatusEnum agentTaskStatus : values()) {
             if (agentTaskStatus.status == status) {
                 return agentTaskStatus;
             }
@@ -184,7 +184,7 @@ public enum AgentTaskStatusEnum {
         return "agent.task.status." + this.name().toLowerCase();
     }
 
-    public static boolean isSuccess(AgentTaskStatusEnum status) {
+    public static boolean isSuccess(ExecuteObjectTaskStatusEnum status) {
         if (status == null) {
             return false;
         }
@@ -202,7 +202,7 @@ public enum AgentTaskStatusEnum {
      * 是否完成状态
      */
     public boolean isFinished() {
-        return this != AgentTaskStatusEnum.RUNNING && this != AgentTaskStatusEnum.WAITING;
+        return this != ExecuteObjectTaskStatusEnum.RUNNING && this != ExecuteObjectTaskStatusEnum.WAITING;
     }
 
 }

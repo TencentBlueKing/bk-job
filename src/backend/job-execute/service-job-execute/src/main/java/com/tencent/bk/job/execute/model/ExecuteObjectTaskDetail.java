@@ -22,44 +22,61 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.execute.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * 作业执行对象通用模型
+ * GSE Agent 任务详情，包含主机的详细信息
  */
-@Setter
 @Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@Setter
 @ToString
-@PersistenceObject
-@Slf4j
-public class ExecuteObject implements Cloneable {
+@NoArgsConstructor
+public class ExecuteObjectTaskDetail extends ExecuteObjectTask {
+    private ExecuteObject executeObject;
     /**
-     * 执行对象 ID
+     * 云区域ID
      */
-    private Long id;
+    private Long bkCloudId;
     /**
-     * 执行对象类型
-     *
-     * @see com.tencent.bk.job.common.constant.ExecutionObjectTypeEnum
+     * 云区域名称
      */
-    private int type;
+    private String bkCloudName;
+    /**
+     * 主机 ipv4
+     */
+    private String ip;
+    /**
+     * 主机ipv6
+     */
+    private String ipv6;
 
-    /**
-     * 容器
-     */
-    private Container container;
-    /**
-     * 主机
-     */
-    private HostDTO host;
+    public ExecuteObjectTaskDetail(ExecuteObjectTask executeObjectTask) {
+        super(executeObjectTask);
+        if (StringUtils.isNotEmpty(executeObjectTask.getCloudIp())) {
+            HostDTO host = HostDTO.fromCloudIp(executeObjectTask.getCloudIp());
+            this.ip = host.getIp();
+            this.bkCloudId = host.getBkCloudId();
+        }
+    }
+
+    public HostDTO getHost() {
+        HostDTO host = new HostDTO();
+        host.setHostId(getHostId());
+        host.setIp(getIp());
+        host.setIpv6(getIpv6());
+        host.setBkCloudId(getBkCloudId());
+        host.setBkCloudName(getBkCloudName());
+        host.setAgentId(getAgentId());
+        return host;
+    }
+
+
 }

@@ -26,10 +26,10 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 
 import java.util.Collection;
@@ -45,14 +45,14 @@ public interface AgentTaskService {
      *
      * @param agentTasks GSE Agent 任务列表
      */
-    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
+    void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks);
+    void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 获取执行成功的Agent任务数量
@@ -70,7 +70,7 @@ public interface AgentTaskService {
      * @param gseTaskId GSE任务ID
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId);
+    List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId);
 
     /**
      * 获取Agent任务
@@ -80,9 +80,9 @@ public interface AgentTaskService {
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
-                                      Integer executeCount,
-                                      Integer batch);
+    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
+                                           Integer executeCount,
+                                           Integer batch);
 
     /**
      * 获取Agent任务详情并分组
@@ -120,14 +120,14 @@ public interface AgentTaskService {
      * @param order        排序方式
      * @return Agent任务
      */
-    List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                              Integer executeCount,
-                                                              Integer batch,
-                                                              Integer status,
-                                                              String tag,
-                                                              Integer limit,
-                                                              String orderField,
-                                                              Order order);
+    List<ExecuteObjectTaskDetail> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                                   Integer executeCount,
+                                                                   Integer batch,
+                                                                   Integer status,
+                                                                   String tag,
+                                                                   Integer limit,
+                                                                   String orderField,
+                                                                   Order order);
 
     /**
      * 根据结果分组获取Agent任务详情 - 包含主机详情
@@ -139,11 +139,11 @@ public interface AgentTaskService {
      * @param tag          用户自定义分组标签
      * @return Agent任务
      */
-    List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                              Integer executeCount,
-                                                              Integer batch,
-                                                              Integer status,
-                                                              String tag);
+    List<ExecuteObjectTaskDetail> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                                   Integer executeCount,
+                                                                   Integer batch,
+                                                                   Integer status,
+                                                                   String tag);
 
     /**
      * 获取Agent任务详情 - 包含主机详情
@@ -153,9 +153,9 @@ public interface AgentTaskService {
      * @param batch        滚动执行批次；传入null或者0将忽略该参数
      * @return Agent任务
      */
-    List<AgentTaskDetailDTO> listAgentTaskDetail(StepInstanceBaseDTO stepInstance,
-                                                 Integer executeCount,
-                                                 Integer batch);
+    List<ExecuteObjectTaskDetail> listAgentTaskDetail(StepInstanceBaseDTO stepInstance,
+                                                      Integer executeCount,
+                                                      Integer batch);
 
     /**
      * 获取Agent任务实际执行成功的executeCount值(重试场景,兼容历史数据)

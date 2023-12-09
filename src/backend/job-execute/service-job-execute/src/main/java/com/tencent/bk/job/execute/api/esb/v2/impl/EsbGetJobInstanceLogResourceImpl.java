@@ -39,8 +39,8 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -132,11 +132,11 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
                 new EsbStepInstanceResultAndLog.StepInstResultDTO();
             stepInstResult.setIpStatus(resultGroup.getStatus());
             stepInstResult.setTag(resultGroup.getTag());
-            List<AgentTaskDetailDTO> agentTasks = resultGroup.getAgentTasks();
+            List<ExecuteObjectTaskDetail> agentTasks = resultGroup.getAgentTasks();
             addLogContent(stepInstance, agentTasks);
             List<EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO> esbGseAgentTaskList =
                 Lists.newArrayListWithCapacity(agentTasks.size());
-            for (AgentTaskDetailDTO agentTask : agentTasks) {
+            for (ExecuteObjectTaskDetail agentTask : agentTasks) {
                 EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO esbGseAgentTaskDTO =
                     new EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO();
                 esbGseAgentTaskDTO.setLogContent(Utils.htmlEncode(agentTask.getScriptLogContent()));
@@ -165,11 +165,11 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
         return ValidateResult.pass();
     }
 
-    private void addLogContent(StepInstanceBaseDTO stepInstance, List<AgentTaskDetailDTO> agentTasks) {
+    private void addLogContent(StepInstanceBaseDTO stepInstance, List<ExecuteObjectTaskDetail> agentTasks) {
         long stepInstanceId = stepInstance.getId();
         int executeCount = stepInstance.getExecuteCount();
 
-        for (AgentTaskDetailDTO agentTask : agentTasks) {
+        for (ExecuteObjectTaskDetail agentTask : agentTasks) {
             if (stepInstance.isScriptStep()) {
                 ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId,
                     executeCount,

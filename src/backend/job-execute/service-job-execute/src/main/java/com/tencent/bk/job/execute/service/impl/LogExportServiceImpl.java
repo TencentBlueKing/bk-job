@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.config.LogExportConfig;
 import com.tencent.bk.job.execute.constants.LogExportStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -194,7 +194,7 @@ public class LogExportServiceImpl implements LogExportService {
 
         StopWatch watch = new StopWatch("exportJobLog");
         watch.start("getGseAgentTasks");
-        List<AgentTaskDTO> gseAgentTasks = getGseAgentTasks(stepInstance, executeCount, hostId, cloudIp);
+        List<ExecuteObjectTask> gseAgentTasks = getGseAgentTasks(stepInstance, executeCount, hostId, cloudIp);
         watch.stop();
 
         if (gseAgentTasks == null || gseAgentTasks.isEmpty()) {
@@ -228,15 +228,15 @@ public class LogExportServiceImpl implements LogExportService {
      * @param cloudIp      要获取日志记录的CloudIP
      * @return 日志记录信息列表
      */
-    private List<AgentTaskDTO> getGseAgentTasks(StepInstanceBaseDTO stepInstance,
-                                                int executeCount,
-                                                Long hostId,
-                                                String cloudIp) {
-        List<AgentTaskDTO> gseAgentTasks = new ArrayList<>();
+    private List<ExecuteObjectTask> getGseAgentTasks(StepInstanceBaseDTO stepInstance,
+                                                     int executeCount,
+                                                     Long hostId,
+                                                     String cloudIp) {
+        List<ExecuteObjectTask> gseAgentTasks = new ArrayList<>();
         boolean isGetByHost = hostId != null || StringUtils.isNotBlank(cloudIp);
         if (isGetByHost) {
             HostDTO host = HostDTO.fromHostIdOrCloudIp(hostId, cloudIp);
-            AgentTaskDTO agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, null,
+            ExecuteObjectTask agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, null,
                 host);
             if (agentTask != null) {
                 gseAgentTasks.add(agentTask);
@@ -248,7 +248,7 @@ public class LogExportServiceImpl implements LogExportService {
     }
 
     private boolean getLogContentAndWriteToFile(StepInstanceBaseDTO stepInstance,
-                                                List<AgentTaskDTO> gseAgentTasks,
+                                                List<ExecuteObjectTask> gseAgentTasks,
                                                 File logFile,
                                                 boolean isGetByHost,
                                                 LogExportJobInfoDTO exportJobInfo) {
@@ -342,7 +342,7 @@ public class LogExportServiceImpl implements LogExportService {
         }
     }
 
-    private Collection<LogBatchQuery> buildLogBatchQuery(long stepInstanceId, List<AgentTaskDTO> agentTasks) {
+    private Collection<LogBatchQuery> buildLogBatchQuery(long stepInstanceId, List<ExecuteObjectTask> agentTasks) {
         Map<Integer, LogBatchQuery> batchQueryGroups = new HashMap<>();
         agentTasks.forEach(agentTask -> {
             LogBatchQuery query = batchQueryGroups.computeIfAbsent(agentTask.getExecuteCount(),

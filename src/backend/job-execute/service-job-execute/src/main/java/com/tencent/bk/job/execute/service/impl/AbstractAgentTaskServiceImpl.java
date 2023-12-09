@@ -2,9 +2,9 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.AgentTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -27,13 +27,13 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
         this.stepInstanceService = stepInstanceService;
     }
 
-    protected final List<AgentTaskDetailDTO> fillHostDetail(StepInstanceBaseDTO stepInstance,
-                                                            List<AgentTaskDTO> agentTasks) {
+    protected final List<ExecuteObjectTaskDetail> fillHostDetail(StepInstanceBaseDTO stepInstance,
+                                                                 List<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return Collections.emptyList();
         }
 
-        List<AgentTaskDetailDTO> agentTaskDetailList;
+        List<ExecuteObjectTaskDetail> agentTaskDetailList;
         boolean hasIpInfo = agentTasks.stream().anyMatch(agentTask -> StringUtils.isNotEmpty(agentTask.getCloudIp()));
         if (!hasIpInfo) {
             // 从当前版本开始AgentTask不会包含主机详细信息（ip\云区域等），需要从StepInstance反查
@@ -41,7 +41,7 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
             agentTaskDetailList = agentTasks
                 .stream()
                 .map(agentTask -> {
-                    AgentTaskDetailDTO agentTaskDetail = new AgentTaskDetailDTO(agentTask);
+                    ExecuteObjectTaskDetail agentTaskDetail = new ExecuteObjectTaskDetail(agentTask);
                     HostDTO host = hosts.get(agentTask.getHostId());
                     agentTaskDetail.setCloudIp(host.toCloudIp());
                     agentTaskDetail.setBkCloudId(host.getBkCloudId());
@@ -54,7 +54,7 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
             // 历史版本AgentTask会包含ipv4信息
             agentTaskDetailList = agentTasks
                 .stream()
-                .map(AgentTaskDetailDTO::new)
+                .map(ExecuteObjectTaskDetail::new)
                 .collect(Collectors.toList());
             agentTaskDetailList.forEach(
                 agentTaskDetail -> agentTaskDetail.setBkCloudName(
@@ -63,7 +63,7 @@ public abstract class AbstractAgentTaskServiceImpl implements AgentTaskService {
         return agentTaskDetailList;
     }
 
-    protected final List<AgentTaskResultGroupDTO> groupAgentTasks(List<AgentTaskDetailDTO> agentTasks) {
+    protected final List<AgentTaskResultGroupDTO> groupAgentTasks(List<ExecuteObjectTaskDetail> agentTasks) {
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
         agentTasks.stream()
             .collect(Collectors.groupingBy(

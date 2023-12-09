@@ -52,7 +52,7 @@ public class Container implements Cloneable {
     private String id;
 
     /**
-     * 容器 ID
+     * 容器 UID
      */
     @JsonProperty("containerId")
     private String containerId;

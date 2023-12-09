@@ -35,14 +35,14 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileDest;
@@ -54,7 +54,7 @@ import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -94,7 +94,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     /**
      * GSE 源 Agent 任务, Map<AgentId,AgentTask>
      */
-    private final Map<String, AgentTaskDTO> sourceAgentTasks;
+    private final Map<String, ExecuteObjectTask> sourceAgentTasks;
     /**
      * 任务包含的源服务器
      */
@@ -178,12 +178,12 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                Map<String, AgentTaskDTO> targetAgentTasks,
-                                Map<String, AgentTaskDTO> sourceAgentTasks,
+                                Map<String, ExecuteObjectTask> targetAgentTasks,
+                                Map<String, ExecuteObjectTask> sourceAgentTasks,
                                 GseTaskDTO gseTask,
                                 Map<JobFile, FileDest> srcDestFileMap,
                                 String requestId,
-                                List<AgentTaskDTO> agentTasks) {
+                                List<ExecuteObjectTask> agentTasks) {
         super(taskInstanceService,
             gseTaskService,
             logService,
@@ -394,7 +394,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                    JobAtomicFileTaskResult result,
                                    Map<Long, ServiceHostLogDTO> executionLogs,
                                    boolean isDownloadResult) {
-        AgentTaskDTO agentTask = result.getAgentTask();
+        ExecuteObjectTask agentTask = result.getAgentTask();
         if (agentTask.getStartTime() == null) {
             agentTask.setStartTime(System.currentTimeMillis());
         }
@@ -418,9 +418,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void analyseRunningFileResult(JobAtomicFileTaskResult result,
                                           Map<Long, ServiceHostLogDTO> executionLogs,
-                                          AgentTaskDTO agentTask) {
+                                          ExecuteObjectTask agentTask) {
         parseExecutionLog(result, executionLogs);
-        agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
+        agentTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
         agentTask.setStartTime(result.getResult().getContent().getStartTime());
     }
 
@@ -472,7 +472,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             throw new InternalException("Parse src file fail", ErrorCode.INTERNAL_ERROR);
         }
 
-        AgentTaskDTO agentTask = getAgentTask(isDownloadResult, agentId);
+        ExecuteObjectTask agentTask = getAgentTask(isDownloadResult, agentId);
 
         HostDTO sourceHost = agentIdHostMap.get(content.getSourceAgentId());
         if (sourceHost == null) {
@@ -492,7 +492,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         return new JobAtomicFileTaskResult(atomicFileTaskResult, sourceHost, targetHost, srcFile, agentTask);
     }
 
-    private AgentTaskDTO getAgentTask(boolean isDownloadResult, String agentId) {
+    private ExecuteObjectTask getAgentTask(boolean isDownloadResult, String agentId) {
         if (isDownloadResult) {
             return targetAgentTasks.get(agentId);
         } else {
@@ -718,20 +718,20 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                     int fileNum,
                                     int successNum,
                                     boolean isDownload,
-                                    AgentTaskDTO agentTask) {
+                                    ExecuteObjectTask agentTask) {
         // 文件任务成功数=任务总数
         if (successNum >= fileNum) {
             if (hasInvalidSourceHost) {
                 // 如果包含了非法的源文件主机，即使GSE任务（已过滤非法主机)执行成功，那么对于这个主机来说，整体上任务状态是失败
-                agentTask.setStatus(AgentTaskStatusEnum.FAILED);
+                agentTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
             } else {
-                agentTask.setStatus(AgentTaskStatusEnum.SUCCESS);
+                agentTask.setStatus(ExecuteObjectTaskStatusEnum.SUCCESS);
                 if (isDownload) {
                     this.successTargetAgentIds.add(agentId);
                 }
             }
         } else {
-            AgentTaskStatusEnum agentTaskStatus = AgentTaskStatusEnum.FAILED;
+            ExecuteObjectTaskStatusEnum agentTaskStatus = ExecuteObjectTaskStatusEnum.FAILED;
             if (errorCode != 0) {
                 agentTaskStatus = GseUtils.getStatusByGseErrorCode(errorCode);
             }
@@ -768,7 +768,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             fileNum = this.fileUploadTaskNumMap.get(agentId) == null ? 0 : this.fileUploadTaskNumMap.get(agentId);
         }
 
-        AgentTaskDTO agentTask = getAgentTask(isDownloadResult, agentId);
+        ExecuteObjectTask agentTask = getAgentTask(isDownloadResult, agentId);
         if (finishedNum >= fileNum) {
             log.info("[{}] Analyse Agent task finished! agentId: {}, finishedTaskNum: {}, expectedTaskNum: {}",
                 gseTaskInfo, agentId, finishedNum, fileNum);
@@ -780,7 +780,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             }
             analyseAgentStatus(errorCode, agentId, fileNum, successNum, isDownloadResult, agentTask);
         } else {
-            agentTask.setStatus(AgentTaskStatusEnum.RUNNING);
+            agentTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
         }
     }
 
@@ -792,7 +792,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * @param endTime   终止时间
      * @param agentTask 日志
      */
-    private void dealUploadAgentFinished(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
+    private void dealUploadAgentFinished(String agentId, Long startTime, Long endTime, ExecuteObjectTask agentTask) {
         log.info("[{}]: Deal source agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
             gseTaskInfo, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
 
@@ -1014,13 +1014,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         /**
          * Agent 任务
          */
-        private AgentTaskDTO agentTask;
+        private ExecuteObjectTask agentTask;
 
         public JobAtomicFileTaskResult(AtomicFileTaskResult result,
                                        HostDTO sourceHost,
                                        HostDTO targetHost,
                                        JobFile srcFile,
-                                       AgentTaskDTO agentTask) {
+                                       ExecuteObjectTask agentTask) {
             this.result = result;
             this.sourceHost = sourceHost;
             this.targetHost = targetHost;

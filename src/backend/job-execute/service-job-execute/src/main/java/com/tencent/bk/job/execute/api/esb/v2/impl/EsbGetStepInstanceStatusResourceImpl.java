@@ -39,9 +39,9 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -156,11 +156,11 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
         for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
             Map<String, Object> standardStepAnalyseResult = new HashMap<>();
-            List<AgentTaskDetailDTO> agentTasks = resultGroup.getAgentTasks();
+            List<ExecuteObjectTaskDetail> agentTasks = resultGroup.getAgentTasks();
             standardStepAnalyseResult.put("count", CollectionUtils.isEmpty(agentTasks) ? 0 : agentTasks.size());
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();
-                for (AgentTaskDetailDTO agentTask : agentTasks) {
+                for (ExecuteObjectTaskDetail agentTask : agentTasks) {
                     ips.add(new EsbIpDTO(agentTask.getHostId(), agentTask.getBkCloudId(), agentTask.getIp()));
                 }
                 standardStepAnalyseResult.put("ip_list", ips);
@@ -169,7 +169,7 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
             standardStepAnalyseResult.put("result_type", resultGroup.getStatus());
             standardStepAnalyseResult.put("result_type_text",
-                i18nService.getI18n(AgentTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(ExecuteObjectTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
 
             standardStepAnalyseResultList.add(standardStepAnalyseResult);
         }

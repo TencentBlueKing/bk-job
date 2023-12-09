@@ -26,9 +26,9 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.tables.GseFileAgentTask;
 import com.tencent.bk.job.execute.model.tables.records.GseFileAgentTaskRecord;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
@@ -86,13 +86,13 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+    public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         String sql = "insert into gse_file_agent_task (step_instance_id, execute_count, actual_execute_count, batch,"
             + "mode, host_id, agent_id ,gse_task_id,status, start_time, end_time, total_time, error_code)"
             + " values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
         Object[][] params = new Object[agentTasks.size()][13];
         int batchCount = 0;
-        for (AgentTaskDTO agentTask : agentTasks) {
+        for (ExecuteObjectTask agentTask : agentTasks) {
             Object[] param = new Object[13];
             param[0] = agentTask.getStepInstanceId();
             param[1] = agentTask.getExecuteCount();
@@ -113,7 +113,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
@@ -122,7 +122,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             + " where step_instance_id = ? and execute_count = ? and batch = ? and mode = ? and host_id = ?";
         Object[][] params = new Object[agentTasks.size()][11];
         int batchCount = 0;
-        for (AgentTaskDTO agentTask : agentTasks) {
+        for (ExecuteObjectTask agentTask : agentTasks) {
             Object[] param = new Object[11];
             param[0] = agentTask.getGseTaskId();
             param[1] = agentTask.getStatus().getValue();
@@ -144,8 +144,8 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
         Integer count = CTX.selectCount()
             .from(T_GSE_FILE_AGENT_TASK)
-            .where(T_GSE_FILE_AGENT_TASK.STATUS.in(AgentTaskStatusEnum.LAST_SUCCESS.getValue(),
-                AgentTaskStatusEnum.SUCCESS.getValue()))
+            .where(T_GSE_FILE_AGENT_TASK.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
+                ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
             .and(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
             .and(T_GSE_FILE_AGENT_TASK.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()))
@@ -182,10 +182,10 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                         Integer executeCount,
-                                                         Integer batch,
-                                                         Integer status) {
+    public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                              Integer executeCount,
+                                                              Integer batch,
+                                                              Integer status) {
         SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_FILE_AGENT_TASK)
             .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -197,7 +197,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
         }
         Result<?> result = selectConditionStep.fetch();
 
-        List<AgentTaskDTO> agentTasks = new ArrayList<>();
+        List<ExecuteObjectTask> agentTasks = new ArrayList<>();
         if (result.size() > 0) {
             result.forEach(record -> agentTasks.add(extract(record)));
         }
@@ -205,13 +205,13 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                         Integer executeCount,
-                                                         Integer batch,
-                                                         Integer status,
-                                                         Integer limit,
-                                                         String orderField,
-                                                         Order order) {
+    public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                              Integer executeCount,
+                                                              Integer batch,
+                                                              Integer status,
+                                                              Integer limit,
+                                                              String orderField,
+                                                              Order order) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
         conditions.add(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()));
@@ -241,7 +241,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             }
         }
 
-        List<AgentTaskDTO> agentTasks = new ArrayList<>();
+        List<ExecuteObjectTask> agentTasks = new ArrayList<>();
         Result<Record> result;
         if (selectLimitPercentStep != null) {
             result = selectLimitPercentStep.fetch();
@@ -272,10 +272,10 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
-                                             Integer executeCount,
-                                             Integer batch,
-                                             FileTaskModeEnum fileTaskMode) {
+    public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
+                                                  Integer executeCount,
+                                                  Integer batch,
+                                                  FileTaskModeEnum fileTaskMode) {
         SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_FILE_AGENT_TASK)
             .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -287,7 +287,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             selectConditionStep.and(T_GSE_FILE_AGENT_TASK.MODE.eq(fileTaskMode.getValue().byteValue()));
         }
         Result<?> result = selectConditionStep.fetch();
-        List<AgentTaskDTO> agentTaskList = new ArrayList<>();
+        List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
         if (result.size() != 0) {
             result.map(record -> {
                 agentTaskList.add(extract(record));
@@ -297,11 +297,11 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
         return agentTaskList;
     }
 
-    private AgentTaskDTO extract(Record record) {
+    private ExecuteObjectTask extract(Record record) {
         if (record == null) {
             return null;
         }
-        AgentTaskDTO agentTask = new AgentTaskDTO();
+        ExecuteObjectTask agentTask = new ExecuteObjectTask();
         agentTask.setStepInstanceId(record.get(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT));
         Short actualExecuteCount = record.get(T_GSE_FILE_AGENT_TASK.ACTUAL_EXECUTE_COUNT);
@@ -311,7 +311,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
         agentTask.setHostId(record.get(T_GSE_FILE_AGENT_TASK.HOST_ID));
         agentTask.setAgentId(record.get(T_GSE_FILE_AGENT_TASK.AGENT_ID));
         agentTask.setGseTaskId(record.get(T_GSE_FILE_AGENT_TASK.GSE_TASK_ID));
-        agentTask.setStatus(AgentTaskStatusEnum.valueOf(record.get(T_GSE_FILE_AGENT_TASK.STATUS)));
+        agentTask.setStatus(ExecuteObjectTaskStatusEnum.valueOf(record.get(T_GSE_FILE_AGENT_TASK.STATUS)));
         agentTask.setStartTime(record.get(T_GSE_FILE_AGENT_TASK.START_TIME));
         agentTask.setEndTime(record.get(T_GSE_FILE_AGENT_TASK.END_TIME));
         agentTask.setTotalTime(record.get(T_GSE_FILE_AGENT_TASK.TOTAL_TIME));
@@ -320,12 +320,12 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId) {
+    public List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId) {
         if (gseTaskId == null || gseTaskId <= 0) {
             return Collections.emptyList();
         }
 
-        List<AgentTaskDTO> agentTaskList = new ArrayList<>();
+        List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
 
         Result<?> result = CTX.select(ALL_FIELDS)
             .from(T_GSE_FILE_AGENT_TASK)
@@ -338,8 +338,8 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public AgentTaskDTO getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
-                                             FileTaskModeEnum mode, long hostId) {
+    public ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
+                                                  FileTaskModeEnum mode, long hostId) {
         Record record = CTX.select(ALL_FIELDS)
             .from(T_GSE_FILE_AGENT_TASK)
             .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))

@@ -4,10 +4,10 @@ import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.GseTaskIpLogDAO;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -44,7 +44,7 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+    public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
@@ -52,7 +52,7 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
@@ -74,13 +74,13 @@ public class FileAgentTaskServiceImpl
                                                                 Integer batch) {
         List<AgentTaskResultGroupDTO> resultGroups = new ArrayList<>();
 
-        List<AgentTaskDTO> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch,
+        List<ExecuteObjectTask> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch,
             FileTaskModeEnum.DOWNLOAD);
         if (CollectionUtils.isEmpty(agentTasks)) {
             return resultGroups;
         }
 
-        List<AgentTaskDetailDTO> agentTaskDetailList = fillHostDetail(stepInstance, agentTasks);
+        List<ExecuteObjectTaskDetail> agentTaskDetailList = fillHostDetail(stepInstance, agentTasks);
 
         resultGroups = groupAgentTasks(agentTaskDetailList);
 
@@ -101,12 +101,12 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                                     Integer executeCount,
-                                                                     Integer batch,
-                                                                     Integer status,
-                                                                     String tag) {
-        List<AgentTaskDTO> agentTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
+    public List<ExecuteObjectTaskDetail> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                                          Integer executeCount,
+                                                                          Integer batch,
+                                                                          Integer status,
+                                                                          String tag) {
+        List<ExecuteObjectTask> agentTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
             executeCount, batch, status);
         if (CollectionUtils.isEmpty(agentTasks)) {
             // 兼容历史数据
@@ -116,15 +116,15 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDetailDTO> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                                     Integer executeCount,
-                                                                     Integer batch,
-                                                                     Integer status,
-                                                                     String tag,
-                                                                     Integer limit,
-                                                                     String orderField,
-                                                                     Order order) {
-        List<AgentTaskDTO> agentTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
+    public List<ExecuteObjectTaskDetail> listAgentTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                                          Integer executeCount,
+                                                                          Integer batch,
+                                                                          Integer status,
+                                                                          String tag,
+                                                                          Integer limit,
+                                                                          String orderField,
+                                                                          Order order) {
+        List<ExecuteObjectTask> agentTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(),
             executeCount, batch, status, limit, orderField, order);
         if (CollectionUtils.isEmpty(agentTasks)) {
             // 兼容历史数据
@@ -135,9 +135,9 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount, Integer batch,
-                                             FileTaskModeEnum fileTaskMode) {
-        List<AgentTaskDTO> agentTasks = fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch,
+    public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId, Integer executeCount, Integer batch,
+                                                  FileTaskModeEnum fileTaskMode) {
+        List<ExecuteObjectTask> agentTasks = fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch,
             fileTaskMode);
         // 兼容历史数据
         if (CollectionUtils.isEmpty(agentTasks)) {
@@ -152,14 +152,14 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId) {
+    public List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId) {
         return fileAgentTaskDAO.listAgentTasksByGseTaskId(gseTaskId);
     }
 
     @Override
-    public AgentTaskDTO getAgentTaskByHost(StepInstanceDTO stepInstance, Integer executeCount, Integer batch,
-                                           FileTaskModeEnum fileTaskMode, HostDTO host) {
-        AgentTaskDTO agentTask = null;
+    public ExecuteObjectTask getAgentTaskByHost(StepInstanceDTO stepInstance, Integer executeCount, Integer batch,
+                                                FileTaskModeEnum fileTaskMode, HostDTO host) {
+        ExecuteObjectTask agentTask = null;
         Long hostId = host.getHostId();
         if (hostId != null) {
             // 根据hostId查询
@@ -205,8 +205,8 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDTO> listAgentTasks(Long stepInstanceId, Integer executeCount, Integer batch) {
-        List<AgentTaskDTO> agentTasks = fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch, null);
+    public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId, Integer executeCount, Integer batch) {
+        List<ExecuteObjectTask> agentTasks = fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch, null);
         if (CollectionUtils.isEmpty(agentTasks)) {
             // 兼容历史数据
             agentTasks = gseTaskIpLogDAO.listAgentTasks(stepInstanceId, executeCount);
@@ -221,10 +221,10 @@ public class FileAgentTaskServiceImpl
     }
 
     @Override
-    public List<AgentTaskDetailDTO> listAgentTaskDetail(StepInstanceBaseDTO stepInstance,
-                                                        Integer executeCount,
-                                                        Integer batch) {
-        List<AgentTaskDTO> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch);
+    public List<ExecuteObjectTaskDetail> listAgentTaskDetail(StepInstanceBaseDTO stepInstance,
+                                                             Integer executeCount,
+                                                             Integer batch) {
+        List<ExecuteObjectTask> agentTasks = listAgentTasks(stepInstance.getId(), executeCount, batch);
         return fillHostDetail(stepInstance, agentTasks);
     }
 

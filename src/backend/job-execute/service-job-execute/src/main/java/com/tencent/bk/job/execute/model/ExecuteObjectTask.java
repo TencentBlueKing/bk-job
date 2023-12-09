@@ -24,10 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,13 +33,13 @@ import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * GSE Agent 任务
+ * GSE 执行对象任务
  */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public class AgentTaskDTO {
+public class ExecuteObjectTask {
     /**
      * 步骤实例ID
      */
@@ -52,7 +49,7 @@ public class AgentTaskDTO {
      */
     private int executeCount;
     /**
-     * Agent 任务对应的实际的步骤执行次数（重试场景，可能Agent任务并没有实际被执行)
+     * 任务对应的实际的步骤执行次数（重试场景，可能任务并没有实际被执行)
      */
     private Integer actualExecuteCount;
     /**
@@ -64,24 +61,13 @@ public class AgentTaskDTO {
      */
     private Long gseTaskId;
     /**
-     * 主机ID
+     * 执行对象 ID
      */
-    private Long hostId;
-    /**
-     * Agent ID
-     */
-    private String agentId;
-    /**
-     * 服务器云区域+IP
-     */
-    @Deprecated
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续AgentTask仅包含hostId,不再存储具体的IP数据",
-        deprecatedVersion = "3.7.x")
-    private String cloudIp;
+    private Long executeObjId;
     /**
      * 任务状态
      */
-    private AgentTaskStatusEnum status;
+    private ExecuteObjectTaskStatusEnum status;
     /**
      * 任务开始时间
      */
@@ -123,33 +109,32 @@ public class AgentTaskDTO {
      */
     private volatile boolean changed;
 
-    public AgentTaskDTO(long stepInstanceId, int executeCount, int batch, Long hostId, String agentId) {
+    public ExecuteObjectTask(long stepInstanceId, int executeCount, int batch, Long executeObjId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
-        this.hostId = hostId;
-        this.agentId = agentId;
+        this.executeObjId = executeObjId;
     }
 
-    public AgentTaskDTO(long stepInstanceId, int executeCount, int batch, FileTaskModeEnum fileTaskMode,
-                        Long hostId, String agentId) {
+    public ExecuteObjectTask(long stepInstanceId,
+                             int executeCount,
+                             int batch,
+                             FileTaskModeEnum fileTaskMode,
+                             Long executeObjId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
         this.fileTaskMode = fileTaskMode;
-        this.hostId = hostId;
-        this.agentId = agentId;
+        this.executeObjId = executeObjId;
     }
 
-    public AgentTaskDTO(AgentTaskDTO agentTask) {
+    public ExecuteObjectTask(ExecuteObjectTask agentTask) {
         this.stepInstanceId = agentTask.getStepInstanceId();
         this.executeCount = agentTask.getExecuteCount();
         this.actualExecuteCount = agentTask.getActualExecuteCount();
         this.batch = agentTask.getBatch();
         this.fileTaskMode = agentTask.getFileTaskMode();
-        this.hostId = agentTask.getHostId();
-        this.agentId = agentTask.getAgentId();
-        this.cloudIp = agentTask.getCloudIp();
+        this.executeObjId = agentTask.getExecuteObjId();
         this.status = agentTask.getStatus();
         this.startTime = agentTask.getStartTime();
         this.endTime = agentTask.getEndTime();
@@ -164,7 +149,7 @@ public class AgentTaskDTO {
         this.changed = agentTask.isChanged();
     }
 
-    public void setStatus(AgentTaskStatusEnum status) {
+    public void setStatus(ExecuteObjectTaskStatusEnum status) {
         this.changed = true;
         this.status = status;
     }
@@ -205,7 +190,7 @@ public class AgentTaskDTO {
      * @return 任务是否结束
      */
     public boolean isFinished() {
-        return status != AgentTaskStatusEnum.WAITING && status != AgentTaskStatusEnum.RUNNING;
+        return status != ExecuteObjectTaskStatusEnum.WAITING && status != ExecuteObjectTaskStatusEnum.RUNNING;
     }
 
     /**
@@ -221,7 +206,7 @@ public class AgentTaskDTO {
      * 重置任务状态数据
      */
     public void resetTaskInitialStatus() {
-        this.status = AgentTaskStatusEnum.WAITING;
+        this.status = ExecuteObjectTaskStatusEnum.WAITING;
         this.startTime = null;
         this.endTime = null;
         this.totalTime = null;
@@ -240,24 +225,12 @@ public class AgentTaskDTO {
         return !(fileTaskMode != null && fileTaskMode == FileTaskModeEnum.UPLOAD);
     }
 
-    public HostDTO getHost() {
-        HostDTO host = new HostDTO();
-        host.setHostId(hostId);
-        host.setAgentId(agentId);
-        if (StringUtils.isNotEmpty(cloudIp)) {
-            String[] ipProps = cloudIp.split(IpUtils.COLON);
-            host.setBkCloudId(Long.valueOf(ipProps[0]));
-            host.setIp(ipProps[1]);
-        }
-
-        return host;
-    }
 
     /**
      * 任务是否执行成功
      */
     public boolean isSuccess() {
-        return AgentTaskStatusEnum.isSuccess(status);
+        return ExecuteObjectTaskStatusEnum.isSuccess(status);
     }
 
     public boolean isAgentIdEmpty() {

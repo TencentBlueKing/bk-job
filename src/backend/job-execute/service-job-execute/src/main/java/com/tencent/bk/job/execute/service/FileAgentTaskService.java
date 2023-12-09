@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 
@@ -45,10 +45,10 @@ public interface FileAgentTaskService extends AgentTaskService {
      * @param fileTaskMode   文件分发任务模式;传入null表示忽略该过滤条件
      * @return agent任务
      */
-    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
-                                      Integer executeCount,
-                                      Integer batch,
-                                      FileTaskModeEnum fileTaskMode);
+    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
+                                           Integer executeCount,
+                                           Integer batch,
+                                           FileTaskModeEnum fileTaskMode);
 
     /**
      * @param stepInstance 步骤实例
@@ -58,9 +58,9 @@ public interface FileAgentTaskService extends AgentTaskService {
      * @param host         主机
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTaskByHost(StepInstanceDTO stepInstance,
-                                    Integer executeCount,
-                                    Integer batch,
-                                    FileTaskModeEnum fileTaskMode,
-                                    HostDTO host);
+    ExecuteObjectTask getAgentTaskByHost(StepInstanceDTO stepInstance,
+                                         Integer executeCount,
+                                         Integer batch,
+                                         FileTaskModeEnum fileTaskMode,
+                                         HostDTO host);
 }
