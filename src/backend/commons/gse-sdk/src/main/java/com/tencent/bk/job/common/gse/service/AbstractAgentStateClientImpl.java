@@ -24,9 +24,8 @@
 
 package com.tencent.bk.job.common.gse.service;
 
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
-import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
@@ -48,11 +47,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
 
     private final AgentStateQueryConfig agentStateQueryConfig;
-    private final GseClient gseClient;
+    private final IGseClient gseClient;
     private final ThreadPoolExecutor threadPoolExecutor;
 
     public AbstractAgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
-                                        GseClient gseClient,
+                                        IGseClient gseClient,
                                         ThreadPoolExecutor threadPoolExecutor) {
         this.agentStateQueryConfig = agentStateQueryConfig;
         this.gseClient = gseClient;
@@ -82,7 +81,7 @@ public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
         return agentStateList.get(0);
     }
 
-    protected Map<String, AgentState> batchGetAgentStateConcurrent(List<String> agentIdList) {
+    public Map<String, AgentState> batchGetAgentStateConcurrent(List<String> agentIdList) {
         StopWatch watch = new StopWatch("batchGetAgentStateConcurrent");
 
         watch.start("splitToBatch");
@@ -131,17 +130,6 @@ public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
             log.debug(msg.getMessage());
         }
         return resultMap;
-    }
-
-    protected Map<String, Boolean> batchGetAgentAliveStatus(Map<String, AgentState> agentStateMap) {
-        Map<String, Boolean> agentAliveStatusMap = new HashMap<>();
-        for (Map.Entry<String, AgentState> entry : agentStateMap.entrySet()) {
-            String agentId = entry.getKey();
-            AgentState agentState = entry.getValue();
-            agentAliveStatusMap.put(agentId,
-                AgentAliveStatusEnum.fromAgentState(agentState) == AgentAliveStatusEnum.ALIVE);
-        }
-        return agentAliveStatusMap;
     }
 
     private Map<String, AgentState> batchGetAgentStatusWithoutLimit(List<String> agentIdList) {

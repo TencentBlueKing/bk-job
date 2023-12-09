@@ -25,9 +25,8 @@
 package com.tencent.bk.job.common.gse.service;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.gse.GseClient;
-import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
+import com.tencent.bk.job.common.gse.util.AgentStateUtil;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
@@ -45,19 +44,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class UseV2ByFeatureAgentStateClientImpl extends AbstractAgentStateClientImpl {
+public class UseV2ByFeatureAgentStateClientImpl implements AgentStateClient {
 
     private final BizHostInfoQueryService bizHostInfoQueryService;
+    private final SingleChannelAgentStateClientImpl gseV1AgentStateClient;
+    private final SingleChannelAgentStateClientImpl gseV2AgentStateClient;
 
-    public UseV2ByFeatureAgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
-                                              GseClient gseClient,
-                                              BizHostInfoQueryService bizHostInfoQueryService,
-                                              ThreadPoolExecutor threadPoolExecutor) {
-        super(agentStateQueryConfig, gseClient, threadPoolExecutor);
+    public UseV2ByFeatureAgentStateClientImpl(GseV1AgentStateClientImpl gseV1AgentStateClient,
+                                              GseV2AgentStateClientImpl gseV2AgentStateClient,
+                                              BizHostInfoQueryService bizHostInfoQueryService) {
+        this.gseV1AgentStateClient = gseV1AgentStateClient;
+        this.gseV2AgentStateClient = gseV2AgentStateClient;
         this.bizHostInfoQueryService = bizHostInfoQueryService;
     }
 
@@ -76,8 +76,12 @@ public class UseV2ByFeatureAgentStateClientImpl extends AbstractAgentStateClient
 
     @Override
     public AgentState getAgentState(HostAgentStateQuery hostAgentStateQuery) {
-        String effectiveAgentId = getEffectiveAgentId(hostAgentStateQuery);
-        return getAgentState(effectiveAgentId);
+        // 填充需要的字段
+        getEffectiveAgentId(hostAgentStateQuery);
+        if (needToUseGseV2(hostAgentStateQuery)) {
+            return gseV2AgentStateClient.getAgentState(hostAgentStateQuery);
+        }
+        return gseV1AgentStateClient.getAgentState(hostAgentStateQuery);
     }
 
     private void fillBizIdByHostId(HostAgentStateQuery hostAgentStateQuery) {
@@ -185,8 +189,8 @@ public class UseV2ByFeatureAgentStateClientImpl extends AbstractAgentStateClient
             cloudIpList.size(),
             agentIdList.size()
         );
-        Map<String, AgentState> agentStateMap = batchGetAgentStateConcurrent(cloudIpList);
-        agentStateMap.putAll(batchGetAgentStateConcurrent(agentIdList));
+        Map<String, AgentState> agentStateMap = gseV1AgentStateClient.batchGetAgentStateConcurrent(cloudIpList);
+        agentStateMap.putAll(gseV2AgentStateClient.batchGetAgentStateConcurrent(agentIdList));
         if (log.isDebugEnabled()) {
             log.debug("agentStateMap={}", JsonUtils.toJson(agentStateMap));
         }
@@ -372,6 +376,6 @@ public class UseV2ByFeatureAgentStateClientImpl extends AbstractAgentStateClient
     @Override
     public Map<String, Boolean> batchGetAgentAliveStatus(List<HostAgentStateQuery> hostAgentStateQueryList) {
         Map<String, AgentState> agentStateMap = batchGetAgentState(hostAgentStateQueryList);
-        return batchGetAgentAliveStatus(agentStateMap);
+        return AgentStateUtil.batchGetAgentAliveStatus(agentStateMap);
     }
 }

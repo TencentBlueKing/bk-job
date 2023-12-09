@@ -24,38 +24,26 @@
 
 package com.tencent.bk.job.common.gse.service;
 
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.util.AgentStateUtil;
-import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class PreferV2AgentStateClientImpl extends AbstractAgentStateClientImpl {
+public abstract class SingleChannelAgentStateClientImpl extends AbstractAgentStateClientImpl {
 
-    public PreferV2AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
-                                        GseClient gseClient,
-                                        ThreadPoolExecutor threadPoolExecutor) {
+    public SingleChannelAgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
+                                             IGseClient gseClient,
+                                             ThreadPoolExecutor threadPoolExecutor) {
         super(agentStateQueryConfig, gseClient, threadPoolExecutor);
-    }
-
-    @Override
-    public String getEffectiveAgentId(HostAgentStateQuery hostAgentStateQuery) {
-        String agentId = hostAgentStateQuery.getAgentId();
-        if (StringUtils.isNotBlank(agentId)) {
-            return agentId;
-        }
-        return hostAgentStateQuery.getCloudIp();
     }
 
     @Override
@@ -66,29 +54,12 @@ public class PreferV2AgentStateClientImpl extends AbstractAgentStateClientImpl {
 
     @Override
     public Map<String, AgentState> batchGetAgentState(List<HostAgentStateQuery> hostAgentStateQueryList) {
-        // 对agentId按照对应的GSE Agent 版本进行分类
         List<String> queryAgentIds = hostAgentStateQueryList.stream()
             .map(this::getEffectiveAgentId)
             .filter(StringUtils::isNotEmpty)
             .collect(Collectors.toList());
-        Pair<List<String>, List<String>> classifiedAgentIdList = classifyGseAgentIds(queryAgentIds);
 
-        Map<String, AgentState> results = batchGetAgentStateConcurrent(classifiedAgentIdList.getLeft());
-        results.putAll(batchGetAgentStateConcurrent(classifiedAgentIdList.getRight()));
-        return results;
-    }
-
-    private Pair<List<String>, List<String>> classifyGseAgentIds(List<String> agentIdList) {
-        List<String> v1AgentIdList = new ArrayList<>();
-        List<String> v2AgentIdList = new ArrayList<>();
-        agentIdList.forEach(agentId -> {
-            if (AgentUtils.isGseV1AgentId(agentId)) {
-                v1AgentIdList.add(agentId);
-            } else {
-                v2AgentIdList.add(agentId);
-            }
-        });
-        return Pair.of(v1AgentIdList, v2AgentIdList);
+        return batchGetAgentStateConcurrent(queryAgentIds);
     }
 
     @Override

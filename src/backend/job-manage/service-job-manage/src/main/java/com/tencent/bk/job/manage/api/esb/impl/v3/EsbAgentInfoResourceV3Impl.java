@@ -36,7 +36,9 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbAgentInfoV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbQueryAgentInfoV3Resp;
 import com.tencent.bk.job.manage.service.agent.status.ScopeAgentStatusService;
 import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,12 +55,15 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
 
     private final HostService hostService;
     private final ScopeAgentStatusService scopeAgentStatusService;
+    private final ScopeHostService scopeHostService;
 
     @Autowired
     public EsbAgentInfoResourceV3Impl(HostService hostService,
-                                      ScopeAgentStatusService scopeAgentStatusService) {
+                                      ScopeAgentStatusService scopeAgentStatusService,
+                                      ScopeHostService scopeHostService) {
         this.hostService = hostService;
         this.scopeAgentStatusService = scopeAgentStatusService;
+        this.scopeHostService = scopeHostService;
     }
 
     @Override
@@ -69,7 +74,15 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
         boolean needToUseGseV2 = scopeAgentStatusService.needToUseGseV2(resourceScope);
 
         List<Long> hostIdList = req.getHostIdList();
-        Map<Long, String> hostIdAgentIdMap = generateHostIdAgentIdMap(needToUseGseV2, hostIdList);
+        List<Long> validHostIdList = scopeHostService.filterScopeHostIds(
+            req.getAppResourceScope(),
+            new HashSet<>(hostIdList)
+        );
+        hostIdList.removeAll(validHostIdList);
+        if (CollectionUtils.isNotEmpty(hostIdList)) {
+            log.warn("Ignore hostIds not in {}:{}", resourceScope, hostIdList);
+        }
+        Map<Long, String> hostIdAgentIdMap = generateHostIdAgentIdMap(needToUseGseV2, validHostIdList);
 
         ListAgentStateReq listAgentStateReq = new ListAgentStateReq();
         listAgentStateReq.setAgentIdList(new ArrayList<>(new HashSet<>(hostIdAgentIdMap.values())));
@@ -77,7 +90,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
 
         List<EsbAgentInfoV3DTO> agentInfoList = buildEsbAgentInfoList(
             agentStateList,
-            hostIdList,
+            validHostIdList,
             hostIdAgentIdMap,
             needToUseGseV2
         );
