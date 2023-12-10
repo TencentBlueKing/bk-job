@@ -29,7 +29,8 @@
   <div
     ref="container"
     v-bkloading="{ isLoading }"
-    class="favor-task-box">
+    class="favor-task-box"
+    :style="containerStyle">
     <template v-if="!isLoading">
       <bk-table
         v-if="favorList.length > 0"
@@ -132,6 +133,8 @@
 <script>
   import HomeService from '@service/home';
 
+  import { getOffset } from '@utils/assist';
+
   import I18n from '@/i18n';
 
   export default {
@@ -140,6 +143,7 @@
         isLoading: true,
         height: undefined,
         favorList: [],
+        containerStyle: {},
       };
     },
     created() {
@@ -147,7 +151,14 @@
       this.emptyUrl = I18n.locale === 'zh-CN' ? '/static/images/favor-task-empty.png' : '/static/images/favor-task-empty-en.png';
     },
     mounted() {
-      this.init();
+      this.containerStyle = {
+        height: `calc(100vh - ${getOffset(this.$refs.container).top + 92}px)`,
+      };
+
+      setTimeout(() => {
+        this.height = this.$refs.container.getBoundingClientRect().height;
+      });
+
       window.addEventListener('resize', this.init);
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', this.init);
@@ -163,17 +174,11 @@
             this.isLoading = false;
           });
       },
-      init() {
-        const { height } = this.$refs.container.getBoundingClientRect();
-        this.height = height;
-      },
     },
   };
 </script>
 <style lang='postcss' scoped>
     .favor-task-box {
-      height: calc(100vh - 484px);
-
       .task-action {
         .cell {
           & > * {
