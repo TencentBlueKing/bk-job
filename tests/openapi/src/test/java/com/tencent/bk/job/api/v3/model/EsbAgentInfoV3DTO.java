@@ -22,20 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.api.v3.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.List;
-
 @Data
 @EqualsAndHashCode
-public class EsbQueryAgentInfoV3Resp {
+public class EsbAgentInfoV3DTO {
 
-    @JsonPropertyDescription("Agent info list")
-    @JsonProperty(value = "agent_info_list")
-    private List<EsbAgentInfoV3DTO> agentInfoList;
+    @JsonPropertyDescription("Host ID")
+    @JsonProperty(value = "bk_host_id")
+    private Long hostId;
+
+    @JsonPropertyDescription("Agent status: 0 - abnormal, 1 - normal")
+    private int status;
+
+    /**
+     * Agent版本
+     */
+    @JsonPropertyDescription("Agent Version")
+    private String version;
 }

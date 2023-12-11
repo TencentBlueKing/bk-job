@@ -25,11 +25,16 @@
 package com.tencent.bk.job.api.v3.testcase;
 
 import com.tencent.bk.job.api.constant.ErrorCode;
+import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.util.ApiUtil;
 import com.tencent.bk.job.api.util.JsonUtil;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
+import com.tencent.bk.job.api.v3.model.EsbAgentInfoV3DTO;
+import com.tencent.bk.job.api.v3.model.EsbQueryAgentInfoV3Resp;
 import com.tencent.bk.job.api.v3.model.request.EsbQueryAgentInfoV3Req;
+import io.restassured.common.mapper.TypeRef;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,6 +45,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
@@ -65,13 +71,26 @@ public class EsbAgentInfoV3ResourceAPITest extends BaseTest {
                 TestProps.HOST_1_DEFAULT_BIZ.getHostId(),
                 TestProps.HOST_2_DEFAULT_BIZ.getHostId()
             ));
-            given()
+            EsbQueryAgentInfoV3Resp esbQueryAgentInfoV3Resp = given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.QUERY_AGENT_INFO)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
-                .body("data", notNullValue());
+                .body("data", notNullValue())
+                .extract()
+                .body()
+                .as(new TypeRef<EsbResp<EsbQueryAgentInfoV3Resp>>() {
+                })
+                .getData();
+            assertThat(esbQueryAgentInfoV3Resp).isNotNull();
+            List<EsbAgentInfoV3DTO> agentInfoList = esbQueryAgentInfoV3Resp.getAgentInfoList();
+            assertThat(agentInfoList).isNotNull();
+            assertThat(agentInfoList).hasSize(2);
+            EsbAgentInfoV3DTO esbAgentInfoV3DTO = agentInfoList.get(0);
+            assertThat(esbAgentInfoV3DTO.getHostId()).isGreaterThan(0);
+            assertThat(esbAgentInfoV3DTO.getStatus()).isGreaterThanOrEqualTo(0);
+            assertThat(esbAgentInfoV3DTO.getVersion()).isNotBlank();
         }
 
         @Test
@@ -86,13 +105,26 @@ public class EsbAgentInfoV3ResourceAPITest extends BaseTest {
                 hostIdList.add(TestProps.HOST_1_DEFAULT_BIZ.getHostId());
             }
             req.setHostIdList(hostIdList);
-            given()
+            EsbQueryAgentInfoV3Resp esbQueryAgentInfoV3Resp = given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.QUERY_AGENT_INFO)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
-                .body("data", notNullValue());
+                .body("data", notNullValue())
+                .extract()
+                .body()
+                .as(new TypeRef<EsbResp<EsbQueryAgentInfoV3Resp>>() {
+                })
+                .getData();
+            AssertionsForClassTypes.assertThat(esbQueryAgentInfoV3Resp).isNotNull();
+            List<EsbAgentInfoV3DTO> agentInfoList = esbQueryAgentInfoV3Resp.getAgentInfoList();
+            assertThat(agentInfoList).isNotNull();
+            assertThat(agentInfoList).hasSize(1);
+            EsbAgentInfoV3DTO esbAgentInfoV3DTO = agentInfoList.get(0);
+            assertThat(esbAgentInfoV3DTO.getHostId()).isGreaterThan(0);
+            assertThat(esbAgentInfoV3DTO.getStatus()).isGreaterThanOrEqualTo(0);
+            assertThat(esbAgentInfoV3DTO.getVersion()).isNotBlank();
         }
 
         @Test

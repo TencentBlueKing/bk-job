@@ -158,7 +158,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
             String agentVersion = agentState.getVersion();
             if (StringUtils.isBlank(agentVersion)) {
                 if (!needToUseGseV2) {
-                    agentInfoV3DTO.setVersion("1.0");
+                    agentInfoV3DTO.setVersion("V1");
                 }
             } else {
                 agentInfoV3DTO.setVersion(agentVersion);
