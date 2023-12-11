@@ -94,7 +94,9 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
                 stepHostResult.setHostId(agentTask.getHostId());
                 stepHostResult.setIp(agentTask.getIp());
                 stepHostResult.setIpv6(agentTask.getIpv6());
+                stepHostResult.setAgentId(agentTask.getAgentId());
                 stepHostResult.setCloudAreaId(agentTask.getBkCloudId());
+                stepHostResult.setCloudAreaName(agentTask.getBkCloudName());
                 stepHostResult.setStatus(agentTask.getStatus().getValue());
                 stepHostResult.setStatusDesc(messageI18nService.getI18n(agentTask.getStatus().getI18nKey()));
                 stepHostResult.setTag(agentTask.getTag());
