@@ -63,7 +63,7 @@ public class EsbApiTimedAspect {
         return EXCEPTION_NONE;
     }
 
-    @Around("execution (@com.tencent.bk.job.common.esb.metrics.EsbApiTimed * *.*(..))")
+    @Around("within(com.tencent.bk.job..*) && execution (@com.tencent.bk.job.common.esb.metrics.EsbApiTimed * *.*(..))")
     public Object timedMethod(ProceedingJoinPoint pjp) throws Throwable {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = null;

@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.template.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptStatusUpdateMessageDTO;
@@ -47,7 +48,6 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -150,7 +150,7 @@ public class TemplateStatusUpdateService {
         }
     }
 
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void processTemplateStatus(ULong templateId) {
         Result<Record2<ULong, ULong>> records =
             context.select(STEP_SCRIPT_TABLE.ID, STEP_SCRIPT_TABLE.SCRIPT_VERSION_ID).from(STEP_SCRIPT_TABLE)
@@ -226,7 +226,7 @@ public class TemplateStatusUpdateService {
         }
     }
 
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void updateTemplateStatus(ULong templateId, int scriptStatus) {
         taskTemplateDAO.updateTemplateStatus(templateId, scriptStatus);
     }

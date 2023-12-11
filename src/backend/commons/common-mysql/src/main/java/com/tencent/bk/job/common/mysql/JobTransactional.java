@@ -22,18 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.mysql.config;
+package com.tencent.bk.job.common.mysql;
 
-import org.jooq.DSLContext;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AliasFor;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
+/**
+ * Job 自定义事务注解
+ */
+@Transactional
+public @interface JobTransactional {
+    @AliasFor(annotation = Transactional.class)
+    String transactionManager();
 
-@Configuration(proxyBeanMethods = false)
-@ConditionalOnClass(DSLContext.class)
-@ConditionalOnBean(DataSource.class)
-public class JobMySQLAutoConfiguration {
-
+    @AliasFor(annotation = Transactional.class)
+    Class<? extends Throwable>[] rollbackFor() default {Throwable.class};
 }

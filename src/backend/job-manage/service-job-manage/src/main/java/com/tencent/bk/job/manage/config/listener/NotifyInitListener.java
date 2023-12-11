@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.config.listener;
 
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.util.StringUtil;
@@ -48,7 +49,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -134,7 +134,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
         saveDefaultNotifyChannelsToDb(esbNotifyChannelDTOList);
     }
 
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void saveDefaultNotifyChannelsToDb(List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
         if (!globalSettingsService.isNotifyChannelConfiged()) {
             globalSettingsService.setNotifyChannelConfiged();

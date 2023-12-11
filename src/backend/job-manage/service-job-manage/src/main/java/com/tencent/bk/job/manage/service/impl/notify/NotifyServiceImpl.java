@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.I18nUtil;
@@ -83,7 +84,6 @@ import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
@@ -264,7 +264,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Long saveAppDefaultNotifyPoliciesToLocal(String operator, Long appId, String triggerUser,
                                                     NotifyPoliciesCreateUpdateReq createUpdateReq) {
         val policyList = createUpdateReq.getTriggerPoliciesList();
@@ -391,7 +391,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
         List<String> channelCodeList =
             Arrays.asList(req.getChannelCodeStr().trim().split(NotifyConsts.SEPERATOR_COMMA));
