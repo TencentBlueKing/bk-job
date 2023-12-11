@@ -25,7 +25,7 @@ public class ScopeAgentStatusServiceImpl implements ScopeAgentStatusService {
     private final GseV2ApiClient gseV2ApiClient;
 
     public ScopeAgentStatusServiceImpl(@Autowired(required = false) GseV1ApiClient gseV1ApiClient,
-                                       @Autowired GseV2ApiClient gseV2ApiClient) {
+                                       @Autowired(required = false) GseV2ApiClient gseV2ApiClient) {
         this.gseV1ApiClient = gseV1ApiClient;
         this.gseV2ApiClient = gseV2ApiClient;
     }
