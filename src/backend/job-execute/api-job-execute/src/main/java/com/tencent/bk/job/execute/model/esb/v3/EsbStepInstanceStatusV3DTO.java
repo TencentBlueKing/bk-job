@@ -97,8 +97,14 @@ public class EsbStepInstanceStatusV3DTO {
 
         private String ipv6;
 
+        @JsonProperty("bk_agent_id")
+        private String agentId;
+
         @JsonProperty("bk_cloud_id")
         private Long cloudAreaId;
+
+        @JsonProperty("bk_cloud_name")
+        private String cloudAreaName;
 
         private Integer status;
 
