@@ -48,7 +48,7 @@ public class CronJobBatchLoadServiceImpl implements CronJobBatchLoadService {
     }
 
     @Override
-    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager", timeout = 30)
     public CronLoadResult batchLoadCronToQuartz(int start, int limit) {
         int successNum = 0;
         int failedNum = 0;

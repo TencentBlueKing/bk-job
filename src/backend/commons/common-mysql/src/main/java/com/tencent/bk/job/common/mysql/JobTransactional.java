@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.mysql;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -37,4 +38,7 @@ public @interface JobTransactional {
 
     @AliasFor(annotation = Transactional.class)
     Class<? extends Throwable>[] rollbackFor() default {Throwable.class};
+
+    @AliasFor(annotation = Transactional.class)
+    int timeout() default TransactionDefinition.TIMEOUT_DEFAULT;
 }
