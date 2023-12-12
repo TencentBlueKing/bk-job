@@ -22,17 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-i18n')
-    api project(':commons:common-iam')
-    api project(':commons:cmdb-sdk')
-    api project(':job-execute:api-job-execute')
-    api(project(":commons:common-api"))
-    implementation "org.springframework:spring-web"
-    implementation "javax.ws.rs:javax.ws.rs-api"
-    implementation("org.apache.commons:commons-collections4")
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.manage.api.op.impl;
+
+import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.api.op.EventReplayOpResource;
+import com.tencent.bk.job.manage.service.impl.sync.HostEventWatcher;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
+
+@Slf4j
+@RestController
+public class EventReplayOpResourceImpl implements EventReplayOpResource {
+
+    private final HostEventWatcher hostEventWatcher;
+
+    @Autowired
+    public EventReplayOpResourceImpl(HostEventWatcher hostEventWatcher) {
+        this.hostEventWatcher = hostEventWatcher;
+    }
+
+    @Override
+    public Response<Void> replayHostEvent(String username, ResourceEvent<HostEventDetail> event) {
+        hostEventWatcher.handleEvent(event);
+        return Response.buildSuccessResp(null);
+    }
+
 }

@@ -22,17 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-i18n')
-    api project(':commons:common-iam')
-    api project(':commons:cmdb-sdk')
-    api project(':job-execute:api-job-execute')
-    api(project(":commons:common-api"))
-    implementation "org.springframework:spring-web"
-    implementation "javax.ws.rs:javax.ws.rs-api"
-    implementation("org.apache.commons:commons-collections4")
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+package com.tencent.bk.job.manage.api.op;
+
+import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import com.tencent.bk.job.common.model.Response;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Api(tags = {"job-manage:api:EventReplay-OP"})
+@RequestMapping("/op/eventReplay")
+@RestController
+public interface EventReplayOpResource {
+
+    @ApiOperation(value = "重放主机事件", produces = "application/json")
+    @PostMapping("/host")
+    Response<Void> replayHostEvent(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "主机事件", required = true)
+        @RequestBody ResourceEvent<HostEventDetail> event
+    );
+
 }
