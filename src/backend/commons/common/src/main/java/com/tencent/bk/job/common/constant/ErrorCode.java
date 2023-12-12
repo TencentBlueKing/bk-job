@@ -325,6 +325,8 @@ public class ErrorCode {
     public static final int FILE_SOURCE_ID_NOT_IN_BIZ = 1260017;
     // 接入点响应异常，详情：{0}
     public static final int FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON = 1260018;
+    // 文件源code不可为空
+    public static final int FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY = 1260019;
 
     // 文件网关 end
     // 文件代理 start

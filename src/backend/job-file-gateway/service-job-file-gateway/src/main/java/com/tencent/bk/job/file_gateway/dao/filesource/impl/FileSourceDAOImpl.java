@@ -198,7 +198,9 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
     public int updateFileSource(DSLContext dslContext, FileSourceDTO fileSourceDTO) {
         val query = dslContext.update(defaultTable);
         var updateSetStep = query.set(defaultTable.APP_ID, fileSourceDTO.getAppId());
-        updateSetStep = updateSetStep.set(defaultTable.CODE, fileSourceDTO.getCode());
+        if (StringUtils.isNotBlank(fileSourceDTO.getCode())) {
+            updateSetStep = updateSetStep.set(defaultTable.CODE, fileSourceDTO.getCode());
+        }
         if (StringUtils.isNotBlank(fileSourceDTO.getAlias())) {
             updateSetStep = updateSetStep.set(defaultTable.ALIAS, fileSourceDTO.getAlias());
         }
@@ -490,22 +492,15 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
     @Override
     public Integer getFileSourceIdByCode(Long appId, String code) {
         List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(defaultTable.APP_ID.eq(appId));
-        }
-        if (code != null) {
-            conditions.add(defaultTable.CODE.eq(code));
-        }
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        conditions.add(defaultTable.CODE.eq(code));
         val query = defaultContext.select(
             defaultTable.ID
         ).from(defaultTable)
             .where(conditions);
-        val result = query.fetch();
-        if (result.size() > 0) {
-            if (result.size() > 1) {
-                log.warn("{} records found when get id by code, use first one", result.size());
-            }
-            return result.get(0).get(defaultTable.ID);
+        val result = query.fetchOne();
+        if (result != null) {
+            return result.get(defaultTable.ID);
         }
         return null;
     }
