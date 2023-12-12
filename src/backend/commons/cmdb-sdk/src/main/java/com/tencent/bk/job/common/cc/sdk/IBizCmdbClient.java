@@ -182,7 +182,7 @@ public interface IBizCmdbClient {
     List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s);
 
     /**
-     * 根据IP批量获取主机
+     * 根据HostId批量获取主机
      *
      * @param hostIds 主机ID列表
      * @return 主机列表

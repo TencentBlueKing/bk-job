@@ -896,7 +896,23 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public int updateHostAttrsByHostId(ApplicationHostDTO applicationHostDTO) {
+        checkHostId(applicationHostDTO);
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
+        return updateHostAttrsByConditions(applicationHostDTO, conditions);
+    }
+
+    @Override
     public int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO) {
+        checkHostId(applicationHostDTO);
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
+        conditions.add(TABLE.LAST_TIME.lessThan(applicationHostDTO.getLastTime()));
+        return updateHostAttrsByConditions(applicationHostDTO, conditions);
+    }
+
+    private void checkHostId(ApplicationHostDTO applicationHostDTO) {
         Long hostId = applicationHostDTO.getHostId();
         if (hostId == null || hostId <= 0) {
             FormattingTuple msg = MessageFormatter.format(
@@ -906,9 +922,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             log.error(msg.getMessage());
             throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
         }
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
-        conditions.add(TABLE.LAST_TIME.lessThan(applicationHostDTO.getLastTime()));
+    }
+
+    public int updateHostAttrsByConditions(ApplicationHostDTO applicationHostDTO, Collection<Condition> conditions) {
         val query = context.update(TABLE)
             .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
             .set(TABLE.IP, applicationHostDTO.getIp())
@@ -984,7 +1000,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
 
     @Transactional(value = "jobManageTransactionManager")
     @Override
-    public int deleteHostBeforeLastTime(Long bizId, Long hostId, Long lastTime) {
+    public int deleteHostBeforeOrEqualLastTime(Long bizId, Long hostId, Long lastTime) {
         int affectedNum;
         List<Condition> conditions = new ArrayList<>();
         if (bizId != null) {

@@ -178,6 +178,8 @@ public interface ApplicationHostDAO {
 
     int batchInsertHost(List<ApplicationHostDTO> applicationHostDTOList);
 
+    int updateHostAttrsByHostId(ApplicationHostDTO applicationHostDTO);
+
     int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO);
 
     int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> applicationHostDTOList);
@@ -186,7 +188,7 @@ public interface ApplicationHostDAO {
 
 
     // 删除类操作
-    int deleteHostBeforeLastTime(Long bizId, Long hostId, Long lastTime);
+    int deleteHostBeforeOrEqualLastTime(Long bizId, Long hostId, Long lastTime);
 
     /**
      * 根据传入的主机ID批量删除主机

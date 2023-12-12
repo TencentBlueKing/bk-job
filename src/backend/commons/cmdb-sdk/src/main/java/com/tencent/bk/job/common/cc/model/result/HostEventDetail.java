@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -82,7 +83,11 @@ public class HostEventDetail {
         hostInfoDTO.setOsType(eventDetail.osType);
         hostInfoDTO.setCloudAreaId(Long.parseLong(eventDetail.getCloudId()));
         hostInfoDTO.setCloudVendorId(eventDetail.cloudVendorId);
-        hostInfoDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime()));
+        Long lastTimeMills = null;
+        if (StringUtils.isNotBlank(eventDetail.getLastTime())) {
+            lastTimeMills = TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime());
+        }
+        hostInfoDTO.setLastTime(lastTimeMills);
         return hostInfoDTO;
     }
 }

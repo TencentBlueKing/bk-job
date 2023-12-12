@@ -48,7 +48,10 @@ public class ListHostsWithoutBizReq extends EsbReq {
         "bk_agent_id",
         "bk_host_name",
         "bk_os_name",
-        "bk_cloud_id"
+        "bk_os_type",
+        "bk_cloud_id",
+        "bk_cloud_vendor",
+        "last_time"
     );
 
     private PageDTO page;
