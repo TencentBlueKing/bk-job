@@ -86,7 +86,7 @@ public class SendNotifyTask implements Runnable {
     }
 
     private void logValidReceiversEmpty() {
-        log.warn("valid receivers is null or empty, skip, msgType={},title={}", msgType, title);
+        log.info("valid receivers is null or empty, skip, msgType={},title={}", msgType, title);
     }
 
     private boolean sendMsgWithRetry(Set<String> validReceivers) {
