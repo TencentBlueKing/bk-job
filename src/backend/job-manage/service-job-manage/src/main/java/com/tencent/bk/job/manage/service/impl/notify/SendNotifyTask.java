@@ -25,14 +25,13 @@
 package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
-import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,14 +61,20 @@ public class SendNotifyTask implements Runnable {
 
     @Override
     public void run() {
-        if (CollectionUtils.isEmpty(receivers)) {
-            logInvalidReceivers();
+        List<String> existUserNameList = esbUserInfoDAO.listExistUserName(receivers);
+        Set<String> validReceivers = new HashSet<>(existUserNameList);
+        receivers.removeAll(validReceivers);
+        if (CollectionUtils.isNotEmpty(receivers)) {
+            log.info("Invalid user removed:{}, ignore to send notify to them", receivers);
+        }
+        if (CollectionUtils.isEmpty(validReceivers)) {
+            logValidReceiversEmpty();
             return;
         }
         try {
-            boolean result = sendMsgWithRetry();
+            boolean result = sendMsgWithRetry(validReceivers);
             if (result) {
-                logSendSuccess();
+                logSendSuccess(validReceivers);
             } else {
                 handleSendFail(null);
             }
@@ -78,11 +83,11 @@ public class SendNotifyTask implements Runnable {
         }
     }
 
-    private void logInvalidReceivers() {
-        log.warn("receivers is null or empty, skip, msgType={},title={}", msgType, title);
+    private void logValidReceiversEmpty() {
+        log.warn("valid receivers is null or empty, skip, msgType={},title={}", msgType, title);
     }
 
-    private boolean sendMsgWithRetry() {
+    private boolean sendMsgWithRetry(Set<String> validReceivers) {
         int count = 0;
         boolean result = false;
         while (!result && count < NOTIFY_MAX_RETRY_COUNT) {
@@ -93,7 +98,7 @@ public class SendNotifyTask implements Runnable {
                     createTimeMillis,
                     msgType,
                     sender,
-                    receivers,
+                    validReceivers,
                     title,
                     content
                 );
@@ -105,35 +110,44 @@ public class SendNotifyTask implements Runnable {
         return result;
     }
 
-    private void logSendSuccess() {
-        log.info("Success to send notify:({},{},{})", String.join(",", receivers), msgType, title);
+    private void logSendSuccess(Set<String> validReceivers) {
+        log.info("Success to send notify:({},{},{})", String.join(",", validReceivers), msgType, title);
     }
 
     private void handleSendFail(Exception e) {
-        List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receivers);
-        if (validUsers.isEmpty()) {
-            // 收信人已全部离职/某些渠道不支持平台用户
-            logIgnoreToSend();
-            return;
-        }
-        FormattingTuple msg = MessageFormatter.arrayFormat(
-            "Fail to send notify:({},{},{},{})",
-            new Object[]{
-                String.join(",", receivers),
-                msgType,
-                title,
-                content
-            }
-        );
-        if (e != null) {
-            log.error(msg.getMessage(), e);
+        int titleMaxLength = 32;
+        int contentMaxLength = 200;
+        String msg;
+        if (log.isDebugEnabled()) {
+            msg = MessageFormatter.arrayFormat(
+                "Fail to send notify:({},{},{},{})",
+                new Object[]{
+                    String.join(",", receivers),
+                    msgType,
+                    title,
+                    content
+                }
+            ).getMessage();
+            log.debug(msg, e);
         } else {
-            log.error(msg.getMessage());
+            msg = MessageFormatter.arrayFormat(
+                "Fail to send notify:({},{},{},{})",
+                new Object[]{
+                    String.join(",", receivers),
+                    msgType,
+                    buildLogContent(title, titleMaxLength),
+                    buildLogContent(content, contentMaxLength)
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
     }
 
-    private void logIgnoreToSend() {
-        log.info("Ignore to send notify:({},{},{})", String.join(",", receivers), msgType, title);
+    private String buildLogContent(String content, int maxLength) {
+        if (content != null && content.length() > maxLength) {
+            return content.substring(0, maxLength) + "...";
+        }
+        return content;
     }
 
 }
