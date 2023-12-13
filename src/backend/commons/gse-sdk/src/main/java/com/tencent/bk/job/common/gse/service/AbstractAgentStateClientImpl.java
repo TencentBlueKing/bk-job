@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.util.StopWatch;
@@ -59,6 +60,9 @@ public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
     }
 
     protected AgentState getAgentState(String agentId) {
+        if (StringUtils.isBlank(agentId)) {
+            return null;
+        }
         ListAgentStateReq req = new ListAgentStateReq();
         req.setAgentIdList(Collections.singletonList(agentId));
         List<AgentState> agentStateList = gseClient.listAgentState(req);
