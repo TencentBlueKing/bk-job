@@ -55,6 +55,8 @@ public class SendNotifyTask implements Runnable {
     private final String title;
     private final String content;
 
+    private Set<String> validReceivers;
+
     public void bindService(WatchableSendMsgService watchableSendMsgService,
                             EsbUserInfoDAO esbUserInfoDAO) {
         this.watchableSendMsgService = watchableSendMsgService;
@@ -63,8 +65,7 @@ public class SendNotifyTask implements Runnable {
 
     @Override
     public void run() {
-        List<String> existUserNameList = esbUserInfoDAO.listExistUserName(receivers);
-        Set<String> validReceivers = new HashSet<>(existUserNameList);
+        pickValidReceivers();
         Collection<String> removedReceivers = CollectionUtils.subtract(receivers, validReceivers);
         if (CollectionUtils.isNotEmpty(removedReceivers)) {
             log.info("Invalid user removed:{}, ignore to send notify to them", removedReceivers);
@@ -74,22 +75,27 @@ public class SendNotifyTask implements Runnable {
             return;
         }
         try {
-            boolean result = sendMsgWithRetry(validReceivers);
+            boolean result = sendMsgWithRetry();
             if (result) {
-                logSendSuccess(validReceivers);
+                logSendSuccess();
             } else {
-                handleSendFail(validReceivers, null);
+                handleSendFail(null);
             }
         } catch (Exception e) {
-            handleSendFail(validReceivers, e);
+            handleSendFail(e);
         }
+    }
+
+    private void pickValidReceivers() {
+        List<String> existUserNameList = esbUserInfoDAO.listExistUserName(receivers);
+        validReceivers = new HashSet<>(existUserNameList);
     }
 
     private void logValidReceiversEmpty() {
         log.info("valid receivers is null or empty, skip, msgType={},title={}", msgType, title);
     }
 
-    private boolean sendMsgWithRetry(Set<String> validReceivers) {
+    private boolean sendMsgWithRetry() {
         int count = 0;
         boolean result = false;
         while (!result && count < NOTIFY_MAX_RETRY_COUNT) {
@@ -119,11 +125,11 @@ public class SendNotifyTask implements Runnable {
         return result;
     }
 
-    private void logSendSuccess(Set<String> validReceivers) {
+    private void logSendSuccess() {
         log.info("Success to send notify:({},{},{})", String.join(",", validReceivers), msgType, title);
     }
 
-    private void handleSendFail(Set<String> validReceivers, Exception e) {
+    private void handleSendFail(Exception e) {
         int titleMaxLength = 32;
         int contentMaxLength = 200;
         String msg;
