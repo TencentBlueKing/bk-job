@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import lombok.Builder;
@@ -104,7 +105,14 @@ public class SendNotifyTask implements Runnable {
                 );
                 result = true;
             } catch (Exception e) {
-                log.error("Fail to sendMsg", e);
+                long sleepMills = count * 1000;
+                String msg = MessageFormatter.format(
+                    "Fail to sendMsg, sleep {}ms and retry {}",
+                    sleepMills,
+                    count
+                ).getMessage();
+                log.error(msg, e);
+                ThreadUtils.sleep(sleepMills);
             }
         }
         return result;
