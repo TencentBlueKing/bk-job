@@ -86,7 +86,7 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
     }
 
     @Override
-    protected void handleEvent(ResourceEvent<BizEventDetail> event) {
+    public void handleEvent(ResourceEvent<BizEventDetail> event) {
         String eventType = event.getEventType();
         ApplicationDTO newestApp = BizEventDetail.toAppInfoDTO(event.getDetail());
         ApplicationDTO cachedApp = null;

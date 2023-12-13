@@ -22,56 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto;
+package com.tencent.bk.job.manage.api.op;
 
-import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
-import com.tencent.bk.job.common.util.TimeUtil;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import com.tencent.bk.job.common.model.Response;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 主机拓扑
- */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class HostTopoDTO {
-    /**
-     * 主机Id
-     */
-    private Long hostId;
-    /**
-     * 业务ID
-     */
-    private Long bizId;
-    /**
-     * 集群ID
-     */
-    private Long setId;
-    /**
-     * 模块ID
-     */
-    private Long moduleId;
-    /**
-     * CMDB中的数据最后修改时间
-     */
-    private Long lastTime;
+@Api(tags = {"job-manage:api:EventReplay-OP"})
+@RequestMapping("/op/eventReplay")
+@RestController
+public interface EventReplayOpResource {
 
-    public static HostTopoDTO fromHostRelationEvent(HostRelationEventDetail eventDetail) {
-        Long lastTimeMills = null;
-        if (StringUtils.isNotBlank(eventDetail.getLastTime())) {
-            lastTimeMills = TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime());
-        }
-        return new HostTopoDTO(
-            eventDetail.getHostId(),
-            eventDetail.getBizId(),
-            eventDetail.getSetId(),
-            eventDetail.getModuleId(),
-            lastTimeMills
-        );
-    }
+    @ApiOperation(value = "重放主机事件", produces = "application/json")
+    @PostMapping("/host")
+    Response<Void> replayHostEvent(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username") String username,
+        @ApiParam(value = "主机事件", required = true)
+        @RequestBody ResourceEvent<HostEventDetail> event
+    );
+
 }

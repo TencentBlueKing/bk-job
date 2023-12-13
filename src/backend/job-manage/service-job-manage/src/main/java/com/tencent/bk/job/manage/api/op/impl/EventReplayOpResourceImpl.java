@@ -22,56 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto;
+package com.tencent.bk.job.manage.api.op.impl;
 
-import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
-import com.tencent.bk.job.common.util.TimeUtil;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
+import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.api.op.EventReplayOpResource;
+import com.tencent.bk.job.manage.service.impl.sync.HostEventWatcher;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 主机拓扑
- */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class HostTopoDTO {
-    /**
-     * 主机Id
-     */
-    private Long hostId;
-    /**
-     * 业务ID
-     */
-    private Long bizId;
-    /**
-     * 集群ID
-     */
-    private Long setId;
-    /**
-     * 模块ID
-     */
-    private Long moduleId;
-    /**
-     * CMDB中的数据最后修改时间
-     */
-    private Long lastTime;
+@Slf4j
+@RestController
+public class EventReplayOpResourceImpl implements EventReplayOpResource {
 
-    public static HostTopoDTO fromHostRelationEvent(HostRelationEventDetail eventDetail) {
-        Long lastTimeMills = null;
-        if (StringUtils.isNotBlank(eventDetail.getLastTime())) {
-            lastTimeMills = TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime());
-        }
-        return new HostTopoDTO(
-            eventDetail.getHostId(),
-            eventDetail.getBizId(),
-            eventDetail.getSetId(),
-            eventDetail.getModuleId(),
-            lastTimeMills
-        );
+    private final HostEventWatcher hostEventWatcher;
+
+    @Autowired
+    public EventReplayOpResourceImpl(HostEventWatcher hostEventWatcher) {
+        this.hostEventWatcher = hostEventWatcher;
     }
+
+    @Override
+    public Response<Void> replayHostEvent(String username, ResourceEvent<HostEventDetail> event) {
+        hostEventWatcher.handleEvent(event);
+        return Response.buildSuccessResp(null);
+    }
+
 }

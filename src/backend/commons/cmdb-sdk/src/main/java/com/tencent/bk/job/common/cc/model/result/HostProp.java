@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.TimeUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -79,7 +80,9 @@ public class HostProp {
         applicationHostDTO.setOsType(StringUtil.substring(osType, osTypeNameMaxLength));
         applicationHostDTO.setCloudAreaId(cloudAreaId);
         applicationHostDTO.setCloudVendorId(cloudVendorId);
-        applicationHostDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(lastTime));
+        if (StringUtils.isNotBlank(lastTime)) {
+            applicationHostDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(lastTime));
+        }
         return applicationHostDTO;
     }
 }
