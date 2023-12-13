@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,9 +65,9 @@ public class SendNotifyTask implements Runnable {
     public void run() {
         List<String> existUserNameList = esbUserInfoDAO.listExistUserName(receivers);
         Set<String> validReceivers = new HashSet<>(existUserNameList);
-        receivers.removeAll(validReceivers);
-        if (CollectionUtils.isNotEmpty(receivers)) {
-            log.info("Invalid user removed:{}, ignore to send notify to them", receivers);
+        Collection<String> removedReceivers = CollectionUtils.subtract(receivers, validReceivers);
+        if (CollectionUtils.isNotEmpty(removedReceivers)) {
+            log.info("Invalid user removed:{}, ignore to send notify to them", removedReceivers);
         }
         if (CollectionUtils.isEmpty(validReceivers)) {
             logValidReceiversEmpty();
@@ -77,10 +78,10 @@ public class SendNotifyTask implements Runnable {
             if (result) {
                 logSendSuccess(validReceivers);
             } else {
-                handleSendFail(null);
+                handleSendFail(validReceivers, null);
             }
         } catch (Exception e) {
-            handleSendFail(e);
+            handleSendFail(validReceivers, e);
         }
     }
 
@@ -122,7 +123,7 @@ public class SendNotifyTask implements Runnable {
         log.info("Success to send notify:({},{},{})", String.join(",", validReceivers), msgType, title);
     }
 
-    private void handleSendFail(Exception e) {
+    private void handleSendFail(Set<String> validReceivers, Exception e) {
         int titleMaxLength = 32;
         int contentMaxLength = 200;
         String msg;
@@ -130,7 +131,7 @@ public class SendNotifyTask implements Runnable {
             msg = MessageFormatter.arrayFormat(
                 "Fail to send notify:({},{},{},{})",
                 new Object[]{
-                    String.join(",", receivers),
+                    String.join(",", validReceivers),
                     msgType,
                     title,
                     content
@@ -141,7 +142,7 @@ public class SendNotifyTask implements Runnable {
             msg = MessageFormatter.arrayFormat(
                 "Fail to send notify:({},{},{},{})",
                 new Object[]{
-                    String.join(",", receivers),
+                    String.join(",", validReceivers),
                     msgType,
                     buildLogContent(title, titleMaxLength),
                     buildLogContent(content, contentMaxLength)
