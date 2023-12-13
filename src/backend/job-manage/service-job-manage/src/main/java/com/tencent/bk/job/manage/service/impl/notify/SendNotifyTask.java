@@ -112,14 +112,18 @@ public class SendNotifyTask implements Runnable {
                 );
                 result = true;
             } catch (Exception e) {
-                long sleepMills = count * 1000;
-                String msg = MessageFormatter.format(
-                    "Fail to sendMsg, sleep {}ms and retry {}",
-                    sleepMills,
-                    count
-                ).getMessage();
-                log.error(msg, e);
-                ThreadUtils.sleep(sleepMills);
+                if (count < NOTIFY_MAX_RETRY_COUNT) {
+                    long sleepMills = count * 1000;
+                    String msg = MessageFormatter.format(
+                        "Fail to sendMsg, sleep {}ms and retry {}",
+                        sleepMills,
+                        count
+                    ).getMessage();
+                    log.warn(msg, e);
+                    ThreadUtils.sleep(sleepMills);
+                } else {
+                    log.error("Fail to sendMsg", e);
+                }
             }
         }
         return result;
