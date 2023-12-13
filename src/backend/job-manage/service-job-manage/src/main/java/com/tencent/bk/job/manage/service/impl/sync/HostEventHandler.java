@@ -115,6 +115,10 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                 Pair<Boolean, Integer> pair = hostService.createOrUpdateHostBeforeLastTime(hostInfoDTO);
                 int affectedNum = pair.getRight();
                 if (affectedNum == 0) {
+                    log.info(
+                        "no host affected after handle according to lastTime, " +
+                            "try to query latest host from cmdb and update"
+                    );
                     // 从CMDB查询最新主机信息
                     List<ApplicationHostDTO> hostList = hostService.listHostsFromCmdbByHostIds(
                         Collections.singletonList(hostInfoDTO.getHostId())
@@ -127,6 +131,12 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                         // 机器在CMDB中已不存在，忽略
                         log.info("host not exist in cmdb:{}, ignore", hostInfoDTO);
                     }
+                } else {
+                    log.info(
+                        "{} host affected, created:{}",
+                        affectedNum,
+                        pair.getLeft()
+                    );
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
