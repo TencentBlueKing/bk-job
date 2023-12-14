@@ -76,6 +76,15 @@ public class CommonMetricNames {
      */
     public static final String IAM_API = "job.client.iam.api";
 
+    /**
+     * 仅统计调用消息通知中心后台 API的HTTP请求过程
+     */
+    public static final String BK_NOTICE_API_HTTP = "job.client.bknotice.api.http";
+    /**
+     * 统计调用消息通知中心后台 API整个过程，含反序列化
+     */
+    public static final String BK_NOTICE_API = "job.client.bknotice.api";
+
 
     /**
      * 被调用ESB API

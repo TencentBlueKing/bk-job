@@ -22,30 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.manage.model.dto.notice;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @Data
-@ConfigurationProperties(prefix = "bk-api-gateway")
-public class BkApiGatewayProperties {
+public class BkNoticeApp {
 
+    private String code;
 
-    private GseApiGwConfig gse;
-
-    private GseApiGwConfig bkNotice;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class GseApiGwConfig {
-        /**
-         * 蓝鲸Api Gateway url
-         */
-        private String url;
-    }
+    private String name;
 }

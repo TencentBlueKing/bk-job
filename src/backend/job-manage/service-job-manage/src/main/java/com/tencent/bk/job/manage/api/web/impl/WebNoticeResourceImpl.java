@@ -26,35 +26,33 @@ package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.web.WebNoticeResource;
+import com.tencent.bk.job.manage.model.dto.notice.AnnouncementDTO;
 import com.tencent.bk.job.manage.model.web.vo.notice.AnnouncementVO;
+import com.tencent.bk.job.manage.service.notice.IBkNoticeClient;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
 public class WebNoticeResourceImpl implements WebNoticeResource {
 
+    private final IBkNoticeClient bkNoticeClient;
+
+    @Autowired
+    public WebNoticeResourceImpl(IBkNoticeClient bkNoticeClient) {
+        this.bkNoticeClient = bkNoticeClient;
+    }
+
     @Override
     public Response<List<AnnouncementVO>> getCurrentAnnouncements(String username) {
         // Mock数据
-        List<AnnouncementVO> resultList = new ArrayList<>();
-        AnnouncementVO announcementVO = new AnnouncementVO();
-        announcementVO.setTitle("这是通知标题");
-        announcementVO.setContent("这是通知内容");
-        announcementVO.setAnnounceType("event");
-        announcementVO.setStartTime("2023-08-28T15:26:59.027000+08:00");
-        announcementVO.setEndTime("2024-09-28T15:26:59.027000+08:00");
-        resultList.add(announcementVO);
-        announcementVO = new AnnouncementVO();
-        announcementVO.setTitle("这是通知标题2");
-        announcementVO.setContent("这是通知内容2");
-        announcementVO.setAnnounceType("announce");
-        announcementVO.setStartTime("2023-09-28T15:26:59.027000+08:00");
-        announcementVO.setEndTime("2024-10-28T15:26:59.027000+08:00");
-        resultList.add(announcementVO);
+        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements().stream()
+            .map(AnnouncementDTO::toVO)
+            .collect(Collectors.toList());
         return Response.buildSuccessResp(resultList);
     }
 }

@@ -22,30 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.manage.config;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.manage.service.notice.impl.BkNoticeClient;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Data
-@ConfigurationProperties(prefix = "bk-api-gateway")
-public class BkApiGatewayProperties {
+@Configuration(value = "jobManageBkNoticeConfig")
+public class BkNoticeConfig {
 
-
-    private GseApiGwConfig gse;
-
-    private GseApiGwConfig bkNotice;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class GseApiGwConfig {
-        /**
-         * 蓝鲸Api Gateway url
-         */
-        private String url;
+    @Bean("bkNoticeClient")
+    public BkNoticeClient bkNoticeClient(MeterRegistry meterRegistry,
+                                         AppProperties appProperties,
+                                         BkApiGatewayProperties bkApiGatewayProperties) {
+        return new BkNoticeClient(meterRegistry, appProperties, bkApiGatewayProperties);
     }
 }

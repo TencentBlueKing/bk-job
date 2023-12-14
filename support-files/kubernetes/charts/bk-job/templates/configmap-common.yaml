@@ -39,6 +39,8 @@ data:
     bkApiGateway:
       gse:
         url: {{ .Values.bkGseApiGatewayUrl }}
+      bkNotice:
+        url: {{ .Values.bkNoticeApiGatewayUrl }}
     gse:
       enabled: {{ .Values.gse.enabled }}
       cache:

@@ -37,6 +37,9 @@ import lombok.NoArgsConstructor;
 @Data
 public class AnnouncementVO {
 
+    @ApiModelProperty("ID")
+    private Long id;
+
     @ApiModelProperty("标题")
     private String title;
 

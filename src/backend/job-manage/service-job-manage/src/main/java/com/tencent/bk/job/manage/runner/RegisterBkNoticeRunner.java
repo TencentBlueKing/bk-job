@@ -22,30 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.manage.runner;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.tencent.bk.job.manage.model.dto.notice.BkNoticeApp;
+import com.tencent.bk.job.manage.service.notice.IBkNoticeClient;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
 
-@Data
-@ConfigurationProperties(prefix = "bk-api-gateway")
-public class BkApiGatewayProperties {
+import java.util.concurrent.ThreadPoolExecutor;
 
+/**
+ * 进程启动时立即执行一次无效主机清理
+ */
+@Slf4j
+@Component
+public class RegisterBkNoticeRunner implements CommandLineRunner {
 
-    private GseApiGwConfig gse;
+    private final IBkNoticeClient bkNoticeClient;
+    private final ThreadPoolExecutor initRunnerExecutor;
 
-    private GseApiGwConfig bkNotice;
+    @Autowired
+    public RegisterBkNoticeRunner(IBkNoticeClient bkNoticeClient,
+                                  @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor) {
+        this.bkNoticeClient = bkNoticeClient;
+        this.initRunnerExecutor = initRunnerExecutor;
+    }
 
-    @Getter
-    @Setter
-    @ToString
-    public static class GseApiGwConfig {
-        /**
-         * 蓝鲸Api Gateway url
-         */
-        private String url;
+    @Override
+    public void run(String... args) {
+        initRunnerExecutor.submit(() -> {
+            BkNoticeApp bkNoticeApp = bkNoticeClient.registerApplication();
+            log.info("registerApplication result:{}", bkNoticeApp);
+        });
     }
 }

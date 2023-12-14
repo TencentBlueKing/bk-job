@@ -85,6 +85,8 @@ public class ErrorCode {
     // 消息通知中心异常
     // 消息通知中心API不存在:{0}
     public static final int BK_NOTICE_API_NOT_FOUND = 1217001;
+    // 消息通知中心接口数据异常
+    public static final int BK_NOTICE_API_DATA_ERROR = 1217002;
 
     // ======== 系统错误-权限错误 ==================//
     // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
