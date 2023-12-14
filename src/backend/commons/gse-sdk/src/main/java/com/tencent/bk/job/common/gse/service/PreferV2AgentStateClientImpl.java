@@ -61,6 +61,9 @@ public class PreferV2AgentStateClientImpl extends AbstractAgentStateClientImpl {
     @Override
     public AgentState getAgentState(HostAgentStateQuery hostAgentStateQuery) {
         String finalAgentId = getEffectiveAgentId(hostAgentStateQuery);
+        if (StringUtils.isBlank(finalAgentId)) {
+            return null;
+        }
         return getAgentState(finalAgentId);
     }
 

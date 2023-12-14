@@ -77,7 +77,10 @@ public class UseV2ByFeatureAgentStateClientImpl implements AgentStateClient {
     @Override
     public AgentState getAgentState(HostAgentStateQuery hostAgentStateQuery) {
         // 填充需要的字段
-        getEffectiveAgentId(hostAgentStateQuery);
+        String effectiveAgentId = getEffectiveAgentId(hostAgentStateQuery);
+        if (StringUtils.isBlank(effectiveAgentId)) {
+            return null;
+        }
         if (needToUseGseV2(hostAgentStateQuery)) {
             return gseV2AgentStateClient.getAgentState(hostAgentStateQuery);
         }
