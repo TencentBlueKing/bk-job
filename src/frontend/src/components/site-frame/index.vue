@@ -28,9 +28,10 @@
 <template>
   <div
     id="app"
+    ref="root"
     :class="{
       'viewport-full': isViewportFull,
-      fixed: sideFixed,
+      'is-sidemenu-fixed': sideFixed,
     }">
     <div class="jb-navigation">
       <div class="jb-navigation-header">
@@ -47,6 +48,7 @@
         </div>
       </div>
       <div
+        ref="side"
         class="jb-navigation-side"
         :style="sideStyles"
         @mouseenter="handleSideMouseenter"
@@ -67,9 +69,7 @@
       <div
         class="jb-navigation-main"
         :style="mainStyles">
-        <div
-          class="jb-navigation-body-header"
-          :style="bodyHeaderStyles">
+        <div class="jb-navigation-body-header">
           <slot name="contentHeader" />
         </div>
         <scroll-faker
@@ -90,11 +90,14 @@
 <script>
   import _ from 'lodash';
 
+  import { getOffset } from '@/utils/assist';
+
   const PAGE_MIN_WIDTH = 1366;
   const PAGE_MIDDLE_WIDTH = 1920;
   const SIDE_LEFT_EXPAND_SMALL_WIDTH = 220;
   const SIDE_LEFT_EXPAND_BIG_WIDTH = 280;
   const SIDE_LEFT_INEXPAND_WIDTH = 60;
+
 
   export default {
     name: 'JobSiteFrame',
@@ -110,6 +113,8 @@
         isSideHover: false,
         pageWidth: PAGE_MIN_WIDTH,
         sideLeftExpandWidth: 0,
+        sideOffsetTop: 0,
+        contentOffsetTop: 0,
       };
     },
     computed: {
@@ -122,14 +127,17 @@
         };
       },
       sideStyles() {
+        const height = `calc(100vh - ${this.sideOffsetTop}px)`;
         if (this.isSideHover) {
           return {
             width: `${this.sideLeftExpandWidth}px`,
+            height,
             zIndex: 2000,
           };
         }
         return {
           width: `${this.realSideWidth}px`,
+          height,
         };
       },
       mainStyles() {
@@ -138,17 +146,10 @@
           zIndex: 1999,
         };
       },
-      bodyHeaderStyles() {
-        return {
-          left: `${this.realSideWidth}px`,
-        };
-      },
       scrollStyles() {
-        const navigationHeaderHeight = 52;
-        const contentHeaderHeight = 52;
         return {
           width: `calc(100vw - ${this.realSideWidth}px)`,
-          height: `calc(100vh - ${navigationHeaderHeight + contentHeaderHeight}px)`,
+          height: `calc(100vh - ${this.contentOffsetTop}px)`,
         };
       },
       contentStyles() {
@@ -175,8 +176,21 @@
       this.init();
       const resizeHandler = _.throttle(this.init, 100);
       window.addEventListener('resize', resizeHandler);
+
+      const observer = new MutationObserver(_.throttle(() => {
+        this.sideOffsetTop = getOffset(this.$refs.side).top;
+        this.contentOffsetTop = getOffset(this.$refs.contentScroll.$el).top;
+      }, 100));
+      observer.observe(this.$refs.root, {
+        subtree: true,
+        childList: true,
+        attributeName: true,
+        characterData: true,
+      });
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', resizeHandler);
+        observer.takeRecords();
+        observer.disconnect();
       });
     },
     methods: {
@@ -225,7 +239,7 @@
       }
     }
 
-    &.fixed {
+    &.is-sidemenu-fixed {
       .jb-navigation {
         .fixed-flag {
           transform: rotateZ(180deg) !important;
@@ -246,11 +260,6 @@
     line-height: 19px;
 
     .jb-navigation-header {
-      position: fixed;
-      top: 0;
-      right: 0;
-      left: 0;
-      z-index: 2000;
       display: flex;
       align-items: center;
       height: 52px;
@@ -274,12 +283,10 @@
     }
 
     .jb-navigation-side {
-      position: fixed;
-      top: 52px;
-      bottom: 0;
-      left: 0;
+      position: relative;
       z-index: 2000;
       display: flex;
+      float: left;
       width: 220px;
       padding-top: 10px;
       font-size: 14px;
@@ -317,15 +324,8 @@
       }
     }
 
-    .jb-navigation-main {
-      margin-top: 104px;
-    }
-
     .jb-navigation-body-header {
-      position: fixed;
-      top: 52px;
-      right: 0;
-      left: 220px;
+      position: relative;
       z-index: 1999;
       display: flex;
       align-items: center;
