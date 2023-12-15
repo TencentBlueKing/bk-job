@@ -127,6 +127,9 @@ export default (interceptors) => {
       case 'ECONNABORTED':
         messageError('请求超时');
         break;
+        // 消息通知中心API不存在
+      case 1217001:
+        break;
       default:
         messageError({
           code: error.code,
