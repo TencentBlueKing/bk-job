@@ -30,16 +30,20 @@ import com.tencent.bk.job.manage.model.web.vo.notice.AnnouncementVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Min;
 import java.util.List;
 
 /**
  * 对接蓝鲸消息中心相关的 WEB API
  */
+@Validated
 @Api(tags = {"job-manage:web:Notice"})
 @RequestMapping("/web/notice")
 @RestController
@@ -51,7 +55,13 @@ public interface WebNoticeResource {
     Response<List<AnnouncementVO>> getCurrentAnnouncements(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username
+            String username,
+        @Min(message = "{validation.constraints.InvalidAnnouncementsOffset.message}", value = 0L)
+        @RequestParam(value = "offset", required = false)
+            Integer offset,
+        @Min(message = "{validation.constraints.InvalidAnnouncementsLimit.message}", value = 1L)
+        @RequestParam(value = "limit", required = false)
+            Integer limit
     );
 
 }

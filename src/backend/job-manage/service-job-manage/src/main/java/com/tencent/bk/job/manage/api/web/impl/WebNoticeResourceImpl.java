@@ -47,8 +47,8 @@ public class WebNoticeResourceImpl implements WebNoticeResource {
     }
 
     @Override
-    public Response<List<AnnouncementVO>> getCurrentAnnouncements(String username) {
-        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements().stream()
+    public Response<List<AnnouncementVO>> getCurrentAnnouncements(String username, Integer offset, Integer limit) {
+        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements(offset, limit).stream()
             .map(AnnouncementVO::fromDTO)
             .collect(Collectors.toList());
         return Response.buildSuccessResp(resultList);

@@ -33,6 +33,6 @@ public interface IBkNoticeClient {
 
     BkNoticeApp registerApplication();
 
-    List<AnnouncementDTO> getCurrentAnnouncements();
+    List<AnnouncementDTO> getCurrentAnnouncements(Integer offset, Integer limit);
 
 }

@@ -55,6 +55,7 @@ public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClie
     private static final String URI_REGISTER_APPLICATION = "/apigw/v1/register/";
     private static final String URI_GET_CURRENT_ANNOUNCEMENTS = "/apigw/v1/announcement/get_current_announcements/";
 
+    private final AppProperties appProperties;
     private final BkApiAuthorization authorization;
 
     public BkNoticeClient(MeterRegistry meterRegistry,
@@ -66,6 +67,7 @@ public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClie
             getBkNoticeUrlSafely(bkApiGatewayProperties),
             HttpHelperFactory.getDefaultHttpHelper()
         );
+        this.appProperties = appProperties;
         authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());
     }
 
@@ -90,16 +92,32 @@ public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClie
     }
 
     @Override
-    public List<AnnouncementDTO> getCurrentAnnouncements() {
+    public List<AnnouncementDTO> getCurrentAnnouncements(Integer offset, Integer limit) {
         EsbResp<List<AnnouncementDTO>> resp = requestBkNoticeApi(
             HttpMethodEnum.GET,
-            URI_GET_CURRENT_ANNOUNCEMENTS,
+            buildUriWithParams(offset, limit),
             null,
             new TypeReference<EsbResp<List<AnnouncementDTO>>>() {
             },
             true
         );
         return resp.getData();
+    }
+
+    private String buildUriWithParams(Integer offset, Integer limit) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(URI_GET_CURRENT_ANNOUNCEMENTS);
+        sb.append("?platform=");
+        sb.append(appProperties.getCode());
+        if (offset != null) {
+            sb.append("&offset=");
+            sb.append(offset);
+        }
+        if (limit != null) {
+            sb.append("&limit=");
+            sb.append(limit);
+        }
+        return sb.toString();
     }
 
     /**
