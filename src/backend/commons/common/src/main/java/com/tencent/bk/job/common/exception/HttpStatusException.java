@@ -38,7 +38,7 @@ public class HttpStatusException extends RuntimeException {
     private final String reasonPhrase;
 
     public HttpStatusException(String uri, int httpStatus, String reasonPhrase) {
-        super("http status not 200, uri=" + uri + ", statusCode=" + httpStatus + ", reasonPhrase=" + reasonPhrase);
+        super("http status not ok, uri=" + uri + ", statusCode=" + httpStatus + ", reasonPhrase=" + reasonPhrase);
         this.uri = uri;
         this.httpStatus = httpStatus;
         this.reasonPhrase = reasonPhrase;
