@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.runner;
 
-import com.tencent.bk.job.manage.model.dto.notice.BkNoticeApp;
-import com.tencent.bk.job.manage.service.notice.IBkNoticeClient;
+import com.tencent.bk.job.common.notice.IBkNoticeClient;
+import com.tencent.bk.job.common.notice.model.BkNoticeApp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

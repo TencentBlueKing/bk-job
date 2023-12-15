@@ -22,17 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto.notice;
+package com.tencent.bk.job.common.notice.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.manage.model.web.vo.notice.AnnouncementVO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.tools.StringUtils;
-import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -86,40 +81,4 @@ public class AnnouncementDTO {
         private String language;
     }
 
-    public AnnouncementVO toVO() {
-        AnnouncementVO announcementVO = new AnnouncementVO();
-        announcementVO.setId(id);
-        announcementVO.setTitle(title);
-        announcementVO.setContent(chooseI18nContent());
-        announcementVO.setAnnounceType(announceType);
-        announcementVO.setStartTime(startTime);
-        announcementVO.setEndTime(endTime);
-        return announcementVO;
-    }
-
-    private String chooseI18nContent() {
-        if (CollectionUtils.isEmpty(contentList)) {
-            log.warn("contentList is null empty, please check response from bk-notice");
-            return null;
-        }
-        String currentUserLang = JobContextUtil.getUserLang();
-        if (StringUtils.isBlank(currentUserLang)) {
-            currentUserLang = LocaleUtils.LANG_ZH_CN;
-            log.warn("currentUserLang is blank, use default {}", currentUserLang);
-        }
-        for (ContentWithLanguage contentWithLanguage : contentList) {
-            String lang = contentWithLanguage.getLanguage();
-            if (StringUtils.isBlank(lang)) {
-                lang = LocaleUtils.LANG_ZH_CN;
-                log.warn("language is blank, consider as default {}", lang);
-            } else {
-                lang = LocaleUtils.getNormalLang(lang);
-            }
-            if (lang.equals(currentUserLang)) {
-                return contentWithLanguage.content;
-            }
-        }
-        log.warn("Cannot find content match currentUserLang:{}, please check response from bk-notice", currentUserLang);
-        return null;
-    }
 }

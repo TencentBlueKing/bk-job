@@ -22,18 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.notice;
+package com.tencent.bk.job.common.notice.model;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.tencent.bk.job.manage.model.dto.notice.AnnouncementDTO;
-import com.tencent.bk.job.manage.model.dto.notice.BkNoticeApp;
+@NoArgsConstructor
+@Data
+public class BkNoticeApp {
 
-import java.util.List;
+    private String code;
 
-public interface IBkNoticeClient {
-
-    BkNoticeApp registerApplication();
-
-    List<AnnouncementDTO> getCurrentAnnouncements();
-
+    private String name;
 }

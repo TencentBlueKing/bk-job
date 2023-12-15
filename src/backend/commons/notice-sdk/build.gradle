@@ -22,35 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.web.impl;
-
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.notice.IBkNoticeClient;
-import com.tencent.bk.job.manage.api.web.WebNoticeResource;
-import com.tencent.bk.job.manage.model.web.vo.notice.AnnouncementVO;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-@RestController
-@Slf4j
-public class WebNoticeResourceImpl implements WebNoticeResource {
-
-    private final IBkNoticeClient bkNoticeClient;
-
-    @Autowired
-    public WebNoticeResourceImpl(IBkNoticeClient bkNoticeClient) {
-        this.bkNoticeClient = bkNoticeClient;
-    }
-
-    @Override
-    public Response<List<AnnouncementVO>> getCurrentAnnouncements(String username) {
-        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements().stream()
-            .map(AnnouncementVO::fromDTO)
-            .collect(Collectors.toList());
-        return Response.buildSuccessResp(resultList);
-    }
+dependencies {
+    api project(':commons:common')
+    api project(':commons:esb-sdk')
+    api project(':commons:common-i18n')
+    implementation 'com.fasterxml.jackson.core:jackson-core'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+    implementation 'org.apache.commons:commons-lang3'
+    implementation "net.sf.dozer:dozer"
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.apache.commons:commons-collections4'
+    implementation 'org.apache.httpcomponents:httpclient'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

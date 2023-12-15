@@ -22,22 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.common.notice;
 
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.manage.service.notice.impl.BkNoticeClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.common.notice.model.AnnouncementDTO;
+import com.tencent.bk.job.common.notice.model.BkNoticeApp;
 
-@Configuration(value = "jobManageBkNoticeConfig")
-public class BkNoticeConfig {
+import java.util.List;
 
-    @Bean("bkNoticeClient")
-    public BkNoticeClient bkNoticeClient(MeterRegistry meterRegistry,
-                                         AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties) {
-        return new BkNoticeClient(meterRegistry, appProperties, bkApiGatewayProperties);
-    }
+public interface IBkNoticeClient {
+
+    BkNoticeApp registerApplication();
+
+    List<AnnouncementDTO> getCurrentAnnouncements();
+
 }

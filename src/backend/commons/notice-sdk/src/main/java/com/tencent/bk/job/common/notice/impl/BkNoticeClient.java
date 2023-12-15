@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.notice.impl;
+package com.tencent.bk.job.common.notice.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -34,15 +34,18 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
-import com.tencent.bk.job.common.exception.InternalIamException;
+import com.tencent.bk.job.common.exception.HttpStatusException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.notice.IBkNoticeClient;
+import com.tencent.bk.job.common.notice.exception.BkNoticeException;
+import com.tencent.bk.job.common.notice.model.AnnouncementDTO;
+import com.tencent.bk.job.common.notice.model.BkNoticeApp;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.manage.model.dto.notice.AnnouncementDTO;
-import com.tencent.bk.job.manage.model.dto.notice.BkNoticeApp;
-import com.tencent.bk.job.manage.service.notice.IBkNoticeClient;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import org.apache.http.HttpStatus;
 
 import java.util.List;
 
@@ -119,8 +122,17 @@ public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClie
                 .setIdempotent(idempotent)
                 .build();
             return doRequest(requestInfo, typeReference);
+        } catch (InternalException e) {
+            // 接口不存在的场景需要使用指定错误码以便前端兼容处理
+            if (e.getCause() instanceof HttpStatusException) {
+                HttpStatusException httpStatusException = (HttpStatusException) e.getCause();
+                if (httpStatusException.getHttpStatus() == HttpStatus.SC_NOT_FOUND) {
+                    throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_NOT_FOUND, null);
+                }
+            }
+            throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_DATA_ERROR, null);
         } catch (Exception e) {
-            throw new InternalIamException(e, ErrorCode.BK_NOTICE_API_DATA_ERROR, null);
+            throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }

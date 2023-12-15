@@ -22,35 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.web.impl;
+package com.tencent.bk.job.common.notice.config;
 
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.notice.IBkNoticeClient;
-import com.tencent.bk.job.manage.api.web.WebNoticeResource;
-import com.tencent.bk.job.manage.model.web.vo.notice.AnnouncementVO;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.notice.impl.BkNoticeClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-@RestController
 @Slf4j
-public class WebNoticeResourceImpl implements WebNoticeResource {
+@Configuration(proxyBeanMethods = false)
+public class NoticeAutoConfiguration {
 
-    private final IBkNoticeClient bkNoticeClient;
-
-    @Autowired
-    public WebNoticeResourceImpl(IBkNoticeClient bkNoticeClient) {
-        this.bkNoticeClient = bkNoticeClient;
+    @Bean
+    public BkNoticeClient bkNoticeClient(MeterRegistry meterRegistry,
+                                         AppProperties appProperties,
+                                         BkApiGatewayProperties bkApiGatewayProperties) {
+        return new BkNoticeClient(meterRegistry, appProperties, bkApiGatewayProperties);
     }
 
-    @Override
-    public Response<List<AnnouncementVO>> getCurrentAnnouncements(String username) {
-        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements().stream()
-            .map(AnnouncementVO::fromDTO)
-            .collect(Collectors.toList());
-        return Response.buildSuccessResp(resultList);
-    }
 }

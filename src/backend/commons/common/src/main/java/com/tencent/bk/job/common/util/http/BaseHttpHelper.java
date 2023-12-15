@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.util.http;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import lombok.extern.slf4j.Slf4j;
@@ -174,16 +175,16 @@ public class BaseHttpHelper implements HttpHelper {
                 respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
             }
             if (httpStatusCode != HttpStatus.SC_OK) {
-                String message = httpResponse.getStatusLine().getReasonPhrase();
+                String reasonPhrase = httpResponse.getStatusLine().getReasonPhrase();
                 log.warn(
                     "Request fail, method: {}, url={}, httpStatusCode={}, errorReason={}, body={},",
                     httpClientRequest.getMethod(),
                     httpClientRequest.getURI().getPath(),
                     httpStatusCode,
-                    message,
+                    reasonPhrase,
                     respStr
                 );
-                throw new InternalException(message, ErrorCode.API_ERROR);
+                throw new HttpStatusException(httpClientRequest.getURI().toString(), httpStatusCode, reasonPhrase);
             } else {
                 return new HttpResponse(httpStatusCode, respStr);
             }

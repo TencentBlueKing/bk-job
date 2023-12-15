@@ -22,16 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto.notice;
+package com.tencent.bk.job.common.exception;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 
-@NoArgsConstructor
-@Data
-public class BkNoticeApp {
+/**
+ * 服务异常
+ */
+@Getter
+@ToString
+public class HttpStatusException extends RuntimeException {
+    private final String uri;
+    private final int httpStatus;
+    private final String reasonPhrase;
 
-    private String code;
-
-    private String name;
+    public HttpStatusException(String uri, int httpStatus, String reasonPhrase) {
+        super("http status not 200, uri=" + uri + ", statusCode=" + httpStatus + ", reasonPhrase=" + reasonPhrase);
+        this.uri = uri;
+        this.httpStatus = httpStatus;
+        this.reasonPhrase = reasonPhrase;
+    }
 }
