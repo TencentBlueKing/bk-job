@@ -63,10 +63,17 @@ public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClie
         super(
             meterRegistry,
             CommonMetricNames.BK_NOTICE_API,
-            bkApiGatewayProperties.getBkNotice().getUrl(),
+            getBkNoticeUrlSafely(bkApiGatewayProperties),
             HttpHelperFactory.getDefaultHttpHelper()
         );
         authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());
+    }
+
+    private static String getBkNoticeUrlSafely(BkApiGatewayProperties bkApiGatewayProperties) {
+        if (bkApiGatewayProperties == null || bkApiGatewayProperties.getBkNotice() == null) {
+            return null;
+        }
+        return bkApiGatewayProperties.getBkNotice().getUrl();
     }
 
     @Override
@@ -127,7 +134,7 @@ public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClie
             if (e.getCause() instanceof HttpStatusException) {
                 HttpStatusException httpStatusException = (HttpStatusException) e.getCause();
                 if (httpStatusException.getHttpStatus() == HttpStatus.SC_NOT_FOUND) {
-                    throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_NOT_FOUND, null);
+                    throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_NOT_FOUND, new String[]{uri});
                 }
             }
             throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_DATA_ERROR, null);
