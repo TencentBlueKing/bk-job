@@ -174,7 +174,8 @@ public class BaseHttpHelper implements HttpHelper {
             if (entity != null && entity.getContent() != null) {
                 respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
             }
-            if (httpStatusCode != HttpStatus.SC_OK) {
+            // 状态码>=400判定为失败
+            if (httpStatusCode >= HttpStatus.SC_BAD_REQUEST) {
                 String reasonPhrase = httpResponse.getStatusLine().getReasonPhrase();
                 log.warn(
                     "Request fail, method: {}, url={}, httpStatusCode={}, errorReason={}, body={},",
