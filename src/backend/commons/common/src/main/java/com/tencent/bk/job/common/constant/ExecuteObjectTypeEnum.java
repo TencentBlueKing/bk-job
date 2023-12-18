@@ -22,7 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.consts;
+package com.tencent.bk.job.common.constant;
+
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * 执行对象类型
@@ -37,27 +39,23 @@ public enum ExecuteObjectTypeEnum {
      */
     CONTAINER(2);
 
-
-    private final int value;
-
-    ExecuteObjectTypeEnum(int value) {
-        this.value = value;
+    ExecuteObjectTypeEnum(int type) {
+        this.type = type;
     }
 
-    public static ExecuteObjectTypeEnum valueOf(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        for (ExecuteObjectTypeEnum type : values()) {
-            if (type.value == value) {
-                return type;
+    private final int type;
+
+    @JsonValue
+    public int getValue() {
+        return this.type;
+    }
+
+    public static ExecuteObjectTypeEnum valOf(int type) {
+        for (ExecuteObjectTypeEnum typeEnum : values()) {
+            if (typeEnum.getValue() == type) {
+                return typeEnum;
             }
         }
-        throw new IllegalArgumentException("No ExecuteObjectTypeEnum constant: " + value);
+        throw new IllegalArgumentException("No ExecuteObjectTypeEnum constant: " + type);
     }
-
-    public final int getValue() {
-        return value;
-    }
-
 }

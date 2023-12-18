@@ -25,26 +25,22 @@
 package com.tencent.bk.job.common.constant;
 
 /**
- * 执行对象类型
+ * 兼容类型
  */
-public enum ExecutionObjectTypeEnum {
+public enum CompatibleType {
     /**
-     * 主机
+     * 历史数据兼容。历史数据失效之后可删除
      */
-    HOST(1),
+    HISTORY_DATA,
     /**
-     * 容器
+     * API 兼容。API 废弃之后可删除
      */
-    CONTAINER(2);
+    API,
+    /**
+     * 发布兼容。发布完成后可删除
+     */
+    DEPLOY;
 
-    ExecutionObjectTypeEnum(int type) {
-        this.type = type;
+    CompatibleType() {
     }
-
-    private final int type;
-
-    public int getValue() {
-        return this.type;
-    }
-
 }

@@ -130,7 +130,6 @@ public class LogServiceImpl implements LogService {
         List<WriteModel<Document>> updateOps = new ArrayList<>();
         taskExecuteObjectLogs.forEach(taskExecuteObjectLog -> {
             long stepInstanceId = taskExecuteObjectLog.getStepInstanceId();
-            String ip = taskExecuteObjectLog.getIp();
             int executeCount = taskExecuteObjectLog.getExecuteCount();
             Integer batch = taskExecuteObjectLog.getBatch();
             List<FileTaskLogDoc> fileTaskLogs = taskExecuteObjectLog.getFileTaskLogs();
