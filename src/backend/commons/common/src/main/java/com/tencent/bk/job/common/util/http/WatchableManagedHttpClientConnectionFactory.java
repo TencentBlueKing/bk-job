@@ -22,39 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-ext {
-    if (System.getProperty("jobCrontabVersion")) {
-        set("jobCrontabVersion", System.getProperty("jobCrontabVersion"))
-    } else if (System.getProperty("version")) {
-        set("jobCrontabVersion", System.getProperty("version"))
-    } else {
-        set("jobCrontabVersion", "1.0.0")
-    }
-}
-version "${jobCrontabVersion}"
-subprojects {
-    version "${jobCrontabVersion}"
-    dependencies {
-        api("org.springframework.boot:spring-boot-autoconfigure")
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
-        implementation(group: 'org.apache.commons', name: 'commons-pool2')
-        implementation "io.github.openfeign:feign-httpclient"
-        implementation "org.springframework.retry:spring-retry"
-        implementation('ch.qos.logback:logback-core')
-        implementation('ch.qos.logback:logback-classic')
-        implementation('io.springfox:springfox-swagger2')
-        implementation('io.springfox:springfox-swagger-ui')
-        testImplementation("org.springframework.boot:spring-boot-starter-test")
-        testImplementation "org.junit.jupiter:junit-jupiter"
-    }
-}
-group 'com.tencent.bk.job'
-version '2.0.0'
+package com.tencent.bk.job.common.util.http;
 
-sourceCompatibility = 1.8
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 
-repositories {
-    mavenCentral()
+@Slf4j
+public class WatchableManagedHttpClientConnectionFactory extends ManagedHttpClientConnectionFactory {
+    @Override
+    public ManagedHttpClientConnection create(final HttpRoute route, final ConnectionConfig config) {
+        ManagedHttpClientConnection connection = super.create(route, config);
+        log.debug("created connection,route={},id={}", route, connection.getId());
+        return connection;
+    }
 }
