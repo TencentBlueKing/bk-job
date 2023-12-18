@@ -229,6 +229,9 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         }
 
         fileLog.setLogContent(fileTaskLog.getContent());
+        fileLog.setSize(fileTaskLog.getSize());
+        fileLog.setSpeed(fileTaskLog.getSpeed());
+        fileLog.setProcess(fileTaskLog.getProcess());
         fileLog.setStatus(fileTaskLog.getStatus());
         return fileLog;
     }

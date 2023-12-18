@@ -102,7 +102,10 @@ Bulk query of job execution logs by host list
                         }, 
                         "dest_path": "/tmp/1.log", 
                         "status": 4,
-                        "log_content": "[2021-06-28 11:32:16] FileName: /tmp/1.log FileSize: 9.0 Bytes State: dest agent success download file Speed: 1 KB/s Progress: 100% StatusDesc: dest agent success download file Detail: success" 
+                        "log_content": "[2021-06-28 11:32:16] FileName: /tmp/1.log FileSize: 9.0 Bytes State: dest agent success download file Speed: 1 KB/s Progress: 100% StatusDesc: dest agent success download file Detail: success",
+                        "size": "1.0 Bytes", 
+                        "speed": "0 KB/s", 
+                        "process": "100%" 
                     }
                 ]
             },
@@ -120,7 +123,10 @@ Bulk query of job execution logs by host list
                         }, 
                         "src_path": "/data/1.log",  
                         "status": 4,
-                        "log_content": "[2021-06-28 11:32:16] FileName: /data/1.log FileSize: 9.0 Bytes State: source agent success upload file Speed: 1 KB/s Progress: 100% StatusDesc: source agent success upload file Detail: success upload"
+                        "log_content": "[2021-06-28 11:32:16] FileName: /data/1.log FileSize: 9.0 Bytes State: source agent success upload file Speed: 1 KB/s Progress: 100% StatusDesc: source agent success upload file Detail: success upload",
+                        "size": "1.0 Bytes", 
+                        "speed": "0 KB/s", 
+                        "process": "100%" 
                     }
                 ]
             }
@@ -176,15 +182,18 @@ Bulk query of job execution logs by host list
 
 #### file_log
 
-| Fields | Type  | Description |
-|-----------|-----------|-----------|
-| mode | int | Distribution mode. 0: Upload; 1: Download |
-| src_ip |  object |File source host IP. see ip for definition |
-| src_path | string | Source file paths |
-| dest_ip | object | Distribute the target host IP, with value for mode=1. See ip for definition. |
-| dest_path | string | Target path, with value for mode=1 |
-| status | int | Task status. 1-Waiting; 2-Uploading; 3-Downloading; 4- Success; 5- Failure |
+| Fields      | Type  | Description |
+|-------------|-----------|-----------|
+| mode        | int | Distribution mode. 0: Upload; 1: Download |
+| src_ip      |  object |File source host IP. see ip for definition |
+| src_path    | string | Source file paths |
+| dest_ip     | object | Distribute the target host IP, with value for mode=1. See ip for definition. |
+| dest_path   | string | Target path, with value for mode=1 |
+| status      | int | Task status. 1-Waiting; 2-Uploading; 3-Downloading; 4- Success; 5- Failure |
 | log_content | string | File distribution log contents |
+| size        | string | File size    |
+| speed       | string | File transfer speed |
+| process     | string | File transfer process |
 
 #### ip
 
