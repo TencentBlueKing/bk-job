@@ -24,76 +24,88 @@
 
 package com.tencent.bk.job.logsvr.model.service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@ApiModel("执行日志保存请求")
+@ApiModel("执行对象执行日志")
 @Data
-public class ServiceSaveLogRequest {
-    /**
-     * 作业实例创建时间
-     */
-    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
-    private String jobCreateDate;
-
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class ServiceExecuteObjectLogDTO {
     /**
      * 作业步骤实例ID
      */
-    @ApiModelProperty(value = "步骤实例ID", required = true)
+    @ApiModelProperty("步骤实例ID")
     private Long stepInstanceId;
-
-    /**
-     * 主机云区域ID:ipv4
-     */
-    @ApiModelProperty(value = "主机云区域ID:ipv4")
-    private String ip;
-
-    /**
-     * 主机云区域ID:ipv6
-     */
-    @ApiModelProperty(value = "主机云区域ID:ipv6")
-    private String ipv6;
-
-    /**
-     * 主机ID
-     */
-    @ApiModelProperty(value = "主机ID")
-    private Long hostId;
 
     /**
      * 执行次数
      */
-    @ApiModelProperty(value = "执行次数", required = true)
+    @ApiModelProperty("执行次数")
     private Integer executeCount;
 
     /**
      * 滚动执行批次
      */
-    @ApiModelProperty(value = "滚动批次")
+    @ApiModelProperty("滚动执行批次")
     private Integer batch;
+
+    /**
+     * 云区域ID:ipv4
+     */
+    @ApiModelProperty(value = "云区域ID:ipv4")
+    @JsonProperty("ip")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
+    private String cloudIp;
+
+    /**
+     * 云区域ID:ipv6
+     */
+    @ApiModelProperty(value = "云区域ID:ipv6")
+    @JsonProperty("ipv6")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
+    private String cloudIpv6;
+
+    /**
+     * 主机ID
+     */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
+    @ApiModelProperty(value = "主机ID")
+    private Long hostId;
+
+    /**
+     * 执行对象ID
+     */
+    @ApiModelProperty("执行对象ID")
+    private String executeObjectId;
 
     /**
      * 脚本日志内容
      */
-    @ApiModelProperty(value = "脚本日志内容")
+    @ApiModelProperty(value = "脚本日志内容，保存日志的时候需要传入,查询日志的时候该字段无效")
     @JsonProperty("scriptLog")
     private ServiceScriptLogDTO scriptLog;
 
     /**
-     * 文件日志
+     * 文件任务执行日志
      */
-    @ApiModelProperty(value = "文件任务日志")
+    @JsonProperty("fileTaskLogs")
     private List<ServiceFileTaskLogDTO> fileTaskLogs;
 
-    /**
-     * 日志类型
-     *
-     * @see com.tencent.bk.job.logsvr.consts.LogTypeEnum
-     */
-    @ApiModelProperty(value = "日志类型,1-script;2-file")
-    private Integer logType;
+    public void addFileTaskLog(ServiceFileTaskLogDTO fileTaskDetailLog) {
+        if (fileTaskLogs == null) {
+            fileTaskLogs = new ArrayList<>();
+        }
+        fileTaskLogs.add(fileTaskDetailLog);
+    }
 }

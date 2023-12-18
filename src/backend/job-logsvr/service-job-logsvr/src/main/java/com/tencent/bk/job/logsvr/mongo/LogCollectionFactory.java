@@ -46,8 +46,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Slf4j
 public class LogCollectionFactory {
-    private MongoTemplate mongoTemplate;
-    private LogCollectionLoaderFactory loaderFactory;
+    private final MongoTemplate mongoTemplate;
+    private final LogCollectionLoaderFactory loaderFactory;
 
 
     private final LoadingCache<String, MongoCollection<Document>> collectionCache =

@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 
@@ -34,33 +35,33 @@ import java.util.List;
 /**
  * GSE Agent 文件任务 Service
  */
-public interface FileAgentTaskService extends AgentTaskService {
+public interface FileExecuteObjectTaskService extends ExecuteObjectTaskService {
 
     /**
-     * 获取agent任务
+     * 获取执行对象任务
      *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次；传入null或者0将忽略该参数
-     * @param fileTaskMode   文件分发任务模式;传入null表示忽略该过滤条件
-     * @return agent任务
-     */
-    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
-                                           Integer executeCount,
-                                           Integer batch,
-                                           FileTaskModeEnum fileTaskMode);
-
-    /**
      * @param stepInstance 步骤实例
      * @param executeCount 执行次数
      * @param batch        滚动执行批次；传入null或者0将忽略该参数
-     * @param fileTaskMode 文件分发任务模式
-     * @param host         主机
-     * @return Agent任务
+     * @param fileTaskMode 文件分发任务模式;传入null表示忽略该过滤条件
+     * @return 执行对象任务
      */
-    ExecuteObjectTask getAgentTaskByHost(StepInstanceDTO stepInstance,
-                                         Integer executeCount,
-                                         Integer batch,
-                                         FileTaskModeEnum fileTaskMode,
-                                         HostDTO host);
+    List<ExecuteObjectTask> listTasks(StepInstanceBaseDTO stepInstance,
+                                      Integer executeCount,
+                                      Integer batch,
+                                      FileTaskModeEnum fileTaskMode);
+
+    /**
+     * @param stepInstance              步骤实例
+     * @param executeCount              执行次数
+     * @param batch                     滚动执行批次；传入null或者0将忽略该参数
+     * @param fileTaskMode              文件分发任务模式
+     * @param executeObjectCompositeKey 执行对象复合 KEY
+     * @return 执行对象任务
+     */
+    ExecuteObjectTask getTaskByExecuteObjectCompositeKey(StepInstanceDTO stepInstance,
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         FileTaskModeEnum fileTaskMode,
+                                                         ExecuteObjectCompositeKey executeObjectCompositeKey);
 }

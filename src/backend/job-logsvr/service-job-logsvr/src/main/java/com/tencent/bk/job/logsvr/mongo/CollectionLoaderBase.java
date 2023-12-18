@@ -47,7 +47,7 @@ public class CollectionLoaderBase implements CollectionLoader {
     @Value("${job.logsvr.mongodb.shard.enabled:false}")
     protected boolean enableSharding;
 
-    private Map<String, Boolean> collectionShardStatusMap = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> collectionShardStatusMap = new ConcurrentHashMap<>();
 
     @Override
     public MongoCollection<Document> load(MongoTemplate mongoTemplate, String collectionName) {

@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.manage.api.web.WebContainerResource;
 import com.tencent.bk.job.manage.model.web.request.chooser.ListTopologyTreesReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerCheckReq;
@@ -34,7 +35,6 @@ import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerDe
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
-import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 

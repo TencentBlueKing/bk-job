@@ -50,10 +50,10 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -82,8 +82,8 @@ public class GseTaskManager implements SmartLifecycle {
     private final ResultHandleManager resultHandleManager;
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
+    private final FileExecuteObjectTaskService fileAgentTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final AccountService accountService;
     private final LogService logService;
@@ -152,8 +152,8 @@ public class GseTaskManager implements SmartLifecycle {
                           ExecuteMonitor executeMonitor,
                           JobExecuteConfig jobExecuteConfig,
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                          ScriptAgentTaskService scriptAgentTaskService,
-                          FileAgentTaskService fileAgentTaskService,
+                          ScriptExecuteObjectTaskService scriptAgentTaskService,
+                          FileExecuteObjectTaskService fileAgentTaskService,
                           StepInstanceService stepInstanceService,
                           GseClient gseClient) {
         this.resultHandleManager = resultHandleManager;

@@ -22,70 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.dao.impl;
 
-import lombok.Data;
+import com.tencent.bk.job.execute.dao.TaskInstanceExecuteObjectDAO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import org.springframework.stereotype.Repository;
 
-/**
- * 执行对象任务执行信息
- */
-@Data
-public class AgentTaskExecutionDTO {
-    /**
-     * 云IP
-     */
-    private String cloudIp;
-    /**
-     * 执行次数
-     */
-    private Integer executeCount;
-    /**
-     * Agent ip显示名称，展示给用户使用该ip
-     */
-    private String displayIp;
+import java.util.Collection;
+import java.util.List;
 
-    /**
-     * 云区域ID
-     */
-    private Long cloudAreaId;
+@Repository
+public class TaskInstanceExecuteObjectDAOImpl implements TaskInstanceExecuteObjectDAO {
+    @Override
+    public void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects) {
 
-    /**
-     * 云区域名称
-     */
-    private String cloudAreaName;
+    }
 
-    /**
-     * 执行对象任务执行状态
-     */
-    private Integer status;
-    /**
-     * 开始时间
-     */
-    private Long startTime;
-    /**
-     * 结束时间
-     */
-    private Long endTime;
-    /**
-     * 耗时,毫秒
-     */
-    private Long totalTime;
-    /**
-     * 脚本返回码
-     */
-    private Integer exitCode;
-    /**
-     * 脚本错误码
-     */
-    private Integer errorCode;
-    /**
-     * 脚本执行输出
-     */
-    private String tag;
+    @Override
+    public List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId) {
+        return null;
+    }
 
-    public void calculateTotalTime() {
-        if (this.endTime != null && this.startTime != null && this.endTime > this.startTime) {
-            this.totalTime = this.endTime - this.startTime;
-        }
+    @Override
+    public ExecuteObjectTask getExecuteObjectById(long executeObjectId) {
+        return null;
     }
 }

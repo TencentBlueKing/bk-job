@@ -56,7 +56,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.VariableValueDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -147,7 +147,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                  ScriptAgentTaskService scriptAgentTaskService,
+                                  ScriptExecuteObjectTaskService scriptAgentTaskService,
                                   StepInstanceService stepInstanceService,
                                   GseClient gseClient,
                                   TaskInstanceDTO taskInstance,

@@ -64,7 +64,7 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -85,7 +85,7 @@ import java.util.Map;
 @Slf4j
 public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
-    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
 
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
@@ -104,7 +104,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      TaskInstanceService taskInstanceService,
                                      StepInstanceService stepInstanceService,
                                      GseTaskService gseTaskService,
-                                     ScriptAgentTaskService scriptAgentTaskService,
+                                     ScriptExecuteObjectTaskService scriptAgentTaskService,
                                      AccountService accountService,
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -692,7 +692,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             agentTask.setStatus(ExecuteObjectTaskStatusEnum.SUBMIT_FAILED);
         }
         logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
-        scriptAgentTaskService.batchUpdateAgentTasks(targetAgentTaskMap.values());
+        scriptAgentTaskService.batchUpdateTasks(targetAgentTaskMap.values());
     }
 
     @Override

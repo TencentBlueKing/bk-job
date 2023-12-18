@@ -46,7 +46,7 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -117,7 +117,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         TaskInstanceService taskInstanceService,
                                         StepInstanceService stepInstanceService,
                                         GseTaskService gseTaskService,
-                                        ScriptAgentTaskService scriptAgentTaskService,
+                                        ScriptExecuteObjectTaskService scriptAgentTaskService,
                                         AccountService accountService,
                                         TaskInstanceVariableService taskInstanceVariableService,
                                         StepInstanceVariableValueService stepInstanceVariableValueService,

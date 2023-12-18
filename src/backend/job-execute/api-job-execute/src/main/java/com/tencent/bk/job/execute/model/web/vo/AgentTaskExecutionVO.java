@@ -31,8 +31,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-@ApiModel("Agent任务执行信息")
+@ApiModel("执行对象任务执行信息")
 @Data
+@Deprecated
 public class AgentTaskExecutionVO {
     @ApiModelProperty("执行次数")
     private Integer retryCount;
@@ -42,9 +43,6 @@ public class AgentTaskExecutionVO {
 
     @ApiModelProperty("Agent对应的主机ID")
     private Long hostId;
-
-    @ApiModelProperty("Agent ID")
-    private String agentId;
 
     @ApiModelProperty("云区域+ipv4，废弃字段，ipv6版本发布后删除")
     @Deprecated
@@ -56,10 +54,10 @@ public class AgentTaskExecutionVO {
     @ApiModelProperty("Agent ipv6")
     private String ipv6;
 
-    @ApiModelProperty("Agent任务执行状态")
+    @ApiModelProperty("执行对象任务执行状态")
     private Integer status;
 
-    @ApiModelProperty("Agent任务执行状态描述")
+    @ApiModelProperty("执行对象任务执行状态描述")
     private String statusDesc;
 
     @ApiModelProperty("开始时间")

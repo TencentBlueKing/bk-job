@@ -41,7 +41,7 @@ public class ExecutionResultGroupVO {
     private String tag;
     @ApiModelProperty("IP对应的任务执行情况")
     private List<AgentTaskExecutionVO> agentTaskExecutionDetail;
-    @ApiModelProperty("结果分组下的agent任务数")
+    @ApiModelProperty("结果分组下的执行对象任务数")
     private int agentTaskSize;
 
 }

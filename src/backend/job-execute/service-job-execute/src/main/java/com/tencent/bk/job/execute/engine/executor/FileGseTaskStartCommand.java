@@ -62,7 +62,7 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -70,7 +70,7 @@ import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -87,7 +87,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
-    private final FileAgentTaskService fileAgentTaskService;
+    private final FileExecuteObjectTaskService fileAgentTaskService;
     /**
      * 待分发文件，文件传输的源文件
      */
@@ -117,7 +117,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     public FileGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                    TaskInstanceService taskInstanceService,
                                    GseTaskService gseTaskService,
-                                   FileAgentTaskService fileAgentTaskService,
+                                   FileExecuteObjectTaskService fileAgentTaskService,
                                    AccountService accountService,
                                    TaskInstanceVariableService taskInstanceVariableService,
                                    StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -174,7 +174,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         resolvedTargetPathWithVariable();
         // 解析源<->目标文件映射
         parseSrcDestFileMap();
-        // 初始化agent任务
+        // 初始化执行对象任务
         initFileSourceGseAgentTasks();
         // 保存文件子任务的初始状态
         saveInitialFileTaskLogs();
@@ -294,7 +294,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             }
             fileSourceGseAgentTasks.add(agentTask);
         }
-        fileAgentTaskService.batchSaveAgentTasks(fileSourceGseAgentTasks);
+        fileAgentTaskService.batchSaveTasks(fileSourceGseAgentTasks);
     }
 
     @Override
@@ -359,7 +359,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      */
     private void saveInitialFileTaskLogs() {
         try {
-            Map<Long, ServiceHostLogDTO> logs = new HashMap<>();
+            Map<Long, ServiceExecuteObjectLogDTO> logs = new HashMap<>();
             addInitialFileUploadTaskLogs(logs);
             addInitialFileDownloadTaskLogs(logs);
             // 调用logService写入MongoDB
@@ -369,11 +369,11 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         }
     }
 
-    private void addInitialFileUploadTaskLogs(Map<Long, ServiceHostLogDTO> logs) {
+    private void addInitialFileUploadTaskLogs(Map<Long, ServiceExecuteObjectLogDTO> logs) {
         // 每个要分发的源文件一条上传日志
         for (JobFile file : allSrcFiles) {
             Long sourceHostId = file.getHost().getHostId();
-            ServiceHostLogDTO hostTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
+            ServiceExecuteObjectLogDTO hostTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                 sourceHostId, file.getHost().toCloudIp());
             boolean isAgentInstalled = isAgentInstalled(file.getHost().getAgentId());
             FileDistStatusEnum status = isAgentInstalled ?
@@ -389,14 +389,14 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         return StringUtils.isNotEmpty(agentId);
     }
 
-    private void addInitialFileDownloadTaskLogs(Map<Long, ServiceHostLogDTO> logs) {
+    private void addInitialFileDownloadTaskLogs(Map<Long, ServiceExecuteObjectLogDTO> logs) {
         // 每个目标IP从每个要分发的源文件下载的一条下载日志
         agentTasks.stream()
             .filter(ExecuteObjectTask::isTarget)
             .forEach(targetAgentTask -> {
                 HostDTO targetHost = hostIdHostMap.get(targetAgentTask.getHostId());
                 boolean isTargetAgentInstalled = isAgentInstalled(targetHost.getAgentId());
-                ServiceHostLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
+                ServiceExecuteObjectLogDTO ipTaskLog = initServiceLogDTOIfAbsent(logs, stepInstanceId, executeCount,
                     targetHost.getHostId(), targetHost.toCloudIp());
                 for (JobFile file : allSrcFiles) {
                     boolean isSourceAgentInstalled = isAgentInstalled(file.getHost().getAgentId());
@@ -419,11 +419,11 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             });
     }
 
-    private ServiceHostLogDTO initServiceLogDTOIfAbsent(Map<Long, ServiceHostLogDTO> logs, long stepInstanceId,
-                                                        int executeCount, Long hostId, String cloudIp) {
-        ServiceHostLogDTO hostTaskLog = logs.get(hostId);
+    private ServiceExecuteObjectLogDTO initServiceLogDTOIfAbsent(Map<Long, ServiceExecuteObjectLogDTO> logs, long stepInstanceId,
+                                                                 int executeCount, Long hostId, String cloudIp) {
+        ServiceExecuteObjectLogDTO hostTaskLog = logs.get(hostId);
         if (hostTaskLog == null) {
-            hostTaskLog = new ServiceHostLogDTO();
+            hostTaskLog = new ServiceExecuteObjectLogDTO();
             hostTaskLog.setStepInstanceId(stepInstanceId);
             hostTaskLog.setExecuteCount(executeCount);
             hostTaskLog.setHostId(hostId);
@@ -433,7 +433,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         return hostTaskLog;
     }
 
-    private void writeLogs(Map<Long, ServiceHostLogDTO> executionLogs) {
+    private void writeLogs(Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
         if (log.isDebugEnabled()) {
             log.debug("Write file task initial logs, executionLogs: {}", executionLogs);
         }

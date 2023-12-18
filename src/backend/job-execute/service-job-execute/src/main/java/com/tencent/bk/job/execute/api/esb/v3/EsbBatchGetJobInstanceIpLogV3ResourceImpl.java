@@ -50,8 +50,8 @@ import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogsDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -184,7 +184,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
                                List<HostDTO> queryHosts) {
         esbIpLogs.setLogType(LogTypeEnum.FILE.getValue());
 
-        ServiceHostLogsDTO ipLogs = logService.batchGetFileIpLogContent(
+        ServiceExecuteObjectLogsDTO ipLogs = logService.batchGetFileIpLogContent(
             stepInstance.getId(), stepInstance.getExecuteCount(), null, queryHosts);
 
         if (ipLogs == null || CollectionUtils.isEmpty(ipLogs.getIpLogs())) {

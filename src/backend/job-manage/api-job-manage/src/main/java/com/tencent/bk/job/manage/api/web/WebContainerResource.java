@@ -28,13 +28,13 @@ import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.manage.model.web.request.chooser.ListTopologyTreesReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerCheckReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerDetailReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
-import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * 容器管理 WEB API
  */
-@Api(tags = {"job-manage", "web", "container_management"})
+@Api(tags = "job-manage:web:Container_Management")
 @RequestMapping("/web")
 @RestController
 @WebAPI

@@ -40,8 +40,8 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
+import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -149,14 +149,14 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
     private List<Map<String, Object>> convertToStandardAnalyseResult(StepExecutionDetailDTO stepExecutionDetail) {
         List<Map<String, Object>> standardStepAnalyseResultList = new ArrayList<>();
-        List<AgentTaskResultGroupDTO> resultGroups = stepExecutionDetail.getResultGroups();
+        List<ResultGroupDTO> resultGroups = stepExecutionDetail.getResultGroups();
         if (resultGroups == null || resultGroups.isEmpty()) {
             return standardStepAnalyseResultList;
         }
 
-        for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
+        for (ResultGroupDTO resultGroup : resultGroups) {
             Map<String, Object> standardStepAnalyseResult = new HashMap<>();
-            List<ExecuteObjectTaskDetail> agentTasks = resultGroup.getAgentTasks();
+            List<ExecuteObjectTaskDetail> agentTasks = resultGroup.getExecuteObjectTasks();
             standardStepAnalyseResult.put("count", CollectionUtils.isEmpty(agentTasks) ? 0 : agentTasks.size());
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();

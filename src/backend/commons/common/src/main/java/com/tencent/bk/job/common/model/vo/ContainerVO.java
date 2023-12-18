@@ -22,27 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.common.model.vo;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.util.Map;
 
 /**
- * GSE Agent 脚本任务 Service
+ * 容器
  */
-public interface ScriptAgentTaskService extends AgentTaskService {
-    /**
-     * 根据主机ID获取Agent任务
-     *
-     * @param stepInstance 步骤实例
-     * @param executeCount 执行次数
-     * @param batch        滚动执行批次；传入null或者0将忽略该参数
-     * @param host         主机
-     * @return Agent任务
-     */
-    ExecuteObjectTask getAgentTaskByHost(StepInstanceBaseDTO stepInstance,
-                                         Integer executeCount,
-                                         Integer batch,
-                                         HostDTO host);
+@Getter
+@Setter
+@ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@ApiModel("容器")
+public class ContainerVO {
+
+    @ApiModelProperty("容器资源 ID, 容器在 cmdb 中注册资源的 ID")
+    private Long id;
+
+    @ApiModelProperty(value = "容器 ID", example = "docker://8812391923...")
+    private String uid;
+
+    @ApiModelProperty("容器名称")
+    private String name;
+
+    @ApiModelProperty("Pod名称")
+    private String podName;
+
+    @ApiModelProperty("所属 pod labels")
+    private Map<String, String> podLabels;
+
+    @ApiModelProperty("所属 Node hostId")
+    private String nodeHostId;
+
+    @ApiModelProperty("所属 Node Ip")
+    private String nodeIp;
+
+    @ApiModelProperty("所属 Node GSE agent 状态")
+    private String nodeAgentStatus;
 }

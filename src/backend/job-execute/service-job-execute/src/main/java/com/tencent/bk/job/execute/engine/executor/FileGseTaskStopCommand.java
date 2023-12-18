@@ -34,7 +34,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
@@ -48,7 +48,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
     public FileGseTaskStopCommand(AgentService agentService,
                                   AccountService accountService,
                                   GseTaskService gseTaskService,
-                                  AgentTaskService agentTaskService,
+                                  ExecuteObjectTaskService executeObjectTaskService,
                                   Tracer tracer,
                                   GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
@@ -57,7 +57,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
         super(agentService,
             accountService,
             gseTaskService,
-            agentTaskService,
+                executeObjectTaskService,
             tracer,
             gseClient,
             taskInstance,
@@ -68,7 +68,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
     @Override
     public void execute() {
         log.info("Stop gse file task, gseTask:" + gseTaskInfo);
-        List<ExecuteObjectTask> agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        List<ExecuteObjectTask> agentTasks = executeObjectTaskService.listTasksByGseTaskId(gseTask.getId());
         List<String> agentIds = agentTasks.stream()
             .map(ExecuteObjectTask::getAgentId)
             .distinct()

@@ -29,8 +29,8 @@ import com.tencent.bk.job.execute.engine.consts.JobBuildInVariables;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
@@ -53,14 +53,14 @@ import static com.tencent.bk.job.common.util.function.LambdasUtil.not;
 @Slf4j
 public class JobLastHostsVariableResolver implements VariableResolver {
     private final TaskInstanceService taskInstanceService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
+    private final FileExecuteObjectTaskService fileAgentTaskService;
     private final Set<String> BUILD_IN_VARIABLES = new HashSet<>();
 
     @Autowired
     public JobLastHostsVariableResolver(TaskInstanceService taskInstanceService,
-                                        ScriptAgentTaskService scriptAgentTaskService,
-                                        FileAgentTaskService fileAgentTaskService) {
+                                        ScriptExecuteObjectTaskService scriptAgentTaskService,
+                                        FileExecuteObjectTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
@@ -126,9 +126,9 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         TaskStepTypeEnum stepType = stepInstance.getStepType();
         List<ExecuteObjectTaskDetail> agentTasks = null;
         if (stepType == TaskStepTypeEnum.SCRIPT) {
-            agentTasks = scriptAgentTaskService.listAgentTaskDetail(stepInstance, stepInstance.getExecuteCount(), null);
+            agentTasks = scriptAgentTaskService.listTaskDetail(stepInstance, stepInstance.getExecuteCount(), null);
         } else if (stepType == TaskStepTypeEnum.FILE) {
-            agentTasks = fileAgentTaskService.listAgentTaskDetail(stepInstance, stepInstance.getExecuteCount(), null);
+            agentTasks = fileAgentTaskService.listTaskDetail(stepInstance, stepInstance.getExecuteCount(), null);
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 agentTasks = agentTasks.stream()
                     .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)

@@ -22,70 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.dao;
 
-import lombok.Data;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 
-/**
- * 执行对象任务执行信息
- */
-@Data
-public class AgentTaskExecutionDTO {
+import java.util.Collection;
+import java.util.List;
+
+public interface TaskInstanceExecuteObjectDAO {
     /**
-     * 云IP
+     * 批量保存执行对象
+     *
+     * @param executeObjects 执行对象
      */
-    private String cloudIp;
-    /**
-     * 执行次数
-     */
-    private Integer executeCount;
-    /**
-     * Agent ip显示名称，展示给用户使用该ip
-     */
-    private String displayIp;
+    void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects);
 
     /**
-     * 云区域ID
+     * 根据作业实例ID获取执行对象
+     *
+     * @param jobInstanceId 作业实例ID
+     * @return 执行对象
      */
-    private Long cloudAreaId;
+    List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId);
+
 
     /**
-     * 云区域名称
+     * 根据执行对象ID查询执行对象
+     *
+     * @param executeObjectId 执行对象ID
+     * @return 执行对象
      */
-    private String cloudAreaName;
+    ExecuteObject getExecuteObjectById(long executeObjectId);
 
     /**
-     * 执行对象任务执行状态
+     * 根据执行对象ID查询执行对象
+     *
+     * @param executeObjectType 执行对象类型
+     * @param resourceId        执行对象资源ID
+     * @return 执行对象
      */
-    private Integer status;
-    /**
-     * 开始时间
-     */
-    private Long startTime;
-    /**
-     * 结束时间
-     */
-    private Long endTime;
-    /**
-     * 耗时,毫秒
-     */
-    private Long totalTime;
-    /**
-     * 脚本返回码
-     */
-    private Integer exitCode;
-    /**
-     * 脚本错误码
-     */
-    private Integer errorCode;
-    /**
-     * 脚本执行输出
-     */
-    private String tag;
-
-    public void calculateTotalTime() {
-        if (this.endTime != null && this.startTime != null && this.endTime > this.startTime) {
-            this.totalTime = this.endTime - this.startTime;
-        }
-    }
+    ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType, String resourceId);
 }

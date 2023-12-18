@@ -42,8 +42,8 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -59,13 +59,13 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceStatusV3Resource {
 
     private final TaskInstanceService taskInstanceService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
+    private final FileExecuteObjectTaskService fileAgentTaskService;
     private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceStatusV3ResourceImpl(TaskInstanceService taskInstanceService,
-                                                 ScriptAgentTaskService scriptAgentTaskService,
-                                                 FileAgentTaskService fileAgentTaskService,
+                                                 ScriptExecuteObjectTaskService scriptAgentTaskService,
+                                                 FileExecuteObjectTaskService fileAgentTaskService,
                                                  AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
         this.scriptAgentTaskService = scriptAgentTaskService;
@@ -146,10 +146,10 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
                 List<ExecuteObjectTaskDetail> agentTaskList = null;
                 if (stepInstance.isScriptStep()) {
-                    agentTaskList = scriptAgentTaskService.listAgentTaskDetail(stepInstance,
+                    agentTaskList = scriptAgentTaskService.listTaskDetail(stepInstance,
                         stepInstance.getExecuteCount(), null);
                 } else if (stepInstance.isFileStep()) {
-                    agentTaskList = fileAgentTaskService.listAgentTaskDetail(stepInstance,
+                    agentTaskList = fileAgentTaskService.listTaskDetail(stepInstance,
                         stepInstance.getExecuteCount(), null);
                     if (CollectionUtils.isNotEmpty(agentTaskList)) {
                         // 如果是文件分发任务，只返回目标Agent结果

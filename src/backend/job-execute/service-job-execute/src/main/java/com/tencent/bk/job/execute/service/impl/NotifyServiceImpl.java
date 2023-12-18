@@ -39,9 +39,9 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.NotifyService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
@@ -91,8 +91,8 @@ public class NotifyServiceImpl implements NotifyService {
     private final ApplicationService applicationService;
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
+    private final FileExecuteObjectTaskService fileAgentTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
 
     @Autowired
@@ -102,8 +102,8 @@ public class NotifyServiceImpl implements NotifyService {
                              ApplicationService applicationService,
                              TaskInstanceService taskInstanceService,
                              MessageI18nService i18nService,
-                             ScriptAgentTaskService scriptAgentTaskService,
-                             FileAgentTaskService fileAgentTaskService,
+                             ScriptExecuteObjectTaskService scriptAgentTaskService,
+                             FileExecuteObjectTaskService fileAgentTaskService,
                              TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.jobCommonConfig = jobCommonConfig;
         this.notificationResource = notificationResource;
@@ -268,10 +268,10 @@ public class NotifyServiceImpl implements NotifyService {
             } else {
                 int successIpCount = 0;
                 if (stepInstanceDTO.isScriptStep()) {
-                    successIpCount = scriptAgentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
+                    successIpCount = scriptAgentTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
                         stepInstanceDTO.getExecuteCount());
                 } else if (stepInstanceDTO.isFileStep()) {
-                    successIpCount = fileAgentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
+                    successIpCount = fileAgentTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
                         stepInstanceDTO.getExecuteCount());
                 }
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));

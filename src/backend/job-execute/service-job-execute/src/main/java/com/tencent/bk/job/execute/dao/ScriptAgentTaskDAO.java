@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.execute.dao;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +35,8 @@ import java.util.List;
 /**
  * ScriptAgentTaskDAO
  */
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
 public interface ScriptAgentTaskDAO {
     /**
      * 批量保存Agent任务
@@ -66,7 +69,7 @@ public interface ScriptAgentTaskDAO {
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
      * @return 执行结果分组
      */
-    List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
+    List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
 
     /**
      * 根据执行结果查询Agent任务
@@ -145,7 +148,7 @@ public interface ScriptAgentTaskDAO {
     boolean isStepInstanceRecordExist(long stepInstanceId);
 
     /**
-     * 批量更新AgentTask的字段
+     * 部分更新AgentTask的字段
      *
      * @param stepInstanceId     条件 - 步骤实例ID
      * @param executeCount       条件 - 重试次数

@@ -22,33 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.logsvr.model.service;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
 
-/**
- * Agent任务执行结果分组
- */
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-public class AgentTaskResultGroupDTO extends AgentTaskResultGroupBaseDTO {
+@ApiModel("执行对象执行日志-批量")
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY)
+public class ServiceExecuteObjectLogsDTO {
     /**
-     * Agent任务
+     * 作业步骤实例ID
      */
-    private List<ExecuteObjectTaskDetail> agentTasks;
+    @ApiModelProperty("步骤实例ID")
+    private Long stepInstanceId;
 
-    public AgentTaskResultGroupDTO(Integer status, String tag) {
-        super(status, tag);
-    }
+    /**
+     * 执行次数
+     */
+    @ApiModelProperty("执行次数")
+    private Integer executeCount;
 
-    public AgentTaskResultGroupDTO(AgentTaskResultGroupBaseDTO baseResultGroup) {
-        super(baseResultGroup);
-    }
+    /**
+     * 执行对象执行日志列表
+     */
+    @ApiModelProperty(value = "执行对象执行日志列表")
+    @JsonProperty("ipLogs")
+    private List<ServiceExecuteObjectLogDTO> ipLogs;
+
 }

@@ -22,70 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.model.web.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-/**
- * 执行对象任务执行信息
- */
+@ApiModel("执行对象任务执行信息")
 @Data
-public class AgentTaskExecutionDTO {
-    /**
-     * 云IP
-     */
-    private String cloudIp;
-    /**
-     * 执行次数
-     */
-    private Integer executeCount;
-    /**
-     * Agent ip显示名称，展示给用户使用该ip
-     */
-    private String displayIp;
+public class ExecuteObjectTaskVO {
+    @ApiModelProperty("执行次数")
+    private Integer retryCount;
 
-    /**
-     * 云区域ID
-     */
-    private Long cloudAreaId;
+    @ApiModelProperty("滚动批次")
+    private Integer batch;
 
-    /**
-     * 云区域名称
-     */
-    private String cloudAreaName;
+    @ApiModelProperty("执行对象类型")
+    private ExecuteObjectVO executeObject;
 
-    /**
-     * 执行对象任务执行状态
-     */
+    @ApiModelProperty("执行对象任务执行状态")
     private Integer status;
-    /**
-     * 开始时间
-     */
+
+    @ApiModelProperty("执行对象任务执行状态描述")
+    private String statusDesc;
+
+    @ApiModelProperty("开始时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long startTime;
-    /**
-     * 结束时间
-     */
+
+    @ApiModelProperty("结束时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long endTime;
-    /**
-     * 耗时,毫秒
-     */
+
+    @ApiModelProperty("耗时")
+    @JsonSerialize(using = DecimalFormatJsonSerializer.class)
     private Long totalTime;
-    /**
-     * 脚本返回码
-     */
+
+    @ApiModelProperty("脚本返回码")
     private Integer exitCode;
-    /**
-     * 脚本错误码
-     */
+
+    @ApiModelProperty("脚本错误码")
     private Integer errorCode;
-    /**
-     * 脚本执行输出
-     */
+
+    @ApiModelProperty("脚本执行输出")
     private String tag;
 
-    public void calculateTotalTime() {
-        if (this.endTime != null && this.startTime != null && this.endTime > this.startTime) {
-            this.totalTime = this.endTime - this.startTime;
-        }
-    }
 }

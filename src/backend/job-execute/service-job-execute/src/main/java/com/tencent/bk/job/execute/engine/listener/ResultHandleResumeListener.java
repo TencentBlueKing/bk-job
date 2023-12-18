@@ -44,10 +44,10 @@ import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -89,9 +89,9 @@ public class ResultHandleResumeListener {
 
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
-    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
 
-    private final FileAgentTaskService fileAgentTaskService;
+    private final FileExecuteObjectTaskService fileAgentTaskService;
 
     private final StepInstanceService stepInstanceService;
     private final GseClient gseClient;
@@ -107,8 +107,8 @@ public class ResultHandleResumeListener {
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                      ScriptAgentTaskService scriptAgentTaskService,
-                                      FileAgentTaskService fileAgentTaskService,
+                                      ScriptExecuteObjectTaskService scriptAgentTaskService,
+                                      FileExecuteObjectTaskService fileAgentTaskService,
                                       StepInstanceService stepInstanceService,
                                       GseClient gseClient) {
         this.taskInstanceService = taskInstanceService;
@@ -171,7 +171,7 @@ public class ResultHandleResumeListener {
                                   GseTaskDTO gseTask,
                                   String requestId) {
         Map<String, ExecuteObjectTask> agentTaskMap = new HashMap<>();
-        List<ExecuteObjectTask> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        List<ExecuteObjectTask> agentTasks = scriptAgentTaskService.listTasksByGseTaskId(gseTask.getId());
         agentTasks.stream()
             .filter(agentTask -> !agentTask.isAgentIdEmpty())
             .forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
@@ -211,7 +211,7 @@ public class ResultHandleResumeListener {
 
         Map<String, ExecuteObjectTask> sourceAgentTaskMap = new HashMap<>();
         Map<String, ExecuteObjectTask> targetAgentTaskMap = new HashMap<>();
-        List<ExecuteObjectTask> agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        List<ExecuteObjectTask> agentTasks = fileAgentTaskService.listTasksByGseTaskId(gseTask.getId());
         agentTasks.stream()
             .filter(agentTask -> !agentTask.isAgentIdEmpty())
             .forEach(agentTask -> {

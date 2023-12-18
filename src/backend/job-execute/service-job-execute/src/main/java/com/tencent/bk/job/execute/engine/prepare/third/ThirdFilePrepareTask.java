@@ -60,8 +60,8 @@ import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileLogPieceDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ThirdFileSourceTaskLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -448,18 +448,18 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private void writeLogs(StepInstanceDTO stepInstance,
                            FileSourceTaskStatusDTO fileSourceTaskStatusDTO,
                            List<ThirdFileSourceTaskLogDTO> logDTOList) {
-        List<ServiceHostLogDTO> serviceHostLogDTOList = new ArrayList<>();
+        List<ServiceExecuteObjectLogDTO> serviceExecuteObjectLogDTOList = new ArrayList<>();
         for (ThirdFileSourceTaskLogDTO logDTO : logDTOList) {
             HostDTO host = parseFileWorkerHostWithCache(
                 fileSourceTaskStatusDTO.getCloudId(),
                 fileSourceTaskStatusDTO.getIpProtocol(),
                 fileSourceTaskStatusDTO.getIp()
             );
-            serviceHostLogDTOList.add(buildServiceHostLogDTO(host, logDTO));
+            serviceExecuteObjectLogDTOList.add(buildServiceHostLogDTO(host, logDTO));
         }
         logService.writeFileLogsWithTimestamp(
             stepInstance.getCreateTime(),
-            serviceHostLogDTOList,
+            serviceExecuteObjectLogDTOList,
             System.currentTimeMillis()
         );
     }
@@ -471,11 +471,11 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
      * @param thirdFileSourceTaskLog 第三方源文件下载任务日志
      * @return 统一格式日志实体
      */
-    private ServiceHostLogDTO buildServiceHostLogDTO(HostDTO host, ThirdFileSourceTaskLogDTO thirdFileSourceTaskLog) {
+    private ServiceExecuteObjectLogDTO buildServiceHostLogDTO(HostDTO host, ThirdFileSourceTaskLogDTO thirdFileSourceTaskLog) {
         if (thirdFileSourceTaskLog == null) {
             return null;
         }
-        ServiceHostLogDTO serviceHostLog = new ServiceHostLogDTO();
+        ServiceExecuteObjectLogDTO serviceHostLog = new ServiceExecuteObjectLogDTO();
         serviceHostLog.setStepInstanceId(stepInstance.getId());
         serviceHostLog.setExecuteCount(stepInstance.getExecuteCount());
         serviceHostLog.setBatch(stepInstance.getBatch());

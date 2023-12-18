@@ -22,70 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.model.web.vo;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
+import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import io.swagger.annotations.ApiModel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * 执行对象任务执行信息
+ * 作业执行对象 VO
  */
-@Data
-public class AgentTaskExecutionDTO {
-    /**
-     * 云IP
-     */
-    private String cloudIp;
-    /**
-     * 执行次数
-     */
-    private Integer executeCount;
-    /**
-     * Agent ip显示名称，展示给用户使用该ip
-     */
-    private String displayIp;
+@Setter
+@Getter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@ApiModel("作业执行对象")
+public class ExecuteObjectVO {
 
     /**
-     * 云区域ID
+     * 执行对象类型
+     *
+     * @see ExecuteObjectTypeEnum
      */
-    private Long cloudAreaId;
+    private ExecuteObjectTypeEnum type;
 
     /**
-     * 云区域名称
+     * 容器
      */
-    private String cloudAreaName;
+    private ContainerVO container;
 
     /**
-     * 执行对象任务执行状态
+     * 主机
      */
-    private Integer status;
-    /**
-     * 开始时间
-     */
-    private Long startTime;
-    /**
-     * 结束时间
-     */
-    private Long endTime;
-    /**
-     * 耗时,毫秒
-     */
-    private Long totalTime;
-    /**
-     * 脚本返回码
-     */
-    private Integer exitCode;
-    /**
-     * 脚本错误码
-     */
-    private Integer errorCode;
-    /**
-     * 脚本执行输出
-     */
-    private String tag;
+    private HostInfoVO host;
 
-    public void calculateTotalTime() {
-        if (this.endTime != null && this.startTime != null && this.endTime > this.startTime) {
-            this.totalTime = this.endTime - this.startTime;
-        }
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
+        return ExecuteObjectTypeEnum.valOf(type);
     }
 }

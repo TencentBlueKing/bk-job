@@ -26,6 +26,8 @@ package com.tencent.bk.job.logsvr.model.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -41,9 +43,17 @@ import lombok.NoArgsConstructor;
 @ApiModel("脚本日志")
 public class ServiceScriptLogDTO {
     /**
+     * 执行对象ID
+     */
+    @ApiModelProperty("执行对象ID")
+    private String executeObjectId;
+
+    /**
      * 主机ID
      */
     @ApiModelProperty("主机ID")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
     private Long hostId;
 
     /**
@@ -51,6 +61,8 @@ public class ServiceScriptLogDTO {
      */
     @ApiModelProperty("主机ipv4,格式: 云区域ID:IPv4")
     @JsonProperty("ip")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
     private String cloudIp;
 
     /**
@@ -58,6 +70,8 @@ public class ServiceScriptLogDTO {
      */
     @ApiModelProperty("主机ipv6,格式: 云区域ID:IPv6")
     @JsonProperty("ipv6")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
     private String cloudIpv6;
 
     /**
@@ -75,10 +89,27 @@ public class ServiceScriptLogDTO {
     /**
      * Constructor
      *
+     * @param executeObjectId 执行对象 ID
+     * @param offset          日志偏移量(byte)
+     * @param content         日志内容
+     */
+    public ServiceScriptLogDTO(String executeObjectId,
+                               Integer offset,
+                               String content) {
+        this.executeObjectId = executeObjectId;
+        this.offset = offset;
+        this.content = content;
+    }
+
+    /**
+     * Constructor
+     *
      * @param host    主机
      * @param offset  日志偏移量(byte)
      * @param content 日志内容
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
     public ServiceScriptLogDTO(HostDTO host,
                                Integer offset,
                                String content) {
@@ -92,11 +123,13 @@ public class ServiceScriptLogDTO {
     /**
      * Constructor
      *
-     * @param hostId  主机hostId
-     * @param cloudIp      主机ipv4,格式: 云区域ID:IPv4
-     * @param cloudIpv6    主机ipv6,格式: 云区域ID:IPv6
-     * @param content 日志内容
+     * @param hostId    主机hostId
+     * @param cloudIp   主机ipv4,格式: 云区域ID:IPv4
+     * @param cloudIpv6 主机ipv6,格式: 云区域ID:IPv6
+     * @param content   日志内容
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
     public ServiceScriptLogDTO(Long hostId,
                                String cloudIp,
                                String cloudIpv6,

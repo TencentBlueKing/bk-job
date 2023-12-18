@@ -45,8 +45,8 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbIpStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -64,13 +64,13 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceStatusResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
+    private final FileExecuteObjectTaskService fileAgentTaskService;
     private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceStatusResourceImpl(TaskInstanceService taskInstanceService,
-                                               ScriptAgentTaskService scriptAgentTaskService,
-                                               FileAgentTaskService fileAgentTaskService,
+                                               ScriptExecuteObjectTaskService scriptAgentTaskService,
+                                               FileExecuteObjectTaskService fileAgentTaskService,
                                                AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
         this.scriptAgentTaskService = scriptAgentTaskService;
@@ -119,10 +119,10 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
             List<ExecuteObjectTaskDetail> agentTasks = null;
             if (stepInstance.isScriptStep()) {
-                agentTasks = scriptAgentTaskService.listAgentTaskDetail(stepInstance,
+                agentTasks = scriptAgentTaskService.listTaskDetail(stepInstance,
                     stepInstance.getExecuteCount(), null);
             } else if (stepInstance.isFileStep()) {
-                agentTasks = fileAgentTaskService.listAgentTaskDetail(stepInstance,
+                agentTasks = fileAgentTaskService.listTaskDetail(stepInstance,
                     stepInstance.getExecuteCount(), null);
                 if (CollectionUtils.isNotEmpty(agentTasks)) {
                     // 如果是文件分发任务，只返回目标Agent结果

@@ -31,11 +31,11 @@ import lombok.NoArgsConstructor;
 import java.util.Objects;
 
 /**
- * Agent任务执行结果分组
+ * 执行对象任务执行结果分组
  */
 @Data
 @NoArgsConstructor
-public class AgentTaskResultGroupBaseDTO implements Comparable<AgentTaskResultGroupBaseDTO> {
+public class ResultGroupBaseDTO implements Comparable<ResultGroupBaseDTO> {
     /**
      * 任务状态
      *
@@ -47,26 +47,26 @@ public class AgentTaskResultGroupBaseDTO implements Comparable<AgentTaskResultGr
      */
     private String tag;
     /**
-     * Agent任务总数
+     * 执行对象任务总数
      */
-    private int totalAgentTasks;
+    private int total;
 
-    public AgentTaskResultGroupBaseDTO(Integer status, String tag) {
+    public ResultGroupBaseDTO(Integer status, String tag) {
         this.status = status;
         this.tag = tag;
     }
 
-    public AgentTaskResultGroupBaseDTO(AgentTaskResultGroupBaseDTO baseResultGroup) {
+    public ResultGroupBaseDTO(ResultGroupBaseDTO baseResultGroup) {
         this.status = baseResultGroup.getStatus();
         this.tag = baseResultGroup.getTag();
-        this.totalAgentTasks = baseResultGroup.getTotalAgentTasks();
+        this.total = baseResultGroup.getTotal();
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AgentTaskResultGroupBaseDTO that = (AgentTaskResultGroupBaseDTO) o;
+        ResultGroupBaseDTO that = (ResultGroupBaseDTO) o;
         return status.equals(that.status) &&
             tagEquals(tag, that.tag);
     }
@@ -87,7 +87,7 @@ public class AgentTaskResultGroupBaseDTO implements Comparable<AgentTaskResultGr
     }
 
     @Override
-    public int compareTo(AgentTaskResultGroupBaseDTO that) {
+    public int compareTo(ResultGroupBaseDTO that) {
         int result = status.compareTo(that.status);
         if (result != 0) {
             return result;

@@ -22,48 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.chooser.container;
+package com.tencent.bk.job.execute.engine.result;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 
-import java.util.Map;
+import java.util.Objects;
 
 /**
- * 容器
+ * 执行对象KEY, 用于跟 GSE 交互
  */
-@Getter
-@Setter
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("容器")
-public class ContainerVO {
+public class ExecuteObjectGseKey {
+    private final String key;
 
-    @ApiModelProperty("容器资源 ID, 容器在 cmdb 中注册资源的 ID")
-    private Long id;
+    private ExecuteObjectGseKey(String key) {
+        this.key = key;
+    }
 
-    @ApiModelProperty(value = "容器 ID", example = "docker://8812391923...")
-    private String uid;
+    public static ExecuteObjectGseKey ofHostKey(String agentId) {
+        return new ExecuteObjectGseKey(ExecuteObjectTypeEnum.HOST.getValue() + ":" + agentId);
+    }
 
-    @ApiModelProperty("容器名称")
-    private String name;
+    public static ExecuteObjectGseKey ofContainerKey(String containerId) {
+        return new ExecuteObjectGseKey(ExecuteObjectTypeEnum.CONTAINER.getValue() + ":" + containerId);
+    }
 
-    @ApiModelProperty("Pod名称")
-    private String podName;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ExecuteObjectGseKey that = (ExecuteObjectGseKey) o;
+        return key.equals(that.key);
+    }
 
-    @ApiModelProperty("所属 pod labels")
-    private Map<String, String> podLabels;
-
-    @ApiModelProperty("所属 Node hostId")
-    private String nodeHostId;
-
-    @ApiModelProperty("所属 Node Ip")
-    private String nodeIp;
-
-    @ApiModelProperty("所属 Node GSE agent 状态")
-    private String nodeAgentStatus;
+    @Override
+    public int hashCode() {
+        return Objects.hash(key);
+    }
 }

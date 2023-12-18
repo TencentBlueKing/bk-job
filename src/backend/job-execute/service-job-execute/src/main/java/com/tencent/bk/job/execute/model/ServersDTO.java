@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
@@ -49,6 +50,7 @@ import java.util.stream.Collectors;
  */
 @Data
 @PersistenceObject
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ServersDTO implements Cloneable {
     /**
      * 如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name
@@ -66,12 +68,12 @@ public class ServersDTO implements Cloneable {
     private List<ExecuteObject> staticExecuteObjectList;
 
     /**
-     * 服务器动态分组列表
+     * 主机动态分组列表
      */
     private List<DynamicServerGroupDTO> dynamicServerGroups;
 
     /**
-     * topo节点
+     * 主机拓扑节点
      */
     private List<DynamicServerTopoNodeDTO> topoNodes;
 

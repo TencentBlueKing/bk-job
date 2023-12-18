@@ -48,6 +48,9 @@ public class TaskTargetVO {
     @ApiModelProperty(value = "主机节点列表")
     private TaskHostNodeVO hostNodeInfo;
 
+    @ApiModelProperty(value = "容器节点列表")
+    private TaskContainerNodeVO containerNodeInfo;
+
     public void validate(boolean isCreate) throws InvalidParamException {
         if (StringUtils.isNoneBlank(variable)) {
             hostNodeInfo = null;

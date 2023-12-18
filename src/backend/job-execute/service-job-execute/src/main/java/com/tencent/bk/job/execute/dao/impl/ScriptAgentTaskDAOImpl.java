@@ -24,12 +24,13 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.tables.GseScriptAgentTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptAgentTaskRecord;
 import org.apache.commons.collections4.CollectionUtils;
@@ -59,6 +60,8 @@ import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 import static org.jooq.impl.DSL.count;
 
 @Repository
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
 public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     private static final GseScriptAgentTask T_GSE_SCRIPT_AGENT_TASK = GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK;
@@ -160,7 +163,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
+    public List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
         SelectConditionStep<?> selectConditionStep =
             CTX.select(T_GSE_SCRIPT_AGENT_TASK.STATUS, T_GSE_SCRIPT_AGENT_TASK.TAG, count().as("ip_count"))
                 .from(T_GSE_SCRIPT_AGENT_TASK)
@@ -174,13 +177,13 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
             .orderBy(T_GSE_SCRIPT_AGENT_TASK.STATUS.asc())
             .fetch();
 
-        List<AgentTaskResultGroupBaseDTO> resultGroups = new ArrayList<>();
+        List<ResultGroupBaseDTO> resultGroups = new ArrayList<>();
         result.forEach(record -> {
-            AgentTaskResultGroupBaseDTO resultGroup = new AgentTaskResultGroupBaseDTO();
+            ResultGroupBaseDTO resultGroup = new ResultGroupBaseDTO();
             resultGroup.setStatus(record.get(T_GSE_SCRIPT_AGENT_TASK.STATUS));
             resultGroup.setTag(record.get(T_GSE_SCRIPT_AGENT_TASK.TAG));
             Object ipCount = record.get("ip_count");
-            resultGroup.setTotalAgentTasks(ipCount == null ? 0 : (int) ipCount);
+            resultGroup.setTotal(ipCount == null ? 0 : (int) ipCount);
             resultGroups.add(resultGroup);
         });
         return resultGroups;
@@ -188,10 +191,10 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                              Integer executeCount,
-                                                              Integer batch,
-                                                              Integer status,
-                                                              String tag) {
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         Integer status,
+                                                         String tag) {
         SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -212,13 +215,13 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                              Integer executeCount,
-                                                              Integer batch,
-                                                              Integer status,
-                                                              String tag,
-                                                              Integer limit,
-                                                              String orderField,
-                                                              Order order) {
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         Integer status,
+                                                         String tag,
+                                                         Integer limit,
+                                                         String orderField,
+                                                         Order order) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
         conditions.add(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()));
@@ -286,8 +289,8 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch) {
+                                             Integer executeCount,
+                                             Integer batch) {
         SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))

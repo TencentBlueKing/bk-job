@@ -22,70 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.service;
 
-import lombok.Data;
+import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 
-/**
- * 执行对象任务执行信息
- */
-@Data
-public class AgentTaskExecutionDTO {
+public interface ScriptExecuteObjectTaskService extends ExecuteObjectTaskService {
     /**
-     * 云IP
+     * 根据执行对象复合 KEY 获取执行对象任务
+     *
+     * @param stepInstance              步骤实例
+     * @param executeCount              执行次数
+     * @param batch                     滚动执行批次；传入null或者0将忽略该参数
+     * @param executeObjectCompositeKey 执行对象复合 KEY
+     * @return 执行对象任务
      */
-    private String cloudIp;
-    /**
-     * 执行次数
-     */
-    private Integer executeCount;
-    /**
-     * Agent ip显示名称，展示给用户使用该ip
-     */
-    private String displayIp;
-
-    /**
-     * 云区域ID
-     */
-    private Long cloudAreaId;
-
-    /**
-     * 云区域名称
-     */
-    private String cloudAreaName;
-
-    /**
-     * 执行对象任务执行状态
-     */
-    private Integer status;
-    /**
-     * 开始时间
-     */
-    private Long startTime;
-    /**
-     * 结束时间
-     */
-    private Long endTime;
-    /**
-     * 耗时,毫秒
-     */
-    private Long totalTime;
-    /**
-     * 脚本返回码
-     */
-    private Integer exitCode;
-    /**
-     * 脚本错误码
-     */
-    private Integer errorCode;
-    /**
-     * 脚本执行输出
-     */
-    private String tag;
-
-    public void calculateTotalTime() {
-        if (this.endTime != null && this.startTime != null && this.endTime > this.startTime) {
-            this.totalTime = this.endTime - this.startTime;
-        }
-    }
+    ExecuteObjectTask getTaskByExecuteObjectCompositeKey(StepInstanceBaseDTO stepInstance,
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         ExecuteObjectCompositeKey executeObjectCompositeKey);
 }

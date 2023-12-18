@@ -42,14 +42,15 @@ public class ScriptLogQuery {
      */
     private Long stepInstanceId;
     /**
-     * 执行任务的主机ip列表
-     */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", deprecatedVersion = "3.7.x")
-    private List<String> ips;
-    /**
      * 执行任务的主机ID列表
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
     private List<Long> hostIds;
+    /**
+     * 执行对象实例 ID
+     */
+    private List<Long> executeObjectIds;
     /**
      * 执行次数
      */
@@ -63,13 +64,11 @@ public class ScriptLogQuery {
                           Long stepInstanceId,
                           Integer executeCount,
                           Integer batch,
-                          List<Long> hostIds,
-                          List<String> ips) {
+                          List<Long> hostIds) {
         this.jobCreateDate = jobCreateDate;
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
         this.hostIds = hostIds;
-        this.ips = ips;
     }
 }

@@ -49,7 +49,7 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -100,7 +100,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
-    protected AgentTaskService agentTaskService;
+    protected ExecuteObjectTaskService executeObjectTaskService;
     protected StepInstanceService stepInstanceService;
     protected GseClient gseClient;
     /**
@@ -224,7 +224,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                       AgentTaskService agentTaskService,
+                                       ExecuteObjectTaskService executeObjectTaskService,
                                        StepInstanceService stepInstanceService,
                                        GseClient gseClient,
                                        TaskInstanceDTO taskInstance,
@@ -242,7 +242,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.agentTaskService = agentTaskService;
+        this.executeObjectTaskService = executeObjectTaskService;
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
         this.requestId = requestId;
@@ -450,7 +450,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 agentTask.setEndTime(System.currentTimeMillis());
             });
         }
-        agentTaskService.batchUpdateAgentTasks(notFinishedGseAgentTasks);
+        executeObjectTaskService.batchUpdateTasks(notFinishedGseAgentTasks);
     }
 
     /*
@@ -597,13 +597,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 批量更新AgentTask并重置changed标志
      *
-     * @param agentTasks agent任务列表
+     * @param agentTasks 执行对象任务列表
      */
     protected void batchSaveChangedGseAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isNotEmpty(agentTasks)) {
             List<ExecuteObjectTask> changedGseAgentTasks =
                 agentTasks.stream().filter(ExecuteObjectTask::isChanged).collect(Collectors.toList());
-            agentTaskService.batchUpdateAgentTasks(changedGseAgentTasks);
+            executeObjectTaskService.batchUpdateTasks(changedGseAgentTasks);
             changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
         }
     }
@@ -686,7 +686,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     /**
-     * 所有agent任务结束的时候，分析整体GSE任务状态
+     * 所有执行对象任务结束的时候，分析整体GSE任务状态
      */
     protected GseTaskExecuteResult analyseFinishedExecuteResult() {
         GseTaskExecuteResult rst;

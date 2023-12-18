@@ -25,21 +25,26 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * GSE 执行对象任务
+ * GSE Agent 任务
  */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public class ExecuteObjectTask {
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
+public class AgentTaskDTO {
     /**
      * 步骤实例ID
      */
@@ -49,7 +54,7 @@ public class ExecuteObjectTask {
      */
     private int executeCount;
     /**
-     * 任务对应的实际的步骤执行次数（重试场景，可能任务并没有实际被执行)
+     * Agent 任务对应的实际的步骤执行次数（重试场景，可能Agent任务并没有实际被执行)
      */
     private Integer actualExecuteCount;
     /**
@@ -61,21 +66,20 @@ public class ExecuteObjectTask {
      */
     private Long gseTaskId;
     /**
-     * 执行对象 ID
+     * 主机ID
      */
-    private Long executeObjId;
-    /**
-     * 主机 ID
-     */
-    @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
     private Long hostId;
     /**
-     * 主机 agentId
+     * Agent ID
+     */
+    private String agentId;
+    /**
+     * 服务器云区域+IP
      */
     @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
-    private String agentId;
+    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续AgentTask仅包含hostId,不再存储具体的IP数据",
+        deprecatedVersion = "3.7.x")
+    private String cloudIp;
     /**
      * 任务状态
      */
@@ -121,44 +125,45 @@ public class ExecuteObjectTask {
      */
     private volatile boolean changed;
 
-    public ExecuteObjectTask(long stepInstanceId, int executeCount, int batch, Long executeObjId) {
+    public AgentTaskDTO(long stepInstanceId, int executeCount, int batch, Long hostId, String agentId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
-        this.executeObjId = executeObjId;
+        this.hostId = hostId;
+        this.agentId = agentId;
     }
 
-    public ExecuteObjectTask(long stepInstanceId,
-                             int executeCount,
-                             int batch,
-                             FileTaskModeEnum fileTaskMode,
-                             Long executeObjId) {
+    public AgentTaskDTO(long stepInstanceId, int executeCount, int batch, FileTaskModeEnum fileTaskMode,
+                        Long hostId, String agentId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
         this.fileTaskMode = fileTaskMode;
-        this.executeObjId = executeObjId;
+        this.hostId = hostId;
+        this.agentId = agentId;
     }
 
-    public ExecuteObjectTask(ExecuteObjectTask executeObjectTask) {
-        this.stepInstanceId = executeObjectTask.getStepInstanceId();
-        this.executeCount = executeObjectTask.getExecuteCount();
-        this.actualExecuteCount = executeObjectTask.getActualExecuteCount();
-        this.batch = executeObjectTask.getBatch();
-        this.fileTaskMode = executeObjectTask.getFileTaskMode();
-        this.executeObjId = executeObjectTask.getExecuteObjId();
-        this.status = executeObjectTask.getStatus();
-        this.startTime = executeObjectTask.getStartTime();
-        this.endTime = executeObjectTask.getEndTime();
-        this.totalTime = executeObjectTask.getTotalTime();
-        this.errorCode = executeObjectTask.getErrorCode();
-        this.exitCode = executeObjectTask.getExitCode();
-        this.tag = executeObjectTask.getTag();
-        this.scriptLogOffset = executeObjectTask.getScriptLogOffset();
-        this.scriptLogContent = executeObjectTask.getScriptLogContent();
-        this.fileTaskMode = executeObjectTask.getFileTaskMode();
-        this.gseTaskId = executeObjectTask.getGseTaskId();
-        this.changed = executeObjectTask.isChanged();
+    public AgentTaskDTO(AgentTaskDTO agentTask) {
+        this.stepInstanceId = agentTask.getStepInstanceId();
+        this.executeCount = agentTask.getExecuteCount();
+        this.actualExecuteCount = agentTask.getActualExecuteCount();
+        this.batch = agentTask.getBatch();
+        this.fileTaskMode = agentTask.getFileTaskMode();
+        this.hostId = agentTask.getHostId();
+        this.agentId = agentTask.getAgentId();
+        this.cloudIp = agentTask.getCloudIp();
+        this.status = agentTask.getStatus();
+        this.startTime = agentTask.getStartTime();
+        this.endTime = agentTask.getEndTime();
+        this.totalTime = agentTask.getTotalTime();
+        this.errorCode = agentTask.getErrorCode();
+        this.exitCode = agentTask.getExitCode();
+        this.tag = agentTask.getTag();
+        this.scriptLogOffset = agentTask.getScriptLogOffset();
+        this.scriptLogContent = agentTask.getScriptLogContent();
+        this.fileTaskMode = agentTask.getFileTaskMode();
+        this.gseTaskId = agentTask.getGseTaskId();
+        this.changed = agentTask.isChanged();
     }
 
     public void setStatus(ExecuteObjectTaskStatusEnum status) {
@@ -237,11 +242,27 @@ public class ExecuteObjectTask {
         return !(fileTaskMode != null && fileTaskMode == FileTaskModeEnum.UPLOAD);
     }
 
+    public HostDTO getHost() {
+        HostDTO host = new HostDTO();
+        host.setHostId(hostId);
+        host.setAgentId(agentId);
+        if (StringUtils.isNotEmpty(cloudIp)) {
+            String[] ipProps = cloudIp.split(IpUtils.COLON);
+            host.setBkCloudId(Long.valueOf(ipProps[0]));
+            host.setIp(ipProps[1]);
+        }
+
+        return host;
+    }
 
     /**
      * 任务是否执行成功
      */
     public boolean isSuccess() {
         return ExecuteObjectTaskStatusEnum.isSuccess(status);
+    }
+
+    public boolean isAgentIdEmpty() {
+        return StringUtils.isEmpty(agentId);
     }
 }

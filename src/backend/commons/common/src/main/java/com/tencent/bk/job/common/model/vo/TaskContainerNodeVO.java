@@ -22,76 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model.service;
+package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@ApiModel("主机执行日志")
 @Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ServiceHostLogDTO {
-    /**
-     * 作业步骤实例ID
-     */
-    @ApiModelProperty("步骤实例ID")
-    private Long stepInstanceId;
+@ApiModel("容器节点信息")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
+public class TaskContainerNodeVO {
 
-    /**
-     * 执行次数
-     */
-    @ApiModelProperty("执行次数")
-    private Integer executeCount;
-
-    /**
-     * 滚动执行批次
-     */
-    @ApiModelProperty("滚动执行批次")
-    private Integer batch;
-
-    /**
-     * 云区域ID:ipv4
-     */
-    @ApiModelProperty(value = "云区域ID:ipv4")
-    @JsonProperty("ip")
-    private String cloudIp;
-
-    /**
-     * 云区域ID:ipv6
-     */
-    @ApiModelProperty(value = "云区域ID:ipv6")
-    @JsonProperty("ipv6")
-    private String cloudIpv6;
-
-    /**
-     * 主机ID
-     */
-    @ApiModelProperty(value = "主机ID")
-    private Long hostId;
-
-    /**
-     * 脚本日志内容
-     */
-    @ApiModelProperty(value = "脚本日志内容，保存日志的时候需要传入,查询日志的时候该字段无效")
-    @JsonProperty("scriptLog")
-    private ServiceScriptLogDTO scriptLog;
-
-    /**
-     * 文件任务执行日志
-     */
-    @JsonProperty("fileTaskLogs")
-    private List<ServiceFileTaskLogDTO> fileTaskLogs;
-
-    public void addFileTaskLog(ServiceFileTaskLogDTO fileTaskDetailLog) {
-        if (fileTaskLogs == null) {
-            fileTaskLogs = new ArrayList<>();
-        }
-        fileTaskLogs.add(fileTaskDetailLog);
-    }
+    @ApiModelProperty("容器列表")
+    private List<ContainerVO> containerList;
 }

@@ -24,16 +24,14 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
 /**
- * GSE Agent 任务详情，包含主机的详细信息
+ * GSE 执行对象任务，包含执行对象的详细信息
  */
 @Getter
 @Setter
@@ -41,42 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 public class ExecuteObjectTaskDetail extends ExecuteObjectTask {
     private ExecuteObject executeObject;
-    /**
-     * 云区域ID
-     */
-    private Long bkCloudId;
-    /**
-     * 云区域名称
-     */
-    private String bkCloudName;
-    /**
-     * 主机 ipv4
-     */
-    private String ip;
-    /**
-     * 主机ipv6
-     */
-    private String ipv6;
 
     public ExecuteObjectTaskDetail(ExecuteObjectTask executeObjectTask) {
         super(executeObjectTask);
-        if (StringUtils.isNotEmpty(executeObjectTask.getCloudIp())) {
-            HostDTO host = HostDTO.fromCloudIp(executeObjectTask.getCloudIp());
-            this.ip = host.getIp();
-            this.bkCloudId = host.getBkCloudId();
-        }
     }
-
-    public HostDTO getHost() {
-        HostDTO host = new HostDTO();
-        host.setHostId(getHostId());
-        host.setIp(getIp());
-        host.setIpv6(getIpv6());
-        host.setBkCloudId(getBkCloudId());
-        host.setBkCloudName(getBkCloudName());
-        host.setAgentId(getAgentId());
-        return host;
-    }
-
-
 }

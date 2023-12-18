@@ -35,13 +35,14 @@ import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.config.LogExportConfig;
 import com.tencent.bk.job.execute.constants.LogExportStatusEnum;
+import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -66,9 +67,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-/**
- * @since 19/1/2021 12:01
- */
 @Slf4j
 @Service
 public class LogExportServiceImpl implements LogExportService {
@@ -80,7 +78,7 @@ public class LogExportServiceImpl implements LogExportService {
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
-    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
 
     @Autowired
     public LogExportServiceImpl(LogService logService,
@@ -89,7 +87,7 @@ public class LogExportServiceImpl implements LogExportService {
                                 @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                 ArtifactoryConfig artifactoryConfig,
                                 LogExportConfig logExportConfig,
-                                ScriptAgentTaskService scriptAgentTaskService,
+                                ScriptExecuteObjectTaskService scriptAgentTaskService,
                                 @Qualifier("logExportExecutor") ExecutorService logExportExecutor) {
         this.logService = logService;
         this.redisTemplate = redisTemplate;
@@ -235,14 +233,14 @@ public class LogExportServiceImpl implements LogExportService {
         List<ExecuteObjectTask> gseAgentTasks = new ArrayList<>();
         boolean isGetByHost = hostId != null || StringUtils.isNotBlank(cloudIp);
         if (isGetByHost) {
-            HostDTO host = HostDTO.fromHostIdOrCloudIp(hostId, cloudIp);
-            ExecuteObjectTask agentTask = scriptAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, null,
-                host);
-            if (agentTask != null) {
-                gseAgentTasks.add(agentTask);
+            ExecuteObjectCompositeKey executeObjectCompositeKey = ExecuteObjectCompositeKey.ofHost(hostId, cloudIp);
+            ExecuteObjectTask executeObjectTask = scriptAgentTaskService.getTaskByExecuteObjectCompositeKey(
+                stepInstance, executeCount, null, executeObjectCompositeKey);
+            if (executeObjectTask != null) {
+                gseAgentTasks.add(executeObjectTask);
             }
         } else {
-            gseAgentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
+            gseAgentTasks = scriptAgentTaskService.listTasks(stepInstance, executeCount, null);
         }
         return gseAgentTasks;
     }

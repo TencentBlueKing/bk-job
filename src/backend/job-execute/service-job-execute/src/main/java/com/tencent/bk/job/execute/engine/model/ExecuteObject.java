@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.execute.engine.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Getter;
@@ -46,11 +48,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExecuteObject implements Cloneable {
     /**
-     * 作业实例 ID
-     */
-    private Long jobInstanceId;
-
-    /**
      * 执行对象 ID
      */
     private Long id;
@@ -58,16 +55,39 @@ public class ExecuteObject implements Cloneable {
     /**
      * 执行对象类型
      *
-     * @see com.tencent.bk.job.common.constant.ExecutionObjectTypeEnum
+     * @see ExecuteObjectTypeEnum
      */
-    private int type;
+    private ExecuteObjectTypeEnum type;
+
+    /**
+     * 执行对象资源 ID（比如 hostId/containerId)
+     */
+    private String resourceId;
 
     /**
      * 容器
      */
     private Container container;
+
     /**
      * 主机
      */
     private HostDTO host;
+
+    public ExecuteObject(Long id, Container container) {
+        this.id = id;
+        this.type = ExecuteObjectTypeEnum.CONTAINER;
+        this.container = container;
+    }
+
+    public ExecuteObject(Long id, HostDTO host) {
+        this.id = id;
+        this.type = ExecuteObjectTypeEnum.HOST;
+        this.host = host;
+    }
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
+        return ExecuteObjectTypeEnum.valOf(type);
+    }
 }

@@ -22,40 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.service.TaskInstanceExecuteObjectService;
+import org.springframework.stereotype.Service;
 
-import java.util.Objects;
+import java.util.Collection;
+import java.util.List;
 
-/**
- * 执行对象逻辑 Key
- */
-public class ExecuteObjectKey {
-    private final String key;
+@Service
+public class TaskInstanceExecuteObjectServiceImpl implements TaskInstanceExecuteObjectService {
+    @Override
+    public void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects) {
 
-    private ExecuteObjectKey(String key) {
-        this.key = key;
-    }
-
-    public static ExecuteObjectKey ofHostKey(String agentId) {
-        return new ExecuteObjectKey(ExecuteObjectTypeEnum.HOST.getValue() + ":" + agentId);
-    }
-
-    public static ExecuteObjectKey ofContainerKey(String containerId) {
-        return new ExecuteObjectKey(ExecuteObjectTypeEnum.CONTAINER.getValue() + ":" + containerId);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ExecuteObjectKey that = (ExecuteObjectKey) o;
-        return key.equals(that.key);
+    public List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId) {
+        return null;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(key);
+    public ExecuteObject getExecuteObjectById(long executeObjectId) {
+        return null;
+    }
+
+    @Override
+    public ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType,
+                                          String resourceId) {
+        return null;
     }
 }

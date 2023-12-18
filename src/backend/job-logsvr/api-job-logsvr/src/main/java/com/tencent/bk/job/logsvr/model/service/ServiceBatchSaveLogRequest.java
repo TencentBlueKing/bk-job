@@ -46,7 +46,7 @@ public class ServiceBatchSaveLogRequest {
      * 执行日志
      */
     @ApiModelProperty(value = "执行日志", required = true)
-    private List<ServiceHostLogDTO> logs;
+    private List<ServiceExecuteObjectLogDTO> logs;
 
     /**
      * 日志类型

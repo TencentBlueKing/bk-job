@@ -30,9 +30,9 @@ import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogsDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 
 import java.util.List;
@@ -140,10 +140,10 @@ public interface LogService {
      * @param hosts          主机列表
      * @return 日志内容
      */
-    ServiceHostLogsDTO batchGetFileIpLogContent(long stepInstanceId,
-                                                int executeCount,
-                                                Integer batch,
-                                                List<HostDTO> hosts);
+    ServiceExecuteObjectLogsDTO batchGetFileIpLogContent(long stepInstanceId,
+                                                         int executeCount,
+                                                         Integer batch,
+                                                         List<HostDTO> hosts);
 
     /**
      * 根据关键字获取对应的ip
@@ -164,7 +164,7 @@ public interface LogService {
      * @param logTimeInMillSeconds 日志时间
      */
     void writeFileLogsWithTimestamp(long jobCreateTime,
-                                    List<ServiceHostLogDTO> hostFileLogs,
+                                    List<ServiceExecuteObjectLogDTO> hostFileLogs,
                                     Long logTimeInMillSeconds);
 
 
@@ -174,7 +174,7 @@ public interface LogService {
      * @param jobCreateTime 任务创建时间
      * @param hostFileLogs  文件任务执行日志
      */
-    void writeFileLogs(long jobCreateTime, List<ServiceHostLogDTO> hostFileLogs);
+    void writeFileLogs(long jobCreateTime, List<ServiceExecuteObjectLogDTO> hostFileLogs);
 
     /**
      * 构造上传文件任务日志

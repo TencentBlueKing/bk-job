@@ -22,37 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model.service;
+package com.tencent.bk.job.execute.service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 
+import java.util.Collection;
 import java.util.List;
 
-@ApiModel("主机执行日志-批量")
-@Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ServiceHostLogsDTO {
+public interface TaskInstanceExecuteObjectService {
     /**
-     * 作业步骤实例ID
+     * 批量保存执行对象
+     *
+     * @param executeObjects 执行对象
      */
-    @ApiModelProperty("步骤实例ID")
-    private Long stepInstanceId;
+    void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects);
 
     /**
-     * 执行次数
+     * 根据作业实例ID获取执行对象
+     *
+     * @param jobInstanceId 作业实例ID
+     * @return 执行对象
      */
-    @ApiModelProperty("执行次数")
-    private Integer executeCount;
+    List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId);
 
     /**
-     * 主机执行日志列表
+     * 根据执行对象ID批量查询执行对象
+     *
+     * @param executeObjectIds 执行对象ID集合
+     * @return 执行对象
      */
-    @ApiModelProperty(value = "主机执行日志")
-    @JsonProperty("ipLogs")
-    private List<ServiceHostLogDTO> ipLogs;
+    List<ExecuteObject> listExecuteObjectsByIds(Collection<Long> executeObjectIds);
 
+
+    /**
+     * 根据执行对象ID查询执行对象
+     *
+     * @param executeObjectId 执行对象ID
+     * @return 执行对象
+     */
+    ExecuteObject getExecuteObjectById(long executeObjectId);
+
+    /**
+     * 根据执行对象ID查询执行对象
+     *
+     * @param executeObjectType 执行对象类型
+     * @param resourceId        执行对象资源ID
+     * @return 执行对象
+     */
+    ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType, String resourceId);
 }

@@ -47,10 +47,10 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.db.RollingHostsBatchDO;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -80,8 +80,8 @@ public class GseStepEventHandler implements StepEventHandler {
     private final GseTaskService gseTaskService;
     private final RollingConfigService rollingConfigService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
+    private final FileExecuteObjectTaskService fileAgentTaskService;
 
     @Autowired
     public GseStepEventHandler(TaskInstanceService taskInstanceService,
@@ -91,8 +91,8 @@ public class GseStepEventHandler implements StepEventHandler {
                                GseTaskService gseTaskService,
                                RollingConfigService rollingConfigService,
                                StepInstanceRollingTaskService stepInstanceRollingTaskService,
-                               ScriptAgentTaskService scriptAgentTaskService,
-                               FileAgentTaskService fileAgentTaskService) {
+                               ScriptExecuteObjectTaskService scriptAgentTaskService,
+                               FileExecuteObjectTaskService fileAgentTaskService) {
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -286,7 +286,7 @@ public class GseStepEventHandler implements StepEventHandler {
         int executeCount = stepInstance.getExecuteCount();
         int batch = stepInstance.getBatch();
         if (stepInstance.isFirstRollingBatch()) {
-            // 如果是第一批次的执行，需要提前初始化所有批次的agent任务（作业详情查询主机任务列表需要)
+            // 如果是第一批次的执行，需要提前初始化所有批次的执行对象任务（作业详情查询主机任务列表需要)
             List<ExecuteObjectTask> agentTasks = new ArrayList<>();
             if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
                 List<RollingHostsBatchDO> serverBatchList =
@@ -313,10 +313,10 @@ public class GseStepEventHandler implements StepEventHandler {
         } else {
             // 滚动执行步骤除了第一批次，后续的批次仅更新 AgentTask 的 actualExecuteCount、gse_task_id
             if (stepInstance.isScriptStep()) {
-                scriptAgentTaskService.updateAgentTaskFields(stepInstanceId, executeCount, batch, executeCount,
+                scriptAgentTaskService.updateTaskFields(stepInstanceId, executeCount, batch, executeCount,
                     gseTaskId);
             } else if (stepInstance.isFileStep()) {
-                fileAgentTaskService.updateAgentTaskFields(stepInstanceId, executeCount, batch, executeCount,
+                fileAgentTaskService.updateTaskFields(stepInstanceId, executeCount, batch, executeCount,
                     gseTaskId);
             }
         }
@@ -562,9 +562,9 @@ public class GseStepEventHandler implements StepEventHandler {
     private List<ExecuteObjectTask> listTargetAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
         List<ExecuteObjectTask> agentTasks = Collections.emptyList();
         if (stepInstance.isScriptStep()) {
-            agentTasks = scriptAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null);
+            agentTasks = scriptAgentTaskService.listTasks(stepInstance.getId(), executeCount, null);
         } else if (stepInstance.isFileStep()) {
-            agentTasks = fileAgentTaskService.listAgentTasks(stepInstance.getId(), executeCount, null,
+            agentTasks = fileAgentTaskService.listTasks(stepInstance.getId(), executeCount, null,
                 FileTaskModeEnum.DOWNLOAD);
         }
         return agentTasks;
@@ -573,9 +573,9 @@ public class GseStepEventHandler implements StepEventHandler {
     private void saveAgentTasks(StepInstanceBaseDTO stepInstance, List<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isNotEmpty(agentTasks)) {
             if (stepInstance.isScriptStep()) {
-                scriptAgentTaskService.batchSaveAgentTasks(agentTasks);
+                scriptAgentTaskService.batchSaveTasks(agentTasks);
             } else if (stepInstance.isFileStep()) {
-                fileAgentTaskService.batchSaveAgentTasks(agentTasks);
+                fileAgentTaskService.batchSaveTasks(agentTasks);
             }
         }
     }

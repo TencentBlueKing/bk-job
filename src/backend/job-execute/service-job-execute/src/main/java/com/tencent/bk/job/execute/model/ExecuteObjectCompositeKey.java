@@ -22,52 +22,75 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model;
+package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import lombok.Builder;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.List;
-
+/**
+ * 执行对象复合 KEY
+ */
 @Getter
 @Setter
-@Builder
 @ToString
-public class FileLogQuery {
-    /**
-     * 作业实例创建时间,格式yyyy_MM_dd
-     */
-    private String jobCreateDate;
-    /**
-     * 作业步骤实例ID
-     */
-    private Long stepInstanceId;
-
-    /**
-     * 执行任务的主机ID列表
-     */
-    @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
-    private List<Long> hostIds;
+public class ExecuteObjectCompositeKey {
     /**
      * 执行对象实例 ID
      */
-    private List<Long> executeObjectIds;
+    private Long executeObjectId;
     /**
-     * 执行次数
+     * 执行对象类型
      */
-    private Integer executeCount;
+    private ExecuteObjectTypeEnum executeObjectType;
+
     /**
-     * 滚动执行批次
+     * 主机 ID
      */
-    private Integer batch;
+    private Long hostId;
+
     /**
-     * 分发模式
-     *
-     * @see com.tencent.bk.job.logsvr.consts.FileTaskModeEnum
+     * ipv4
      */
-    private Integer mode;
+    private String cloudIp;
+
+    /**
+     * 容器 ID
+     */
+    private Long containerId;
+
+    public static ExecuteObjectCompositeKey of(Long executeObjectId) {
+        ExecuteObjectCompositeKey query = new ExecuteObjectCompositeKey();
+        query.setExecuteObjectId(executeObjectId);
+        return query;
+    }
+
+    public static ExecuteObjectCompositeKey ofHost(Long hostId, String cloudIp) {
+        ExecuteObjectCompositeKey query = new ExecuteObjectCompositeKey();
+        query.setExecuteObjectType(ExecuteObjectTypeEnum.HOST);
+        query.setHostId(hostId);
+        return query;
+    }
+
+    public static ExecuteObjectCompositeKey ofContainer(Long containerId) {
+        ExecuteObjectCompositeKey query = new ExecuteObjectCompositeKey();
+        query.setExecuteObjectType(ExecuteObjectTypeEnum.CONTAINER);
+        query.setContainerId(containerId);
+        return query;
+    }
+
+    /**
+     * 获取执行对象资源 ID
+     */
+    public String getResourceId() {
+        switch (executeObjectType) {
+            case HOST:
+                return hostId != null ? String.valueOf(hostId) : null;
+            case CONTAINER:
+                return containerId != null ? String.valueOf(containerId) : null;
+            default:
+                return null;
+        }
+    }
 }

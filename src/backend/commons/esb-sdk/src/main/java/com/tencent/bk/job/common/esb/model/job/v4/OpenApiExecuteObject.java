@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.esb.model.job.v4;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import lombok.Data;
 
 /**
@@ -37,7 +38,7 @@ public class OpenApiExecuteObject {
     /**
      * 执行对象类型
      *
-     * @see com.tencent.bk.job.common.constant.ExecutionObjectTypeEnum
+     * @see ExecuteObjectTypeEnum
      */
     @JsonPropertyDescription("Execute object type")
     private Integer type;

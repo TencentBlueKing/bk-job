@@ -58,9 +58,9 @@ import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
+import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.ScriptHostLogContent;
 import com.tencent.bk.job.execute.model.StepExecutionDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
@@ -563,17 +563,17 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         stepExecutionDetailVO.setRunMode(executionDetail.getRunMode().getValue());
 
         List<ExecutionResultGroupVO> resultGroupVOS = new ArrayList<>();
-        for (AgentTaskResultGroupDTO resultGroup : executionDetail.getResultGroups()) {
+        for (ResultGroupDTO resultGroup : executionDetail.getResultGroups()) {
             ExecutionResultGroupVO executionResultGroupVO = new ExecutionResultGroupVO();
             executionResultGroupVO.setResultType(resultGroup.getStatus());
             executionResultGroupVO.setResultTypeDesc(
                 i18nService.getI18n(ExecuteObjectTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
             executionResultGroupVO.setTag(resultGroup.getTag());
-            executionResultGroupVO.setAgentTaskSize(resultGroup.getTotalAgentTasks());
+            executionResultGroupVO.setAgentTaskSize(resultGroup.getTotal());
 
             List<AgentTaskExecutionVO> agentTaskExecutionVOS = new ArrayList<>();
-            if (resultGroup.getAgentTasks() != null) {
-                for (ExecuteObjectTaskDetail agentTask : resultGroup.getAgentTasks()) {
+            if (resultGroup.getExecuteObjectTasks() != null) {
+                for (ExecuteObjectTaskDetail agentTask : resultGroup.getExecuteObjectTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
                     agentTaskVO.setHostId(agentTask.getHostId());
                     agentTaskVO.setAgentId(AgentUtils.displayAsRealAgentId(agentTask.getAgentId()));

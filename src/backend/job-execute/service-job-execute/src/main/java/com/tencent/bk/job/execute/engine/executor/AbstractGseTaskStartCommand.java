@@ -49,7 +49,7 @@ import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -121,7 +121,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
                                 TaskInstanceService taskInstanceService,
                                 GseTaskService gseTaskService,
-                                AgentTaskService agentTaskService,
+                                ExecuteObjectTaskService executeObjectTaskService,
                                 AccountService accountService,
                                 TaskInstanceVariableService taskInstanceVariableService,
                                 StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -143,7 +143,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         super(agentService,
             accountService,
             gseTaskService,
-            agentTaskService,
+            executeObjectTaskService,
             tracer,
             gseClient,
             taskInstance,
@@ -244,7 +244,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     }
 
     private void initAgentTasks() {
-        this.agentTasks = agentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
+        this.agentTasks = executeObjectTaskService.listTasksByGseTaskId(gseTask.getId());
         updateUninstalledAgentTasks(this.agentTasks);
 
         agentTasks.stream()
@@ -265,7 +265,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                 agentTask.setEndTime(System.currentTimeMillis());
                 agentTask.calculateTotalTime();
             });
-            agentTaskService.batchUpdateAgentTasks(agentTasks);
+            executeObjectTaskService.batchUpdateTasks(agentTasks);
         }
     }
 

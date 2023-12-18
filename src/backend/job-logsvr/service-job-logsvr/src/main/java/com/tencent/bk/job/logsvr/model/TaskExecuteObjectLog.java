@@ -24,19 +24,19 @@
 
 package com.tencent.bk.job.logsvr.model;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
-import java.util.StringJoiner;
 
 /**
- * 任务执行日志
+ * 执行对象任务执行日志
  */
 @Getter
 @Setter
-public class TaskHostLog {
+public class TaskExecuteObjectLog {
     /**
      * 作业实例创建时间,格式yyyy_MM_dd
      */
@@ -46,16 +46,29 @@ public class TaskHostLog {
      */
     private Long stepInstanceId;
     /**
+     * 执行对象 ID
+     */
+    private String executeObjectId;
+    /**
      * 主机ipv4,格式: 云区域ID:IPv4
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用, 新版本将不再使用该字段")
     private String ip;
     /**
      * 主机ipv6,格式: 云区域ID:IPv6
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用, 新版本将不再使用该字段")
     private String ipv6;
     /**
      * 主机ID
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用, 新版本将不再使用该字段")
     private Long hostId;
     /**
      * 执行次数
@@ -83,19 +96,4 @@ public class TaskHostLog {
      * @see com.tencent.bk.job.logsvr.consts.LogTypeEnum
      */
     private Integer logType;
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", TaskHostLog.class.getSimpleName() + "[", "]")
-            .add("jobCreateDate='" + jobCreateDate + "'")
-            .add("stepInstanceId=" + stepInstanceId)
-            .add("hostId='" + hostId + "'")
-            .add("ip='" + ip + "'")
-            .add("ipv6='" + ipv6 + "'")
-            .add("executeCount=" + executeCount)
-            .add("batch=" + batch)
-            .add("scriptContentLength=" + (StringUtils.isEmpty(scriptContent) ? 0 : scriptContent.length()))
-            .add("logType=" + logType)
-            .toString();
-    }
 }

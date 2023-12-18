@@ -24,11 +24,12 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.tables.GseFileAgentTask;
 import com.tencent.bk.job.execute.model.tables.records.GseFileAgentTaskRecord;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
@@ -59,6 +60,8 @@ import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 import static org.jooq.impl.DSL.count;
 
 @Repository
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
 public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
 
     private static final GseFileAgentTask T_GSE_FILE_AGENT_TASK = GseFileAgentTask.GSE_FILE_AGENT_TASK;
@@ -154,7 +157,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
+    public List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
         SelectConditionStep<?> selectConditionStep =
             CTX.select(T_GSE_FILE_AGENT_TASK.STATUS, count().as("ip_count"))
                 .from(T_GSE_FILE_AGENT_TASK)
@@ -169,13 +172,13 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             .orderBy(T_GSE_FILE_AGENT_TASK.STATUS.asc())
             .fetch();
 
-        List<AgentTaskResultGroupBaseDTO> resultGroups = new ArrayList<>();
+        List<ResultGroupBaseDTO> resultGroups = new ArrayList<>();
         result.forEach(record -> {
-            AgentTaskResultGroupBaseDTO resultGroup = new AgentTaskResultGroupBaseDTO();
+            ResultGroupBaseDTO resultGroup = new ResultGroupBaseDTO();
             resultGroup.setStatus(record.get(T_GSE_FILE_AGENT_TASK.STATUS));
             resultGroup.setTag("");
             Object ipCount = record.get("ip_count");
-            resultGroup.setTotalAgentTasks(ipCount == null ? 0 : (int) ipCount);
+            resultGroup.setTotal(ipCount == null ? 0 : (int) ipCount);
             resultGroups.add(resultGroup);
         });
         return resultGroups;

@@ -58,15 +58,15 @@ import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.Getter;
 import lombok.Setter;
@@ -172,7 +172,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                 ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                 TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                FileAgentTaskService fileAgentTaskService,
+                                FileExecuteObjectTaskService fileAgentTaskService,
                                 StepInstanceService stepInstanceService,
                                 GseClient gseClient,
                                 TaskInstanceDTO taskInstance,
@@ -280,7 +280,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             return analyseExecuteResult();
         }
         // 执行日志, Map<hostKey, 日志>
-        Map<Long, ServiceHostLogDTO> executionLogs = new HashMap<>();
+        Map<Long, ServiceExecuteObjectLogDTO> executionLogs = new HashMap<>();
 
         StopWatch watch = new StopWatch("analyse-gse-file-task");
         watch.start("analyse");
@@ -392,7 +392,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void analyseFileResult(String agentId,
                                    JobAtomicFileTaskResult result,
-                                   Map<Long, ServiceHostLogDTO> executionLogs,
+                                   Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
                                    boolean isDownloadResult) {
         ExecuteObjectTask agentTask = result.getAgentTask();
         if (agentTask.getStartTime() == null) {
@@ -417,7 +417,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     private void analyseRunningFileResult(JobAtomicFileTaskResult result,
-                                          Map<Long, ServiceHostLogDTO> executionLogs,
+                                          Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
                                           ExecuteObjectTask agentTask) {
         parseExecutionLog(result, executionLogs);
         agentTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
@@ -426,7 +426,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void analyseSuccessFileResult(String agentId,
                                           JobAtomicFileTaskResult result,
-                                          Map<Long, ServiceHostLogDTO> executionLogs,
+                                          Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
                                           boolean isDownloadResult) {
         AtomicFileTaskResultContent content = result.getResult().getContent();
         parseExecutionLog(result, executionLogs);
@@ -444,7 +444,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void analyseTerminatedFileResult(String agentId,
                                              JobAtomicFileTaskResult result,
-                                             Map<Long, ServiceHostLogDTO> executionLogs,
+                                             Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
                                              boolean isDownloadResult) {
         AtomicFileTaskResultContent content = result.getResult().getContent();
         parseExecutionLog(result, executionLogs);
@@ -583,7 +583,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     private void analyseFailedFileResult(JobAtomicFileTaskResult result,
-                                         Map<Long, ServiceHostLogDTO> executionLogs,
+                                         Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
                                          boolean isDownloadResult) {
         if (isDownloadResult) {
             dealDownloadTaskFail(result.getResult(), executionLogs);
@@ -593,14 +593,14 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     private void dealDownloadTaskFail(AtomicFileTaskResult result,
-                                      Map<Long, ServiceHostLogDTO> executionLogs) {
+                                      Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getContent();
         dealDownloadTaskFail(executionLogs, content.getSourceAgentId(), content.getStandardSourceFilePath(),
             content.getDestAgentId(), content.getStandardDestFilePath(), result.getErrorCode(),
             buildErrorLogContent(result), content.getStartTime(), content.getEndTime());
     }
 
-    private void dealDownloadTaskFail(Map<Long, ServiceHostLogDTO> executionLogs,
+    private void dealDownloadTaskFail(Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
                                       String sourceAgentId,
                                       String sourceFilePath,
                                       String targetAgentId,
@@ -653,7 +653,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * @param executionLogs 执行日志总Map
      */
     private void dealUploadTaskFail(JobAtomicFileTaskResult result,
-                                    Map<Long, ServiceHostLogDTO> executionLogs) {
+                                    Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getResult().getContent();
         String sourceAgentId = content.getSourceAgentId();
         JobFile srcFile = result.getSrcFile();
@@ -711,7 +711,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * @param fileNum    文件总数
      * @param successNum 成功分发的文件总数
      * @param isDownload 是否为下载结果
-     * @param agentTask  Agent任务
+     * @param agentTask  执行对象任务
      */
     private void analyseAgentStatus(int errorCode,
                                     String agentId,
@@ -785,7 +785,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     /**
-     * 设置源agent任务结束状态
+     * 设置源执行对象任务结束状态
      *
      * @param agentId   agentId
      * @param startTime 起始时间
@@ -810,7 +810,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     /*
      * 从执行结果生成执行日志
      */
-    private void parseExecutionLog(JobAtomicFileTaskResult result, Map<Long, ServiceHostLogDTO> executionLogs) {
+    private void parseExecutionLog(JobAtomicFileTaskResult result, Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getResult().getContent();
         Integer mode = content.getMode();
         JobFile srcFile = result.getSrcFile();
@@ -919,13 +919,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
 
-    private void addFileTaskLog(Map<Long, ServiceHostLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
+    private void addFileTaskLog(Map<Long, ServiceExecuteObjectLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
         boolean isDownloadResult = isDownloadResult(fileTaskLog.getMode());
         Long hostId = isDownloadResult ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
         String cloudIp = isDownloadResult ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp();
-        ServiceHostLogDTO hostLog = hostLogs.get(hostId);
+        ServiceExecuteObjectLogDTO hostLog = hostLogs.get(hostId);
         if (hostLog == null) {
-            hostLog = new ServiceHostLogDTO();
+            hostLog = new ServiceExecuteObjectLogDTO();
             hostLog.setStepInstanceId(stepInstanceId);
             hostLog.setHostId(hostId);
             hostLog.setCloudIp(cloudIp);
@@ -936,7 +936,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         hostLog.addFileTaskLog(fileTaskLog);
     }
 
-    private void writeFileTaskLogContent(Map<Long, ServiceHostLogDTO> executionLogs) {
+    private void writeFileTaskLogContent(Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
         if (!executionLogs.isEmpty()) {
             logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
         }
