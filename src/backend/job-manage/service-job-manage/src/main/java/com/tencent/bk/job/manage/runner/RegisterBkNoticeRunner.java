@@ -46,7 +46,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "bkNotice.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "bkNotice.enabled", havingValue = "true", matchIfMissing = true)
 public class RegisterBkNoticeRunner implements CommandLineRunner {
 
     private final IBkNoticeClient bkNoticeClient;
