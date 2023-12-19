@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.i18n.locale.BkConsts;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.notice.IBkNoticeClient;
@@ -53,7 +54,7 @@ public class WebNoticeResourceImpl implements WebNoticeResource {
         String userLang = JobContextUtil.getUserLang();
         String bkLang = LocaleUtils.getBkLang(userLang);
         if (bkLang == null) {
-            bkLang = LocaleUtils.BK_LANG_EN;
+            bkLang = BkConsts.HEADER_VALUE_LANG_EN;
         }
         List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements(bkLang, offset, limit).stream()
             .map(AnnouncementVO::fromDTO)
