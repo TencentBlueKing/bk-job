@@ -79,6 +79,9 @@ paas:
     url: __BK_PAAS_PUBLIC_URL__
   login:
     url: __BK_PAAS_PUBLIC_URL__/login/
+bkNotice:
+  # 是否对接消息通知中心
+  enabled: true
 job:
   security:
     service:

@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -39,6 +40,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(value = "bkNotice.enabled", havingValue = "true")
 public class RegisterBkNoticeRunner implements CommandLineRunner {
 
     private final IBkNoticeClient bkNoticeClient;

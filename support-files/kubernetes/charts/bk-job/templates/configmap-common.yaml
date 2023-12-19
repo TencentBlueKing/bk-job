@@ -90,6 +90,8 @@ data:
         {{- else }}
         url: {{ .Values.bkLoginUrl }}
         {{- end }}
+    bkNotice:
+      enabled: {{ .Values.bkNotice.enabled }}
     job:
       security:
         service:

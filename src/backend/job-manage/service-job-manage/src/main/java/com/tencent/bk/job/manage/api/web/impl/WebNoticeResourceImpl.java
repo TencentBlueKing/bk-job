@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.i18n.locale.BkConsts;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.notice.IBkNoticeClient;
+import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebNoticeResource;
 import com.tencent.bk.job.manage.model.web.vo.notice.AnnouncementVO;
@@ -35,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,14 +45,21 @@ import java.util.stream.Collectors;
 public class WebNoticeResourceImpl implements WebNoticeResource {
 
     private final IBkNoticeClient bkNoticeClient;
+    private final BkNoticeProperties bkNoticeProperties;
 
     @Autowired
-    public WebNoticeResourceImpl(IBkNoticeClient bkNoticeClient) {
+    public WebNoticeResourceImpl(@Autowired(required = false) IBkNoticeClient bkNoticeClient,
+                                 BkNoticeProperties bkNoticeProperties) {
         this.bkNoticeClient = bkNoticeClient;
+        this.bkNoticeProperties = bkNoticeProperties;
     }
 
     @Override
     public Response<List<AnnouncementVO>> getCurrentAnnouncements(String username, Integer offset, Integer limit) {
+        if (!bkNoticeProperties.isEnabled()) {
+            log.info("bkNotice not enabled, please check config value: bkNotice.enabled");
+            return Response.buildSuccessResp(Collections.emptyList());
+        }
         String userLang = JobContextUtil.getUserLang();
         String bkLang = LocaleUtils.getBkLang(userLang);
         if (bkLang == null) {

@@ -24,27 +24,18 @@
 
 package com.tencent.bk.job.common.notice.config;
 
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.notice.impl.BkNoticeClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Slf4j
-@Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({BkNoticeProperties.class})
-@ConditionalOnProperty(value = "bkNotice.enabled", havingValue = "true")
-public class NoticeAutoConfiguration {
+/**
+ * 消息通知中心配置
+ */
+@ConfigurationProperties(prefix = "bk-notice")
+@Getter
+@Setter
+public class BkNoticeProperties {
 
-    @Bean
-    public BkNoticeClient bkNoticeClient(MeterRegistry meterRegistry,
-                                         AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties) {
-        return new BkNoticeClient(meterRegistry, appProperties, bkApiGatewayProperties);
-    }
+    private boolean enabled = true;
 
 }

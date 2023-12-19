@@ -571,6 +571,11 @@ login:
     # 完成页面登录后前端通过Cookie提交的凭据的Key，也是后台向apiUrl获取用户信息提交的凭据的Key
     tokenName: "bk_token"
 
+# 消息通知中心配置
+bkNotice:
+  # 是否对接消息通知中心
+  enabled: true
+
 ## Job Common Config
 job:
   # 作业平台运行所有环境(prod,dev)与模式(kubernetes)，默认生产环境(prod)、K8s容器模式(kubernetes)
